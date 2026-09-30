@@ -7671,7 +7671,7 @@ Assign the table to a local, then the subtract, then index:
 
 ```c
 table = D_80112DFC;
-type  = Player_Status.field_26 - 2;
+type  = Player_Status.resourceVariant - 2;
 task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ```
 
@@ -27484,7 +27484,7 @@ if (arg0 == 0) {
         ...
     }
 } else {
-    Player_Status.peStateFlags &= ~arg1; /* nor a0, zero, s0 */
+    Player_Status.statusFlags &= ~arg1; /* nor a0, zero, s0 */
 }
 ```
 
@@ -33373,7 +33373,7 @@ addu   v0, v0, v1
 ```
 
 Write the constant grouped with the *other* operand:
-`D_80112E74[(s8)a->field_987 * 4 + (Player_Status.field_26 - 5)][frame]`.
+`D_80112E74[(s8)a->field_987 * 4 + (Player_Status.resourceVariant - 5)][frame]`.
 fold moves a constant term of the right-hand sum onto the left
 (`x * 4 + (y - 5)` becomes `(x * 4 - 5) + y`), and the chain then ties into
 one pseudo. The ungrouped `x * 4 + y - 5` keeps the constant last and
@@ -36558,7 +36558,7 @@ dst = q;
 
 `&table[i]` is `addu dst, table, i<<3`. `i = (i << 3) + (s32)table`
 keeps the add in `$v1`: `addu v1, v1, v0`. Split
-`Player_Status.field_21` / table / `field_91C` with `+r` barriers so
+`Player_Status.weapon` / table / `field_91C` with `+r` barriers so
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
 `addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
 `field_8` sit between `lhu` and `sh`. `Gp_AimPitchToLockAlt` is the example.
@@ -40026,7 +40026,7 @@ if (arg0->firstChild != NULL) {
 
 ## Assign a global's address to a local *inside* the conditional to stop loop.c hoisting it
 
-`Player_Status.field_8` accessed directly from inside a loop body gets its
+`Player_Status.exp` accessed directly from inside a loop body gets its
 `lui`/`addiu` hoisted to the preheader, costing a callee-saved register there
 and shifting every other allocation. The target computes it inside the
 `if (childObj->field_2C == 0x33)` arm instead. Writing
@@ -41695,7 +41695,7 @@ worse). Writing the guarded initialisation as a plain assignment
 
 ```c
 dir = 1;
-if (D_80112EF8[Player_Status.field_21] != 0) {
+if (D_80112EF8[Player_Status.weapon] != 0) {
     dir = actor->field_97F;
 }
 ```
@@ -41706,7 +41706,7 @@ all four references (89.7%, `regs=21`). The ternary — or the equivalent
 reference folds on its own (98.2%):
 
 ```c
-dir = D_80112EF8[Player_Status.field_21] != 0 ? actor->field_97F : 1;
+dir = D_80112EF8[Player_Status.weapon] != 0 ? actor->field_97F : 1;
 ```
 
 Both forms emit the identical `li s1, 1` in the branch delay slot followed by
@@ -41715,7 +41715,7 @@ except through the addressing mode.
 
 ## Split a `(a << N) | (b | K)` argument into two named locals
 
-`Gp_PlayObjSfx(obj, (Player_Status.field_21 << 16) | (variant | 0x20000001), 0)`
+`Gp_PlayObjSfx(obj, (Player_Status.weapon << 16) | (variant | 0x20000001), 0)`
 is reassociated by `fold` into `((x << 16) | K) | variant` and emits the
 constant `or` first. Hoisting only the constant part (`val = variant | K;`)
 stops the reassociation but still evaluates the shift into the argument
@@ -41724,7 +41724,7 @@ register, giving `or a1, a1, v0` where the target has `or a1, v0, a1`.
 Both halves need their own local, and the shift must be assigned *first*:
 
 ```c
-base = Player_Status.field_21 << 16;
+base = Player_Status.weapon << 16;
 val  = variant | 0x20000001;
 Gp_PlayObjSfx(arg0->extra->coords, base | val, 0);
 ```
@@ -52519,9 +52519,10 @@ close: all 120 permutations of the five stores, every position for the
 6-minute permuter run all topped out at 98.6%.
 
 `0x80073BAA` is `Player_Status + 0x22`, already declared as
-`PlayerStatus::field_22` in `include/main/wipsys.h` with the comment "packed
-into GameActor.field_124 (`func_801061F0`)" — the very use being decompiled.
-Writing `Player_Status.field_22` restores the dependence and the block matched
+`PlayerStatus::weaponSlotItem` in `include/main/wipsys_types.h`. It is the
+compact primary weapon-slot item, packed into `GameActor.field_124` by the
+very use being decompiled.
+Writing `Player_Status.weaponSlotItem` restores the dependence and the block matched
 with no other change.
 
 The tell is a `reorder` leftover that survives *both* every statement
@@ -55513,7 +55514,7 @@ byte global into the fourth:
 actor->field_95E = 4;
 actor->field_934 = 3;
 actor->field_940 = 0;
-actor->field_124 = Player_Status.field_22 | 0x21E00;
+actor->field_124 = Player_Status.weaponSlotItem | 0x21E00;
 ```
 
 The target keeps that order — `sh 0x95E`, `sw 0x934`, `lui %hi`, `sh 0x940`,
@@ -55763,7 +55764,7 @@ switch (actor->field_95E) {
 
 `func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
 `%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `Mc_SaveData.characterId`,
-`%hi`/`%lo` symbol names for `Player_Status.field_22` and `Mc_SaveData.field_22`,
+`%hi`/`%lo` symbol names for `Player_Status.weaponSlotItem` and `Mc_SaveData.field_22`,
 which link identically). Only the relative position of the pinned block matters:
 permuting `actor` / `coord` / `rec` among themselves changed nothing, because
 the pin, not source order, is what reprioritises the ready list.
@@ -56134,7 +56135,7 @@ zero. The whole diff was three `lui`/`lbu` pairs:
 `D_80073BAA` *is* `Wip_SysConfig.field_22` and `D_8007218A` *is*
 `Mc_SaveData.characterId`. When a function reads a byte from the middle of a
 `Player_Status` is at `0x80073B88` and `Mc_SaveData` at `0x80072168`, so
-`D_80073BAA` *is* `Player_Status.field_22` and `D_8007218A` *is*
+`D_80073BAA` *is* `Player_Status.weaponSlotItem` and `D_8007218A` *is*
 `Mc_SaveData.field_22`. When a function reads a byte from the middle of a
 global struct, splat has no symbol at that address and invents a `D_ADDR` name;
 the C references the struct symbol plus an offset. Both encode to the same
@@ -56205,7 +56206,7 @@ no statement permutation and 8500 permuter iterations could shift. The block
 was one straight run of stores plus one global load:
 
 ```c
-actor->field_124 = Player_Status.field_22 | 0x21900;
+actor->field_124 = Player_Status.weaponSlotItem | 0x21900;
 rec->field_10    = 0x100;
 rec->field_12    = 0x100;
 rec->field_4     = rec->field_C + D_80112F92;   /* extern u16 D_80112F92; */
@@ -56227,7 +56228,7 @@ with the last 0.1% being the cosmetic `%lo(D_80112F60+0x32)` vs `%lo(D_80112F92)
 spelling of the same relocation.
 
 `D_XXXXXXXX` for an interior address is splat inventing a name because it has no
-symbol there, exactly as for `Player_Status.field_22`. Writing the interior
+symbol there, exactly as for `Player_Status.weaponSlotItem`. Writing the interior
 symbol back as a scalar `extern` is not neutral: it silently changes alias
 behaviour. When a load of some `D_` global will not stay below a nearby struct
 store, find the array or struct that address is *inside* and index it.
@@ -64847,7 +64848,7 @@ shared `addiu` base and you want them folded apart. The opposite shows up when
 there is only **one** reference and the target still materialises the base.
 
 `ActorsShared8016a074` (matched as `func_actor_356100_8016A074`) reads
-`Player_Status.field_18` once, guarded by a state check, and the target computes
+`Player_Status.hp` once, guarded by a state check, and the target computes
 the address unconditionally in the entry block — ahead of the `bne` that can
 skip the read entirely:
 
@@ -64862,7 +64863,7 @@ bne   v1, v0, .Lret
 lh    v0, 0x18(a1)
 ```
 
-Written as `Player_Status.field_18` the single reference folds to a
+Written as `Player_Status.hp` the single reference folds to a
 `lui`/`lh %lo(Player_Status+0x18)` pair *inside* the guarded block, which is one
 instruction shorter and cost `delete=3`. GCC 2.8.1 does not sink an explicit
 address-of assignment, so hoisting is exactly what a pointer local buys:
@@ -64870,7 +64871,7 @@ address-of assignment, so hoisting is exactly what a pointer local buys:
 ```c
 PlayerStatus* cfg = &Player_Status;
 ...
-if (cfg->field_18 > 0) { ... }
+if (cfg->hp > 0) { ... }
 ```
 
 The tell is a `delete` penalty (not `reorder`) with the missing instructions
@@ -65558,7 +65559,7 @@ The tables land through `[0x3cdc, .rodata, gameflow]`, leaving the preceding two
 GameFlow function-pointer tables in plain `gameflow_1` rodata.
 
 
-## `D_80073B8C` is `Player_Status.field_4`: correct aliasing also removes an extra saved register
+## `D_80073B8C` is `Player_Status.coordMtx`: correct aliasing also removes an extra saved register
 
 `func_acropolis_cafeteria_80181A3C` reached 96.138% with a typed debris work
 block, four-case switch, `MATRIX` assignment and `ABS()` checks. A bare
@@ -65568,7 +65569,7 @@ move before the matrix copy. The overlapping pointer lifetimes then required
 barrier after the copy reached 99.763%, but kept the `lui` too late.
 
 The address is already typed: `Player_Status` is 0x80073B88, and its
-`field_4` is the player's matrix pointer. Using `Player_Status.field_4`
+`coordMtx` is the player's matrix pointer. Using `Player_Status.coordMtx`
 restores the aggregate-memory dependence and matches with no barrier or pin.
 The raw scratch score is 99.960% solely because `%hi(D_80073B8C)` /
 `%lo(D_80073B8C)` become `%hi(Player_Status)` / `%lo(Player_Status+4)`.
@@ -73283,7 +73284,7 @@ the original had:
 ```c
 PlayerStatus* cfg = &Player_Status;
 ...
-if (cfg->field_18 > 0) { ... }
+if (cfg->hp > 0) { ... }
 ```
 
 A single-use pointer like this usually loses global allocation and is
@@ -73815,7 +73816,7 @@ on it.
 The two addresses are `Mc_SaveData.characterId` (`Mc_SaveData = 0x80072168`) and
 `Wip_SysConfig.field_21` (`Wip_SysConfig = 0x80073B88`) - the spelling
 The two addresses are `Mc_SaveData.field_22` (`Mc_SaveData = 0x80072168`) and
-`Player_Status.field_21` (`Player_Status = 0x80073B88`) - the spelling
+`Player_Status.weapon` (`Player_Status = 0x80073B88`) - the spelling
 `include/gameplay/3CD8.h` already documents for this index. Writing them that
 way makes both loads `mem/s`, the exemption no longer applies, the store keeps
 those dependents, becomes ready two cycles later and lands where the ROM has it.
@@ -80241,9 +80242,9 @@ extra reference is to *read the value back out of the object it was just
 stored into*, instead of reusing the local that was stored:
 
 ```c
-dx        = Player_Status.field_4->t[0] - self->coord.t[0];
+dx        = Player_Status.coordMtx->t[0] - self->coord.t[0];
 delta->vx = dx;                                   /* stored ... */
-dz        = Player_Status.field_4->t[2] - self->coord.t[2];
+dz        = Player_Status.coordMtx->t[2] - self->coord.t[2];
 delta->vz = dz;
 distance  = SquareRoot0((delta->vx * delta->vx)   /* ... and read back */
                       + (delta->vz * delta->vz)); /* instead of dx*dx+dz*dz */
@@ -90758,7 +90759,7 @@ operand the source wrote it on:
 
 ```c
 offsetY           = scratch->view.t[1] + 0x600;
-scratch->delta.vy = Player_Status.field_4->t[1] - offsetY;
+scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;
 ```
 
 Inputs: `base_1.i` (90.4%, `regs=36 branch=4 insert=2 delete=4`), `base_2.i` (100%).
@@ -107876,7 +107877,7 @@ pos->vx = config->field_4->t[0] - coord->coord.t[0];   /* MATRIX.t is `long` */
 ```
 
 ```asm
-lhu  $v0, 0x14($v1)      /* Player_Status.field_4->t[0] */
+lhu  $v0, 0x14($v1)      /* Player_Status.coordMtx->t[0] */
 lhu  $v1, 0x18($a1)      /* coord->coord.t[0] */
 subu $v0, $v0, $v1
 sh   $v0, -0x10($s0)     /* into pos->vx, an s16 member */
@@ -108564,11 +108565,11 @@ Inputs: `base_9.i` SHA256
 `0d17afd01ddd9ca2f2e0d3b05f1ff1642bf6ba27e7d82eaa1212943d7d057cc8`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A repeated `Player_Status.field_18` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
+## A repeated `Player_Status.hp` read needs a `PlayerStatus*` local, and a signed halfword widened through `(u16)` gives `lhu` for free (func_actor_401000_801385B0, 2026-09-16)
 
 Two independent source forms, both worth about 20 points on this function.
 
-**The config pointer.** Three `Player_Status.field_18` reads written as direct member accesses gave
+**The config pointer.** Three `Player_Status.hp` reads written as direct member accesses gave
 `lui v0,%hi(Player_Status)` + `lh v1,%lo(Player_Status+0x18)(v0)` at each site, three times over, and
 `index->field_20` (the `GpEnemy*`) sitting in `$s7`. The target materialises the address once in the
 prologue and reads `lh v1,0x18(s7)`:
@@ -108584,7 +108585,7 @@ local assigned from `&Player_Status` at the top of the function:
 ```c
 PlayerStatus* cfg = &Player_Status;
 ...
-if (cfg->field_18 > 0) { ... }
+if (cfg->hp > 0) { ... }
 ```
 
 The address becomes one pseudo live to the last use, so it takes a callee-saved register of its own
@@ -112424,7 +112425,7 @@ out of `MATRIX::t[]` — a `long t[3]`, `0x14` in a bare `MATRIX` and `0x18` in 
 `GfxCoord`, whose `coord` starts at +4:
 
 ```
-    lhu   v0,0x14($v1)         ; Player_Status.field_4->t[0]
+    lhu   v0,0x14($v1)         ; Player_Status.coordMtx->t[0]
     lhu   v1,0x18($a2)         ; coord->coord.t[0]
     subu  v0,v0,v1
     sh    v0,-0x10($a3)

@@ -2096,7 +2096,7 @@ void func_actor_120300_801337C4(Task* arg0)
             if ((s16)Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
                 if (!((s16)evtId & 0x8000)) {
                     if ((evtId & 0x7FFF) == 5) {
-                        ready = Player_Status.field_24 != 0;
+                        ready = Player_Status.interactionPressed != 0;
                     }
                 }
             }

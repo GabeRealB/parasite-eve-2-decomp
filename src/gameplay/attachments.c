@@ -107,7 +107,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = p->field_26 == 4;
+            cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData[0].state.attachLevels;
@@ -118,7 +118,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->peStateFlags & 0x80) {
+        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
             if (ret < 3) {
                 ret++;
             }

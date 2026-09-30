@@ -1241,7 +1241,7 @@ static void Actor02600_Fn00FA0(Task* arg0)
                 delta->delta.vz         = dz;
                 dx                      = scratchEnd[-1].delta.vx;
                 distance                = SquareRoot0((dx * dx) + (dz * dz));
-                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Player_Status.peStateFlags & 1)) {
+                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
                     work->field_39A = 4;
                     work->field_39C = 0;
                     work->field_392 = 3;

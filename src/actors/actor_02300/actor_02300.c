@@ -2536,7 +2536,7 @@ void Actor02300_Fn02518(Task* arg0)
             }
             break;
         case 2:
-            Gp_TriggerPeState(0, 0x10);
+            Gp_TriggerPeState(0, PLAYER_STATUS_SILENCE);
             work->field_6A6 = 2;
             work->field_6A8 = 0;
             work->field_694 = 2;
@@ -2979,7 +2979,7 @@ void Actor02300_Fn0327C(Task* actor)
             } else {
                 random      = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState = random;
-                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Player_Status.peStateFlags & 0x10) &&
+                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Player_Status.statusFlags & PLAYER_STATUS_SILENCE) &&
                     work->field_6C4 != 0) {
                     work->field_6A6 = 5;
                     work->field_6A8 = 0;

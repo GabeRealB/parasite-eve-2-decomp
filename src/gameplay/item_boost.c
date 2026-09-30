@@ -277,12 +277,12 @@ static inline void _gpRecalcMaxHp(void)
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;
-    if (cfg->armor != 0) {
+    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
         cfg->hpMax = val;
     }
-    if (cfg->hpMax >= 0xFB) {
-        cfg->hpMax = 0xFA;
+    if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+        cfg->hpMax = PLAYER_STATUS_STAT_MAX;
     }
     if (cfg->hp > cfg->hpMax) {
         cfg->hp = cfg->hpMax;
@@ -433,12 +433,12 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;
-        if (cfg->armor != 0) {
+        if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
             val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
             cfg->hpMax = val;
         }
-        if (cfg->hpMax >= 0xFB) {
-            cfg->hpMax = 0xFA;
+        if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+            cfg->hpMax = PLAYER_STATUS_STAT_MAX;
         }
         if (cfg->hpMax < hp) {
             cfg->hp = cfg->hpMax;
@@ -467,7 +467,7 @@ s32 func_800B9D80(s32 arg0)
     stateA = 0;
     stateB = 0;
     cfg    = &Player_Status;
-    if (cfg->armor != 0) {
+    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         attr  = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
         flags = attr->flags;
     }
@@ -576,9 +576,9 @@ void Gp_ResetInventory(void)
     s32           j;
 
     status = &Player_Status;
-    if (status->weapon != 0) {
+    if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
         _gpClearEquipSlot(status->weapon + 0x7F);
-        status->weapon = 0;
+        status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
     _gpClearScanItems(&Gp_DefaultScan);
@@ -609,9 +609,9 @@ void Gp_ClearInventory(void)
     s32                 i;
 
     status = &Player_Status;
-    if (status->weapon != 0) {
+    if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
         _gpClearEquipSlot(status->weapon + 0x7F);
-        status->weapon = 0;
+        status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
     _gpClearScanItems(&Gp_DefaultScan);
@@ -653,7 +653,7 @@ void Gp_InitModeEquip(void)
 
     cfg = &Player_Status;
     acc = 0;
-    if (cfg->weapon == 0) {
+    if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         scan = &Mc_SaveData[0].state.carriedItems;
         item = 0x81;
         switch (scan->tableId) {

@@ -178,7 +178,7 @@ static inline s32 _gpIsEquippedItem(s32 id)
     p   = &Player_Status;
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
-        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
+        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
          ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
           (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;

@@ -125,7 +125,7 @@ void func_800AD6BC(void)
                         } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {
                             D_80114CF8 = 1;
                         }
-                    } else if (cfg->field_24 != 0) {
+                    } else if (cfg->interactionPressed != 0) {
                         if (!(gGameSession->padPressed & 0x10)) {
                             if (!(Gp_DirFlags & 0x4000)) {
                                 if (D_80114D08 == 0) {
@@ -257,11 +257,11 @@ void Gp_SetupDirWarp(void)
                 Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
                 Gp_WarpLoc.flagId    = rec.field_36;
                 Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-                D_80114CF8    = 0;
-                Gp_DirNibble  = 0;
-                Gp_DirByte    = 0;
-                Gp_DirFlags   = 0;
-                cfg->field_24 = 0;
+                D_80114CF8              = 0;
+                Gp_DirNibble            = 0;
+                Gp_DirByte              = 0;
+                Gp_DirFlags             = 0;
+                cfg->interactionPressed = 0;
                 if (D_80114CF0 != 0 && cfg->hp > 0) {
                     SndEvt_EnqueueType6(D_80114CF0, 0, 0);
                 }
@@ -290,11 +290,11 @@ void Gp_SetupDirWarp(void)
             Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
             Gp_WarpLoc.flagId    = rec.field_36;
             Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-            D_80114CF8    = 0;
-            Gp_DirNibble  = 0;
-            Gp_DirByte    = 0;
-            Gp_DirFlags   = 0;
-            cfg->field_24 = 0;
+            D_80114CF8              = 0;
+            Gp_DirNibble            = 0;
+            Gp_DirByte              = 0;
+            Gp_DirFlags             = 0;
+            cfg->interactionPressed = 0;
             break;
     }
 }
@@ -364,11 +364,11 @@ void Gp_CommitWarp(void)
 
     if (D_80114CF4 == 0) {
         Gp_DispatchMsg(slot3, 0x3F1, 0, 0);
-        D_80114CF8    = 0;
-        Gp_DirNibble  = 0;
-        Gp_DirByte    = 0;
-        Gp_DirFlags   = 0;
-        cfg->field_24 = 0;
+        D_80114CF8              = 0;
+        Gp_DirNibble            = 0;
+        Gp_DirByte              = 0;
+        Gp_DirFlags             = 0;
+        cfg->interactionPressed = 0;
     } else {
         Gp_DirPhase++;
     }

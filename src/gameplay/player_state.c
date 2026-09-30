@@ -331,24 +331,24 @@ void func_80109FC4(Task* arg0)
     s32        temp;
     s32        mode;
 
-    flags = Player_Status.peStateFlags;
+    flags = Player_Status.statusFlags;
     actor = arg0->work;
     if (flags != 0) {
-        if (flags & 1) {
+        if (flags & PLAYER_STATUS_DARKNESS) {
             temp             = (u16)actor->field_944 - 1;
             actor->field_944 = temp;
             if ((s16)temp <= 0) {
-                flags &= ~1;
+                flags &= ~PLAYER_STATUS_DARKNESS;
             }
         }
-        if (flags & 2) {
+        if (flags & PLAYER_STATUS_PARALYSIS) {
             temp             = (u16)actor->field_946 - 1;
             actor->field_946 = temp;
             if ((s16)temp <= 0) {
-                flags &= ~2;
+                flags &= ~PLAYER_STATUS_PARALYSIS;
             }
         }
-        if (flags & 4) {
+        if (flags & PLAYER_STATUS_POISON) {
             temp             = actor->field_98D - 1;
             actor->field_98D = temp;
             if ((s8)temp <= 0) {
@@ -365,14 +365,14 @@ void func_80109FC4(Task* arg0)
             temp             = (u16)actor->field_948 - 1;
             actor->field_948 = temp;
             if ((s16)temp <= 0) {
-                flags &= ~4;
+                flags &= ~PLAYER_STATUS_POISON;
             }
         }
-        if (flags & 0x10) {
+        if (flags & PLAYER_STATUS_SILENCE) {
             temp             = (u16)actor->field_94A - 1;
             actor->field_94A = temp;
             if ((s16)temp <= 0) {
-                flags &= ~0x10;
+                flags &= ~PLAYER_STATUS_SILENCE;
             }
         }
         if (flags & 0x20) {
@@ -382,23 +382,23 @@ void func_80109FC4(Task* arg0)
                 flags &= ~0x20;
             }
         }
-        if (flags & 0x40) {
+        if (flags & PLAYER_STATUS_CONFUSION) {
             temp             = (u16)actor->field_94E - 1;
             actor->field_94E = temp;
             if ((s16)temp <= 0) {
-                flags &= ~0x40;
+                flags &= ~PLAYER_STATUS_CONFUSION;
             }
         }
-        if (flags & 0x80) {
+        if (flags & PLAYER_STATUS_BERSERKER) {
             if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) {
                 temp             = (u16)actor->field_950 - 1;
                 actor->field_950 = temp;
                 if ((s16)temp <= 0) {
-                    flags &= ~0x80;
+                    flags &= ~PLAYER_STATUS_BERSERKER;
                 }
             }
         }
-        Player_Status.peStateFlags = flags;
+        Player_Status.statusFlags = flags;
     }
 }
 
@@ -411,72 +411,72 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
     mask = arg1;
     if (arg0 == 0) {
         work = gameGetPtrSlot(3);
-        if (arg1 & 1) {
+        if (arg1 & PLAYER_STATUS_DARKNESS) {
             inner = work->work;
             if (func_800B9D80(0x101) == 0) {
-                Player_Status.peStateFlags |= 1;
-                inner->field_944            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_DARKNESS;
+                inner->field_944           = 0x258;
                 func_800EC9C8();
                 Gp_DetachLinkNode(work);
                 Gp_SetState1CPe(1);
             }
         }
-        if (mask & 2) {
+        if (mask & PLAYER_STATUS_PARALYSIS) {
             inner = work->work;
             if (func_800B9D80(0x102) == 0) {
-                Player_Status.peStateFlags |= 2;
-                inner->field_946            = 0x258;
-                inner->field_98E            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_PARALYSIS;
+                inner->field_946           = 0x258;
+                inner->field_98E           = 0;
                 func_8010B210(work);
                 Gp_SetState1CPe(2);
             }
         }
-        if (mask & 4) {
+        if (mask & PLAYER_STATUS_POISON) {
             inner = work->work;
             if (func_800B9D80(0x104) == 0) {
-                Player_Status.peStateFlags |= 4;
-                inner->field_948            = 0x258;
-                inner->field_98D            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_POISON;
+                inner->field_948           = 0x258;
+                inner->field_98D           = 0;
                 Gp_SetState1CPe(4);
             }
         }
-        if (mask & 0x10) {
+        if (mask & PLAYER_STATUS_SILENCE) {
             inner = work->work;
             if (func_800B9D80(0x108) == 0) {
-                Player_Status.peStateFlags |= 0x10;
-                inner->field_94A            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_SILENCE;
+                inner->field_94A           = 0x258;
                 Gp_SetState1CPe(0x10);
             }
         }
         if (mask & 0x20) {
             inner = work->work;
             if (func_800B9D80(0x110) == 0) {
-                Player_Status.peStateFlags |= 0x20;
-                inner->field_94C            = 0x258;
+                Player_Status.statusFlags |= 0x20;
+                inner->field_94C           = 0x258;
                 Gp_SetState1CPe(0x20);
             }
         }
-        if (mask & 0x40) {
+        if (mask & PLAYER_STATUS_CONFUSION) {
             inner = work->work;
             if (func_800B9D80(0x120) == 0) {
-                Player_Status.peStateFlags |= 0x40;
-                inner->field_94E            = 0x258;
-                inner->field_990            = (rand() & 0x1F) + 0xA;
-                inner->field_970            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_CONFUSION;
+                inner->field_94E           = 0x258;
+                inner->field_990           = (rand() & 0x1F) + 0xA;
+                inner->field_970           = 0;
                 Gp_SetState1CPe(0x40);
             }
         }
-        if (mask & 0x80) {
+        if (mask & PLAYER_STATUS_BERSERKER) {
             inner = work->work;
             if (func_800B9D80(0x140) == 0) {
-                Player_Status.peStateFlags |= 0x80;
-                inner->field_950            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_BERSERKER;
+                inner->field_950           = 0x258;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
             }
         }
     } else {
-        Player_Status.peStateFlags &= ~arg1;
+        Player_Status.statusFlags &= ~arg1;
     }
 }
 
@@ -496,8 +496,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x101) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 1;
-                inner->field_944            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_DARKNESS;
+                inner->field_944           = 0x258;
                 func_800EC9C8();
                 Gp_DetachLinkNode(arg0);
                 Gp_SetState1CPe(1);
@@ -510,9 +510,9 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x102) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 2;
-                inner->field_946            = 0x258;
-                inner->field_98E            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_PARALYSIS;
+                inner->field_946           = 0x258;
+                inner->field_98E           = 0;
                 func_8010B210(arg0);
                 Gp_SetState1CPe(2);
                 break;
@@ -524,9 +524,9 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x104) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 4;
-                inner->field_948            = 0x258;
-                inner->field_98D            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_POISON;
+                inner->field_948           = 0x258;
+                inner->field_98D           = 0;
                 Gp_SetState1CPe(4);
                 break;
             }
@@ -540,8 +540,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x108) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 0x10;
-                inner->field_94A            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_SILENCE;
+                inner->field_94A           = 0x258;
                 Gp_SetState1CPe(0x10);
                 break;
             }
@@ -552,8 +552,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x110) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 0x20;
-                inner->field_94C            = 0x258;
+                Player_Status.statusFlags |= 0x20;
+                inner->field_94C           = 0x258;
                 Gp_SetState1CPe(0x20);
                 break;
             }
@@ -564,10 +564,10 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x120) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 0x40;
-                inner->field_94E            = 0x258;
-                inner->field_990            = (rand() & 0x1F) + 0xA;
-                inner->field_970            = 0;
+                Player_Status.statusFlags |= PLAYER_STATUS_CONFUSION;
+                inner->field_94E           = 0x258;
+                inner->field_990           = (rand() & 0x1F) + 0xA;
+                inner->field_970           = 0;
                 Gp_SetState1CPe(0x40);
                 break;
             }
@@ -578,8 +578,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 if (func_800B9D80(0x140) != 0) {
                     return;
                 }
-                Player_Status.peStateFlags |= 0x80;
-                inner->field_950            = 0x258;
+                Player_Status.statusFlags |= PLAYER_STATUS_BERSERKER;
+                inner->field_950           = 0x258;
                 Gp_SetState1CPe(0x80);
                 func_800ECA54();
                 break;
@@ -638,7 +638,7 @@ void func_8010A670(Task* arg0)
                 }
             } else {
                 mode = inner->field_956;
-                if (mode == 2 && !(Player_Status.peStateFlags & 1) && (rand() & 3)) {
+                if (mode == 2 && !(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) && (rand() & 3)) {
                     node = Gp_FindLockNode(arg0);
                     if (node != NULL) {
                         inner->field_97E = mode;
@@ -861,8 +861,8 @@ static void func_8010AE98(Task* arg0)
     if (func_800B9D80(0x101) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 1;
-    inner->field_944            = 0x258;
+    Player_Status.statusFlags |= PLAYER_STATUS_DARKNESS;
+    inner->field_944           = 0x258;
     func_800EC9C8();
     Gp_DetachLinkNode(arg0);
     Gp_SetState1CPe(1);
@@ -876,9 +876,9 @@ static void func_8010AF04(Task* arg0)
     if (func_800B9D80(0x102) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 2;
-    inner->field_946            = 0x258;
-    inner->field_98E            = 0;
+    Player_Status.statusFlags |= PLAYER_STATUS_PARALYSIS;
+    inner->field_946           = 0x258;
+    inner->field_98E           = 0;
     func_8010B210(arg0);
     Gp_SetState1CPe(2);
 }
@@ -891,9 +891,9 @@ static void func_8010AF6C(Task* arg0)
     if (func_800B9D80(0x104) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 4;
-    inner->field_948            = 0x258;
-    inner->field_98D            = 0;
+    Player_Status.statusFlags |= PLAYER_STATUS_POISON;
+    inner->field_948           = 0x258;
+    inner->field_98D           = 0;
     Gp_SetState1CPe(4);
 }
 
@@ -905,8 +905,8 @@ static void func_8010AFC0(Task* arg0)
     if (func_800B9D80(0x108) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 0x10;
-    inner->field_94A            = 0x258;
+    Player_Status.statusFlags |= PLAYER_STATUS_SILENCE;
+    inner->field_94A           = 0x258;
     Gp_SetState1CPe(0x10);
 }
 
@@ -918,8 +918,8 @@ static void func_8010B010(Task* arg0)
     if (func_800B9D80(0x110) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 0x20;
-    inner->field_94C            = 0x258;
+    Player_Status.statusFlags |= 0x20;
+    inner->field_94C           = 0x258;
     Gp_SetState1CPe(0x20);
 }
 
@@ -931,10 +931,10 @@ static void func_8010B060(Task* arg0)
     if (func_800B9D80(0x120) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 0x40;
-    inner->field_94E            = 0x258;
-    inner->field_990            = (rand() & 0x1F) + 0xA;
-    inner->field_970            = 0;
+    Player_Status.statusFlags |= PLAYER_STATUS_CONFUSION;
+    inner->field_94E           = 0x258;
+    inner->field_990           = (rand() & 0x1F) + 0xA;
+    inner->field_970           = 0;
     Gp_SetState1CPe(0x40);
 }
 
@@ -946,8 +946,8 @@ static void func_8010B0C8(Task* arg0)
     if (func_800B9D80(0x140) != 0) {
         return;
     }
-    Player_Status.peStateFlags |= 0x80;
-    inner->field_950            = 0x258;
+    Player_Status.statusFlags |= PLAYER_STATUS_BERSERKER;
+    inner->field_950           = 0x258;
     Gp_SetState1CPe(0x80);
     func_800ECA54();
 }
@@ -1732,51 +1732,51 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
 s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request)
 {
     PlayerStatus* playerStatus;
-    u8            saved;
+    u8            savedInteractionPressed;
 
-    playerStatus = &Player_Status;
-    saved        = playerStatus->field_24;
+    playerStatus            = &Player_Status;
+    savedInteractionPressed = playerStatus->interactionPressed;
     func_80104B54(task, msgId, request);
-    playerStatus->field_24 = saved;
+    playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
 s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
 {
     PlayerStatus* p;
-    u8            saved;
+    u8            savedInteractionPressed;
 
-    p     = &Player_Status;
-    saved = p->field_24;
+    p                       = &Player_Status;
+    savedInteractionPressed = p->interactionPressed;
     func_80104E00(arg0, arg1, transform, arg3);
-    p->field_24 = saved;
+    p->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
 s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
-    u8            saved;
+    u8            savedInteractionPressed;
 
-    p     = &Player_Status;
-    saved = p->field_24;
+    p                       = &Player_Status;
+    savedInteractionPressed = p->interactionPressed;
     Gp_SetActorDest(arg0, arg1, transform, arg3);
-    p->field_24 = saved;
+    p->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
 s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg* arg3)
 {
     PlayerStatus* p;
-    u8            saved;
+    u8            savedInteractionPressed;
     GameActor*    actor;
 
-    p     = &Player_Status;
-    actor = arg0->work;
-    saved = p->field_24;
+    p                       = &Player_Status;
+    actor                   = arg0->work;
+    savedInteractionPressed = p->interactionPressed;
     Gp_SetActorDest(arg0, arg1, transform, arg3);
-    p->field_24      = saved;
-    actor->field_956 = 8;
+    p->interactionPressed = savedInteractionPressed;
+    actor->field_956      = 8;
     return 0;
 }
 
@@ -1811,12 +1811,12 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GpDelayArg* arg2)
 void Gp_MoveActorByKeep(Task* arg0, s32 arg1, GpMoveArg* arg2)
 {
     PlayerStatus* p;
-    u8            saved;
+    u8            savedInteractionPressed;
 
-    p     = &Player_Status;
-    saved = p->field_24;
+    p                       = &Player_Status;
+    savedInteractionPressed = p->interactionPressed;
     Gp_MoveActorBy(arg0, arg1, arg2);
-    p->field_24 = saved;
+    p->interactionPressed = savedInteractionPressed;
 }
 
 s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)

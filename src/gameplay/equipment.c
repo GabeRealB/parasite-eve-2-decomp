@@ -457,7 +457,7 @@ void Gp_RecalcMaxMp(void)
         }
         levels++;
     }
-    if (cfg->armor != 0) {
+    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         acc += Gp_ModStatAttrs[cfg->armor - 1].field_6;
     }
     rows       = Gp_StatRows;
@@ -465,8 +465,8 @@ void Gp_RecalcMaxMp(void)
     acc       += rows[save->state.gameMode].field_4;
     acc       += save->state.mpBonus;
     cfg->mpMax = acc;
-    if ((s16)acc >= 0xFB) {
-        cfg->mpMax = 0xFA;
+    if ((s16)acc >= PLAYER_STATUS_STAT_MAX + 1) {
+        cfg->mpMax = PLAYER_STATUS_STAT_MAX;
     }
     if (cfg->mp > cfg->mpMax) {
         cfg->mp = cfg->mpMax;
@@ -489,7 +489,7 @@ void Gp_EquipMod(s32 arg0)
             found = Gp_FindItemById(arg0);
             if (found != NULL) {
                 found->attachSlot = INVENTORY_ATTACHMENT_EQUIPPED_ARMOR;
-                if (cfg->armor != 0) {
+                if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
                     found = Gp_FindItemById(cfg->armor + 0x5F);
                     if (found != NULL) {
                         found->attachSlot = INVENTORY_ATTACHMENT_NONE;
@@ -510,12 +510,12 @@ void Gp_EquipMod(s32 arg0)
                     p->hpMax = val;
                     val     += save->state.hpBonus;
                     p->hpMax = val;
-                    if (p->armor != 0) {
+                    if (p->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
                         val     += Gp_ModStatAttrs[p->armor - 1].field_4;
                         p->hpMax = val;
                     }
-                    if (p->hpMax >= 0xFB) {
-                        p->hpMax = 0xFA;
+                    if (p->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+                        p->hpMax = PLAYER_STATUS_STAT_MAX;
                     }
                     if (p->hp > p->hpMax) {
                         p->hp = p->hpMax;
@@ -570,12 +570,12 @@ void Gp_EquipMod(s32 arg0)
         cfg->hpMax = val;
         val       += save->state.hpBonus;
         cfg->hpMax = val;
-        if (cfg->armor != 0) {
+        if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
             val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
             cfg->hpMax = val;
         }
-        if (cfg->hpMax >= 0xFB) {
-            cfg->hpMax = 0xFA;
+        if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+            cfg->hpMax = PLAYER_STATUS_STAT_MAX;
         }
         if (cfg->hp > cfg->hpMax) {
             cfg->hp = cfg->hpMax;

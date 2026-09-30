@@ -332,7 +332,7 @@
 #include "rooms/shelter_r49.h"
 
 /// 5-byte table at `Gp_ConfigCdTable`. `Gp_EnqueueConfigCd` copies it to the stack and
-/// indexes it 1-based by `Player_Status.field_26`; the byte is CdCmd 0x21
+/// indexes it 1-based by `Player_Status.resourceVariant`; the byte is CdCmd 0x21
 /// param2[0].
 typedef struct _GpTbl5 {
     /* 0x0 */ u8 field_0[5];
@@ -912,7 +912,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
-        param2[0] = table.field_0[Player_Status.field_26 - 1];
+        param2[0] = table.field_0[Player_Status.resourceVariant - 1];
         if ((u8)arg0 == 0) {
             param2[1] = 0;
         } else {

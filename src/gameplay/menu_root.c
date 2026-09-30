@@ -403,7 +403,7 @@ void Gp_MenuRootTask(Task* arg0)
             cfg        = &Player_Status;
             D_80114DE8 = cfg->weapon;
             D_80114DE4 = cfg->weaponSlotItem;
-            if (cfg->weapon != 0) {
+            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             Gp_AgeFlag119Void();
@@ -541,7 +541,7 @@ void Gp_MenuRootTask(Task* arg0)
             Mem_InitAux();
             cfg = &Player_Status;
             Gp_SyncHeldRelated();
-            if (cfg->weapon != 0) {
+            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 == cfg->weapon) && (D_80114DE4 == cfg->weaponSlotItem) &&
@@ -575,7 +575,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             cfg             = &Player_Status;
             secondaryItemId = -1;
-            if (cfg->weapon != 0) {
+            if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||

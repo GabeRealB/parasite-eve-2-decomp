@@ -33,34 +33,58 @@ typedef struct {
 } PlayerPos;
 STATIC_ASSERT_SIZEOF(PlayerPos, 0x8);
 
-/// The player character: position, health, energy and equipment, plus the
-/// memory-card backup of that 0x40-byte record. Mc_BufferSlots[2] copies,
-/// checksums and compares both halves during save/load.
+/// Serialized byte length of each player-state copy, including its checksum header.
+enum { PLAYER_STATUS_SAVE_RECORD_BYTES = 0x40 };
+
+/// Upper limit applied when recalculating maximum player HP and MP.
+enum { PLAYER_STATUS_STAT_MAX = 250 };
+
+/// Empty selection in the compact weapon, primary-item and armour fields.
+enum { PLAYER_STATUS_EQUIPMENT_NONE = 0 };
+
+/// Timed player status-effect masks stored in `PlayerStatus::statusFlags`.
 ///
-/// Every overlay family reads this, so it is the one block of game state that
-/// is always resident rather than belonging to a stage or an actor.
-typedef struct _PlayerStatus {
-    u16       checksum;         // Signed-byte sum of the current record after this header
-    u16       checksumComplement;
-    MATRIX*   coordMtx;         // The player actor's coordinate matrix
-    s32       exp;              // Experience available to spend on Parasite Energy levels
-    s32       bp;               // Bounty points, the currency shops charge in
-    PlayerPos pos;              // Position and facing, as carried into the save
-    s16       hp;               // Current health (clamped down to hpMax)
-    s16       hpMax;            // Maximum health (level base + training + armour, capped at 250)
-    s16       mp;               // Current Parasite Energy (clamped down to mpMax)
-    s16       mpMax;            // Maximum Parasite Energy (capped at 250)
-    u8        field_20;         // Zeroed at init; nothing else in the decompiled C touches it
-    u8        weapon;           // Equipped weapon (itemId - 0x7F, 0=none)
-    u8        weaponSlotItem;   // Item in the equipped weapon's slot (item + 0x61, 0=empty)
-    u8        armor;            // Equipped armour (itemId - 0x5F, 0=none), contributes to hpMax
-    u8        field_24;         // Set for one player mode/state combination; movement clears it, the HUD reads it
-    u8        peStateFlags;     // Eight independent timed states, one per bit, each with its own countdown
-    u8        field_26;         // Selects the animation, model and file set (1..4), meanings unproven
-    byte      unknown_27[0x19];
-    u8        saveBackup[0x40]; // Second checksummed copy of the first 0x40 bytes
+/// Bit 0x08 is not retained as a timed effect. Bit 0x20 has a countdown and
+/// a HUD icon, but its gameplay meaning is unproven.
+enum {
+    PLAYER_STATUS_DARKNESS    = 0x01,
+    PLAYER_STATUS_PARALYSIS   = 0x02,
+    PLAYER_STATUS_POISON      = 0x04,
+    PLAYER_STATUS_SILENCE     = 0x10,
+    PLAYER_STATUS_CONFUSION   = 0x40,
+    PLAYER_STATUS_BERSERKER   = 0x80,
+    PLAYER_STATUS_ALL_EFFECTS = 0xFF,
+};
+
+/// Resident live player state followed by its serialized memory-card backup.
+///
+/// Save/load checksums, copies and compares two `PLAYER_STATUS_SAVE_RECORD_BYTES`
+/// byte images. The live image includes a borrowed actor matrix pointer;
+/// loading the bytes does not restore that pointer's lifetime. Player actor
+/// initialization binds it to the new actor before gameplay uses it.
+/// The backup is an uninterpreted byte image, initially filled with 0xFF.
+typedef struct {
+    u16       checksum;                                    // Sum of signed payload bytes, modulo 65536, excluding the four-byte header
+    u16       checksumComplement;                          // Bitwise complement of checksum
+    MATRIX*   coordMtx;                                    // Borrowed root coordinate matrix; valid while the player actor is live
+    s32       exp;                                         // Unspent experience used to unlock and raise Parasite Energy levels
+    s32       bp;                                          // Bounty points available to spend in shops
+    PlayerPos pos;                                         // Captured room-entry position and facing, independent of the live matrix
+    s16       hp;                                          // Current HP; damage can leave it zero or negative
+    s16       hpMax;                                       // Maximum HP after mode base, permanent bonus and armour; capped at PLAYER_STATUS_STAT_MAX
+    s16       mp;                                          // Current Parasite Energy points
+    s16       mpMax;                                       // Maximum MP after PE levels, mode base, permanent bonus and armour; capped at PLAYER_STATUS_STAT_MAX
+    u8        field_20;                                    // Initialization writes zero; role unproven
+    u8        weapon;                                      // Equipped weapon itemId - 0x7F (0 none, 1..32 weapon)
+    u8        weaponSlotItem;                              // Primary weapon-slot itemId - 0x9F, stored modulo 256 (0 empty)
+    u8        armor;                                       // Equipped armour itemId - 0x5F (0 none, 1..32 armour)
+    u8        interactionPressed;                          // Accepted interaction button press (0 no, 1 yes); scene movement clears it
+    u8        statusFlags;                                 // Timed effects using PLAYER_STATUS_* masks; effect 0x20 remains unidentified
+    u8        resourceVariant;                             // One-based model/texture/file set; player paths write 1..4, companion setup temporarily substitutes its variant
+    byte      unknown_27[0x19];                            // Included in save/checksum operations; individual roles unproven
+    u8        saveBackup[PLAYER_STATUS_SAVE_RECORD_BYTES]; // Serialized backup of the entire live image, including its checksum header
 } PlayerStatus;
 STATIC_ASSERT_SIZEOF(PlayerStatus, 0x80);
-STATIC_ASSERT(OFFSET_OF(PlayerStatus, saveBackup) == 0x40, player_status_backup_offset);
+STATIC_ASSERT(OFFSET_OF(PlayerStatus, saveBackup) == PLAYER_STATUS_SAVE_RECORD_BYTES, player_status_backup_offset);
 
 #endif // MAIN_WIPSYS_TYPES_H

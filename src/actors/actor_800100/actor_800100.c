@@ -1568,7 +1568,7 @@ static void func_actor_800100_80163214(Task* arg0)
     SVECTOR3*              scratch;
     s32                    idx;
     s32                    packed;
-    u8                     saved;
+    u8                     savedResourceVariant;
     void*                  head;
 
     actor                      = arg0->work;
@@ -1650,13 +1650,13 @@ static void func_actor_800100_80163214(Task* arg0)
         obj->key    = temp | packed | 0x80;
         Gp_LinkObj(0, obj);
     }
-    obj->flags            |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    actor->field_984       = 7;
-    saved                  = Player_Status.field_26;
-    Player_Status.field_26 = save->state.companionVariant;
-    actor->field_920       = func_80104258(arg0, 0, 5, 1);
-    actor->field_924       = func_80104258(arg0, 1, 5, 1);
-    Player_Status.field_26 = saved;
+    obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    actor->field_984              = 7;
+    savedResourceVariant          = Player_Status.resourceVariant;
+    Player_Status.resourceVariant = save->state.companionVariant;
+    actor->field_920              = func_80104258(arg0, 0, 5, 1);
+    actor->field_924              = func_80104258(arg0, 1, 5, 1);
+    Player_Status.resourceVariant = savedResourceVariant;
     if (actor->field_924 != NULL) {
         task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;

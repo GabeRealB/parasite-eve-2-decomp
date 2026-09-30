@@ -567,13 +567,13 @@ void Gp_SyncHeldRelated(void)
     u8            item;
 
     p = &Player_Status;
-    if (p->weapon == 0) {
-        p->weaponSlotItem = 0;
+    if (p->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
+        p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
     } else {
         idx  = p->weapon + 0x7F;
         item = gpItemSlot(idx)->primaryItemId;
         if (item == 0) {
-            p->weaponSlotItem = 0;
+            p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
         } else {
             p->weaponSlotItem = item + 0x61;
         }
@@ -647,12 +647,12 @@ void Gp_RecalcMaxHp(void)
     cfg->hpMax = val;
     val       += save->state.hpBonus;
     cfg->hpMax = val;
-    if (cfg->armor != 0) {
+    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         val       += Gp_ModStatAttrs[cfg->armor - 1].field_4;
         cfg->hpMax = val;
     }
-    if (cfg->hpMax >= 0xFB) {
-        cfg->hpMax = 0xFA;
+    if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+        cfg->hpMax = PLAYER_STATUS_STAT_MAX;
     }
     if (cfg->hp > cfg->hpMax) {
         cfg->hp = cfg->hpMax;
@@ -803,12 +803,12 @@ void Gp_ResetScanDefault(void)
 
 void func_800BC4BC(void)
 {
-    Player_Status.field_26 = 1;
+    Player_Status.resourceVariant = 1;
     Gp_InitModeEquip();
 }
 
 void func_800BC4E4(void)
 {
-    Player_Status.field_26 = 2;
+    Player_Status.resourceVariant = 2;
     Gp_InitModeEquip();
 }

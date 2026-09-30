@@ -4095,7 +4095,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 /// Steps the plaza's streamed scene, returning zero while it is still running.
 ///
 /// Seven steps driven by the pending `GpObj4C` event `Gp_TakePendingObj4C`
-/// reports. `ready` is that event's "take it" flag, qualified by `Player_Status.field_24`
+/// reports. `ready` is that event's "take it" flag, qualified by `Player_Status.interactionPressed`
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
@@ -4120,7 +4120,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
 
     ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
     if (!((s16)evtId & 0x8000) && (ready != 0)) {
-        ready = Player_Status.field_24 != 0;
+        ready = Player_Status.interactionPressed != 0;
     }
 
     switch (work->step) {

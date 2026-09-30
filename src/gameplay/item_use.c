@@ -283,11 +283,11 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                         cfg->hp        = cfg->hpMax;
                         break;
                     case 4:
-                        Gp_TriggerPeState(1, 0xD0);
+                        Gp_TriggerPeState(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
                         ret = Gp_HealPending = Gp_StateC08.field_16 = 1;
                         break;
                     case 8:
-                        Gp_TriggerPeState(1, 7);
+                        Gp_TriggerPeState(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
                         ret = Gp_HealPending = Gp_StateC08.field_17 = 1;
                         break;
                     case 5:

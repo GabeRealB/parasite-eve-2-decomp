@@ -253,14 +253,14 @@ void Gp_LoadWaitBoot(Task* task)
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
         save    = &Mc_SaveData[0];
-        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != Player_Status.field_26) {
+        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != Player_Status.resourceVariant) {
             GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
             sess                    = gGameSession;
             sess->loadedCharacterId = save->state.characterId;
-            sess->loadedConfigSet   = Player_Status.field_26;
+            sess->loadedConfigSet   = Player_Status.resourceVariant;
         }
         Gp_EnqueueAttach7Cd();
         task->state++;

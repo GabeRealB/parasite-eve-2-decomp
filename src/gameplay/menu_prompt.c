@@ -1016,7 +1016,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     buf[1]   = 0;
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
         (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
-        (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != 0) &&
+        (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
          ((Gp_GetItemSlot(cfg->weapon + 0x7F)->primaryItemId == arg3) ||
           (Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId == arg3)))) {
         equipped = 1;
@@ -1633,7 +1633,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
             }
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 Gp_CountAmmoRows(&D_8010E9A4, 0);
-                if (D_8010E9A4.field_4 >= 2U || (D_8010E9A4.field_4 == 1 && player->weapon == 0)) {
+                if (D_8010E9A4.field_4 >= 2U || (D_8010E9A4.field_4 == 1 && player->weapon == PLAYER_STATUS_EQUIPMENT_NONE)) {
                     UiObject* spawned;
                     SndEvt_EnqueueType6(3, 0, 0);
                     spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
@@ -2596,7 +2596,7 @@ static inline s32 _gpIsEquippedItem(s32 id)
     p   = &Player_Status;
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
-        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
+        (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
          ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
           (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;

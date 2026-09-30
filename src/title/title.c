@@ -355,11 +355,9 @@ void Title_RestoreDemoCard(void)
     memcpy(&Mc_SaveData[0], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
-    /* The save's player block is the first half of `Player_Status`, banked at
-       a 0x40-byte stride; the original computes that stride, so neither
-       `&Player_Status` alone nor a whole-struct stride reproduces it. */
-    memcpy((u8*)&Player_Status + bank * 0x40, src, 0x40);
-    src += 0x40;
+    // Restore one serialized player image using the save format's bank stride.
+    memcpy((u8*)&Player_Status + bank * PLAYER_STATUS_SAVE_RECORD_BYTES, src, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    src += PLAYER_STATUS_SAVE_RECORD_BYTES;
 
     memcpy(&GameFlag_AcropolisBanks[bank], src, 0x6C);
     src += 0x6C;

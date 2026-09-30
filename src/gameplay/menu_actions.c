@@ -403,7 +403,7 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     p   = &Player_Status;
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
-        (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != 0) &&
+        (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
          ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == arg0) ||
           (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == arg0)))) {
         ret = 1;
@@ -2090,7 +2090,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     Gp_ClearEquipSlot(id);
                     slot->field_4 = 0;
                     if (cfg->weapon == (id - 0x7F)) {
-                        cfg->weapon = 0;
+                        cfg->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
                 } else if ((u32)(id - 0xA0) < 0x20U) {
                     s32                  i;
@@ -2115,7 +2115,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     Mc_SaveData[0].state.itemLevelBonus[id - 0x60] = 0;
                     cfg                                            = &Player_Status;
                     if (cfg->armor == (id - 0x5F)) {
-                        cfg->armor = 0;
+                        cfg->armor = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
                 }
                 Gp_RemoveItem(&Mc_SaveData[0].state.carriedItems, rec, -1);

@@ -178,7 +178,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         raw  = Gp_IdParamLo[lo].params[0];
         base = raw << 8;
         if (flag != 0) {
-            if ((Player_Status.peStateFlags & 0x80) != 0) {
+            if ((Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
                 base = base * 150 / 100;
             }
         }

@@ -227,7 +227,7 @@ extern u16 D_80112B28[];
 extern u16 D_80112C6C[];
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
-/// `D_80112DFC[arg2 + Player_Status.field_26 - 2]`.
+/// `D_80112DFC[arg2 + Player_Status.resourceVariant - 2]`.
 extern u8 D_80112DFC[];
 
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
@@ -251,7 +251,7 @@ extern u8 D_80112E2C[][2];
 extern u16 D_80112E30[];
 
 /// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
-/// `table[type * 4 + Player_Status.field_26 - 5][frame]`. `D_80112E74` is
+/// `table[type * 4 + Player_Status.resourceVariant - 5][frame]`. `D_80112E74` is
 /// the `field_987` sequence; `D_80112EB4` is the `field_98A` sequence.
 extern struct _GpImgRec** D_80112E74[];
 
@@ -2936,7 +2936,7 @@ kill:
 continue_fx:
     saved = mem->step;
     if (Player_Status.hp < saved) {
-        if (!(Player_Status.peStateFlags & 0x84) && (mem->angle < 0xA0)) {
+        if (!(Player_Status.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
             s32 i;
 
             Gp_DrawEffTri(coord, 0x200, 6, rgb);
@@ -3031,7 +3031,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         Gp_State1C->burstRequest = false;
     }
 
-    if ((Player_Status.peStateFlags & 0x80) && (Gp_State1C->peFxFlags & ROOM_EFFECT_PE_STATUS_BURST) &&
+    if ((Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) && (Gp_State1C->peFxFlags & ROOM_EFFECT_PE_STATUS_BURST) &&
         (Gp_State1C->battleState == ROOM_EFFECT_BATTLE_ENGAGED)) {
         return;
     }
@@ -5341,7 +5341,7 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;
         if ((s8)actor->field_988 <= 0) {
-            img = D_80112E74[(s8)actor->field_987 * 4 + (Player_Status.field_26 - 5)][(s8)actor->field_989];
+            img = D_80112E74[(s8)actor->field_987 * 4 + (Player_Status.resourceVariant - 5)][(s8)actor->field_989];
             if (img != NULL) {
                 rect->x = 0;
                 rect->y = 0x4E;
@@ -5359,7 +5359,7 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->field_98A != 0) {
         actor->field_98B--;
         if ((s8)actor->field_98B <= 0) {
-            img = D_80112EB4[(s8)actor->field_98A * 4 + (Player_Status.field_26 - 5)][(s8)actor->field_98C];
+            img = D_80112EB4[(s8)actor->field_98A * 4 + (Player_Status.resourceVariant - 5)][(s8)actor->field_98C];
             if (img != NULL) {
                 rect->x = 0xC;
                 rect->y = 0x68;
@@ -5392,7 +5392,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->work;
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Player_Status.field_26 - 2;
+    type  = Player_Status.resourceVariant - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -5552,7 +5552,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = Task_Spawn(7, Player_Status.field_26 + 3, arg2, arg3);
+    task = Task_Spawn(7, Player_Status.resourceVariant + 3, arg2, arg3);
     if (task != NULL) {
         goto have_task;
     }
@@ -5926,7 +5926,7 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->work;
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Player_Status.field_26 - 2;
+    type  = Player_Status.resourceVariant - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -6032,24 +6032,24 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     TmdObject*    extra;
     PlayerStatus* playerStatus;
 
-    actor                  = task->work;
-    extra                  = task->extra.tmd;
-    playerStatus           = &Player_Status;
-    actor->field_954       = 2;
-    actor->field_95E       = 0;
-    actor->field_973       = 0;
-    actor->field_975       = 0;
-    playerStatus->field_24 = 0;
-    actor->field_97E       = 0;
-    actor->field_60        = 0;
-    actor->field_58        = 0;
-    actor->field_64        = 0;
-    actor->field_5C        = 0;
-    actor->field_6A        = 0;
-    actor->field_68        = 0;
-    actor->field_70        = 0;
-    actor->field_96C       = 0;
-    actor->field_12A      &= 0x3FFF;
+    actor                            = task->work;
+    extra                            = task->extra.tmd;
+    playerStatus                     = &Player_Status;
+    actor->field_954                 = 2;
+    actor->field_95E                 = 0;
+    actor->field_973                 = 0;
+    actor->field_975                 = 0;
+    playerStatus->interactionPressed = 0;
+    actor->field_97E                 = 0;
+    actor->field_60                  = 0;
+    actor->field_58                  = 0;
+    actor->field_64                  = 0;
+    actor->field_5C                  = 0;
+    actor->field_6A                  = 0;
+    actor->field_68                  = 0;
+    actor->field_70                  = 0;
+    actor->field_96C                 = 0;
+    actor->field_12A                &= 0x3FFF;
     func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6210,14 +6210,14 @@ static void func_80104A4C(Task* arg0)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor       = arg0->work;
-    p           = &Player_Status;
-    p->field_24 = 0;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    p->interactionPressed = 0;
     if (actor->field_954 != 2) {
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (actor->field_966 & 0x20) {
-                    p->field_24 = 1;
+                    p->interactionPressed = 1;
                 }
             }
         }
@@ -6229,23 +6229,23 @@ static void func_80104AAC(Task* arg0)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6258,24 +6258,24 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
     TmdObject*    extra;
     PlayerStatus* playerStatus;
 
-    actor                  = task->work;
-    extra                  = task->extra.tmd;
-    playerStatus           = &Player_Status;
-    actor->field_954       = 2;
-    actor->field_95E       = 0;
-    actor->field_973       = 0;
-    actor->field_975       = 0;
-    playerStatus->field_24 = 0;
-    actor->field_97E       = 0;
-    actor->field_60        = 0;
-    actor->field_58        = 0;
-    actor->field_64        = 0;
-    actor->field_5C        = 0;
-    actor->field_6A        = 0;
-    actor->field_68        = 0;
-    actor->field_70        = 0;
-    actor->field_96C       = 0;
-    actor->field_12A      &= 0x3FFF;
+    actor                            = task->work;
+    extra                            = task->extra.tmd;
+    playerStatus                     = &Player_Status;
+    actor->field_954                 = 2;
+    actor->field_95E                 = 0;
+    actor->field_973                 = 0;
+    actor->field_975                 = 0;
+    playerStatus->interactionPressed = 0;
+    actor->field_97E                 = 0;
+    actor->field_60                  = 0;
+    actor->field_58                  = 0;
+    actor->field_64                  = 0;
+    actor->field_5C                  = 0;
+    actor->field_6A                  = 0;
+    actor->field_68                  = 0;
+    actor->field_70                  = 0;
+    actor->field_96C                 = 0;
+    actor->field_12A                &= 0x3FFF;
     func_80106350(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6361,23 +6361,23 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6418,23 +6418,23 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     PlayerStatus* p;
     s32           mode;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6457,23 +6457,23 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideA
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6499,23 +6499,23 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6542,23 +6542,23 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6580,22 +6580,22 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (arg2->field_12 == 0) {
-        p                 = &Player_Status;
-        actor->field_954  = 2;
-        actor->field_95E  = 0;
-        actor->field_973  = 0;
-        actor->field_975  = 0;
-        p->field_24       = 0;
-        actor->field_97E  = 0;
-        actor->field_60   = 0;
-        actor->field_58   = 0;
-        actor->field_64   = 0;
-        actor->field_5C   = 0;
-        actor->field_6A   = 0;
-        actor->field_68   = 0;
-        actor->field_70   = 0;
-        actor->field_96C  = 0;
-        actor->field_12A &= 0x3FFF;
+        p                     = &Player_Status;
+        actor->field_954      = 2;
+        actor->field_95E      = 0;
+        actor->field_973      = 0;
+        actor->field_975      = 0;
+        p->interactionPressed = 0;
+        actor->field_97E      = 0;
+        actor->field_60       = 0;
+        actor->field_58       = 0;
+        actor->field_64       = 0;
+        actor->field_5C       = 0;
+        actor->field_6A       = 0;
+        actor->field_68       = 0;
+        actor->field_70       = 0;
+        actor->field_96C      = 0;
+        actor->field_12A     &= 0x3FFF;
         func_80106350(arg0, p->weapon, 0);
         if (gGameSession->eventState != 0) {
             ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6620,22 +6620,22 @@ s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
     if ((s8)actor->field_97A != 0) {
         return 1;
     }
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6652,23 +6652,23 @@ s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6683,23 +6683,23 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     GameActor*    actor;
     PlayerStatus* p;
 
-    actor             = arg0->work;
-    p                 = &Player_Status;
-    actor->field_954  = 2;
-    actor->field_95E  = 0;
-    actor->field_973  = 0;
-    actor->field_975  = 0;
-    p->field_24       = 0;
-    actor->field_97E  = 0;
-    actor->field_60   = 0;
-    actor->field_58   = 0;
-    actor->field_64   = 0;
-    actor->field_5C   = 0;
-    actor->field_6A   = 0;
-    actor->field_68   = 0;
-    actor->field_70   = 0;
-    actor->field_96C  = 0;
-    actor->field_12A &= 0x3FFF;
+    actor                 = arg0->work;
+    p                     = &Player_Status;
+    actor->field_954      = 2;
+    actor->field_95E      = 0;
+    actor->field_973      = 0;
+    actor->field_975      = 0;
+    p->interactionPressed = 0;
+    actor->field_97E      = 0;
+    actor->field_60       = 0;
+    actor->field_58       = 0;
+    actor->field_64       = 0;
+    actor->field_5C       = 0;
+    actor->field_6A       = 0;
+    actor->field_68       = 0;
+    actor->field_70       = 0;
+    actor->field_96C      = 0;
+    actor->field_12A     &= 0x3FFF;
     func_80106350(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -6718,22 +6718,22 @@ s32 func_80105754(Task* arg0)
     actor = arg0->work;
     ret   = 0;
     if (actor->field_954 != 2) {
-        p                 = &Player_Status;
-        actor->field_954  = 2;
-        actor->field_95E  = 0;
-        actor->field_973  = 0;
-        actor->field_975  = 0;
-        p->field_24       = 0;
-        actor->field_97E  = 0;
-        actor->field_60   = 0;
-        actor->field_58   = 0;
-        actor->field_64   = 0;
-        actor->field_5C   = 0;
-        actor->field_6A   = 0;
-        actor->field_68   = 0;
-        actor->field_70   = 0;
-        actor->field_96C  = 0;
-        actor->field_12A &= 0x3FFF;
+        p                     = &Player_Status;
+        actor->field_954      = 2;
+        actor->field_95E      = 0;
+        actor->field_973      = 0;
+        actor->field_975      = 0;
+        p->interactionPressed = 0;
+        actor->field_97E      = 0;
+        actor->field_60       = 0;
+        actor->field_58       = 0;
+        actor->field_64       = 0;
+        actor->field_5C       = 0;
+        actor->field_6A       = 0;
+        actor->field_68       = 0;
+        actor->field_70       = 0;
+        actor->field_96C      = 0;
+        actor->field_12A     &= 0x3FFF;
         func_80106350(arg0, p->weapon, ret);
         if (gGameSession->eventState != 0) {
             ((WorldCollisionBody*)actor->field_AC)->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
@@ -7348,7 +7348,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
 
     sp    = D_8009794C;
     actor = arg0->work;
-    if (Player_Status.peStateFlags & 0x40) {
+    if (Player_Status.statusFlags & PLAYER_STATUS_CONFUSION) {
         func_8010A670(arg0);
     }
     if (actor->field_97B == 0) {
@@ -7359,7 +7359,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
         actor->field_975 = 0;
     }
     p = &Player_Status;
-    if (p->peStateFlags & 2) {
+    if (p->statusFlags & PLAYER_STATUS_PARALYSIS) {
         if (actor->field_956 != 7) {
             actor->field_98E++;
             if ((s8)actor->field_98E >= 0x5A) {
@@ -7425,7 +7425,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
             if (res > 0 ||
                 (item = actor->field_97F,
                  D_80112F1C[Player_Status.weapon][(u8)(item - 1)] != 0)) {
-                if (Player_Status.peStateFlags & 0x80) {
+                if (Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) {
                     Gp_ApplyHpDamage(2);
                 }
                 if (Player_Status.hp > 0) {
@@ -7487,7 +7487,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         inner->field_95A = temp;
         inner->field_95C = 0;
         inner->field_95E = 0;
-        if (Player_Status.peStateFlags & 1) {
+        if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
             Gp_DetachLinkNode(arg0);
             inner->field_97E = 1;
         } else {
@@ -7587,7 +7587,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 temp             = actor->field_98F;
                 actor->field_95E = 1;
                 if (temp == 0) {
-                    Gp_SpawnEff(0x6006E, coord, (s32)(Player_Status.weapon), NULL);
+                    Gp_SpawnEff(0x6006E, coord, (s32)Player_Status.weapon, NULL);
                 }
             }
             rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
@@ -7751,7 +7751,7 @@ static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
     inner->field_95A = temp;
     inner->field_95C = 0;
     inner->field_95E = 0;
-    if (Player_Status.peStateFlags & 1) {
+    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
         Gp_DetachLinkNode(task);
         inner->field_97E = 1;
     } else {
@@ -7860,7 +7860,7 @@ static void func_8010771C(Task* arg0)
 
     actor            = arg0->work;
     actor->field_973 = 0;
-    if (!(Player_Status.peStateFlags & 2)) {
+    if (!(Player_Status.statusFlags & PLAYER_STATUS_PARALYSIS)) {
         actor->field_95E = 1;
         actor->field_98E = 0;
     }
@@ -7892,7 +7892,7 @@ static void func_8010771C(Task* arg0)
             inner->field_95A = temp;
             inner->field_95C = 0;
             inner->field_95E = 0;
-            if (Player_Status.peStateFlags & 1) {
+            if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
                 Gp_DetachLinkNode(arg0);
                 inner->field_97E = 1;
             } else {
@@ -8179,7 +8179,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
                     inner->field_95A = temp;
                     inner->field_95C = 0;
                     inner->field_95E = 0;
-                    if (Player_Status.peStateFlags & 1) {
+                    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
                         Gp_DetachLinkNode(arg0);
                         inner->field_97E = 1;
                     } else {
@@ -8379,7 +8379,7 @@ static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
     inner->field_95A = temp;
     inner->field_95C = 0;
     inner->field_95E = 0;
-    if (Player_Status.peStateFlags & 1) {
+    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
         Gp_DetachLinkNode(arg0);
         inner->field_97E = 1;
     } else {
@@ -8857,7 +8857,7 @@ static void func_80109374(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Player_Status.weapon != 0) &&
+    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Player_Status.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
         (inner->field_991 == 0)) {
         inner->field_97D = 1;
     } else {
@@ -8878,7 +8878,7 @@ static void Gp_UpdateLockTarget(Task* arg0)
         } else if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
             _gpSetLockNode(arg0, Gp_FindLockNodePad(arg0));
         }
-    } else if ((inner->field_966 & 0x80) && !(Player_Status.peStateFlags & 1)) {
+    } else if ((inner->field_966 & 0x80) && !(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
         inner->field_97E = 2;
         _gpSetLockNode(arg0, Gp_FindLockNode(arg0));
     }

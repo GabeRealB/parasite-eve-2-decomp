@@ -1983,13 +1983,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             if (dst->warp == 6) {
                 Mc_SaveData[0].state.sceneEvent = 2;
-                Player_Status.field_26          = 4;
+                Player_Status.resourceVariant   = 4;
                 gGameSession->hideHud           = 1;
                 Gp_ResetInventory();
             }
             if (dst->warp == 5) {
                 Mc_SaveData[0].state.sceneEvent = 1;
-                Player_Status.field_26          = 3;
+                Player_Status.resourceVariant   = 3;
                 gGameSession->hideHud           = 1;
                 Gp_ClearInventory();
             }

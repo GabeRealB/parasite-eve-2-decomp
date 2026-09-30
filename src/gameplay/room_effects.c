@@ -457,7 +457,7 @@ static const TaskFuncTable3 D_80097678;
 
 enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
-/// Grayscale fade task controlled by `Player_Status.peStateFlags` bit 0.
+/// Grayscale fade task controlled by `Player_Status.statusFlags` bit 0.
 /// Alternates LCG-selected brightness targets, then fades out and releases
 /// its `GpEffWork` when the flag stays clear.
 void func_800EC47C(Task* arg0);
@@ -1459,7 +1459,7 @@ static void Gp_TickState1C(Task* unused)
         r->field_F  = 0;
         r->field_16 = 0;
         r->field_17 = 0;
-        Gp_TriggerPeState(1, 0x80);
+        Gp_TriggerPeState(1, PLAYER_STATUS_BERSERKER);
     }
 }
 
@@ -2128,7 +2128,7 @@ void func_800EC47C(Task* arg0)
             } else {
                 arg0->state = 2;
             }
-            if (!(Player_Status.peStateFlags & 1)) {
+            if (!(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->scale;
@@ -2150,14 +2150,14 @@ void func_800EC47C(Task* arg0)
                     mem->scale = current - 8;
                 }
             }
-            if (!(Player_Status.peStateFlags & 1)) {
+            if (!(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
                 arg0->state = 3;
             }
             rgb[0] = rgb[1] = rgb[2] = mem->scale;
             Gp_DrawFadeQuad(rgb, 2);
             break;
         case 3:
-            if (Player_Status.peStateFlags & 1) {
+            if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
                 arg0->state = 0;
                 rgb[0] = rgb[1] = rgb[2] = mem->scale;
                 Gp_DrawFadeQuad(rgb, 2);

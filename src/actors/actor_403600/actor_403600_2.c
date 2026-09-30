@@ -1262,8 +1262,8 @@ static void func_actor_403600_801396F8(Task* arg0)
             switch (temp_v1_6) {
                 case 0:
                     func_800E9BDC(1, 0xF9FF);
-                    temp_s1->field_70A         = 0;
-                    Player_Status.peStateFlags = 0;
+                    temp_s1->field_70A        = 0;
+                    Player_Status.statusFlags = 0;
                     goto block_115;
                 case 1:
                     if ((s16)temp_s1->field_7A2 == 0xFF) {
@@ -2375,7 +2375,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_708 = 0x1000U;
                     }
                     if (temp_s3->field_73A >= 0x45) {
-                        if ((s16)temp_wip->mp <= 0) {
+                        if (temp_wip->mp <= 0) {
                             temp_wip->mp = 0U;
                         }
                         temp_s3->field_708 = 0U;

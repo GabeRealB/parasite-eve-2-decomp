@@ -19,6 +19,7 @@
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/wipsys_types.h"
 
 /// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `Gp_PickupResultTask`,
 /// `func_800CE188`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
@@ -161,7 +162,7 @@ void Gp_MenuExitCallback(Task* arg0)
     }
     if (Gp_UsedItemId != 0) {
         if (Gp_UsedItemId == 0x3E) {
-            Gp_TriggerPeState(0, 0x80);
+            Gp_TriggerPeState(0, PLAYER_STATUS_BERSERKER);
         }
         Gp_UsedItemId = 0;
     }

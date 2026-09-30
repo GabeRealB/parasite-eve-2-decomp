@@ -133,8 +133,8 @@ void Gp_InitStarterInv(void)
     Gp_ApplyItemMap();
     Gp_GiveItem(scan, 0x63, 1);
     gGameSession->loadedCharacterId = GAME_SESSION_CHARACTER_NOT_LOADED;
-    cfg->weapon                     = 0;
-    cfg->field_26                   = three;
+    cfg->weapon                     = PLAYER_STATUS_EQUIPMENT_NONE;
+    cfg->resourceVariant            = three;
     Gp_EquipMod(0x63);
     added             = Gp_GiveItem(scan, 0x40, 1);
     added->attachSlot = 1;

@@ -1914,7 +1914,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.field_26          = 3;
+                Player_Status.resourceVariant   = 3;
                 Mc_SaveData[0].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;

@@ -642,7 +642,7 @@ static u8 Mc_DefaultChecksumSrc[] = {
 McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
     { (McChecksumBlock*)&Mc_SaveData[0], 0x944, 0x26 },
-    { (McChecksumBlock*)&Player_Status, 0x40, 1 },
+    { (McChecksumBlock*)&Player_Status, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
     { (McChecksumBlock*)GameFlag_AcropolisBanks, 0x6C, 2 },
     { (McChecksumBlock*)GameFlag_DryfieldBanks, 0xB0, 3 },
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
@@ -704,8 +704,8 @@ static void Mc_InitDualBankBuffers(void)
     s32                       two;
     s32                       idx;
 
-    Mem_Set(&Player_Status, 0, 0x40);
-    Mem_Set(Player_Status.saveBackup, 0xFF, 0x40);
+    Mem_Set(&Player_Status, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    Mem_Set(Player_Status.saveBackup, 0xFF, sizeof(Player_Status.saveBackup));
     Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
     Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
 

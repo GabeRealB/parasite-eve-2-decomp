@@ -391,7 +391,7 @@ declaration readable as a table:
 
 ```c
 /// The player character: position, health, energy and equipment.
-typedef struct _PlayerStatus {
+typedef struct {
     s16 hp;       // Current health (clamped to hpMax)
     s16 hpMax;    // Maximum health (level base + training + armour, capped at 250)
     u8  weapon;   // Equipped weapon (itemId - 0x7F, 0=none)

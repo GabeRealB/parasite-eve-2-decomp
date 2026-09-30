@@ -287,7 +287,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = p->field_26 == 4;
+            cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData[0].state.attachLevels;
@@ -298,7 +298,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->peStateFlags & 0x80) {
+        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
             if (ret < 3) {
                 ret++;
             }
@@ -423,7 +423,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (gGameSession->hideHud != 0) {
         return;
     }
-    if (cfg->weapon == 0) {
+    if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         return;
     }
     item = cfg->weapon + 0x7F;
@@ -510,7 +510,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = p->field_26 == 4;
+            cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData[0].state.attachLevels;
@@ -521,7 +521,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         if (lvl == 0) {
             lvl = 1;
         }
-        if ((p->peStateFlags & 0x80) && lvl < 3) {
+        if ((p->statusFlags & PLAYER_STATUS_BERSERKER) && lvl < 3) {
             lvl++;
         }
     }
@@ -562,7 +562,7 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
             result = 1;
         }
     } else if (arg0 < 0xC) {
-        if ((cfg->peStateFlags & 0x10) || (!(cfg->peStateFlags & 0x80) && cfg->mp < _gpAttachParam(arg0, n, 2) && Mc_SaveData[0].state.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && Mc_SaveData[0].state.cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->peStateFlags & 0x80) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
+        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, 2) && Mc_SaveData[0].state.cheatMode == 0) || (arg0 == 6 && Gp_StateC08.field_16 != 0 && Gp_StateC08.field_17 != 0) || (arg0 == 7 && cfg->hpMax == cfg->hp && Mc_SaveData[0].state.cheatMode == 0) || (arg0 == 0xB && D_80115724 >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= 6 || _gpAttachParam(arg0, n, 2) * 2 >= cfg->hp))) {
             result = 1;
         }
     }
@@ -621,7 +621,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = p->field_26 == 4;
+        cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
         table = Mc_SaveData[0].state.attachLevels;
@@ -663,7 +663,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = p->field_26 == 4;
+        cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
         table = Mc_SaveData[0].state.attachLevels;
@@ -709,7 +709,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = p->field_26 == 4;
+            cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData[0].state.attachLevels;
@@ -720,7 +720,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         if (lvl == 0) {
             lvl = 1;
         }
-        if ((p->peStateFlags & 0x80) && lvl < 3) {
+        if ((p->statusFlags & PLAYER_STATUS_BERSERKER) && lvl < 3) {
             lvl++;
         }
     }
@@ -775,7 +775,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = cfg->field_26 == 4;
+        cond = cfg->resourceVariant == 4;
     }
     if (cond == 0) {
         table = Mc_SaveData[0].state.attachLevels;
@@ -815,7 +815,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
 
         item  = ((Gp_StateC08.field_B / 3) << 4) + ((Gp_StateC08.field_B % 3) << 2) + 0x300;
         param = getAttachWheelParam(Gp_StateC08.field_B, 2);
-        if (cfg->peStateFlags & 0x80) {
+        if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
             param <<= 1;
         }
 
@@ -1018,7 +1018,7 @@ static __inline__ u8* getAttachLevels(void)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = p->field_26 == 4;
+        cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
         return Mc_SaveData[0].state.attachLevels;
@@ -1045,7 +1045,7 @@ static __inline__ s32 hudSwapReady(void)
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (gGameSession->dirActionBusy == 0) {
-                    if (p->field_24 == 0) {
+                    if (p->interactionPressed == 0) {
                         flag = 1;
                     }
                 }
@@ -1230,7 +1230,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
                 Gp_StateC08.field_3  = 1;
                 Gp_ItemGrantCooldown = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
-                if (cfg->peStateFlags & 0x80) {
+                if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
                     cfg->hp -= Gp_GetAttachParam(2) * 2;
                     if (cfg->hp <= 0) {
                         cfg->hp = 1;
@@ -1426,7 +1426,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         if (gGameSession->dirActionBusy != 0) {
             goto after;
         }
-        if (cfg->field_24 != 0) {
+        if (cfg->interactionPressed != 0) {
             goto after;
         }
         if (Gp_StateF0.prefix.bytes.field_1 != 0) {
@@ -1457,7 +1457,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                     mode = actor->field_956;
                     if (mode == 0 || mode == 2) {
                         if (gGameSession->dirActionBusy == 0) {
-                            if (p->field_24 == 0) {
+                            if (p->interactionPressed == 0) {
                                 hit = 1;
                             }
                         }
@@ -1479,7 +1479,7 @@ void Gp_HudTask(GpIdMapC* arg0)
             if (ok == 0) {
                 goto after;
             }
-            if (Player_Status.armor == 0) {
+            if (Player_Status.armor == PLAYER_STATUS_EQUIPMENT_NONE) {
                 goto after;
             }
             arg0->field_14 = 0x42;
@@ -1495,7 +1495,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                     cond = 0;
                 } else {
-                    cond = p->field_26 == 4;
+                    cond = p->resourceVariant == 4;
                 }
                 if (cond != 0) {
                     goto after;
@@ -1551,7 +1551,7 @@ after:
                 if (n != 2) {
                     goto tail;
                 }
-                Gp_TriggerPeState(1, 0xFF);
+                Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (c08->field_A >= 2) {
                     c08->field_3 = n;
@@ -1664,7 +1664,7 @@ after:
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
-                cond = p->field_26 == 4;
+                cond = p->resourceVariant == 4;
             }
             if (cond != 0) {
                 if (gGameSession->battleResetPending != 0) {
@@ -1686,7 +1686,7 @@ after:
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
-                cond = p->field_26 == 4;
+                cond = p->resourceVariant == 4;
             }
             if (cond != 0) {
                 if (gGameSession->battleResetPending != 0) {

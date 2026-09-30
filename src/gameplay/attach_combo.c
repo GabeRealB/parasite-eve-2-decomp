@@ -133,7 +133,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
                 Gp_StateC08.field_F++;
             }
             Gp_StateC08.field_F |= lvl << 4;
-            Gp_TriggerPeState(1, 0xFF);
+            Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
             break;
         }
         case 321:

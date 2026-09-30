@@ -1121,7 +1121,7 @@ static void Gp_DebugPanTask(Task* arg0)
             } else if (Gp_StateC08.field_17 != 0) {
                 _gpSetColorMtx(extra->colorMtx, 0x2000, 0x2000, 0x400);
             }
-            if (cfg->peStateFlags & 0x80) {
+            if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
                 _gpSetColorMtx(extra->colorMtx, 0x2000, 0x400, 0x400);
             }
         }

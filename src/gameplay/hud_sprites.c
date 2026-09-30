@@ -665,7 +665,7 @@ u8* Gp_GetAttachLevels(void)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = p->field_26 == 4;
+        cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
         return Mc_SaveData[0].state.attachLevels;
@@ -681,7 +681,7 @@ s32 Gp_IsDebugAttachRoom(void)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         return 0;
     }
-    return p->field_26 == 4;
+    return p->resourceVariant == 4;
 }
 
 s32 Gp_IsStateF0Active(void)
@@ -882,7 +882,7 @@ void Gp_TriggerPeIfArmed(void)
     state = Gp_StateF0.prefix.bytes.field_0;
     if ((state == 1) || (state == 3)) {
         if (gGameSession->battleResetPending == 0) {
-            Gp_TriggerPeState(1, 0xFF);
+            Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
             Gp_PulseState1C80();
             gDisplayState.suppressDisconnectPause = 0;
             Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
@@ -908,7 +908,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
-            cond = p->field_26 == 4;
+            cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
             table = Mc_SaveData[0].state.attachLevels;
@@ -919,7 +919,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
         if (ret == 0) {
             ret = 1;
         }
-        if (p->peStateFlags & 0x80) {
+        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
             if (ret < 3) {
                 ret++;
             }
@@ -939,7 +939,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
-        cond = p->field_26 == 4;
+        cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
         table = Mc_SaveData[0].state.attachLevels;
@@ -1065,7 +1065,7 @@ static s32 func_800A7E5C(s32 arg0)
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (gGameSession->dirActionBusy == 0) {
-                    if (p->field_24 == 0) {
+                    if (p->interactionPressed == 0) {
                         flag = 1;
                     }
                 }

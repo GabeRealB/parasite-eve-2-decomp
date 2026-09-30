@@ -2012,7 +2012,7 @@ void func_actor_136100_8013379C(s32 arg0)
 }
 
 /// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
-/// id 5 (and `Player_Status.field_24` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
+/// id 5 (and `Player_Status.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
 /// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
@@ -2029,7 +2029,7 @@ static s32 func_actor_136100_80133904(Task* task)
     if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
         if (!((s16)evtId & 0x8000)) {
             if ((evtId & 0x7FFF) == 5) {
-                ready = Player_Status.field_24 != 0;
+                ready = Player_Status.interactionPressed != 0;
             }
         }
     }

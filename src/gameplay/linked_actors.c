@@ -485,7 +485,7 @@ void func_800A57B0(GpIdMapC* arg0)
         y -= gGameSession->hudShakeY * 3;
     }
 
-    if (cfg->peStateFlags & 0x80) {
+    if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
         pendingHp = arg0->field_10 << 1;
     } else {
         pendingMp = arg0->field_10;
@@ -717,13 +717,13 @@ void func_800A57B0(GpIdMapC* arg0)
         rect.w   = 0x5A;
         rect.h   = 0x14;
         rectMode = 2;
-        if (cfg->peStateFlags != 0) {
+        if (cfg->statusFlags != 0) {
             rectMode = 4;
         }
         Ui_DrawTextInRect(&rect, -1, rectMode, NULL);
     }
 
-    if (cfg->peStateFlags != 0) {
+    if (cfg->statusFlags != 0) {
         GpHudStatusBits statusBits;
 
         iconX      = x;
@@ -731,7 +731,7 @@ void func_800A57B0(GpIdMapC* arg0)
         statusBits = D_8009389C;
         for (i = 0; i < 7; i++) {
             flags = statusBits.bits;
-            if (cfg->peStateFlags & flags[i]) {
+            if (cfg->statusFlags & flags[i]) {
                 sp5            = gGpuPrimCursor;
                 gGpuPrimCursor = sp5 + 1;
                 sp5->x0        = iconX;

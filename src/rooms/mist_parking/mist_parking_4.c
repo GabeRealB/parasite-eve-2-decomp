@@ -670,7 +670,7 @@ void func_mist_parking_801844EC(void)
 void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
-    Player_Status.field_26             = 1;
+    Player_Status.resourceVariant      = 1;
     Mc_SaveData[0].state.at4.loc.area  = 5;
     Mc_SaveData[0].state.at4.loc.stage = 1;
     Mc_SaveData[0].state.at4.loc.warp  = 1;
