@@ -417,18 +417,18 @@ GpObj3A D_dryfield_night_toilet_8017F2C4[1] = {
 
 GpAreaTmdRec D_dryfield_night_toilet_8017F300[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_toilet_8017F318[3] = {
     { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_toilet_8017F33C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_toilet_8017F354[12] = {

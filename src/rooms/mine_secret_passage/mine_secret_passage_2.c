@@ -537,22 +537,22 @@ GpObj3A D_mine_secret_passage_801831A8[2] = {
 
 GpAreaTmdRec D_mine_secret_passage_80183220[2] = {
     { 58, 58, 3, 0, { 0, 0 }, D_801514CC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_secret_passage_80183238[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_secret_passage_80183250[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_secret_passage_80183268[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_secret_passage_80183280[2] = {

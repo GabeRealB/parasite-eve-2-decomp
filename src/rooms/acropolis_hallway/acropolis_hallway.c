@@ -150,23 +150,23 @@ GpObj4C D_acropolis_hallway_8017E724[9] = {
 
 GpAreaTmdRec D_acropolis_hallway_8017E9D0[2] = {
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017E9E8[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017EA00[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017EA18[3] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {

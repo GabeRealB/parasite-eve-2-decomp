@@ -785,7 +785,7 @@ GpObj4C D_dryfield_night_trailer_coach_8018BD1C[14] = {
 
 GpAreaTmdRec D_dryfield_night_trailer_coach_8018C144[2] = {
     { 106, 207, 3, 0, { 0, 0 }, D_8013EF68 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_trailer_coach_8018C15C[13] = {

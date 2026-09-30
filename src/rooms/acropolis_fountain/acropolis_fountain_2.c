@@ -237,12 +237,12 @@ GpObj4C D_acropolis_fountain_8017F9C0[9] = {
 
 GpAreaTmdRec D_acropolis_fountain_8017FC6C[2] = {
     { 11, 11, 2, 0, { 0, 0 }, D_80177400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_fountain_8017FC84[2] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_fountain_8017FC9C[11] = {

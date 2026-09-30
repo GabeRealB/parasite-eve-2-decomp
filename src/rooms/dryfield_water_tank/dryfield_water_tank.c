@@ -854,11 +854,11 @@ GpObj4C D_dryfield_water_tank_80188920[9] = {
 
 GpAreaTmdRec D_dryfield_water_tank_80188BCC[2] = {
     { 140, 204, 0, 0, { 0, 0 }, D_8013E748 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tank_80188BE4[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_water_tank_80188BF0[13] = {

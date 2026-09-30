@@ -654,43 +654,43 @@ GpObj4C D_shelter_b2_breeding_room_801837C4[14] = {
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183BEC[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183C04[3] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
     { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183C28[4] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
     { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 0, { 0, 0 }, &D_80151E60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183C58[4] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183C88[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183CA0[3] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
     { 38, 38, 1, 0, { 0, 0 }, D_8014FD74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_breeding_room_80183CC4[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_breeding_room_80183CDC[5] = {

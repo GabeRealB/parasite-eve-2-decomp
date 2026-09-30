@@ -218,13 +218,13 @@ GpObj4C D_shelter_b1_transfer_tunnel_80182ED8[2] = {
 GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F70[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 3, 3, 1, 0, { 0, 0 }, D_80160110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_transfer_tunnel_80182F94[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_transfer_tunnel_80182FB8[8] = {

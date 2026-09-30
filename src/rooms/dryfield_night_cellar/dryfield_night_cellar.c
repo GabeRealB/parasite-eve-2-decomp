@@ -658,19 +658,19 @@ GpRoomCoordSet D_dryfield_night_cellar_80180708[1] = {
 
 GpAreaTmdRec D_dryfield_night_cellar_80180720[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_cellar_80180738[3] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_cellar_8018075C[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_cellar_80180780[12] = {

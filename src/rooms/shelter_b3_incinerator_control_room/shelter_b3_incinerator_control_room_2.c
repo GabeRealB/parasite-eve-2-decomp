@@ -248,7 +248,7 @@ GpObj4C D_shelter_b3_incinerator_control_room_801824B8[4] = {
 
 GpAreaTmdRec D_shelter_b3_incinerator_control_room_801825E8[2] = {
     { 101, 426, 0, 0, { 0, 0 }, D_80135E24 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_incinerator_control_room_80182600[1] = {

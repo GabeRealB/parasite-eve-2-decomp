@@ -1496,7 +1496,7 @@ GpObj4C D_neo_ark_observatory_8018742C[14] = {
 
 GpAreaTmdRec D_neo_ark_observatory_80187854[2] = {
     { 101, 502, 3, 0, { 0, 0 }, D_80137A60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_observatory_8018786C[13] = {

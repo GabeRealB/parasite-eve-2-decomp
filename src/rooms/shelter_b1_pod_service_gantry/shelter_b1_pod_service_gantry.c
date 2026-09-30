@@ -99,7 +99,7 @@ GpAreaTmdRec D_shelter_b1_pod_service_gantry_8017FB5C[5] = {
     { 101, 608, 5, 1, { 0, 0 }, &D_801718F0 },
     { 131, 608, 5, 1, { 0, 0 }, &D_801718F0 },
     { 59, 608, 5, 1, { 0, 0 }, &D_801718F0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_pod_service_gantry_8017FB98[6] = {

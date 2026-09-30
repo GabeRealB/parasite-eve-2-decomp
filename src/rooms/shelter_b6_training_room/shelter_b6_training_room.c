@@ -270,7 +270,7 @@ GpAreaTmdRec D_shelter_b6_training_room_80185994[6] = {
     { 51, 51, 0, 0, { 0, 0 }, D_80141464 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
     { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_training_room_801859DC[13] = {

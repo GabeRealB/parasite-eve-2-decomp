@@ -372,35 +372,35 @@ GpObj4C D_shelter_b4_lower_sewer_801837D4[12] = {
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183B64[2] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183B7C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183B94[4] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183BC4[2] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183BDC[2] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_lower_sewer_80183BF4[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b4_lower_sewer_80183C18[3] = {

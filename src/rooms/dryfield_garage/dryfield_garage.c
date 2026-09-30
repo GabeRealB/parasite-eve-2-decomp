@@ -502,22 +502,22 @@ GpObj4C D_dryfield_garage_8017FD1C[11] = {
 
 GpAreaTmdRec D_dryfield_garage_80180060[2] = {
     { 106, 203, 0, 0, { 0, 0 }, D_80141B6C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_garage_80180078[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_garage_80180090[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_garage_801800A8[2] = {
     { 75, 75, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_garage_801800C0[2] = {

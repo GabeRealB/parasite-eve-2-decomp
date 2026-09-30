@@ -1659,22 +1659,22 @@ GpRoomCoordSet D_dryfield_water_tower_801874E4[1] = {
 
 GpAreaTmdRec D_dryfield_water_tower_801874FC[2] = {
     { 1, 216, 3, 0, { 0, 0 }, D_80151254 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_80187514[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_8018752C[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_80187544[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_water_tower_8018755C[2] = {

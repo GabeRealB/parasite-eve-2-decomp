@@ -1399,7 +1399,7 @@ GpObj4C D_shelter_b1_underground_parking_8018B2F4[8] = {
 };
 
 GpAreaTmdRec D_shelter_b1_underground_parking_8018B554[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_underground_parking_8018B560[1] = {
@@ -1407,7 +1407,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B560[1] = {
 };
 
 GpAreaTmdRec D_shelter_b1_underground_parking_8018B570[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
@@ -1416,7 +1416,7 @@ AreaPlacement D_shelter_b1_underground_parking_8018B57C[1] = {
 
 GpAreaTmdRec D_shelter_b1_underground_parking_8018B58C[2] = {
     { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_underground_parking_8018B5A4[2] = {

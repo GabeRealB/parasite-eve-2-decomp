@@ -308,7 +308,7 @@ GpRoomCoordSet D_dryfield_souvenir_shop_8017F55C[1] = {
 GpAreaTmdRec D_dryfield_souvenir_shop_8017F574[3] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_souvenir_shop_8017F598[13] = {

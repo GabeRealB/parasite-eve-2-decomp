@@ -698,7 +698,7 @@ GpRoomCoordSet D_dryfield_cellar_80180A90[1] = {
 GpAreaTmdRec D_dryfield_cellar_80180AA8[3] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_cellar_80180ACC[12] = {

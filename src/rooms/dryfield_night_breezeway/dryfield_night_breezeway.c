@@ -439,19 +439,19 @@ GpObj4C D_dryfield_night_breezeway_801802A0[3] = {
 
 GpAreaTmdRec D_dryfield_night_breezeway_80180384[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_breezeway_8018039C[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_breezeway_801803C0[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_breezeway_801803E4[22] = {

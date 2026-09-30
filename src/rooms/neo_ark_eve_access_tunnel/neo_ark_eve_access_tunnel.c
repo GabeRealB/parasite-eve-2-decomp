@@ -358,13 +358,13 @@ GpObj4C D_neo_ark_eve_access_tunnel_801804B4[6] = {
 
 GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {

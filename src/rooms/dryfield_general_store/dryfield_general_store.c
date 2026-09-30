@@ -1484,13 +1484,13 @@ WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {
 
 GpAreaTmdRec D_dryfield_general_store_80185588[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_general_store_801855A0[3] = {
     { 140, 236, 1, 0, { 0, 0 }, D_80150B48 },
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_general_store_801855C4[9] = {

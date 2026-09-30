@@ -99,7 +99,7 @@ GpRoomCoordSet D_neo_ark_r31_8017DB7C = { 0, NULL, 1, D_neo_ark_r31_8017DB1C, 0,
 GpAreaTmdRec D_neo_ark_r31_8017DB94[3] = {
     { 101, 618, 3, 0, { 0, 0 }, D_80139F8C },
     { 132, 618, 5, 0, { 0, 0 }, D_801437EC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_r31_8017DBB8[13] = {

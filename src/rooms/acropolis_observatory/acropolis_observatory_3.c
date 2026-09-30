@@ -232,32 +232,32 @@ GpObj4C D_acropolis_observatory_80180D6C[9] = {
 
 GpAreaTmdRec D_acropolis_observatory_80181018[2] = {
     { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181030[2] = {
     { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181048[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181060[2] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181078[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181090[2] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801810A8[2] = {
@@ -267,7 +267,7 @@ AreaPlacement D_acropolis_observatory_801810A8[2] = {
 
 GpAreaTmdRec D_acropolis_observatory_801810C8[2] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801810E0[2] = {
@@ -287,7 +287,7 @@ AreaPlacement D_acropolis_observatory_80181100[7] = {
 
 GpAreaTmdRec D_acropolis_observatory_80181170[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_80181188[3] = {
@@ -297,7 +297,7 @@ AreaPlacement D_acropolis_observatory_80181188[3] = {
 };
 
 GpAreaTmdRec D_acropolis_observatory_801811B8[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801811C4[3] = {
@@ -308,7 +308,7 @@ AreaPlacement D_acropolis_observatory_801811C4[3] = {
 
 GpAreaTmdRec D_acropolis_observatory_801811F4[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_8018120C[2] = {
@@ -318,7 +318,7 @@ AreaPlacement D_acropolis_observatory_8018120C[2] = {
 
 GpAreaTmdRec D_acropolis_observatory_8018122C[2] = {
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_80181244[2] = {

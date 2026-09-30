@@ -479,26 +479,26 @@ GpObj4C D_neo_ark_island_80183DF8[3] = {
 
 GpAreaTmdRec D_neo_ark_island_80183EDC[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183EF4[2] = {
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F0C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F24[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F30[2] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_island_80183F48[13] = {

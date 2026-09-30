@@ -413,17 +413,17 @@ GpObj3A D_shelter_b1_access_tunnel_8017FD2C[1] = {
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD68[2] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD80[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD98[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_access_tunnel_8017FDB0[6] = {

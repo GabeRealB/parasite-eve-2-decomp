@@ -1258,7 +1258,7 @@ GpRoomCoordSet D_dryfield_water_hole_8018278C[1] = {
 
 GpAreaTmdRec D_dryfield_water_hole_801827A4[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_water_hole_801827BC[13] = {

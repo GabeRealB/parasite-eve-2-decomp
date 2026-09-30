@@ -2683,24 +2683,24 @@ GpObj4C D_dryfield_night_motel_balcony_8018E854[6] = {
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA1C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA34[4] = {
     { 31, 31, 3, 0, { 0, 0 }, D_8015560C },
     { 106, 358, 2, 0, { 0, 0 }, D_8016EADC },
     { 114, 358, 5, 0, { 0, 0 }, D_80172E9C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA64[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA7C[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_motel_balcony_8018EA94[13] = {

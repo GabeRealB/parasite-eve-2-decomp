@@ -846,18 +846,18 @@ GpObj4C D_dryfield_night_driveway_80181DC8[4] = {
 
 GpAreaTmdRec D_dryfield_night_driveway_80181EF8[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_driveway_80181F10[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_driveway_80181F28[3] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_driveway_80181F4C[22] = {

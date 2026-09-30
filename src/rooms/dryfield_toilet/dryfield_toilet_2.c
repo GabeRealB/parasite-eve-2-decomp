@@ -508,17 +508,17 @@ GpRoomCoordSet D_dryfield_toilet_801828AC[1] = {
 GpAreaTmdRec D_dryfield_toilet_801828C4[3] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
     { 9, 233, 2, 0, { 0, 0 }, D_8017255C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_toilet_801828E8[2] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_toilet_80182900[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_toilet_80182918[13] = {

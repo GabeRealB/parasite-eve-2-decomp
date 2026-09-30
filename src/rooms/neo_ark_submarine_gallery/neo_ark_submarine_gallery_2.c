@@ -868,22 +868,22 @@ GpObj4C D_neo_ark_submarine_gallery_801854FC[10] = {
 GpAreaTmdRec D_neo_ark_submarine_gallery_801857F4[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 61, 61, 1, 0, { 0, 0 }, D_80158B0C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185818[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185830[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185848[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_submarine_gallery_80185860[13] = {

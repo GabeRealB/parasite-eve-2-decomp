@@ -154,7 +154,7 @@ GpObj4C D_shelter_r47_8018787C[13] = {
 
 GpAreaTmdRec D_shelter_r47_80187C58[2] = {
     { 143, 435, 3, 0, { 0, 0 }, D_8015873C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r47_80187C70[2] = {
@@ -164,7 +164,7 @@ AreaPlacement D_shelter_r47_80187C70[2] = {
 
 GpAreaTmdRec D_shelter_r47_80187C90[2] = {
     { 100, 434, 0, 0, { 0, 0 }, NULL },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r47_80187CA8[1] = {

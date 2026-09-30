@@ -1673,18 +1673,18 @@ GpObj4C D_shelter_r48_8018B670[16] = {
 GpAreaTmdRec D_shelter_r48_8018BB30[3] = {
     { 35, 35, 4, 0, { 0, 0 }, D_8016E924 },
     { 45, 45, 5, 0, { 0, 0 }, D_80176524 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_r48_8018BB54[3] = {
     { 35, 35, 4, 0, { 0, 0 }, D_8016E924 },
     { 45, 45, 5, 0, { 0, 0 }, D_80176524 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_r48_8018BB78[2] = {
     { 36, 36, 3, 0, { 0, 0 }, D_80160514 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r48_8018BB90[3] = {

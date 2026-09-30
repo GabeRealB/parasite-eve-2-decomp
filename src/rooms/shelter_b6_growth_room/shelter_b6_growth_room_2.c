@@ -271,7 +271,7 @@ GpObj4C D_shelter_b6_growth_room_8017FF90[12] = {
 
 GpAreaTmdRec D_shelter_b6_growth_room_80180320[2] = {
     { 101, 509, 3, 0, { 0, 0 }, &D_80135E78 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_growth_room_80180338[13] = {

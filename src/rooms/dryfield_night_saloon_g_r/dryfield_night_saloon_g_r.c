@@ -1763,18 +1763,18 @@ GpObj3A D_dryfield_night_saloon_g_r_80188E18[2] = {
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188E90[2] = {
     { 140, 356, 0, 0, { 0, 0 }, D_8013B0C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188EA8[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188EC0[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {

@@ -957,7 +957,7 @@ GpAreaTmdRec D_shelter_b2_pod_bottom_80187598[4] = {
     { 36, 36, 3, 0, { 0, 0 }, D_80160514 },
     { 45, 611, 2, 0, { 0, 0 }, D_8016BAE4 },
     { 132, 611, 5, 0, { 0, 0 }, D_80171BAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_pod_bottom_801875C8[4] = {
@@ -971,7 +971,7 @@ GpAreaTmdRec D_shelter_b2_pod_bottom_80187608[4] = {
     { 36, 36, 3, 0, { 0, 0 }, D_80160514 },
     { 45, 611, 2, 0, { 0, 0 }, D_8016BAE4 },
     { 132, 611, 5, 0, { 0, 0 }, D_80171BAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_pod_bottom_80187638[4] = {

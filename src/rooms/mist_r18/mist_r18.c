@@ -1060,7 +1060,7 @@ GpSprtRec D_mist_r18_80186B60[10] = {
 GpAreaTmdRec D_mist_r18_80186BD8[3] = {
     { 144, 130, 0, 0, { 0, 0 }, D_8013ABB4 },
     { 105, 130, 1, 0, { 0, 0 }, D_80157DE0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_mist_r18_80186BFC[13] = {

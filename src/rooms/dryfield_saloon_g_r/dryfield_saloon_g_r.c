@@ -658,13 +658,13 @@ GpRoomCoordSet D_dryfield_saloon_g_r_80181AC8[1] = {
 
 GpAreaTmdRec D_dryfield_saloon_g_r_80181AE0[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_saloon_g_r_80181AF8[3] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
     { 12, 12, 1, 0, { 0, 0 }, D_80150E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_saloon_g_r_80181B1C[13] = {

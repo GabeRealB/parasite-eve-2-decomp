@@ -520,18 +520,18 @@ GpObj4C D_dryfield_night_water_tank_801804BC[8] = {
 };
 
 GpAreaTmdRec D_dryfield_night_water_tank_8018071C[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_water_tank_80180728[3] = {
     { 143, 463, 0, 0, { 0, 0 }, D_801427C8 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_water_tank_8018074C[2] = {
     { 143, 463, 0, 0, { 0, 0 }, D_801427C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_water_tank_80180764[13] = {

@@ -739,30 +739,30 @@ GpObj4C D_acropolis_promenade_80182DBC[6] = {
 
 GpAreaTmdRec D_acropolis_promenade_80182F84[2] = {
     { 11, 11, 2, 0, { 0, 0 }, D_80177400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182F9C[3] = {
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FC0[3] = {
     { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FE4[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FFC[3] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_promenade_80183020[17] = {

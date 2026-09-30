@@ -515,28 +515,28 @@ GpObj3A D_dryfield_night_parking_lot_80181330[2] = {
 GpAreaTmdRec D_dryfield_night_parking_lot_801813A8[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_parking_lot_801813CC[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_parking_lot_801813E4[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_parking_lot_80181408[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_parking_lot_80181420[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_parking_lot_80181438[22] = {

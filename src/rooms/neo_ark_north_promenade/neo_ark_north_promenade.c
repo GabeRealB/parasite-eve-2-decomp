@@ -327,17 +327,17 @@ GpObj4C D_neo_ark_north_promenade_80182DB4[8] = {
 
 GpAreaTmdRec D_neo_ark_north_promenade_80183014[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_north_promenade_8018302C[2] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_north_promenade_80183044[2] = {
     { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_north_promenade_8018305C[13] = {

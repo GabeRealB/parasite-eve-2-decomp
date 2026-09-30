@@ -630,40 +630,40 @@ GpObj4C D_shelter_b4_upper_sewer_801886F4[8] = {
 GpAreaTmdRec D_shelter_b4_upper_sewer_80188954[3] = {
     { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
     { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_80188978[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_80188990[3] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_801889B4[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_801889D8[2] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_801889F0[2] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_upper_sewer_80188A08[3] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
     { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b4_upper_sewer_80188A2C[5] = {

@@ -539,13 +539,13 @@ WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
 GpAreaTmdRec D_shelter_1f_heliport_80182BAC[3] = {
     { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
     { 115, 605, 1, 0, { 0, 0 }, D_80159DB0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_1f_heliport_80182BD0[3] = {
     { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
     { 144, 604, 1, 0, { 0, 0 }, D_80154C18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_heliport_80182BF4[13] = {

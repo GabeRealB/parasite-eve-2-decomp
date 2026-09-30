@@ -2709,7 +2709,7 @@ GpObj4C D_acropolis_plaza_8019923C[4] = {
 GpAreaTmdRec D_acropolis_plaza_8019936C[3] = {
     { 109, 101, 2, 0, { 0, 0 }, D_actor_310100_80179920 },
     { 108, 101, 2, 0, { 0, 0 }, D_actor_310100_801798FC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_plaza_80199390[3] = {

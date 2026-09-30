@@ -1951,7 +1951,7 @@ GpRoomCoordSet D_mist_shooting_gallery_8018DF38 = { 1, D_mist_shooting_gallery_8
 GpAreaTmdRec D_mist_shooting_gallery_8018DF50[3] = {
     { 76, 76, 0, 0, { 0, 0 }, &D_80134F94 },
     { 143, 151, 1, 0, { 0, 0 }, D_8015E5D0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_mist_shooting_gallery_8018DF74[12] = {

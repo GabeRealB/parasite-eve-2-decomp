@@ -770,30 +770,30 @@ GpObj3A D_dryfield_night_junk_yard_80184318[1] = {
 
 GpAreaTmdRec D_dryfield_night_junk_yard_80184354[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_8018436C[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_80184390[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_801843A8[3] = {
     { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_801843CC[3] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_junk_yard_801843F0[22] = {

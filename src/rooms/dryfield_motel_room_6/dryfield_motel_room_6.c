@@ -1703,11 +1703,11 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
 
 GpAreaTmdRec D_dryfield_motel_room_6_80186740[2] = {
     { 101, 205, 0, 0, { 0, 0 }, &D_8013843C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_6_80186758[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_motel_room_6_80186764[12] = {

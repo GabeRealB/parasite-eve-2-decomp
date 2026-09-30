@@ -401,23 +401,23 @@ GpObj3A D_shelter_b1_elevator_hall_80184748[1] = {
 
 GpAreaTmdRec D_shelter_b1_elevator_hall_80184784[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_elevator_hall_8018479C[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_elevator_hall_801847B4[2] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_elevator_hall_801847CC[3] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
     { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_elevator_hall_801847F0[4] = {

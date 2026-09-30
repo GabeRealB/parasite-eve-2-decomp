@@ -473,7 +473,7 @@ GpObj4C D_mine_refuge_80182810[6] = {
 
 GpAreaTmdRec D_mine_refuge_801829D8[2] = {
     { 101, 481, 4, 0, { 0, 0 }, &D_801358D8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_refuge_801829F0[1] = {

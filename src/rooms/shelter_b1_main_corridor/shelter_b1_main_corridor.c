@@ -561,28 +561,28 @@ GpObj4C D_shelter_b1_main_corridor_801858B8[6] = {
 GpAreaTmdRec D_shelter_b1_main_corridor_80185A80[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 11, 11, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_main_corridor_80185AA4[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_main_corridor_80185ABC[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_main_corridor_80185AD4[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_main_corridor_80185AEC[3] = {
     { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_main_corridor_80185B10[6] = {

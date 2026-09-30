@@ -221,13 +221,13 @@ GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1] = {
 
 GpAreaTmdRec D_dryfield_g_r_kitchen_8017F47C[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_g_r_kitchen_8017F494[3] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {

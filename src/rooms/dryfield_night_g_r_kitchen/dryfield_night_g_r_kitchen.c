@@ -217,20 +217,20 @@ GpObj4C D_dryfield_night_g_r_kitchen_8017E8FC[7] = {
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB10[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB34[4] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB64[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_g_r_kitchen_8017EB88[12] = {

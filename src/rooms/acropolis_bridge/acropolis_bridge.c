@@ -1963,15 +1963,15 @@ GpSprtRec D_acropolis_bridge_8018FFA4[10] = {
 
 GpAreaTmdRec D_acropolis_bridge_8019001C[2] = {
     { 41, 41, 5, 0, { 0, 0 }, &D_acropolis_bridge_80191780.value },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_bridge_80190034[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_bridge_80190040[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_bridge_8019004C[12] = {

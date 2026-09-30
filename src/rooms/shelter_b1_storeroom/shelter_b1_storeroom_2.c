@@ -508,23 +508,23 @@ GpObj4C D_shelter_b1_storeroom_80186670[15] = {
 GpAreaTmdRec D_shelter_b1_storeroom_80186AE4[3] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_storeroom_80186B08[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_storeroom_80186B20[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_storeroom_80186B38[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 56, 56, 1, 0, { 0, 0 }, D_801602C0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_storeroom_80186B5C[6] = {

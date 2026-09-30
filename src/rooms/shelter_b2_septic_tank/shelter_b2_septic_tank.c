@@ -1038,35 +1038,35 @@ GpObj4C D_shelter_b2_septic_tank_80186C1C[4] = {
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D4C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D64[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D7C[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DA0[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DB8[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DDC[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_septic_tank_80186E00[3] = {

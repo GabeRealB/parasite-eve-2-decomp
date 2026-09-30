@@ -840,7 +840,7 @@ GpGridParams D_dryfield_trailer_coach_801876B4[1] = {
 
 GpAreaTmdRec D_dryfield_trailer_coach_801876D8[2] = {
     { 106, 207, 3, 0, { 0, 0 }, D_8013EF68 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_trailer_coach_801876F0[13] = {

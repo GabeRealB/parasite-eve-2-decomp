@@ -1548,7 +1548,7 @@ GpObj4C D_acropolis_security_room_80183EE8[5] = {
 GpAreaTmdRec D_acropolis_security_room_80184064[3] = {
     { 102, 119, 2, 0, { 0, 0 }, D_8016EC0C },
     { 110, 119, 5, 0, { 0, 0 }, D_8016EC00 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_security_room_80184088[4] = {

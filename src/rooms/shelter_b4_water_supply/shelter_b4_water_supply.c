@@ -651,23 +651,23 @@ GpObj4C D_shelter_b4_water_supply_80184944[7] = {
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B58[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B70[3] = {
     { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B94[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184BAC[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b4_water_supply_80184BC4[2] = {

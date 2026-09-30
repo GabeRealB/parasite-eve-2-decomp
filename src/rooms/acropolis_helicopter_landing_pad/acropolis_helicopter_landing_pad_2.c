@@ -152,14 +152,14 @@ GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
 
 GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861A0[2] = {
     { 27, 109, 4, 0, { 0, 0 }, D_80167A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861B8[4] = {
     { 27, 110, 4, 0, { 0, 0 }, D_80155070 },
     { 144, 110, 5, 0, { 0, 0 }, D_801472E8 },
     { 254, 110, 5, 0, { 0, 0 }, D_80139924 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {

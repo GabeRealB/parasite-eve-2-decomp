@@ -654,81 +654,81 @@ GpObj4C D_acropolis_forked_road_80182DDC[7] = {
 
 GpAreaTmdRec D_acropolis_forked_road_80182FF0[2] = {
     { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183008[3] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018302C[2] = {
     { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183044[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183068[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183080[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183098[3] = {
     { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830BC[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830D4[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830EC[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183104[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018311C[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183134[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018314C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183164[3] = {
     { 46, 46, 0, 0, { 0, 0 }, D_80137698 },
     { 47, 47, 0, 0, { 0, 0 }, D_801382BC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183188[5] = {
@@ -736,7 +736,7 @@ GpAreaTmdRec D_acropolis_forked_road_80183188[5] = {
     { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_forked_road_801831C4[24] = {

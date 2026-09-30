@@ -236,7 +236,7 @@ GpRoomCoordSet D_dryfield_night_r08_8018189C[1] = {
 GpAreaTmdRec D_dryfield_night_r08_801818B4[3] = {
     { 132, 357, 4, 0, { 0, 0 }, D_8013DADC },
     { 20, 358, 4, 0, { 0, 0 }, D_80146810 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_r08_801818D8[11] = {

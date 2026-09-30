@@ -240,29 +240,29 @@ GpRoomCoordSet D_dryfield_night_back_street_80181470[1] = {
 
 GpAreaTmdRec D_dryfield_night_back_street_80181488[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_back_street_801814A0[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_back_street_801814C4[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_back_street_801814E8[2] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_back_street_80181500[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_back_street_80181518[22] = {

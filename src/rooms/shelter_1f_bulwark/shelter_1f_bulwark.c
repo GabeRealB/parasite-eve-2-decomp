@@ -246,7 +246,7 @@ GpObj4C D_shelter_1f_bulwark_80180B24[8] = {
 GpAreaTmdRec D_shelter_1f_bulwark_80180D84[3] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_bulwark_80180DA8[12] = {

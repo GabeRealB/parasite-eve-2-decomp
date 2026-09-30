@@ -1764,12 +1764,12 @@ GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB3C[5] = {
     { 103, 417, 2, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
     { 252, 417, 5, 0, { 0, 0 }, D_80176354 },
     { 44, 44, 5, 2, { 0, 0 }, &D_80174D58 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB78[2] = {
     { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
@@ -1782,7 +1782,7 @@ GpAreaTmdRec D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
     { 103, 421, 2, 1, { 0, 0 }, &D_80164B78 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_dumping_hole_8018EBEC[5] = {

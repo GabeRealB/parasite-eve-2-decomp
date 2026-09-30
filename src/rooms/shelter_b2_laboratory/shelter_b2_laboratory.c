@@ -956,7 +956,7 @@ GpObj4C D_shelter_b2_laboratory_80185D84[19] = {
 
 GpAreaTmdRec D_shelter_b2_laboratory_80186328[2] = {
     { 101, 430, 0, 0, { 0, 0 }, D_801350B0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_laboratory_80186340[2] = {

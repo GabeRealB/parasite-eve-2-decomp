@@ -660,22 +660,22 @@ GpObj4C D_neo_ark_woodland_path_8018445C[8] = {
 
 GpAreaTmdRec D_neo_ark_woodland_path_801846BC[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_woodland_path_801846D4[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_woodland_path_801846EC[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_woodland_path_80184704[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_woodland_path_8018471C[12] = {

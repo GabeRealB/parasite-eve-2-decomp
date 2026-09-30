@@ -759,24 +759,24 @@ GpAreaTmdRec D_shelter_b2_operating_room_80183EB8[5] = {
     { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183EF4[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183F0C[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183F24[4] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 0, { 0, 0 }, &D_80151E60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_operating_room_80183F54[7] = {

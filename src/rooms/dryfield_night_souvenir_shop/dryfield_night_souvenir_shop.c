@@ -323,18 +323,18 @@ GpObj4C D_dryfield_night_souvenir_shop_8017F248[12] = {
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F5D8[2] = {
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F5F0[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F608[3] = {
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_souvenir_shop_8017F62C[12] = {

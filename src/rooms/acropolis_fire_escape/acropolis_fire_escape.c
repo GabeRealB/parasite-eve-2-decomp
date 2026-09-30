@@ -329,7 +329,7 @@ GpObj3A D_acropolis_fire_escape_801828BC[2] = {
 
 GpAreaTmdRec D_acropolis_fire_escape_80182934[2] = {
     { 10, 115, 2, 0, { 0, 0 }, D_80169338 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_fire_escape_8018294C[5] = {

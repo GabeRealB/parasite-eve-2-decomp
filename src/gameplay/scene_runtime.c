@@ -2881,7 +2881,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     do {
         resource   = variants[location->variant].field_4;
         resourceId = resource->field_0;
-        if (resourceId != AREA_TABLE_END_ID) {
+        if (resourceId != AREA_PLACEMENT_END) {
             do {
                 if (resourceId == placement->entryId) {
                     if (areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES) {
@@ -2960,7 +2960,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                 }
                 resource++;
                 resourceId = resource->field_0;
-            } while (resourceId != AREA_TABLE_END_ID);
+            } while (resourceId != AREA_PLACEMENT_END);
         }
         placementIndex++;
         placement++;

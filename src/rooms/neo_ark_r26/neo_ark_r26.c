@@ -385,7 +385,7 @@ GpRoomCoordSet D_neo_ark_r26_8017E928[1] = {
 GpAreaTmdRec D_neo_ark_r26_8017E940[3] = {
     { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
     { 112, 601, 5, 0, { 0, 0 }, D_80149664 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_neo_ark_r26_8017E964[3] = {

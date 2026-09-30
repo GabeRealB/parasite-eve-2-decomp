@@ -57,23 +57,23 @@ extern GpAreaTmdRec D_neo_ark_garden_80182B3C[2];
 
 GpAreaTmdRec D_neo_ark_garden_80182AE8[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_garden_80182B00[2] = {
     { 132, 510, 0, 0, { 0, 0 }, D_8013D2E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_garden_80182B18[3] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_garden_80182B3C[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_garden_80182B54[13] = {

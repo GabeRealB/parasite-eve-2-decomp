@@ -526,7 +526,7 @@ GpObj4C D_shelter_r36_8017F6F4[10] = {
 GpAreaTmdRec D_shelter_r36_8017F9EC[3] = {
     { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
     { 112, 601, 5, 0, { 0, 0 }, D_80149664 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r36_8017FA10[3] = {

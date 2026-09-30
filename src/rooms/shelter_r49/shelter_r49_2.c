@@ -146,7 +146,7 @@ GpRoomCoordSet D_shelter_r49_8017DD24[1] = {
 
 GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {
     { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r49_8017DD54[2] = {

@@ -502,7 +502,7 @@ GpAreaTmdRec D_shelter_1f_tent_80184200[4] = {
     { 113, 602, 3, 0, { 0, 0 }, D_8015152C },
     { 116, 602, 5, 0, { 0, 0 }, D_80148118 },
     { 117, 603, 5, 0, { 0, 0 }, D_8013FC80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_tent_80184230[13] = {

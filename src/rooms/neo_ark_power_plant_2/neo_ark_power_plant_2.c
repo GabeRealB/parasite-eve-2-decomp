@@ -659,18 +659,18 @@ GpObj4C D_neo_ark_power_plant_2_80182B20[8] = {
 GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3] = {
     { 53, 53, 0, 0, { 0, 0 }, D_8013D3FC },
     { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
     { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {

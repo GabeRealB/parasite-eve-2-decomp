@@ -449,7 +449,7 @@ GpObj4C D_acropolis_square_80185680[26] = {
 
 GpAreaTmdRec D_acropolis_square_80185E38[2] = {
     { 19, 118, 0, 0, { 0, 0 }, D_8013A468 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_square_80185E50[3] = {

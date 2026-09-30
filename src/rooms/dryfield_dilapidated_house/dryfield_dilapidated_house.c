@@ -1519,7 +1519,7 @@ GpRoomCoordSet D_dryfield_dilapidated_house_801898FC[1] = {
 GpAreaTmdRec D_dryfield_dilapidated_house_80189914[3] = {
     { 34, 211, 4, 0, { 0, 0 }, D_8015F6E4 },
     { 29, 212, 4, 0, { 0, 0 }, D_8016A388 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_dilapidated_house_80189938[13] = {

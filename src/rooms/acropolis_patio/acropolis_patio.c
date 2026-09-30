@@ -959,34 +959,34 @@ GpObj3A D_acropolis_patio_80184964[2] = {
 GpAreaTmdRec D_acropolis_patio_801849DC[3] = {
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
     { 107, 122, 2, 0, { 0, 0 }, D_80169F7C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A00[3] = {
     { 10, 170, 2, 0, { 0, 0 }, D_8016CF44 },
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A24[3] = {
     { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A48[3] = {
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A6C[2] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A84[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_patio_80184A90[12] = {

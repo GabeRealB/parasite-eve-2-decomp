@@ -357,28 +357,28 @@ GpObj4C D_mine_tunnel_entrance_8017EF4C[4] = {
 GpAreaTmdRec D_mine_tunnel_entrance_8017F07C[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0A0[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0B8[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0D0[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0F4[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_tunnel_entrance_8017F10C[8] = {

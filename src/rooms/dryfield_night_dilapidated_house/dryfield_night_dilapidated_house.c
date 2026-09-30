@@ -72,18 +72,18 @@ GpObj3A D_dryfield_night_dilapidated_house_80189F08[1] = {
 GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F44[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F68[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_dilapidated_house_80189F8C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {

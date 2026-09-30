@@ -440,7 +440,7 @@ GpAreaTmdRec D_shelter_b6_corridor_801802C8[5] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
     { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_corridor_80180304[13] = {

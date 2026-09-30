@@ -281,7 +281,7 @@ WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4] = {
 GpAreaTmdRec D_shelter_1f_vehicular_airlock_801829E0[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {

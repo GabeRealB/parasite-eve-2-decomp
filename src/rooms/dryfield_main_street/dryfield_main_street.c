@@ -830,29 +830,29 @@ GpObj4C D_dryfield_main_street_80184B5C[10] = {
 GpAreaTmdRec D_dryfield_main_street_80184E54[3] = {
     { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184E78[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184E90[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184EA8[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184ECC[3] = {
     { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_main_street_80184EF0[3] = {

@@ -892,12 +892,12 @@ GpObj4C D_acropolis_sanctuary_80183AE4[17] = {
 GpAreaTmdRec D_acropolis_sanctuary_80183FF0[3] = {
     { 27, 107, 0, 0, { 0, 0 }, D_8013BF94 },
     { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_sanctuary_80184014[2] = {
     { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_sanctuary_8018402C[12] = {

@@ -357,23 +357,23 @@ GpRoomCoordSet D_dryfield_parking_lot_8017F9FC[1] = {
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA14[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA20[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA38[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA5C[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_parking_lot_8017FA74[13] = {

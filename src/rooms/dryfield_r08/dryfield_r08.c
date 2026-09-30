@@ -442,7 +442,7 @@ GpRoomCoordSet D_dryfield_r08_80180B58 = { 0, NULL, 4, D_dryfield_r08_801809D8, 
 
 GpAreaTmdRec D_dryfield_r08_80180B70[2] = {
     { 132, 213, 0, 0, { 0, 0 }, D_8013D390 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_r08_80180B88[13] = {

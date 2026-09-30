@@ -294,7 +294,7 @@ GpObj4C D_shelter_b2_elevator_8017E8F0[1] = {
 
 GpAreaTmdRec D_shelter_b2_elevator_8017E93C[2] = {
     { 101, 429, 0, 0, { 0, 0 }, D_80137600 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_elevator_8017E954[1] = {

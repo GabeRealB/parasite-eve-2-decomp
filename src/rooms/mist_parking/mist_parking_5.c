@@ -741,7 +741,7 @@ GpRoomCoordSet D_mist_parking_80195178[1] = {
 GpAreaTmdRec D_mist_parking_80195190[3] = {
     { 143, 131, 0, 0, { 0, 0 }, D_80144308 },
     { 115, 131, 1, 0, { 0, 0 }, D_801521A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_mist_parking_801951B4[13] = {

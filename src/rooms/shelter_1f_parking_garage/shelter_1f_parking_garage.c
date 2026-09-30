@@ -303,7 +303,7 @@ WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5] = {
 };
 
 GpAreaTmdRec D_shelter_1f_parking_garage_801818CC[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_parking_garage_801818D8[12] = {

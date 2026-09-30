@@ -391,7 +391,7 @@ GpObj4C D_acropolis_east_elevator_hall_80186A24[7] = {
 
 GpAreaTmdRec D_acropolis_east_elevator_hall_80186C38[2] = {
     { 110, 103, 0, 0, { 0, 0 }, D_8013A06C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {

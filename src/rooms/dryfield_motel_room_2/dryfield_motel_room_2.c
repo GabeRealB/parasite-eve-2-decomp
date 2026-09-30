@@ -592,19 +592,19 @@ GpRoomCoordSet D_dryfield_motel_room_2_80180398[1] = {
 
 GpAreaTmdRec D_dryfield_motel_room_2_801803B0[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_2_801803C8[3] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_2_801803EC[3] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_motel_room_2_80180410[12] = {

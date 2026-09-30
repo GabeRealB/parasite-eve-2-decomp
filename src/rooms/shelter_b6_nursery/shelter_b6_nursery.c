@@ -783,7 +783,7 @@ GpAreaTmdRec D_shelter_b6_nursery_80187474[4] = {
     { 101, 508, 3, 0, { 0, 0 }, D_8014AC88 },
     { 20, 358, 4, 0, { 0, 0 }, D_801539DC },
     { 140, 508, 5, 3, { 0, 0 }, D_8014AC88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_nursery_801874A4[13] = {
