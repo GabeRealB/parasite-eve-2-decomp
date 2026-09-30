@@ -344,7 +344,7 @@ void Title_RestoreDemoCard(void)
     u8* base;
 
     src         = (u8*)Fs_ActorLoadBase2;
-    bank        = 0;
+    bank        = GAME_FLAG_NIBBLE_BANK_LIVE;
     saveField23 = Mc_SaveData[0].state.demoScene;
     saveField21 = Mc_SaveData[0].state.vibration;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {

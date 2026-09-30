@@ -8,6 +8,11 @@ enum { GAME_FLAG_NIBBLE_COUNT = 504 };
 
 /// Indices and extent of the resident packed game-flag save bank pair.
 enum {
+    /// Index of the current session's bank in `gGameFlagNibbleBanks`.
+    ///
+    /// Holds the live packed flags and their shared play-time mark. Saving
+    /// snapshots this bank into `GAME_FLAG_NIBBLE_BANK_BACKUP`; demo restore
+    /// replaces only this bank.
     GAME_FLAG_NIBBLE_BANK_LIVE   = 0,
     GAME_FLAG_NIBBLE_BANK_BACKUP = 1,
     GAME_FLAG_NIBBLE_BANK_COUNT  = 2
