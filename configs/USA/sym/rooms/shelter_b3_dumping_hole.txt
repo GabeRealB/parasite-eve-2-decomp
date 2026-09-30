@@ -215,7 +215,7 @@ func_shelter_b3_dumping_hole_8017FCF4 = 0x8017FCF4; // type:func
 
 func_shelter_b3_dumping_hole_80183F84 = 0x80183F84; // type:func
 
-func_shelter_b3_dumping_hole_8018521C = 0x8018521C; // type:func
+effectSpriteDriftTaskAimed = 0x8018521C; // type:func
 
 func_shelter_b3_dumping_hole_80186218 = 0x80186218; // type:func
 
@@ -241,3 +241,5 @@ effectSpriteDrawRotated = 0x80185DCC; // type:func
 actorMsgPlaceYawPitchRoll = 0x80181854; // type:func
 actorMsgSetDrawMode = 0x801817D8; // type:func
 effectSpriteDrawBanked = 0x8018596C; // type:func
+effectSpriteDrawChip = 0x801866CC; // type:func
+effectSpriteDrawBillboard = 0x80186AB8; // type:func

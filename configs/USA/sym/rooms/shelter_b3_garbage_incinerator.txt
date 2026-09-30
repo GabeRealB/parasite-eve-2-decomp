@@ -207,7 +207,7 @@ D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // size:0x4 defined:True
 
 func_shelter_b3_garbage_incinerator_8018110C = 0x8018110C; // type:func
 
-func_shelter_b3_garbage_incinerator_80182368 = 0x80182368; // type:func
+effectSpriteDriftTaskAimed = 0x80182368; // type:func
 
 func_shelter_b3_garbage_incinerator_80183364 = 0x80183364; // type:func
 CapCaption_RunSchedule = 0x8017FA58; // type:func
@@ -229,3 +229,6 @@ effectSpriteDrawRotated = 0x80182F18; // type:func
 screenWaveGridTask = 0x8017E7D0; // type:func
 actorMsgPlaceInView = 0x8017E70C; // type:func
 actorMsgSetDrawMode = 0x8017E690; // type:func
+effectSpriteDrawChip = 0x801837F8; // type:func
+effectSpriteDrawBillboard = 0x80183BE4; // type:func
+effectSpriteDrawBanked = 0x80182AB8; // type:func

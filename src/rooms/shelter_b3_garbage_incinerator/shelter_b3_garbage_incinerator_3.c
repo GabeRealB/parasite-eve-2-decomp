@@ -73,9 +73,6 @@ typedef struct {
 static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2);
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b3_garbage_incinerator_801842A4(SVECTOR* v, u16 arg1, u16 arg2, u16 arg3);
-static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_garbage_incinerator_801837F8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80164190;
 
@@ -2224,157 +2221,9 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-void func_shelter_b3_garbage_incinerator_80182368(Task* task)
-{
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+#include "../../shared/effect_sprite_drift_aimed.inc.c"
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (task->spawnArg1.value < 0) {
-            effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
-        } else {
-            func_shelter_b3_garbage_incinerator_80182AB8(coord, work->index | work->pos.vx, work->scale, work->angle);
-        }
-        if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-        return;
-    }
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale = task->spawnArg1.value & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 7;
-            } else {
-                step = 1;
-            }
-            work->period = step;
-            work->age    = 0;
-            task->state  = 1;
-            task->state  = task->spawnArg1.value < 0 ? 2 : 1;
-            work->pos.vx = (task->spawnArg1.value >> 16) & 0x7000;
-            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
-                } else {
-                    level = 0x40;
-                }
-                work->step = level;
-                switch ((task->spawnArg1.value >> 24) & 0xF) {
-                    case 0:
-                        work->step = 0;
-                        break;
-                    case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        break;
-                    case 5:
-                        work->move.vx = work->pos.vx;
-                        work->move.vy = work->pos.vy;
-                        work->move.vz = work->pos.vz;
-                        break;
-                    case 6:
-                        work->move.vy = 0;
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 7:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = ((u32)Gp_LcgState >> 16) & 0xFF;
-                        gte_SetRotMatrix(&work->parent->coord);
-                        gte_ldv0(&work->move);
-                        gte_rtv0();
-                        gte_stsv(&work->move);
-                        break;
-                }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
-            } else {
-                work->step = 0x40;
-            }
-            break;
-        case 1:
-            func_shelter_b3_garbage_incinerator_80182AB8(coord, work->index | work->pos.vx, work->scale, work->angle);
-            if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
-                } else {
-                    work->move.vy -= 2;
-                }
-            }
-            if ((work->age % work->period) == 0) {
-                work->index++;
-                if (work->index >= 12) {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-            }
-            break;
-        case 2:
-            effectSpriteDrawRotated(coord, work->index | work->pos.vx, work->scale, work->angle);
-            if (work->step != 0) {
-                coord->coord.t[0]  += work->move.vx;
-                coord->coord.t[1]  += work->move.vy;
-                coord->coord.t[2]  += work->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                if (((task->spawnArg1.value >> 24) & 0xF) == 7) {
-                    work->move.vy += work->age / 10;
-                } else {
-                    work->move.vy -= 1;
-                }
-            }
-            if ((work->age % work->period) == 0) {
-                work->index++;
-                if (work->index >= 10) {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-            }
-            break;
-    }
-}
-
-static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     u8*              head;
     GpFxQuadScratch* block;
@@ -2455,7 +2304,7 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_b3_garbage_incinerator_801837F8(coord, work->index, work->scale, work->angle);
+        effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
         }
@@ -2532,10 +2381,10 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
             }
             return;
         case 1:
-            func_shelter_b3_garbage_incinerator_801837F8(coord, work->index, work->scale, work->angle);
+            effectSpriteDrawChip(coord, work->index, work->scale, work->angle);
             break;
         case 2:
-            func_shelter_b3_garbage_incinerator_80183BE4(coord, (u16)work->index, work->scale);
+            effectSpriteDrawBillboard(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
@@ -2555,127 +2404,9 @@ void func_shelter_b3_garbage_incinerator_80183364(Task* task)
     }
 }
 
-/// Draws a spinning textured sprite at the world position of `arg0`,
-/// projected through `GsWSMATRIX`: one semi-transparent `POLY_FT4` whose
-/// corners lie `(s16)arg2 * 31` over the depth from the centre, at the angle
-/// `arg3` and a quarter turn past it. `arg1` picks the frame, a 32x32 cell
-/// in a row of the texture page. Nothing is drawn when the projection flags
-/// an error.
-static void func_shelter_b3_garbage_incinerator_801837F8(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              u1;
-    s32              v;
-    s32              ang;
-    s32              ang2;
-    u16              vz;
+#include "../../shared/effect_sprite_draw_chip.inc.c"
 
-    scratch                                   = SCRATCH_STACK_CURSOR_SLOT;
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        ang            = arg3;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2C;
-        prim->clut  = 0x43D3;
-        u0          = arg1 << 5;
-        v           = 0xE0;
-        u1          = u0 + 0x1F;
-        setUV4(prim, u0, v, u1, v, u0, 0xFF, u1, 0xFF);
-        block->dx = (((arg2 * 31) / block->otz) * rsin(ang)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        ang2      = ang + 0x400;
-        prim->y3  = block->sy + (u16)block->dy;
-        block->dx = (((arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = (((arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
-
-/// Draws a textured billboard at the world position of `arg0`, projected
-/// through `GsWSMATRIX`: one semi-transparent axis-aligned `POLY_FT4`, a
-/// square of half-side `(s16)arg2 * 55` over the depth, raised so the
-/// projected point sits three quarters of the way down it. `arg1` picks the
-/// frame, a 56x56 cell in a four-by-two grid of the texture page. Nothing is
-/// drawn when the projection flags an error.
-static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg1, s32 arg2)
-{
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    u16            idx;
-    u32            cell;
-    s32            row;
-    u8             u0;
-    u8             u1;
-    u8             v0;
-    u8             v1;
-
-    idx           = arg1;
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4393;
-        cell        = idx;
-        u0          = (cell & 3) * 0x38;
-        row         = ((cell & 7) >> 2) * 0x38;
-        v0          = row;
-        v1          = row + 0x37;
-        u1          = u0 + 0x37;
-        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        block->step = ((s16)arg2 * 55) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->step;
-        prim->x1 = prim->x3 = block->sx + block->step;
-        prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
-        prim->y2 = prim->y3 = block->sy + (block->step >> 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
+#include "../../shared/effect_sprite_draw_billboard.inc.c"
 
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
 {
