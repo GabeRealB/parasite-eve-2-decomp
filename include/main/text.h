@@ -21,7 +21,16 @@ enum {
 
 /// Placement of the measured line relative to its initial X coordinate.
 enum {
-    TEXT_ALIGNMENT_LEFT   = 0,
+    TEXT_ALIGNMENT_LEFT = 0,
+    /// Centers a measured UI-text line on the request's initial X coordinate.
+    ///
+    /// Stored in `TextDrawReq::alignment`. `Text_DrawString` and
+    /// `Text_MeasureAndCenter` subtract `width >> 1` pixels from X, so odd
+    /// nonnegative widths use their rounded-down half. Measurement uses the
+    /// initial glyph table and kerning even when inline commands change the
+    /// drawing metrics or position. If no glyph is measured, width is -4 and
+    /// X moves two pixels right. The selector stays set; restore the X anchor
+    /// before applying alignment again.
     TEXT_ALIGNMENT_CENTER = 1,
     TEXT_ALIGNMENT_RIGHT  = 2,
 };
