@@ -35,9 +35,9 @@ void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdO
 u32* Tmd_DispatchStream(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
 
 // The per-frame callback of the task that holds the models' buffers, and the
-// states it runs in sequence. Each state walks `gTmdList` whole and advances
-// the task to the next, so the list is only ever worked from a task that owns
-// the pass.
+// states it runs in sequence. The hide and buffer-release states walk the
+// current `gTmdList`; drawing and other buffer passes use the same sentinel
+// independently of this task.
 void Tmd_DispatchTask(struct Task* task);
 
 /// Gives a buffer back to every attached model that has none, then kills the task.

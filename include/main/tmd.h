@@ -5,12 +5,23 @@
 
 #include "main/tmd_types.h"
 
-/// Head of the model list: the anchor every attached `TmdObject` hangs from.
+/// Resident sentinel for the current attached-model list.
 ///
-/// A model is linked here when its task attaches it and unlinked when the task
-/// releases it, so the list is the model subsystem's whole view of what is
-/// currently loaded. The size, buffer, draw and free passes work from it
-/// instead of walking the task list.
+/// `next` points to the first `TmdObject.link`, and `prev` to the last. After
+/// `Tmd_InitLists`, an empty list has `next == NULL` and `prev == &gTmdList`.
+/// The first element points back to this sentinel; the last points forward to
+/// `NULL`. Recover model bodies from element links with `PARENT_OF`; the
+/// sentinel itself is not a `TmdObject`.
+///
+/// Successful attachment appends a body; creation alone does not link it.
+/// Hidden models and models without primitive buffers remain linked, including
+/// models awaiting delayed task release. Coordinate refresh visits every model;
+/// drawing and buffer management apply their own filters. Unlink a body before
+/// freeing it; the resident sentinel is never freed.
+///
+/// Saving and clearing the endpoints temporarily replaces the working list
+/// without moving its bodies. Saved chains retain their back-links to this
+/// sentinel and must stay linked and alive until the endpoints are restored.
 extern TmdListNode gTmdList;
 
 /// Head of the coordinate-body list: the anchor for the coordinate nodes a task
