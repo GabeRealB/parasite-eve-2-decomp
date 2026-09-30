@@ -3002,7 +3002,7 @@ static void Actor01900_Fn083E8(Task* arg0)
 static void Actor01900_Fn08724(Task* arg0)
 {
     SVECTOR         vec;
-    GpEffWork*      eff;
+    EffectWork*     eff;
     Actor01900Work* work;
     Enemy*          enemy;
 
@@ -3049,7 +3049,7 @@ static void Actor01900_Fn08724(Task* arg0)
 static void Actor01900_Fn0892C(Task* arg0)
 {
     SVECTOR         vec;
-    GpEffWork*      eff;
+    EffectWork*     eff;
     Actor01900Work* work;
     Enemy*          enemy;
     s16             cur;

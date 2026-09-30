@@ -1133,7 +1133,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     GfxCoord*              coord;
     WorldCollisionCapsule* d4;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m1;
     GpMtxWords*            m2;
@@ -1382,7 +1382,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     Actor503500Work44* work;
     GfxCoord*          coord;
     GpMtxWords*        m;
-    GpEffWork*         eff;
+    EffectWork*        eff;
     Task*              child;
     s32                pan;
 
@@ -1527,7 +1527,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     GfxCoord*              coord;
     WorldCollisionCapsule* d4;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m;
     s32                    pan;

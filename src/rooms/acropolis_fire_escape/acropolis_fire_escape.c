@@ -744,8 +744,8 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 /// parameters of the current view, for views 3, 6, 8 and 9.
 void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -803,7 +803,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// Every wedge takes the semi-transparent tpage of `Gp_AddTpageShift`.
 void func_acropolis_fire_escape_80180154(Task* task)
 {
-    GpEffWork*                      work;
+    EffectWork*                     work;
     GfxCoord*                       coord;
     AcropolisFireEscapeGlowScratch* block;
     POLY_G4*                        prim;

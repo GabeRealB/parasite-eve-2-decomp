@@ -10,11 +10,11 @@
 /// state reaches 4.
 static inline void RoomFx_GlowDiscTask(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GpEffWork* spawned;
-    MATRIX*    mtx;
-    u8         col[4];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
+    MATRIX*     mtx;
+    u8          col[4];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -127,10 +127,10 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
 /// reaches 4.
 static inline void RoomFx_FlyingSparkTask(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    VECTOR     delta;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   target;
+    VECTOR      delta;
 
     work   = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;

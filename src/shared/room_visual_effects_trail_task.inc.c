@@ -12,16 +12,16 @@
 /// reaches the spawn argument. It idles while the room's event state is 2 or
 /// more.
 
-GfxCoord   coord;
-GfxCoord*  coords;
-GfxCoord*  objCoord;
-GfxCoord*  dst;
-GpEffWork* work;
-SVECTOR*   vec;
-s32        i;
+GfxCoord    coord;
+GfxCoord*   coords;
+GfxCoord*   objCoord;
+GfxCoord*   dst;
+EffectWork* work;
+SVECTOR*    vec;
+s32         i;
 
 coords   = task->work;
-work     = (GpEffWork*)task->spawnArg2.pointer;
+work     = (EffectWork*)task->spawnArg2.pointer;
 objCoord = task->extra.coordBody->coord;
 
 if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {

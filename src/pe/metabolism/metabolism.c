@@ -31,13 +31,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 8-byte row of `D_metabolism_8012FB54`, indexed by `GpEffWork.index`
+/// One 8-byte row of `D_metabolism_8012FB54`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the cast scales with the combo
 /// counter). `field_0` is how many fan wedges the cast lays out - the number
 /// of `D_metabolism_8012FB78` angles it seeds and then draws through
 /// `func_metabolism_8012F840`. `field_2` is the brightness cap state 1 grows
-/// `GpEffWork.scale` toward in steps of 0x10, `field_4` the per-frame
-/// radius step added to `GpEffWork.angle`, and `field_6` both the
+/// `EffectWork.scale` toward in steps of 0x10, `field_4` the per-frame
+/// radius step added to `EffectWork.angle`, and `field_6` both the
 /// `Gp_SpawnEff` spawn arg for the three orbiting sparks and the radius at
 /// which state 1 hands over to state 2.
 typedef struct MetabolismStep {
@@ -71,7 +71,7 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
 /// picks the intensity row from the combo counter, seeds one random angle per
 /// fan wedge into `D_metabolism_8012FB78`, and plays the combo-indexed cue.
 /// State 1 grows brightness and radius, and each frame spins the coordinate to
-/// three random yaws, rotating `GpEffWork.move` through the new frame and
+/// three random yaws, rotating `EffectWork.move` through the new frame and
 /// then overwriting it with the `angle` circle at `step`, to parent
 /// three `0x60013` sparks; it hands over to state 2 once the radius reaches
 /// the row's `field_6`. State 2 shrinks brightness by 0x10 a frame and drops
@@ -80,10 +80,10 @@ static void func_metabolism_8012F840(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
 /// last.
 void func_metabolism_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
-    GpEffWork*  spawned;
+    EffectWork* spawned;
     s32         pan;
     s32         bright;
     s32         i;
@@ -218,12 +218,12 @@ void func_metabolism_8012EF34(Task* arg0)
 /// Both states lift the frame and draw on odd ticks until it runs out.
 void func_metabolism_8012F5A0(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        y;
-    s16        step;
-    u16        kind;
-    u16        roll;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         y;
+    s16         step;
+    u16         kind;
+    u16         roll;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;

@@ -1191,8 +1191,8 @@ void func_neo_ark_pavilion_8017EBF4(Task* task)
 /// and releases at cancellation.
 void func_neo_ark_pavilion_8017EC4C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1234,13 +1234,13 @@ void func_neo_ark_pavilion_8017EC4C(Task* task)
 /// at cancellation.
 void func_neo_ark_pavilion_8017F0CC(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         kind;
+    s32         step;
+    s32         state;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

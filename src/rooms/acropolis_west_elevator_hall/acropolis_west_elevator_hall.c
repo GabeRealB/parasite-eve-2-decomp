@@ -1144,7 +1144,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     }
 }
 
-/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::scale`
+/// Per-frame update of the lift bay's lighting: ramps `EffectWork::scale`
 /// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
 /// palette on every step it takes, and latching `angle` once the ramp is
 /// full. On every session phase but 5 the CLUT is then blended straight back
@@ -1152,11 +1152,11 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
 /// phase 5 keeps the lit bay on screen.
 void func_acropolis_west_elevator_hall_8017F990(Task* task)
 {
-    GpEffWork* work;
-    s32        i;
-    s32        blend;
+    EffectWork* work;
+    s32         i;
+    s32         blend;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     blend = 0;
     if (work->angle == 0) {
         work->scale = work->scale + 0x800;

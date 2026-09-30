@@ -1891,12 +1891,12 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// frame. View 7 spawns nothing.
 void func_acropolis_promenade_8017E03C(Task* task)
 {
-    GfxCoord*  coord;
-    GpEffWork* work;
-    u8         view;
-    s32        i;
-    s32        mask;
-    s16        prev;
+    GfxCoord*   coord;
+    EffectWork* work;
+    u8          view;
+    s32         i;
+    s32         mask;
+    s16         prev;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
@@ -1962,15 +1962,15 @@ void func_acropolis_promenade_8017E03C(Task* task)
 /// away, the lifetime runs out, or the drip falls off the bottom of the screen.
 void func_acropolis_promenade_8017E394(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        onScreen;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         onScreen;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -2032,7 +2032,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 void func_acropolis_promenade_8017E634(Task* task)
 {
     GfxCoord*             coord;
-    GpEffWork*            work;
+    EffectWork*           work;
     void**                scratch;
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -2144,7 +2144,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 void func_acropolis_promenade_8017ED44(Task* task)
 {
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
     void**           scratch;
     u8*              head;
     RoomQuadScratch* blk;
@@ -2232,7 +2232,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
     GfxCoord*              coord;
-    GpEffWork*             work;
+    EffectWork*            work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
     s32                    grey;

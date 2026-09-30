@@ -142,7 +142,7 @@ typedef struct Actor100300Work {
     /* 0x628 */ MATRIX                field_628;
     /* 0x648 */ SVECTOR*              field_648;
     /* 0x64C */ byte                  pad_64C[0x8];
-    /* 0x654 */ struct GpEffWork*     field_654;
+    /* 0x654 */ EffectWork*           field_654;
     /* 0x658 */ s32                   field_658;
     /* 0x65C */ SVECTOR               field_65C;
     /* 0x664 */ s16                   field_664;
@@ -1909,7 +1909,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
     SVECTOR           sp10;
     SVECTOR           sp18;
     Actor100300Work*  work;
-    GpEffWork*        effect;
+    EffectWork*       effect;
     GfxCoord*         coord;
     s16               turnTimer;
     s16               effectTimer2;
@@ -2161,8 +2161,8 @@ static void Actor00300_Fn028D0(Task* arg0)
     SVECTOR          sp18;
     SVECTOR          sp20;
     Actor100300Work* work;
-    GpEffWork*       effect;
-    GpEffWork*       burst;
+    EffectWork*      effect;
+    EffectWork*      burst;
     Enemy*           enemy;
     TmdObject*       obj;
     Enemy*           currentEnemy;
@@ -2274,7 +2274,7 @@ static void Actor00300_Fn028D0(Task* arg0)
 static void Actor00300_Fn02CE8(Task* arg0)
 {
     Actor100300Work* work;
-    GpEffWork*       effect;
+    EffectWork*      effect;
     Enemy*           enemy;
     GfxCoord*        coord;
     s32              state;
@@ -2615,27 +2615,27 @@ static void Actor00300_Fn03618(Task* arg0)
     GameLocationKey  key;
     u8               areaByte0;
     u32              raw1, index1;
-    GpEffWork*       effect1;
+    EffectWork*      effect1;
     TmdObject*       model1;
     AreaPlacement*   entry1;
     GameLocationKey* sessionKey1;
     u32              raw2, index2;
-    GpEffWork*       effect2;
+    EffectWork*      effect2;
     TmdObject*       model2;
     AreaPlacement*   entry2;
     GameLocationKey* sessionKey2;
     u32              raw3, index3;
-    GpEffWork*       effect3;
+    EffectWork*      effect3;
     TmdObject*       model3;
     AreaPlacement*   entry3;
     GameLocationKey* sessionKey3;
     u32              raw4, index4;
-    GpEffWork*       effect4;
+    EffectWork*      effect4;
     TmdObject*       model4;
     AreaPlacement*   entry4;
     GameLocationKey* sessionKey4;
     u32              raw5, index5;
-    GpEffWork*       effect5;
+    EffectWork*      effect5;
     TmdObject*       model5;
     AreaPlacement*   entry5;
     GameLocationKey* sessionKey5;
@@ -3302,7 +3302,7 @@ static void Actor00300_Fn04D28(Task* arg0)
     Enemy*           enemy;
     s32              state;
     s32              value;
-    GpEffWork*       effect;
+    EffectWork*      effect;
 
     work  = arg0->work;
     state = work->field_686;

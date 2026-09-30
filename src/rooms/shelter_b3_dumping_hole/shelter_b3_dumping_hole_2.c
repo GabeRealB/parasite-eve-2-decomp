@@ -4204,11 +4204,11 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 /// reaches 4.
 void func_shelter_b3_dumping_hole_8018521C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -4430,13 +4430,13 @@ static void func_shelter_b3_dumping_hole_8018596C(GfxCoord* arg0, u16 arg1, s16 
 /// draws, and is released once the event state reaches 4.
 void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         kind;
+    s32         step;
+    s32         state;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -4670,12 +4670,12 @@ static void func_shelter_b3_dumping_hole_80186AB8(GfxCoord* arg0, s32 arg1, s32 
 
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    MATRIX*    m;
-    s32        i;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    MATRIX*     m;
+    s32         i;
 
-    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
+    mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b3_dumping_hole_80186AB8(coord, (mem->age / 2) & 0xFFFF, 0x380);

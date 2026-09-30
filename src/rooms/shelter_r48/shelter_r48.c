@@ -97,7 +97,7 @@ extern RoomRingShape D_shelter_r48_80182FE8[];
 
 static void func_shelter_r48_8017E1A4(Task* arg0);
 static void func_shelter_r48_8017E214(Task* task);
-static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part);
+static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part);
 static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -2296,12 +2296,12 @@ void func_shelter_r48_8017E3B8(Task* task)
 
 void func_shelter_r48_8017E4C4(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    MATRIX*    m;
-    s32        i;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    MATRIX*     m;
+    s32         i;
 
-    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
+    mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
@@ -2354,11 +2354,11 @@ void func_shelter_r48_8017E4C4(Task* arg0)
 
 void func_shelter_r48_8017E704(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    MATRIX*    m;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    MATRIX*     m;
 
-    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
+    mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
@@ -2408,11 +2408,11 @@ void func_shelter_r48_8017E704(Task* arg0)
 
 void func_shelter_r48_8017E9B8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    MATRIX*    m;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    MATRIX*     m;
 
-    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
+    mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_r48_80180804(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0xA00, 0);
@@ -2459,7 +2459,7 @@ void func_shelter_r48_8017E9B8(Task* arg0)
 
 void func_shelter_r48_8017EC18(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     u8          rgb[3];
@@ -2547,8 +2547,8 @@ void func_shelter_r48_8017EC18(Task* task)
 
 void func_shelter_r48_8017EFD8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -2584,7 +2584,7 @@ void func_shelter_r48_8017EFD8(Task* task)
 /// the work's radii plus the band's `D_shelter_r48_80182FE8` offsets, moves them
 /// into world space through `coord`, then projects each segment and picks its
 /// texture cell from the band's `D_shelter_r48_8018BE54` row and the work's age.
-static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part)
+static void func_shelter_r48_8017F124(EffectWork* work, GfxCoord* coord, s32 part)
 {
     void**         scratch;
     u8*            head;
@@ -2807,12 +2807,12 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
 /// an event it only draws, and frees once the event aborts.
 void func_shelter_r48_80180210(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
-    s32        zero;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
+    s32         zero;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -3070,12 +3070,12 @@ static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
 
 void func_shelter_r48_801810B0(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    GpEffWork* eff;
-    u8         rgb[3];
-    s32        step;
-    s16        scale;
+    EffectWork* work;
+    GfxCoord*   coord;
+    EffectWork* eff;
+    u8          rgb[3];
+    s32         step;
+    s16         scale;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -3147,10 +3147,10 @@ void func_shelter_r48_801810B0(Task* task)
 
 void func_shelter_r48_8018147C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    MATRIX*    m;
-    u8         rgb[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    MATRIX*     m;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -3221,12 +3221,12 @@ void func_shelter_r48_8018147C(Task* task)
 
 void func_shelter_r48_80181704(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    MATRIX*    m;
-    u8         rgb[3];
-    s32        step;
-    s16        scale;
+    EffectWork* work;
+    GfxCoord*   coord;
+    MATRIX*     m;
+    u8          rgb[3];
+    s32         step;
+    s16         scale;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

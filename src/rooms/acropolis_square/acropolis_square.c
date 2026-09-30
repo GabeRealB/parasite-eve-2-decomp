@@ -1541,8 +1541,8 @@ s32 func_acropolis_square_80182360(s32 unused)
 
 void func_acropolis_square_801823DC(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;

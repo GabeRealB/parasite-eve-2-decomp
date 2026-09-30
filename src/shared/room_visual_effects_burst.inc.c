@@ -179,11 +179,11 @@ static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb)
 /// state reaches 4.
 static inline void RoomFx_OrangeBurst2Task(Task* arg0)
 {
-    u8         rgb[3];
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        step;
+    u8          rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         step;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;

@@ -1175,13 +1175,13 @@ void func_shelter_b6_nursery_801800A0(Task* task)
 
 void func_shelter_b6_nursery_80181314(Task* task)
 {
-    SVECTOR    step;
-    SVECTOR    pos;
-    SVECTOR    base;
-    TmdObject* obj;
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s16        effectControl;
+    SVECTOR     step;
+    SVECTOR     pos;
+    SVECTOR     base;
+    TmdObject*  obj;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
 
     obj   = task->extra.tmd;
     work  = task->spawnArg2.pointer;
@@ -1217,7 +1217,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 task->state++;
                 return;
             }
-            Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
+            Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
             MatrixNormal(&coord->coord, &coord->coord);
             gte_lddp(work->scale);
             gte_ldsv(&work->move);
@@ -1272,11 +1272,11 @@ void func_shelter_b6_nursery_80181314(Task* task)
 
 void func_shelter_b6_nursery_80181820(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1536,10 +1536,10 @@ static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2
 
 void func_shelter_b6_nursery_80182730(Task* task)
 {
-    SVECTOR    step;
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s16        effectControl;
+    SVECTOR     step;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -1572,7 +1572,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
             task->state++;
             return;
         }
-        Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
+        Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
         MatrixNormal(&coord->coord, &coord->coord);
         gte_lddp(work->scale);
         gte_ldsv(&work->move);

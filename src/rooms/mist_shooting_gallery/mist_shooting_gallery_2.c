@@ -2033,7 +2033,7 @@ Task* D_mist_shooting_gallery_8018E0C4;
 static void func_mist_shooting_gallery_801847D4(u8 arg0);
 
 /// Per-frame update for one gallery muzzle-flash / tracer effect. The task's
-/// `GpEffWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)
+/// `EffectWork` holds the tracer's endpoint (`pos`), its spin angle (`angle`)
 /// and its brightness ramp (`scale`); the handwritten GTE
 /// routines below draw the beam and its glow from the task's own coordinate.
 /// While `gRoomEffectState->effectControl` is not running the effect only redraws;
@@ -2041,14 +2041,14 @@ static void func_mist_shooting_gallery_801847D4(u8 arg0);
 /// position, then fades out by 8 per frame and releases its pool block.
 void func_mist_shooting_gallery_80182064(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u8         rgb[3];
-    u32        rand0;
-    u32        rand1;
-    u32        rand2;
+    EffectWork* work;
+    GfxCoord*   coord;
+    u8          rgb[3];
+    u32         rand0;
+    u32         rand1;
+    u32         rand2;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {

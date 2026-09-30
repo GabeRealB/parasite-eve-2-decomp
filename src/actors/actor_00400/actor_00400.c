@@ -2045,21 +2045,21 @@ static s32 Actor00400_Fn02208(Task* arg0)
    load ahead of the `D_800678F0` store in each arm. */
 static void Actor00400_Fn0237C(Task* arg0)
 {
-    GpEffWork* eff1;
-    TmdObject* src1;
-    TmdObject* dst1;
-    GpEffWork* eff2;
-    TmdObject* src2;
-    TmdObject* dst2;
-    GpEffWork* eff3;
-    TmdObject* src3;
-    TmdObject* dst3;
-    GpEffWork* eff4;
-    TmdObject* src4;
-    TmdObject* dst4;
-    GpEffWork* eff5;
-    TmdObject* src5;
-    TmdObject* dst5;
+    EffectWork* eff1;
+    TmdObject*  src1;
+    TmdObject*  dst1;
+    EffectWork* eff2;
+    TmdObject*  src2;
+    TmdObject*  dst2;
+    EffectWork* eff3;
+    TmdObject*  src3;
+    TmdObject*  dst3;
+    EffectWork* eff4;
+    TmdObject*  src4;
+    TmdObject*  dst4;
+    EffectWork* eff5;
+    TmdObject*  src5;
+    TmdObject*  dst5;
 
     D_800678F0[0] = &Actor00400_D0E5B8;
     eff1          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[4], 0x200, NULL);

@@ -37,8 +37,6 @@
 
 #include "overlay.h"
 
-struct GpEffWork;
-
 /// Working state of the push-out walk over an actor's contact records: the
 /// coordinate's world translation, the push that moves it out of the latest
 /// solid record (capped in length), that push's XZ part, the record cursor and
@@ -1513,10 +1511,10 @@ typedef struct Actor403200DropWork {
     byte                  pad_108[0x88];
     /// The effect the spawn state starts, reparented onto the task so it dies
     /// with it; the landing state tells it to finish.
-    GpEffWork* eff;
-    byte       pad_194[0x16];
-    s16        field_1AA;
-    u16        timer;
+    EffectWork* eff;
+    byte        pad_194[0x16];
+    s16         field_1AA;
+    u16         timer;
     /// Per-step bias of the rise and fall, rolled off the LCG.
     s16  field_1AE;
     byte pad_1B0[0x10];
@@ -1835,8 +1833,8 @@ typedef struct Actor105600Work {
     s32                   field_680;
     byte                  pad_684[4];
     /// Tilt angles decayed toward zero by `Actor05700_Fn016D0`.
-    SVECTOR           field_688;
-    struct GpEffWork* field_690;
+    SVECTOR     field_688;
+    EffectWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `Actor05700_Fn04CC0`'s state 0.
     s16 field_694;
@@ -2539,7 +2537,7 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
 }
 
 /// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
-static __inline__ void actorTintEffect(GpEffWork* eff, Enemy* enemy)
+static __inline__ void actorTintEffect(EffectWork* eff, Enemy* enemy)
 {
     if (eff != NULL) {
         actorTintModel(eff->task->extra.tmd, enemy);

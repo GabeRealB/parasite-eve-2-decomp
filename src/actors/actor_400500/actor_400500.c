@@ -2789,15 +2789,15 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
 
 static void func_actor_400500_80134B88(Task* arg0)
 {
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    GpEffWork* eff3;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* dst3;
-    TmdObject* src;
-    TmdObject* src2;
-    TmdObject* src3;
+    EffectWork* eff;
+    EffectWork* eff2;
+    EffectWork* eff3;
+    TmdObject*  dst;
+    TmdObject*  dst2;
+    TmdObject*  dst3;
+    TmdObject*  src;
+    TmdObject*  src2;
+    TmdObject*  src3;
 
     D_800678F0[0] = &D_actor_400500_8014393C;
     eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[3], 0x200, NULL);

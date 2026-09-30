@@ -1076,13 +1076,13 @@ static void func_actor_800100_80166F50(Task* arg0);
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
-    GpEffWork*            work;
+    EffectWork*           work;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
     GfxCoord*             light;
     GpMtxWords*           rot;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     u32                   ang;
 
     work  = task->spawnArg2.pointer;
@@ -1274,7 +1274,7 @@ void func_actor_800100_801624F0(Task* task)
     SVECTOR          after;
     SVECTOR          before;
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
     Actor800100Beam* beam;
     s32              effectControl;
     u32              ang0;
@@ -1563,7 +1563,7 @@ static void func_actor_800100_80163214(Task* arg0)
     WorldCollisionContact* recs;
     WorldCollisionBody*    obj;
     GpActorD4*             d4;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  task;
     SVECTOR3*              scratch;
     s32                    idx;

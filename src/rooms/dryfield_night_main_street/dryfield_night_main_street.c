@@ -1948,12 +1948,12 @@ void func_dryfield_night_main_street_8017E484(Task* task)
 
 void func_dryfield_night_main_street_8017F3B0(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {

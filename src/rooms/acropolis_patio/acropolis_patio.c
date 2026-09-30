@@ -1935,19 +1935,19 @@ void func_acropolis_patio_8017E054(Task* task)
 /// index rides in the low byte and the flags pick the jet's size and blend.
 ///
 /// The three main jets then get three puffs of mist each (effect 0x6008F).
-/// Every puff re-uses the task's own `GpEffWork.move` triple as a scratch
+/// Every puff re-uses the task's own `EffectWork.move` triple as a scratch
 /// offset: three 11-bit LCG draws centred on 0x400 give a `+/-0x400` jitter,
 /// which is added to the jet's anchor before the spawn reads it. The work block
 /// is scratch, not state - each spawn copies the vector out immediately - so
 /// all nine puffs share it.
 void func_acropolis_patio_8017E100(Task* task)
 {
-    GfxCoord*  objCoord;
-    GpEffWork* work;
-    s32        i;
-    s32        j;
+    GfxCoord*   objCoord;
+    EffectWork* work;
+    s32         i;
+    s32         j;
 
-    work     = (GpEffWork*)task->spawnArg2.pointer;
+    work     = (EffectWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
     if (task->state == 0) {
@@ -1996,13 +1996,13 @@ void func_acropolis_patio_8017E324(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
-    GpEffWork*        work;
+    EffectWork*       work;
     GfxCoord*         coord;
     POLY_FT4*         prim;
     u8                rgb;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
@@ -2078,8 +2078,8 @@ void func_acropolis_patio_8017E324(Task* task)
 /// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
 /// `gRoomEffectState->effectControl` reaches 4 (effects are cancelled).
 ///
-/// `GpEffWork::index` is the puff's mode and the per-frame step in
-/// `GpEffWork.move` is its velocity. In drift mode (0) the velocity is
+/// `EffectWork::index` is the puff's mode and the per-frame step in
+/// `EffectWork.move` is its velocity. In drift mode (0) the velocity is
 /// re-rolled every frame as `0x10 - rand[0,0x1F]` per axis, a random walk
 /// centred just above zero, and a 1-in-60 draw flips the puff into gather
 /// mode. In gather mode (non-zero) the velocity is instead re-aimed at the
@@ -2093,7 +2093,7 @@ void func_acropolis_patio_8017E324(Task* task)
 /// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
 void func_acropolis_patio_8017E730(Task* task)
 {
-    GpEffWork*       work;
+    EffectWork*      work;
     GfxCoord*        coord;
     RoomMoteScratch* sc;
     SVECTOR*         dir;

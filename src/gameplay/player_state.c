@@ -1244,7 +1244,7 @@ Task* Gp_SetupAllyWeapon(void)
     GpActorD4*  block;
     s16         val1;
     s16         val2;
-    GpEffWork*  eff;
+    EffectWork* eff;
     TmdObject*  extra;
     Task*       ret;
 

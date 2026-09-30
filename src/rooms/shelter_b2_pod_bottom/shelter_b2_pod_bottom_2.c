@@ -48,7 +48,7 @@ typedef struct {
 static void func_shelter_b2_pod_bottom_8017DECC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_pod_bottom_8017E334(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 arg2);
-static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord, s32 arg2);
+static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coord, s32 arg2);
 static void func_shelter_b2_pod_bottom_8018101C(GfxCoord* coord, s16 size, u16 color, u16 scale);
 
 extern u16 D_shelter_b2_pod_bottom_80188790[3][16];
@@ -290,11 +290,11 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 /// only draws, and frees once the event state reaches 4.
 void func_shelter_b2_pod_bottom_8017D850(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -667,7 +667,7 @@ static void func_shelter_b2_pod_bottom_8017E788(GfxCoord* coord, s16 arg1, s16 a
 /// or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     u16         tick;
@@ -729,7 +729,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
 /// through `coord`, then projects each segment between the rings and picks its
 /// texture cell from the row's `D_shelter_b2_pod_bottom_80188790` value and the
 /// work's tick.
-static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord, s32 arg2)
+static void func_shelter_b2_pod_bottom_8017EEAC(EffectWork* work, GfxCoord* coord, s32 arg2)
 {
     void**         scratch;
     u8*            head;
@@ -831,7 +831,7 @@ static void func_shelter_b2_pod_bottom_8017EEAC(GpEffWork* work, GfxCoord* coord
 /// released once the fade reaches 0x10 or an event of state 4 or above starts.
 void func_shelter_b2_pod_bottom_8017F448(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s32         sum;
@@ -1030,7 +1030,7 @@ static void func_shelter_b2_pod_bottom_8017F994(GfxCoord* coord, s32 arg1, u8* r
 /// above starts.
 void func_shelter_b2_pod_bottom_8018016C(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s32         i;
@@ -1181,8 +1181,8 @@ static void func_shelter_b2_pod_bottom_801805A0(GfxCoord* arg0, s32 arg1, s32 ar
 /// releases it. Each draw picks one of six sprite CLUTs at random.
 void func_shelter_b2_pod_bottom_80180898(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1309,9 +1309,9 @@ static void func_shelter_b2_pod_bottom_80180A4C(GfxCoord* coord, s16 radius, SVE
 
 void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u32        rnd;
+    EffectWork* work;
+    GfxCoord*   coord;
+    u32         rnd;
 
     work  = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1510,9 +1510,9 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
 
 void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s16        y;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         y;
 
     work  = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

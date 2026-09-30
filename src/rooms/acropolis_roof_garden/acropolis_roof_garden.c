@@ -1131,10 +1131,10 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// `0x30 >> view - 1` bit test) and one while it is 7.
 void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        i;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         i;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1184,7 +1184,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// frames so the sprite flickers.
 void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;

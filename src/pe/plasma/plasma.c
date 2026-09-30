@@ -29,9 +29,9 @@
 #include "main/tmd_types.h"
 
 /// Per-ring radius scale for `func_plasma_8012F568`, indexed by ring number
-/// (0..2). `rInner` widens the inner radius (`GpEffWork::angle`), `rExtra`
-/// the outer radius on top of that (`+ GpEffWork::step`), and `yOff` raises
-/// the inner edge above `GpEffWork::period`.
+/// (0..2). `rInner` widens the inner radius (`EffectWork::angle`), `rExtra`
+/// the outer radius on top of that (`+ EffectWork::step`), and `yOff` raises
+/// the inner edge above `EffectWork::period`.
 typedef struct PlasmaRingScale {
     /* 0x0 */ s16 rInner;
     /* 0x2 */ s16 yOff;
@@ -42,7 +42,7 @@ STATIC_ASSERT_SIZEOF(PlasmaRingScale, 0x6);
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
-static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2);
+static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2);
 
 static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
@@ -63,7 +63,7 @@ static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 /// column `arg2` to pick each wedge's texture.
 static s16 D_plasma_8012FF54[3][16] = { 0 };
 
-/// Plasma PE ring. `Task::spawnArg2` is the `GpEffWork` block (`scale`
+/// Plasma PE ring. `Task::spawnArg2` is the `EffectWork` block (`scale`
 /// brightness, `index` combo index, `age` tick / inner radius);
 /// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2`
 /// or `gRoomEffectState->peEffectControl >= 4`) releases the pool block.
@@ -77,7 +77,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 /// drops below 9.
 void func_plasma_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpStateC08* state;
     s32         pan;
@@ -214,7 +214,7 @@ release:
 /// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
 /// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
 /// Works out of a `GpBandScratch` taken from the scratch stack.
-static void func_plasma_8012F568(GpEffWork* arg0, GfxCoord* arg1, s32 arg2)
+static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
 {
     u8*              head;
     GpBandScratch*   block;

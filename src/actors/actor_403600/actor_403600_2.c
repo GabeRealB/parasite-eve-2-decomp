@@ -836,10 +836,10 @@ static void func_actor_403600_801396F8(Task* arg0)
     s16                temp_v1_3;
     s16                temp_v1_6;
     s16                var_v0_3;
-    GpEffWork*         temp_v0_5;
-    GpEffWork*         temp_v0_6;
-    GpEffWork*         temp_v0_7;
-    GpEffWork*         temp_v0_8;
+    EffectWork*        temp_v0_5;
+    EffectWork*        temp_v0_6;
+    EffectWork*        temp_v0_7;
+    EffectWork*        temp_v0_8;
     s32                temp_s2;
     s32                temp_v0_17;
     s32                var_a0;

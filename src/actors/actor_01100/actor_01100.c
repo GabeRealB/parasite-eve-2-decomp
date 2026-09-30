@@ -3234,9 +3234,9 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// a stream buffer, processes that stream twice.
 static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
 {
-    GpEffWork* eff;
-    TmdObject* owner;
-    TmdObject* tmd;
+    EffectWork* eff;
+    TmdObject*  owner;
+    TmdObject*  tmd;
 
     D_80067330.tmd = model;
     eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
@@ -3450,7 +3450,7 @@ static void Actor01100_Fn05E68(Task* task)
     ActorsShared80137fb8Work* work;
     WorldCollisionCapsule*    rec;
     GfxCoord*                 coord;
-    GpEffWork*                eff;
+    EffectWork*               eff;
     WorldCollisionBody*       obj;
     SVECTOR*                  vec;
     s32                       angle;
@@ -3588,7 +3588,7 @@ static void Actor01100_Fn06198(Task* task)
 
 static void Actor01100_Fn0638C(Task* task)
 {
-    GpEffWork*                effect;
+    EffectWork*               effect;
     s32                       variant;
     s32                       soundBase;
     WorldCollisionContact*    rec;
@@ -4275,7 +4275,7 @@ static void Actor01100_Fn073DC(Task* task)
     ActorsShared80137fb8Work* work;
     GfxCoord*                 coord;
     WorldCollisionBody*       obj;
-    struct GpEffWork*         eff;
+    EffectWork*               eff;
     s16                       countdown;
 
     work  = (ActorsShared80137fb8Work*)task->work;

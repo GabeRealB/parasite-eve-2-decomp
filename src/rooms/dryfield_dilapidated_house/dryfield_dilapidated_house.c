@@ -3326,14 +3326,14 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
-    GfxCoord   coord;
-    GfxCoord*  objCoord;
-    GfxCoord*  dst;
-    GpEffWork* work;
-    SVECTOR*   vec;
-    s32        i;
+    GfxCoord    coord;
+    GfxCoord*   objCoord;
+    GfxCoord*   dst;
+    EffectWork* work;
+    SVECTOR*    vec;
+    s32         i;
 
-    work     = (GpEffWork*)task->spawnArg2.pointer;
+    work     = (EffectWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -3497,7 +3497,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     GfxCoord*             coord;
     GpCoord64*            rc;
     WorldCoordPointLight* tail;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     u16                   tick;
     u16                   tick1;
     s16                   size;

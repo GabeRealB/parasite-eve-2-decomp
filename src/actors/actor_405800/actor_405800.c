@@ -3411,18 +3411,18 @@ static s32 func_actor_405800_80136CE0(Task* arg0)
 
 static void func_actor_405800_80136E14(Task* task)
 {
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    GpEffWork* eff3;
-    GpEffWork* eff4;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* dst3;
-    TmdObject* dst4;
-    TmdObject* src;
-    TmdObject* src2;
-    TmdObject* src3;
-    TmdObject* src4;
+    EffectWork* eff;
+    EffectWork* eff2;
+    EffectWork* eff3;
+    EffectWork* eff4;
+    TmdObject*  dst;
+    TmdObject*  dst2;
+    TmdObject*  dst3;
+    TmdObject*  dst4;
+    TmdObject*  src;
+    TmdObject*  src2;
+    TmdObject*  src3;
+    TmdObject*  src4;
 
     D_800678F0[0] = &D_actor_405800_8013FB18;
     eff           = Gp_SpawnEff(0x20010, &task->extra.tmd->coords[5], 0x200, NULL);

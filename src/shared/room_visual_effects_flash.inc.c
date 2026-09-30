@@ -130,10 +130,10 @@ static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2)
 /// event state is set and releases the block when that state reaches 4.
 static inline void RoomFx_SparkEmitterTask(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        ang;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         ang;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;

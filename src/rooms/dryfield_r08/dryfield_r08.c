@@ -568,11 +568,11 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// aborts.
 void func_dryfield_r08_8017D8B4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

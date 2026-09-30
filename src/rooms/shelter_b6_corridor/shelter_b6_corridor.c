@@ -721,10 +721,10 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
 
 void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        effectControl;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         effectControl;
+    u8          rgb[3];
 
     mem           = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;

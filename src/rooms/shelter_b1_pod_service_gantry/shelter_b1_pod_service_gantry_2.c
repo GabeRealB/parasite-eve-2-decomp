@@ -116,11 +116,11 @@ s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 /// an event it only draws, and releases once the event state reaches 4.
 void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -636,8 +636,8 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
 /// releases it. Each draw picks one of six sprite CLUTs at random.
 void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

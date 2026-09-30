@@ -2621,7 +2621,7 @@ static void Actor02300_Fn03C04(Enemy* arg0, Task* task)
 /// every state handler takes and is unused here.
 static void Actor02300_Fn03C50(Enemy* arg0, Task* task)
 {
-    GpEffWork*       effect;
+    EffectWork*      effect;
     Task*            parent;
     Actor105600Work* work;
     s16              count;

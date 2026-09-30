@@ -4858,10 +4858,10 @@ static void Actor00100_Fn08E7C(Task* arg0)
 static void Actor00100_Fn09310(Task* arg0)
 {
     SVECTOR         vector;
-    GpEffWork*      effect;
-    GpEffWork*      effect2;
-    GpEffWork*      effect3;
-    GpEffWork*      effect4;
+    EffectWork*     effect;
+    EffectWork*     effect2;
+    EffectWork*     effect3;
+    EffectWork*     effect4;
     Task*           task;
     Task*           task2;
     Task*           task3;

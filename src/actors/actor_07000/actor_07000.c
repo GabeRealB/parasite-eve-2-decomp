@@ -3438,8 +3438,8 @@ static s32 Actor07000_Fn047F4(GfxCoord* arg0, u32* arg1)
 /// 1 and 4.
 static void Actor07000_Fn049C0(Task* arg0)
 {
-    GpEffWork* effect;
-    s32        r;
+    EffectWork* effect;
+    s32         r;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     r           = (Gp_LcgState >> 16) & 3;
@@ -3484,7 +3484,7 @@ static void Actor07000_Fn04B18(Task* arg0)
 {
     ActorsShared80136938Work* work;
     GfxCoord*                 coord;
-    GpEffWork*                eff;
+    EffectWork*               eff;
     WorldCollisionBody*       obj;
     WorldCollisionCapsule*    rec;
     SVECTOR*                  vec;

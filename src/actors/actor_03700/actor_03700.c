@@ -1723,7 +1723,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     u8               view;
     GpAreaVariant*   rec;
     AreaPlacement*   entry;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     TmdObject*       model;
     s32              idx;
     u32              raw;

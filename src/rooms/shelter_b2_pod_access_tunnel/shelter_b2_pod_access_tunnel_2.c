@@ -665,11 +665,11 @@ void func_shelter_b2_pod_access_tunnel_8017DC6C(Task* arg0)
 /// only draws, and releases once the event state reaches 4.
 void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

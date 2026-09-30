@@ -32,11 +32,11 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 8-byte row of `D_combustion_80130980`, indexed by `GpEffWork.index`
+/// One 8-byte row of `D_combustion_80130980`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the burn scales with the combo counter).
 /// `field_0` / `field_2` are the per-frame Y / Z drift added to the flame
-/// overlay `GpEffWork.move`. `field_4` is the last
-/// `GpEffWork.age` tick that still spawns flames, and `field_6` is the
+/// overlay `EffectWork.move`. `field_4` is the last
+/// `EffectWork.age` tick that still spawns flames, and `field_6` is the
 /// last tick of the burn as a whole; it is also the pad-rumble duration
 /// `Gp_SpawnPadLerp` is given when the effect starts.
 typedef struct CombustionStep {
@@ -78,10 +78,10 @@ static s32 D_combustion_801309A4 = 0;
 /// row's `field_6` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
-    GpEffWork*  spawned;
+    EffectWork* spawned;
     s32         pan;
     u8          rgb[3];
 
@@ -151,7 +151,7 @@ void func_combustion_8012EF34(Task* arg0)
 }
 
 /// One flame of the combustion burn. State 0 re-bases the effect coordinate on
-/// the `GpEffWork.parent` parent with an identity rotation and the work
+/// the `EffectWork.parent` parent with an identity rotation and the work
 /// block's `pos` offset, seeds the phase `age` from
 /// `Gp_LcgState`, the radius `scale` from `spawnArg1` and the intensity
 /// `index` from `Gp_StateC08.field_0 % 10 - 1`, then splits: `spawnArg1`
@@ -165,10 +165,10 @@ void func_combustion_8012EF34(Task* arg0)
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
-    GpEffWork*  spawned;
+    EffectWork* spawned;
     s32         rng;
     s32         spawnRng1;
     s32         spawnRng1b;
@@ -337,18 +337,18 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 /// for state 3) frames.
 void func_combustion_8012F888(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        rng;
-    s32        rng2;
-    s32        y;
-    s16        step;
-    s16        kind;
-    s16        frame;
-    s32        state;
-    s32        tmp;
-    s32        hi;
-    s32        tmp2;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         rng;
+    s32         rng2;
+    s32         y;
+    s16         step;
+    s16         kind;
+    s16         frame;
+    s32         state;
+    s32         tmp;
+    s32         hi;
+    s32         tmp2;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;

@@ -13,8 +13,6 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-struct GpEffWork;
-
 /// Shared State1C work.
 extern s32 D_80115720;
 
@@ -60,15 +58,17 @@ s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 
 void func_800EA3A0(s32 arg0);
 
-/// Spawns a counted effect task and its `GpEffWork` (`memCalloc(0x2C)`).
+/// Spawns a counted effect task and its `EffectWork`.
 /// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
 /// 16 bits; a negative `arg0` bypasses the ordinary spawn limit (129) in
-/// `RoomEffectState::effectCount`. `arg1` is the parent coordinate (`NULL` = world):
-/// the task's own `TmdObject::coords` coordinate is seeded from it and
-/// re-parented to `gGfxViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
-/// optional offset vector (`NULL` = zero) rotated into the parent's space and
-/// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.
-struct GpEffWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3);
+/// `RoomEffectState::effectCount`. `arg1` is stored in `EffectWork::parent`;
+/// NULL stores the view coordinate there. The effect's own coordinate is
+/// parented to `gGfxViewCoord` either way, after the offset is rotated into
+/// it. `arg2` becomes `Task::spawnArg1`. `arg3` is an optional offset: NULL is
+/// read as a zero vector, the components are copied into `EffectWork::pos`,
+/// and the original pointer, NULL included, is stored in `EffectWork::field_C`.
+/// Returns the work object, or `NULL`.
+EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3);
 
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);

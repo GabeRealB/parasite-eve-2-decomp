@@ -1127,11 +1127,11 @@ DamageAttack D_actor_510900_80167968 = { 14, 7 };
 
 void func_actor_510900_80131F24(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     WorldCoordPointLight* slot;
     GpCoord64*            base;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     GpMtxWords*           mat;
     s32                   i;
     s32                   bits;
@@ -1422,7 +1422,7 @@ void func_actor_510900_80131F24(Task* arg0)
 void func_actor_510900_80132D4C(Task* arg0)
 {
     GfxCoord         hit;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* vecp;
@@ -1539,7 +1539,7 @@ void func_actor_510900_80132D4C(Task* arg0)
 
 void func_actor_510900_801332EC(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -1635,7 +1635,7 @@ void func_actor_510900_801332EC(Task* arg0)
 
 void func_actor_510900_8013371C(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -1735,7 +1735,7 @@ void func_actor_510900_8013371C(Task* arg0)
 
 void func_actor_510900_80133C84(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -1831,7 +1831,7 @@ void func_actor_510900_801340E8(Task* arg0)
     GpCoord64*            base;
     GfxCoord*             cam;
     WorldCoordPointLight* ext;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     GfxCoord*             coord;
     GpMtxWords*           mat;
     s32                   i;
@@ -1882,7 +1882,7 @@ void func_actor_510900_801340E8(Task* arg0)
 void func_actor_510900_80134284(Task* arg0)
 {
     Actor510900TrailScratch* block;
-    GpEffWork*               eff;
+    EffectWork*              eff;
     GfxCoord*                coord;
     LINE_F2*                 prim;
     s16                      mode;
@@ -1974,9 +1974,9 @@ void func_actor_510900_80134284(Task* arg0)
 
 void func_actor_510900_801346D4(Task* arg0)
 {
-    GpEffWork* eff;
-    GfxCoord*  coord;
-    s16        mode;
+    EffectWork* eff;
+    GfxCoord*   coord;
+    s16         mode;
 
     eff   = arg0->spawnArg2.pointer;
     mode  = gRoomEffectState->effectControl;
@@ -2021,15 +2021,15 @@ void func_actor_510900_801346D4(Task* arg0)
 
 void func_actor_510900_8013482C(Task* arg0)
 {
-    GpEffWork* eff;
-    GpEffWork* spawned;
-    GfxCoord*  coord;
-    s16        mode;
-    s16        scale;
-    s16        step;
-    s32        tmp;
-    s32        i;
-    s32        n;
+    EffectWork* eff;
+    EffectWork* spawned;
+    GfxCoord*   coord;
+    s16         mode;
+    s16         scale;
+    s16         step;
+    s32         tmp;
+    s32         i;
+    s32         n;
 
     eff   = arg0->spawnArg2.pointer;
     mode  = gRoomEffectState->effectControl;
@@ -2213,7 +2213,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     GfxCoord*              coord;
     Actor510900Work*       work;
     Enemy*                 spawned;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     u32                    raw1;
     u32                    raw2;
     u32                    index1;

@@ -956,12 +956,12 @@ static void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoi
 
 static void func_actor_342400_801637DC(Task* arg0)
 {
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* src;
-    TmdObject* src2;
+    EffectWork* eff;
+    EffectWork* eff2;
+    TmdObject*  dst;
+    TmdObject*  dst2;
+    TmdObject*  src;
+    TmdObject*  src2;
 
     D_800678F0[0] = &D_actor_342400_8016CB6C;
     eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);

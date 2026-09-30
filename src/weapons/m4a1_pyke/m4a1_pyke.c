@@ -97,13 +97,13 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
-    GpEffWork*            work;
+    EffectWork*           work;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
     GfxCoord*             light;
     GpMtxWords*           rot;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     u32                   ang;
 
     work  = task->spawnArg2.pointer;
@@ -275,7 +275,7 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
 }
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
-/// `GpEffWork` holding the dart's velocity (`move` / `move.vy`
+/// `EffectWork` holding the dart's velocity (`move` / `move.vy`
 /// / `move.vz`), its age (`age`), its flare width (`scale`) and its
 /// spin angle (`angle`); `Task::extra` reaches the coordinate the dart flies
 /// on. Everything stops on cancellation (`gRoomEffectState->effectControl >=
@@ -296,7 +296,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     SVECTOR       after;
     SVECTOR       before;
     GfxCoord*     coord;
-    GpEffWork*    work;
+    EffectWork*   work;
     M4a1PykeBeam* beam;
     s32           effectControl;
     u32           ang0;
@@ -566,7 +566,7 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `GpEffWork` in `Task::spawnArg2`.
+/// linked, and releases the `EffectWork` in `Task::spawnArg2`.
 /// Hypervelocity carries an identical copy.
 static void func_m4a1_pyke_8011E4AC(Task* task)
 {

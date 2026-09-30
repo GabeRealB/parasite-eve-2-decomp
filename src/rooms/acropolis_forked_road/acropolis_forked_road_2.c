@@ -1501,14 +1501,14 @@ void func_acropolis_forked_road_8017E410(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
-    GpEffWork*        work;
+    EffectWork*       work;
     GfxCoord*         coord;
     POLY_FT4*         prim;
     s32               rgb;
     s32               flicker;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {

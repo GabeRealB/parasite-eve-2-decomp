@@ -3042,7 +3042,7 @@ static void Actor02000_Fn03644(Enemy* arg0, Task* task)
 
 static void Actor02000_Fn03690(Enemy* arg0, Task* task)
 {
-    GpEffWork*       effect;
+    EffectWork*      effect;
     Task*            parent;
     Actor105600Work* work;
     s16              count;

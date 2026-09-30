@@ -31,9 +31,9 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 8-byte row of `D_healing_8012FC1C`, indexed by `GpEffWork.index`
+/// One 8-byte row of `D_healing_8012FC1C`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
-/// grows `GpEffWork.scale` toward (and the starting radius in
+/// grows `EffectWork.scale` toward (and the starting radius in
 /// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
 /// yaw passed to `Gfx_RotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
 /// `Gp_SpawnEff` spawn arg and the radius at which state 1 advances to 2.
@@ -69,11 +69,11 @@ static void func_healing_8012F7FC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3);
 /// releases.
 void func_healing_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpStateC08* state;
     GpMtxWords* rot;
-    GpEffWork*  spawned;
+    EffectWork* spawned;
     s32         pan;
     s32         bright;
     s16         ang;
@@ -194,12 +194,12 @@ void func_healing_8012EF34(Task* arg0)
 /// out. Life Drain carries an identical copy.
 void func_healing_8012F494(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        y;
-    s32        state;
-    s16        step;
-    u16        spawn;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         y;
+    s32         state;
+    s16         step;
+    u16         spawn;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
@@ -242,12 +242,12 @@ void func_healing_8012F494(Task* arg0)
 
 void func_healing_8012F5E4(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        y;
-    s16        step;
-    s16        kind;
-    GpEffWork* spawned;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         y;
+    s16         step;
+    s16         kind;
+    EffectWork* spawned;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;

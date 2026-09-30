@@ -65,13 +65,13 @@ static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
 static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 
 /// Per-frame task for the hammer's charge flare. `Task::spawnArg2` is the
-/// `GpEffWork`, `Task::extra` reaches the coordinate the flare
+/// `EffectWork`, `Task::extra` reaches the coordinate the flare
 /// hangs on, and `Task::spawnArg1` is the charge phase the firing code drives.
 /// Hidden effects (`gRoomEffectState->effectControl` >=
 /// `ROOM_EFFECT_CONTROL_HIDDEN`), and the player being in the state flagged by
 /// `TmdObject::flags & 0x80`, freeze the task outright.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed offset
+/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed offset
 ///   `D_m4a1_hammer_8011EB60` with an identity rotation, publishes the task as
 ///   `D_m4a1_hammer_8012D660` and moves to state 1.
 /// - State 1 first republishes the flare's world position as
@@ -86,7 +86,7 @@ static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
 ///   winds `age` back down and redraws instead of advancing.
 void func_m4a1_hammer_8011D1E0(Task* task)
 {
-    GpEffWork*            work;
+    EffectWork*           work;
     GfxCoord*             coord;
     GfxCoord*             light;
     GpCoord64*            base;
@@ -297,9 +297,9 @@ static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3)
 
 void func_m4a1_hammer_8011DD08(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GfxCoord*  parent;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    GfxCoord*   parent;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

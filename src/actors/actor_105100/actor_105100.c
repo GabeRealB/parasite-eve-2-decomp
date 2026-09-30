@@ -133,7 +133,7 @@ typedef struct Actor105100Work {
     /* 0x51C */ WorldCollisionBody    obj51C;
     /* 0x53C */ WorldCollisionContact field_53C[1];
     /* 0x554 */ EffectSpawnArg        field_554; // record the death effect is spawned with
-    /* 0x55C */ GpEffWork*            field_55C;
+    /* 0x55C */ EffectWork*           field_55C;
     /* 0x560 */ MATRIX                field_560;
     /* 0x580 */ s32                   field_580;
     /* 0x584 */ s32                   field_584;
@@ -1489,8 +1489,8 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
             }
             break;
         case 3: {
-            u32        rnd;
-            GpEffWork* eff;
+            u32         rnd;
+            EffectWork* eff;
 
             if ((s16)work->field_592 >= 0x1A) {
                 work->field_58E = 1;
@@ -2611,7 +2611,7 @@ static void func_actor_105100_801360AC(Task* arg0)
 {
     Actor105100Work* work;
     Enemy*           enemy;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     s32              state;
 
     work  = arg0->work;
@@ -2662,7 +2662,7 @@ static void func_actor_105100_801360AC(Task* arg0)
 static void func_actor_105100_801361C4(Task* arg0)
 {
     Actor105100Work* work;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     s32              state;
 
     work  = arg0->work;
@@ -2737,7 +2737,7 @@ static void func_actor_105100_80136318(Task* arg0)
 {
     Actor105100Work* work;
     Actor105100Work* sndWork;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     s32              snd;
 
     work = arg0->work;

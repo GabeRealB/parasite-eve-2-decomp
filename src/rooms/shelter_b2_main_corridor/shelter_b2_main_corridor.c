@@ -2129,13 +2129,13 @@ void func_shelter_b2_main_corridor_8017EF24(Task* task)
 
 void func_shelter_b2_main_corridor_8017F3AC(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         kind;
+    s32         step;
+    s32         state;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

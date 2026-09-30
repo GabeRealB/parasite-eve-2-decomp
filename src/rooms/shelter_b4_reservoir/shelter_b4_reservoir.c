@@ -1819,10 +1819,10 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s16        f2a;
-    u32        rng;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s16         f2a;
+    u32         rng;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);

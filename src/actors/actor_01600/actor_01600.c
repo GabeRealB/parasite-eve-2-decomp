@@ -4535,11 +4535,11 @@ static void Actor01600_Fn05F80(Task* arg0)
 
 static void Actor01600_Fn0646C(Task* arg0)
 {
-    GpEffWork* effect;
-    TmdObject* obj;
-    TmdObject* obj2;
-    s32        randomState;
-    s32        choice;
+    EffectWork* effect;
+    TmdObject*  obj;
+    TmdObject*  obj2;
+    s32         randomState;
+    s32         choice;
 
     if (((Actor01600Work*)arg0->work)->field_540 != 0) {
         D_800626EC[5].arg.model = &Actor01600_D0973C;

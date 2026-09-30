@@ -38,7 +38,7 @@
 
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
 /// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
-/// radius `func_lifedrain_8012FAF8` copies into `GpEffWork.angle`. Indexed by
+/// radius `func_lifedrain_8012FAF8` copies into `EffectWork.angle`. Indexed by
 /// `(Gp_StateC08.field_0 % 10) - 1`.
 typedef struct LifeDrainScale {
     /* 0x0 */ s16 unk0;
@@ -58,7 +58,7 @@ static LifeDrainScale D_lifedrain_80130AB4[] = {
     { 0x0010, 0x00E0, 0x0300, 0x0600, 0x0050 },
 };
 
-/// Sound-script id of the drain's opening cue, indexed by `GpEffWork.index`
+/// Sound-script id of the drain's opening cue, indexed by `EffectWork.index`
 /// when the cast has drained nothing yet and by `field_20 + 3` once there is
 /// health banked in `Gp_StateF0.field_14`.
 static s32 D_lifedrain_80130AD4[] = {
@@ -102,10 +102,10 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// until it drops below 0x11, then releases through state 4.
 void func_lifedrain_8012EF48(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        i;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         i;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -122,7 +122,7 @@ void func_lifedrain_8012EF48(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0: {
-            GpEffWork*  spawned;
+            EffectWork* spawned;
             GpMtxWords* rot;
 
             D_lifedrain_80130B0C = arg0;
@@ -200,7 +200,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             return;
         case 2: {
             LifeDrainScale* t2;
-            GpEffWork*      spawned;
+            EffectWork*     spawned;
             s16*            p;
             s32             val;
 
@@ -335,12 +335,12 @@ void func_lifedrain_8012EF48(Task* arg0)
 /// additive quad on odd ticks until the animation runs out.
 void func_lifedrain_8012F9A8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        y;
-    s32        state;
-    s16        step;
-    u16        spawn;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         y;
+    s32         state;
+    s16         step;
+    u16         spawn;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
@@ -402,13 +402,13 @@ void func_lifedrain_8012F9A8(Task* arg0)
 /// 0x1E.
 void func_lifedrain_8012FAF8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GfxCoord*  player;
-    GpEffWork* spawned;
-    s16        val;
-    s32        cur;
-    VECTOR     vec;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    GfxCoord*   player;
+    EffectWork* spawned;
+    s16         val;
+    s32         cur;
+    VECTOR      vec;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -622,13 +622,13 @@ static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
 
 void func_lifedrain_801308C0(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        kind;
-    u16        val;
-    u8         rgb[3];
-    s32        scale;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         kind;
+    u16         val;
+    u8          rgb[3];
+    s32         scale;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->peEffectControl;

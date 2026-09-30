@@ -1395,12 +1395,12 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
 
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {
-    s32        mask;
-    GpEffWork* eff;
-    GfxCoord*  coord;
-    GfxCoord*  player;
-    s32        limit;
-    s32        pan;
+    s32         mask;
+    EffectWork* eff;
+    GfxCoord*   coord;
+    GfxCoord*   player;
+    s32         limit;
+    s32         pan;
 
     mask   = 1 << gGameSession->location.loc.view;
     eff    = task->spawnArg2.pointer;
@@ -1708,13 +1708,13 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
 /// is then released. The age does not advance while an event is running.
 void func_dryfield_breezeway_80181264(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    MATRIX*    m;
-    SVECTOR    delta;
-    SVECTOR    dir;
-    SVECTOR    pos;
-    u8         color[3];
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    MATRIX*     m;
+    SVECTOR     delta;
+    SVECTOR     dir;
+    SVECTOR     pos;
+    u8          color[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1850,7 +1850,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 static void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
     ModelObjectCoordBody* body = task->extra.coordBody;
-    GpEffWork*            work = task->spawnArg2.pointer;
+    EffectWork*           work = task->spawnArg2.pointer;
     void**                scratch;
     GfxCoord*             coord;
     GpFxQuadScratch*      block;

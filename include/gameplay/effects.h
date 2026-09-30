@@ -104,38 +104,43 @@ typedef struct {
 } EffectSpawnArg;
 STATIC_ASSERT_SIZEOF(EffectSpawnArg, 0x8);
 
-/// Per-effect work area. `Gp_SpawnEff` allocates one (`memCalloc(0x2C)`) for
-/// every effect it spawns and parks it in that task's `Task::spawnArg2`, which
-/// is the only handle the rest of the engine has on it: the block is freed
-/// with the task that carries it.
+/// Work block of one spawned effect.
 ///
-/// Each effect task reads the block in its own terms, so most of its slots
-/// hold whatever that task animates - a billboard's size and spin, a ring's
-/// brightness and radius, a palette blend - and the comments below give the
-/// reading its users most often give them. `task`, `parent`, `pos` and `age`
-/// are the part they all agree on.
+/// The effect spawner allocates one, `sizeof(EffectWork)` bytes, and stores it
+/// in that task's `Task::spawnArg2`. The task frees the block when it exits.
+/// A caller may also keep the returned pointer for the effect's lifetime.
 ///
-/// The trailing halfwords are signed: the effect tasks that own the block
-/// compare, divide and shift them as signed values. A task that wants one of
-/// them unsigned converts it where it reads it.
-typedef struct GpEffWork {
-    struct Task*     task;    // the effect's own task, which carries this block as its `spawnArg2`
-    s32              field_4; // role unproven: zeroed by the spawn path, never read
-    struct GfxCoord* parent;  // coordinate the effect hangs off, copied onto `GfxCoord.parent`
-    SVECTOR*         field_C; // role unproven: the offset vector the spawn was called with, never read
-    SVECTOR          move;    // vector the owning task moves the effect by
-    SVECTOR          pos;     // where the effect sits under `parent`, seeded from the spawn's offset vector
-    s16              index;   // the owning task's index into the table that picks the effect's frame or level
-    s16              age;     // frames since the effect was spawned
-    s16              scale;   // magnitude the task animates: a brightness for a ring or flash, a billboard size for a sprite
-    s16              angle;   // rotation the task spins the effect by, or the radius a ring effect draws it at
-    s16              period;  // frames the task's current phase lasts, or the size it holds while it lasts
-    s16              step;    // per-frame step the task advances another slot by, or a packed draw parameter
-} GpEffWork;
-STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
+/// `task` is the effect's own task. `parent` is the coordinate the spawn was
+/// given, or the view coordinate when that argument was NULL. The effect's own
+/// coordinate is parented to the view either way; a task copies `parent` onto
+/// a coordinate only when it hangs the effect there, and some tasks read
+/// `parent`'s matrix instead. `age` counts frames from zero. `pos` and `move`
+/// are vectors. For most effects they are a position and a displacement; some
+/// store a rotation triple in `pos` and a direction in `move`. Spawn copies
+/// the caller's offset into `pos`, reading a NULL offset as zero, and zeroes
+/// `move`.
+///
+/// The four trailing halfwords are signed parameters. Each effect stores its
+/// own magnitudes there, and a reader that wants one unsigned converts it at
+/// the use. The comments name the reading most tasks give them.
+typedef struct {
+    struct Task*     task;    // the effect task; this block is its `spawnArg2`
+    s32              field_4; // zeroed at spawn; no decompiled reader; role unproven
+    struct GfxCoord* parent;  // coordinate the spawn was given, or the view when that argument was NULL
+    SVECTOR*         field_C; // offset pointer the spawn was given, NULL left as NULL; no decompiled reader; role unproven
+    SVECTOR          move;    // displacement or direction; zero at spawn
+    SVECTOR          pos;     // position or offset copied from the spawn argument; some effects store a rotation triple
+    s16              index;   // selector: a frame, variant or sprite column
+    s16              age;     // frames since spawn; tasks count it up from zero
+    s16              scale;   // size, brightness or fixed-point scale, as the effect uses it
+    s16              angle;   // spin, or another angular magnitude; some effects store a radius or a limit
+    s16              period;  // frames the current phase lasts, or the value held for that phase
+    s16              step;    // per-frame increment, or a packed draw parameter
+} EffectWork;
+STATIC_ASSERT_SIZEOF(EffectWork, 0x2C);
 
 /// 8-byte sprite frame of `D_80111E48`, indexed by
-/// `GpEffWork.age / GpEffWork.period` in `Gp_EffSprTask5C`.
+/// `EffectWork.age / EffectWork.period` in `Gp_EffSprTask5C`.
 /// `u` / `v` are the UV origin of a 0x28-wide quad; `clutX` / `clutY` feed
 /// `getClut`. TPage is hardcoded to 0x29.
 typedef struct _GpEffUv8 {

@@ -75,7 +75,7 @@ static void func_gunblade_8011E040(Task* arg0)
     GfxCoord*              coord;
     GunbladeScratch*       blk;
     WorldCollisionCapsule* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     s32                    sfx;
     s32                    anim;
     s32                    hit;

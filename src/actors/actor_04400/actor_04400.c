@@ -1344,12 +1344,12 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
 
 static void Actor04400_Fn006A8(Task* arg0)
 {
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* src;
-    TmdObject* src2;
+    EffectWork* eff;
+    EffectWork* eff2;
+    TmdObject*  dst;
+    TmdObject*  dst2;
+    TmdObject*  src;
+    TmdObject*  src2;
 
     D_800678F0[0] = &Actor04400_D098FC;
     eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);

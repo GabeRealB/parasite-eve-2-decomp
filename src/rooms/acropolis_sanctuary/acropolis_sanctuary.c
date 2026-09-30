@@ -152,7 +152,7 @@ typedef struct AcsBlockerShift {
 
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// the scratch stack: `v` holds the three corners of the shard's triangle,
-/// first scaled by `GpEffWork::angle` through the GTE's `gpf` interpolator
+/// first scaled by `EffectWork::angle` through the GTE's `gpf` interpolator
 /// and rotated by the task's own `workm`, then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
 /// taken from. The block is 0x20 bytes even though only 0x1C are used, because
@@ -1984,17 +1984,17 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 /// own index, then a second pass over the 16 tiles listed in
 /// `D_acropolis_sanctuary_80182750` keyed by the tile index itself, so those
 /// sixteen get a second effect on top. Each spawn reuses the task's own
-/// `GpEffWork` offset triple: x is always 0, y and z come from the tile's grid
+/// `EffectWork` offset triple: x is always 0, y and z come from the tile's grid
 /// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
 /// the size class in `quad`. Any state but 0 just releases the work block.
 void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    AcsTile*   tile;
-    s32        quad;
-    s32        i;
-    s32        idx;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    AcsTile*    tile;
+    s32         quad;
+    s32         i;
+    s32         idx;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2050,7 +2050,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
-    GpEffWork*      mem;
+    EffectWork*     mem;
     GfxCoord*       coord;
     void**          scratch;
     u8*             head;
@@ -2231,7 +2231,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// also age by 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -2386,7 +2386,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// level plus its flicker amplitude on odd frames.
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;

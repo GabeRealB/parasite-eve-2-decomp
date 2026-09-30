@@ -1371,10 +1371,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// and the task is released once ten frames have passed.
 void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        base;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         base;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

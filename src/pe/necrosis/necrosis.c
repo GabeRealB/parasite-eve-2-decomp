@@ -35,10 +35,10 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// One 4-byte row of `D_necrosis_801306BC`, indexed by `GpEffWork.index`
+/// One 4-byte row of `D_necrosis_801306BC`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the `Gp_SpawnEff` draw
 /// parameter (plus `field_22 * 0x60` each frame) and is copied into the
-/// first `WorldCollisionBody.radius`. `field_2` is the last `GpEffWork.age` tick
+/// first `WorldCollisionBody.radius`. `field_2` is the last `EffectWork.age` tick
 /// of the spawn loop; state 2 waits an extra 0x10 ticks past it. `field_2 +
 /// 0xC` is also the pad-rumble duration at ignition.
 typedef struct NecrosisStep {
@@ -86,13 +86,13 @@ static void func_necrosis_80130288(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 void func_necrosis_8012EF34(Task* arg0)
 {
     NecrosisWork*          work;
-    GpEffWork*             mem;
+    EffectWork*            mem;
     GfxCoord*              coord;
     GfxCoord*              player;
     GpMtxWords*            dstm;
     GpMtxWords*            srcm;
     WorldCollisionContact* rec;
-    GpEffWork*             spawned;
+    EffectWork*            spawned;
     s32                    pan;
     u16                    old;
     s32                    tick;
@@ -222,9 +222,9 @@ void func_necrosis_8012EF34(Task* arg0)
 
 void func_necrosis_8012F52C(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GpEffWork* spawned;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -322,15 +322,15 @@ static void func_necrosis_8012F6EC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 void func_necrosis_8012FAF8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        tick;
-    s32        rng1;
-    s32        rng2;
-    s32        rng3;
-    s32        temp_lo;
-    s32        var_v1;
-    u16        temp_v0;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         tick;
+    s32         rng1;
+    s32         rng2;
+    s32         rng3;
+    s32         temp_lo;
+    s32         var_v1;
+    u16         temp_v0;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

@@ -1402,12 +1402,12 @@ void func_dryfield_main_street_8017E4B0(Task* task)
 /// advances; after tile 9 the spark releases itself.
 void func_dryfield_main_street_8017E830(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {

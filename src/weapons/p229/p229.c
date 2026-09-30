@@ -88,7 +88,7 @@ static void func_p229_8011DDA0(Task* arg0)
     GfxCoord*              coord;
     GfxCoord*              spot;
     WorldCollisionCapsule* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     s32                    anim;
     s16                    frames;
 

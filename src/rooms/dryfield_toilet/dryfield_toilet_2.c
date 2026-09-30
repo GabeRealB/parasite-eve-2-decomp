@@ -2510,9 +2510,9 @@ SVECTOR D_dryfield_toilet_8018705C[1604] = { 0 };
 
 void func_dryfield_toilet_8017DCF0(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GpEffWork* spawned;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2557,7 +2557,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
 
 void func_dryfield_toilet_8017DEF4(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     OverlaySpriteScratch* head;
     OverlaySpriteScratch* block;

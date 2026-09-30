@@ -1106,7 +1106,7 @@ static void func_actor_510900_80136184(Task* arg0)
 {
     Actor510900Work* work;
     GfxCoord*        coord;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     s32              snd;
     s32              rng;
     s16              speed;
@@ -2865,7 +2865,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
 static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
 {
     VECTOR                         pos;
-    GpEffWork*                     eff;
+    EffectWork*                    eff;
     GfxCoord*                      coord;
     u8*                            head;
     Actor510900ChildFxTickScratch* scratch;
@@ -3286,7 +3286,7 @@ static void func_actor_510900_8013A9BC(Task* task)
     Actor510900GrabScratch* scratch;
     Actor510900GrabScratch* head;
     GfxCoord*               coord;
-    GpEffWork*              eff;
+    EffectWork*             eff;
     Task*                   spawned;
     s16                     next;
     s32                     grabbed;
@@ -3553,7 +3553,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
     GfxCoord*             coord;
     Actor510900Work*      parent;
     Enemy*                ctx;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     Task*                 held;
     Task*                 ending;
     Task*                 dropped;

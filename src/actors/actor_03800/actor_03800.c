@@ -2190,7 +2190,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     u8               areaByte0;
     GpAreaVariant*   rec;
     AreaPlacement*   entry;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     TmdObject*       model;
     s32              idx;
     u32              raw;

@@ -40249,7 +40249,7 @@ the clut math. Combined with the `s32` `uv` load it becomes `lh` /
 `li a0, 0x50` / `sb`, matching the target. Same pattern for the second
 V pair with `t = 0x77`. `Gp_EffSprTaskE0` is the example.
 
-Copying `TaskSpawnArg::halves.high` (s16) straight into `GpEffWork.step`
+Copying `TaskSpawnArg::halves.high` (s16) straight into `EffectWork.step`
 (s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
 
 ## Hoist the `gte_ldv0` alias above the init block to get a callee-saved register
@@ -41224,7 +41224,7 @@ the extra in-loop reference is what the allocator saw. This took the score from
 
 ## A run of LCG draws: assign `Gp_LcgState` directly, don't route through a temp
 
-`Gp_EffSprTask7C` seeds four `GpEffWork` fields from four consecutive LCG steps.
+`Gp_EffSprTask7C` seeds four `EffectWork` fields from four consecutive LCG steps.
 Written with a temp per step (`rng = Gp_LcgState * 5 + 0x71357911;
 Gp_LcgState = rng; mem->field_X = ((u32)rng >> 16) & M;`) GCC 2.8.1 hoists all
 four `sll`/`addu`/`addu` multiply chains to the front of the block and defers
@@ -63140,7 +63140,7 @@ Rewrite from the nearest matched sibling's shape, then look at dumps.
 ## A volatile halfword reload is `lhu` + `sll`/`sra`, never `lh`; separate it from the store with an unrelated global store instead
 
 `func_combustion_8012F888`'s archived seed stored `mem->field_2A = kind` and
-read it straight back through `((volatile GpEffWork*)mem)->step` so the
+read it straight back through `((volatile EffectWork*)mem)->step` so the
 reload would not be forwarded from `kind`. That reload can only ever be
 `lhu; sll 16; sra 10`: MIPS `extendhisi2` expands an optimised `sign_extend
 (mem:HI)` as a plain `movhi` load plus two shifts, and it is *combine* that
@@ -110216,7 +110216,7 @@ Note the space after `/*` - a regex without it matches nothing and the diff
 comes back empty and silent, which reads exactly like "identical".
 
 It settles the structs too: the sibling's `M4a1PykeBeam` (`WorldCollisionBody obj; WorldCollisionContact
-rec[1]`, 0x38) is the same block here, and its `GpEffWork` the same work struct.
+rec[1]`, 0x38) is the same block here, and its `EffectWork` the same work struct.
 Check `find` first - 0.99 shape similarity is not equality, and a body with no
 copies should not be promoted to a shared lib unit just because a lookalike
 exists.
@@ -132124,7 +132124,7 @@ The rule "if the users have to cast, the declared type is wrong" reads every
 cast as the parameter failing to fit. It does not hold when the value at the
 call site is an integer: before `McWork::buffer` was corrected to `void*`,
 `memFree(void* allocation)` had three memory-card callers casting that stored
-integer and nineteen passing a `Task*`, a `Enemy*` or a `GpEffWork*` straight
+integer and nineteen passing a `Task*`, a `Enemy*` or an `EffectWork*` straight
 through. The three casts were the *caller's* declaration showing through — the
 field was an `s32` that held a pointer, so the cast was what that field's own
 type required and said nothing about the parameter. Those callers now pass

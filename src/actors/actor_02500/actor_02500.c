@@ -105,7 +105,7 @@ STATIC_ASSERT_SIZEOF(Actor02500Work, 0x348);
 typedef struct Actor02500EffWork {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec18[1];
-    /* 0x38 */ GpEffWork*            field_38;
+    /* 0x38 */ EffectWork*           field_38;
     /* 0x3C */ s16                   field_3C;
     /* 0x3E */ s16                   field_3E;
 } Actor02500EffWork;
@@ -1311,9 +1311,9 @@ static void Actor02500_Fn0184C(Task* arg0)
     u32              index1;
     u32              index2;
     u32              index3;
-    GpEffWork*       effect1;
-    GpEffWork*       effect2;
-    GpEffWork*       effect3;
+    EffectWork*      effect1;
+    EffectWork*      effect2;
+    EffectWork*      effect3;
     AreaPlacement*   entry1;
     AreaPlacement*   entry2;
     AreaPlacement*   entry3;

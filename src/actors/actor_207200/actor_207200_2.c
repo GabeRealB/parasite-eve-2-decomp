@@ -1425,7 +1425,7 @@ static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
 static void func_actor_207200_8014CFEC(Task* arg0)
 {
     EffectSpawnArg*        effArg;
-    struct GpEffWork*      effect;
+    EffectWork*            effect;
     _Actor207200LargeWork* work;
     Enemy*                 ctx;
 
@@ -1454,8 +1454,8 @@ static void func_actor_207200_8014CFEC(Task* arg0)
 
 static void func_actor_207200_8014D128(Task* arg0)
 {
-    GpEffWork* effect;
-    s32        r;
+    EffectWork* effect;
+    s32         r;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     r           = (Gp_LcgState >> 16) & 3;

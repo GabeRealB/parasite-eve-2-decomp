@@ -43,7 +43,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
     GfxCoord*              coord;
     GfxCoord*              spot;
     WorldCollisionCapsule* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     s32                    anim;
     s32                    delay;
     s16                    frames;

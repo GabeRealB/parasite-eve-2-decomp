@@ -3415,20 +3415,20 @@ void func_acropolis_bridge_8017F788(Task* task)
 /// is, so that the ambience thins out during a fight.
 void func_acropolis_bridge_8017F868(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    GfxCoord*  part;
-    Task*      owner;
-    SVECTOR    pos;
-    u8         view;
-    s32        bit;
-    s32        i;
-    s32        delta;
-    s32        axis;
-    s32        dist;
-    s32        prev;
-    s16        lastView;
-    u16        rnd;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   part;
+    Task*       owner;
+    SVECTOR     pos;
+    u8          view;
+    s32         bit;
+    s32         i;
+    s32         delta;
+    s32         axis;
+    s32         dist;
+    s32         prev;
+    s16         lastView;
+    u16         rnd;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -3659,16 +3659,16 @@ void func_acropolis_bridge_8017F868(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180320(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3731,17 +3731,17 @@ void func_acropolis_bridge_80180320(Task* task)
 /// lifetime runs out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018063C(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3805,17 +3805,17 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018099C(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3879,17 +3879,17 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180CC0(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3952,15 +3952,15 @@ void func_acropolis_bridge_80180CC0(Task* task)
 /// of the screen.
 void func_acropolis_bridge_80180FF0(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -4016,7 +4016,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 void func_acropolis_bridge_801812F4(Task* task)
 {
     GfxCoord*             coord;
-    GpEffWork*            work;
+    EffectWork*           work;
     void**                scratch;
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -4124,7 +4124,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     AcropolisBridgeQuadCorner*  tbl;
     POLY_FT4*                   prim;
     GfxCoord*                   coord;
-    GpEffWork*                  work;
+    EffectWork*                 work;
     MATRIX*                     m;
     SVECTOR*                    v;
     s32                         i;
@@ -4202,7 +4202,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 void func_acropolis_bridge_80181D28(Task* task)
 {
     GfxCoord*              coord;
-    GpEffWork*             work;
+    EffectWork*            work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
     s32                    grey;
@@ -4308,7 +4308,7 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, T
 }
 
 /// One falling mote of the bridge's ambient dust: drifts the task's coordinate
-/// frame by the per-mote velocity in `GpEffWork::move`, projects the
+/// frame by the per-mote velocity in `EffectWork::move`, projects the
 /// result through `GsWSMATRIX` with a single `RTPS`, and links a 1x1 tile into
 /// the OT at the resulting depth. The velocity and the grey level are rolled
 /// once, on the first tick (`age == 0`); the mote is released after 0x1F
@@ -4321,7 +4321,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomMoteScratch* depth;
     TILE_1*          prim;
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     coord    = task->extra.coordBody->coord;
@@ -4375,8 +4375,8 @@ void func_acropolis_bridge_80182394(Task* task)
 
 void func_acropolis_bridge_80182694(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -4495,13 +4495,13 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
 /// cancellation (values at least 4) releases it.
 void func_acropolis_bridge_80182AF8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         kind;
+    s32         step;
+    s32         state;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

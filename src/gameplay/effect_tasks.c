@@ -28,7 +28,7 @@
 #include "main/tmd_types.h"
 
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
-/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.period` /
+/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `EffectWork.period` /
 /// `field_2A` (draw param for `Gp_DrawEffShard` and per-frame `field_26` step).
 typedef struct _GpEffRec {
     /* 0x0 */ u16 field_0;
@@ -36,7 +36,7 @@ typedef struct _GpEffRec {
 } GpEffRec;
 STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
-/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `GpEffWork.age`.
+/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `EffectWork.age`.
 /// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
 /// the UV origin. `clutX` / `clutY` feed `getClut`; `tpageX` feeds
 /// `getTPage(0, 1, tpageX, 0)`.
@@ -67,7 +67,7 @@ STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 /// 0x20-byte scratch from the scratch stack used by `Gp_EffLineTask92` and
 /// `Gp_EffLineTaskA3`.
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
-/// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.pos`) in
+/// `Gp_EffLineTask92` puts the previous-frame position (`EffectWork.pos`) in
 /// `vec1`. `Gp_EffLineTaskA3` rotates `move` through
 /// `parent->coord` and `gGfxViewCoord.workm`, scales by `age << 11 + 0x1000`,
 /// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
@@ -191,7 +191,7 @@ u16 Gp_FadeQuadColors[8] = {
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -305,7 +305,7 @@ void Gp_EffCtlTask2B(Task* arg0)
 
 void Gp_EffCtlTask6A(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -369,7 +369,7 @@ void Gp_EffCtlTask6A(Task* arg0)
 
 void Gp_EffCtlTask6B(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -440,7 +440,7 @@ void Gp_EffCtlTask6B(Task* arg0)
 
 void func_800ED42C(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -629,7 +629,7 @@ void func_800ED42C(Task* arg0)
 
 void Gp_EffCtlTask6C(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -731,7 +731,7 @@ void Gp_EffCtlTask6C(Task* arg0)
 
 void Gp_EffSprTask34(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
@@ -814,7 +814,7 @@ void Gp_EffSprTask34(Task* arg0)
 
 void Gp_EffSprTask72(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
@@ -898,7 +898,7 @@ void Gp_EffSprTask72(Task* arg0)
 
 void Gp_EffLineTaskA3(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     u8*               head;
     GpEffLineScratch* block;
@@ -1048,7 +1048,7 @@ static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_EffSprTask35(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
@@ -1159,7 +1159,7 @@ void Gp_EffSprTask35(Task* arg0)
 
 void Gp_EffSprTask6F(Task* arg0)
 {
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* block;
@@ -1265,16 +1265,16 @@ void Gp_EffSprTask6F(Task* arg0)
 
 void Gp_EffModelTask(Task* arg0)
 {
-    SVECTOR    delta;
-    SVECTOR    dir;
-    SVECTOR    pos;
-    VECTOR     vec;
-    VECTOR     tmp;
-    TmdObject* extra;
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    SVECTOR*   vel;
-    s16        flag;
+    SVECTOR     delta;
+    SVECTOR     dir;
+    SVECTOR     pos;
+    VECTOR      vec;
+    VECTOR      tmp;
+    TmdObject*  extra;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    SVECTOR*    vel;
+    s16         flag;
 
     extra = arg0->extra.tmd;
     mem   = arg0->spawnArg2.pointer;
@@ -1558,9 +1558,9 @@ release:
 
 void Gp_EffCtlTask6E(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        rng;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         rng;
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
@@ -1628,7 +1628,7 @@ void Gp_EffCtlTask6D(Task* arg0)
 
 void Gp_EffTileTaskA4(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     GpEffTileScratch* block;
     TILE*             prim;
@@ -1708,11 +1708,11 @@ void Gp_EffTileTaskA4(Task* arg0)
 
 void Gp_EffCtlTask3B(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s32        i;
-    s32        rng;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s32         i;
+    s32         rng;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1814,7 +1814,7 @@ void Gp_EffSprTask5C(Task* arg0)
     GpFxQuadScratch* block;
     GpFxQuadScratch* vecp;
     GfxCoord*        coord;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     POLY_FT4*        prim;
     GpEffUv8*        rec;
     s16              flag;
@@ -1962,7 +1962,7 @@ void Gp_EffSprTask5C(Task* arg0)
 void func_800F289C(Task* arg0)
 {
     GpFxQuadScratch* block;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     POLY_FT4*        prim;
     s16              flag;
@@ -2146,7 +2146,7 @@ void Gp_EffSprTask76(Task* arg0)
 {
     GpFxQuadScratch* block;
     GfxCoord*        coord;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     POLY_FT4*        prim;
     u16              size;
     s16              scale;
@@ -2221,7 +2221,7 @@ void Gp_EffSprTask76(Task* arg0)
 void Gp_EffSprTask7C(Task* arg0)
 {
     GfxCoord         hit;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     u8*              head;
     GpFxQuadScratch* vecp;
@@ -2360,7 +2360,7 @@ void Gp_EffSprTask7C(Task* arg0)
 void func_800F4308(Task* arg0)
 {
     u8                    rgb[3];
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GfxCoord*             roomCoord;
     GpCoord64*            room;
@@ -2608,7 +2608,7 @@ release:
 void Gp_EffLineTask92(Task* arg0)
 {
     GpEffLineScratch* block;
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     MATRIX*           m;
     LINE_F2*          prim;
@@ -2708,9 +2708,9 @@ void Gp_EffLineTask92(Task* arg0)
 
 void Gp_EffPolyTask9C(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -2846,7 +2846,7 @@ void Gp_EffSprTask9E(Task* arg0)
 {
     GpQuadScratch* block;
     s32            i;
-    GpEffWork*     mem;
+    EffectWork*    mem;
     GfxCoord*      coord;
     POLY_FT4*      prim;
     s32            scale;
@@ -2941,7 +2941,7 @@ void Gp_EffSprTask54(Task* arg0)
     s16              count;
     s16              step;
     u16              vz;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     GfxCoord*        coord;
     POLY_FT4*        prim;
 

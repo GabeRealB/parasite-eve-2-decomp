@@ -4634,7 +4634,7 @@ static void func_actor_503500_80144300(Task* arg0)
     Actor503500WorkC0*     work;
     GfxCoord*              coord;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m;
     VECTOR                 v;
@@ -4831,7 +4831,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     Actor503500WorkB4*     work;
     GfxCoord*              coord;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m;
     s32                    pan;

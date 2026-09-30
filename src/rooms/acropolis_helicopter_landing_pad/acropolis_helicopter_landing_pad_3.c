@@ -974,7 +974,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 /// once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -1114,11 +1114,11 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
-    GpEffWork*            eff;
+    EffectWork*           eff;
     s32                   i;
     s32                   n;
     s32                   pan;
@@ -1364,7 +1364,7 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
@@ -1415,7 +1415,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     }
 }
 
-/// Effect task for one helipad lens flare. State 0 seeds the `GpEffWork`
+/// Effect task for one helipad lens flare. State 0 seeds the `EffectWork`
 /// from the LCG: a 0x200..0x3FF radius (`scale`), a 12-bit angle
 /// (`angle`), a 1..4 lifetime scale (`step`, the flare lives
 /// `step * 6` frames counted in `age`) and a per-frame drift
@@ -1432,7 +1432,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// `field_4 >= 4` releases it at once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -1559,11 +1559,11 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
 void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 {
-    GpEffWork* work = (GpEffWork*)arg0->spawnArg2.pointer;
-    SVECTOR*   pos;
-    s32        i;
-    s32        v;
-    s32        level;
+    EffectWork* work = (EffectWork*)arg0->spawnArg2.pointer;
+    SVECTOR*    pos;
+    s32         i;
+    s32         v;
+    s32         level;
 
     if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;

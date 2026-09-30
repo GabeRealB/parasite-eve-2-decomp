@@ -3112,16 +3112,16 @@ L_case2:
 /// Per-frame update of the security-room's four monitor feeds: state 0 seeds
 /// the four screen CLUTs from the unlit palette, state 1 re-blends each of
 /// them towards its lit palette by that feed's brightness and spawns the
-/// flash effects. `Task::spawnArg2` is the `GpEffWork` holding the lit-feed
+/// flash effects. `Task::spawnArg2` is the `EffectWork` holding the lit-feed
 /// bitmask (`index`) and the four per-feed brightnesses
 /// (`scale` .. `step`).
 void func_acropolis_security_room_801805A4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        i;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         i;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
 
     switch (task->state) {
@@ -3276,16 +3276,16 @@ static void func_acropolis_security_room_80180A78(Task* task)
 /// Per-frame draw for the security-room's flash sprite: refreshes the task's
 /// coordinate frame, loads it into the GTE, then queues one 128x128 textured
 /// quad from `D_acropolis_security_room_80183970` -- picked by the low two bits
-/// of `Task::spawnArg1` -- into the current OT before releasing its `GpEffWork`.
+/// of `Task::spawnArg1` -- into the current OT before releasing its `EffectWork`.
 void func_acropolis_security_room_80180E34(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    POLY_FT4*  prim;
-    s16        x;
-    s16        y;
-    u16        cx;
-    u16        cy;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    POLY_FT4*   prim;
+    s16         x;
+    s16         y;
+    u16         cx;
+    u16         cy;
 
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
@@ -3331,7 +3331,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 {
     RoomQuadScratch* blk;
     GfxCoord*        coord;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     POLY_FT4*        prim;
     s32              i;
     SVECTOR*         sv;

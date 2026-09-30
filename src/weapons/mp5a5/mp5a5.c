@@ -97,7 +97,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
     GfxCoord*              coord;
     GfxCoord*              spot;
     WorldCollisionCapsule* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     s32                    anim;
 
     SCRATCH_STACK_RESERVE_BYTES(0x50);

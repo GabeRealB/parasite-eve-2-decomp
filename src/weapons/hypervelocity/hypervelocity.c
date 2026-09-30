@@ -128,7 +128,7 @@ static void func_hypervelocity_8011F694(Task* arg0);
 static void func_hypervelocity_8011F724(Task* arg0);
 
 /// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
-/// `Task::spawnArg2` is the `GpEffWork` holding the flare's drift
+/// `Task::spawnArg2` is the `EffectWork` holding the flare's drift
 /// (`move` / `move.vy` / `move.vz`), its age (`age`), the ring
 /// brightness (`scale`), the ring radius (`angle`), the arc brightness
 /// (`period`) and the per-frame brightness step (`step`);
@@ -137,7 +137,7 @@ static void func_hypervelocity_8011F724(Task* arg0);
 /// (`gRoomEffectState->effectControl`) freezes the task; cancellation at 4 or more restarts
 /// it at state 1.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed muzzle
+/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed muzzle
 ///   offset `D_hypervelocity_8011FB74` with an identity rotation, then falls
 ///   through to state 1, which waits for `spawnArg1` to reach 1 before arming
 ///   the charge at state 2.
@@ -161,8 +161,8 @@ void func_hypervelocity_8011D1E8(Task* task)
     GfxCoord*             coord;
     GfxCoord*             light;
     GfxCoord*             player;
-    GpEffWork*            work;
-    GpEffWork*            eff;
+    EffectWork*           work;
+    EffectWork*           eff;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
     GpMtxWords*           dstm;
@@ -315,7 +315,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 }
 
 /// Per-frame task for the hypervelocity round in flight. `Task::spawnArg2` is
-/// the `GpEffWork` holding the round's velocity (`move` /
+/// the `EffectWork` holding the round's velocity (`move` /
 /// `move.vy` / `move.vz`), its age (`age`), the trail brightness
 /// (`scale`), the ring spin (`angle`) and the ring's start angle
 /// (`period`); `Task::extra` reaches the coordinate it flies on. Nonzero effect control
@@ -345,8 +345,8 @@ void func_hypervelocity_8011D830(Task* task)
     GfxCoord*             light;
     GpCoord64*            base;
     WorldCoordPointLight* slot;
-    GpEffWork*            work;
-    GpEffWork*            eff;
+    EffectWork*           work;
+    EffectWork*           eff;
     HyperBeam*            beam;
     GpMtxWords*           dstm;
     GpMtxWords*           srcm;
@@ -865,7 +865,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `GpEffWork` in `Task::spawnArg2`. M4A1 Pyke
+/// linked, and releases the `EffectWork` in `Task::spawnArg2`. M4A1 Pyke
 /// carries an identical copy.
 static void func_hypervelocity_8011F11C(Task* task)
 {
@@ -880,11 +880,11 @@ static void func_hypervelocity_8011F11C(Task* task)
 
 void func_hypervelocity_8011F168(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        val;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         val;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -918,11 +918,11 @@ void func_hypervelocity_8011F168(Task* arg0)
 
 void func_hypervelocity_8011F270(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        val;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         val;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;

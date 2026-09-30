@@ -3249,7 +3249,7 @@ static const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
 static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 {
     MineCavernWork* work;
-    GpEffWork*      eff;
+    EffectWork*     eff;
     u16             state;
 
     work = (MineCavernWork*)arg1->work;
