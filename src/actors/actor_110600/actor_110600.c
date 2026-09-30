@@ -55,6 +55,7 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/patrol_walker.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// the scratch stack to lay one patrol node out: `m` receives a copy of the
@@ -72,17 +73,14 @@ STATIC_ASSERT_SIZEOF(Actor110600TsvScratch, 0x2C);
 /// Returns the patrol node nearest the walker: the squared XZ distance between
 /// each node and the low halfwords of the walker coordinate's translation,
 /// with the running best and the cursor staged in an `OverlayWalkerNearScratch`.
-static u8 func_actor_110600_80132958(OverlayWalker* work);
 
 /// Returns the node the walker's route cursor steps onto, reseeding the scan's
 /// stored node byte for the `actor` variant of the walker. Same body as the
 /// acropolis bridge room's `func_acropolis_bridge_801843A0`.
-static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor);
 
 /// Re-resolves the walker's patrol node against the route's byte table once
 /// the state or the node bytes have moved. Same body as the acropolis bridge
 /// room's `func_acropolis_bridge_80184638`.
-static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor);
 
 /// One per-frame behaviour step the walker runs while its `field_6C` gate is
 /// clear: steps it toward its current patrol node. `func_800E0C10` produces the
@@ -93,16 +91,13 @@ static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor);
 /// below -0x20, and the plain step in between. `moving` records whether the
 /// frame produced any XZ motion at all. Same body as the acropolis bridge
 /// room's `func_acropolis_bridge_80184908`.
-static void func_actor_110600_80132D54(OverlayWalker* work);
 
 /// The second per-frame behaviour step, gated on `field_6D`. Same body as the
 /// acropolis bridge room's `func_acropolis_bridge_80184B94`.
-static void func_actor_110600_80132FE0(OverlayWalker* work);
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
 /// The wrapped relative bearing drives the consecutive-turn counter, then
 /// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos);
 
 /// Event record `func_actor_110600_80134040` dispatches on: `w[0]` is the event
 /// kind (0x301, 0x401) and `w[1]` its sub-code, and the first three bytes are
@@ -375,21 +370,18 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
 /// resolves the one-based character ID in `field_6E` against `Player_Status`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.
-static void func_actor_110600_80133A94(OverlayWalker* walker);
 
 /// Measures the walker's node against the coordinate it is moving towards,
 /// leaving the three per-axis deltas in the scratchpad, and reports whether it
 /// has arrived: 1 while the delta is inside either of two radii -- the walker's
 /// own `field_5C * 4`, or a flat 300 -- and 0 once it is outside both.
-static s16 func_actor_110600_80132470(OverlayWalker* walker);
 
 /// Steers the walker along its patrol route: resolves the node the route
-/// cursor names, and on the frame `func_actor_110600_80132470` reports arrival
+/// cursor names, and on the frame `patrolArrived` reports arrival
 /// it raises the route's `arrived` flag, clears the movement deltas and steps
 /// the cursor onto the next node — wrapping back to the first at the 0xFF
 /// terminator. `pos` receives the position of the node it is heading for, so
 /// on the arrival frame it already describes the new node.
-static void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos);
 
 /// Enters work state 2 (`field_88C`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `field_A90.flags` and set 0x4000 of `field_950.flags`,
@@ -445,7 +437,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// The complaint the route re-plan prints when the two node lists share no
 /// slot at all. The string is spelled out rather than left a literal so the
 /// re-plan reaches it by name, the way the original object does.
-static const char D_actor_110600_80131E24[] = "s->root_cnt == 0xff about \n";
+static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -1157,8 +1149,6 @@ extern Actor110600MessageEntry D_actor_110600_80148624[7];
 static void func_actor_110600_80136210(Task* arg0);
 
 static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle);
-static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
-                                              OverlayWalkerTickScratch* block);
 static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_110600_80134438(Task* arg0);
 static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
@@ -1185,428 +1175,21 @@ static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_push_contact.inc.c"
 
-static s16 func_actor_110600_80132470(OverlayWalker* walker)
-{
-    OverlayWalkerArrivalDelta* d;
-    u8*                        head;
+#include "../../shared/patrol_walker_arrived.inc.c"
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x8;
-    d                        = (OverlayWalkerArrivalDelta*)(head - 0x8);
+#include "../../shared/patrol_walker_follow_route.inc.c"
 
-    d->x = walker->nav->nodes[walker->node].x;
-    d->y = walker->nav->nodes[walker->node].y;
-    d->z = walker->nav->nodes[walker->node].z;
-    d->x = d->x - (u16)walker->coord->coord.t[0];
-    d->y = 0;
-    d->z = d->z - (u16)walker->coord->coord.t[2];
+#include "../../shared/patrol_walker_nearest_actor.inc.c"
 
-    if (!overlayWalkerOutOfRange(d, walker->field_5C * 4) ||
-        !overlayWalkerOutOfRange(d, 300)) {
-        SCRATCH_STACK_RELEASE_BYTES(0x8);
-        return 1;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x8);
-    return 0;
-}
+#include "../../shared/patrol_walker_nearest_self.inc.c"
 
-static void func_actor_110600_80132654(OverlayWalker* work, SVECTOR3* pos)
-{
-    OverlayWalkerRoute* route;
-    OverlayWalkerRoute* step;
-    OverlayWalkerRoute* wrap;
-    OverlayWalkerRoute* next;
-    u8                  node;
+#include "../../shared/patrol_walker_plan_toward.inc.c"
 
-    route      = work->route;
-    work->node = route->nodes[route->cursor];
-    if (func_actor_110600_80132470(work) == 0) {
-        pos->vx              = work->nav->nodes[work->node].x;
-        pos->vy              = work->nav->nodes[work->node].y;
-        pos->vz              = work->nav->nodes[work->node].z;
-        work->route->arrived = 0;
-        return;
-    }
+#include "../../shared/patrol_walker_ground_step.inc.c"
 
-    work->route->arrived = 1;
-    step                 = work->route;
-    work->field_62       = 0;
-    work->field_64       = 0;
-    step->cursor++;
+#include "../../shared/patrol_walker_avoid_contacts.inc.c"
 
-    wrap = work->route;
-    if (wrap->nodes[wrap->cursor] == 0xFF) {
-        wrap->cursor = 0;
-    }
-
-    next       = work->route;
-    node       = next->nodes[next->cursor];
-    work->node = node;
-    pos->vx    = work->nav->nodes[node].x;
-    pos->vy    = work->nav->nodes[work->node].y;
-    pos->vz    = work->nav->nodes[work->node].z;
-}
-
-/// Scans the walker's patrol node table for the node nearest actor `actor` and
-/// returns its index. Same scan as `func_actor_110600_80132958`, but measured
-/// from the translation of the actor config's matrix rather than from the
-/// walker's own coordinate; the walker uses it with the player (entry 1) to
-/// pick the node it retreats to.
-static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
-{
-    OverlayWalkerNearCfgScratch* block;
-    u8*                          head;
-    s16                          dz;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearCfgScratch);
-
-    block->cfg  = &Player_Status + ((s16)actor - 1);
-    block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = (u16)block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
-        dz          = (u16)block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
-        block->dz   = dz;
-        block->dist = block->dx * block->dx + dz * dz;
-        if (block->dist < block->best || block->best == -1) {
-            block->best    = block->dist;
-            block->nearest = block->node;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-    return block->nearest;
-}
-
-/// Returns the patrol node nearest the walker: the squared XZ distance between
-/// each node and the low halfwords of the walker coordinate's translation,
-/// with the running best and the cursor staged in a scratch block. Same body
-/// as the acropolis bridge room's `func_acropolis_bridge_8018450C`.
-static u8 func_actor_110600_80132958(OverlayWalker* work)
-{
-    OverlayWalkerNearScratch* block;
-    u8*                       head;
-    s16                       dz;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x14;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
-
-    block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
-        dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
-        block->dz   = dz;
-        block->dist = block->dx * block->dx + dz * dz;
-        if (block->dist < block->best || block->best == -1) {
-            block->best    = block->dist;
-            block->nearest = block->node;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-    return block->nearest;
-}
-
-/// Re-plans the walker's position in the room's route byte table so that it
-/// heads towards actor `actor`. It collects every slot of that table naming
-/// the node nearest the actor and every slot naming the node nearest the
-/// walker, then picks the pair of slots that are closest together: the
-/// walker's cursor becomes the slot on its own side, `field_75` records the
-/// slot on the actor's side, and `field_73` becomes the +1 / -1 direction the
-/// cursor has to travel along the table to close the gap -- which the caller
-/// then applies, as does the last line here. Both lists hold at most eight
-/// slots, so a table with more matches than that is silently truncated; if no
-/// pair was found at all the routine only complains and leaves the cursor
-/// where it was.
-static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
-{
-    OverlayWalkerRouteScratch* s;
-    u8*                        head;
-    s32                        diff;
-    s32                        best;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerRouteScratch*)(head - 0x1C);
-
-    s->nodeA  = func_actor_110600_801327EC(work, actor);
-    s->nodeB  = func_actor_110600_80132958(work);
-    s->countA = 0;
-    s->countB = 0;
-    for (s->i = 0; s->i < work->nav->field_9; s->i++) {
-        if (work->nav->field_4[s->i] == s->nodeA && s->countA < 8) {
-            s->listA[s->countA] = s->i;
-            s->countA++;
-        }
-        if (work->nav->field_4[s->i] == s->nodeB && s->countB < 8) {
-            s->listB[s->countB] = s->i;
-            s->countB++;
-        }
-    }
-
-    s->listA[s->countA] = 0xFF;
-    s->listB[s->countB] = 0xFF;
-    s->best             = 0xFF;
-    for (s->i = 0; s->i < 8; s->i++) {
-        if (s->listA[s->i] == 0xFF) {
-            break;
-        }
-        for (s->j = 0; s->j < 8; s->j++) {
-            if (s->listB[s->j] == 0xFF) {
-                break;
-            }
-            diff    = s->listA[s->i] - s->listB[s->j];
-            best    = s->best;
-            s->diff = diff;
-            diff    = ABS(diff);
-            if (diff < best) {
-                s->best        = diff;
-                work->cursor   = s->listB[s->j];
-                work->field_75 = s->listA[s->i];
-                if (s->diff < 0) {
-                    work->field_73 = -1;
-                } else {
-                    work->field_73 = 1;
-                }
-            }
-        }
-    }
-
-    if (s->best == 0xFF) {
-        printf(D_actor_110600_80131E24);
-    }
-    work->cursor += (u8)work->field_73;
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-static void func_actor_110600_80132D54(OverlayWalker* work)
-{
-    u8*                       head;
-    OverlayWalkerMoveScratch* s;
-    s32                       valx;
-    s32                       valy;
-    s32                       valz;
-    s32                       dx;
-    s32                       dy;
-    s32                       dz;
-    s32                       y;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
-    if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
-        dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
-        dz         = s->delta.vz.h.hi;
-        s->move.vx = dx;
-        s->move.vz = dz;
-        valx       = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.w;
-        if ((valx & 0xFFFF) != 0) {
-            if (valx > 0) {
-                s->move.vx++;
-            } else {
-                s->move.vx--;
-            }
-        }
-        valz = s->delta.vz.w;
-        if ((valz & 0xFFFF) != 0) {
-            if (valz > 0) {
-                s->move.vz++;
-            } else {
-                s->move.vz--;
-            }
-        }
-        if (work->field_6B == 0) {
-            dy         = s->delta.vy.h.hi;
-            valy       = s->delta.vy.w;
-            s->move.vy = s->move.vy + dy;
-            if ((valy & 0xFFFF) != 0) {
-                if (valy > 0) {
-                    s->move.vy++;
-                } else {
-                    s->move.vy--;
-                }
-            }
-        } else {
-            s->move.vy = 0;
-        }
-    } else {
-        s->move.vx = 0;
-        s->move.vy = 0;
-        s->move.vz = 0;
-    }
-    if (work->field_6B == 0) {
-        s->move.vy += 0x10;
-    }
-    work->moveDelta          = s->move;
-    work->coord->coord.t[0] += s->move.vx;
-    if (s->move.vy >= 0x21) {
-        work->coord->coord.t[1] += 8;
-    }
-    if (s->move.vy < -0x20) {
-        work->coord->coord.t[1] -= 0x20;
-    }
-    y = s->move.vy;
-    if (ABS(y) < 0x20) {
-        work->coord->coord.t[1] += y;
-    }
-    work->coord->coord.t[2] += s->move.vz;
-    if (work->coord->coord.t[0] != 0 || work->coord->coord.t[2] != 0) {
-        work->moving = 1;
-    } else {
-        work->moving = 0;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
-
-static void func_actor_110600_80132FE0(OverlayWalker* work)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
-
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
-        return;
-    }
-
-    work->blocked = 0;
-    work->push.vz = 0;
-    work->push.vy = 0;
-    work->push.vx = 0;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-
-    Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)work->coord->workm.t[0];
-    s->eye.vy = (u16)work->coord->workm.t[1];
-    s->eye.vz = (u16)work->coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < work->avoidCount; s->i++) {
-        if (work->avoidRecs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = work->avoidRecs[s->i].key.value & 0xFFFF0000;
-        if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key.value != 0) {
-                continue;
-            }
-        } else {
-            work->blocked = 1;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] =
-                overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] =
-                overlayBearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            work->push.vx           += s->dir.vx;
-            work->push.vz           += s->dir.vz;
-            work->coord->coord.t[0] += s->dir.vx;
-            work->coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_CURSOR(u8) =
-        SCRATCH_STACK_CURSOR(u8) + sizeof(OverlayAvoidScratch);
-}
-
-/// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
-/// The wrapped relative bearing drives the consecutive-turn counter, then
-/// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
-{
-    OverlayWalkerTurnScratch* s;
-    GfxCoord*                 coord;
-    u8*                       head;
-    s16                       diff, t;
-    s32                       angle;
-
-    if (Mc_SaveData[0].state.unknown_5C0 == 1)
-        return;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord                    = work->coord;
-    diff                     = overlayCoordBearingXZ(pos, coord) -
-           ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    t = diff;
-    if (diff < 0) {
-    wrapUp:
-        if (t < -0x800) {
-            t += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (t > 0x800) {
-            t -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    angle    = t;
-    s->angle = angle;
-    if (angle != 0)
-        work->field_62++;
-    else
-        work->field_62 = 0;
-    // Extra turn allowance by how long the walker has kept turning; every
-    // tier grants nothing, so the limit is always `field_5A` alone.
-    if (work->field_62 > 60)
-        work->field_64 = 0;
-    else if (work->field_62 > 30)
-        work->field_64 = 0;
-    else
-        work->field_64 = 0;
-    if (work->field_5A + work->field_64 < s->angle)
-        s->angle = work->field_5A + work->field_64;
-    if (s->angle < -(work->field_5A + work->field_64))
-        s->angle = -(work->field_5A + work->field_64);
-    if (work->field_5A == 0)
-        s->angle = 0;
-    s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-    memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#include "../../shared/patrol_walker_turn_toward.inc.c"
 
 /// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
 /// coordinate translation; every node above it takes that translation plus the
@@ -1652,137 +1235,9 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     SCRATCH_STACK_RELEASE_BYTES(0x2C);
 }
 
-/// The walker's per-tick body, open on the scratch frame `func_actor_110600_80133A94`
-/// hands it. State 1 heads straight for the position the `Player_Status` motion
-/// config indexed by `field_6E` holds, state 2 re-runs the patrol steering and
-/// re-reads `nav`'s byte table at `cursor` whenever the step or one of the
-/// three node bytes changed, and state 3 follows the patrol route proper. The
-/// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
-/// while it is non-zero it scales (`GPF`) the normalised facing column of the
-/// model matrix into the per-frame world step, which is added to the
-/// coordinate's translation and kept in `moveStep`. `Mc_SaveData[0].state.actorsFrozen` (a global
-/// freeze flag) zeroes the step instead. Written as an inline so the two
-/// scratch-head accesses inside one frame stay absolute; see
-/// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
-static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
-                                              OverlayWalkerTickScratch* block)
-{
-    u8*           head2;
-    SVECTOR3*     pos;
-    PlayerStatus* cfg;
-    SVECTOR*      sv;
-    SVECTOR*      gsv;
-    SVECTOR*      step;
-    GfxCoord*     coord;
-    s16           sdiff;
-    s32           diff;
-    s16           speed;
-    s32           cur;
-    s32           target;
-    s32           result;
+#include "../../shared/patrol_walker_inlines.inc.c"
 
-    switch (walker->state) {
-        case 0:
-            break;
-        case 1:
-            cfg                            = &Player_Status + (walker->field_6E - 1);
-            pos                            = (SVECTOR3*)(head - 0x24);
-            ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
-            pos->vy                        = (u16)cfg->coordMtx->t[1];
-            pos->vz                        = (u16)cfg->coordMtx->t[2];
-            break;
-        case 2:
-            SCRATCH_PUSH_BYTES(4);
-            walker->field_6F = func_actor_110600_801327EC(walker, 1);
-            walker->field_70 = func_actor_110600_80132958(walker);
-            if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
-                walker->field_6F != walker->field_71) {
-                func_actor_110600_80132A84(walker, 1);
-                walker->node = walker->nav->field_4[walker->cursor];
-            }
-            walker->field_69 = walker->state;
-            walker->field_72 = walker->field_70;
-            walker->field_71 = walker->field_6F;
-            if (func_actor_110600_80132470(walker) != 0) {
-                walker->cursor += (u8)walker->field_73;
-                walker->node    = walker->nav->field_4[walker->cursor];
-                SCRATCH_STACK_RELEASE_BYTES(4);
-            }
-            break;
-        case 3:
-            func_actor_110600_80132654(walker, (SVECTOR3*)(head - 0x24));
-            break;
-    }
-    func_actor_110600_80133550(walker, &block->pos);
-
-    cur    = walker->field_5C;
-    target = walker->field_5E;
-    if (cur != target) {
-        diff  = cur - target;
-        sdiff = diff;
-        if (sdiff > walker->field_60) {
-            result = target + walker->field_60;
-        } else if (sdiff < -walker->field_60) {
-            result = target - walker->field_60;
-        } else {
-            result = target + diff;
-        }
-        walker->field_5E = result;
-    }
-
-    coord = walker->coord;
-    speed = walker->field_5E;
-    step  = &walker->moveStep;
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
-        step->vz            = 0;
-        step->vy            = 0;
-        walker->moveStep.vx = 0;
-    } else {
-        head2                    = SCRATCH_STACK_CURSOR(u8);
-        sv                       = (SVECTOR*)(head2 - 8);
-        SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
-        gsv                      = sv;
-        if (speed != 0) {
-            Gfx_MatrixCol2(&coord->coord, sv);
-            VectorNormalSS(sv, sv);
-            gte_lddp(speed);
-            gte_ldsv(gsv);
-            gte_gpf12();
-            gte_stsv(gsv);
-            coord->coord.t[0]  += ((SVECTOR*)(head2 - 8))->vx;
-            coord->coord.t[1]  += sv->vy;
-            coord->coord.t[2]  += sv->vz;
-            walker->moveStep    = *(SVECTOR*)(head2 - 8);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        SCRATCH_STACK_RELEASE_BYTES(8);
-    }
-    if (walker->field_6C == 0) {
-        func_actor_110600_80132D54(walker);
-    }
-    if (walker->field_6D == 0) {
-        func_actor_110600_80132FE0(walker);
-    }
-}
-
-/// Per-tick walker step: advances the animation the `field_68` byte selects,
-/// resolves the one-based character ID in `field_6E` against `Player_Status`,
-/// and ramp-scales the model matrix between `field_5E` and `field_5C`. The
-/// working frame is carved off the scratch stack and handed back once the
-/// coordinate has been rebuilt. Same body as the acropolis bridge room's
-/// `func_acropolis_bridge_8018532C`.
-static void func_actor_110600_80133A94(OverlayWalker* walker)
-{
-    u8*                       head;
-    OverlayWalkerTickScratch* block;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x28;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
-    Actor110600_WalkerStep(walker, head, block);
-    walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
-}
+#include "../../shared/patrol_walker_tick.inc.c"
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
@@ -2495,7 +1950,7 @@ static void func_actor_110600_80135194(Task* arg0)
         work->walker.field_5A         = 0x10;
     }
     work->walker.field_5E = work->field_8B6;
-    func_actor_110600_80133A94(&work->walker);
+    patrolWalkerTick(&work->walker);
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
     delta.vx = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -2612,7 +2067,7 @@ static void func_actor_110600_80135454(Task* arg0)
     walker->field_60 = 0;
     walker->field_5C = ramp;
     walker->field_5E = ramp;
-    func_actor_110600_80133A94(walker);
+    patrolWalkerTick(walker);
     work->field_BE0++;
     facing = arg0->extra.tmd->coords;
     angle  = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
@@ -3064,7 +2519,7 @@ static void func_actor_110600_80136888(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    func_actor_110600_80133A94(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x18) {
         if (work->field_5C & 2) {
@@ -3125,7 +2580,7 @@ static void func_actor_110600_801369D8(Task* arg0)
         work->field_8A2               = 0;
     }
     walker2 = &work->walker;
-    func_actor_110600_80133A94(walker2);
+    patrolWalkerTick(walker2);
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x1D) {
         if (work->field_5C & 1) {
@@ -4222,7 +3677,7 @@ static void func_actor_110600_80138980(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    func_actor_110600_80133A94(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         if (enemy->hp > 0) {
@@ -4286,7 +3741,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    func_actor_110600_80133A94(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         work->field_0 = 3;
@@ -4320,7 +3775,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
         work->field_8A4               = 0;
         work->field_8A2               = 0;
     }
-    func_actor_110600_80133A94(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_actor_110600_80134728(arg0);
     if (work->field_5C & 1) {
         work->field_0 = 3;

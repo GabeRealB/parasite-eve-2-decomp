@@ -85,6 +85,7 @@
 #include "../../shared/glow_draw.h"
 #define EFFECT_SPRITE_OWN_DRAWERS
 #include "../../shared/effect_sprite.h"
+#include "../../shared/patrol_walker.h"
 
 /* The debris task draws with this room's own builds. */
 void effectSpriteDrawChip(GfxCoord* coord, u16 frame, s16 size, s16 angle);
@@ -328,18 +329,11 @@ typedef struct AcropolisBridgeHitScratch {
 STATIC_ASSERT_SIZEOF(AcropolisBridgeHitScratch, 0xC);
 
 /// Ticks the walker task: steps its patrol route and drives its animation.
-static void func_acropolis_bridge_8018532C(OverlayWalker* walker);
 
 /// Returns the patrol node nearest the given actor's coordinate, by squared
 /// distance in the XZ plane.
-static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
-static u8   func_acropolis_bridge_8018450C(OverlayWalker* work);
-static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 arg1);
-static void func_acropolis_bridge_80184908(OverlayWalker* work);
-static void func_acropolis_bridge_80184B94(OverlayWalker* work);
-static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos);
 
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
@@ -2481,8 +2475,6 @@ extern u8* D_acropolis_bridge_80191720[];
 extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
 static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
-static s16             func_acropolis_bridge_80184024(OverlayWalker* work);
-static void            func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos);
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block);
 static __inline__ void bridge_set_obj_pos(WorldCollisionBody* obj, SVECTOR3* pos);
@@ -4617,7 +4609,7 @@ void effectSpriteDrawBillboard(GfxCoord* coord, u16 frame, s16 size)
 
 /// Debug message the walker's route search prints when no candidate beat its
 /// initial best of 0xFF.
-static const char D_acropolis_bridge_8017D6CC[] = "s->root_cnt == 0xff about \n";
+static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
 static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
@@ -4626,455 +4618,24 @@ static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
 
-/// Reports whether the walker has reached the patrol node at `work->node`. It
-/// stages the XZ delta between the node and the walker's coordinate
-/// translation in an 8-byte scratch block, then accepts the node if the walker
-/// is inside either of two radii: its own `field_5C * 4`, or a flat 300.
-static s16 func_acropolis_bridge_80184024(OverlayWalker* work)
-{
-    OverlayWalkerArrivalDelta* d;
-    u8*                        head;
+#include "../../shared/patrol_walker_arrived.inc.c"
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x8;
-    d                        = (OverlayWalkerArrivalDelta*)(head - 0x8);
+#include "../../shared/patrol_walker_follow_route.inc.c"
 
-    d->x = work->nav->nodes[work->node].x;
-    d->y = work->nav->nodes[work->node].y;
-    d->z = work->nav->nodes[work->node].z;
-    d->x = d->x - (u16)work->coord->coord.t[0];
-    d->y = 0;
-    d->z = d->z - (u16)work->coord->coord.t[2];
+#include "../../shared/patrol_walker_nearest_actor.inc.c"
 
-    if (!overlayWalkerOutOfRange(d, work->field_5C * 4) ||
-        !overlayWalkerOutOfRange(d, 300)) {
-        SCRATCH_STACK_RELEASE_BYTES(0x8);
-        return 1;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x8);
-    return 0;
-}
+#include "../../shared/patrol_walker_nearest_self.inc.c"
 
-/// Steers the walker along its patrol route. `pos` receives the position of the
-/// node it is heading for; while it is still short of that node the route's
-/// `arrived` flag stays clear, and on the frame it gets there the flag is
-/// raised, the movement deltas are cleared and the cursor steps to the next
-/// node -- wrapping back to the first when it hits the 0xFF terminator -- so
-/// `pos` already describes the new node.
-static void func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos)
-{
-    OverlayWalkerRoute* route;
-    OverlayWalkerRoute* step;
-    OverlayWalkerRoute* wrap;
-    OverlayWalkerRoute* next;
-    u8                  node;
+#include "../../shared/patrol_walker_plan_toward.inc.c"
 
-    route      = work->route;
-    work->node = route->nodes[route->cursor];
-    if (func_acropolis_bridge_80184024(work) == 0) {
-        pos->vx              = work->nav->nodes[work->node].x;
-        pos->vy              = work->nav->nodes[work->node].y;
-        pos->vz              = work->nav->nodes[work->node].z;
-        work->route->arrived = 0;
-        return;
-    }
+#include "../../shared/patrol_walker_ground_step.inc.c"
 
-    work->route->arrived = 1;
-    step                 = work->route;
-    work->field_62       = 0;
-    work->field_64       = 0;
-    step->cursor++;
+#include "../../shared/patrol_walker_avoid_contacts.inc.c"
 
-    wrap = work->route;
-    if (wrap->nodes[wrap->cursor] == 0xFF) {
-        wrap->cursor = 0;
-    }
-
-    next       = work->route;
-    node       = next->nodes[next->cursor];
-    work->node = node;
-    pos->vx    = work->nav->nodes[node].x;
-    pos->vy    = work->nav->nodes[work->node].y;
-    pos->vz    = work->nav->nodes[work->node].z;
-}
-
-/// Scans the room's patrol node table for the node nearest actor `actor` and
-/// returns its index. Same scan as `func_acropolis_bridge_8018450C`, but
-/// measured from the translation of the actor config's matrix rather than
-/// from the walker's own coordinate; the walker uses it with the player
-/// (entry 1) to pick the node it retreats to.
-static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
-{
-    OverlayWalkerNearCfgScratch* block;
-    u8*                          head;
-    s16                          dz;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearCfgScratch);
-
-    block->cfg  = &Player_Status + ((s16)actor - 1);
-    block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;
-        block->dy   = (u16)block->cfg->coordMtx->t[1] - work->nav->nodes[block->node].y;
-        dz          = (u16)block->cfg->coordMtx->t[2] - work->nav->nodes[block->node].z;
-        block->dz   = dz;
-        block->dist = block->dx * block->dx + dz * dz;
-        if (block->dist < block->best || block->best == -1) {
-            block->best    = block->dist;
-            block->nearest = block->node;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-    return block->nearest;
-}
-
-/// Scans the room's patrol node table for the node nearest the walker and
-/// returns its index. Distance is the squared XZ distance between the node and
-/// the low halfword of the walker coordinate's translation, staged in a 0x14
-/// byte scratch block along with the cursor and the running best.
-static u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
-{
-    OverlayWalkerNearScratch* block;
-    u8*                       head;
-    s16                       dz;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x14;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
-
-    block->best = -1;
-    for (block->node = 0; block->node < work->nav->count; block->node++) {
-        block->dx   = (u16)work->coord->coord.t[0] - work->nav->nodes[block->node].x;
-        dz          = (u16)work->coord->coord.t[2] - work->nav->nodes[block->node].z;
-        block->dz   = dz;
-        block->dist = block->dx * block->dx + dz * dz;
-        if (block->dist < block->best || block->best == -1) {
-            block->best    = block->dist;
-            block->nearest = block->node;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-    return block->nearest;
-}
-
-/// Re-plans the walker's position in the room's route byte table so that it
-/// heads towards actor `actor`. It collects every slot of that table naming
-/// the node nearest the actor and every slot naming the node nearest the
-/// walker, then picks the pair of slots that are closest together: the
-/// walker's cursor becomes the slot on its own side, `field_75` records the
-/// slot on the actor's side, and `field_73` becomes the +1 / -1 direction the
-/// cursor has to travel along the table to close the gap -- which the caller
-/// then applies, as does the last line here. Both lists hold at most eight
-/// slots, so a table with more matches than that is silently truncated; if no
-/// pair was found at all the routine only complains and leaves the cursor
-/// where it was.
-static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
-{
-    OverlayWalkerRouteScratch* s;
-    u8*                        head;
-    s32                        diff;
-    s32                        best;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerRouteScratch*)(head - 0x1C);
-
-    s->nodeA  = func_acropolis_bridge_801843A0(work, actor);
-    s->nodeB  = func_acropolis_bridge_8018450C(work);
-    s->countA = 0;
-    s->countB = 0;
-    for (s->i = 0; s->i < work->nav->field_9; s->i++) {
-        if (work->nav->field_4[s->i] == s->nodeA && s->countA < 8) {
-            s->listA[s->countA] = s->i;
-            s->countA++;
-        }
-        if (work->nav->field_4[s->i] == s->nodeB && s->countB < 8) {
-            s->listB[s->countB] = s->i;
-            s->countB++;
-        }
-    }
-
-    s->listA[s->countA] = 0xFF;
-    s->listB[s->countB] = 0xFF;
-    s->best             = 0xFF;
-    for (s->i = 0; s->i < 8; s->i++) {
-        if (s->listA[s->i] == 0xFF) {
-            break;
-        }
-        for (s->j = 0; s->j < 8; s->j++) {
-            if (s->listB[s->j] == 0xFF) {
-                break;
-            }
-            diff    = s->listA[s->i] - s->listB[s->j];
-            best    = s->best;
-            s->diff = diff;
-            diff    = ABS(diff);
-            if (diff < best) {
-                s->best        = diff;
-                work->cursor   = s->listB[s->j];
-                work->field_75 = s->listA[s->i];
-                if (s->diff < 0) {
-                    work->field_73 = -1;
-                } else {
-                    work->field_73 = 1;
-                }
-            }
-        }
-    }
-
-    if (s->best == 0xFF) {
-        printf(D_acropolis_bridge_8017D6CC);
-    }
-    work->cursor += (u8)work->field_73;
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
-
-/// Steps the walker toward its current patrol node. `func_800E0C10` produces
-/// the 16.16 delta; the high half of each component becomes the whole-unit
-/// step, rounded away from zero whenever a fraction is left over. While
-/// `field_6B` is set the walker is pinned vertically, otherwise Y also carries
-/// a constant 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a
-/// -0x20 drop below -0x20, and the plain step in between. `moving` records
-/// whether the frame produced any XZ motion at all.
-static void func_acropolis_bridge_80184908(OverlayWalker* work)
-{
-    u8*                       head;
-    OverlayWalkerMoveScratch* s;
-    s32                       valx;
-    s32                       valy;
-    s32                       valz;
-    s32                       dx;
-    s32                       dy;
-    s32                       dz;
-    s32                       y;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
-    s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
-    if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
-        dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
-        dz         = s->delta.vz.h.hi;
-        s->move.vx = dx;
-        s->move.vz = dz;
-        valx       = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.w;
-        if ((valx & 0xFFFF) != 0) {
-            if (valx > 0) {
-                s->move.vx++;
-            } else {
-                s->move.vx--;
-            }
-        }
-        valz = s->delta.vz.w;
-        if ((valz & 0xFFFF) != 0) {
-            if (valz > 0) {
-                s->move.vz++;
-            } else {
-                s->move.vz--;
-            }
-        }
-        if (work->field_6B == 0) {
-            dy         = s->delta.vy.h.hi;
-            valy       = s->delta.vy.w;
-            s->move.vy = s->move.vy + dy;
-            if ((valy & 0xFFFF) != 0) {
-                if (valy > 0) {
-                    s->move.vy++;
-                } else {
-                    s->move.vy--;
-                }
-            }
-        } else {
-            s->move.vy = 0;
-        }
-    } else {
-        s->move.vx = 0;
-        s->move.vy = 0;
-        s->move.vz = 0;
-    }
-    if (work->field_6B == 0) {
-        s->move.vy += 0x10;
-    }
-    work->moveDelta          = s->move;
-    work->coord->coord.t[0] += s->move.vx;
-    if (s->move.vy >= 0x21) {
-        work->coord->coord.t[1] += 8;
-    }
-    if (s->move.vy < -0x20) {
-        work->coord->coord.t[1] -= 0x20;
-    }
-    y = s->move.vy;
-    if (ABS(y) < 0x20) {
-        work->coord->coord.t[1] += y;
-    }
-    work->coord->coord.t[2] += s->move.vz;
-    if (work->coord->coord.t[0] != 0 || work->coord->coord.t[2] != 0) {
-        work->moving = 1;
-    } else {
-        work->moving = 0;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
-
-/// Pushes the walker away from the obstacles in its collision record table.
-/// Every occupied record is turned into a bearing relative to the direction
-/// the walker faces; records whose `field_4` kind is neither 0x10000 (which
-/// also raises `blocked`) nor 0x30000 only count while their low halfword is
-/// clear, and at most eight are collected. Any two bearings closer together
-/// than 0x401 cancel each other, since the walker is then wedged between them
-/// and has nowhere to go. Each surviving bearing becomes a unit vector 10
-/// units long (`GPF` by -10 of the normalised matrix column), which is added
-/// to both `push` and the walker's own translation.
-static void func_acropolis_bridge_80184B94(OverlayWalker* work)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
-
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
-        return;
-    }
-
-    work->blocked = 0;
-    work->push.vz = 0;
-    work->push.vy = 0;
-    work->push.vx = 0;
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-
-    Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)work->coord->workm.t[0];
-    s->eye.vy = (u16)work->coord->workm.t[1];
-    s->eye.vz = (u16)work->coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < work->avoidCount; s->i++) {
-        if (work->avoidRecs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = work->avoidRecs[s->i].key.value & 0xFFFF0000;
-        if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key.value != 0) {
-                continue;
-            }
-        } else {
-            work->blocked = 1;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] =
-                overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] =
-                overlayBearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = overlayWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            work->push.vx           += s->dir.vx;
-            work->push.vz           += s->dir.vz;
-            work->coord->coord.t[0] += s->dir.vx;
-            work->coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayAvoidScratch);
-}
-
-/// Turns the walker toward `pos` by at most `field_5A` angle units per frame.
-/// The wrapped relative bearing drives the consecutive-turn counter, then
-/// becomes an absolute yaw applied to the model's saved scale matrix.
-static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
-{
-    OverlayWalkerTurnScratch* s;
-    GfxCoord*                 coord;
-    u8*                       head;
-    s16                       diff, t;
-    s32                       angle;
-
-    if (Mc_SaveData[0].state.unknown_5C0 == 1)
-        return;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
-    s                        = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord                    = work->coord;
-    diff                     = overlayCoordBearingXZ(pos, coord) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    t                        = diff;
-    if (diff < 0) {
-    wrapUp:
-        if (t < -0x800) {
-            t += 0x1000;
-            goto wrapUp;
-        }
-    } else {
-    wrapDown:
-        if (t > 0x800) {
-            t -= 0x1000;
-            goto wrapDown;
-        }
-    }
-    angle    = t;
-    s->angle = angle;
-    if (angle != 0)
-        work->field_62++;
-    else
-        work->field_62 = 0;
-    // Extra turn allowance by how long the walker has kept turning; every
-    // tier grants nothing, so the limit is always `field_5A` alone.
-    if (work->field_62 > 60)
-        work->field_64 = 0;
-    else if (work->field_62 > 30)
-        work->field_64 = 0;
-    else
-        work->field_64 = 0;
-    if (work->field_5A + work->field_64 < s->angle)
-        s->angle = work->field_5A + work->field_64;
-    if (s->angle < -(work->field_5A + work->field_64))
-        s->angle = -(work->field_5A + work->field_64);
-    if (work->field_5A == 0)
-        s->angle = 0;
-    s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-    memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x1C);
-}
+#include "../../shared/patrol_walker_turn_toward.inc.c"
 
 /// Runs the walker's per-frame step inside the 0x28-byte scratch frame
-/// `func_acropolis_bridge_8018532C` opened for it. `head` is the scratch head
+/// `patrolWalkerTick` opened for it. `head` is the scratch head
 /// as it was before the frame was carved off, so the `SVECTOR3` the states
 /// steer towards is `head - 0x24` == `&block->pos`.
 ///
@@ -5117,27 +4678,27 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             break;
         case 2:
             SCRATCH_PUSH_BYTES(4);
-            walker->field_6F = func_acropolis_bridge_801843A0(walker, 1);
-            walker->field_70 = func_acropolis_bridge_8018450C(walker);
+            walker->field_6F = patrolNodeNearestActor(walker, 1);
+            walker->field_70 = patrolNodeNearestSelf(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
                 walker->field_6F != walker->field_71) {
-                func_acropolis_bridge_80184638(walker, 1);
+                patrolPlanToward(walker, 1);
                 walker->node = walker->nav->field_4[walker->cursor];
             }
             walker->field_69 = walker->state;
             walker->field_72 = walker->field_70;
             walker->field_71 = walker->field_6F;
-            if (func_acropolis_bridge_80184024(walker) != 0) {
+            if (patrolArrived(walker) != 0) {
                 walker->cursor += (u8)walker->field_73;
                 walker->node    = walker->nav->field_4[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
         case 3:
-            func_acropolis_bridge_80184208(walker, (SVECTOR3*)(head - 0x24));
+            patrolFollowRoute(walker, (SVECTOR3*)(head - 0x24));
             break;
     }
-    func_acropolis_bridge_80185104(walker, &block->pos);
+    patrolTurnToward(walker, &block->pos);
 
     cur    = walker->field_5C;
     target = walker->field_5E;
@@ -5184,25 +4745,16 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         SCRATCH_STACK_RELEASE_BYTES(8);
     }
     if (walker->field_6C == 0) {
-        func_acropolis_bridge_80184908(walker);
+        patrolApplyGroundStep(walker);
     }
     if (walker->field_6D == 0) {
-        func_acropolis_bridge_80184B94(walker);
+        patrolAvoidContacts(walker);
     }
 }
 
-static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
-{
-    u8*                       head;
-    OverlayWalkerTickScratch* block;
+#include "../../shared/patrol_walker_inlines.inc.c"
 
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x28;
-    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
-    walkerStep(walker, head, block);
-    walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
-}
+#include "../../shared/patrol_walker_tick.inc.c"
 
 /// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
 /// (the bridge is being lowered) restores the model's default flag set while
@@ -5672,7 +5224,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     } else {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    func_acropolis_bridge_8018532C(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (cfg->coordMtx->t[1] >= 0x2BD) {
         work->field_0 = 2;
@@ -5775,7 +5327,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (work->walker.scale < 0x1000) {
         bridge_scale_up(work);
     }
-    func_acropolis_bridge_8018532C(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (_acropolisBridgeWasHit(task)) {
         work->field_0 = 3;
@@ -5831,7 +5383,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     } else if (enemy->node.state.parts.flags == 0) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    func_acropolis_bridge_8018532C(&work->walker);
+    patrolWalkerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (work->walker.routeData.cursor != 0) {
         if (cfg->coordMtx->t[1] < 0x321) {
