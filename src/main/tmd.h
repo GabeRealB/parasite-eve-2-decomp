@@ -33,14 +33,22 @@ void Tmd_DispatchTask(struct Task* task);
 /// Gives a buffer back to every attached model that has none, then kills the task.
 void Tmd_AllocNodeBuffers(struct Task* task);
 
-/// Handler of a stream record nothing is built from: it steps over the record's
-/// elements and returns the cursor that follows them.
+/// Fallback handler for a stream record the current pass does not consume.
 ///
-/// A record is walked past even when nothing is made from it, because the walk
-/// reads its next opcode where this handler leaves the cursor. A record whose
-/// opcode names no handler of its own is left with this one, which is how both
-/// passes over a model's stream step over what they do not build. The record
-/// has no variant for `flags` to select, so it goes unread.
+/// `stream` addresses the first element word. The caller has already taken the
+/// three-word header and stored `ws->elemStride` and `ws->elemCount`: the
+/// stride is the element's length in `u32` words, and the count is how many
+/// elements follow. The handler returns that cursor advanced by the stride
+/// times the count. That address is the word after the payload; a following
+/// group or stream terminator stays for the caller to consume. It reads
+/// neither the payload nor `flags`, and it writes nothing.
+///
+/// Packet construction calls it when the opcode has no construction handler.
+/// Draw-handler resolution stores it when the opcode has no draw handler, and
+/// the draw walk calls the stored slot. Both walks take their next opcode from
+/// the returned cursor, so a record with nothing to build or draw is still
+/// stepped over. On the draw walk `flags` carries the drawing object's flags;
+/// during construction it is zero. This handler selects nothing from them.
 u32* tmdSkipStreamRecord(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 u32* Tmd_StreamHandler_Prim32(TmdStreamWorkspace* ws, s32 flags, u32* stream);
