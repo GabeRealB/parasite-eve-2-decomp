@@ -3,7 +3,14 @@
 
 #include "common.h"
 
-/// Byte offset of the scratch stack's 32-bit cursor in scratchpad RAM.
+/// Byte offset from `PLAYSTATION_SCRATCHPAD_BASE` to the scratch-stack cursor slot.
+///
+/// The final four bytes of scratchpad RAM hold an absolute 32-bit pointer,
+/// not an offset or a scratch block. An empty stack points to this slot itself.
+/// Reservations move the pointer down; their data must stay below the slot and
+/// clear of other live scratchpad storage. On the little-endian target, the
+/// pointer's low halfword is its byte offset from the scratchpad base, which
+/// other scratchpad users read to check the space below the active stack.
 enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 
 /// The scratch-pad stack: temporary blocks carved off the top of the

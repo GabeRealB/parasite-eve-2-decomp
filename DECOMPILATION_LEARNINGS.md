@@ -17526,7 +17526,7 @@ layout-matching type (e.g. `FlatLight`) instead of including libgs.
 
 ## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
 
-`G_SCRATCH_HEAD` (`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is a downward-growing arena pointer.
+`G_SCRATCH_HEAD` (`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`) is the address of the pointer slot for a downward-growing scratch arena.
 Helpers that call `Gfx_NormalizeLightDir` to normalize a light direction use:
 
 ```c
@@ -17546,7 +17546,7 @@ directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
 
 ## A 0x18 scratch block is not a `VECTOR*`
 
-The same `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)` arena also carries 0x18-byte blocks holding a
+The arena whose pointer is stored at `PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)` also carries 0x18-byte blocks holding a
 `VECTOR` followed by an `SVECTOR`. `VECTOR` is 0x10 bytes (`long vx, vy, vz,
 pad`), so `VECTOR* scratchEnd; delta = scratchEnd - 1;` decrements by 0x10 and
 the target's `addiu $s4, $s5, -0x18` cannot come out. Reuse the source overlay's
@@ -113073,10 +113073,9 @@ turn = (ActorTurnScratch*)(*(u32*)G_SCRATCH_HEAD -= 0xC);
 
 The store the expression performs *is* the reservation, so no separate
 `*(T**)G_SCRATCH_HEAD = turn;` statement may follow. `G_SCRATCH_HEAD` is
-`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` (or the block's own type, as
-`func_actor_401300_80134BA4` does with `sc = (SVECTOR*)(*(u32*)G_SCRATCH_HEAD
--= 8);`) and the size of the type supplies the byte count. Writing the head
-into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
+`PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET)`; cast the slot to `u32*` to update its 32-bit address in bytes, or to `T**` to step the stored pointer by `sizeof(T)` per element.
+`func_actor_401300_80134BA4` uses byte steps through `sc = (SVECTOR*)SCRATCH_PUSH_BYTES(8);`.
+Writing the head into a local first, or splitting it as `tmp = head - N; turn = tmp;`, both
 collapse to the single `addiu` and lose the copy. Same family as "Combined
 `*scratch = tmp` assignment keeps the add in `$v0` without a pin" above: one
 expression so CSE cannot fold the store onto the longer-lived variable.
