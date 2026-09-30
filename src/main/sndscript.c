@@ -628,18 +628,18 @@ void Snd_RegisterTickCallbacks(void)
 
 /// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.
 ///
-/// Callers select that bank with type 1 in the top nibble and zero in the
-/// rest of the bank id. The low half (entry index and instance tag) is kept,
-/// and the loaded script image's bank id replaces the high half. Any other
-/// request is returned unchanged, including a type-1 request when no slot has
-/// a type-1 sample descriptor. The search reads that descriptor's type; the
-/// stamp reads `image->bankId`, so the slot must hold a completed script image.
+/// Callers select that bank by placing `SOUND_BANK_TYPE_1` in the request's
+/// high half, with the rest of the bank id clear. The low half (entry index
+/// and instance tag) is kept, and the loaded script image's bank id replaces
+/// the high half. Any other request is returned unchanged, including a type-1
+/// request when no slot has a type-1 sample descriptor. The search reads that
+/// descriptor's type; the stamp reads `image->bankId`, so the slot must hold
+/// a completed script image.
 static s32 _sndScriptRemapType1Id(s32 requestId)
 {
     enum {
         SOUND_SCRIPT_REQUEST_TYPE_1 = 0x10000000,
-        SOUND_SCRIPT_REQUEST_LOW    = 0xFFFF,
-        SOUND_BANK_TYPE_1           = 0x1000
+        SOUND_SCRIPT_REQUEST_LOW    = 0xFFFF
     };
     s32          soundId;
     SndBankSlot* bankSlot;

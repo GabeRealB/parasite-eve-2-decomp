@@ -1792,7 +1792,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 state->field_2 = 7;
                 break;
             }
-            if (nibble == 0x1000) {
+            if (nibble == SOUND_BANK_TYPE_1) {
                 D_80082128 = 0;
             }
             {
@@ -1929,7 +1929,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                         D_80082124 = D_80082128 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                     }
                 }
-                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == 0x1000) {
+                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == SOUND_BANK_TYPE_1) {
                     D_80082128 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                 }
                 state->field_2 = 5;
