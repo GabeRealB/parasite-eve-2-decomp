@@ -166,7 +166,7 @@ Two consequences:
   entries. Use the established asset boundaries for total geometry lengths;
   neither total length is stored in `TmdSource`.
 
-  Composing those through the parent the way `_gpUpdateCoordTree` does —
+  Composing those through the parent the way `actorRenderComposeCoordChain` does —
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
   parent.workm.t` — assembles the character. For Kyle it yields a
   pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at

@@ -11,6 +11,7 @@
 #include "types.h"
 
 #include "gameplay/actor_render.h"
+#include "actor_render.h"
 #include "model_objects.h"
 
 #include "main/display.h"
@@ -35,7 +36,7 @@ static Task* _gModelObjectTemporaryDrawTask = NULL;
 
 static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2);
 
-static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
+static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 static u32* func_8009A804(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
@@ -251,27 +252,34 @@ static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
     return arg2;
 }
 
-/// Visits a coordinate after its ancestors and refreshes its composed matrix when stale.
+/// Rebuilds one coordinate after the ancestors that `root` does not exclude.
 ///
-/// The supplied root is excluded. `gte_RotTransLV` accepts signed 32-bit
-/// translations while retaining the separate rounding of its chunk products.
-static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
+/// A stale parent continues through `actorRenderComposeCoordChain`. At the
+/// excluded ancestor, a clear stamp copies the local matrix into `workm` and
+/// any other stamp keeps the cached matrix. `gte_RotTransLV` keeps the local
+/// translation's full signed range; its chunk products round separately.
+static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
     GfxCoord* parent;
 
-    // Apply GRAPHICS_COORD_STAMP_MASK with shifts to avoid a hoisted mask register.
+    // Clear visit parity. The shift pair is `GRAPHICS_COORD_STAMP_MASK`, and it
+    // keeps this copy and the draw pass's copy on the same `sll`/`srl`.
     parent              = coord->parent;
     coord->composeStamp = (coord->composeStamp << 1) >> 1;
     if (parent == root) {
+        // Excluded ancestor. A nonzero stamp preserves a caller-supplied cache.
         if (coord->composeStamp == GRAPHICS_COORD_DIRTY) {
             coord->workm        = coord->coord;
             coord->composeStamp = stamp;
         }
     } else {
+        // Ancestors first. A dirty stamp is parity 0, so an even pass still refreshes it.
         if ((parent->composeStamp == GRAPHICS_COORD_DIRTY) || ((parent->composeStamp >> 31) != parity)) {
-            _gpUpdateCoordTree(parent, stamp, parity, root);
+            actorRenderComposeCoordChain(parent, stamp, parity, root);
         }
         if (coord->composeStamp < (parent->composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
+            // Parent cache is newer. CompMatrix writes the product, then the same
+            // rotation is repeated and the short-vector translation is replaced.
             gte_CompMatrix(&parent->workm, &coord->coord, &coord->workm);
             coord->composeStamp = stamp;
             gte_SetRotMatrix(&parent->workm);
@@ -280,6 +288,7 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
             gte_stclmv(&coord->workm.m[0][0]);
             gte_ldclmv(&coord->coord.m[0][1]);
             gte_rtir();
+            // Between the second column's rotation and its writeback.
             coord->composeStamp = stamp;
             gte_stclmv(&coord->workm.m[0][1]);
             gte_ldclmv(&coord->coord.m[0][2]);
@@ -446,9 +455,9 @@ static void _modelObjectRestoreLists(void)
     gModelObjectCoordBodyList = _gModelObjectSavedDisp2dList;
 }
 
-void _gpUpdateCoordTree(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
+void actorRenderComposeCoordChain(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
-    _gpRefreshCoord(coord, stamp, parity, root);
+    _actorRenderRefreshCoord(coord, stamp, parity, root);
 }
 
 /// Returns the first task on the active list that owns `targetCoord`, or `NULL`.

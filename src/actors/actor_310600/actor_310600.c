@@ -463,7 +463,7 @@ static void func_actor_310600_80161E64(Task* task)
 /// `field_47C` selects, then advances the root part by `step`: each axis'
 /// accumulator carries a 16.16 offset whose whole part is added to the world
 /// translation and whose fraction is kept, and clearing `composeStamp` makes
-/// `_gpUpdateCoordTree` rebuild the world matrix from it.
+/// `actorRenderComposeCoordChain` rebuild the composed matrix from it.
 ///
 /// Once the slots have been started (`field_474`) every animation slot is
 /// ticked, and the frame counter `field_478` is walked against the cue list
@@ -807,7 +807,7 @@ static void func_actor_310600_80162A7C(Task* task)
 /// Turns the actor's root part to face the work block's stored point: normalises
 /// the offset from the part's own translation, takes its yaw with `ratan2`, and
 /// rebuilds the local matrix from that yaw alone. Clearing `composeStamp` makes
-/// `_gpUpdateCoordTree` recompute the world matrix from it, and bumping
+/// `actorRenderComposeCoordChain` recompute the composed matrix from it, and bumping
 /// `field_47E` moves the actor on to the next handler of its state table.
 static void func_actor_310600_80162AD8(Task* task)
 {

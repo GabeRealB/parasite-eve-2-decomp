@@ -3,8 +3,8 @@
 /// Message 0x7D4 handler, listed in `D_actor_361100_80171BB8`: places the
 /// model at once. Writes the payload's translation into the root coordinate,
 /// keeps its Euler angles in the coordinate's `rot` slot and rebuilds the
-/// rotation from them with `RotMatrix`, then clears `composeStamp` so the world matrix
-/// is recomputed.
+/// rotation from them with `RotMatrix`, then clears `composeStamp` so
+/// `actorRenderComposeCoordChain` recomputes the composed matrix.
 s32 actorMsgPlaceEuler(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     GfxCoord* coord;

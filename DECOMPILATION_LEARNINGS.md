@@ -40224,7 +40224,7 @@ the target is `and t4, s0, t4`, not `and t4, t4, s0`. A tiny helper
 #define and_mask(dst, m) __asm__ volatile("and %0, %1, %0" : "+r"(dst) : "r"(m))
 ```
 
-locks that operand order. `_gpUpdateCoordTree` is the example.
+locks that operand order. `actorRenderComposeCoordChain` is the example.
 
 ## Reuse the clut local for UV V so `li` fills the `field_22` load delay
 
@@ -132499,7 +132499,7 @@ the child list. The game uses inline state in those bytes and its own parent lin
 appears in no decompiled source, and 0x4C is what an object, effect or room writes when it
 hangs itself off the world - `coord->parent = &gGfxViewCoord`.
 
-`_gpUpdateCoordTree` fixes the direction, because it recurses before it
+`actorRenderComposeCoordChain` fixes the direction, because it recurses before it
 composes: the parent's matrix multiplies the child's local one, so the chain
 climbs `parent` toward the root rather than away from it.
 
@@ -132508,7 +132508,7 @@ parent = coord->parent;
 if (parent == root) {
     coord->workm = coord->coord;                      /* walk ends: local is it */
 } else {
-    _gpUpdateCoordTree(parent, stamp, parity, root);   /* recurse toward the root */
+    actorRenderComposeCoordChain(parent, stamp, parity, root);   /* recurse toward the root */
     coord->workm = parent->workm * coord->coord;      /* then compose back down */
 }
 ```
@@ -134581,7 +134581,7 @@ available rather than dropping the marker to make the declaration look natural.
 ## Naming a parameter after the local that copies it means deleting the local
 
 A decompiled body often opens by copying its parameter into a local of the same
-role - `coord = index;` in `_gpUpdateCoordTree` - because that copy is what pinned
+role - `coord = index;` in `actorRenderComposeCoordChain` - because that copy is what pinned
 the value in a callee-saved register. Naming the parameter `coord` makes the
 local shadow it and turns the copy into a self-assignment of an uninitialised
 pointer.
@@ -141143,7 +141143,7 @@ register choices. When a GTE-heavy sequence needs pins on fixed registers,
 suspect a hand-written routine the original pasted or macro-expanded.
 
 The same function was also an inline helper shared three times: each draw
-pass's per-coordinate block was `_gpUpdateCoordTree`'s body inlined with
+pass's per-coordinate block was `actorRenderComposeCoordChain`'s body inlined with
 `root = NULL`, and the helper's parameter copies were what the pins had been
 imitating (the block-scoped macro form scored 90-93%).
 
