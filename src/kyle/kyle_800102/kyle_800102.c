@@ -33,22 +33,11 @@
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
 
-static void func_kyle_800102_80168244(Task* arg0);
-
 #include "../../shared/grenade_shell_spawn.inc.c"
 
 #include "../../shared/grenade_shell_fly.inc.c"
 
-static void func_kyle_800102_80168244(Task* arg0)
-{
-    WeaponGrenadeWork* work  = (WeaponGrenadeWork*)arg0->work;
-    s32                timer = work->field_88.w - 1;
-
-    work->field_88.w = timer;
-    if (timer <= 0) {
-        arg0->state = 3;
-    }
-}
+#include "../../shared/grenade_shell_blast.inc.c"
 
 #include "../../shared/grenade_shell_exit.inc.c"
 void func_kyle_800102_801682B4(Task* task)
@@ -56,7 +45,7 @@ void func_kyle_800102_801682B4(Task* task)
     TaskFunc states[4] = {
         grenadeShellSpawn,
         grenadeShellFly,
-        func_kyle_800102_80168244,
+        grenadeShellBlast,
         grenadeShellExit,
     };
 

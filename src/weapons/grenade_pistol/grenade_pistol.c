@@ -61,7 +61,6 @@
 /// The weapon's index. It also keys the firing sound and the shot effect.
 
 static void func_grenade_pistol_8011D1D4(Task* arg0);
-static void func_grenade_pistol_8011DB60(Task* task);
 
 static void func_grenade_pistol_8011D1D4(Task* arg0)
 {
@@ -117,25 +116,14 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
 
 #include "../../shared/grenade_shell_fly.inc.c"
 
-/// Flight state: steps the `field_88` flight timer down and moves the task to
-/// state 3 once it runs out. The M4A1 Grenade carries an identical copy.
-static void func_grenade_pistol_8011DB60(Task* task)
-{
-    WeaponGrenadeWork* work  = task->work;
-    s32                timer = work->field_88.w - 1;
-
-    work->field_88.w = timer;
-    if (timer <= 0) {
-        task->state = 3;
-    }
-}
+#include "../../shared/grenade_shell_blast.inc.c"
 
 #include "../../shared/grenade_shell_exit.inc.c"
 
 static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     grenadeShellSpawn,
     grenadeShellFly,
-    func_grenade_pistol_8011DB60,
+    grenadeShellBlast,
     grenadeShellExit,
 } };
 

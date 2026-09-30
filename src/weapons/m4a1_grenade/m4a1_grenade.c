@@ -53,7 +53,6 @@ STATIC_ASSERT_SIZEOF(M4a1GrenadeScratch, 0x34);
 static void func_m4a1_grenade_8011D1EC(Task* arg0);
 static void func_m4a1_grenade_8011D654(Task* arg0);
 static void func_m4a1_grenade_8011D994(Task* arg0);
-static void func_m4a1_grenade_8011DDF8(Task* task);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
 /// the shot and raises the weapon (clip 8 instead of 1 when it was already up),
@@ -381,18 +380,7 @@ move:
     SCRATCH_STACK_RELEASE_BYTES(sizeof(M4a1GrenadeScratch));
 }
 
-/// Flight state: steps the `field_88` flight timer down and moves the task to
-/// state 3 once it runs out. Grenade Pistol and MM1 carry identical copies.
-static void func_m4a1_grenade_8011DDF8(Task* task)
-{
-    WeaponGrenadeWork* work  = task->work;
-    s32                timer = work->field_88.w - 1;
-
-    work->field_88.w = timer;
-    if (timer <= 0) {
-        task->state = 3;
-    }
-}
+#include "../../shared/grenade_shell_blast.inc.c"
 
 #include "../../shared/grenade_shell_exit.inc.c"
 
@@ -401,7 +389,7 @@ void func_m4a1_grenade_8011DE68(Task* task)
     TaskFunc states[4] = {
         func_m4a1_grenade_8011D654,
         func_m4a1_grenade_8011D994,
-        func_m4a1_grenade_8011DDF8,
+        grenadeShellBlast,
         grenadeShellExit,
     };
 

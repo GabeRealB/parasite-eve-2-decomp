@@ -5,7 +5,9 @@
  * speed. In flight it steps along its direction under gravity and trails smoke
  * that thins as it slows. It detonates on world contact, on a solid wall
  * record or on timeout, spawning the explosion effect and sound and widening
- * the collision sphere to the ammo's blast radius.
+ * the collision sphere to the ammo's blast radius, which stays live for a few
+ * frames before the task ends. The M4A1 Grenade's launcher carries its own
+ * spawn and flight states and shares the last two.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -20,6 +22,7 @@
 
 void grenadeShellSpawn(Task* arg0);
 void grenadeShellFly(Task* arg0);
+void grenadeShellBlast(Task* task);
 void grenadeShellExit(Task* task);
 
 #endif /* SRC_SHARED_GRENADE_SHELL_H */
