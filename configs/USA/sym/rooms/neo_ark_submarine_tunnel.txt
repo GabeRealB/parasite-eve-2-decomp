@@ -6,7 +6,7 @@ D_neo_ark_submarine_tunnel_80181A78 = 0x80181A78; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A80 = 0x80181A80; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181A88 = 0x80181A88; // size:0x14 defined:True
 D_neo_ark_submarine_tunnel_80181A9C = 0x80181A9C; // size:0x14 defined:True
-D_neo_ark_submarine_tunnel_80181DF4 = 0x80181DF4; // size:0xC defined:True
+RoomFx_DiscShades = 0x80181DF4; // size:0xC defined:True
 D_neo_ark_submarine_tunnel_80181E00 = 0x80181E00; // size:0x8 defined:True
 D_neo_ark_submarine_tunnel_80181E08 = 0x80181E08; // size:0x10 defined:True
 D_neo_ark_submarine_tunnel_80181E18 = 0x80181E18; // size:0x4 defined:True
@@ -99,3 +99,8 @@ func_neo_ark_submarine_tunnel_8017FA34 = 0x8017FA34; // type:func
 func_neo_ark_submarine_tunnel_80180694 = 0x80180694; // type:func
 
 func_neo_ark_submarine_tunnel_8017F48C = 0x8017F48C; // type:func
+RoomFx_DrawFlyingSpark = 0x8017FC58; // type:func
+RoomFx_DrawFlyingRing = 0x8017FEDC; // type:func
+RoomFx_DrawFlyingDisc = 0x80180300; // type:func
+RoomFx_DrawBurst2Glow = 0x80180840; // type:func
+RoomFx_DrawGround2Quad = 0x80180D6C; // type:func
