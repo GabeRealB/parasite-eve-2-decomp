@@ -19,11 +19,12 @@
 
 #include "main/coord.h"
 
-/* glowDrawDisc's scratch block. The disc comes in two builds whose blocks
-   order the radius and the GTE flag differently; a room carrying the second
-   defines this as RoomDraw31Scratch before including this header. */
+/// Scratch block for `glowDrawDisc`. The default is `GlowCentreScratch`:
+/// the GTE flag word, then the on-screen half-extent. A room whose disc
+/// stores the half-extent ahead of the flag defines this as
+/// `RoomDraw31Scratch` before including this header.
 #ifndef GLOW_DRAW_DISC_SCRATCH
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw13Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreScratch
 #endif
 
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2);

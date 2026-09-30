@@ -1014,7 +1014,7 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ring;
     s32                ang;
@@ -1028,17 +1028,17 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 
     scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
-    block   = (RoomDraw13Scratch*)(*scratch = head - 0x10);
+    block   = (GlowCentreScratch*)(*scratch = head - 0x10);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         ring          = 0;
         blend         = ((u8)gDisplayState.animFrame & 1) << 5;
         packed        = arg2 << 16;

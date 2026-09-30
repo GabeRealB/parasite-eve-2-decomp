@@ -537,7 +537,7 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 /// `arg1` sets the pulse rate. The work block lives on the scratchpad stack.
 static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     LINE_G3*           line;
     s32                sine;
@@ -550,7 +550,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
     u16                sx;
     u16                sy;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -612,7 +612,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
 
 /// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The

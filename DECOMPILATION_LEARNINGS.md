@@ -143142,14 +143142,14 @@ tpage 0x2B, UV column `n * 40`, radius `(s16)arg2 * 39 / otz`) was matched with 
 `u0`/`u1` and a `COMPILER_BARRIER` before the code-byte store. None is needed:
 
 ```c
-block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
 ...
 setUVWH(prim, idx * 40, 0, 0x27, 0x27);
 setRGB0(prim, blend, blend, blend);
 setSemiTrans(prim, 1);
 block->radius = ((s16)arg2 * 39) / block->otz;
 ...
-SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 ```
 
 The order of the last two macros is the whole fix: `setSemiTrans` before

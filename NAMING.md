@@ -352,14 +352,17 @@ whose entry points retain package identities.
 
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
-`room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h` and
-`water_effects.h`. Use their subsystem prefixes with static per-instance
-linkage as described above. `water_effects.h` uses the prefix `water`; its
-configuration macros use `WATER_`. It is the included splash, drift,
-distortion and refraction code. Gameplay `roomEffect` remains the resident
-room-effect state. If a shared implementation and a gameplay subsystem have
-similar names, distinguish actual ownership and linkage before introducing a
-qualifier; do not assume that they are one API.
+`room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,
+`water_effects.h` and `glow_draw.h`. Use their subsystem prefixes with static
+per-instance linkage as described above. `water_effects.h` uses the prefix
+`water`; its configuration macros use `WATER_`. It is the included splash,
+drift, distortion and refraction code. Gameplay `roomEffect` remains the
+resident room-effect state. `glow_draw.h` uses the prefix `glow`; its
+configuration macros use `GLOW_`. It is the included projected glow, flare and
+light-beam drawing. Scratch records that several overlays share, such as the
+one-centre projection block, are declared in `include/rooms/room_common.h`. If a shared implementation and a gameplay
+subsystem have similar names, distinguish actual ownership and linkage before
+introducing a qualifier; do not assume that they are one API.
 
 ## Documentation
 

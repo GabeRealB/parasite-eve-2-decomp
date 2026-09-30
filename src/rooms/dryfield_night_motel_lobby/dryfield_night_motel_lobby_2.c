@@ -927,7 +927,7 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 /// 0x20 bytes of scratch but releases only 0x10 on exit.
 static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_FT4*          prim;
     s32                idx;
     s32                blend;
@@ -970,5 +970,5 @@ static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }

@@ -1167,7 +1167,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
 /// sets the radius and the OT slot.
 static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -1181,7 +1181,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -1230,7 +1230,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
 
 /// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`

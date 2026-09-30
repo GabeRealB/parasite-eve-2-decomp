@@ -9,7 +9,7 @@
 void glowDrawDiamond(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     LINE_G3*           line;
     s32                sine;
@@ -29,19 +29,19 @@ void glowDrawDiamond(SVECTOR* arg0, s32 arg1, s32 arg2)
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         head    = *scratch;
         tmp     = (*scratch = head - 0x10);
-        block   = (RoomDraw13Scratch*)tmp;
+        block   = (GlowCentreScratch*)tmp;
     }
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         sine          = rsin(gDisplayState.animFrame * (s16)arg1);
-        radius        = ((s16)arg2 * 32) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        radius        = ((s16)arg2 * 32) / ((GlowCentreScratch*)(head - 0x10))->otz;
         i             = 0;
         pulse         = sine / 34 + 0x78;
         block->radius = radius;

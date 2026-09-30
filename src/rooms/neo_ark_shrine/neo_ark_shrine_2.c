@@ -1680,7 +1680,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     void**             scratch;
     u8*                head;
     u8*                tmp;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_FT4*          prim;
     DisplayState*      ds;
     s32                idx;
@@ -1693,7 +1693,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     tmp      = head - 0x10;
-    block    = (RoomDraw13Scratch*)tmp;
+    block    = (GlowCentreScratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1702,9 +1702,9 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     gte_rtps();
     ds    = &gDisplayState;
     blend = (((u8)ds->animFrame & 1) * 16) + 0x20;
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
-    if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
+    if (((GlowCentreScratch*)tmp)->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1726,20 +1726,20 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
         prim->u3                          = u1;
         prim->v3                          = 0x27;
         prim->code                       |= 2;
-        ((RoomDraw13Scratch*)tmp)->radius = (sarg * 40 - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sx - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        ((GlowCentreScratch*)tmp)->radius = (sarg * 40 - sarg) / ((GlowCentreScratch*)(head - 0x10))->otz;
+        xy                                = ((GlowCentreScratch*)tmp)->sx - (u16)((GlowCentreScratch*)tmp)->radius;
         prim->x2                          = xy;
         prim->x0                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sx + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sx + (u16)((GlowCentreScratch*)tmp)->radius;
         prim->x3                          = xy;
         prim->x1                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sy - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sy - (u16)((GlowCentreScratch*)tmp)->radius;
         prim->y1                          = xy;
         prim->y0                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sy + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sy + (u16)((GlowCentreScratch*)tmp)->radius;
         prim->y3                          = xy;
         prim->y2                          = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GlowCentreScratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x10);

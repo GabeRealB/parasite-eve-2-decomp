@@ -2162,7 +2162,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2)
 {
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -2177,17 +2177,17 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
+    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         ang           = 0;
         packed        = arg2 << 16;
         blend         = (gDisplayState.animFrame & 1) << (packed >> 28);
@@ -2680,7 +2680,7 @@ static void func_shelter_b3_garbage_incinerator_80183BE4(GfxCoord* arg0, s32 arg
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -2692,18 +2692,18 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
+    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         lvl           = rsin(gDisplayState.animFrame * (s16)arg3) / 34 + 0x78;
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         r             = lvl * (((s16)arg2 >> 8) & 0xF) / 15;
         g             = lvl * (((s16)arg2 >> 4) & 0xF) / 15;
         b             = lvl * (arg2 & 0xF) / 15;
