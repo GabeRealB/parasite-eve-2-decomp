@@ -32,12 +32,21 @@ enum { GPU_ORDERING_TABLE_DEPTH_BYTE_MASK = 0xFFC };
 enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
        GPU_DMA_PACKET_LENGTH_MASK = 0xFF000000 };
 
-/// Resolves a nonnegative, tag-aligned byte offset relative to `gGpuCurrentOt`.
+/// Returns a writable `u_long*` to a DMA tag in the current ordering table.
 ///
-/// The offset is evaluated once and must address a tag in the selected table.
-/// This macro captures the current base; it neither clamps nor masks the offset.
-/// `addPrim` evaluates its OT argument twice, so its callers need side-effect-free
-/// offsets even when they use this helper.
+/// `byteOffset` counts bytes from `gGpuCurrentOt`, not tags or camera depth. It
+/// must be nonnegative and a multiple of the tag size (4 bytes on PlayStation).
+/// Depth callers align and bound it with `GPU_ORDERING_TABLE_DEPTH_BYTE_MASK`;
+/// this accessor neither masks nor clamps it. Signed tag indices, including
+/// reserved foreground entries, use `gGpuCurrentOt + index` instead: division
+/// by unsigned `sizeof` would convert a negative byte offset to unsigned.
+///
+/// The selected table must contain the tag, including any subsequent pointer
+/// adjustment in tags. The pointer borrows the current table's lifetime and
+/// must not be retained across table changes. The macro captures `gGpuCurrentOt`
+/// without changing it and evaluates `byteOffset` once per expansion. `addPrim`
+/// and `addPrims` expand their OT argument twice; their offsets must have no side
+/// effects and their table base must remain stable while linking the packet.
 #define GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(*gGpuCurrentOt)])
 
 /// A writable `u32` view of a primitive's packed colour group.
