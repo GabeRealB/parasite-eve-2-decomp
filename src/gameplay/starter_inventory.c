@@ -116,7 +116,7 @@ void Gp_InitStarterInv(void)
     Gp_ClearScanItems(scans[1]);
     Gp_ClearScanItems(scans[2]);
     slots = Mc_SaveData[0].state.weaponItems;
-    for (j = 0; j < (s32)ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); j++) {
+    for (j = 0; j < ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); j++) {
         slots->primaryItemId   = INVENTORY_ITEM_NONE;
         slots->primaryQty      = 0;
         slots->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;

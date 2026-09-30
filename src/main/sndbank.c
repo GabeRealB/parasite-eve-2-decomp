@@ -511,7 +511,7 @@ static void Snd_ClearBanks(void)
     } while ((u32)i < sizeof(Snd_Banks) / sizeof(*p));
 
     flag = SOUND_BANK_ID_FREE;
-    i    = (s32)ARRAY_SIZE(Snd_Banks) - 1;
+    i    = ARRAY_SIZE(Snd_Banks) - 1;
     ptr  = Snd_Banks;
     ptr += ARRAY_SIZE(Snd_Banks) - 1;
     do {
@@ -547,7 +547,7 @@ SndBank* Snd_FindBank(u16 bankId)
     }
     id = bankId;
 
-    for (i = 0, ptr = Snd_Banks; i < (s32)ARRAY_SIZE(Snd_Banks); i++, ptr++) {
+    for (i = 0, ptr = Snd_Banks; i < ARRAY_SIZE(Snd_Banks); i++, ptr++) {
         if (ptr->bankId == id) {
             return ptr;
         }

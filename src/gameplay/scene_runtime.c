@@ -2773,7 +2773,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
         enemy->spawnState = 1;
     }
     placementKey = enemy->placeKey;
-    for (poseIndex = 0; poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->placeKey == placementKey) {
             return;
         }
@@ -2781,23 +2781,23 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
 
     euler     = SCRATCH_PUSH(SVECTOR);
     savedPose = Mc_SaveData[0].state.enemyPoses;
-    for (poseIndex = 0; poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->spawnState == 0) {
             break;
         }
     }
-    if (poseIndex == (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+    if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
         u32 stageAreaKey;
 
         // Evict a pose from another area, using the final slot as the fallback.
         savedPose    = Mc_SaveData[0].state.enemyPoses;
         stageAreaKey = (savedLocation->stage << AREA_PLACEMENT_STAGE_SHIFT) | savedLocation->area;
-        for (poseIndex = 0; poseIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (poseIndex = 0; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             if ((savedPose->placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) != stageAreaKey) {
                 break;
             }
         }
-        for (; poseIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             savedPose[0] = savedPose[1];
         }
     }
@@ -2864,7 +2864,7 @@ void Gp_SpawnArea(GameLocationKey* location)
 
                         savedPose = Mc_SaveData[0].state.enemyPoses;
                         poseFound = 0;
-                        for (savedPoseIndex = 0; savedPoseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); savedPoseIndex++, savedPose++) {
+                        for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); savedPoseIndex++, savedPose++) {
                             if (savedPose->placeKey == ((placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area)) {
                                 poseFound = 1;
                                 break;
@@ -2921,8 +2921,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                                     }
                                     poseIndex++;
                                     savedPose++;
-                                } while (poseIndex < (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses));
-                                if (poseIndex == (s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+                                } while (poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses));
+                                if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
                                     Gp_DestroyEnemy(enemy, enemy->task);
                                 }
                             }
@@ -3331,17 +3331,17 @@ static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
     // A changed layout invalidates saved poses for every placement in this area.
     if (areaState->spawnFlags & AREA_SPAWN_RESET_SAVED_POSES) {
         areaState->spawnFlags &= 0xFF ^ (AREA_SPAWN_RESET_SAVED_POSES | AREA_SPAWN_RESTORE_SAVED_POSES);
-        poseIndex              = ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1);
+        poseIndex              = (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1);
         savedPoses             = Mc_SaveData[0].state.enemyPoses;
         do {
             if ((savedPoses[poseIndex].placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) == ((key->stage << AREA_PLACEMENT_STAGE_SHIFT) | key->area)) {
-                if (poseIndex != ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)) {
-                    for (shiftIndex = poseIndex; shiftIndex < ((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); shiftIndex++) {
+                if (poseIndex != (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)) {
+                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); shiftIndex++) {
                         savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
                     }
                 }
-                savedPoses[((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].spawnState = 0;
-                savedPoses[((s32)ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey   = 0;
+                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].spawnState = 0;
+                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey   = 0;
             }
             poseIndex--;
         } while (poseIndex >= 0);

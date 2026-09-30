@@ -525,7 +525,7 @@ static void Gp_ResetAuxSlots(void)
     s32                  i;
 
     p = Mc_SaveData[0].state.weaponItems;
-    for (i = 0; i < (s32)ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); i++) {
+    for (i = 0; i < ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); i++) {
         p->primaryItemId   = INVENTORY_ITEM_NONE;
         p->primaryQty      = 0;
         p->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;

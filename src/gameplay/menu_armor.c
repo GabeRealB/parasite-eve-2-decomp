@@ -456,7 +456,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
     }
     flags[arg1 & 0xFF] = -1;
     CdCmd_DropPending();
-    for (i = 0; i < (s32)ARRAY_SIZE(saved); i++) {
+    for (i = 0; i < ARRAY_SIZE(saved); i++) {
         if (flags[i] != -1) {
             cdCmdEnqueueEntry(&saved[i]);
         }

@@ -20,11 +20,14 @@
 /// Returns `void*` so callers can select a typed view of the shared storage.
 #define PLAYSTATION_SCRATCHPAD_ADDRESS(byteOffset) ((void*)(PLAYSTATION_SCRATCHPAD_BASE + (byteOffset)))
 
-/// Computes the size of an array.
+/// Constant element count of a fixed-size array, as `s32`.
 ///
-/// @param arr Array.
-/// @return Element count.
-#define ARRAY_SIZE(arr) (s32)(sizeof(arr) / sizeof((arr)[0]))
+/// `arr` must have a complete, non-variable-length array type whose element
+/// count fits in `s32`. Pointers, including function parameters declared as
+/// arrays, do not retain an array bound and must not be passed.
+/// Neither occurrence of `arr` is evaluated: its storage is not read and
+/// side effects in the argument do not run. Nested arrays count outer elements.
+#define ARRAY_SIZE(arr) ((s32)(sizeof(arr) / sizeof((arr)[0])))
 
 /// Byte offset of an embedded member from the start of its aggregate, as `size_t`.
 ///
