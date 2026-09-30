@@ -32,6 +32,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_visual_effects.h"
 
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018054C[];
 extern SVECTOR D_shelter_b1_sleeping_quarters_8018055C[];
@@ -103,10 +104,7 @@ SVECTOR D_shelter_b1_sleeping_quarters_8018060C[8] = {
     { 0x2E7C, -2660, -30, 0 },
 };
 
-s16 D_shelter_b1_sleeping_quarters_8018064C[2][3] = {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-};
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b1_sleeping_quarters_80180658[1] = {
     D_8010CAF8,
