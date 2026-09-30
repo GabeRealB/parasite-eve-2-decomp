@@ -26,13 +26,17 @@ extern GfxCoord gGfxViewRotCoord;
 /// The root of the view chain, whose `coord` offsets the view along z.
 extern GfxCoord Gfx_ViewOffsetCoord;
 
-/// The view coordinate: every world-space object is parented to it, so a
-/// coordinate composed against it comes out in view space.
+/// View coordinate, and the parent of nodes stored in world space.
 ///
-/// Its `coord` carries the view translation and its `workm` the view matrix the
-/// world is drawn and projected through. The view rotation and the view offset
-/// are the two coordinates above it in the chain, which is why its own matrix
-/// holds a translation alone.
+/// A node parented here keeps a world-space local matrix. Composing that node
+/// includes this coordinate's `workm`, the view matrix the world is drawn and
+/// projected through, so the result is in view space. This node is parented to
+/// `gGfxViewRotCoord`; the view rotation and `Gfx_ViewOffsetCoord` are the two
+/// coordinates above it. Its own `coord` keeps the identity rotation from
+/// initialization and carries the view translation in `t`. View updates store
+/// that translation and clear `composeStamp` so the next composition rebuilds
+/// `workm`. `composeStamp & GRAPHICS_COORD_STAMP_MASK` is that rebuild's
+/// generation; bit 31 is visit parity.
 extern GfxCoord gGfxViewCoord;
 
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
