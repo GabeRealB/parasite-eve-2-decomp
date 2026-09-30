@@ -12,9 +12,6 @@ extern GpMsgEntry D_neo_ark_submarine_gallery_80181884[5];
 extern TaskDesc D_neo_ark_submarine_gallery_801818AC;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_submarine_gallery_8017D678(Task*);
-
-void func_neo_ark_submarine_gallery_8017E2CC(Task*);
 
 void func_neo_ark_submarine_gallery_8017E86C(Task*);
 

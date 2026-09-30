@@ -73,3 +73,6 @@ RoomFx_DrawFlashRing = 0x8017FE40; // type:func
 RoomFx_DrawFlashDisc = 0x8018026C; // type:func
 RoomFx_DrawTwinTrail = 0x80180AF0; // type:func
 RoomFx_DrawBurstStar = 0x80181170; // type:func
+waterDrawSplash = 0x8017ECB4; // type:func
+waterDistortBandTask = 0x8017E2A4; // type:func
+waterRefractionTask = 0x8017D650; // type:func

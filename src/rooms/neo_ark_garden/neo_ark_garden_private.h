@@ -10,9 +10,6 @@
 extern GpMsgEntry D_neo_ark_garden_801813B0[5];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_garden_8017D64C(Task*);
-
-void func_neo_ark_garden_8017E2A0(Task*);
 
 s32 func_neo_ark_garden_8017E840(Task*, s32, TaskMessageArg, TaskMessageArg);
 

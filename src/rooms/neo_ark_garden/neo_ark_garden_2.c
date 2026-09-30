@@ -42,6 +42,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/water_effects.h"
 
 /// The block the garden's ambience task reaches through `Task::spawnArg2`.
 /// Only `soundDelay` is read here; what precedes it belongs to whoever owns the
@@ -61,9 +62,9 @@ extern GpObj4C        D_neo_ark_garden_8018270C[6];
 extern GpObj4C        D_neo_ark_garden_801828D4[7];
 extern GpRoomCoordSet D_neo_ark_garden_801826F4[1];
 
-TaskDesc D_neo_ark_garden_80181398 = { 0, 192, func_neo_ark_garden_8017D64C, { .model = NULL } };
+TaskDesc D_neo_ark_garden_80181398 = { 0, 192, waterRefractionTask, { .model = NULL } };
 
-TaskDesc D_neo_ark_garden_801813A4 = { 0, 192, func_neo_ark_garden_8017E2A0, { .model = NULL } };
+TaskDesc D_neo_ark_garden_801813A4 = { 0, 192, waterDistortBandTask, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_garden_801813B0[5] = {
     { 5102, func_neo_ark_garden_8017E848 },

@@ -97,3 +97,6 @@ RoomFx_DrawFlyingRing = 0x80182644; // type:func
 RoomFx_DrawFlyingDisc = 0x80182A68; // type:func
 RoomFx_DrawBurst2Glow = 0x80182FA8; // type:func
 RoomFx_DrawGround2Quad = 0x801834D4; // type:func
+waterDrawSplash = 0x8017ED98; // type:func
+waterDistortBandTask = 0x8017E2B4; // type:func
+waterRefractionTask = 0x8017D660; // type:func

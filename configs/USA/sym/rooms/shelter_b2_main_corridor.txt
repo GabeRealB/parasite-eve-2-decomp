@@ -117,3 +117,4 @@ RoomFx_DrawFlashDisc = 0x8018101C; // type:func
 RoomFx_DrawTwinTrail = 0x801818A0; // type:func
 RoomFx_DrawBurstStar = 0x80181F20; // type:func
 glowDrawBeam = 0x8017FEE8; // type:func
+waterDrawSplash = 0x8017F078; // type:func

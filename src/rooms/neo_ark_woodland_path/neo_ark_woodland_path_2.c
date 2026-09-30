@@ -39,6 +39,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/water_effects.h"
 
 #define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
 
@@ -169,7 +170,6 @@ typedef struct NeoArkWoodlandPathTrailObj {
 } NeoArkWoodlandPathTrailObj;
 
 static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 arg2);
-static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 arg2);
 
@@ -546,123 +546,14 @@ static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 ar
     SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
-/// `Gp_State1C` effect task drawing a growing, fading quad through
-/// `func_neo_ark_woodland_path_8017F5F4`. The first frame sets the brightness
-/// to 0x40, takes the size from the spawn parameter's low 12 bits and turns
-/// the coordinate to a random Y rotation. Every frame then rebuilds the
-/// coordinate, grows the size by 0x20, draws, and dims by 2, releasing the
-/// effect once the brightness falls under 2. Once the room's event state
-/// leaves zero it only draws, and releases at state 4.
+#include "../../shared/water_ripple_task.inc.c"
+
 void func_neo_ark_woodland_path_8017F4A0(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    } else {
-        Gp_UpdateCoord(coord);
-        work->age++;
-        if (task->state == 0) {
-            work->scale = 0x40;
-            work->angle = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
-        }
-        work->angle += 0x20;
-        func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
-        work->scale -= 2;
-        if (work->scale < 2) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
+    waterRippleTask(task);
 }
 
-/// Draws a flat textured quad at `arg0`: the four corners of the unit quad
-/// `D_80111E38`, scaled by `arg1`, are rotated by the coordinate's world
-/// matrix and offset by its translation, then projected through `GsWSMATRIX`.
-/// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
-/// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
-/// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 arg2)
-{
-    void**         scratch;
-    u8*            head;
-    GpQuadScratch* block;
-    SVECTOR*       v;
-    s32            i;
-    GpQuadCorner*  tbl;
-    POLY_FT4*      prim;
-    s32            prod;
-
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    head    -= 0x38;
-    *scratch = head;
-    block    = (GpQuadScratch*)head;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        tbl   = &D_80111E38[i];
-        v     = &block->vec[i];
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(v);
-        gte_rtv0();
-        gte_stsv(v);
-        v->vx += arg0->workm.t[0];
-        v->vy += arg0->workm.t[1];
-        v->vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
-    gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D1;
-        prim->v0    = 0x38;
-        prim->v1    = 0x38;
-        setRGB0(prim, arg2, arg2, arg2);
-        prim->u0 = 0;
-        prim->u1 = 0x37;
-        prim->u2 = 0;
-        prim->v2 = 0x6F;
-        prim->u3 = 0x37;
-        prim->v3 = 0x6F;
-        setSemiTrans(prim, 1);
-        prim->x0 = block->sxy0.vx;
-        prim->y0 = block->sxy0.vy;
-        prim->x1 = block->sxy1.vx;
-        prim->y1 = block->sxy1.vy;
-        prim->x2 = block->sxy2.vx;
-        prim->y2 = block->sxy2.vy;
-        prim->x3 = block->sxy3.vx;
-        prim->y3 = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
-}
+#include "../../shared/water_splash.inc.c"
 
 /// Per-frame update of an effect task drawn with
 /// `func_neo_ark_woodland_path_8017FDE4` (state 1) or

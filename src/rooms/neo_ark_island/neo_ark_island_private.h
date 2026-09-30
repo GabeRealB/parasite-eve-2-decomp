@@ -22,9 +22,6 @@ extern GpMsgEntry D_neo_ark_island_80181B48[6];
 extern TaskDesc D_neo_ark_island_80181B78;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_island_8017D650(Task*);
-
-void func_neo_ark_island_8017E2A4(Task*);
 
 void func_neo_ark_island_8017E844(Task*);
 

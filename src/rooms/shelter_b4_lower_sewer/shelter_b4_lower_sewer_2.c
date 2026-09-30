@@ -47,6 +47,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/water_effects.h"
 
 extern SVECTOR D_shelter_b4_lower_sewer_80181EA4[];
 extern SVECTOR D_shelter_b4_lower_sewer_80181F04[];
@@ -58,7 +59,6 @@ extern SVECTOR D_shelter_b4_lower_sewer_80181F14[];
 /// The second of those points, which the trail's per-frame state reaches
 /// through its own label rather than by indexing the pair.
 
-static void func_shelter_b4_lower_sewer_8017F038(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b4_lower_sewer_8017F828(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b4_lower_sewer_8017FC14(GfxCoord* arg0, s32 arg1, s32 arg2);
 
@@ -597,124 +597,14 @@ void func_shelter_b4_lower_sewer_8017E400(Task* arg0)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Per-frame driver of an expanding, fading flash. While the room's event
-/// state is 0 it updates the task's coordinate, ticks the age counter and
-/// draws the flash through `func_shelter_b4_lower_sewer_8017F038` at size
-/// `angle`, seeded from the spawn argument and grown by 0x20 a frame, and
-/// brightness `scale`, which starts at 0x40 and drops by 2 a frame; the
-/// first frame also turns the coordinate about Y by a random angle. The work
-/// block is released once the brightness falls under 2. Once the event state
-/// is non-zero it only draws, releasing the block from event state 4 on.
+#include "../../shared/water_ripple_task.inc.c"
+
 void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_b4_lower_sewer_8017F038(coord, work->angle, work->scale);
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    } else {
-        Gp_UpdateCoord(coord);
-        work->age++;
-        if (task->state == 0) {
-            work->scale = 0x40;
-            work->angle = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
-        }
-        work->angle += 0x20;
-        func_shelter_b4_lower_sewer_8017F038(coord, work->angle, work->scale);
-        work->scale -= 2;
-        if (work->scale < 2) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
+    waterRippleTask(task);
 }
 
-/// Draws a flat textured quad at `arg0`: the four corners of the unit quad
-/// `D_80111E38`, scaled by `arg1`, are rotated by the coordinate's world
-/// matrix and offset by its translation, then projected through `GsWSMATRIX`.
-/// If the projection is valid, one semi-transparent `POLY_FT4` (tpage 0x2B,
-/// clut 0x43D1, UV 0,0x38 to 0x37,0x6F) is queued with all three colour
-/// channels set to `arg2`. The work block lives on the scratchpad stack.
-static void func_shelter_b4_lower_sewer_8017F038(GfxCoord* arg0, s32 arg1, s32 arg2)
-{
-    void**         scratch;
-    u8*            head;
-    GpQuadScratch* block;
-    SVECTOR*       v;
-    s32            i;
-    GpQuadCorner*  tbl;
-    POLY_FT4*      prim;
-    s32            prod;
-
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    head    -= 0x38;
-    *scratch = head;
-    block    = (GpQuadScratch*)head;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        tbl   = &D_80111E38[i];
-        v     = &block->vec[i];
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(v);
-        gte_rtv0();
-        gte_stsv(v);
-        v->vx += arg0->workm.t[0];
-        v->vy += arg0->workm.t[1];
-        v->vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
-    gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D1;
-        prim->v0    = 0x38;
-        prim->v1    = 0x38;
-        setRGB0(prim, arg2, arg2, arg2);
-        prim->u0 = 0;
-        prim->u1 = 0x37;
-        prim->u2 = 0;
-        prim->v2 = 0x6F;
-        prim->u3 = 0x37;
-        prim->v3 = 0x6F;
-        setSemiTrans(prim, 1);
-        prim->x0 = block->sxy0.vx;
-        prim->y0 = block->sxy0.vy;
-        prim->x1 = block->sxy1.vx;
-        prim->y1 = block->sxy1.vy;
-        prim->x2 = block->sxy2.vx;
-        prim->y2 = block->sxy2.vy;
-        prim->x3 = block->sxy3.vx;
-        prim->y3 = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x38);
-}
+#include "../../shared/water_splash.inc.c"
 
 /// Per-frame update of a sprite effect drawn with
 /// `func_shelter_b4_lower_sewer_8017F828` (state 1, a spinning sprite) or
