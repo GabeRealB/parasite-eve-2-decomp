@@ -20,7 +20,7 @@ D_mine_cavern_80188FBC = 0x80188FBC; // size:0x8 defined:True
 D_mine_cavern_80188FC4 = 0x80188FC4; // size:0x8 defined:True
 
 D_mine_cavern_8018EB58 = 0x8018EB58; // size:0x4 defined:True
-D_mine_cavern_80188FCC = 0x80188FCC; // size:0x14 defined:True
+RoomFx_HaloShades = 0x80188FCC; // size:0x14 defined:True
 D_mine_cavern_80188FE0 = 0x80188FE0; // size:0x30 defined:True
 D_mine_cavern_80189010 = 0x80189010; // size:0x18 defined:True
 D_mine_cavern_80189028 = 0x80189028; // size:0x1C defined:True
@@ -275,3 +275,9 @@ func_mine_cavern_8017F240 = 0x8017F240; // type:func
 func_mine_cavern_8017FF88 = 0x8017FF88; // type:func
 
 func_mine_cavern_80181730 = 0x80181730; // type:func
+RoomFx_DrawMote = 0x8017F50C; // type:func
+RoomFx_DrawHaloRing = 0x8017F7D0; // type:func
+RoomFx_DrawHaloDisc = 0x8017FBF4; // type:func
+RoomFx_DrawBurstGlow = 0x801804CC; // type:func
+RoomFx_DrawGroundQuad = 0x801809F8; // type:func
+RoomFx_DrawFlashStar = 0x80180D70; // type:func

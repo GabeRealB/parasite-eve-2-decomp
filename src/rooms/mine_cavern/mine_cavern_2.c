@@ -71,6 +71,7 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8017dcb8.h"
+#include "../../shared/room_visual_effects.h"
 
 /// Work block a mine_cavern task parks at `Task::work`, allocated with
 /// `memCalloc(0x14C, 0)` by the state-0 handler `func_mine_cavern_80182E34`
@@ -132,15 +133,6 @@ extern u8 MineCavernGlowByte8018E35B[1] __asm__("D_mine_cavern_8018E358+3");
 extern u8 MineCavernGlowByte8018E35C[1] __asm__("D_mine_cavern_8018E358+4");
 extern u8 MineCavernGlowByte8018E35D[1] __asm__("D_mine_cavern_8018E358+5");
 
-// Preserve the nonzero halfword after the three effect records.
-// Its role is unresolved; it may be retained exporter padding.
-typedef struct {
-    RoomHaloShade entries[3];
-    u16           retained;
-} MineCavernHaloStorage;
-STATIC_ASSERT_SIZEOF(MineCavernHaloStorage, 20);
-extern MineCavernHaloStorage D_mine_cavern_80188FCC;
-
 extern SVECTOR D_mine_cavern_80188F64[];
 extern SVECTOR D_mine_cavern_80188F7C[];
 extern SVECTOR D_mine_cavern_80188F84[];
@@ -151,8 +143,6 @@ extern SVECTOR D_mine_cavern_80188FB4[];
 extern SVECTOR D_mine_cavern_80188FBC;
 extern SVECTOR D_mine_cavern_80188FC4[];
 
-static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size);
 static void func_mine_cavern_80181864(void);
 static void func_mine_cavern_80182184(void);
 static void func_mine_cavern_80182454(void);
@@ -200,8 +190,6 @@ typedef struct _MineCavernHitScratch {
 
 static void func_mine_cavern_8017E774(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_mine_cavern_801809F8(GfxCoord* arg0, s32 arg1);
-static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 extern GpGridParams   D_mine_cavern_8018981C[1];
 extern GpObj3A        D_mine_cavern_8018E078[2];
@@ -986,7 +974,18 @@ SVECTOR D_mine_cavern_80188FC4[1] = {
     { 900, -1730, -0x36CE, 0 },
 };
 
-MineCavernHaloStorage D_mine_cavern_80188FCC = { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x3C95 };
+#define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x3C95 }
+#define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
+#define ROOM_FX_HALO_STORAGE_BOUND
+#include "../../shared/room_visual_effects_halo_data.inc.c"
+
+static inline RoomHaloShade* RoomFx_GetHaloShades(void)
+{
+    return RoomFx_HaloShades.entries;
+}
+#undef ROOM_FX_HALO_STORAGE_INITIALIZER
+#undef ROOM_FX_HALO_STORAGE_TYPE
+#undef ROOM_FX_HALO_STORAGE_BOUND
 
 GpRoomObjRec D_mine_cavern_80188FE0[3] = {
     { D_mine_cavern_8018981C, D_mine_cavern_8018D154, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
@@ -2166,8 +2165,6 @@ MineCavernGlowPalette D_mine_cavern_8018E350 = { { 48, 32, 0 }, { 0, 0, 0 }, 112
 
 MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 1960 };
 
-static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void func_mine_cavern_8017FBF4(GfxCoord* arg0, s16 arg1, u8* rgb);
 static void func_mine_cavern_80181CAC(s16 point);
 static void func_mine_cavern_80181D80(s16 point);
 static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1);
@@ -2515,779 +2512,31 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
-/// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
-/// flags out of `Task::spawnArg1`; the mote then rises or falls one step a
-/// frame and is drawn with `func_mine_cavern_8017F50C` every other tick. State
-/// 1 brightens while young, state 2 holds its brightness; both fade over their
-/// last eight ticks of lifetime and release the work block once dark, or as
-/// soon as the room's event state reaches 4.
+#include "../../shared/room_visual_effects.inc.c"
+
 void func_mine_cavern_8017F240(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        lifetime;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    } else {
-        work->age++;
-        switch (task->state) {
-            case 0:
-                if (task->spawnArg1.value & 3) {
-                    work->scale   = 0x80;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
-                    work->step    = lifetime;
-                    work->move.vx = 0;
-                    work->move.vy = ((RoomMoteArg*)&task->spawnArg1.value)->speed;
-                    work->move.vz = 0;
-                    if (task->spawnArg1.value & 2) {
-                        work->move.vy = -work->move.vy;
-                    }
-                    task->state = 2;
-                } else {
-                    work->scale   = 0x20;
-                    work->angle   = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xFFF;
-                    work->period  = ((RoomMoteArg*)&task->spawnArg1.value)->flags & 0xF000;
-                    lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
-                    work->step    = lifetime;
-                    work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
-                    work->move.vz = 0;
-                    task->state   = (task->spawnArg1.value & 1) + 1;
-                }
-                break;
-            case 1:
-                coord->coord.t[1]  += work->move.vy;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
-                if (work->age & 1) {
-                    work->index++;
-                    func_mine_cavern_8017F50C(coord, work->index, work->angle | 0x1000, work->scale | work->period);
-                }
-                if (work->scale > 0) {
-                    if (work->step - 8 < work->age) {
-                        work->scale -= 0x10;
-                    } else if (work->scale < 0x80) {
-                        work->scale += 0x20;
-                    }
-                } else {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-                break;
-            case 2:
-                coord->coord.t[1]  += work->move.vy;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
-                if (work->age & 1) {
-                    work->index++;
-                    func_mine_cavern_8017F50C(coord, work->index, work->angle, work->scale | work->period);
-                }
-                if (work->scale > 0) {
-                    if (work->step - 8 < work->age) {
-                        work->scale -= 0x10;
-                    }
-                } else {
-                    Gp_ReleaseState1CMem(work, task);
-                }
-                break;
-        }
-    }
+    RoomFx_MoteTask(task);
 }
 
-/// Draws one mote: projects the coordinate's world position through
-/// `GsWSMATRIX` and, unless the GTE flags the projection, queues one
-/// semi-transparent textured square centred on it. `arg1`'s low two bits and
-/// `arg2`'s top nibble pick the 24-texel texture cell, `arg2`'s low twelve
-/// bits are the half-extent (scaled by 23 / (otz + 1)), `arg3`'s low byte is
-/// the grey level and its top nibble picks the palette.
-static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
-{
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    DisplayState*  ds;
-    u16            row;
-    u16            pal;
-    s32            u0;
-    s32            u1;
-    s16            xy;
+#include "../../shared/room_visual_effects_halo.inc.c"
 
-    row           = arg2 >> 12;
-    arg2         &= 0xFFF;
-    pal           = arg3 >> 12;
-    arg3         &= 0xFF;
-    block         = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        prim->tpage = 0x2A;
-        setRGB0(prim, arg3, arg3, arg3);
-        if (pal != 0) {
-            prim->clut = getClut(pal * 16 + 0xF0, 0x10B);
-        } else {
-            prim->clut = getClut(0xB0, 0x10B);
-        }
-        u0 = row * 0x60 + (arg1 & 3) * 24;
-        u1 = u0 + 0x17;
-        setUV4(prim, u0, 0, u1, 0, u0, 0x17, u1, 0x17);
-        block->step = arg2 * 23 / block->otz;
-        xy          = block->sx - block->step;
-        prim->x2    = xy;
-        prim->x0    = xy;
-        xy          = block->sx + block->step;
-        prim->x3    = xy;
-        prim->x1    = xy;
-        xy          = block->sy - block->step;
-        prim->y1    = xy;
-        prim->y0    = xy;
-        xy          = block->sy + block->step;
-        prim->y3    = xy;
-        prim->y2    = xy;
-        ds          = &gDisplayState;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a ring. `arg1` is the inner half-extent and `arg2` the extra outer
-/// width; on-screen radii are `(s16)arg1 * 64 / (otz + 1)` and
-/// `(s16)(arg1 + arg2) * 64 / (otz + 1)`. The RGB triple tints the inner edge
-/// so each wedge fades to a black outer rim.
-static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    RoomBillboardScratch* block;
-    POLY_G4*              prim;
-    s32                   ang;
-    s32                   next;
-    s32                   outer;
-
-    block         = SCRATCH_PUSH(RoomBillboardScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    outer         = arg1 + arg2;
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = ((s16)arg1 * 64) / block->otz;
-        block->rInner = ((s16)outer * 64) / block->otz;
-        for (ang = 0; ang < 0x1000; ang = next) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            next     = ang + 0x100;
-            prim->x1 = block->sx + ((block->rOuter * rsin(next)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(next)) >> 12);
-            prim->x2 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y2 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x3 = block->sx + ((block->rInner * rsin(next)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(next)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues eight gouraud `POLY_G4` wedges around
-/// the projected centre. `arg1` is a signed half-extent; the on-screen radius
-/// is `arg1 * 64 / (otz + 1)`. The RGB triple in `rgb` lights only the
-/// inner vertex so each wedge fades to black.
-static void func_mine_cavern_8017FBF4(GfxCoord* arg0, s16 arg1, u8* rgb)
-{
-    RoomFanScratch* block;
-    POLY_G4*        prim;
-    s32             ang;
-    s32             otz;
-
-    block         = SCRATCH_PUSH(RoomFanScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        otz           = block->otz + 1;
-        block->otz    = otz;
-        block->radius = (arg1 * 64) / otz;
-
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_POP_BYTES(0x18);
-}
-
-/// Frame callback of an expanding halo. State 0 parks the coordinate on its
-/// parent at the spawn position and derives the ramp step from the spawn
-/// argument; state 1 grows the halo's brightness and size, drawing the
-/// `func_mine_cavern_8017FBF4` wedge ring (with a half-bright echo on odd
-/// ticks) and a `func_mine_cavern_8017F7D0` ring; state 2 fades it out through
-/// `func_mine_cavern_80180D70` and then releases the work block. The shade row
-/// `D_mine_cavern_80188FCC.entries[index]` tints each channel.
 void func_mine_cavern_8017FF88(Task* arg0)
 {
-    u8          rgb[3];
-    GpEffWork*  mem;
-    GfxCoord*   coord;
-    GpMtxWords* rot;
-    s16         flag;
-    s32         shift;
-
-    mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            return;
-        }
-        goto kill;
-    } else {
-        mem->age++;
-        switch (arg0->state) {
-            case 0:
-                rot                 = (GpMtxWords*)&coord->coord;
-                coord->parent       = mem->parent;
-                rot->m00_m01        = 0x1000;
-                rot->m02_m10        = 0;
-                rot->m11_m12        = 0x1000;
-                rot->m20_m21        = 0;
-                rot->m22            = 0x1000;
-                coord->coord.t[0]   = mem->pos.vx;
-                coord->coord.t[1]   = mem->pos.vy;
-                coord->coord.t[2]   = mem->pos.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                Gp_UpdateCoord(coord);
-                shift                 = arg0->spawnArg1.halves.high;
-                mem->index            = shift;
-                arg0->spawnArg1.value = arg0->spawnArg1.halves.low;
-                arg0->state           = 1;
-                mem->step             = 0x100 / arg0->spawnArg1.value;
-                return;
-            case 1:
-                Gp_UpdateCoord(coord);
-                mem->scale            += mem->step;
-                mem->angle            += mem->step;
-                arg0->spawnArg1.value -= 1;
-                rgb[0]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
-                rgb[1]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
-                rgb[2]                 = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
-                func_mine_cavern_8017FBF4(coord, mem->angle, rgb);
-                rgb[0] = rgb[0] >> 1;
-                rgb[1] = rgb[1] >> 1;
-                rgb[2] = rgb[2] >> 1;
-                if (mem->age & 1) {
-                    func_mine_cavern_8017FBF4(coord, (s16)(mem->angle + 0x100), rgb);
-                }
-                func_mine_cavern_8017F7D0(coord, (s16)(0x300 - (u16)mem->angle * 2), 0x80, rgb);
-                if (arg0->spawnArg1.value == 0) {
-                    mem->scale  = 0xFF;
-                    arg0->state = 2;
-                    return;
-                }
-                return;
-            case 2:
-                Gp_UpdateCoord(coord);
-                if (mem->scale >= 0x11) {
-                    rgb[0] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].r;
-                    rgb[1] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].g;
-                    rgb[2] = mem->scale >> D_mine_cavern_80188FCC.entries[mem->index].b;
-                    func_mine_cavern_80180D70(coord, (u16)mem->angle * 4, rgb);
-                    mem->scale -= 0x10;
-                    mem->angle += 8;
-                    return;
-                }
-                /* fallthrough */
-            case 3:
-                goto kill;
-            default:
-                return;
-        }
-    }
-kill:
-    Gp_ReleaseState1CMem(mem, arg0);
+    RoomFx_HaloTask(arg0);
 }
 
-/// Frame callback for one of the cavern's expanding-ring effects. `Gp_State1C`'s
-/// `field_4` gates the whole room-effect family: 1-3 park the effect for the
-/// frame and 4 or more tear its work block down, so a task that sees them either
-/// returns or releases. Otherwise the effect ticks its lifetime counter, stages
-/// `scale` into an RGB triple, advances the coordinate, and draws the
-/// eight-wedge `func_mine_cavern_8017FBF4` ring at twice `angle` plus the cavern's own
-/// glow quads at half-extent `angle`. Once `period` reaches 0x19 the
-/// two ramps swap roles - a `func_mine_cavern_8017F7D0` ring is drawn at `step * 3 / 2` and
-/// then `period` shrinks by 0x18 and `step` grows by 0x30 - and the effect
-/// otherwise fades `scale` by 0x18 a frame until it drops under 0x18 and the
-/// work block is handed back with `Gp_ReleaseState1CMem`.
-void func_mine_cavern_80180320(Task* task)
+void func_mine_cavern_80180320(Task* arg0)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u8         sp10[3];
-    u16        temp;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    } else {
-        work->age++;
-        if (task->state == 0) {
-            work->age    = 1;
-            work->scale  = 0xE0;
-            work->angle  = 0x80;
-            work->period = 0xE0;
-            work->step   = 0x80;
-            task->state  = 1;
-        }
-        Gp_UpdateCoord(coord);
-        sp10[0]     = (u8)work->scale;
-        sp10[1]     = (u8)(work->scale >> 1);
-        sp10[2]     = (u8)(work->scale >> 2);
-        temp        = work->angle + 0x10;
-        work->angle = temp;
-        func_mine_cavern_8017FBF4(coord, (s16)(temp * 2), sp10);
-        func_mine_cavern_801804CC(coord, work->angle);
-        if (work->period >= 0x19) {
-            u32 temp_a1;
-            sp10[0] = (u8)work->period;
-            sp10[1] = (u8)(work->period >> 1);
-            sp10[2] = (u8)(work->period >> 2);
-            temp_a1 = work->step * 3;
-            func_mine_cavern_8017F7D0(coord, (s32)((temp_a1 + (temp_a1 >> 0x1F)) << 0xF) >> 0x10, 0x60, sp10);
-            work->period -= 0x18;
-            work->step   += 0x30;
-            return;
-        }
-        temp        = work->scale - 0x18;
-        work->scale = temp;
-        if ((s16)temp < 0x18) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
+    RoomFx_OrangeBurstTask(arg0);
 }
 
-/// Draws a glow at the coordinate: two camera-facing textured squares, an
-/// inner one of half-extent `size` and an outer one of `size * 3 / 2`
-/// (each scaled by 0x37 / otz), plus a flat quad on the ground beneath it.
-/// It also points the `Gp_RoomCoords[2]` light at the
-/// coordinate with a randomly flickering intensity. Nothing is drawn when the
-/// GTE flags the projection.
-static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size)
-{
-    GfxCoord       ground;
-    POLY_FT4*      prim;
-    s16            outerLeft;
-    s16            outerRight;
-    s16            outerTop;
-    s16            outerBottom;
-    s16            intensity;
-    s16            left;
-    s16            right;
-    s16            top;
-    s16            bottom;
-    s32            outerSize;
-    s32            shifted;
-    u32            random;
-    GpCoord64*     slot;
-    GpPointLight*  light;
-    GpRingScratch* block;
+#include "../../shared/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room_visual_effects_flash.inc.c"
 
-    slot                                          = &Gp_RoomCoords[2];
-    slot->framesLeft                              = 2;
-    light                                         = &slot->light;
-    light->inner                                  = 0x300;
-    light->outer                                  = 0x3000;
-    random                                        = (Gp_LcgState * 5) + 0x71357911;
-    intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.color.r                           = intensity;
-    shifted                                       = intensity << 0x10;
-    light->head.color.g                           = shifted >> 0x11;
-    light->head.color.b                           = shifted >> 0x12;
-    light->head.transform.lighting.local.t[0]     = coord->coord.t[0];
-    light->head.transform.lighting.local.t[1]     = coord->coord.t[1];
-    light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
-    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_LcgState                                   = random;
-    block                                         = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx                                 = coord->workm.t[0];
-    block->vec.vy                                 = coord->workm.t[1];
-    block->vec.vz                                 = coord->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2EU;
-        prim->tpage = 0x29;
-        if (gDisplayState.animFrame & 1) {
-            prim->r0   = 0xA0;
-            prim->g0   = 0x80;
-            prim->b0   = 0x60;
-            prim->clut = 0x428B;
-            setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        } else {
-            prim->clut = 0x428C;
-            setUV4(prim, 0xA8, 0xC8, 0xDF, 0xC8, 0xA8, 0xFF, 0xDF, 0xFF);
-            prim->code |= 1;
-        }
-        block->step = size * 0x37 / block->otz;
-        left        = block->sx - block->step;
-        prim->x2    = left;
-        prim->x0    = left;
-        right       = block->sx + block->step;
-        prim->x3    = right;
-        prim->x1    = right;
-        top         = block->sy - block->step;
-        prim->y1    = top;
-        prim->y0    = top;
-        bottom      = block->sy + block->step;
-        prim->y3    = bottom;
-        prim->y2    = bottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        prim->code  = 0x2F;
-        prim->tpage = 0x29;
-        prim->clut =
-            (((gDisplayState.animFrame & 1) * 0x10 + 0x120) >> 4) | 0x4300;
-        setUV4(prim, 0x38, 0xC8, 0x6F, 0xC8, 0x38, 0xFF, 0x6F, 0xFF);
-        outerSize   = (s16)(size * 3 / 2);
-        block->step = outerSize * 0x37 / block->otz;
-        outerLeft   = block->sx - block->step;
-        prim->x2    = outerLeft;
-        prim->x0    = outerLeft;
-        outerRight  = block->sx + block->step;
-        prim->x3    = outerRight;
-        prim->x1    = outerRight;
-        outerTop    = block->sy - block->step;
-        prim->y1    = outerTop;
-        prim->y0    = outerTop;
-        outerBottom = block->sy + block->step;
-        prim->y3    = outerBottom;
-        prim->y2    = outerBottom;
-        addPrim(
-            GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)block->otz << gDisplayState.otDepthShift) >> 2 & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-        if (Gp_TraceGroundCoord(coord, &ground) == 1) {
-            func_mine_cavern_801809F8(&ground, outerSize);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
-
-/// Queues one semi-transparent textured quad lying flat at the coordinate's
-/// world position: the unit quad `D_80111E38` is scaled by `arg1`, turned by
-/// the view matrix and projected through `GsWSMATRIX`. Unless the GTE flags
-/// the projection, the quad is coloured (0x30, 0x20, 0x20) and its texture
-/// alternates between two 32-pixel columns on successive frames.
-static void func_mine_cavern_801809F8(GfxCoord* arg0, s32 arg1)
-{
-    void**         scratch;
-    u8*            head;
-    GpQuadScratch* block;
-    SVECTOR*       v;
-    s32            i;
-    GpQuadCorner*  tbl;
-    POLY_FT4*      prim;
-    s32            prod;
-    s32            u;
-
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    head    -= 0x38;
-    *scratch = head;
-    block    = (GpQuadScratch*)head;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < 4; i++) {
-        v     = &block->vec[i];
-        tbl   = &D_80111E38[i];
-        prod  = tbl->x * arg1;
-        v->vy = 0;
-        v->vx = prod;
-        v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&gGfxViewCoord.workm);
-        gte_ldv0(v);
-        gte_rtv0();
-        gte_stsv(v);
-        v->vx += arg0->workm.t[0];
-        v->vy += arg0->workm.t[1];
-        v->vz += arg0->workm.t[2];
-    }
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec[0]);
-    gte_rtps();
-    gte_stsxy(&block->sxy0);
-    gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
-    gte_rtpt();
-    gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2E);
-        setRGB0(prim, 0x30, 0x20, 0x20);
-        prim->tpage = 0x28;
-        prim->clut  = 0x428C;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v0    = 0x38;
-        prim->u0    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v1    = 0x38;
-        prim->u1    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xC0;
-        prim->v2    = 0x57;
-        prim->u2    = u;
-        u           = ((gDisplayState.animFrame & 1) << 5) + 0xDF;
-        prim->v3    = 0x57;
-        prim->u3    = u;
-        prim->x0    = block->sxy0.vx;
-        prim->y0    = block->sxy0.vy;
-        prim->x1    = block->sxy1.vx;
-        prim->y1    = block->sxy1.vy;
-        prim->x2    = block->sxy2.vx;
-        prim->y2    = block->sxy2.vy;
-        prim->x3    = block->sxy3.vx;
-        prim->y3    = block->sxy3.vy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES(0x38);
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues sixteen gouraud `POLY_G4` wedges that
-/// form a two-ring billboard. `arg1` is a signed half-extent; on-screen radii
-/// are `(s16)arg1 * 64 / (otz + 1)` (outer) and `(s16)arg1 * 8 / (otz + 1)`
-/// (inner). The RGB triple tints the inner vertex of the inner ring at full
-/// brightness and the outer ring at half, so each wedge fades to a black rim.
-static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
-{
-    RoomBillboardScratch* block;
-    POLY_G4*              prim;
-    s32                   ang;
-    s32                   t;
-    s32                   t2;
-    s32                   u;
-
-    block         = SCRATCH_PUSH(RoomBillboardScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->rOuter = (arg1 * 64) / block->otz;
-        block->rInner = (arg1 * 8) / block->otz;
-
-        ang = 0;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0], arg2[1], arg2[2]);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        ang = 0x200;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            u        = ang - 0x400;
-            prim->x0 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            u        = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2[0] >> 1, arg2[1] >> 1, arg2[2] >> 1);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(u)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(u)) >> 11);
-            u        = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(u)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(u)) >> 12);
-            ang      = u;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
-}
-
-/// Frame callback of a rising spark: each tick walks its angle on by a random
-/// 0x200..0x3FF, sets its velocity to a 3/16-scaled unit circle in X and Z and
-/// an upward Y that grows with age, and spawns the `D_80115728` effect at the
-/// task's coordinate. Releases the work block after 0x15 ticks, or as soon as
-/// the room's event state reaches 4.
 void func_mine_cavern_80181730(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        ang;
-
-    mem   = arg0->spawnArg2.pointer;
-    flag  = Gp_State1C->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            return;
-        }
-        goto kill;
-    } else {
-        Gp_UpdateCoord(coord);
-        mem->age++;
-        if (mem->age >= 0x15) {
-        kill:
-            Gp_ReleaseState1CMem(mem, arg0);
-            return;
-        }
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        ang          = mem->scale + ((((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200);
-        mem->scale   = ang;
-        mem->move.vx = (u32)(rcos(ang) * 3) >> 4;
-        mem->move.vy = -mem->age * 128;
-        mem->move.vz = (u32)(rsin(mem->scale) * 3) >> 4;
-        Gp_SpawnEff(D_80115728, coord, 0x30080201, &mem->move);
-    }
+    RoomFx_SparkEmitterTask(arg0);
 }
 
 /// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the
