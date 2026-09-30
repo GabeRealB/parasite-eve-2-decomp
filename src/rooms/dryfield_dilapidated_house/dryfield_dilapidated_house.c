@@ -73,6 +73,7 @@
 #include "../../shared/screen_wave.h"
 #include "../../shared/bezier_curve.h"
 #include "../../shared/screen_negative.h"
+#include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -261,10 +262,7 @@ static void func_dryfield_dilapidated_house_8018142C(Task* task);
 static void func_dryfield_dilapidated_house_801814B4(Task* arg0);
 static void func_dryfield_dilapidated_house_80181584(Task* task);
 static void func_dryfield_dilapidated_house_801815B8(Task* arg0);
-static void func_dryfield_dilapidated_house_80182A18(GfxCoord* coord, s16 arg1, s16 arg2);
 static void func_dryfield_dilapidated_house_801832A8(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_dilapidated_house_80182F14(GfxCoord* coord, s16 arg1, s16 arg2);
-static void func_dryfield_dilapidated_house_80183728(GfxCoord* coord, s16 arg1, s32 arg2, s16 arg3);
 static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1);
 static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts);
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
@@ -3546,7 +3544,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             rc->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             i                                           = 0;
             func_dryfield_dilapidated_house_801832A8(coord, (s16)work->field_22, work->field_26, work->field_28);
-            func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
+            glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
             work->field_26 = 0x380;
             do {
                 eff = Gp_SpawnEff(0x60275, coord, i, NULL);
@@ -3566,8 +3564,8 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
                 return;
             }
             func_dryfield_dilapidated_house_801832A8(coord, (s16)tick1, work->field_26, work->field_28);
-            func_dryfield_dilapidated_house_80182F14(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
-            func_dryfield_dilapidated_house_80182F14(coord, (s16)((u16)work->field_26 * 2), (s16)(u16)work->field_24 >> 1);
+            glowDrawFlameStar(coord, work->field_26, (s16)(u16)work->field_24 >> 1);
+            glowDrawFlameStar(coord, (s16)((u16)work->field_26 * 2), (s16)(u16)work->field_24 >> 1);
             angle          = (u16)work->field_26;
             angle         += 0x40;
             work->field_26 = angle;
@@ -3578,148 +3576,9 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     }
 }
 
-/// Draws the flame column: two 16-vertex rings of radius `arg1` and
-/// `arg1 + 0x100` are built in the XY plane (`vz` 0x100 / 0) by `rsin` /
-/// `rcos`, rotated by `arg0`'s `workm` and offset by its translation, then
-/// each of the 16 segments is projected through `GsWSMATRIX` as one `POLY_G4`.
-/// The inner edge carries the unsigned `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)`
-/// and the outer edge fades to black; a negative `gte_stflg` drops the segment.
-/// Same body as `func_pyrokinesis_8012FC34`.
-static void func_dryfield_dilapidated_house_80182A18(GfxCoord* arg0, s16 arg1, s16 arg2)
-{
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_G4*       prim;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s16            r0;
-    s16            r1;
-    u32            ramp;
-    u8             red;
-    u8             grn;
-    u8             blu;
+#include "../../shared/glow_draw_flame_band.inc.c"
 
-    /* The ramp halves are unsigned: writing them as `(u16)arg2 >> 1` folds the
-     * widening into an `andi`, where the ROM shifts the value up and back. */
-    ramp  = (u32)arg2 << 16;
-    red   = arg2;
-    grn   = ramp >> 17;
-    blu   = ramp >> 18;
-    r1    = arg1 + 0x100;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = (rcos(ang) * r0) >> 12;
-        block->inner[i].vz = 0x100;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->inner[i]);
-        gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx = (u16)block->inner[i].vx + (u16)arg0->workm.t[0];
-        block->inner[i].vy = (u16)block->inner[i].vy + (u16)arg0->workm.t[1];
-        block->inner[i].vz = (u16)block->inner[i].vz + (u16)arg0->workm.t[2];
-        block->outer[i].vx = (rsin(ang) * r1) >> 12;
-        op                 = &block->inner[i] + 16;
-        op->vy             = (rcos(ang) * r1) >> 12;
-        op->vz             = 0;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->outer[i]);
-        gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx = (u16)block->outer[i].vx + (u16)arg0->workm.t[0];
-        op->vy             = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz             = (u16)op->vz + (u16)arg0->workm.t[2];
-    }
-    gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, red, grn, blu);
-            setRGB1(prim, red, grn, blu);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
-}
-
-/// Draws the flame ring: `arg0`'s origin is projected once through
-/// `GsWSMATRIX` and eight `POLY_G4` blades are swept around it, each spanning
-/// a 0x200 arc of radius `(arg1 * 64) / otz`. Only the third vertex carries
-/// colour, the rest of the blade fading to black, and that colour is the
-/// `arg2` ramp `(arg2, arg2 >> 1, arg2 >> 2)` - a red-biased fire tint. A
-/// negative `gte_stflg` drops the whole ring. Same body as
-/// `func_pyrokinesis_80130130`.
-static void func_dryfield_dilapidated_house_80182F14(GfxCoord* arg0, s16 arg1, s16 arg2)
-{
-    GpRingScratch* block;
-    POLY_G4*       prim;
-    s32            ang;
-
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        block->otz++;
-        block->step = (arg1 * 64) / block->otz;
-        for (ang = 0; ang < 0x1000; ang += 0x200) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, arg2, arg2 >> 1, arg2 >> 2);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->step * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->step * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->step * rsin(ang + 0x100)) >> 12);
-            prim->y1 = block->sy + ((block->step * rcos(ang + 0x100)) >> 12);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->step * rsin(ang + 0x200)) >> 12);
-            prim->y3 = block->sy + ((block->step * rcos(ang + 0x200)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
+#include "../../shared/glow_draw_flame_star.inc.c"
 
 /// Draws a spinning textured sprite at `arg0`'s `workm` translation, projected
 /// once through `GsWSMATRIX`. The `POLY_FT4` is taken from the primitive
@@ -3781,87 +3640,7 @@ static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s
     SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
-/// Draws the flame band: two 16-vertex rings of radius `arg1` and
-/// `arg1 + arg2` are built in the XZ plane by `rsin` / `rcos`, rotated by
-/// `arg0`'s `workm` and offset by its translation, then each of the 16
-/// segments is projected through `GsWSMATRIX` as one `POLY_G4`. The inner
-/// edge carries the `arg3` ramp `(arg3, arg3 >> 1, arg3 >> 2)` and the outer
-/// edge fades to black; a negative `gte_stflg` drops the segment. Same body
-/// as `func_pyrokinesis_801312B4`.
-static void func_dryfield_dilapidated_house_80183728(GfxCoord* arg0, s16 arg1, s32 arg2, s16 arg3)
-{
-    GpBandScratch* block;
-    SVECTOR*       op;
-    POLY_G4*       prim;
-    s32            i;
-    s32            next;
-    s32            ang;
-    s16            r0;
-    s16            r1;
-
-    r1    = arg1 + arg2;
-    block = SCRATCH_STACK_RESERVE_BLOCK(GpBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    r0 = arg1;
-    for (i = 0; i < 16; i++) {
-        ang                = i << 8;
-        block->inner[i].vx = (rsin(ang) * r0) >> 12;
-        block->inner[i].vy = 0;
-        block->inner[i].vz = (rcos(ang) * r0) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->inner[i]);
-        gte_rtv0();
-        gte_stsv(&block->inner[i]);
-        block->inner[i].vx += arg0->workm.t[0];
-        block->inner[i].vy += arg0->workm.t[1];
-        block->inner[i].vz += arg0->workm.t[2];
-        block->outer[i].vx  = (rsin(ang) * r1) >> 12;
-        op                  = &block->inner[i] + 16;
-        op->vy              = 0;
-        op->vz              = (rcos(ang) * r1) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->outer[i]);
-        gte_rtv0();
-        gte_stsv(&block->outer[i]);
-        block->outer[i].vx += arg0->workm.t[0];
-        op->vy             += arg0->workm.t[1];
-        op->vz             += arg0->workm.t[2];
-    }
-    gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < 16; i++) {
-        gte_ldv0(&block->inner[i]);
-        gte_rtps();
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & 0xF;
-        gte_ldv3(&block->inner[next], &block->outer[i], &block->outer[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->flag);
-        if (block->flag >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, arg3, arg3 >> 1, arg3 >> 2);
-            setRGB1(prim, arg3, arg3 >> 1, arg3 >> 2);
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sxy0.vx;
-            prim->y0 = block->sxy0.vy;
-            prim->x1 = block->sxy1.vx;
-            prim->y1 = block->sxy1.vy;
-            prim->x2 = block->sxy2.vx;
-            prim->y2 = block->sxy2.vy;
-            prim->x3 = block->sxy3.vx;
-            prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
-}
+#include "../../shared/glow_draw_flame_ring.inc.c"
 
 void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 {
@@ -3884,7 +3663,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
 /// Per-frame handler that runs the `DdhEffWork` effect block one step further:
 /// an early out while `gRoomEffectState->effectControl` is not running. It counts frames in `field_22`,
 /// seeds the 0xC0 / 0x100 scale/angle pair on the first frame, feeds the pair to
-/// `func_dryfield_dilapidated_house_80182A18` and then steps the scale by -0x10
+/// `glowDrawFlameBand` and then steps the scale by -0x10
 /// and the angle by +0x40. Once the scale falls below 0x10 - and immediately
 /// when effect control has reached cancellation - it releases the work block.
 void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
@@ -3909,7 +3688,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         mem->field_26 = 0x100;
         arg0->state   = 1;
     }
-    func_dryfield_dilapidated_house_80182A18(arg0->extra.coordBody->coord, mem->field_26, mem->field_24);
+    glowDrawFlameBand(arg0->extra.coordBody->coord, mem->field_26, mem->field_24);
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
     angle        += 0x40;
@@ -3925,7 +3704,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// (`task->spawnArg2.pointer`). While `gRoomEffectState->effectControl` is running it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
 /// clears the task coordinate's update flag, refreshes the coordinate and feeds
-/// the angle/scale pair to `func_dryfield_dilapidated_house_80183728`, stepping
+/// the angle/scale pair to `glowDrawFlameRing`, stepping
 /// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
 /// immediately when effect control has reached cancellation - it releases the work
 /// block through `Gp_ReleaseState1CMem`.
@@ -3956,7 +3735,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
         arg0->state   = 1;
     }
 
-    func_dryfield_dilapidated_house_80183728(coord, mem->field_26, 0x100, mem->field_24);
+    glowDrawFlameRing(coord, mem->field_26, 0x100, mem->field_24);
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
     angle        += 0x80;

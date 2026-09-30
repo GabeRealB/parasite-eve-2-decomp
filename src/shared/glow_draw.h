@@ -46,4 +46,8 @@ void glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawFlareClipped(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawFlareLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
+void glowDrawFlameBand(GfxCoord* arg0, s16 arg1, s16 arg2);
+void glowDrawFlameStar(GfxCoord* arg0, s16 arg1, s16 arg2);
+void glowDrawFlameRing(GfxCoord* arg0, s16 arg1, s32 arg2, s16 arg3);
+
 #endif /* SRC_SHARED_GLOW_DRAW_H */
