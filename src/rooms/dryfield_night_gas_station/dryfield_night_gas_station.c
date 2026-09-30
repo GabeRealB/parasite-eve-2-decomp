@@ -916,7 +916,7 @@ ActorCommand D_dryfield_night_gas_station_80188B54 = { { .loc = { 3, 1 } }, 7 };
 
 ActorCommand D_dryfield_night_gas_station_80188B58 = { { .loc = { 3, 1 } }, 8 };
 
-GpOverlayIds D_dryfield_night_gas_station_80188B5C = { 3, 51, 11 };
+EvsSceneKey D_dryfield_night_gas_station_80188B5C = { 3, 51, 11 };
 
 GpEvsCmd D_dryfield_night_gas_station_80188B64[6] = {
     { 4, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

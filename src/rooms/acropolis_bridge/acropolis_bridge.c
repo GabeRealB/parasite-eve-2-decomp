@@ -431,7 +431,7 @@ TaskDesc D_acropolis_bridge_80188E7C[3] = {
 
 AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
+EvsSceneKey D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
 
 GpEvsCmd D_acropolis_bridge_80188EBC[26] = {
     { 13, { .callbackNoArg = func_acropolis_bridge_8017D954 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

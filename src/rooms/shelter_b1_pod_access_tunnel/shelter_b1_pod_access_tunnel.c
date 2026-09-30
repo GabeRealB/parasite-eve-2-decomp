@@ -430,7 +430,7 @@ ActorCommand D_shelter_b1_pod_access_tunnel_80182FE8 = { { .loc = { 4, 17 } }, 2
 
 GpSpawnAnimArg D_shelter_b1_pod_access_tunnel_80182FEC = { 10, 3 };
 
-GpOverlayIds D_shelter_b1_pod_access_tunnel_80182FF4 = { 4, 10, 11 };
+EvsSceneKey D_shelter_b1_pod_access_tunnel_80182FF4 = { 4, 10, 11 };
 
 GpEvsCmd D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_shelter_b1_pod_access_tunnel_80182D70 }, { .value = 0 } },

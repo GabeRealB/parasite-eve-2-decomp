@@ -1280,7 +1280,7 @@ ActorTransform D_actor_450800_8013AF38 = { { 800, 0, 450, 0 }, { 0, 1024, 0, 0 }
 
 ActorTransform D_actor_450800_8013AF50 = { { 0, 0, 0, 0 }, { 0, 853, 0, 0 } };
 
-GpOverlayIds D_actor_450800_8013AF68 = { 5, 9, 11 };
+EvsSceneKey D_actor_450800_8013AF68 = { 5, 9, 11 };
 
 GpScriptCmd D_actor_450800_8013AF70[5] = {
     { 257, 1 },

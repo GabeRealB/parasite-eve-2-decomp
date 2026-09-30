@@ -1061,7 +1061,7 @@ ActorTransform D_dryfield_night_dilapidated_house_801868BC = { { 400, 0, 0, 0 },
 
 ActorTransform D_dryfield_night_dilapidated_house_801868D4 = { { 1540, 0, 0, 0 }, { 0, 1024, 0, 0 } };
 
-GpOverlayIds D_dryfield_night_dilapidated_house_801868EC = { 3, 50, 11 };
+EvsSceneKey D_dryfield_night_dilapidated_house_801868EC = { 3, 50, 11 };
 
 GpEvsCmd D_dryfield_night_dilapidated_house_801868F4[88] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },

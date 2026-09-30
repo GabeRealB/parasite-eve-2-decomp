@@ -286,7 +286,7 @@ extern AnimationPlayRequest D_acropolis_sanctuary_80180AAC;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AC0;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AD4;
 extern GpCopyArg            D_acropolis_sanctuary_8018093C;
-extern GpOverlayIds         D_acropolis_sanctuary_80180AFC;
+extern EvsSceneKey          D_acropolis_sanctuary_80180AFC;
 extern ActorTransform       D_acropolis_sanctuary_80180844;
 extern ActorTransform       D_acropolis_sanctuary_8018085C;
 extern ActorTransform       D_acropolis_sanctuary_8018088C;
@@ -407,9 +407,9 @@ AnimationPlayRequest D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, ANIMA
 
 AnimationPlayRequest D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
+EvsSceneKey D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
 
-GpOverlayIds D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
+EvsSceneKey D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
 
 GpEvsCmd D_acropolis_sanctuary_80180B0C[121] = {
     { 32, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
@@ -618,7 +618,7 @@ AnimationSet* D_acropolis_sanctuary_801820E4[1] = {
     &D_acropolis_sanctuary_80181CC8,
 };
 
-GpOverlayIds D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
+EvsSceneKey D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
 
 GpEvsCmd D_acropolis_sanctuary_801820F0[9] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },

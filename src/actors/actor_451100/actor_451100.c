@@ -328,7 +328,7 @@ AnimationPlayRequest D_actor_451100_801350F8 = { { .index = 1 }, 8, ANIMATION_BL
 
 Actor451100AnimStorage510C D_actor_451100_8013510C = { .data = { { &D_actor_451100_80134D70, &D_actor_451100_801333FC, &D_actor_451100_80133AF8, &D_actor_451100_80133D70 }, { { .words = D_actor_451100_8013510C.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE } }, { { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_451100_80134FC8 }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_451100_80134E88 }, { .value = 0 } }, { 4, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_451100_80134E9C }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_451100_80134FDC }, { .value = 0 } }, { 45, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } } } } };
 
-GpOverlayIds D_actor_451100_80135218 = { 5, 11, 11 };
+EvsSceneKey D_actor_451100_80135218 = { 5, 11, 11 };
 
 GpEvsCmd D_actor_451100_80135220[146] = {
     { 12, { .overlays = &D_actor_451100_80135218 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

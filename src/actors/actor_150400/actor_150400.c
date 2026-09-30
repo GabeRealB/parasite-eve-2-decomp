@@ -121,7 +121,7 @@ ActorTransform D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024,
 
 ActorTransform D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
 
-GpOverlayIds D_actor_150400_80132D68 = { 5, 4, 11 };
+EvsSceneKey D_actor_150400_80132D68 = { 5, 4, 11 };
 
 GpEvsCmd D_actor_150400_80132D70[33] = {
     { 12, { .overlays = &D_actor_150400_80132D68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -211,11 +211,11 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183958 = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183998 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 

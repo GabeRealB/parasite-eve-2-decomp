@@ -233,9 +233,9 @@ AnimationPlayRequest D_acropolis_cafeteria_80182E34 = { { .index = 0 }, 3, ANIMA
 
 AnimationPlayRequest D_acropolis_cafeteria_80182E48 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
+EvsSceneKey D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
 
-GpOverlayIds D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
+EvsSceneKey D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
 
 GpOverrideArg D_acropolis_cafeteria_80182E6C = { 19, 1 };
 

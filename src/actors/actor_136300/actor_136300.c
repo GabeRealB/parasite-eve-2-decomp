@@ -1357,7 +1357,7 @@ GpEvsCmd D_actor_136300_8013C5C8[10] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpOverlayIds D_actor_136300_8013C6B8 = { 3, 65, 11 };
+EvsSceneKey D_actor_136300_8013C6B8 = { 3, 65, 11 };
 
 GpEvsCmd D_actor_136300_8013C6C0[8] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

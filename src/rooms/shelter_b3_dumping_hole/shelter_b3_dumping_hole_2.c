@@ -648,7 +648,7 @@ DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[13] = {
     { 0xFFFF, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
 };
 
-GpOverlayIds D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
+EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
 
 GpEvsCmd D_shelter_b3_dumping_hole_80188640[45] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -769,7 +769,7 @@ ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
 
-GpOverlayIds D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
+EvsSceneKey D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
 
 GpEvsCmd D_shelter_b3_dumping_hole_8018968C[33] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },

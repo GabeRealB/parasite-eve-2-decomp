@@ -230,26 +230,26 @@ extern GpEvsCmd D_actor_341900_80163B48[];
 extern GpEvsCmd D_actor_341900_80163FB0[];
 extern TaskDesc D_actor_341900_80164190[];
 
-extern GpOverlayIds D_actor_341900_80163B40;
-void                func_actor_341900_80162200(Task*);
-void                func_actor_341900_801625B4(Task*);
-void                func_actor_341900_80162708(Task*);
-void                func_actor_341900_80162EFC(Task*);
-void                func_actor_341900_80163148(Task*);
-void                func_actor_341900_80163334(s16);
-void                func_actor_341900_80163388(s32);
-void                func_actor_341900_801633C0(s32);
-void                func_actor_341900_801633F8(void);
-void                func_actor_341900_80163438(void);
-void                func_actor_341900_80163488(void);
-void                func_actor_341900_801634D0(void);
-void                func_actor_341900_80163534(void);
-void                func_actor_341900_80163564(s16);
-void                func_actor_341900_80163584(s16);
-void                func_actor_341900_801635A4(void);
-void                func_actor_341900_80163638(void);
-void                func_actor_341900_80163658(void);
-void                func_actor_341900_80163678(void);
+extern EvsSceneKey D_actor_341900_80163B40;
+void               func_actor_341900_80162200(Task*);
+void               func_actor_341900_801625B4(Task*);
+void               func_actor_341900_80162708(Task*);
+void               func_actor_341900_80162EFC(Task*);
+void               func_actor_341900_80163148(Task*);
+void               func_actor_341900_80163334(s16);
+void               func_actor_341900_80163388(s32);
+void               func_actor_341900_801633C0(s32);
+void               func_actor_341900_801633F8(void);
+void               func_actor_341900_80163438(void);
+void               func_actor_341900_80163488(void);
+void               func_actor_341900_801634D0(void);
+void               func_actor_341900_80163534(void);
+void               func_actor_341900_80163564(s16);
+void               func_actor_341900_80163584(s16);
+void               func_actor_341900_801635A4(void);
+void               func_actor_341900_80163638(void);
+void               func_actor_341900_80163658(void);
+void               func_actor_341900_80163678(void);
 
 void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
 void func_actor_341900_8016332C(void);
@@ -351,7 +351,7 @@ ActorTransform D_actor_341900_80163B10 = { { 1000, 0, -1900, 0 }, { 0, 3072, 0, 
 
 ActorTransform D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
 
-GpOverlayIds D_actor_341900_80163B40 = { 4, 19, 11 };
+EvsSceneKey D_actor_341900_80163B40 = { 4, 19, 11 };
 
 GpEvsCmd D_actor_341900_80163B48[47] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },

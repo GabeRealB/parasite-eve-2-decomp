@@ -112,7 +112,7 @@ ActorTransform D_dryfield_toilet_80180C20[2] = {
     { { -1664, 0, -1222, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpOverlayIds D_dryfield_toilet_80180C50 = { 2, 33, 11 };
+EvsSceneKey D_dryfield_toilet_80180C50 = { 2, 33, 11 };
 
 GpEvsCmd D_dryfield_toilet_80180C58[31] = {
     { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

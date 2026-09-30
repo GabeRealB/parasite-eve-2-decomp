@@ -486,9 +486,9 @@ ActorTransform D_dryfield_dilapidated_house_801843D8 = { { 1000, 0, 0, 0 }, { 0,
 
 GpOverrideArg D_dryfield_dilapidated_house_801843F0 = { 19, 1 };
 
-GpOverlayIds D_dryfield_dilapidated_house_801843F8 = { 2, 11, 11 };
+EvsSceneKey D_dryfield_dilapidated_house_801843F8 = { 2, 11, 11 };
 
-GpOverlayIds D_dryfield_dilapidated_house_80184400 = { 2, 12, 11 };
+EvsSceneKey D_dryfield_dilapidated_house_80184400 = { 2, 12, 11 };
 
 GpEvsCmd D_dryfield_dilapidated_house_80184408[89] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },

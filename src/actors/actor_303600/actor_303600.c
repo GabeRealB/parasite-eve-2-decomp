@@ -154,7 +154,7 @@ void func_actor_303600_80162658(void);
 void func_actor_303600_80162678(void);
 void func_actor_303600_80162698(void);
 
-GpOverlayIds D_actor_303600_80162AE8 = { 6, 12, 11 };
+EvsSceneKey D_actor_303600_80162AE8 = { 6, 12, 11 };
 
 GpEvsCmd D_actor_303600_80162AF0[31] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

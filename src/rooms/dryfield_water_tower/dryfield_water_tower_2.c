@@ -695,7 +695,7 @@ AnimationPlayRequest D_dryfield_water_tower_80182420[3] = {
     { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpOverlayIds D_dryfield_water_tower_8018245C = { 2, 16, 11 };
+EvsSceneKey D_dryfield_water_tower_8018245C = { 2, 16, 11 };
 
 GpEvsCmd D_dryfield_water_tower_80182464[22] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

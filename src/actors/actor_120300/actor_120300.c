@@ -1102,7 +1102,7 @@ ActorTransform D_actor_120300_80140A54[13] = {
     { { 8500, 0, 1531, 0 }, { 0, 3072, 0, 0 } },
 };
 
-GpOverlayIds D_actor_120300_80140B8C = { 2, 3, 11 };
+EvsSceneKey D_actor_120300_80140B8C = { 2, 3, 11 };
 
 GpEvsCmd D_actor_120300_80140B94[102] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

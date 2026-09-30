@@ -231,8 +231,8 @@ extern ActorCommand         D_actor_335800_8016503C;
 extern ActorCommand         D_actor_335800_80165040;
 extern ActorCommand         D_actor_335800_80165044;
 extern GpCopyArg            D_actor_335800_80164E24;
-extern GpOverlayIds         D_actor_335800_80165050;
-extern GpOverlayIds         D_actor_335800_80165058;
+extern EvsSceneKey          D_actor_335800_80165050;
+extern EvsSceneKey          D_actor_335800_80165058;
 extern ActorTransform       D_actor_335800_80164EA4[5];
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
@@ -435,11 +435,11 @@ ActorCommand D_actor_335800_80165040 = { { .loc = { 3, 29 } }, 8 };
 
 ActorCommand D_actor_335800_80165044 = { { .loc = { 3, 29 } }, 10 };
 
-GpOverlayIds D_actor_335800_80165048 = { 3, 58, 11 };
+EvsSceneKey D_actor_335800_80165048 = { 3, 58, 11 };
 
-GpOverlayIds D_actor_335800_80165050 = { 3, 59, 11 };
+EvsSceneKey D_actor_335800_80165050 = { 3, 59, 11 };
 
-GpOverlayIds D_actor_335800_80165058 = { 3, 60, 11 };
+EvsSceneKey D_actor_335800_80165058 = { 3, 60, 11 };
 
 GpEvsCmd D_actor_335800_80165060[72] = {
     { 13, { .callback = func_actor_335800_801624B8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

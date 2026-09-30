@@ -110,7 +110,7 @@ extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0;
 extern GpGridParams         D_acropolis_east_elevator_hall_80186838[1];
 extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
 extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
-extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
+extern EvsSceneKey          D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
 s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -229,9 +229,9 @@ AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C = { { .index = 0 },
 
 AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
+EvsSceneKey D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
 
-GpOverlayIds D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
+EvsSceneKey D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
 
 ActorTransform D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }, { 0, 0, 0, 0 } };
 

@@ -171,7 +171,7 @@ AnimationPlayRequest D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, 
 
 ActorTransform D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
 
-GpOverlayIds D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
+EvsSceneKey D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
 
 GpEvsCmd D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { 12, { .overlays = &D_neo_ark_submarine_tunnel_80181AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

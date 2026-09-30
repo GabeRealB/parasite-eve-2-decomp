@@ -262,7 +262,7 @@ ActorTransform D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 204
 
 ActorCommand D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
 
-GpOverlayIds D_actor_341300_8016534C = { 4, 13, 11 };
+EvsSceneKey D_actor_341300_8016534C = { 4, 13, 11 };
 
 GpEvsCmd D_actor_341300_80165354[52] = {
     { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

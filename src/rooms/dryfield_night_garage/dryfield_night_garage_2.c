@@ -143,7 +143,7 @@ ActorCommand D_dryfield_night_garage_80182DE8 = { { .loc = { 3, 24 } }, 4 };
 
 ActorCommand D_dryfield_night_garage_80182DEC = { { .loc = { 3, 24 } }, 5 };
 
-GpOverlayIds D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
+EvsSceneKey D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
 
 GpEvsCmd D_dryfield_night_garage_80182DF8[40] = {
     { 12, { .overlays = &D_dryfield_night_garage_80182DF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

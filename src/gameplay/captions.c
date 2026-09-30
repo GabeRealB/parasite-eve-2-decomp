@@ -897,8 +897,8 @@ void Gp_CapExit(Task* arg0)
     block_11:
         if (gDisplayState.debugMode != 0 && D_801156F4.overlays != 0) {
             sprintf(
-                buf, Gp_StrEvsFmt, D_801156F4.overlays->field_0, D_801156F4.overlays->field_2,
-                D_801156F4.overlays->field_4);
+                buf, Gp_StrEvsFmt, D_801156F4.overlays->group, D_801156F4.overlays->streamId,
+                D_801156F4.overlays->subId);
             func_807244CC(buf);
         }
     }

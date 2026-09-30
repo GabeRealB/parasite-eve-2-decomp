@@ -515,7 +515,7 @@ GpEvsCmd D_acropolis_patio_80180C64[16] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpOverlayIds D_acropolis_patio_80180DE4 = { 1, 29, 11 };
+EvsSceneKey D_acropolis_patio_80180DE4 = { 1, 29, 11 };
 
 GpEvsCmd D_acropolis_patio_80180DEC[10] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },

@@ -525,7 +525,7 @@ ActorCommand D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
 
 ActorCommand D_actor_361100_80165F3C = { { .loc = { 4, 22 } }, 0xFFFF };
 
-GpOverlayIds D_actor_361100_80165F40 = { 6, 11, 21 };
+EvsSceneKey D_actor_361100_80165F40 = { 6, 11, 21 };
 
 GpEvsCmd D_actor_361100_80165F48[96] = {
     { 12, { .overlays = &D_actor_361100_80165F40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

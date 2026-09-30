@@ -175,7 +175,7 @@ AnimationSet* D_actor_461800_80133F7C[1] = {
 
 GpCopyArg D_actor_461800_80133F80 = { { .sets = D_actor_461800_80133F7C }, 1 };
 
-GpOverlayIds D_actor_461800_80133F88 = { 6, 18, 11 };
+EvsSceneKey D_actor_461800_80133F88 = { 6, 18, 11 };
 
 GpEvsCmd D_actor_461800_80133F90[52] = {
     { 12, { .overlays = &D_actor_461800_80133F88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

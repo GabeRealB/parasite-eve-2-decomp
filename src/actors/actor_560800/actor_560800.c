@@ -3302,11 +3302,11 @@ s32 D_actor_560800_8016F57C[19] = {
     0x404D0012,
 };
 
-GpOverlayIds D_actor_560800_8016F5C8 = { 6, 8, 11 };
+EvsSceneKey D_actor_560800_8016F5C8 = { 6, 8, 11 };
 
-GpOverlayIds D_actor_560800_8016F5D0 = { 6, 8, 21 };
+EvsSceneKey D_actor_560800_8016F5D0 = { 6, 8, 21 };
 
-GpOverlayIds D_actor_560800_8016F5D8 = { 6, 8, 31 };
+EvsSceneKey D_actor_560800_8016F5D8 = { 6, 8, 31 };
 
 GpEvsCmd D_actor_560800_8016F5E0[364] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

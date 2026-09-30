@@ -242,7 +242,7 @@ ActorTransform D_actor_535700_80133860 = { { 0, 0, -0x38A4, 0 }, { 0, -1024, 0, 
 
 ActorTransform D_actor_535700_80133878 = { { 0, 0, -0x3322, 0 }, { 0, -1024, 0, 0 } };
 
-GpOverlayIds D_actor_535700_80133890 = { 3, 57, 11 };
+EvsSceneKey D_actor_535700_80133890 = { 3, 57, 11 };
 
 GpEvsCmd D_actor_535700_80133898[99] = {
     { 12, { .overlays = &D_actor_535700_80133890 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -862,7 +862,7 @@ SVECTOR D_actor_160900_8013F458[27] = {
     { 0, 0, 0, -1 },
 };
 
-GpOverlayIds D_actor_160900_8013F530 = { 6, 9, 11 };
+EvsSceneKey D_actor_160900_8013F530 = { 6, 9, 11 };
 
 GpEvsCmd D_actor_160900_8013F538[58] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },

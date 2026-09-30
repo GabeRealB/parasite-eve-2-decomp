@@ -713,7 +713,7 @@ ActorCommand D_mine_mesa_80184654 = { { .loc = { 4, 1 } }, 1 };
 
 ActorCommand D_mine_mesa_80184658 = { { .loc = { 4, 1 } }, 2 };
 
-GpOverlayIds D_mine_mesa_8018465C = { 4, 1, 11 };
+EvsSceneKey D_mine_mesa_8018465C = { 4, 1, 11 };
 
 GpEvsCmd D_mine_mesa_80184664[56] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

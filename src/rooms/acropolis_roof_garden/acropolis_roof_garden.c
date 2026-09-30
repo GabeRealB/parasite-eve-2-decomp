@@ -269,7 +269,7 @@ AnimationPlayRequest D_acropolis_roof_garden_80183D44 = { { .index = 0 }, 4, ANI
 
 AnimationPlayRequest D_acropolis_roof_garden_80183D58 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
+EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
 GpEvsCmd D_acropolis_roof_garden_80183D74[44] = {
     { 12, { .overlays = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

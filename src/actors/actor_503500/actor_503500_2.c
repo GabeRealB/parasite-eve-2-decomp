@@ -506,11 +506,11 @@ ActorCommand D_actor_503500_8014BD28 = { { .loc = { 4, 48 } }, 2 };
 
 ActorCommand D_actor_503500_8014BD2C = { { .loc = { 4, 48 } }, 3 };
 
-GpOverlayIds D_actor_503500_8014BD30 = { 6, 10, 11 };
+EvsSceneKey D_actor_503500_8014BD30 = { 6, 10, 11 };
 
-GpOverlayIds D_actor_503500_8014BD38 = { 6, 11, 11 };
+EvsSceneKey D_actor_503500_8014BD38 = { 6, 11, 11 };
 
-GpOverlayIds D_actor_503500_8014BD40 = { 6, 80, 11 };
+EvsSceneKey D_actor_503500_8014BD40 = { 6, 80, 11 };
 
 GpEvsCmd D_actor_503500_8014BD48[56] = {
     { 12, { .overlays = &D_actor_503500_8014BD30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
