@@ -22,7 +22,7 @@ typedef struct _TextDrawReq {
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 
 /// 4-byte glyph UVWH entry used by TextStream_Draw (tables like D_800627E0).
-/// Distinct from FontGlyph (0xC full font metrics).
+/// Distinct from _FontGlyph (0xC full font metrics).
 typedef struct _GlyphUvwh {
     /* 0x0 */ u8 u;
     /* 0x1 */ u8 v;

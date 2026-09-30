@@ -504,9 +504,10 @@ Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 128 lines down the 256-tall font page; drawing them with `vBias=0` samples
 padding, not glyphs.
 
-`FontGlyph` `u`/`v`/`w`/`h` are **page-local texels** in the 4bpp page at
-`(960, 256)`. SPRT `w`/`h` are `glyph.w+1` / `glyph.h+1`. Pair-shrink is 2
-except table 5 (1). `off_x` / `off_y` are stored bytes used as signed.
+`_FontGlyph` `u`/`v` are **page-local texels** in the 4bpp page at
+`(960, 256)`, with `vBias` added to `v`. SPRT `w`/`h` are
+`glyph.widthMinusOne+1` / `glyph.heightMinusOne+1`. Pair-shrink is 2
+except table 5 (1). `xOffset` / `yOffset` are signed pixel offsets.
 
 `Text_LoadClutImages` (`src/main/textutil.c`):
 

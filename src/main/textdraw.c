@@ -31,23 +31,34 @@
 
 #include "title/title.h"
 
-/// Per-glyph metrics in the font tables (Font_Glyphs0 / Font_Glyphs1 / Font_Glyphs2).
-/// u/v/w/h are texels in the 4bpp page at (960, 256). SPRT w/h are w+1 / h+1.
-/// off_x / off_y are stored as bytes but used as signed offsets when drawing.
-typedef struct _FontGlyph {
-    /* 0x0 */ u8 u;
-    /* 0x1 */ u8 v;
-    /* 0x2 */ u8 w;
-    /* 0x3 */ u8 h;
-    /* 0x4 */ u8 off_x;
-    /* 0x5 */ u8 off_y;
-    /* 0x6 */ u8 field_6;
-    /* 0x7 */ u8 field_7;
-    /* 0x8 */ u8 field_8;
-    /* 0x9 */ u8 field_9;
-    /* 0xA */ u8 pad_A[2];
-} FontGlyph;
-STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
+/// Byte encodings of the font's three pair-kerning classes.
+enum {
+    FONT_KERNING_CLASS_NEUTRAL  = 0,
+    FONT_KERNING_CLASS_POSITIVE = 1,
+    FONT_KERNING_CLASS_NEGATIVE = 0xFF,
+};
+
+/// Texture bounds and pen metrics for one encoded UI-font character.
+///
+/// Tables are indexed by the character byte minus ' ': `Font_Glyphs0` and
+/// `Font_Glyphs1` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
+/// The texture origin is relative to a 4bpp page; the selected font supplies
+/// an additional V bias. Adjacent right/left kerning classes combine modulo
+/// 256, allowing pair tightening when equal and non-neutral.
+typedef struct {
+    u8 u;                 // Texture origin X, in page-local texels.
+    u8 v;                 // Texture origin Y before the font's V bias, in texels.
+    u8 widthMinusOne;     // Sprite width minus one, in texels.
+    u8 heightMinusOne;    // Sprite height minus one, in texels.
+    s8 xOffset;           // Sprite origin offset from the pen X, in pixels.
+    s8 yOffset;           // Last sprite row's offset from the pen baseline, in pixels.
+    s8 advanceExtraX;     // Extra pixels in pen advance after xOffset + widthMinusOne; omitted for the final measured glyph.
+    s8 advanceY;          // Pen baseline advance after this glyph, in pixels.
+    u8 leftKerningClass;  // Left-side class (0 neutral, 1 positive, 255 negative).
+    u8 rightKerningClass; // Right-side class with the same byte encodings.
+    u8 field_A[2];        // Unread bytes; purpose unproven.
+} _FontGlyph;
+STATIC_ASSERT_SIZEOF(_FontGlyph, 0xC);
 
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
 static SPRT D_80071710;
@@ -56,11 +67,11 @@ static DR_TPAGE D_80071728;
 
 static TaskDesc D_8005EDA0[];
 
-static u8 Font_Glyphs0[];
+static _FontGlyph Font_Glyphs0[];
 
-static u8 Font_Glyphs1[];
+static _FontGlyph Font_Glyphs1[];
 
-static u8 Font_Glyphs2[];
+static _FontGlyph Font_Glyphs2[];
 
 static UiObjectDesc Ui_OverlayLoadingDesc[];
 
@@ -75,13 +86,13 @@ void func_807011D8(Task* arg0);
 
 void func_80701400(Task* arg0);
 
-static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table);
+static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table);
 
-static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+static void Text_DrawGlyphDualSprt(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
 /// Writes `value` in decimal to `arg0` and terminates it; values past nine
 /// digits are written as all nines.
@@ -99,11 +110,11 @@ static u8* Text_ItoaHexSigned(u8* arg0, s32 arg1);
 
 static u8* Text_ItoaHex(u8* arg0, u32 arg1);
 
-static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg2);
+static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2);
 
-static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedColor);
+static void Text_DrawGlyphOt(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor);
 
 static void Text_UiTaskCallback(Task* task);
 
@@ -173,13 +184,13 @@ TaskDesc* gTaskDescBanks[15] = {
     D_80068B7C,
 };
 
-static u8 Font_Glyphs0[] = {
+static _FontGlyph Font_Glyphs0[] = {
 #include "assets/font_glyphs0.inc"
 };
-static u8 Font_Glyphs1[] = {
+static _FontGlyph Font_Glyphs1[] = {
 #include "assets/font_glyphs1.inc"
 };
-static u8 Font_Glyphs2[] = {
+static _FontGlyph Font_Glyphs2[] = {
 #include "assets/font_glyphs2.inc"
 };
 
@@ -192,32 +203,32 @@ void textNoopCallback(Task* task)
 }
 
 /// Kerning between two adjacent glyphs: unless the previous glyph's trailing
-/// byte (`prev`, its field_9) and the next glyph's field_8 sum to -1..1 as a
-/// byte, the pen position `x` is pulled in by one pixel for font table 5 and
+/// byte (`prev`, its rightKerningClass) and the next glyph's leftKerningClass
+/// sum to -1..1 as a byte, the pen position `x` is pulled in by one pixel for font table 5 and
 /// by two for the others. The string drawer applies the same rule.
-#define TEXT_APPLY_KERNING(x, prev, glyph, req)         \
-    do {                                                \
-        if ((u8)((prev) + (glyph)->field_8 + 1) >= 3) { \
-            if ((req)->glyphTable == 5) {               \
-                (x) -= 1;                               \
-            } else {                                    \
-                (x) -= 2;                               \
-            }                                           \
-        }                                               \
+#define TEXT_APPLY_KERNING(x, prev, glyph, req)                  \
+    do {                                                         \
+        if ((u8)((prev) + (glyph)->leftKerningClass + 1) >= 3) { \
+            if ((req)->glyphTable == 5) {                        \
+                (x) -= 1;                                        \
+            } else {                                             \
+                (x) -= 2;                                        \
+            }                                                    \
+        }                                                        \
     } while (0)
 
-static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
+static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table)
 {
-    s32        width;
-    FontGlyph* glyph;
-    u8         kern;
-    s32        stop;
-    u8         c;
-    s32        idx;
+    s32               width;
+    const _FontGlyph* glyph;
+    u8                previousRightKerningClass;
+    s32               stop;
+    u8                c;
+    s32               idx;
 
-    width = 0;
-    glyph = (FontGlyph*)table;
-    kern  = 0;
+    width                     = 0;
+    glyph                     = table;
+    previousRightKerningClass = FONT_KERNING_CLASS_NEUTRAL;
     for (c = *str; c != 0; c = *str) {
         if (c == '\n') {
             break;
@@ -255,16 +266,16 @@ static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, u8* table)
             break;
         }
         idx   = *str - ' ';
-        glyph = &((FontGlyph*)table)[idx];
-        TEXT_APPLY_KERNING(width, kern, glyph, req);
+        glyph = &table[idx];
+        TEXT_APPLY_KERNING(width, previousRightKerningClass, glyph, req);
         str++;
-        kern   = glyph->field_9;
-        width += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
+        previousRightKerningClass = glyph->rightKerningClass;
+        width                    += glyph->widthMinusOne + glyph->advanceExtraX + glyph->xOffset;
     }
-    return width - (s8)glyph->field_6;
+    return width - glyph->advanceExtraX;
 }
 
-static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
+static void Text_DrawGlyphDualSprtA(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -281,12 +292,12 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
-    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->x0 = p->x0 = request->x + glyph->xOffset;
+    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p2->u0 = p->u0 = glyph->u;
     p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->w + 1;
-    temp         = glyph->h;
+    p2->w = p->w = glyph->widthMinusOne + 1;
+    temp         = glyph->heightMinusOne;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFE;
     p->clut      = 0x7FFD;
@@ -295,7 +306,7 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
+static void Text_DrawGlyphDualSprt(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -312,12 +323,12 @@ static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 a
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
-    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->x0 = p->x0 = request->x + glyph->xOffset;
+    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p2->u0 = p->u0 = glyph->u;
     p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->w + 1;
-    temp         = glyph->h;
+    p2->w = p->w = glyph->widthMinusOne + 1;
+    temp         = glyph->heightMinusOne;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
@@ -326,7 +337,7 @@ static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 a
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
+static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
 {
     SPRT*     p;
     SPRT*     p2;
@@ -344,12 +355,12 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, 
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = request->x + (s8)glyph->off_x;
-    p2->y0 = p->y0 = (request->y - glyph->h) + (s8)glyph->off_y;
+    p2->x0 = p->x0 = request->x + glyph->xOffset;
+    p2->y0 = p->y0 = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p2->u0 = p->u0 = glyph->u;
     p2->v0 = p->v0 = glyph->v + request->vBias;
-    p2->w = p->w = glyph->w + 1;
-    temp         = glyph->h;
+    p2->w = p->w = glyph->widthMinusOne + 1;
+    temp         = glyph->heightMinusOne;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
@@ -371,23 +382,23 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, 
 
 void Text_DrawString(TextDrawReq* request, u8* text)
 {
-    u8*        ptr;
-    u8*        table;
-    FontGlyph* glyph;
-    void       (*draw)(TextDrawReq*, FontGlyph*, s32);
-    s32        color;
-    s32        prev9;
-    s32        width;
-    u8         c;
-    s32        end_flag;
-    s32        idx;
-    s32        temp;
-    DR_TPAGE*  dr;
+    u8*               ptr;
+    const _FontGlyph* table;
+    const _FontGlyph* glyph;
+    void              (*draw)(TextDrawReq*, const _FontGlyph*, s32);
+    s32               color;
+    s32               previousRightKerningClass;
+    s32               width;
+    u8                c;
+    s32               end_flag;
+    s32               idx;
+    s32               temp;
+    DR_TPAGE*         dr;
 
-    ptr            = text;
-    prev9          = 0;
-    color          = request->field_8;
-    request->vBias = 0;
+    ptr                       = text;
+    previousRightKerningClass = FONT_KERNING_CLASS_NEUTRAL;
+    color                     = request->field_8;
+    request->vBias            = 0;
     switch (request->glyphTable) {
         case 0:
             table          = Font_Glyphs0;
@@ -557,8 +568,8 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             continue;
         }
         idx   = *ptr - ' ';
-        glyph = &((FontGlyph*)table)[idx];
-        temp  = prev9 + glyph->field_8 + 1;
+        glyph = &table[idx];
+        temp  = previousRightKerningClass + glyph->leftKerningClass + 1;
         if ((u8)temp >= 3) {
             if (request->glyphTable == 5) {
                 request->x -= 1;
@@ -566,11 +577,11 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                 request->x -= 2;
             }
         }
-        prev9 = glyph->field_9;
+        previousRightKerningClass = glyph->rightKerningClass;
         draw(request, glyph, color);
         ptr++;
-        request->x += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
-        request->y += (s8)glyph->field_7;
+        request->x += glyph->widthMinusOne + glyph->advanceExtraX + glyph->xOffset;
+        request->y += glyph->advanceY;
     }
     if (request->field_E == 1 || request->field_E == 3) {
         dr             = gGpuPrimCursor;
@@ -748,8 +759,8 @@ u8* Text_FormatTime(u8* arg0, u16 time)
 
 void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
 {
-    u8* table;
-    s32 width;
+    const _FontGlyph* table;
+    s32               width;
 
     switch (request->glyphTable) {
         case 0:
@@ -938,7 +949,7 @@ u8* Text_Strcat(u8* dest, u8* src)
     return dest;
 }
 
-static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
+static void Text_DrawGlyphImmediate(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -947,18 +958,18 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 
     setlen(p, 4);
     GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
-    p->x0   = request->x + (s8)glyph->off_x;
-    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->x0   = request->x + glyph->xOffset;
+    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p->u0   = glyph->u;
     p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->w + 1;
-    temp    = glyph->h;
+    p->w    = glyph->widthMinusOne + 1;
+    temp    = glyph->heightMinusOne;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
     DrawPrim(p);
 }
 
-static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg2)
+static void Text_DrawGlyphQueued(TextDrawReq* request, const _FontGlyph* glyph, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -968,18 +979,18 @@ static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg
     setlen(p, 4);
     GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
-    p->x0   = request->x + (s8)glyph->off_x;
-    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->x0   = request->x + glyph->xOffset;
+    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p->u0   = glyph->u;
     p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->w + 1;
-    temp    = glyph->h;
+    p->w    = glyph->widthMinusOne + 1;
+    temp    = glyph->heightMinusOne;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
     addPrim(gGpuCurrentOt + request->otIndex, p);
 }
 
-static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedColor)
+static void Text_DrawGlyphOt(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor)
 {
     SPRT* p;
     s32   temp;
@@ -988,12 +999,12 @@ static void Text_DrawGlyphOt(TextDrawReq* request, FontGlyph* glyph, s32 unusedC
     gGpuPrimCursor = p + 1;
     setlen(p, 4);
     setcode(p, 0x67);
-    p->x0   = request->x + (s8)glyph->off_x;
-    p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
+    p->x0   = request->x + glyph->xOffset;
+    p->y0   = (request->y - glyph->heightMinusOne) + glyph->yOffset;
     p->u0   = glyph->u;
     p->v0   = glyph->v + request->vBias;
-    p->w    = glyph->w + 1;
-    temp    = glyph->h;
+    p->w    = glyph->widthMinusOne + 1;
+    temp    = glyph->heightMinusOne;
     p->clut = 0x7FFF;
     p->h    = temp + 1;
     addPrim(gGpuCurrentOt + request->otIndex, p);

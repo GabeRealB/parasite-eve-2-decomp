@@ -10901,11 +10901,11 @@ nothing that follows can be scheduled before them (`Text_MeasureGlyphWidth`):
 ```c
 register TextDrawReq* ctx asm("t5");
 register s32 width asm("t0");
-FontGlyph* glyph;
+_FontGlyph* glyph;
 
 ctx   = arg0;
 width = 0;
-glyph = (FontGlyph*)arg2;
+glyph = arg2;
 asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
 c = *arg1; /* only now may the load be emitted */
 ```
