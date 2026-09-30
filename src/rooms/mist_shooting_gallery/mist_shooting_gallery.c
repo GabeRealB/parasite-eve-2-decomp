@@ -59,6 +59,9 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
+/// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
+/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
+/// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
