@@ -41,6 +41,7 @@
 
 #include "overlay.h"
 #include "../../shared/screen_negative.h"
+#include "../../shared/paced_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -55,8 +56,6 @@ typedef union {
 STATIC_ASSERT_SIZEOF(Actor460200AnimStorage5E30, 128);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
-
-static void func_actor_460200_801325FC(Task* task);
 
 s32 func_actor_460200_80132B2C(Task* task, s32 arg1, AnimationPlayRequest* args);
 
@@ -108,9 +107,6 @@ extern s32                     D_actor_460200_80151538;
 static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
 static void func_actor_460200_80132950(Task* task);
 static void func_actor_460200_80132978(Task* task);
-static void func_actor_460200_80132A04(Task* task);
-static void func_actor_460200_80132A50(Task* task);
-static void func_actor_460200_80132AC8(Task* task);
 static void func_actor_460200_80132F0C(Task* task);
 static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
 static void func_actor_460200_8013322C(Task* task);
@@ -157,7 +153,6 @@ s32                         func_actor_460200_80132B2C(Task*, s32, AnimationPlay
 s32                         func_actor_460200_80132B98(Task*, s32, s32);
 s32                         func_actor_460200_80132C14(Task*, s32, ActorTransform* placement);
 s32                         func_actor_460200_80132C8C(Task*, s32, ActorCommand* args);
-s32                         func_actor_460200_80132CAC(Task*, s32, ActorTransform* target);
 void                        func_actor_460200_801327B4(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135EB0;
@@ -1316,7 +1311,7 @@ Actor460200MessageEntry D_actor_460200_8013FC50[6] = {
     { 2005, { .call4 = func_actor_460200_80132B98 } },
     { 2004, { .call3 = func_actor_460200_80132C14 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call2 = func_actor_460200_80132C8C } },
-    { 2013, { .call3 = func_actor_460200_80132CAC } },
+    { 2013, { .call3 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -2358,7 +2353,7 @@ static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     vec.vy = coord->workm.t[1] - 0x320;
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_actor_460200_801325FC(task);
+    pacedWalkUpdate(task);
     func_actor_460200_80132978(task);
     if ((work->effects != 0) && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (obj->buffer != NULL)) {
         if (task->killCountdown & 1) {
@@ -2372,44 +2367,7 @@ static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     }
 }
 
-/// Step body of the actor's animation state machine. States 1 and 2 reseed the
-/// animation slots (with and without `animArg`) and advance to state 3; state 3
-/// walks the root coordinate 12 units per frame while clip 4 has `travel`
-/// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
-static void func_actor_460200_801325FC(Task* task)
-{
-    Actor160600Work* work;
-    s16              animId;
-
-    work = (Actor160600Work*)task->work;
-    if (work->st.state == 1) {
-        func_actor_460200_80132AC8(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        func_actor_460200_80132A50(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        // The loop-end note ends cse's first block here, so the pause check
-        // loads its own 1 instead of reusing the state test's.
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0xC);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        func_actor_460200_80132A04(task);
-        return;
-    }
-}
+#include "../../shared/paced_walk_update.inc.c"
 
 void func_actor_460200_801327B4(Task* task)
 {
@@ -2422,7 +2380,7 @@ void func_actor_460200_801327B4(Task* task)
 /// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
-/// and runs the step body `func_actor_460200_801325FC` once in state 2.
+/// and runs the step body `pacedWalkUpdate` once in state 2.
 ///
 /// Same body as `func_actor_460200_801338C0` with a different exit callback,
 /// animation bank and initial clip (`animId` 0xA rather than 2).
@@ -2463,7 +2421,7 @@ static void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     func_800B3F84(&work->rig.anim, D_actor_460200_8013FC8C, obj, work->rig.poses, work->rig.slots);
     work->st.state = 2;
     task->msgTable = D_actor_460200_8013FC50;
-    func_actor_460200_801325FC(task);
+    pacedWalkUpdate(task);
     task->state += 1;
 }
 
@@ -2493,52 +2451,11 @@ static void func_actor_460200_80132978(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13.
-static void func_actor_460200_80132A04(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
+#include "../../shared/paced_walk_tick_anim.inc.c"
 
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/paced_walk_reset_anim.inc.c"
 
-/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
-/// argument, and records the clip as the applied one.
-static void func_actor_460200_80132A50(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
-/// and records the clip as the applied one.
-static void func_actor_460200_80132AC8(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/paced_walk_blend_anim.inc.c"
 
 /// Starts the actor's scripted animation selected by the request.
 ///
@@ -2558,7 +2475,7 @@ s32 func_actor_460200_80132B2C(Task* task, s32 arg1, AnimationPlayRequest* args)
             work->st.state = 2;
         }
         work->st.field_6 = 0;
-        func_actor_460200_801325FC(task);
+        pacedWalkUpdate(task);
         return 0;
     }
     return -1;
@@ -2634,29 +2551,7 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
     return 0;
 }
 
-/// Script opcode "walk to": aims the actor's root coordinate at `target` by
-/// taking the yaw of the horizontal offset from the coordinate's own
-/// translation, caches that yaw in the work block and rebuilds the local
-/// matrix from it, then records the distance, in steps of 12, for the step
-/// body to walk off.
-s32 func_actor_460200_80132CAC(Task* task, s32 arg1, ActorTransform* target)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 12;
-    return 0;
-}
+#include "../../shared/paced_walk_to.inc.c"
 
 static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
 {
@@ -2813,52 +2708,20 @@ static void func_actor_460200_80133254(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13.
-static void func_actor_460200_801332E0(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
+/// The second walker's copy.
+#define pacedWalkTickAnim func_actor_460200_801332E0
+#include "../../shared/paced_walk_tick_anim.inc.c"
+#undef pacedWalkTickAnim
 
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+/// The second walker's copy.
+#define pacedWalkResetAnim func_actor_460200_8013332C
+#include "../../shared/paced_walk_reset_anim.inc.c"
+#undef pacedWalkResetAnim
 
-/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
-/// argument, and records the clip as the applied one.
-static void func_actor_460200_8013332C(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
-
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
-/// and records the clip as the applied one.
-static void func_actor_460200_801333A4(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
-
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+/// The second walker's copy.
+#define pacedWalkBlendAnim func_actor_460200_801333A4
+#include "../../shared/paced_walk_blend_anim.inc.c"
+#undef pacedWalkBlendAnim
 
 /// Starts the actor's scripted animation selected by the request.
 ///
@@ -2997,44 +2860,16 @@ void func_actor_460200_8013364C(Task* task)
     }
 }
 
-/// Step body of the actor's animation state machine. States 1 and 2 reseed the
-/// animation slots (with and without `animArg`) and advance to state 3; state 3
-/// walks the root coordinate 12 units per frame while clip 4 has `travel`
-/// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks the slots.
-static void func_actor_460200_801336B4(Task* task)
-{
-    Actor160600Work* work;
-    s16              animId;
-
-    work = (Actor160600Work*)task->work;
-    if (work->st.state == 1) {
-        func_actor_460200_80133C00(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        func_actor_460200_80133B88(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        // The loop-end note ends cse's first block here, so the pause check
-        // loads its own 1 instead of reusing the state test's.
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0xC);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        func_actor_460200_80133B3C(task);
-        return;
-    }
-}
+/// The third walker's copy.
+#define pacedWalkUpdate    func_actor_460200_801336B4
+#define pacedWalkTickAnim  func_actor_460200_80133B3C
+#define pacedWalkResetAnim func_actor_460200_80133B88
+#define pacedWalkBlendAnim func_actor_460200_80133C00
+#include "../../shared/paced_walk_update.inc.c"
+#undef pacedWalkUpdate
+#undef pacedWalkTickAnim
+#undef pacedWalkResetAnim
+#undef pacedWalkBlendAnim
 
 void func_actor_460200_8013386C(Task* task)
 {
@@ -3132,52 +2967,20 @@ static void func_actor_460200_80133AB0(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13.
-static void func_actor_460200_80133B3C(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
+/// The third walker's copy.
+#define pacedWalkTickAnim func_actor_460200_80133B3C
+#include "../../shared/paced_walk_tick_anim.inc.c"
+#undef pacedWalkTickAnim
 
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+/// The third walker's copy.
+#define pacedWalkResetAnim func_actor_460200_80133B88
+#include "../../shared/paced_walk_reset_anim.inc.c"
+#undef pacedWalkResetAnim
 
-/// Resets animation slots 1..0x13 to clip `animId` at rate 1, without a reseed
-/// argument, and records the clip as the applied one.
-static void func_actor_460200_80133B88(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
-/// and records the clip as the applied one.
-static void func_actor_460200_80133C00(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+/// The third walker's copy.
+#define pacedWalkBlendAnim func_actor_460200_80133C00
+#include "../../shared/paced_walk_blend_anim.inc.c"
+#undef pacedWalkBlendAnim
 
 s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args)
 {
@@ -3260,26 +3063,7 @@ s32 func_actor_460200_80133DC4(void)
     return 0;
 }
 
-/// Script opcode "walk to": aims the actor's root coordinate at `target` by
-/// taking the yaw of the horizontal offset from the coordinate's own
-/// translation, caches that yaw in the work block and rebuilds the local
-/// matrix from it, then records the distance, in steps of 12, for the step
-/// body to walk off.
-s32 func_actor_460200_80133DCC(Task* task, s32 arg1, ActorTransform* target)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 12;
-    return 0;
-}
+/// The third walker's copy.
+#define pacedWalkTo func_actor_460200_80133DCC
+#include "../../shared/paced_walk_to.inc.c"
+#undef pacedWalkTo

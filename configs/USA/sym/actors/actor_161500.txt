@@ -189,3 +189,6 @@ D_actor_161500_80140158 = 0x80140158; // size:0x28 defined:True
 D_actor_161500_80140180 = 0x80140180; // size:0x30 defined:True
 D_actor_161500_801401B0 = 0x801401B0; // size:0x18 defined:True
 D_actor_161500_801401C8 = 0x801401C8; // size:0x30 defined:True
+pacedWalkTickAnim = 0x80132900; // type:func
+pacedWalkResetAnim = 0x8013294C; // type:func
+pacedWalkBlendAnim = 0x801329C4; // type:func

@@ -31,6 +31,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_1f_heliport.h"
+#include "../../shared/paced_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -97,9 +98,6 @@ static void func_actor_161500_8013252C(Task* task);
 static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
 static void func_actor_161500_8013284C(Task* task);
 static void func_actor_161500_80132874(Task* task);
-static void func_actor_161500_80132900(Task* task);
-static void func_actor_161500_8013294C(Task* task);
-static void func_actor_161500_801329C4(Task* task);
 
 extern AnimationPlayRequest D_actor_161500_80133F7C;
 extern AnimationPlayRequest D_actor_161500_80134020;
@@ -1627,12 +1625,12 @@ static void func_actor_161500_8013252C(Task* task)
 
     work = (Actor161500Work*)task->work;
     if (work->st.state == 1) {
-        func_actor_161500_801329C4(task);
+        pacedWalkBlendAnim(task);
         work->st.state = 3;
         return;
     }
     if (work->st.state == 2) {
-        func_actor_161500_8013294C(task);
+        pacedWalkResetAnim(task);
         work->st.state = 3;
         return;
     }
@@ -1649,7 +1647,7 @@ static void func_actor_161500_8013252C(Task* task)
                 work->st.animId = 1;
             }
         }
-        func_actor_161500_80132900(task);
+        pacedWalkTickAnim(task);
         return;
     }
 }
@@ -1733,52 +1731,11 @@ static void func_actor_161500_80132874(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13 of the actor's animation context.
-static void func_actor_161500_80132900(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
+#include "../../shared/paced_walk_tick_anim.inc.c"
 
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/paced_walk_reset_anim.inc.c"
 
-/// Reseeds animation slots 1..0x13 with `animId`, each at rate 1, and records
-/// that id as the one applied.
-static void func_actor_161500_8013294C(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
-
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Reseeds animation slots 1..0x13 with `animId`, passing `animArg` through,
-/// and records that id as the one applied.
-static void func_actor_161500_801329C4(Task* task)
-{
-    Actor161500Work* work;
-    s32              i;
-
-    work = (Actor161500Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/paced_walk_blend_anim.inc.c"
 
 /// Starts the actor's scripted animation selected by the request.
 ///

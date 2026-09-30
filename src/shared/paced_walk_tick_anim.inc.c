@@ -1,0 +1,15 @@
+/* Part of the paced walk library; see paced_walk.h. */
+
+/// Ticks animation slots 1..0x13 of the actor's animation context.
+void pacedWalkTickAnim(Task* task)
+{
+    Actor160600Work* work;
+    s32              i;
+
+    work = (Actor160600Work*)task->work;
+    i    = 1;
+    do {
+        Gp_AnimTickIndex(&work->rig.anim, i);
+        i++;
+    } while (i < 0x14);
+}

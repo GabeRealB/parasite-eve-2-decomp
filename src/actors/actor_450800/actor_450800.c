@@ -38,6 +38,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b6_nursery.h"
+#include "../../shared/paced_walk.h"
 
 // The engine copies words across the exported animation bank and its
 // following argument records. Both views cover the complete backing object.
@@ -140,8 +141,6 @@ static void func_actor_450800_80132448(Task* task);
 static void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_801328BC(Task* task);
-static void func_actor_450800_80132A1C(Task* task);
-static void func_actor_450800_80132A68(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
 static void func_actor_450800_801330AC(Task* task);
 static void func_actor_450800_801332B8(GpEnemy* enemy, Task* task);
@@ -2858,7 +2857,7 @@ static void func_actor_450800_80132448(Task* task)
         func_actor_450800_80132AE0(task);
         work->st.state = 3;
     } else if (work->st.state == 2) {
-        func_actor_450800_80132A68(task);
+        pacedWalkResetAnim(task);
         work->st.state = 3;
     } else if (work->st.state == 3) {
         if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
@@ -2887,7 +2886,7 @@ static void func_actor_450800_80132448(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
-        func_actor_450800_80132A1C(task);
+        pacedWalkTickAnim(task);
     }
 }
 
@@ -2987,36 +2986,9 @@ void func_actor_450800_80132958(Task* task)
     }
 }
 
-/// Ticks the actor's animation slots 1..0x13.
-static void func_actor_450800_80132A1C(Task* task)
-{
-    Actor450800Work* work;
-    s32              i;
+#include "../../shared/paced_walk_tick_anim.inc.c"
 
-    work = (Actor450800Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
-
-/// Resets the actor's animation slots 1..0x13 to clip `st.animId` at rate 1,
-/// without a reset argument, and latches the clip into `st.appliedAnimId`.
-static void func_actor_450800_80132A68(Task* task)
-{
-    Actor450800Work* work;
-    s32              i;
-
-    work = (Actor450800Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/paced_walk_reset_anim.inc.c"
 
 static void func_actor_450800_80132AE0(Task* task)
 {

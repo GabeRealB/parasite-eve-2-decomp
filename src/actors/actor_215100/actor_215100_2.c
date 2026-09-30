@@ -52,6 +52,7 @@
 #include "overlay.h"
 
 #include "rooms/mist_shooting_gallery.h"
+#include "../../shared/paced_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -105,13 +106,9 @@ typedef struct Actor215100CharRec {
 } Actor215100CharRec;
 STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 
-static void func_actor_215100_8014C874(Task* task);
 static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
 static void func_actor_215100_8014CB04(Task* task);
 static void func_actor_215100_8014CB2C(Task* task);
-static void func_actor_215100_8014CBB8(Task* task);
-static void func_actor_215100_8014CC04(Task* task);
-static void func_actor_215100_8014CC7C(Task* task);
 
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
@@ -183,7 +180,6 @@ s32              func_actor_215100_8014CCE0(Task*, s32, AnimationPlayRequest*);
 s32              func_actor_215100_8014CD4C(Task*, s32, s32);
 s32              func_actor_215100_8014CDB0(Task*, s32, ActorTransform* placement);
 s32              func_actor_215100_8014CE28(void);
-s32              func_actor_215100_8014CE30(Task*, s32, ActorTransform* target);
 void             func_actor_215100_8014CA2C(Task*);
 void             func_actor_215100_8014CEF8(Task*);
 
@@ -1707,7 +1703,7 @@ Actor2151002MsgEntry D_actor_215100_8015E5A0[6] = {
     { 2005, { .call3 = func_actor_215100_8014CD4C } },
     { 2004, { .call2 = func_actor_215100_8014CDB0 } },
     { 2011, { .call0 = func_actor_215100_8014CE28 } },
-    { 2013, { .call2 = func_actor_215100_8014CE30 } },
+    { 2013, { .call2 = pacedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -2238,48 +2234,11 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
                   work->rig.poses, work->rig.slots);
     work->st.state = 2;
     task->msgTable = D_actor_215100_8015E5A0;
-    func_actor_215100_8014C874(task);
+    pacedWalkUpdate(task);
     task->state++;
 }
 
-/// The actor's animation step. State 1 reseeds the slots with `animArg` and
-/// state 2 resets them, each then moving on to state 3; state 3 walks the
-/// root coordinate 12 units forward per frame while clip 4 still has `travel`
-/// left, switching to clip 1 when it runs out, and ticks the slots.
-static void func_actor_215100_8014C874(Task* task)
-{
-    Actor160600Work* work;
-    s16              animId;
-
-    work = (Actor160600Work*)task->work;
-    if (work->st.state == 1) {
-        func_actor_215100_8014CC7C(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        func_actor_215100_8014CC04(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        // The loop-end note ends cse's first block here, so the pause check
-        // loads its own 1 instead of reusing the state test's.
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0xC);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        func_actor_215100_8014CBB8(task);
-        return;
-    }
-}
+#include "../../shared/paced_walk_update.inc.c"
 
 /// Two-state dispatcher, its handler table built on the stack: state 0 spawns
 /// the actor, state 1 runs it. Both handlers take the task's `GpEnemy` as
@@ -2310,7 +2269,7 @@ static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_215100_8014C874(task);
+    pacedWalkUpdate(task);
     func_actor_215100_8014CB2C(task);
 }
 
@@ -2341,52 +2300,11 @@ static void func_actor_215100_8014CB2C(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13.
-static void func_actor_215100_8014CBB8(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
+#include "../../shared/paced_walk_tick_anim.inc.c"
 
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/paced_walk_reset_anim.inc.c"
 
-/// Resets animation slots 1..0x13 to clip `animId` and records it as the
-/// applied clip.
-static void func_actor_215100_8014CC04(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Reseeds animation slots 1..0x13 with clip `animId` and argument `animArg`,
-/// and records the clip as the applied one.
-static void func_actor_215100_8014CC7C(Task* task)
-{
-    Actor160600Work* work;
-    s32              i;
-
-    work = (Actor160600Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/paced_walk_blend_anim.inc.c"
 
 /// Starts the actor's scripted animation selected by the request.
 ///
@@ -2406,7 +2324,7 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args)
             work->st.state = 2;
         }
         work->st.field_6 = 0;
-        func_actor_215100_8014C874(task);
+        pacedWalkUpdate(task);
         return 0;
     }
     return -1;
@@ -2465,27 +2383,7 @@ s32 func_actor_215100_8014CE28(void)
     return 0;
 }
 
-/// Script opcode "walk to": turns the actor's root coordinate to face
-/// `target` horizontally, caching the yaw, and stores the horizontal distance
-/// in steps of 12 as `travel` for the step body to walk off.
-s32 func_actor_215100_8014CE30(Task* task, s32 arg1, ActorTransform* target)
-{
-    GfxCoord*        coord;
-    Actor160600Work* work;
-    s32              dx;
-    s32              dz;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor160600Work*)task->work;
-    dx           = target->pos.vx - coord->coord.t[0];
-    dz           = target->pos.vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 12;
-    return 0;
-}
+#include "../../shared/paced_walk_to.inc.c"
 
 /// Handler of the sub-model the actor spawns and adopts as its child. On the
 /// first frame it points the sub-model's light and colour matrices at the
