@@ -65,3 +65,4 @@ RoomFx_DrawBurst2Glow = 0x80180AF4; // type:func
 RoomFx_DrawGround2Quad = 0x80181020; // type:func
 waterDistortBandTask = 0x8017E2A0; // type:func
 waterRefractionTask = 0x8017D64C; // type:func
+glowDrawPulsingStar = 0x8017EFB8; // type:func
