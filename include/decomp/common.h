@@ -13,11 +13,14 @@
 /// This address does not reserve a block or read the scratch-stack cursor.
 #define PLAYSTATION_SCRATCHPAD_BASE ((u8*)0x1F800000)
 
-/// Scratchpad address at `byteOffset` bytes from its base, evaluated once.
+/// Returns a `void*` at a byte offset into PlayStation scratchpad RAM.
 ///
-/// `byteOffset` must be in [0, 0x400]; 0x400 is the one-past-end address.
-/// Accesses must fit within the RAM and satisfy the chosen type's alignment.
-/// Returns `void*` so callers can select a typed view of the shared storage.
+/// `byteOffset` is an integer in [0, 0x400], evaluated once and added to
+/// `PLAYSTATION_SCRATCHPAD_BASE` in bytes; 0x400 is the one-past-end address.
+/// Callers select a typed view whose accesses fit within the RAM and satisfy
+/// that type's alignment. Storage is shared, and callers manage reservations
+/// and data lifetime. Apart from evaluating `byteOffset`, the macro performs
+/// no memory access, reservation or scratch-stack cursor update.
 #define PLAYSTATION_SCRATCHPAD_ADDRESS(byteOffset) ((void*)(PLAYSTATION_SCRATCHPAD_BASE + (byteOffset)))
 
 /// Constant element count of a fixed-size array, as `s32`.
