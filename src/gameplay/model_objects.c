@@ -345,7 +345,7 @@ void modelObjectUnlinkTmd(TmdListNode* node)
 void gpFreeTmd(TmdObject* obj)
 {
     if (obj->buffer != NULL) {
-        memFreeFromHeap(obj->buffer, 1);
+        memFreeFromHeap(obj->buffer, true);
         obj->buffer = NULL;
     }
     memFree(obj);

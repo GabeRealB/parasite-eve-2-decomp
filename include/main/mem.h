@@ -78,16 +78,21 @@ void* memCalloc(size_t size, bool auxHeap);
 /// auxiliary-heap allocation.
 void memFree(void* allocation);
 
-/// Frees a block, returning it to the heap `auxHeap` selects.
+/// Releases an allocation to the selected primary or auxiliary heap.
 ///
-/// A block has to be released to the heap it was taken from, so the caller
-/// names that heap instead of the primary one being assumed. The heap named is
-/// left the active one. `memFree` is the primary-heap-only form.
+/// `allocation` must be `NULL` or the original pointer to a live block from
+/// the selected heap. A non-null release requires initialized allocator
+/// metadata with the heap base still in its free-block ring. Auxiliary releases
+/// require the originating region to be configured, without reinitializing or
+/// repurposing its storage while allocations are live.
+/// The caller owns cleanup of nested allocations and list links; releasing
+/// a non-null block ends its lifetime.
 ///
-/// @param ptr Pointer to the data to be freed.
-/// @param auxHeap If `true`, the block is released to the auxiliary heap,
-///                otherwise to the primary one.
-void memFreeFromHeap(void* ptr, bool auxHeap);
+/// `auxHeap == true` selects the currently configured auxiliary heap; every
+/// other value selects the primary heap. Selection resets the allocator's
+/// search cursor to the heap base even for `NULL`, which releases no block.
+/// The previous selection is not restored. `memFree` always selects primary.
+void memFreeFromHeap(void* allocation, bool auxHeap);
 
 /// Selects which region serves as the auxiliary heap.
 ///

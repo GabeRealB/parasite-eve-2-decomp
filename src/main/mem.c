@@ -189,14 +189,13 @@ void memFree(void* allocation)
     free3(allocation);
 }
 
-void memFreeFromHeap(void* ptr, bool auxHeap)
+void memFreeFromHeap(void* allocation, bool auxHeap)
 {
-    if (auxHeap == true) {
-        _freep = gMemActiveAuxHeap;
-    } else {
-        _freep = gMemPrimaryHeapBase;
-    }
-    free3(ptr);
+    void* heapBase;
+
+    heapBase = auxHeap == true ? gMemActiveAuxHeap : gMemPrimaryHeapBase;
+    _freep   = heapBase;
+    free3(allocation);
 }
 
 void Mem_InitAux(void)

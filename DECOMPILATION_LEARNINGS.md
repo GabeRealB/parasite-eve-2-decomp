@@ -132484,7 +132484,7 @@ source that repeated the code instead.
 void gpFreeTmd(TmdObject* obj)   /* target jals: memFreeFromHeap, memFree */
 {
     if (obj->buffer != NULL) {   /* this half is Tmd_FreeBuffers, verbatim */
-        memFreeFromHeap(obj->buffer, 1);
+        memFreeFromHeap(obj->buffer, true);
         obj->buffer = NULL;
     }
     memFree(obj);

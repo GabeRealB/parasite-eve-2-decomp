@@ -636,7 +636,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
 void Tmd_FreeBuffers(TmdObject* obj)
 {
     if (obj->buffer != NULL) {
-        memFreeFromHeap(obj->buffer, 1);
+        memFreeFromHeap(obj->buffer, true);
         obj->buffer = NULL;
     }
 }
@@ -755,7 +755,7 @@ static void Tmd_FreeNodeBuffers(Task* task)
     node = PARENT_OF(gTmdList.next, TmdObject, link);
     while (node != NULL) {
         if (node->buffer != NULL) {
-            memFreeFromHeap(node->buffer, 1);
+            memFreeFromHeap(node->buffer, true);
             node->buffer = NULL;
         }
         node = PARENT_OF(node->link.next, TmdObject, link);
