@@ -46,10 +46,9 @@ static u8 D_800716E8[8];
 /// unlinks and frees the task without setting this marker.
 enum { TASK_BODY_RELEASED = 0xFF };
 
-/// Values used by the task stop and deferred-model-release protocols.
+/// Values used by the task stop protocol.
 enum {
-    TASK_STATUS_STOP_REQUESTED     = 0xFF,
-    TASK_MODEL_RELEASE_DELAY_TICKS = 2
+    TASK_STATUS_STOP_REQUESTED = 0xFF
 };
 
 /// Links `task` into `list` ahead of the first task whose priority is higher,
@@ -149,6 +148,14 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
 
 void taskKill(Task* task)
 {
+    /// Countdown callback ticks before a stopped TMD model is released.
+    ///
+    /// Normal teardown disables active drawing and retains the linked model
+    /// and its owned storage for this many countdown callback invocations.
+    /// Walks that skip the task do not advance the delay; immediate teardown
+    /// bypasses it.
+    enum { TASK_MODEL_RELEASE_DELAY_TICKS = 2 };
+
     Task*      start;
     Task*      cur;
     Task*      temp;
