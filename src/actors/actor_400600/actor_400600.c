@@ -54,20 +54,9 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_junk_yard.h"
+#include "../../shared/leaping_brute.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
-
-/// Three packed halfwords filled by `func_actor_400600_80139F4C`: the actor's
-/// view-space X/Y (the translation of the `Gp_WorldToLocal` result) and the low
-/// half of the root coordinate's world Z. `func_actor_400600_801361AC` passes
-/// `Actor400600Work::field_88` as the destination, so the slot lives inside the
-/// work block.
-typedef struct Actor400600ViewPos {
-    /* 0x0 */ s16 x;
-    /* 0x2 */ s16 y;
-    /* 0x4 */ s16 z;
-} Actor400600ViewPos;
-STATIC_ASSERT_SIZEOF(Actor400600ViewPos, 0x6);
 
 /// The word at `Actor400600Work::field_710`. Its low half is a frame countdown
 /// (`func_actor_400600_80138AB8` ticks it down, `func_actor_400600_8013C074`
@@ -108,11 +97,11 @@ typedef struct Actor400600Work {
     /* 0x040 */ MATRIX                matrix_40; // light matrix for the child models
     /* 0x060 */ byte                  pad_60[0x10];
     /* 0x070 */ VECTOR                field_70;  // copy of the root coordinate's translation
-    /* 0x080 */ u16                   field_80;  // pitch, see func_actor_400600_80139948
-    /* 0x082 */ u16                   field_82;  // yaw, see func_actor_400600_80139948
-    /* 0x084 */ u16                   field_84;  // roll, see func_actor_400600_80139948
+    /* 0x080 */ u16                   field_80;  // pitch, see bruteApplyRotation
+    /* 0x082 */ u16                   field_82;  // yaw, see bruteApplyRotation
+    /* 0x084 */ u16                   field_84;  // roll, see bruteApplyRotation
     /* 0x086 */ byte                  pad_86[0x2];
-    /* 0x088 */ Actor400600ViewPos    field_88;
+    /* 0x088 */ BruteViewPos          field_88;
     /* 0x08E */ byte                  pad_8E[0x2];
     /* 0x090 */ u16                   field_90; // spawn position X (low half)
     /* 0x092 */ u16                   field_92; // seeds field_73E on state entry
@@ -122,7 +111,7 @@ typedef struct Actor400600Work {
     /* 0x09A */ u16                   field_9A; // copy of field_92
     /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte                  pad_9E[0xA];
-    /* 0x0A8 */ Actor400600ViewPos    field_A8; // copied to the stack for func_actor_400600_80139C00
+    /* 0x0A8 */ BruteViewPos          field_A8; // copied to the stack for bruteTurnToward
     /* 0x0AE */ byte                  pad_AE[0x2];
     /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by func_actor_400600_80139A78
     /* 0x0C4 */ AnimationSlot         slots[0x12];
@@ -340,23 +329,19 @@ static void func_actor_400600_80139764(Task* arg0);
 static void func_actor_400600_801397E4(Task* arg0);
 static void func_actor_400600_80139878(Task* arg0);
 static void func_actor_400600_801398E0(Task* arg0);
-static void func_actor_400600_80139948(Task* arg0);
 static void func_actor_400600_80139A78(Task* arg0);
 static void func_actor_400600_80139AE8(Task* arg0);
 static s16  func_actor_400600_80139BA0(Task* arg0, s16 arg1);
-static void func_actor_400600_80139C00(Task* arg0, SVECTOR* target, s32 step);
 static void func_actor_400600_80139CAC(Task* arg0);
 static void func_actor_400600_80139D98(Task* arg0, s16 arg1, s16 arg2);
 static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_400600_80139DCC(Task* task, s16 index, Actor400600ViewPos* out);
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, Actor400600ViewPos* arg2);
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos* arg2);
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos* arg2);
+static void func_actor_400600_80139E68(Task* arg0, s16 arg1, BruteViewPos* arg2);
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, BruteViewPos* arg2);
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, BruteViewPos* arg2);
 static s32  func_actor_400600_8013A0B0(Task* arg0);
 void        func_actor_400600_8013A0F0(Task* arg0);
 static void func_actor_400600_8013A170(Task* arg0);
 static void func_actor_400600_8013A26C(Task* arg0);
-static void func_actor_400600_8013A2C0(Task* task);
 void        func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2);
 void        func_actor_400600_8013A3A8(Task* arg0);
 void        func_actor_400600_8013A3B8(Task* task);
@@ -1643,7 +1628,7 @@ static __inline__ void Actor400600_RebuildRotation(Task* arg0);
 static __inline__ void Actor400600_TickAnim(Task* arg0);
 static inline void     _actor400600SetCoordRotation(GfxCoord* coord, s16 angle);
 
-/// `func_actor_400600_80139948`'s body, inlined: wrap the three angles to 12 bits and
+/// `bruteApplyRotation`'s body, inlined: wrap the three angles to 12 bits and
 /// rebuild the model root's rotation from them. Inlining is what keeps each
 /// the cursor slot access in the absolute `lui`/`lw` form instead of a
 /// register CSE would otherwise hoist the address into.
@@ -2830,7 +2815,7 @@ static void func_actor_400600_80134B98(Task* arg0)
         Actor400600_TickAnim(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
+        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
         work->field_769  = 0;
         work3            = (Actor400600Work*)arg0->work;
         work3->field_71C = 2;
@@ -2903,7 +2888,7 @@ static void func_actor_400600_801350F4(Task* arg0)
     coord = arg0->extra.tmd->coords;
     work->field_718++;
     if ((s16)work->field_718 < 8) {
-        func_actor_400600_80139DCC(arg0, 3, &work->field_88);
+        bruteReadPartViewXZ(arg0, 3, &work->field_88);
         return;
     }
     work->field_88.x += ((s16)work->field_98 - work->field_88.x) >> 2;
@@ -3166,7 +3151,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
         work->field_726 = arg1;
     }
     if (work->field_748 == 0) {
-        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
+        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -3189,7 +3174,7 @@ static void func_actor_400600_80135998(Task* arg0, s16 arg1)
         }
     }
     if (work->field_748 == start1) {
-        func_actor_400600_80139DCC(arg0, 8, &work->field_88);
+        bruteReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -3274,7 +3259,7 @@ static void func_actor_400600_80135DDC(Task* arg0)
         work->field_748 = 0;
     }
     if (work->field_748 == start0) {
-        func_actor_400600_80139DCC(arg0, 8, &work->field_88);
+        bruteReadPartViewXZ(arg0, 8, &work->field_88);
         id = 0x40060001;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0001;
@@ -3291,7 +3276,7 @@ static void func_actor_400600_80135DDC(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
     if (work->field_748 == start1) {
-        func_actor_400600_80139DCC(arg0, 0xB, &work->field_88);
+        bruteReadPartViewXZ(arg0, 0xB, &work->field_88);
         id = 0x40060002;
         if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
             id = 0x404A0002;
@@ -4583,11 +4568,11 @@ static void func_actor_400600_80138C34(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            func_actor_400600_80139948(arg0);
+            bruteApplyRotation(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            func_actor_400600_8013A2C0(arg0);
+            bruteUpdateColor(arg0);
             func_actor_400600_80132704(arg0, work->field_73C, work->field_73A);
             break;
     }
@@ -4609,11 +4594,11 @@ static void func_actor_400600_80138D78(Task* arg0)
             func_actor_400600_80139CAC(arg0);
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80136558(arg0);
-            func_actor_400600_80139948(arg0);
+            bruteApplyRotation(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            func_actor_400600_8013A2C0(arg0);
+            bruteUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -4635,11 +4620,11 @@ static void func_actor_400600_80138EA0(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            func_actor_400600_80139948(arg0);
+            bruteApplyRotation(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            func_actor_400600_8013A2C0(arg0);
+            bruteUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, (u8)work->field_73A);
             break;
     }
@@ -4661,11 +4646,11 @@ static void func_actor_400600_80138FD4(Task* arg0)
             fns.funcs[(s16)work->field_71C](arg0);
             func_actor_400600_80139CAC(arg0);
             func_actor_400600_80136558(arg0);
-            func_actor_400600_80139948(arg0);
+            bruteApplyRotation(arg0);
         case 1:
             Gp_ClearRec18Occupied(work->rec_4D4);
             Gp_ClearRec18Occupied(work->rec_63C);
-            func_actor_400600_8013A2C0(arg0);
+            bruteUpdateColor(arg0);
             func_actor_400600_80138224(arg0, 0, work->field_73A);
             break;
     }
@@ -4782,7 +4767,7 @@ static void func_actor_400600_80139560(Task* arg0)
         pos.vx = work->field_A8.x;
         pos.vy = work->field_A8.y;
         pos.vz = work->field_A8.z;
-        func_actor_400600_80139C00(arg0, &pos, 0x18);
+        bruteTurnToward(arg0, &pos, 0x18);
         func_actor_400600_80135DDC(arg0);
     }
 }
@@ -4852,43 +4837,7 @@ static void func_actor_400600_801398E0(Task* arg0)
     fns[(s16)work->field_71E](arg0);
 }
 
-/// Wraps the actor's pitch, yaw and roll (`field_80`, `field_82`, `field_84`)
-/// to 12 bits and rebuilds the model root's rotation from them: an identity
-/// matrix taken off the scratch stack is turned by roll, pitch and then yaw,
-/// and its 3x3 copied into the root coordinate, whose translation is left
-/// alone.
-static void func_actor_400600_80139948(Task* arg0)
-{
-    Actor400600Work* work  = (Actor400600Work*)arg0->work;
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    MATRIX*          m;
-    MATRIX*          dst;
-
-    work->field_80              &= 0xFFF;
-    work->field_82              &= 0xFFF;
-    work->field_84              &= 0xFFF;
-    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
-    MATRIX_PAIR(m, 0, 0)         = 0x1000;
-    MATRIX_PAIR(m, 0, 2)         = 0;
-    MATRIX_PAIR(m, 1, 1)         = 0x1000;
-    MATRIX_PAIR(m, 2, 0)         = 0;
-    m->m[2][2]                   = 0x1000;
-    SCRATCH_STACK_CURSOR(MATRIX) = m;
-    RotMatrixZ((s16)work->field_84, m);
-    RotMatrixX((s16)work->field_80, m);
-    RotMatrixY((s16)work->field_82, m);
-    dst          = &coord->coord;
-    dst->m[0][0] = m->m[0][0];
-    dst->m[0][1] = m->m[0][1];
-    dst->m[0][2] = m->m[0][2];
-    dst->m[1][0] = m->m[1][0];
-    dst->m[1][1] = m->m[1][1];
-    dst->m[1][2] = m->m[1][2];
-    dst->m[2][0] = m->m[2][0];
-    dst->m[2][1] = m->m[2][1];
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
-    dst->m[2][2] = m->m[2][2];
-}
+#include "../../shared/leaping_brute_apply_rotation.inc.c"
 
 static void func_actor_400600_80139A78(Task* arg0)
 {
@@ -4939,34 +4888,7 @@ static s16 func_actor_400600_80139BA0(Task* arg0, s16 arg1)
     return ((arg1 << 8) / work->field_726 << 12) >> 16;
 }
 
-/// Turns the actor's yaw (`field_82`) by `step` toward the world point
-/// `target`, of which only `vx` and `vz` are read, leaving it alone while the
-/// heading error is within 0x100. Clears the model root's `composeStamp` first so the
-/// root is recomputed.
-static void func_actor_400600_80139C00(Task* arg0, SVECTOR* target, s32 step)
-{
-    Actor400600Work* work = (Actor400600Work*)arg0->work;
-    GfxCoord*        coords;
-    SVECTOR          vec;
-    s32              diff;
-    s32              yaw;
-    u16              angle;
-
-    coords               = arg0->extra.tmd->coords;
-    coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    vec.vx               = target->vx - coords->coord.t[0];
-    vec.vy               = 0;
-    vec.vz               = target->vz - coords->coord.t[2];
-    VectorNormalSS(&vec, &vec);
-    yaw   = ratan2(vec.vx, vec.vz);
-    angle = work->field_82;
-    diff  = ((angle - yaw) << 20) >> 20;
-    if (diff > 0x100) {
-        work->field_82 = angle - step;
-    } else if (diff < -0x100) {
-        work->field_82 = angle + step;
-    }
-}
+#include "../../shared/leaping_brute_turn_toward.inc.c"
 
 static void func_actor_400600_80139CAC(Task* arg0)
 {
@@ -5015,28 +4937,9 @@ static void func_actor_400600_80139DB0(Task* arg0, s16 arg1, s16 arg2, s16 arg3)
     work->field_742 = 1;
 }
 
-/// Refreshes the view coordinate and coordinate `index` of the actor's model,
-/// then stores that coordinate's view-space X and Z translation to `out`; `y`
-/// is left untouched. Every caller passes the work block's `field_88`.
-static void func_actor_400600_80139DCC(Task* task, s16 index, Actor400600ViewPos* out)
-{
-    MATRIX    local;
-    GfxCoord* coord;
-    GfxCoord* coords;
+#include "../../shared/leaping_brute_part_view_xz.inc.c"
 
-    coords                     = task->extra.tmd->coords;
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                      = &coords[index];
-    Gp_UpdateCoord(&gGfxViewCoord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &local);
-    out->x              = local.t[0];
-    out->z              = local.t[2];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
-
-static void func_actor_400600_80139E68(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
+static void func_actor_400600_80139E68(Task* arg0, s16 arg1, BruteViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -5059,7 +4962,7 @@ static void func_actor_400600_80139E68(Task* arg0, s16 arg1, Actor400600ViewPos*
     Gp_UpdateCoord(coords);
 }
 
-static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
+static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, BruteViewPos* arg2)
 {
     MATRIX    local;
     GfxCoord* coord;
@@ -5075,7 +4978,7 @@ static void func_actor_400600_80139F4C(Task* arg0, s16 arg1, Actor400600ViewPos*
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, Actor400600ViewPos* arg2)
+static void func_actor_400600_80139FE0(Task* arg0, s16 arg1, BruteViewPos* arg2)
 {
     MATRIX    root;
     MATRIX    local;
@@ -5131,7 +5034,7 @@ static void func_actor_400600_8013A170(Task* arg0)
         case 0:
             fns.funcs[(s16)work->field_71C](arg0);
         case 1:
-            func_actor_400600_8013A2C0(arg0);
+            bruteUpdateColor(arg0);
             func_actor_400600_80138224(arg0, work->field_73E, work->field_73A);
             break;
     }
@@ -5148,28 +5051,7 @@ static void func_actor_400600_8013A26C(Task* arg0)
     states[(s16)work->field_71C](arg0);
 }
 
-/// Colours the actor from its model's second coordinate: takes a 0x10-byte
-/// `VECTOR` off the scratch stack, fills it with that coordinate's world
-/// position and hands it to `Gp_UpdateActorColor` for the task's `spawnArg2`,
-/// with no blend parameters.
-static void func_actor_400600_8013A2C0(Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
-
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    Gp_UpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
+#include "../../shared/leaping_brute_update_color.inc.c"
 
 void func_actor_400600_8013A338(Task* arg0, s32 arg1, u16* arg2)
 {
@@ -5398,7 +5280,7 @@ static void func_actor_400600_8013A990(Task* arg0)
         coord->coord.t[1] = (s16)work->field_92;
         func_actor_400600_80139D98(arg0, 0x13, 0x10);
         work->field_84 += 0x800;
-        func_actor_400600_80139948(arg0);
+        bruteApplyRotation(arg0);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_718 = 0;
@@ -5870,7 +5752,7 @@ static void func_actor_400600_8013B740(Task* arg0)
     pos.vx = work->field_A8.x;
     pos.vy = work->field_A8.y;
     pos.vz = work->field_A8.z;
-    func_actor_400600_80139C00(arg0, &pos, work->field_754);
+    bruteTurnToward(arg0, &pos, work->field_754);
     func_actor_400600_80135998(arg0, work->field_752);
 }
 
@@ -6170,7 +6052,7 @@ static void func_actor_400600_8013BFD4(Task* arg0)
     work2->field_726 = 0x10;
     work2->field_746 = 0x16;
     work2->field_742 = 1;
-    func_actor_400600_80139DCC(arg0, 0xE, &work->field_88);
+    bruteReadPartViewXZ(arg0, 0xE, &work->field_88);
     work->field_71E = work->field_71E + 1;
 }
 

@@ -232,3 +232,7 @@ D_actor_405800_801513F8 = 0x801513F8; // size:0x18 defined:True
 D_actor_405800_80151410 = 0x80151410; // size:0x8C defined:True
 frameCaptureQueue = 0x80131FC8; // type:func
 limbShadowDrawSegment = 0x801329C8; // type:func
+bruteTurnToward = 0x801383CC; // type:func
+bruteReadPartViewXZ = 0x80138478; // type:func
+bruteUpdateColor = 0x801387DC; // type:func
+bruteApplyRotation = 0x80139FC4; // type:func
