@@ -221,6 +221,12 @@ enum {
     SOUND_SCRIPT_RETRIGGER_DISABLED  = -1
 };
 
+// Descriptor lookup modes; all other values produce no match.
+enum {
+    SOUND_BANK_SLOT_MATCH_ID   = 0,
+    SOUND_BANK_SLOT_MATCH_TYPE = 1
+};
+
 static volatile u8 D_80082138[0x10];
 
 /// Stable sound-script bank slots owning images and borrowing sample descriptors.
@@ -302,13 +308,7 @@ static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* sl
 
 static void SndVoice_Detach(void* context);
 
-/// Finds the slot holding the loaded bank that `bankId` names.
-///
-/// A bank id carries the bank's type in its high nibble, and `byType` selects
-/// how it is compared with the id each loaded bank carries: 0 matches the whole
-/// id, 1 only the bits selected by `SOUND_BANK_TYPE_MASK`. A search that matches
-/// nothing returns `NULL`.
-static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType);
+static SndBankSlot* _sndBankSlotFind(u16 bankId, s32 matchMode);
 
 static SndVoice* SndVoice_Alloc(s32 arg0);
 
@@ -625,7 +625,7 @@ s32        arg0;
 
     var_s0 = arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
-        bankSlot = sndBankSlotFind(0x1000, 1);
+        bankSlot = _sndBankSlotFind(0x1000, SOUND_BANK_SLOT_MATCH_TYPE);
         if (bankSlot != NULL) {
             var_s0 = (bankSlot->image->bankId << 0x10) + (var_s0 & 0xFFFF);
         }
@@ -730,7 +730,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
     }
     arg0     = SndBank_RemapId(arg0);
-    bankSlot = sndBankSlotFind((u32)arg0 >> 16, 0);
+    bankSlot = _sndBankSlotFind((u32)arg0 >> 16, SOUND_BANK_SLOT_MATCH_ID);
     if (bankSlot == NULL) {
         return -2;
     }
@@ -1937,49 +1937,50 @@ static void SndVoice_Detach(void* context)
     }
 }
 
-/// Finds the slot holding the loaded bank that `bankId` names.
+/// Finds the first sound-script slot whose attached descriptor matches `bankId`.
 ///
-/// A bank id carries the bank's type in its high nibble, and `byType` selects
-/// how it is compared with the id each loaded bank carries: 0 matches the whole
-/// id, 1 only the bits selected by `SOUND_BANK_TYPE_MASK`. A search that matches
-/// nothing returns `NULL`.
-static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
+/// `SOUND_BANK_SLOT_MATCH_ID` compares the complete 16-bit descriptor id;
+/// `SOUND_BANK_SLOT_MATCH_TYPE` compares only bits 12..15 selected by
+/// `SOUND_BANK_TYPE_MASK`. Slots are searched in ascending index order;
+/// no match or an unsupported `matchMode` returns `NULL`.
+///
+/// The result borrows a stable slot. Matching includes `SOUND_BANK_ID_FREE`
+/// descriptors and slots whose image was released. Callers reading `image`
+/// require a completed image; script playback also requires initialized sample
+/// tables. These resources must remain loaded through their last use.
+static SndBankSlot* _sndBankSlotFind(u16 bankId, s32 matchMode)
 {
-    s32          i;
-    SndBankSlot* slot;
-    SndBank*     bank;
-    s32          key;
+    s32            slotIndex;
+    SndBankSlot*   slot;
+    const SndBank* bank;
+    s32            matchKey;
 
-    switch (byType) {
-        case 0:
-            i    = 0;
-            key  = bankId;
-            slot = _gSndBankSlots;
+    switch (matchMode) {
+        case SOUND_BANK_SLOT_MATCH_ID:
+            slotIndex = 0;
+            matchKey  = bankId;
+            slot      = _gSndBankSlots;
             do {
                 bank = slot->bank;
-                if (bank != NULL) {
-                    if (bank->bankId == key) {
-                        return slot;
-                    }
+                if (bank != NULL && bank->bankId == matchKey) {
+                    return slot;
                 }
-                i++;
+                slotIndex++;
                 slot++;
-            } while (i < ARRAY_SIZE(_gSndBankSlots));
+            } while (slotIndex < ARRAY_SIZE(_gSndBankSlots));
             return NULL;
-        case 1:
-            i    = 0;
-            key  = bankId & SOUND_BANK_TYPE_MASK;
-            slot = _gSndBankSlots;
+        case SOUND_BANK_SLOT_MATCH_TYPE:
+            slotIndex = 0;
+            matchKey  = bankId & SOUND_BANK_TYPE_MASK;
+            slot      = _gSndBankSlots;
             do {
                 bank = slot->bank;
-                if (bank != NULL) {
-                    if ((bank->bankId & SOUND_BANK_TYPE_MASK) == key) {
-                        return slot;
-                    }
+                if (bank != NULL && (bank->bankId & SOUND_BANK_TYPE_MASK) == matchKey) {
+                    return slot;
                 }
-                i++;
+                slotIndex++;
                 slot++;
-            } while (i < ARRAY_SIZE(_gSndBankSlots));
+            } while (slotIndex < ARRAY_SIZE(_gSndBankSlots));
             break;
     }
     return NULL;
