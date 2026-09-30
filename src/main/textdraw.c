@@ -48,7 +48,12 @@ enum {
     TEXT_GLYPH_V_BIAS_LARGE  = 0x80,
 };
 
-/// Records in the medium face: one per character byte from ' ' through 0xFF.
+/// Record count of the medium UI face.
+///
+/// One record per character byte from ' ' through 0xFF, indexed as
+/// `byte - ' '`, so every such byte is in range. The large face covers the
+/// same bytes; the small face stops at 0x7A and does not use this count.
+/// 224 records occupy 0xA80 bytes.
 enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
 
 /// Texture bounds and pen metrics for one encoded UI-font character.
