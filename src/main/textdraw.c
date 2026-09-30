@@ -60,8 +60,9 @@ enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
 ///
 /// One record per character byte from ' ' through 0xFF, indexed as
 /// `byte - ' '`, so every such byte is in range. The medium face covers the
-/// same bytes under `FONT_GLYPH_MEDIUM_COUNT`; the small face stops at 0x7A and does not
-/// use this count. 224 records occupy 0xA80 bytes.
+/// same bytes under `FONT_GLYPH_MEDIUM_COUNT`. The small face stops at 0x7A
+/// and does not use this count.
+/// 224 records occupy 0xA80 bytes.
 enum { FONT_GLYPH_LARGE_COUNT = 0x100 - ' ' };
 
 /// Texture bounds and pen metrics for one encoded UI-font character.
