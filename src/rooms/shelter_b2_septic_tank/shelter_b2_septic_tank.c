@@ -445,9 +445,9 @@ GpViewRec D_shelter_b2_septic_tank_80183E30[6] = {
     { { { { -4024, 0, 763 }, { -152, 4013, -804 }, { -748, -819, -3942 } }, { 1196, 493, 5408 } }, 297 },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_80183F08[2] = {
+SpriteBatch D_shelter_b2_septic_tank_80183F08[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_septic_tank_80183F18[83] = {
@@ -536,13 +536,13 @@ GpSprtElem D_shelter_b2_septic_tank_80183F18[83] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 48, 1235, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_80184594[6] = {
+SpriteBatch D_shelter_b2_septic_tank_80184594[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 3, 0 } },
     { 30, 9, 0, 0, { 0, 0 } },
     { 39, 26, 0, 0, { 2, 0 } },
     { 65, 18, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_septic_tank_801845C4[127] = {
@@ -675,7 +675,7 @@ GpSprtElem D_shelter_b2_septic_tank_801845C4[127] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 56, 1940, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_80184FB0[10] = {
+SpriteBatch D_shelter_b2_septic_tank_80184FB0[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 6, 0 } },
     { 7, 35, 0, 0, { 1, 0 } },
@@ -685,7 +685,7 @@ GpSprtCmd D_shelter_b2_septic_tank_80184FB0[10] = {
     { 86, 12, 0, 0, { 3, 0 } },
     { 98, 12, 0, 0, { 7, 0 } },
     { 110, 17, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_septic_tank_80185000[144] = {
@@ -835,7 +835,7 @@ GpSprtElem D_shelter_b2_septic_tank_80185000[144] = {
     { 142, 0x3FC0, { .fields = { 32, 8 } }, 24, 16, 2172, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_80185B40[11] = {
+SpriteBatch D_shelter_b2_septic_tank_80185B40[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
     { 13, 16, 0, 0, { 5, 0 } },
@@ -846,7 +846,7 @@ GpSprtCmd D_shelter_b2_septic_tank_80185B40[11] = {
     { 91, 13, 0, 0, { 3, 0 } },
     { 104, 13, 0, 0, { 8, 0 } },
     { 117, 27, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_septic_tank_80185B98[143] = {
@@ -995,16 +995,16 @@ GpSprtElem D_shelter_b2_septic_tank_80185B98[143] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 48, 1180, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_801866C4[4] = {
+SpriteBatch D_shelter_b2_septic_tank_801866C4[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 60, 0, 0, { 1, 0 } },
     { 60, 83, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_septic_tank_801866E4[2] = {
+SpriteBatch D_shelter_b2_septic_tank_801866E4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b2_septic_tank_801866F4[6] = {

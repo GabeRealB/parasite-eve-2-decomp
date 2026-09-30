@@ -194,9 +194,9 @@ GpViewRec D_mine_gorge_8017FA14[11] = {
     { { { { 186, 0, 4091 }, { 3209, 2541, -146 }, { -2538, 3212, 115 } }, { -0x2E48, 1696, -1474 } }, 230 },
 };
 
-GpSprtCmd D_mine_gorge_8017FBA0[2] = {
+SpriteBatch D_mine_gorge_8017FBA0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_8017FBB0[86] = {
@@ -288,14 +288,14 @@ GpSprtElem D_mine_gorge_8017FBB0[86] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, -32, 1591, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80180268[7] = {
+SpriteBatch D_mine_gorge_80180268[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
     { 6, 20, 0, 0, { 3, 0 } },
     { 26, 21, 0, 0, { 2, 0 } },
     { 47, 22, 0, 0, { 4, 0 } },
     { 69, 17, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_801802A0[73] = {
@@ -374,13 +374,13 @@ GpSprtElem D_mine_gorge_801802A0[73] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 72, 814, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80180854[6] = {
+SpriteBatch D_mine_gorge_80180854[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 3, 0 } },
     { 27, 2, 0, 0, { 0, 0 } },
     { 29, 23, 0, 0, { 2, 0 } },
     { 52, 21, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_80180884[66] = {
@@ -452,16 +452,16 @@ GpSprtElem D_mine_gorge_80180884[66] = {
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -16, 80, 2629, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80180DAC[4] = {
+SpriteBatch D_mine_gorge_80180DAC[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 59, 0, 0, { 1, 0 } },
     { 59, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_gorge_80180DCC[2] = {
+SpriteBatch D_mine_gorge_80180DCC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_80180DDC[83] = {
@@ -550,7 +550,7 @@ GpSprtElem D_mine_gorge_80180DDC[83] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -8, 992, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80181458[8] = {
+SpriteBatch D_mine_gorge_80181458[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 3, 0 } },
     { 4, 0, 0, 0, { 0, 0 } },
@@ -558,7 +558,7 @@ GpSprtCmd D_mine_gorge_80181458[8] = {
     { 33, 22, 0, 0, { 1, 0 } },
     { 55, 4, 0, 0, { 4, 0 } },
     { 59, 24, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_80181498[100] = {
@@ -664,13 +664,13 @@ GpSprtElem D_mine_gorge_80181498[100] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 72, 814, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80181C68[6] = {
+SpriteBatch D_mine_gorge_80181C68[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 3, 0 } },
     { 24, 33, 0, 0, { 0, 0 } },
     { 57, 19, 0, 0, { 2, 0 } },
     { 76, 24, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_80181C98[100] = {
@@ -776,13 +776,13 @@ GpSprtElem D_mine_gorge_80181C98[100] = {
     { 142, 0x3FC0, { .fields = { 24, 40 } }, -24, 80, 2826, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_80182468[6] = {
+SpriteBatch D_mine_gorge_80182468[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 39, 0, 0, { 0, 0 } },
     { 59, 34, 0, 0, { 2, 0 } },
     { 93, 7, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_gorge_80182498[40] = {
@@ -828,21 +828,21 @@ GpSprtElem D_mine_gorge_80182498[40] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, -32, 3156, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_gorge_801827B8[4] = {
+SpriteBatch D_mine_gorge_801827B8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 1, 0 } },
     { 24, 16, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_gorge_801827D8[2] = {
+SpriteBatch D_mine_gorge_801827D8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_gorge_801827E8[2] = {
+SpriteBatch D_mine_gorge_801827E8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mine_gorge_801827F8[11] = {

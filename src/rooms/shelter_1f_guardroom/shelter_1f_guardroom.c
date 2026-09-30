@@ -127,14 +127,14 @@ GpViewRec D_shelter_1f_guardroom_8017DC14[3] = {
     { { { { 756, 0, -4025 }, { -1977, 3567, -371 }, { 3506, 2012, 658 } }, { 9590, 2480, 4320 } }, 257 },
 };
 
-GpSprtCmd D_shelter_1f_guardroom_8017DC80[2] = {
+SpriteBatch D_shelter_1f_guardroom_8017DC80[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_1f_guardroom_8017DC90[2] = {
+SpriteBatch D_shelter_1f_guardroom_8017DC90[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_1f_guardroom_8017DCA0[2] = {
@@ -142,10 +142,10 @@ GpSprtElem D_shelter_1f_guardroom_8017DCA0[2] = {
     { 143, 0x3FC0, { .fields = { 80, 160 } }, 0, -120, 2500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_1f_guardroom_8017DCC8[3] = {
+SpriteBatch D_shelter_1f_guardroom_8017DCC8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_1f_guardroom_8017DCE0[3] = {
@@ -365,13 +365,13 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
 static void func_shelter_1f_guardroom_8017D9CC(s32 arg0)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
-    cmd = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][2].field_4;
     if ((arg0 & 0xFF) == 0) {
-        cmd[1].field_4 = 1;
+        batches[1].hidden = 1;
     } else {
-        cmd[1].field_4 = 0;
+        batches[1].hidden = 0;
     }
 }
 

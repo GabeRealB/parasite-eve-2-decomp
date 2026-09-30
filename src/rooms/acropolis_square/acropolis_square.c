@@ -507,14 +507,14 @@ GpRoomBoundVec D_acropolis_square_80186480[16] = {
     { 16, 16, 16, 16 },
 };
 
-GpSprtCmd D_acropolis_square_80186500[2] = {
+SpriteBatch D_acropolis_square_80186500[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_80186510[2] = {
+SpriteBatch D_acropolis_square_80186510[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_80186520[73] = {
@@ -593,7 +593,7 @@ GpSprtElem D_acropolis_square_80186520[73] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -120, 2450, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_80186AD4[11] = {
+SpriteBatch D_acropolis_square_80186AD4[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 0, 0 } },
     { 4, 3, 0, 0, { 5, 0 } },
@@ -604,7 +604,7 @@ GpSprtCmd D_acropolis_square_80186AD4[11] = {
     { 43, 7, 0, 0, { 3, 0 } },
     { 50, 14, 0, 0, { 8, 0 } },
     { 64, 9, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_80186B2C[41] = {
@@ -651,12 +651,12 @@ GpSprtElem D_acropolis_square_80186B2C[41] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 40, 1712, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_80186E60[5] = {
+SpriteBatch D_acropolis_square_80186E60[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 9, 0, 0, { 2, 0 } },
     { 22, 19, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_80186E88[31] = {
@@ -693,12 +693,12 @@ GpSprtElem D_acropolis_square_80186E88[31] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 64, 1450, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_801870F4[5] = {
+SpriteBatch D_acropolis_square_801870F4[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 1, 0 } },
     { 12, 4, 0, 0, { 2, 0 } },
     { 16, 15, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_8018711C[91] = {
@@ -795,7 +795,7 @@ GpSprtElem D_acropolis_square_8018711C[91] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 64, 1062, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_80187838[12] = {
+SpriteBatch D_acropolis_square_80187838[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 6, 0 } },
     { 7, 8, 0, 0, { 1, 0 } },
@@ -807,7 +807,7 @@ GpSprtCmd D_acropolis_square_80187838[12] = {
     { 54, 15, 0, 0, { 4, 0 } },
     { 69, 13, 0, 0, { 7, 0 } },
     { 82, 9, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_80187898[94] = {
@@ -907,7 +907,7 @@ GpSprtElem D_acropolis_square_80187898[94] = {
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, 56, 1305, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_80187FF0[18] = {
+SpriteBatch D_acropolis_square_80187FF0[18] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 13, 0 } },
     { 8, 17, 0, 0, { 2, 0 } },
@@ -925,7 +925,7 @@ GpSprtCmd D_acropolis_square_80187FF0[18] = {
     { 74, 11, 0, 0, { 4, 0 } },
     { 85, 3, 0, 0, { 14, 0 } },
     { 88, 6, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_square_80188080[53] = {
@@ -984,7 +984,7 @@ GpSprtElem D_acropolis_square_80188080[53] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -40, 3375, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_square_801884A4[13] = {
+SpriteBatch D_acropolis_square_801884A4[13] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
     { 9, 5, 0, 0, { 6, 0 } },
@@ -997,42 +997,42 @@ GpSprtCmd D_acropolis_square_801884A4[13] = {
     { 45, 3, 0, 0, { 0, 0 } },
     { 48, 2, 0, 0, { 10, 0 } },
     { 50, 3, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018850C[2] = {
+SpriteBatch D_acropolis_square_8018850C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018851C[2] = {
+SpriteBatch D_acropolis_square_8018851C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018852C[2] = {
+SpriteBatch D_acropolis_square_8018852C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018853C[2] = {
+SpriteBatch D_acropolis_square_8018853C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018854C[2] = {
+SpriteBatch D_acropolis_square_8018854C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018855C[2] = {
+SpriteBatch D_acropolis_square_8018855C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_square_8018856C[2] = {
+SpriteBatch D_acropolis_square_8018856C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_square_8018857C[15] = {

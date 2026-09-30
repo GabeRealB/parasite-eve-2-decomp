@@ -211,9 +211,9 @@ GpViewRec D_dryfield_night_motel_lobby_80182DD8[8] = {
     { { { { 2330, 0, 3368 }, { 2690, 2464, -1861 }, { -2026, 3271, 1402 } }, { -4592, 2112, -3856 } }, 541 },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80182EF8[2] = {
+SpriteBatch D_dryfield_night_motel_lobby_80182EF8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_motel_lobby_80182F08[50] = {
@@ -269,11 +269,11 @@ GpSprtElem D_dryfield_night_motel_lobby_80182F08[50] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 48, 912, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_801832F0[4] = {
+SpriteBatch D_dryfield_night_motel_lobby_801832F0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 1, 0 } },
     { 18, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_motel_lobby_80183310[52] = {
@@ -331,10 +331,10 @@ GpSprtElem D_dryfield_night_motel_lobby_80183310[52] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 32, 737, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183720[3] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183720[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 52, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_motel_lobby_80183738[71] = {
@@ -411,30 +411,30 @@ GpSprtElem D_dryfield_night_motel_lobby_80183738[71] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 16, 975, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183CC4[3] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183CC4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 71, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183CDC[2] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183CDC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183CEC[2] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183CEC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183CFC[2] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183CFC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_lobby_80183D0C[2] = {
+SpriteBatch D_dryfield_night_motel_lobby_80183D0C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_motel_lobby_80183D1C[8] = {

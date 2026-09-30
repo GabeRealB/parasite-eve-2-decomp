@@ -165,22 +165,22 @@ extern GpGridParams D_dryfield_night_saloon_g_r_80185B50[1];
 extern GpObj3A      D_dryfield_night_saloon_g_r_80188E18[2];
 extern GpObj4C      D_dryfield_night_saloon_g_r_8018831C[16];
 
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185D48[2];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185EAC[3];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80185FDC[4];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80186574[6];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80186A90[5];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_801871D4[5];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_801873C8[5];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_801873F0[2];
-extern GpSprtCmd  D_dryfield_night_saloon_g_r_80187504[5];
-extern GpSprtElem D_dryfield_night_saloon_g_r_80185D58[17];
-extern GpSprtElem D_dryfield_night_saloon_g_r_80185EC4[14];
-extern GpSprtElem D_dryfield_night_saloon_g_r_80185FFC[70];
-extern GpSprtElem D_dryfield_night_saloon_g_r_801865A4[63];
-extern GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91];
-extern GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23];
-extern GpSprtElem D_dryfield_night_saloon_g_r_80187400[13];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80185D48[2];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80185EAC[3];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80185FDC[4];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80186574[6];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80186A90[5];
+extern SpriteBatch D_dryfield_night_saloon_g_r_801871D4[5];
+extern SpriteBatch D_dryfield_night_saloon_g_r_801873C8[5];
+extern SpriteBatch D_dryfield_night_saloon_g_r_801873F0[2];
+extern SpriteBatch D_dryfield_night_saloon_g_r_80187504[5];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_80185D58[17];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_80185EC4[14];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_80185FFC[70];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_801865A4[63];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_80186AB8[91];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_801871FC[23];
+extern GpSprtElem  D_dryfield_night_saloon_g_r_80187400[13];
 
 extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968;
 extern AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C;
@@ -1146,9 +1146,9 @@ GpViewRec D_dryfield_night_saloon_g_r_80185B74[13] = {
     { { { { 2919, 0, 2873 }, { 1429, 3553, -1451 }, { -2492, 2037, 2532 } }, { 1395, 2500, -2735 } }, 257 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80185D48[2] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80185D48[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80185D58[17] = {
@@ -1171,10 +1171,10 @@ GpSprtElem D_dryfield_night_saloon_g_r_80185D58[17] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 64, -16, 1075, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80185EAC[3] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80185EAC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80185EC4[14] = {
@@ -1194,11 +1194,11 @@ GpSprtElem D_dryfield_night_saloon_g_r_80185EC4[14] = {
     { 143, 0x4000, { .fields = { 16, 8 } }, -144, 112, 527, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80185FDC[4] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80185FDC[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
     { 5, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80185FFC[70] = {
@@ -1274,13 +1274,13 @@ GpSprtElem D_dryfield_night_saloon_g_r_80185FFC[70] = {
     { 143, 0x4000, { .fields = { 8, 32 } }, 152, -32, 1251, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80186574[6] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80186574[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 7, 0, 0, { 1, 0 } },
     { 27, 14, 0, 0, { 2, 0 } },
     { 41, 29, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_801865A4[63] = {
@@ -1349,12 +1349,12 @@ GpSprtElem D_dryfield_night_saloon_g_r_801865A4[63] = {
     { 142, 0x3FC0, { .fields = { 40, 32 } }, 120, 88, 500, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80186A90[5] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80186A90[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 42, 0, 0, { 2, 0 } },
     { 52, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91] = {
@@ -1451,12 +1451,12 @@ GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91] = {
     { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, 88, 290, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_801871D4[5] = {
+SpriteBatch D_dryfield_night_saloon_g_r_801871D4[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 13, 0, 0, { 2, 0 } },
     { 32, 59, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23] = {
@@ -1485,17 +1485,17 @@ GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 40, 1050, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_801873C8[5] = {
+SpriteBatch D_dryfield_night_saloon_g_r_801873C8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
     { 16, 4, 0, 0, { 2, 0 } },
     { 20, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_801873F0[2] = {
+SpriteBatch D_dryfield_night_saloon_g_r_801873F0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80187400[13] = {
@@ -1514,12 +1514,12 @@ GpSprtElem D_dryfield_night_saloon_g_r_80187400[13] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -88, 387, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80187504[5] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80187504[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 1, 0, 0, { 2, 0 } },
     { 8, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_8018752C[119] = {
@@ -1644,11 +1644,11 @@ GpSprtElem D_dryfield_night_saloon_g_r_8018752C[119] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 104, 150, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80187E78[4] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80187E78[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 71, 0, 0, { 1, 0 } },
     { 71, 48, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_saloon_g_r_80187E98[12] = {
@@ -1666,21 +1666,21 @@ GpSprtElem D_dryfield_night_saloon_g_r_80187E98[12] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 72, 800, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80187F88[4] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80187F88[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80187FA8[2] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80187FA8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_saloon_g_r_80187FB8[2] = {
+SpriteBatch D_dryfield_night_saloon_g_r_80187FB8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_saloon_g_r_80187FC8[13] = {

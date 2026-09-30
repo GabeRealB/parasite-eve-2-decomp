@@ -79,19 +79,19 @@ GpViewRec D_shelter_r37_8017D944[3] = {
     { { { { 902, 0, 3995 }, { 3827, 1174, -864 }, { -1145, 3924, 258 } }, { 1110, 5890, 370 } }, 207 },
 };
 
-GpSprtCmd D_shelter_r37_8017D9B0[2] = {
+SpriteBatch D_shelter_r37_8017D9B0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r37_8017D9C0[2] = {
+SpriteBatch D_shelter_r37_8017D9C0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r37_8017D9D0[2] = {
+SpriteBatch D_shelter_r37_8017D9D0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_r37_8017D9E0[3] = {

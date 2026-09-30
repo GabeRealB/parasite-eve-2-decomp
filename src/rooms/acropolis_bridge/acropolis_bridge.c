@@ -941,9 +941,9 @@ GpObj4C D_acropolis_bridge_8018B9FC[7] = {
     { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, 0, 15, 33, 130, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018BC10[2] = {
+SpriteBatch D_acropolis_bridge_8018BC10[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018BC20[104] = {
@@ -1053,7 +1053,7 @@ GpSprtElem D_acropolis_bridge_8018BC20[104] = {
     { 142, 0x4000, { .fields = { 56, 8 } }, 16, -16, 1627, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018C440[13] = {
+SpriteBatch D_acropolis_bridge_8018C440[13] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 10, 0, 0, { 6, 0 } },
@@ -1066,7 +1066,7 @@ GpSprtCmd D_acropolis_bridge_8018C440[13] = {
     { 89, 7, 0, 0, { 0, 0 } },
     { 96, 6, 0, 0, { 10, 0 } },
     { 102, 2, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018C4A8[112] = {
@@ -1184,7 +1184,7 @@ GpSprtElem D_acropolis_bridge_8018C4A8[112] = {
     { 140, 0x3FC0, { .fields = { 80, 16 } }, -56, 40, 1000, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018CD68[19] = {
+SpriteBatch D_acropolis_bridge_8018CD68[19] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 6, 0 } },
     { 11, 6, 0, 0, { 9, 0 } },
@@ -1203,7 +1203,7 @@ GpSprtCmd D_acropolis_bridge_8018CD68[19] = {
     { 105, 3, 0, 0, { 7, 0 } },
     { 108, 2, 0, 0, { 16, 0 } },
     { 110, 2, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018CE00[153] = {
@@ -1362,7 +1362,7 @@ GpSprtElem D_acropolis_bridge_8018CE00[153] = {
     { 140, 0x3FC0, { .fields = { 24, 8 } }, -112, -64, 2987, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018D9F4[17] = {
+SpriteBatch D_acropolis_bridge_8018D9F4[17] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 7, 0 } },
     { 3, 11, 0, 0, { 8, 0 } },
@@ -1379,7 +1379,7 @@ GpSprtCmd D_acropolis_bridge_8018D9F4[17] = {
     { 148, 0, 0, 0, { 0, 0 } },
     { 148, 3, 0, 0, { 14, 0 } },
     { 151, 2, 0, 0, { 4, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018DA7C[112] = {
@@ -1497,7 +1497,7 @@ GpSprtElem D_acropolis_bridge_8018DA7C[112] = {
     { 141, 0x4000, { .fields = { 40, 8 } }, 24, 0, 1326, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018E33C[18] = {
+SpriteBatch D_acropolis_bridge_8018E33C[18] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 13, 0 } },
     { 8, 4, 0, 0, { 2, 0 } },
@@ -1515,7 +1515,7 @@ GpSprtCmd D_acropolis_bridge_8018E33C[18] = {
     { 89, 10, 0, 0, { 4, 0 } },
     { 99, 10, 0, 0, { 14, 0 } },
     { 109, 3, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018E3CC[142] = {
@@ -1663,7 +1663,7 @@ GpSprtElem D_acropolis_bridge_8018E3CC[142] = {
     { 141, 0x3FC0, { .fields = { 56, 32 } }, -160, -64, 1862, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018EEE4[19] = {
+SpriteBatch D_acropolis_bridge_8018EEE4[19] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 6, 0 } },
     { 12, 16, 0, 0, { 9, 0 } },
@@ -1682,7 +1682,7 @@ GpSprtCmd D_acropolis_bridge_8018EEE4[19] = {
     { 121, 16, 0, 0, { 7, 0 } },
     { 137, 4, 0, 0, { 16, 0 } },
     { 141, 1, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018EF7C[133] = {
@@ -1821,7 +1821,7 @@ GpSprtElem D_acropolis_bridge_8018EF7C[133] = {
     { 141, 0x3FC0, { .fields = { 16, 24 } }, 104, 96, 692, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018F9E0[18] = {
+SpriteBatch D_acropolis_bridge_8018F9E0[18] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 13, 0 } },
     { 7, 11, 0, 0, { 2, 0 } },
@@ -1839,7 +1839,7 @@ GpSprtCmd D_acropolis_bridge_8018F9E0[18] = {
     { 104, 17, 0, 0, { 4, 0 } },
     { 121, 8, 0, 0, { 14, 0 } },
     { 129, 4, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018FA70[40] = {
@@ -1885,7 +1885,7 @@ GpSprtElem D_acropolis_bridge_8018FA70[40] = {
     { 143, 0x4000, { .fields = { 72, 96 } }, 0, 24, 84, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018FD90[37] = {
+SpriteBatch D_acropolis_bridge_8018FD90[37] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 14, 0 } },
     { 1, 1, 0, 0, { 18, 0 } },
@@ -1922,12 +1922,12 @@ GpSprtCmd D_acropolis_bridge_8018FD90[37] = {
     { 32, 1, 0, 0, { 15, 0 } },
     { 33, 1, 0, 0, { 34, 0 } },
     { 34, 6, 0, 0, { 11, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_bridge_8018FEB8[2] = {
+SpriteBatch D_acropolis_bridge_8018FEB8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_bridge_8018FEC8[9] = {
@@ -1942,12 +1942,12 @@ GpSprtElem D_acropolis_bridge_8018FEC8[9] = {
     { 143, 0x4040, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_bridge_8018FF7C[5] = {
+SpriteBatch D_acropolis_bridge_8018FF7C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 3, 0, 0, { 2, 0 } },
     { 6, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_bridge_8018FFA4[10] = {
@@ -2851,10 +2851,10 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     work->field_4           = 0xFFF;
     sess                    = &gGameSession->at4.loc;
     task->state++;
-    view                                  = Gp_GetViewIndex();
-    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
-    rec[(u8)view - 1].field_4[35].field_4 = 1;
-    gGameSession->cutsceneHold            = 1;
+    view                                 = Gp_GetViewIndex();
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
+    rec[(u8)view - 1].field_4[35].hidden = 1;
+    gGameSession->cutsceneHold           = 1;
     Gp_MsgPlayer3F3(0);
     Display_AcquireRef();
     gGameSession->eventState = 1;
@@ -2948,9 +2948,9 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     s16                        tick;
     s32                        step;
 
-    view                                  = Gp_GetViewIndex();
-    rec                                   = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
-    rec[(u8)view - 1].field_4[35].field_4 = 0;
+    view                                 = Gp_GetViewIndex();
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
+    rec[(u8)view - 1].field_4[35].hidden = 0;
 
     tick = work->field_A;
     step = 0xFFF;
@@ -3040,17 +3040,17 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              i;
     u8               hi;
     u8               mid;
     u8               lo;
 
     Gp_GetViewIndex();
-    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
 
     if ((s16)hidePrompt != 0) {
-        cmd[35].field_4 = 1;
+        batches[35].hidden = 1;
     }
 
     hi  = D_acropolis_bridge_801898CC[0][((u32)digits & 0xF00) >> 8];
@@ -3059,53 +3059,53 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 
     if (hi == 0x21) {
         for (i = 0x15; i < 0x1F; i++) {
-            cmd[i].field_4 = 1;
+            batches[i].hidden = 1;
         }
-        cmd[33].field_4 = 0;
+        batches[33].hidden = 0;
     } else {
         for (i = 0x15; i < 0x1F; i++) {
             if (hi == i) {
-                cmd[i].field_4  = 0;
-                cmd[33].field_4 = 1;
+                batches[i].hidden  = 0;
+                batches[33].hidden = 1;
             } else {
-                cmd[i].field_4 = 1;
+                batches[i].hidden = 1;
             }
         }
     }
 
     if (mid == 0x20) {
         for (i = 0xB; i < 0x15; i++) {
-            cmd[i].field_4 = 1;
+            batches[i].hidden = 1;
         }
-        cmd[32].field_4 = 0;
+        batches[32].hidden = 0;
     } else {
         for (i = 0xB; i < 0x15; i++) {
             if (mid == i) {
-                cmd[i].field_4  = 0;
-                cmd[32].field_4 = 1;
+                batches[i].hidden  = 0;
+                batches[32].hidden = 1;
             } else {
-                cmd[i].field_4 = 1;
+                batches[i].hidden = 1;
             }
         }
     }
 
     if (lo == 0x1F) {
         for (i = 1; i < 0xB; i++) {
-            cmd[i].field_4 = 1;
+            batches[i].hidden = 1;
         }
-        cmd[31].field_4 = 0;
+        batches[31].hidden = 0;
     } else {
         for (i = 1; i < 0xB; i++) {
             if (lo == i) {
-                cmd[i].field_4  = 0;
-                cmd[31].field_4 = 1;
+                batches[i].hidden  = 0;
+                batches[31].hidden = 1;
             } else {
-                cmd[i].field_4 = 1;
+                batches[i].hidden = 1;
             }
         }
     }
 
-    cmd[34].field_4 = 1;
+    batches[34].hidden = 1;
 }
 
 /// Shows one frame of the bridge prompt: in the current room's eighth SPRT
@@ -3115,25 +3115,25 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 static void func_acropolis_bridge_8017E81C(void)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              i;
 
     Gp_GetViewIndex();
-    cmd = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
 
     for (i = 0x15; i < 0x1F; i++) {
-        cmd[i].field_4 = 1;
+        batches[i].hidden = 1;
     }
     for (i = 0xB; i < 0x15; i++) {
-        cmd[i].field_4 = 1;
+        batches[i].hidden = 1;
     }
     for (i = 1; i < 0xB; i++) {
-        cmd[i].field_4 = 1;
+        batches[i].hidden = 1;
     }
-    cmd[34].field_4 = 0;
-    cmd[33].field_4 = 1;
-    cmd[32].field_4 = 1;
-    cmd[31].field_4 = 1;
+    batches[34].hidden = 0;
+    batches[33].hidden = 1;
+    batches[32].hidden = 1;
+    batches[31].hidden = 1;
 }
 
 /// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2`s - top, right,
@@ -3194,7 +3194,7 @@ static void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
 /// Slides one of three mutually exclusive bridge sprites in view 9 by
 /// `(dx, dy)` and makes it the visible one. Each state owns three consecutive
 /// `GpSprtElem` entries, which move together, and one of the three
-/// `GpSprtCmd` slots; `Gp_LinkViewSprts` treats a nonzero `field_4` as "skip
+/// `SpriteBatch` slots; `Gp_LinkViewSprts` treats a nonzero `hidden` as "skip
 /// OT-linking", so the selected command gets 0 and the other two get 1. A
 /// state outside 0..2 moves nothing and hides all three.
 static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
@@ -3203,48 +3203,48 @@ static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
     GameLocationKey* sess = &g->at4.loc;
     GpSprtRec*       rec;
     GpSprtElem*      el;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              mode;
 
-    rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
-    cmd  = rec[9].field_4;
-    el   = rec[9].field_0.elements;
-    mode = state & 0xFF;
+    rec     = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    batches = rec[9].field_4;
+    el      = rec[9].field_0.elements;
+    mode    = state & 0xFF;
 
     if (mode == 0) {
-        el[0].x0      += dx;
-        el[0].y0      += dy;
-        el[1].x0      += dx;
-        el[1].y0      += dy;
-        el[2].x0      += dx;
-        el[2].y0      += dy;
-        cmd[1].field_4 = 0;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 1;
+        el[0].x0         += dx;
+        el[0].y0         += dy;
+        el[1].x0         += dx;
+        el[1].y0         += dy;
+        el[2].x0         += dx;
+        el[2].y0         += dy;
+        batches[1].hidden = 0;
+        batches[2].hidden = 1;
+        batches[3].hidden = 1;
     } else if (mode == 1) {
-        el[3].x0      += dx;
-        el[3].y0      += dy;
-        el[4].x0      += dx;
-        el[4].y0      += dy;
-        el[5].x0      += dx;
-        el[5].y0      += dy;
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 0;
-        cmd[3].field_4 = 1;
+        el[3].x0         += dx;
+        el[3].y0         += dy;
+        el[4].x0         += dx;
+        el[4].y0         += dy;
+        el[5].x0         += dx;
+        el[5].y0         += dy;
+        batches[1].hidden = 1;
+        batches[2].hidden = 0;
+        batches[3].hidden = 1;
     } else if (mode == 2) {
-        el[6].x0      += dx;
-        el[6].y0      += dy;
-        el[7].x0      += dx;
-        el[7].y0      += dy;
-        el[8].x0      += dx;
-        el[8].y0      += dy;
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 0;
+        el[6].x0         += dx;
+        el[6].y0         += dy;
+        el[7].x0         += dx;
+        el[7].y0         += dy;
+        el[8].x0         += dx;
+        el[8].y0         += dy;
+        batches[1].hidden = 1;
+        batches[2].hidden = 1;
+        batches[3].hidden = 0;
     } else {
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 1;
+        batches[1].hidden = 1;
+        batches[2].hidden = 1;
+        batches[3].hidden = 1;
     }
 }
 
@@ -3453,22 +3453,22 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->at4.loc;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
 
-    cmd = rec[1].field_4;
+    batches = rec[1].field_4;
     if ((flags & 0xFF) == 0) {
-        cmd[11].field_4 = 0;
+        batches[11].hidden = 0;
     } else {
-        cmd[11].field_4 = 1;
+        batches[11].hidden = 1;
     }
 
-    cmd = rec[4].field_4;
+    batches = rec[4].field_4;
     if ((flags & 0xFF) == 0) {
-        cmd[16].field_4 = 0;
+        batches[16].hidden = 0;
     } else {
-        cmd[16].field_4 = 1;
+        batches[16].hidden = 1;
     }
 }
 
@@ -3481,29 +3481,29 @@ void func_acropolis_bridge_8017F358(s32 state)
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->at4.loc;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              mode;
 
-    rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
-    cmd  = rec[9].field_4;
-    mode = state & 0xFF;
+    rec     = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    batches = rec[9].field_4;
+    mode    = state & 0xFF;
 
     if (mode == 0) {
-        cmd[1].field_4 = 0;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 1;
+        batches[1].hidden = 0;
+        batches[2].hidden = 1;
+        batches[3].hidden = 1;
     } else if (mode == 1) {
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 0;
-        cmd[3].field_4 = 1;
+        batches[1].hidden = 1;
+        batches[2].hidden = 0;
+        batches[3].hidden = 1;
     } else if (mode == 2) {
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 0;
+        batches[1].hidden = 1;
+        batches[2].hidden = 1;
+        batches[3].hidden = 0;
     } else {
-        cmd[1].field_4 = 1;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 1;
+        batches[1].hidden = 1;
+        batches[2].hidden = 1;
+        batches[3].hidden = 1;
     }
 }
 

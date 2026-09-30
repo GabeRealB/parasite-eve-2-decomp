@@ -238,12 +238,12 @@ void func_dryfield_night_junk_yard_8017D960(Task* task)
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
-    cmd = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].field_4;
     if (arg0 == 0) {
-        cmd[5].field_4 = 0;
+        batches[5].hidden = 0;
     } else {
-        cmd[5].field_4 = 1;
+        batches[5].hidden = 1;
     }
 }

@@ -133,9 +133,9 @@ GpViewRec D_neo_ark_woodland_path_80181D80[10] = {
     { { { { -4024, 0, 764 }, { -94, 4064, -496 }, { -758, -505, -3993 } }, { 4210, 517, 1415 } }, 230 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_80181EE8[2] = {
+SpriteBatch D_neo_ark_woodland_path_80181EE8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80181EF8[25] = {
@@ -166,10 +166,10 @@ GpSprtElem D_neo_ark_woodland_path_80181EF8[25] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 112, 800, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_801820EC[3] = {
+SpriteBatch D_neo_ark_woodland_path_801820EC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 25, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80182104[11] = {
@@ -186,10 +186,10 @@ GpSprtElem D_neo_ark_woodland_path_80182104[11] = {
     { 143, 0x3FC0, { .fields = { 40, 232 } }, 120, -120, 648, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_801821E0[3] = {
+SpriteBatch D_neo_ark_woodland_path_801821E0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_801821F8[65] = {
@@ -260,7 +260,7 @@ GpSprtElem D_neo_ark_woodland_path_801821F8[65] = {
     { 141, 0x4000, { .fields = { 8, 56 } }, -32, 16, 975, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_8018270C[11] = {
+SpriteBatch D_neo_ark_woodland_path_8018270C[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 7, 0 } },
     { 6, 12, 0, 0, { 2, 0 } },
@@ -271,7 +271,7 @@ GpSprtCmd D_neo_ark_woodland_path_8018270C[11] = {
     { 39, 6, 0, 0, { 8, 0 } },
     { 45, 9, 0, 0, { 3, 0 } },
     { 54, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80182764[78] = {
@@ -355,7 +355,7 @@ GpSprtElem D_neo_ark_woodland_path_80182764[78] = {
     { 142, 0x4000, { .fields = { 16, 112 } }, -64, -64, 1942, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_80182D7C[12] = {
+SpriteBatch D_neo_ark_woodland_path_80182D7C[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 6, 0 } },
     { 5, 5, 0, 0, { 1, 0 } },
@@ -367,7 +367,7 @@ GpSprtCmd D_neo_ark_woodland_path_80182D7C[12] = {
     { 50, 11, 0, 0, { 4, 0 } },
     { 61, 10, 0, 0, { 7, 0 } },
     { 71, 7, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80182DDC[47] = {
@@ -420,14 +420,14 @@ GpSprtElem D_neo_ark_woodland_path_80182DDC[47] = {
     { 142, 0x4000, { .fields = { 24, 16 } }, 128, 64, 575, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_80183188[7] = {
+SpriteBatch D_neo_ark_woodland_path_80183188[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
     { 12, 12, 0, 0, { 3, 0 } },
     { 24, 9, 0, 0, { 2, 0 } },
     { 33, 9, 0, 0, { 4, 0 } },
     { 42, 5, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_801831C0[55] = {
@@ -488,14 +488,14 @@ GpSprtElem D_neo_ark_woodland_path_801831C0[55] = {
     { 142, 0x4000, { .fields = { 32, 8 } }, 128, 96, 575, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_8018360C[7] = {
+SpriteBatch D_neo_ark_woodland_path_8018360C[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 0, 0 } },
     { 27, 4, 0, 0, { 3, 0 } },
     { 31, 5, 0, 0, { 2, 0 } },
     { 36, 13, 0, 0, { 4, 0 } },
     { 49, 6, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80183644[32] = {
@@ -533,13 +533,13 @@ GpSprtElem D_neo_ark_woodland_path_80183644[32] = {
     { 143, 0x3FC0, { .fields = { 24, 72 } }, -160, -32, 1875, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_801838C4[6] = {
+SpriteBatch D_neo_ark_woodland_path_801838C4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 4, 0, 0, { 0, 0 } },
     { 6, 11, 0, 0, { 2, 0 } },
     { 17, 15, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_801838F4[26] = {
@@ -571,13 +571,13 @@ GpSprtElem D_neo_ark_woodland_path_801838F4[26] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, -120, 941, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_80183AFC[6] = {
+SpriteBatch D_neo_ark_woodland_path_80183AFC[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 3, 0 } },
     { 1, 7, 0, 0, { 0, 0 } },
     { 8, 15, 0, 0, { 2, 0 } },
     { 23, 3, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_woodland_path_80183B2C[14] = {
@@ -597,12 +597,12 @@ GpSprtElem D_neo_ark_woodland_path_80183B2C[14] = {
     { 143, 0x3FC0, { .fields = { 112, 40 } }, -160, 24, 1113, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_woodland_path_80183C44[5] = {
+SpriteBatch D_neo_ark_woodland_path_80183C44[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 6, 0, 0, { 2, 0 } },
     { 9, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_woodland_path_80183C6C[10] = {

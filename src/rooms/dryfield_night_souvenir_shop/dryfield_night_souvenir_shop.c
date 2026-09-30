@@ -136,9 +136,9 @@ GpViewRec D_dryfield_night_souvenir_shop_8017E628[4] = {
     { { { { 2278, 0, -3403 }, { -2520, 2752, -1687 }, { 2286, 3033, 1531 } }, { -4039, 2424, 1619 } }, 230 },
 };
 
-GpSprtCmd D_dryfield_night_souvenir_shop_8017E6B8[2] = {
+SpriteBatch D_dryfield_night_souvenir_shop_8017E6B8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_souvenir_shop_8017E6C8[45] = {
@@ -189,14 +189,14 @@ GpSprtElem D_dryfield_night_souvenir_shop_8017E6C8[45] = {
     { 143, 0x4000, { .fields = { 8, 144 } }, -160, -24, 550, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_souvenir_shop_8017EA4C[7] = {
+SpriteBatch D_dryfield_night_souvenir_shop_8017EA4C[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 4, 0 } },
     { 2, 1, 0, 0, { 1, 0 } },
     { 3, 2, 0, 0, { 3, 0 } },
     { 5, 19, 0, 0, { 2, 0 } },
     { 24, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_souvenir_shop_8017EA84[53] = {
@@ -255,7 +255,7 @@ GpSprtElem D_dryfield_night_souvenir_shop_8017EA84[53] = {
     { 143, 0x4000, { .fields = { 8, 16 } }, 104, 72, 675, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_souvenir_shop_8017EEA8[10] = {
+SpriteBatch D_dryfield_night_souvenir_shop_8017EEA8[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 4, 0 } },
     { 1, 4, 0, 0, { 5, 0 } },
@@ -265,12 +265,12 @@ GpSprtCmd D_dryfield_night_souvenir_shop_8017EEA8[10] = {
     { 8, 16, 0, 0, { 7, 0 } },
     { 24, 14, 0, 0, { 3, 0 } },
     { 38, 15, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_souvenir_shop_8017EEF8[2] = {
+SpriteBatch D_dryfield_night_souvenir_shop_8017EEF8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_souvenir_shop_8017EF08[4] = {

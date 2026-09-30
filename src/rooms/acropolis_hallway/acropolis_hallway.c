@@ -188,29 +188,29 @@ GpRoomCoordSet D_acropolis_hallway_8017EBC4[1] = {
     { 0, NULL, 3, D_acropolis_hallway_8017EAA4, 0, NULL },
 };
 
-GpSprtCmd D_acropolis_hallway_8017EBDC[2] = {
+SpriteBatch D_acropolis_hallway_8017EBDC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_hallway_8017EBEC[2] = {
+SpriteBatch D_acropolis_hallway_8017EBEC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_hallway_8017EBFC[2] = {
+SpriteBatch D_acropolis_hallway_8017EBFC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_hallway_8017EC0C[2] = {
+SpriteBatch D_acropolis_hallway_8017EC0C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_hallway_8017EC1C[2] = {
+SpriteBatch D_acropolis_hallway_8017EC1C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_hallway_8017EC2C[5] = {

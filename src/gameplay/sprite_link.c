@@ -32,7 +32,7 @@ GpSprtPrim* Gp_SprtCursor;
 /// the same block.
 extern GpSprtPrim* Gp_SprtLists[];
 
-static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
+static void Gp_EmitSprts(GpSprtElem* arg0, SpriteBatch* batch);
 
 static void Gp_SetSprtShadeBits(s32 arg0);
 
@@ -42,7 +42,7 @@ static s32 Gp_ViewSprtCmdEmpty(void);
 
 static void func_800AD024(void);
 
-static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1);
+static void Gp_LinkSprtCmd(GpSprtElem* arg0, SpriteBatch* batch);
 
 static void func_800AD620(Task* task);
 
@@ -61,7 +61,7 @@ void Gp_LinkViewSprts(void)
     GpSprtPrim**     table;
     GpSprtTbl*       tbl;
     GpSprtRec*       recs;
-    GpSprtCmd*       rec;
+    SpriteBatch*     batch;
     GpSprtElem*      base;
 
     sess          = &gGameSession->at4.loc;
@@ -71,24 +71,25 @@ void Gp_LinkViewSprts(void)
     Gp_SprtCursor = table[ds->drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
-    rec           = recs[(u8)view - 1].field_4;
+    batch         = recs[(u8)view - 1].field_4;
     base          = recs[(u8)view - 1].field_0.elements;
-    if (rec->field_2 == 0) {
-        rec++;
+    // The first count selects decoded strips or the cached sprite background.
+    if (batch->spriteCount == 0) {
+        batch++;
     } else {
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
-    if (rec->field_0 != 0xFFFF) {
+    if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
-            if (rec->field_5 == 0) {
-                Gp_LinkSprtCmd(base, rec);
+            if (batch->skipCachedPackets == 0) {
+                Gp_LinkSprtCmd(base, batch);
             }
-            rec++;
-        } while (rec->field_0 != 0xFFFF);
+            batch++;
+        } while (batch->firstSprite != SPRITE_BATCH_END);
     }
 }
 
-static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
+static void Gp_EmitSprts(GpSprtElem* arg0, SpriteBatch* batch)
 {
     u32             i;
     GpTpageSprt*    dest;
@@ -102,9 +103,9 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
 
     i              = 0;
     dest           = gGpuPrimCursor;
-    elem           = arg0 + arg1->field_0;
-    gGpuPrimCursor = dest + arg1->field_2;
-    if (arg1->field_2 != 0) {
+    elem           = arg0 + batch->firstSprite;
+    gGpuPrimCursor = dest + batch->spriteCount;
+    if (batch->spriteCount != 0) {
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
@@ -132,7 +133,7 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
                 (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
             dest++;
             cur++;
-        } while (i < arg1->field_2);
+        } while (i < batch->spriteCount);
     }
 }
 
@@ -143,7 +144,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     GpSprtPrim*      prim;
     GpSprtTbl*       tbl;
     GpSprtRec*       recs;
-    GpSprtCmd*       rec;
+    SpriteBatch*     batch;
     u32              i;
 
     sess          = &gGameSession->at4.loc;
@@ -151,13 +152,13 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
-    rec           = recs[(u8)view - 1].field_4;
+    batch         = recs[(u8)view - 1].field_4;
     prim          = Gp_SprtCursor;
-    if (rec->field_0 != 0xFFFF) {
+    if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
-            if (rec->field_5 == 0) {
+            if (batch->skipCachedPackets == 0) {
                 if (Gp_SprtLists[0] != NULL) {
-                    for (i = 0; i < rec->field_2; i++) {
+                    for (i = 0; i < batch->spriteCount; i++) {
                         if (arg0 != 0) {
                             prim->sprt.fields.code |= 1;
                         } else {
@@ -167,8 +168,8 @@ static void Gp_SetSprtShadeBits(s32 arg0)
                     }
                 }
             }
-            rec++;
-        } while (rec->field_0 != 0xFFFF);
+            batch++;
+        } while (batch->firstSprite != SPRITE_BATCH_END);
     }
 }
 
@@ -182,7 +183,7 @@ void Gp_AllocSprtLists(void)
     } count;
     s32             i;
     GpSprtRec*      recs;
-    GpSprtCmd*      rec;
+    SpriteBatch*    batch;
     GpSprtElem*     elems;
     GpSprtElem*     elem;
     s32             bufIdx;
@@ -195,11 +196,11 @@ void Gp_AllocSprtLists(void)
     count.address = 0;
     view          = Gp_GetViewIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    rec           = recs[view - 1].field_4;
+    batch         = recs[view - 1].field_4;
     elems         = recs[view - 1].field_0.elements;
-    while (rec->field_0 != 0xFFFF) {
-        count.address += rec->field_2;
-        rec++;
+    while (batch->firstSprite != SPRITE_BATCH_END) {
+        count.address += batch->spriteCount;
+        batch++;
     }
     count.address *= 0x38;
     if (count.address == 0) {
@@ -223,13 +224,13 @@ void Gp_AllocSprtLists(void)
         buf[0]          = Gp_SprtLists[0];
         buf[1]          = count.records;
     }
-    for (rec = recs[view - 1].field_4; rec->field_0 != 0xFFFF; rec++) {
-        if (rec->field_5 != 0) {
+    for (batch = recs[view - 1].field_4; batch->firstSprite != SPRITE_BATCH_END; batch++) {
+        if (batch->skipCachedPackets != 0) {
             continue;
         }
         for (bufIdx = 0; bufIdx < 2; bufIdx++) {
-            elem = elems + rec->field_0;
-            for (i = 0; i < rec->field_2; i++) {
+            elem = elems + batch->firstSprite;
+            for (i = 0; i < batch->spriteCount; i++) {
                 dest               = buf[bufIdx];
                 sprt               = &dest->sprt;
                 sprt->packed.color = PRIM_RGBC(0, 0x80, 0, 0);
@@ -361,7 +362,7 @@ static s32 Gp_ViewSprtCmdEmpty(void)
     tbl2    = *tbl68;
     mid2    = tbl2->field_0;
     recs    = mid2[sess->area - 1];
-    return recs[idx - 1].field_4->field_2 == 0;
+    return recs[idx - 1].field_4->spriteCount == 0;
 }
 
 static void func_800AD024(void)
@@ -475,7 +476,7 @@ void Gp_RoomObjState1(Task* task)
     func_800AD024();
 }
 
-static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
+static void Gp_LinkSprtCmd(GpSprtElem* arg0, SpriteBatch* batch)
 {
     u32         i;
     GpSprtPrim* prim;
@@ -485,9 +486,10 @@ static void Gp_LinkSprtCmd(GpSprtElem* arg0, GpSprtCmd* arg1)
         return;
     }
     prim = Gp_SprtCursor;
-    elem = arg0 + arg1->field_0;
-    for (i = 0; i < arg1->field_2; prim++, i++, elem++) {
-        if (arg1->field_4 == 0) {
+    elem = arg0 + batch->firstSprite;
+    // Hiding a batch preserves its packet positions for later batches.
+    for (i = 0; i < batch->spriteCount; prim++, i++, elem++) {
+        if (batch->hidden == 0) {
             addPrim(&gGpuCurrentOt[((u32)elem->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], prim);
         }
     }

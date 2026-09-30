@@ -229,19 +229,19 @@ GpViewRec D_shelter_1f_vehicular_airlock_8018245C[3] = {
     { { { { 596, 0, 4052 }, { -95, 4094, 14 }, { -4051, -97, 596 } }, { 1760, 1260, 790 } }, 257 },
 };
 
-GpSprtCmd D_shelter_1f_vehicular_airlock_801824C8[2] = {
+SpriteBatch D_shelter_1f_vehicular_airlock_801824C8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_1f_vehicular_airlock_801824D8[2] = {
+SpriteBatch D_shelter_1f_vehicular_airlock_801824D8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_1f_vehicular_airlock_801824E8[2] = {
+SpriteBatch D_shelter_1f_vehicular_airlock_801824E8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_1f_vehicular_airlock_801824F8[3] = {

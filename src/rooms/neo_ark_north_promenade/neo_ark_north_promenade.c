@@ -168,19 +168,19 @@ GpViewRec D_neo_ark_north_promenade_80182410[6] = {
     { { { { -4037, 0, 687 }, { 72, 4073, 423 }, { -683, 429, -4015 } }, { -0x2EE0, 1502, -5800 } }, 225 },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_801824E8[2] = {
+SpriteBatch D_neo_ark_north_promenade_801824E8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_801824F8[2] = {
+SpriteBatch D_neo_ark_north_promenade_801824F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_80182508[2] = {
+SpriteBatch D_neo_ark_north_promenade_80182508[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_north_promenade_80182518[36] = {
@@ -222,12 +222,12 @@ GpSprtElem D_neo_ark_north_promenade_80182518[36] = {
     { 142, 0x4000, { .fields = { 40, 32 } }, -40, -120, 2000, { .fields = { 40, 104 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_801827E8[5] = {
+SpriteBatch D_neo_ark_north_promenade_801827E8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 13, 0, 0, { 2, 0 } },
     { 26, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_north_promenade_80182810[23] = {
@@ -256,12 +256,12 @@ GpSprtElem D_neo_ark_north_promenade_80182810[23] = {
     { 143, 0x4000, { .fields = { 24, 40 } }, -16, 0, 1775, { .fields = { 32, 96 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_801829DC[5] = {
+SpriteBatch D_neo_ark_north_promenade_801829DC[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 15, 0, 0, { 2, 0 } },
     { 16, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_north_promenade_80182A04[32] = {
@@ -299,11 +299,11 @@ GpSprtElem D_neo_ark_north_promenade_80182A04[32] = {
     { 142, 0x4000, { .fields = { 24, 32 } }, -160, -72, 825, { .fields = { 48, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_north_promenade_80182C84[4] = {
+SpriteBatch D_neo_ark_north_promenade_80182C84[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
     { 21, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_north_promenade_80182CA4[6] = {

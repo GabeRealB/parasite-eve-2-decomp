@@ -1261,19 +1261,19 @@ GpViewRec D_mist_shooting_gallery_8018998C[18] = {
     { { { { 640, 0, 4045 }, { 292, 4085, -46 }, { -4035, 295, 638 } }, { -3070, 1850, -1700 } }, 257 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189C14[2] = {
+SpriteBatch D_mist_shooting_gallery_80189C14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189C24[2] = {
+SpriteBatch D_mist_shooting_gallery_80189C24[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189C34[2] = {
+SpriteBatch D_mist_shooting_gallery_80189C34[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_80189C44[13] = {
@@ -1292,10 +1292,10 @@ GpSprtElem D_mist_shooting_gallery_80189C44[13] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -160, 0, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189D48[3] = {
+SpriteBatch D_mist_shooting_gallery_80189D48[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_80189D60[32] = {
@@ -1333,15 +1333,15 @@ GpSprtElem D_mist_shooting_gallery_80189D60[32] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, 80, 725, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189FE0[3] = {
+SpriteBatch D_mist_shooting_gallery_80189FE0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_shooting_gallery_80189FF8[2] = {
+SpriteBatch D_mist_shooting_gallery_80189FF8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A008[24] = {
@@ -1371,11 +1371,11 @@ GpSprtElem D_mist_shooting_gallery_8018A008[24] = {
     { 143, 0x3FC0, { .fields = { 128, 16 } }, 32, 104, 125, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A1E8[4] = {
+SpriteBatch D_mist_shooting_gallery_8018A1E8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A208[25] = {
@@ -1406,16 +1406,16 @@ GpSprtElem D_mist_shooting_gallery_8018A208[25] = {
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 128, -80, 969, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A3FC[4] = {
+SpriteBatch D_mist_shooting_gallery_8018A3FC[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
     { 16, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A41C[2] = {
+SpriteBatch D_mist_shooting_gallery_8018A41C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A42C[9] = {
@@ -1430,12 +1430,12 @@ GpSprtElem D_mist_shooting_gallery_8018A42C[9] = {
     { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -40, 3675, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A4E0[5] = {
+SpriteBatch D_mist_shooting_gallery_8018A4E0[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 3, 0, 0, { 2, 0 } },
     { 6, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A508[13] = {
@@ -1454,12 +1454,12 @@ GpSprtElem D_mist_shooting_gallery_8018A508[13] = {
     { 143, 0x3FC0, { .fields = { 8, 88 } }, 152, -8, 1162, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A60C[5] = {
+SpriteBatch D_mist_shooting_gallery_8018A60C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 6, 0, 0, { 2, 0 } },
     { 13, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A634[14] = {
@@ -1479,10 +1479,10 @@ GpSprtElem D_mist_shooting_gallery_8018A634[14] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -88, -48, 1000, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A74C[3] = {
+SpriteBatch D_mist_shooting_gallery_8018A74C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A764[12] = {
@@ -1500,10 +1500,10 @@ GpSprtElem D_mist_shooting_gallery_8018A764[12] = {
     { 143, 0x3FC0, { .fields = { 16, 112 } }, 144, -120, 850, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018A854[3] = {
+SpriteBatch D_mist_shooting_gallery_8018A854[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018A86C[29] = {
@@ -1538,12 +1538,12 @@ GpSprtElem D_mist_shooting_gallery_8018A86C[29] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, -24, 3312, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018AAB0[5] = {
+SpriteBatch D_mist_shooting_gallery_8018AAB0[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
     { 20, 3, 0, 0, { 2, 0 } },
     { 23, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018AAD8[164] = {
@@ -1713,12 +1713,12 @@ GpSprtElem D_mist_shooting_gallery_8018AAD8[164] = {
     { 143, 0x4000, { .fields = { 16, 80 } }, 144, 40, 250, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018B7A8[5] = {
+SpriteBatch D_mist_shooting_gallery_8018B7A8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 133, 0, 0, { 2, 0 } },
     { 143, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018B7D0[58] = {
@@ -1782,10 +1782,10 @@ GpSprtElem D_mist_shooting_gallery_8018B7D0[58] = {
     { 143, 0x3FC0, { .fields = { 56, 8 } }, -104, 112, 633, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018BC58[3] = {
+SpriteBatch D_mist_shooting_gallery_8018BC58[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 58, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_shooting_gallery_8018BC70[6] = {
@@ -1797,15 +1797,15 @@ GpSprtElem D_mist_shooting_gallery_8018BC70[6] = {
     { 143, 0x4000, { .fields = { 56, 16 } }, 40, 16, 1375, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018BCE8[3] = {
+SpriteBatch D_mist_shooting_gallery_8018BCE8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_shooting_gallery_8018BD00[2] = {
+SpriteBatch D_mist_shooting_gallery_8018BD00[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mist_shooting_gallery_8018BD10[18] = {

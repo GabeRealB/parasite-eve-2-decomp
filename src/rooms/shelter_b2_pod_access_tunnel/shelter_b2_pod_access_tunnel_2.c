@@ -253,14 +253,14 @@ GpViewRec D_shelter_b2_pod_access_tunnel_801841D8[7] = {
     { { { { -672, 0, -4040 }, { -824, 4009, 137 }, { 3955, 835, -658 } }, { -779, 1872, 1145 } }, 225 },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_801842D4[2] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_801842D4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_801842E4[2] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_801842E4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_pod_access_tunnel_801842F4[60] = {
@@ -326,23 +326,23 @@ GpSprtElem D_shelter_b2_pod_access_tunnel_801842F4[60] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 32, 613, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_801847A4[6] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_801847A4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 3, 0 } },
     { 24, 3, 0, 0, { 0, 0 } },
     { 27, 22, 0, 0, { 2, 0 } },
     { 49, 11, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_801847D4[2] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_801847D4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_801847E4[2] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_801847E4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_pod_access_tunnel_801847F4[54] = {
@@ -402,18 +402,18 @@ GpSprtElem D_shelter_b2_pod_access_tunnel_801847F4[54] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 24, 758, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_80184C2C[6] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_80184C2C[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 3, 0 } },
     { 24, 3, 0, 0, { 0, 0 } },
     { 27, 17, 0, 0, { 2, 0 } },
     { 44, 10, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_pod_access_tunnel_80184C5C[2] = {
+SpriteBatch D_shelter_b2_pod_access_tunnel_80184C5C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b2_pod_access_tunnel_80184C6C[7] = {

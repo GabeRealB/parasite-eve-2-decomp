@@ -202,9 +202,9 @@ GpViewRec D_shelter_1f_parking_garage_8018100C[4] = {
     { { { { 829, 0, 4011 }, { 1836, 3641, -379 }, { -3565, 1875, 737 } }, { -6440, 3350, 790 } }, 257 },
 };
 
-GpSprtCmd D_shelter_1f_parking_garage_8018109C[2] = {
+SpriteBatch D_shelter_1f_parking_garage_8018109C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_1f_parking_garage_801810AC[13] = {
@@ -223,11 +223,11 @@ GpSprtElem D_shelter_1f_parking_garage_801810AC[13] = {
     { 143, 0x4000, { .fields = { 8, 24 } }, 40, -16, 1950, { .fields = { 120, 232 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_shelter_1f_parking_garage_801811B0[4] = {
+SpriteBatch D_shelter_1f_parking_garage_801811B0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_1f_parking_garage_801811D0[28] = {
@@ -261,16 +261,16 @@ GpSprtElem D_shelter_1f_parking_garage_801811D0[28] = {
     { 143, 0x4000, { .fields = { 56, 32 } }, 32, -40, 900, { .fields = { 8, 80 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_shelter_1f_parking_garage_80181400[4] = {
+SpriteBatch D_shelter_1f_parking_garage_80181400[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
     { 21, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_1f_parking_garage_80181420[2] = {
+SpriteBatch D_shelter_1f_parking_garage_80181420[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_1f_parking_garage_80181430[4] = {

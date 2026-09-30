@@ -97,7 +97,7 @@ extern MineCavernMessageEntry D_mine_cavern_80183C6C[7];
 void func_mine_cavern_8017E394(void);
 
 /// Hides (`arg0` 1) or shows (0) five of the area's sprite commands by setting
-/// their `GpSprtCmd::field_4`, which keeps a command's sprites out of the
+/// their `SpriteBatch::hidden`, which keeps a command's sprites out of the
 /// ordering table; any other value changes nothing.
 void func_mine_cavern_8017E3A0(s32 arg0);
 

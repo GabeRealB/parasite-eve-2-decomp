@@ -158,9 +158,9 @@ GpViewRec D_neo_ark_savanna_zone_8017FBF4[4] = {
     { { { { -753, 0, 4026 }, { 207, 4090, 38 }, { -4020, 211, -752 } }, { -9980, 1620, -2260 } }, 329 },
 };
 
-GpSprtCmd D_neo_ark_savanna_zone_8017FC84[2] = {
+SpriteBatch D_neo_ark_savanna_zone_8017FC84[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_savanna_zone_8017FC94[24] = {
@@ -190,13 +190,13 @@ GpSprtElem D_neo_ark_savanna_zone_8017FC94[24] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 8, 962, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_savanna_zone_8017FE74[6] = {
+SpriteBatch D_neo_ark_savanna_zone_8017FE74[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 3, 0 } },
     { 5, 8, 0, 0, { 0, 0 } },
     { 13, 5, 0, 0, { 2, 0 } },
     { 18, 6, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_savanna_zone_8017FEA4[35] = {
@@ -237,12 +237,12 @@ GpSprtElem D_neo_ark_savanna_zone_8017FEA4[35] = {
     { 142, 0x3FC0, { .fields = { 32, 24 } }, -80, 24, 1062, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_savanna_zone_80180160[5] = {
+SpriteBatch D_neo_ark_savanna_zone_80180160[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 14, 0, 0, { 2, 0 } },
     { 27, 8, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_savanna_zone_80180188[29] = {
@@ -277,12 +277,12 @@ GpSprtElem D_neo_ark_savanna_zone_80180188[29] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, 40, 1050, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_savanna_zone_801803CC[5] = {
+SpriteBatch D_neo_ark_savanna_zone_801803CC[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 10, 0, 0, { 2, 0 } },
     { 23, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_savanna_zone_801803F4[4] = {

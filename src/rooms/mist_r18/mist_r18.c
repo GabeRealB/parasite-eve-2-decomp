@@ -957,21 +957,21 @@ GpViewRec D_mist_r18_8018671C[10] = {
     { { { { 2471, 0, -3266 }, { 87, 4094, 66 }, { 3264, -110, 2470 } }, { 5490, 1190, -3000 } }, 257 },
 };
 
-GpSprtCmd D_mist_r18_80186884[2] = {
+SpriteBatch D_mist_r18_80186884[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_80186894[4] = {
+SpriteBatch D_mist_r18_80186894[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_801868B4[2] = {
+SpriteBatch D_mist_r18_801868B4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_r18_801868C4[10] = {
@@ -987,15 +987,15 @@ GpSprtElem D_mist_r18_801868C4[10] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 64, 825, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_r18_8018698C[3] = {
+SpriteBatch D_mist_r18_8018698C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_801869A4[2] = {
+SpriteBatch D_mist_r18_801869A4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mist_r18_801869B4[17] = {
@@ -1018,30 +1018,30 @@ GpSprtElem D_mist_r18_801869B4[17] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 80, 302, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mist_r18_80186B08[3] = {
+SpriteBatch D_mist_r18_80186B08[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_80186B20[2] = {
+SpriteBatch D_mist_r18_80186B20[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_80186B30[2] = {
+SpriteBatch D_mist_r18_80186B30[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_80186B40[2] = {
+SpriteBatch D_mist_r18_80186B40[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mist_r18_80186B50[2] = {
+SpriteBatch D_mist_r18_80186B50[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mist_r18_80186B60[10] = {

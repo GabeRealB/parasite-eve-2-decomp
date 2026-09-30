@@ -343,19 +343,19 @@ GpViewRec D_shelter_b4_water_supply_80182E60[11] = {
     { { { { -3911, 0, 1216 }, { 140, 4068, 451 }, { -1208, 473, -3884 } }, { -0x2913, 3254, 9638 } }, 230 },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80182FEC[2] = {
+SpriteBatch D_shelter_b4_water_supply_80182FEC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80182FFC[2] = {
+SpriteBatch D_shelter_b4_water_supply_80182FFC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_8018300C[2] = {
+SpriteBatch D_shelter_b4_water_supply_8018300C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_water_supply_8018301C[34] = {
@@ -395,20 +395,20 @@ GpSprtElem D_shelter_b4_water_supply_8018301C[34] = {
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 80, 500, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_801832C4[3] = {
+SpriteBatch D_shelter_b4_water_supply_801832C4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_801832DC[2] = {
+SpriteBatch D_shelter_b4_water_supply_801832DC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_801832EC[2] = {
+SpriteBatch D_shelter_b4_water_supply_801832EC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_water_supply_801832FC[108] = {
@@ -522,13 +522,13 @@ GpSprtElem D_shelter_b4_water_supply_801832FC[108] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 88, 522, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80183B6C[6] = {
+SpriteBatch D_shelter_b4_water_supply_80183B6C[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 29, 0, 0, { 3, 0 } },
     { 29, 43, 0, 0, { 0, 0 } },
     { 72, 23, 0, 0, { 2, 0 } },
     { 95, 13, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_water_supply_80183B9C[47] = {
@@ -581,25 +581,25 @@ GpSprtElem D_shelter_b4_water_supply_80183B9C[47] = {
     { 143, 0x3FC0, { .fields = { 40, 64 } }, -160, 56, 1000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80183F48[3] = {
+SpriteBatch D_shelter_b4_water_supply_80183F48[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 47, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80183F60[2] = {
+SpriteBatch D_shelter_b4_water_supply_80183F60[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80183F70[2] = {
+SpriteBatch D_shelter_b4_water_supply_80183F70[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_water_supply_80183F80[2] = {
+SpriteBatch D_shelter_b4_water_supply_80183F80[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b4_water_supply_80183F90[11] = {

@@ -1036,9 +1036,9 @@ GpViewRec D_dryfield_dilapidated_house_80187308[21] = {
     { { { { 4095, 0, -58 }, { -41, 2903, -2888 }, { 41, 2889, 2903 } }, { -2480, 2960, 2650 } }, 257 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_801875FC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_801875FC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_8018760C[67] = {
@@ -1111,12 +1111,12 @@ GpSprtElem D_dryfield_dilapidated_house_8018760C[67] = {
     { 142, 0x3FC0, { .fields = { 16, 48 } }, 112, 32, 250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80187B48[5] = {
+SpriteBatch D_dryfield_dilapidated_house_80187B48[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
     { 5, 49, 0, 0, { 2, 0 } },
     { 54, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80187B70[63] = {
@@ -1185,11 +1185,11 @@ GpSprtElem D_dryfield_dilapidated_house_80187B70[63] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -88, 750, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_8018805C[4] = {
+SpriteBatch D_dryfield_dilapidated_house_8018805C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
     { 31, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_8018807C[17] = {
@@ -1212,10 +1212,10 @@ GpSprtElem D_dryfield_dilapidated_house_8018807C[17] = {
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 104, -56, 2125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_801881D0[3] = {
+SpriteBatch D_dryfield_dilapidated_house_801881D0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_801881E8[6] = {
@@ -1227,10 +1227,10 @@ GpSprtElem D_dryfield_dilapidated_house_801881E8[6] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, 8, 1250, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188260[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188260[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80188278[10] = {
@@ -1246,10 +1246,10 @@ GpSprtElem D_dryfield_dilapidated_house_80188278[10] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 128, 48, 875, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188340[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188340[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80188358[15] = {
@@ -1270,10 +1270,10 @@ GpSprtElem D_dryfield_dilapidated_house_80188358[15] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 80, -32, 1125, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188484[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188484[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_8018849C[7] = {
@@ -1286,10 +1286,10 @@ GpSprtElem D_dryfield_dilapidated_house_8018849C[7] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 16, -88, 750, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188528[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188528[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80188540[23] = {
@@ -1318,15 +1318,15 @@ GpSprtElem D_dryfield_dilapidated_house_80188540[23] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, 72, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_8018870C[3] = {
+SpriteBatch D_dryfield_dilapidated_house_8018870C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188724[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188724[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80188734[18] = {
@@ -1350,15 +1350,15 @@ GpSprtElem D_dryfield_dilapidated_house_80188734[18] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 104, 175, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_8018889C[3] = {
+SpriteBatch D_dryfield_dilapidated_house_8018889C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_801888B4[2] = {
+SpriteBatch D_dryfield_dilapidated_house_801888B4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_801888C4[21] = {
@@ -1385,10 +1385,10 @@ GpSprtElem D_dryfield_dilapidated_house_801888C4[21] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 48, 125, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188A68[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188A68[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_dilapidated_house_80188A80[13] = {
@@ -1407,45 +1407,45 @@ GpSprtElem D_dryfield_dilapidated_house_80188A80[13] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 56, -32, 1750, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188B84[3] = {
+SpriteBatch D_dryfield_dilapidated_house_80188B84[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188B9C[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188B9C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BAC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BAC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BBC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BBC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BCC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BCC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BDC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BDC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BEC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BEC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_dilapidated_house_80188BFC[2] = {
+SpriteBatch D_dryfield_dilapidated_house_80188BFC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_dilapidated_house_80188C0C[21] = {

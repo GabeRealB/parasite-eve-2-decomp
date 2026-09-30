@@ -285,9 +285,9 @@ GpViewRec D_dryfield_night_water_tank_8017F4D4[6] = {
     { { { { -2497, 0, 3246 }, { 3119, 1132, 2399 }, { -897, 3936, -690 } }, { 570, 0x42AE, 1550 } }, 380 },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_8017F5AC[2] = {
+SpriteBatch D_dryfield_night_water_tank_8017F5AC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tank_8017F5BC[46] = {
@@ -339,11 +339,11 @@ GpSprtElem D_dryfield_night_water_tank_8017F5BC[46] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, 0, 875, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_8017F954[4] = {
+SpriteBatch D_dryfield_night_water_tank_8017F954[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 28, 0, 0, { 1, 0 } },
     { 28, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tank_8017F974[69] = {
@@ -418,11 +418,11 @@ GpSprtElem D_dryfield_night_water_tank_8017F974[69] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, 144, 16, 750, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_8017FED8[4] = {
+SpriteBatch D_dryfield_night_water_tank_8017FED8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 1, 0 } },
     { 30, 39, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tank_8017FEF8[9] = {
@@ -437,10 +437,10 @@ GpSprtElem D_dryfield_night_water_tank_8017FEF8[9] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 72, 625, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_8017FFAC[3] = {
+SpriteBatch D_dryfield_night_water_tank_8017FFAC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tank_8017FFC4[24] = {
@@ -470,15 +470,15 @@ GpSprtElem D_dryfield_night_water_tank_8017FFC4[24] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 64, 250, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_801801A4[3] = {
+SpriteBatch D_dryfield_night_water_tank_801801A4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_water_tank_801801BC[2] = {
+SpriteBatch D_dryfield_night_water_tank_801801BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_water_tank_801801CC[6] = {

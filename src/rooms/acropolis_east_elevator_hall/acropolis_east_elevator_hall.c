@@ -400,9 +400,9 @@ GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
     { NULL, NULL },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_80186C68[2] = {
+SpriteBatch D_acropolis_east_elevator_hall_80186C68[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_east_elevator_hall_80186C78[39] = {
@@ -447,11 +447,11 @@ GpSprtElem D_acropolis_east_elevator_hall_80186C78[39] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 16, 1765, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_80186F84[4] = {
+SpriteBatch D_acropolis_east_elevator_hall_80186F84[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 1, 0 } },
     { 22, 17, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_east_elevator_hall_80186FA4[41] = {
@@ -498,11 +498,11 @@ GpSprtElem D_acropolis_east_elevator_hall_80186FA4[41] = {
     { 143, 0x4000, { .fields = { 16, 16 } }, -136, -120, 857, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_801872D8[4] = {
+SpriteBatch D_acropolis_east_elevator_hall_801872D8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 38, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_east_elevator_hall_801872F8[38] = {
@@ -546,10 +546,10 @@ GpSprtElem D_acropolis_east_elevator_hall_801872F8[38] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -8, 1328, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_801875F0[3] = {
+SpriteBatch D_acropolis_east_elevator_hall_801875F0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 38, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_east_elevator_hall_80187608[28] = {
@@ -583,20 +583,20 @@ GpSprtElem D_acropolis_east_elevator_hall_80187608[28] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 16, 880, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_80187838[3] = {
+SpriteBatch D_acropolis_east_elevator_hall_80187838[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 28, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_80187850[2] = {
+SpriteBatch D_acropolis_east_elevator_hall_80187850[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_east_elevator_hall_80187860[2] = {
+SpriteBatch D_acropolis_east_elevator_hall_80187860[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_east_elevator_hall_80187870[7] = {

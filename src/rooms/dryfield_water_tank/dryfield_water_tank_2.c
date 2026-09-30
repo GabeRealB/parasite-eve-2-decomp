@@ -1320,29 +1320,29 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
 
 /// Toggle the room's cutscene-“watched” state over two of the area's sprite
 /// commands, hiding one and showing the other through their
-/// `GpSprtCmd::field_4`. Every use goes through one pointer variable: the compiler keeps it
+/// `SpriteBatch::hidden`. Every use goes through one pointer variable: the compiler keeps it
 /// in a global allocno, which is what pushes the two literals' constant into
 /// `$v0` (see DECOMPILATION_LEARNINGS.md, "A one-constant toggle…").
 void func_dryfield_water_tank_8017EFF4(s32 arg0)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       view;
+    SpriteBatch*     batches;
 
     sess = &gGameSession->at4.loc;
     if (sess->stage == 2) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {
-            view            = rec[2].field_4;
-            view[3].field_4 = 0;
-            view            = rec[7].field_4;
-            view[1].field_4 = 1;
+            batches           = rec[2].field_4;
+            batches[3].hidden = 0;
+            batches           = rec[7].field_4;
+            batches[1].hidden = 1;
             return;
         }
-        view            = rec[2].field_4;
-        view[3].field_4 = 1;
-        view            = rec[7].field_4;
-        view[1].field_4 = 0;
+        batches           = rec[2].field_4;
+        batches[3].hidden = 1;
+        batches           = rec[7].field_4;
+        batches[1].hidden = 0;
     }
 }
 

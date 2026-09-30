@@ -206,9 +206,9 @@ GpViewRec D_shelter_b1_elevator_hall_80183438[9] = {
     { { { { 4070, 0, 459 }, { 337, 2784, -2984 }, { -312, 3003, 2767 } }, { 0x29F8, 1700, -374 } }, 257 },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_8018357C[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_8018357C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_elevator_hall_8018358C[47] = {
@@ -261,22 +261,22 @@ GpSprtElem D_shelter_b1_elevator_hall_8018358C[47] = {
     { 143, 0x4000, { .fields = { 32, 40 } }, -160, -80, 1112, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183938[5] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183938[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 2, 0 } },
     { 22, 15, 0, 0, { 1, 0 } },
     { 37, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183960[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183960[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183970[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183970[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_elevator_hall_80183980[9] = {
@@ -291,10 +291,10 @@ GpSprtElem D_shelter_b1_elevator_hall_80183980[9] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 16, 1892, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183A34[3] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183A34[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_shelter_b1_elevator_hall_80183A4C[2] = {
@@ -302,14 +302,14 @@ GpDrawAreaRec D_shelter_b1_elevator_hall_80183A4C[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183A60[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183A60[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183A70[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183A70[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_elevator_hall_80183A80[27] = {
@@ -342,15 +342,15 @@ GpSprtElem D_shelter_b1_elevator_hall_80183A80[27] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -24, 516, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183C9C[3] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183C9C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_elevator_hall_80183CB4[2] = {
+SpriteBatch D_shelter_b1_elevator_hall_80183CB4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_elevator_hall_80183CC4[9] = {

@@ -206,9 +206,9 @@ GpViewRec D_shelter_r48_80183F10[18] = {
     { { { { 2122, 0, 3503 }, { 1951, 3401, -1181 }, { -2909, 2281, 1762 } }, { -0x3D7D, 6620, -358 } }, 207 },
 };
 
-GpSprtCmd D_shelter_r48_80184198[2] = {
+SpriteBatch D_shelter_r48_80184198[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801841A8[70] = {
@@ -284,12 +284,12 @@ GpSprtElem D_shelter_r48_801841A8[70] = {
     { 143, 0x4000, { .fields = { 24, 32 } }, -126, 90, 7500, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80184720[5] = {
+SpriteBatch D_shelter_r48_80184720[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 28, 0, 0, { 2, 0 } },
     { 28, 30, 0, 0, { 1, 0 } },
     { 58, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_80184748[125] = {
@@ -420,13 +420,13 @@ GpSprtElem D_shelter_r48_80184748[125] = {
     { 143, 0x4040, { .fields = { 40, 32 } }, 13, 20, 7500, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_8018510C[6] = {
+SpriteBatch D_shelter_r48_8018510C[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 2, 0 } },
     { 16, 67, 0, 0, { 3, 0 } },
     { 83, 33, 0, 0, { 1, 0 } },
     { 116, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_8018513C[106] = {
@@ -538,13 +538,13 @@ GpSprtElem D_shelter_r48_8018513C[106] = {
     { 143, 0x4040, { .fields = { 56, 24 } }, 28, 40, 7500, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80185984[6] = {
+SpriteBatch D_shelter_r48_80185984[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 2, 0 } },
     { 13, 58, 0, 0, { 3, 0 } },
     { 71, 26, 0, 0, { 1, 0 } },
     { 97, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801859B4[151] = {
@@ -701,11 +701,11 @@ GpSprtElem D_shelter_r48_801859B4[151] = {
     { 143, 0x4000, { .fields = { 8, 24 } }, 152, -48, 542, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80186580[4] = {
+SpriteBatch D_shelter_r48_80186580[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 117, 0, 0, { 1, 0 } },
     { 117, 34, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801865A0[86] = {
@@ -797,12 +797,12 @@ GpSprtElem D_shelter_r48_801865A0[86] = {
     { 143, 0x4000, { .fields = { 56, 24 } }, -134, 99, 7500, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80186C58[5] = {
+SpriteBatch D_shelter_r48_80186C58[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 42, 0, 0, { 2, 0 } },
     { 42, 26, 0, 0, { 1, 0 } },
     { 68, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_80186C80[141] = {
@@ -949,13 +949,13 @@ GpSprtElem D_shelter_r48_80186C80[141] = {
     { 143, 0x4040, { .fields = { 40, 24 } }, -34, 29, 7500, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80187784[6] = {
+SpriteBatch D_shelter_r48_80187784[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 2, 0 } },
     { 11, 88, 0, 0, { 3, 0 } },
     { 99, 33, 0, 0, { 1, 0 } },
     { 132, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801877B4[114] = {
@@ -1075,14 +1075,14 @@ GpSprtElem D_shelter_r48_801877B4[114] = {
     { 142, 0x4080, { .fields = { 48, 16 } }, -53, 66, 7500, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_8018809C[7] = {
+SpriteBatch D_shelter_r48_8018809C[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 3, 0 } },
     { 17, 54, 0, 0, { 4, 0 } },
     { 71, 24, 0, 0, { 2, 0 } },
     { 95, 3, 0, 0, { 1, 0 } },
     { 98, 16, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801880D4[131] = {
@@ -1219,11 +1219,11 @@ GpSprtElem D_shelter_r48_801880D4[131] = {
     { 143, 0x4000, { .fields = { 16, 32 } }, 56, 88, 515, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80188B10[4] = {
+SpriteBatch D_shelter_r48_80188B10[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 101, 0, 0, { 1, 0 } },
     { 101, 30, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_80188B30[7] = {
@@ -1236,15 +1236,15 @@ GpSprtElem D_shelter_r48_80188B30[7] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -48, 24, 1578, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80188BBC[3] = {
+SpriteBatch D_shelter_r48_80188BBC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r48_80188BD4[2] = {
+SpriteBatch D_shelter_r48_80188BD4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_80188BE4[44] = {
@@ -1294,11 +1294,11 @@ GpSprtElem D_shelter_r48_80188BE4[44] = {
     { 143, 0x4000, { .fields = { 32, 24 } }, -40, 0, 500, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80188F54[4] = {
+SpriteBatch D_shelter_r48_80188F54[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
     { 31, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_80188F74[12] = {
@@ -1316,25 +1316,25 @@ GpSprtElem D_shelter_r48_80188F74[12] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 96, 1057, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80189064[3] = {
+SpriteBatch D_shelter_r48_80189064[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r48_8018907C[2] = {
+SpriteBatch D_shelter_r48_8018907C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r48_8018908C[2] = {
+SpriteBatch D_shelter_r48_8018908C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r48_8018909C[2] = {
+SpriteBatch D_shelter_r48_8018909C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801890AC[89] = {
@@ -1429,11 +1429,11 @@ GpSprtElem D_shelter_r48_801890AC[89] = {
     { 143, 0x4000, { .fields = { 16, 24 } }, -32, 64, 625, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_801897A0[4] = {
+SpriteBatch D_shelter_r48_801897A0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 70, 0, 0, { 1, 0 } },
     { 70, 19, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r48_801897C0[99] = {
@@ -1538,14 +1538,14 @@ GpSprtElem D_shelter_r48_801897C0[99] = {
     { 143, 0x4080, { .fields = { 48, 24 } }, -39, 13, 7500, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r48_80189F7C[7] = {
+SpriteBatch D_shelter_r48_80189F7C[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 3, 0 } },
     { 23, 33, 0, 0, { 4, 0 } },
     { 56, 33, 0, 0, { 2, 0 } },
     { 89, 1, 0, 0, { 1, 0 } },
     { 90, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_r48_80189FB4[18] = {
@@ -2206,52 +2206,52 @@ void func_shelter_r48_8017E27C(u8 arg0)
 {
     GameLocationKey* loc = &gGameSession->at4.loc;
     GpSprtRec*       rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     if (arg0 == 0) {
-        cmd            = rec[1].field_4;
-        cmd[1].field_4 = 1;
-        cmd[3].field_4 = 1;
-        cmd            = rec[2].field_4;
-        cmd[1].field_4 = 1;
-        cmd[4].field_4 = 1;
-        cmd            = rec[3].field_4;
-        cmd[1].field_4 = 1;
-        cmd[4].field_4 = 1;
-        cmd            = rec[5].field_4;
-        cmd[2].field_4 = 1;
-        cmd[3].field_4 = 1;
-        cmd            = rec[6].field_4;
-        cmd[1].field_4 = 1;
-        cmd[4].field_4 = 1;
-        cmd            = rec[7].field_4;
-        cmd[1].field_4 = 1;
-        cmd[5].field_4 = 1;
-        cmd            = rec[17].field_4;
-        cmd[1].field_4 = 1;
-        cmd[5].field_4 = 1;
+        batches           = rec[1].field_4;
+        batches[1].hidden = 1;
+        batches[3].hidden = 1;
+        batches           = rec[2].field_4;
+        batches[1].hidden = 1;
+        batches[4].hidden = 1;
+        batches           = rec[3].field_4;
+        batches[1].hidden = 1;
+        batches[4].hidden = 1;
+        batches           = rec[5].field_4;
+        batches[2].hidden = 1;
+        batches[3].hidden = 1;
+        batches           = rec[6].field_4;
+        batches[1].hidden = 1;
+        batches[4].hidden = 1;
+        batches           = rec[7].field_4;
+        batches[1].hidden = 1;
+        batches[5].hidden = 1;
+        batches           = rec[17].field_4;
+        batches[1].hidden = 1;
+        batches[5].hidden = 1;
     } else if (arg0 == 1) {
-        cmd            = rec[1].field_4;
-        cmd[1].field_4 = 0;
-        cmd[3].field_4 = 0;
-        cmd            = rec[2].field_4;
-        cmd[1].field_4 = 0;
-        cmd[4].field_4 = 0;
-        cmd            = rec[3].field_4;
-        cmd[1].field_4 = 0;
-        cmd[4].field_4 = 0;
-        cmd            = rec[5].field_4;
-        cmd[2].field_4 = 0;
-        cmd[3].field_4 = 0;
-        cmd            = rec[6].field_4;
-        cmd[1].field_4 = 0;
-        cmd[4].field_4 = 0;
-        cmd            = rec[7].field_4;
-        cmd[1].field_4 = 0;
-        cmd[5].field_4 = 0;
-        cmd            = rec[17].field_4;
-        cmd[1].field_4 = 0;
-        cmd[5].field_4 = 0;
+        batches           = rec[1].field_4;
+        batches[1].hidden = 0;
+        batches[3].hidden = 0;
+        batches           = rec[2].field_4;
+        batches[1].hidden = 0;
+        batches[4].hidden = 0;
+        batches           = rec[3].field_4;
+        batches[1].hidden = 0;
+        batches[4].hidden = 0;
+        batches           = rec[5].field_4;
+        batches[2].hidden = 0;
+        batches[3].hidden = 0;
+        batches           = rec[6].field_4;
+        batches[1].hidden = 0;
+        batches[4].hidden = 0;
+        batches           = rec[7].field_4;
+        batches[1].hidden = 0;
+        batches[5].hidden = 0;
+        batches           = rec[17].field_4;
+        batches[1].hidden = 0;
+        batches[5].hidden = 0;
     }
 }
 

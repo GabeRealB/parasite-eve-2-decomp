@@ -206,19 +206,19 @@ GpViewRec D_shelter_b1_south_maintenance_walkway_801827DC[5] = {
     { { { { 1594, 0, 3772 }, { 1049, 3934, -443 }, { -3623, 1139, 1531 } }, { -2935, 1592, 4947 } }, 235 },
 };
 
-GpSprtCmd D_shelter_b1_south_maintenance_walkway_80182890[2] = {
+SpriteBatch D_shelter_b1_south_maintenance_walkway_80182890[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_south_maintenance_walkway_801828A0[2] = {
+SpriteBatch D_shelter_b1_south_maintenance_walkway_801828A0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_south_maintenance_walkway_801828B0[2] = {
+SpriteBatch D_shelter_b1_south_maintenance_walkway_801828B0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_south_maintenance_walkway_801828C0[66] = {
@@ -290,16 +290,16 @@ GpSprtElem D_shelter_b1_south_maintenance_walkway_801828C0[66] = {
     { 143, 0x4000, { .fields = { 8, 16 } }, 48, 32, 963, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_south_maintenance_walkway_80182DE8[4] = {
+SpriteBatch D_shelter_b1_south_maintenance_walkway_80182DE8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 57, 0, 0, { 1, 0 } },
     { 57, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_south_maintenance_walkway_80182E08[2] = {
+SpriteBatch D_shelter_b1_south_maintenance_walkway_80182E08[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_south_maintenance_walkway_80182E18[5] = {

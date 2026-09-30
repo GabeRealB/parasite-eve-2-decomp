@@ -154,9 +154,9 @@ GpViewRec D_neo_ark_garden_801816E8[7] = {
     { { { { -4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, -4096 } }, { 0, 817, 0x45F1 } }, 329 },
 };
 
-GpSprtCmd D_neo_ark_garden_801817E4[2] = {
+SpriteBatch D_neo_ark_garden_801817E4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_garden_801817F4[62] = {
@@ -224,7 +224,7 @@ GpSprtElem D_neo_ark_garden_801817F4[62] = {
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -96, 40, 1625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_garden_80181CCC[9] = {
+SpriteBatch D_neo_ark_garden_80181CCC[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 6, 0, 0, { 4, 0 } },
@@ -233,7 +233,7 @@ GpSprtCmd D_neo_ark_garden_80181CCC[9] = {
     { 39, 6, 0, 0, { 0, 0 } },
     { 45, 5, 0, 0, { 6, 0 } },
     { 50, 12, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_garden_80181D14[68] = {
@@ -307,11 +307,11 @@ GpSprtElem D_neo_ark_garden_80181D14[68] = {
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 120, -24, 875, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_garden_80182264[4] = {
+SpriteBatch D_neo_ark_garden_80182264[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 28, 0, 0, { 1, 0 } },
     { 28, 40, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_garden_80182284[31] = {
@@ -348,26 +348,26 @@ GpSprtElem D_neo_ark_garden_80182284[31] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -56, 1459, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_garden_801824F0[4] = {
+SpriteBatch D_neo_ark_garden_801824F0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
     { 21, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_garden_80182510[2] = {
+SpriteBatch D_neo_ark_garden_80182510[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_garden_80182520[2] = {
+SpriteBatch D_neo_ark_garden_80182520[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_garden_80182530[2] = {
+SpriteBatch D_neo_ark_garden_80182530[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_garden_80182540[7] = {

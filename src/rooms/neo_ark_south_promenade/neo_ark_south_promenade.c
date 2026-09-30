@@ -142,9 +142,9 @@ GpViewRec D_neo_ark_south_promenade_8017FDB0[5] = {
     { { { { -870, 0, 4002 }, { 776, 4018, 168 }, { -3926, 794, -853 } }, { -8000, 2042, -3300 } }, 207 },
 };
 
-GpSprtCmd D_neo_ark_south_promenade_8017FE64[2] = {
+SpriteBatch D_neo_ark_south_promenade_8017FE64[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_south_promenade_8017FE74[25] = {
@@ -175,12 +175,12 @@ GpSprtElem D_neo_ark_south_promenade_8017FE74[25] = {
     { 143, 0x4000, { .fields = { 24, 40 } }, 136, -104, 1905, { .fields = { 0, 120 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_south_promenade_80180068[5] = {
+SpriteBatch D_neo_ark_south_promenade_80180068[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 12, 0, 0, { 2, 0 } },
     { 16, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_south_promenade_80180090[39] = {
@@ -225,22 +225,22 @@ GpSprtElem D_neo_ark_south_promenade_80180090[39] = {
     { 143, 0x4000, { .fields = { 16, 8 } }, 48, -120, 1862, { .fields = { 40, 240 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_south_promenade_8018039C[5] = {
+SpriteBatch D_neo_ark_south_promenade_8018039C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 12, 0, 0, { 2, 0 } },
     { 26, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_south_promenade_801803C4[2] = {
+SpriteBatch D_neo_ark_south_promenade_801803C4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_south_promenade_801803D4[2] = {
+SpriteBatch D_neo_ark_south_promenade_801803D4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_south_promenade_801803E4[5] = {

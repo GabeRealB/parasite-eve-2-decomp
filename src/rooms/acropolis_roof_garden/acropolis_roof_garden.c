@@ -565,9 +565,9 @@ GpAreaVariant D_acropolis_roof_garden_80185934[12] = {
     { NULL, NULL },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80185994[2] = {
+SpriteBatch D_acropolis_roof_garden_80185994[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_roof_garden_801859A4[26] = {
@@ -599,10 +599,10 @@ GpSprtElem D_acropolis_roof_garden_801859A4[26] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 96, 352, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80185BAC[3] = {
+SpriteBatch D_acropolis_roof_garden_80185BAC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_roof_garden_80185BC4[57] = {
@@ -665,7 +665,7 @@ GpSprtElem D_acropolis_roof_garden_80185BC4[57] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 1100, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80186038[9] = {
+SpriteBatch D_acropolis_roof_garden_80186038[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 7, 0, 0, { 4, 0 } },
@@ -674,7 +674,7 @@ GpSprtCmd D_acropolis_roof_garden_80186038[9] = {
     { 39, 2, 0, 0, { 0, 0 } },
     { 41, 3, 0, 0, { 6, 0 } },
     { 44, 13, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_roof_garden_80186080[21] = {
@@ -701,13 +701,13 @@ GpSprtElem D_acropolis_roof_garden_80186080[21] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 24, 1350, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80186224[6] = {
+SpriteBatch D_acropolis_roof_garden_80186224[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 4, 0, 0, { 0, 0 } },
     { 11, 5, 0, 0, { 2, 0 } },
     { 16, 5, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_roof_garden_80186254[47] = {
@@ -760,22 +760,22 @@ GpSprtElem D_acropolis_roof_garden_80186254[47] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -88, 1054, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80186600[5] = {
+SpriteBatch D_acropolis_roof_garden_80186600[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 7, 0, 0, { 2, 0 } },
     { 13, 34, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80186628[2] = {
+SpriteBatch D_acropolis_roof_garden_80186628[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_roof_garden_80186638[2] = {
+SpriteBatch D_acropolis_roof_garden_80186638[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_roof_garden_80186648[7] = {

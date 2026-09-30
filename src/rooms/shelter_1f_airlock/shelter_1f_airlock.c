@@ -156,14 +156,14 @@ GpViewRec D_shelter_1f_airlock_8017E85C[5] = {
     { { { { -4004, 0, 860 }, { 491, 3363, 2285 }, { -706, 2337, -3288 } }, { 4160, 2340, -5400 } }, 207 },
 };
 
-GpSprtCmd D_shelter_1f_airlock_8017E910[2] = {
+SpriteBatch D_shelter_1f_airlock_8017E910[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_1f_airlock_8017E920[2] = {
+SpriteBatch D_shelter_1f_airlock_8017E920[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_1f_airlock_8017E930[24] = {
@@ -193,11 +193,11 @@ GpSprtElem D_shelter_1f_airlock_8017E930[24] = {
     { 143, 0x4000, { .fields = { 16, 24 } }, 32, 56, 1157, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_1f_airlock_8017EB10[4] = {
+SpriteBatch D_shelter_1f_airlock_8017EB10[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_shelter_1f_airlock_8017EB30[2] = {
@@ -234,11 +234,11 @@ GpSprtElem D_shelter_1f_airlock_8017EB44[26] = {
     { 143, 0x4000, { .fields = { 48, 40 } }, -160, 24, 1225, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_1f_airlock_8017ED4C[4] = {
+SpriteBatch D_shelter_1f_airlock_8017ED4C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
     { 20, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_shelter_1f_airlock_8017ED6C[2] = {
@@ -285,10 +285,10 @@ GpSprtElem D_shelter_1f_airlock_8017ED80[36] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -32, 308, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_1f_airlock_8017F050[3] = {
+SpriteBatch D_shelter_1f_airlock_8017F050[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 36, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_shelter_1f_airlock_8017F068[2] = {

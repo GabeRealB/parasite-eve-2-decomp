@@ -113,21 +113,21 @@ extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
 extern GpRoomCoordSet       D_acropolis_forked_road_80184E70[1];
 void                        func_acropolis_forked_road_8017E288(void);
 
-extern GpSprtCmd  D_acropolis_forked_road_80183284[2];
-extern GpSprtCmd  D_acropolis_forked_road_80183938[12];
-extern GpSprtCmd  D_acropolis_forked_road_80183A10[3];
-extern GpSprtCmd  D_acropolis_forked_road_80183A28[2];
-extern GpSprtCmd  D_acropolis_forked_road_80183AB0[3];
-extern GpSprtCmd  D_acropolis_forked_road_80183AC8[2];
-extern GpSprtCmd  D_acropolis_forked_road_80183F70[6];
-extern GpSprtCmd  D_acropolis_forked_road_80183FA0[2];
-extern GpSprtCmd  D_acropolis_forked_road_80183FB0[2];
-extern GpSprtCmd  D_acropolis_forked_road_80184498[7];
-extern GpSprtElem D_acropolis_forked_road_80183294[85];
-extern GpSprtElem D_acropolis_forked_road_80183998[6];
-extern GpSprtElem D_acropolis_forked_road_80183A38[6];
-extern GpSprtElem D_acropolis_forked_road_80183AE8[58];
-extern GpSprtElem D_acropolis_forked_road_80183FC0[62];
+extern SpriteBatch D_acropolis_forked_road_80183284[2];
+extern SpriteBatch D_acropolis_forked_road_80183938[12];
+extern SpriteBatch D_acropolis_forked_road_80183A10[3];
+extern SpriteBatch D_acropolis_forked_road_80183A28[2];
+extern SpriteBatch D_acropolis_forked_road_80183AB0[3];
+extern SpriteBatch D_acropolis_forked_road_80183AC8[2];
+extern SpriteBatch D_acropolis_forked_road_80183F70[6];
+extern SpriteBatch D_acropolis_forked_road_80183FA0[2];
+extern SpriteBatch D_acropolis_forked_road_80183FB0[2];
+extern SpriteBatch D_acropolis_forked_road_80184498[7];
+extern GpSprtElem  D_acropolis_forked_road_80183294[85];
+extern GpSprtElem  D_acropolis_forked_road_80183998[6];
+extern GpSprtElem  D_acropolis_forked_road_80183A38[6];
+extern GpSprtElem  D_acropolis_forked_road_80183AE8[58];
+extern GpSprtElem  D_acropolis_forked_road_80183FC0[62];
 
 TaskDesc D_acropolis_forked_road_80180F44[5] = {
     { 0, 192, func_acropolis_forked_road_8017DA24, { .model = NULL } },
@@ -775,9 +775,9 @@ GpAreaVariant D_acropolis_forked_road_801831C4[24] = {
     { NULL, NULL },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183284[2] = {
+SpriteBatch D_acropolis_forked_road_80183284[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_forked_road_80183294[85] = {
@@ -868,7 +868,7 @@ GpSprtElem D_acropolis_forked_road_80183294[85] = {
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 0, 0, 2750, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183938[12] = {
+SpriteBatch D_acropolis_forked_road_80183938[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 6, 0 } },
     { 8, 8, 0, 0, { 1, 0 } },
@@ -880,7 +880,7 @@ GpSprtCmd D_acropolis_forked_road_80183938[12] = {
     { 50, 15, 0, 0, { 4, 0 } },
     { 65, 7, 0, 0, { 7, 0 } },
     { 72, 13, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_forked_road_80183998[6] = {
@@ -892,15 +892,15 @@ GpSprtElem D_acropolis_forked_road_80183998[6] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183A10[3] = {
+SpriteBatch D_acropolis_forked_road_80183A10[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183A28[2] = {
+SpriteBatch D_acropolis_forked_road_80183A28[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_forked_road_80183A38[6] = {
@@ -912,20 +912,20 @@ GpSprtElem D_acropolis_forked_road_80183A38[6] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183AB0[3] = {
+SpriteBatch D_acropolis_forked_road_80183AB0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183AC8[2] = {
+SpriteBatch D_acropolis_forked_road_80183AC8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183AD8[2] = {
+SpriteBatch D_acropolis_forked_road_80183AD8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_forked_road_80183AE8[58] = {
@@ -989,23 +989,23 @@ GpSprtElem D_acropolis_forked_road_80183AE8[58] = {
     { 143, 0x4000, { .fields = { 24, 24 } }, 32, -104, 751, { .fields = { 72, 192 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183F70[6] = {
+SpriteBatch D_acropolis_forked_road_80183F70[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 3, 0 } },
     { 15, 11, 0, 0, { 0, 0 } },
     { 26, 24, 0, 0, { 2, 0 } },
     { 50, 8, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183FA0[2] = {
+SpriteBatch D_acropolis_forked_road_80183FA0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_80183FB0[2] = {
+SpriteBatch D_acropolis_forked_road_80183FB0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_forked_road_80183FC0[62] = {
@@ -1073,19 +1073,19 @@ GpSprtElem D_acropolis_forked_road_80183FC0[62] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, -48, 1375, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_forked_road_80184498[7] = {
+SpriteBatch D_acropolis_forked_road_80184498[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 27, 0, 0, { 3, 0 } },
     { 35, 5, 0, 0, { 2, 0 } },
     { 40, 7, 0, 0, { 4, 0 } },
     { 47, 15, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_forked_road_801844D0[2] = {
+SpriteBatch D_acropolis_forked_road_801844D0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_forked_road_801844E0[12] = {

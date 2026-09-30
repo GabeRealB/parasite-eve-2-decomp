@@ -241,19 +241,19 @@ GpViewRec D_shelter_b2_elevator_hall_80183DD8[7] = {
     { { { { -1552, 0, -3790 }, { -270, 4085, 110 }, { 3780, 292, -1548 } }, { -8355, 1552, -250 } }, 257 },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80183ED4[2] = {
+SpriteBatch D_shelter_b2_elevator_hall_80183ED4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80183EE4[2] = {
+SpriteBatch D_shelter_b2_elevator_hall_80183EE4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80183EF4[2] = {
+SpriteBatch D_shelter_b2_elevator_hall_80183EF4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_elevator_hall_80183F04[10] = {
@@ -269,10 +269,10 @@ GpSprtElem D_shelter_b2_elevator_hall_80183F04[10] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, -8, 1799, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80183FCC[3] = {
+SpriteBatch D_shelter_b2_elevator_hall_80183FCC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_shelter_b2_elevator_hall_80183FE4[2] = {
@@ -295,20 +295,20 @@ GpSprtElem D_shelter_b2_elevator_hall_80183FF8[12] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, 72, 822, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_801840E8[3] = {
+SpriteBatch D_shelter_b2_elevator_hall_801840E8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80184100[2] = {
+SpriteBatch D_shelter_b2_elevator_hall_80184100[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_elevator_hall_80184110[2] = {
+SpriteBatch D_shelter_b2_elevator_hall_80184110[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b2_elevator_hall_80184120[7] = {

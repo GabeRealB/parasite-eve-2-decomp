@@ -97,44 +97,44 @@ GpViewRec D_dryfield_motel_room_3_8017DDC4[8] = {
     { { { { -419, 0, 4074 }, { 2571, 3176, 264 }, { -3160, 2585, -325 } }, { -3200, 2550, -6240 } }, 235 },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DEE4[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DEE4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DEF4[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DEF4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF04[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF04[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF14[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF24[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF24[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF34[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF34[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF44[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF44[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_room_3_8017DF54[2] = {
+SpriteBatch D_dryfield_motel_room_3_8017DF54[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_motel_room_3_8017DF64[8] = {

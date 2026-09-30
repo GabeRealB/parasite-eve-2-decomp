@@ -184,9 +184,9 @@ GpViewRec D_neo_ark_submarine_tunnel_80182500[10] = {
     { { { { 1027, 0, 3965 }, { 1153, 3918, -298 }, { -3793, 1191, 983 } }, { -560, -1900, 495 } }, 380 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80182668[2] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80182668[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_80182678[142] = {
@@ -334,13 +334,13 @@ GpSprtElem D_neo_ark_submarine_tunnel_80182678[142] = {
     { 143, 0x4000, { .fields = { 8, 48 } }, 72, -32, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80183190[6] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80183190[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 68, 0, 0, { 3, 0 } },
     { 68, 18, 0, 0, { 0, 0 } },
     { 86, 23, 0, 0, { 2, 0 } },
     { 109, 33, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_801831C0[144] = {
@@ -490,13 +490,13 @@ GpSprtElem D_neo_ark_submarine_tunnel_801831C0[144] = {
     { 143, 0x4000, { .fields = { 8, 64 } }, 88, -48, 1000, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80183D00[6] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80183D00[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 69, 0, 0, { 3, 0 } },
     { 69, 17, 0, 0, { 0, 0 } },
     { 86, 34, 0, 0, { 2, 0 } },
     { 120, 24, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_80183D30[141] = {
@@ -643,13 +643,13 @@ GpSprtElem D_neo_ark_submarine_tunnel_80183D30[141] = {
     { 143, 0x4000, { .fields = { 8, 48 } }, 72, -64, 900, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80184834[6] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80184834[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 61, 0, 0, { 3, 0 } },
     { 61, 17, 0, 0, { 0, 0 } },
     { 78, 23, 0, 0, { 2, 0 } },
     { 101, 40, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_80184864[130] = {
@@ -785,18 +785,18 @@ GpSprtElem D_neo_ark_submarine_tunnel_80184864[130] = {
     { 143, 0x4000, { .fields = { 8, 64 } }, -72, -48, 1375, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_8018528C[6] = {
+SpriteBatch D_neo_ark_submarine_tunnel_8018528C[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 59, 0, 0, { 3, 0 } },
     { 59, 18, 0, 0, { 0, 0 } },
     { 77, 21, 0, 0, { 2, 0 } },
     { 98, 32, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_801852BC[2] = {
+SpriteBatch D_neo_ark_submarine_tunnel_801852BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_801852CC[95] = {
@@ -897,12 +897,12 @@ GpSprtElem D_neo_ark_submarine_tunnel_801852CC[95] = {
     { 143, 0x4040, { .fields = { 8, 80 } }, 152, -120, 235, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80185A38[5] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80185A38[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 50, 0, 0, { 1, 0 } },
     { 50, 0, 0, 0, { 2, 0 } },
     { 50, 45, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_80185A60[110] = {
@@ -1018,12 +1018,12 @@ GpSprtElem D_neo_ark_submarine_tunnel_80185A60[110] = {
     { 142, 0x4040, { .fields = { 8, 24 } }, 128, 64, 825, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_801862F8[5] = {
+SpriteBatch D_neo_ark_submarine_tunnel_801862F8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 50, 0, 0, { 1, 0 } },
     { 50, 0, 0, 0, { 2, 0 } },
     { 50, 60, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_tunnel_80186320[104] = {
@@ -1133,17 +1133,17 @@ GpSprtElem D_neo_ark_submarine_tunnel_80186320[104] = {
     { 142, 0x4040, { .fields = { 8, 80 } }, -160, -120, 225, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80186B40[5] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80186B40[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 52, 0, 0, { 1, 0 } },
     { 52, 0, 0, 0, { 2, 0 } },
     { 52, 52, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_submarine_tunnel_80186B68[2] = {
+SpriteBatch D_neo_ark_submarine_tunnel_80186B68[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_submarine_tunnel_80186B78[10] = {

@@ -1086,45 +1086,45 @@ void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->at4.loc;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
 
     switch (sess->view) {
         case 17:
-            cmd = rec[16].field_4;
+            batches = rec[16].field_4;
             if (arg0 == 0) {
-                cmd[2].field_4 = 1;
+                batches[2].hidden = 1;
             } else {
-                cmd[3].field_4 = 1;
+                batches[3].hidden = 1;
             }
             break;
         case 18:
-            cmd             = rec[17].field_4;
-            cmd[6].field_4  = 0;
-            cmd[7].field_4  = 0;
-            cmd[8].field_4  = 0;
-            cmd[9].field_4  = 0;
-            cmd[10].field_4 = 0;
+            batches            = rec[17].field_4;
+            batches[6].hidden  = 0;
+            batches[7].hidden  = 0;
+            batches[8].hidden  = 0;
+            batches[9].hidden  = 0;
+            batches[10].hidden = 0;
             break;
         case 19:
-            cmd = rec[18].field_4;
+            batches = rec[18].field_4;
             if (arg0 == 0) {
-                cmd[2].field_4 = 0;
+                batches[2].hidden = 0;
             } else {
-                cmd[1].field_4 = 0;
+                batches[1].hidden = 0;
             }
         case 22:
-            cmd = rec[21].field_4;
+            batches = rec[21].field_4;
             if (arg0 == 1) {
-                cmd[1].field_4 = 0;
-                cmd[2].field_4 = 1;
+                batches[1].hidden = 0;
+                batches[2].hidden = 1;
             } else if (arg0 == 2) {
-                cmd[1].field_4 = 1;
-                cmd[2].field_4 = 0;
+                batches[1].hidden = 1;
+                batches[2].hidden = 0;
             } else {
-                cmd[2].field_4 = 1;
-                cmd[1].field_4 = 1;
+                batches[2].hidden = 1;
+                batches[1].hidden = 1;
             }
             break;
     }
@@ -1134,21 +1134,21 @@ void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     u8*              p;
 
-    p    = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
-    sess = &gGameSession->at4.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    cmd  = rec[p[0]].field_4;
+    p       = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
+    sess    = &gGameSession->at4.loc;
+    rec     = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
+    batches = rec[p[0]].field_4;
     if (p[0] != 0xFF) {
         do {
             if (p[1] == 0xFF) {
-                cmd = rec[p[0]].field_4;
-                p  += 2;
+                batches = rec[p[0]].field_4;
+                p      += 2;
             }
-            cmd[p[0]].field_4 = p[1];
-            p                += 2;
+            batches[p[0]].hidden = p[1];
+            p                   += 2;
         } while (p[0] != 0xFF);
     }
     switch (arg0) {
@@ -1200,26 +1200,26 @@ void func_dryfield_night_motel_balcony_8017E4B8(void)
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->at4.loc;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
 
-    cmd            = rec[16].field_4;
-    cmd[2].field_4 = 0;
-    cmd[3].field_4 = 0;
+    batches           = rec[16].field_4;
+    batches[2].hidden = 0;
+    batches[3].hidden = 0;
 
-    cmd             = rec[17].field_4;
-    cmd[6].field_4  = 1;
-    cmd[7].field_4  = 1;
-    cmd[8].field_4  = 1;
-    cmd[9].field_4  = 1;
-    cmd[10].field_4 = 1;
+    batches            = rec[17].field_4;
+    batches[6].hidden  = 1;
+    batches[7].hidden  = 1;
+    batches[8].hidden  = 1;
+    batches[9].hidden  = 1;
+    batches[10].hidden = 1;
 
-    cmd            = rec[18].field_4;
-    cmd[1].field_4 = 1;
-    cmd[2].field_4 = 1;
+    batches           = rec[18].field_4;
+    batches[1].hidden = 1;
+    batches[2].hidden = 1;
 
-    cmd            = rec[21].field_4;
-    cmd[1].field_4 = 1;
-    cmd[2].field_4 = 1;
+    batches           = rec[21].field_4;
+    batches[1].hidden = 1;
+    batches[2].hidden = 1;
 }

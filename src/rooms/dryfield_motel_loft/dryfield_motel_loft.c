@@ -96,19 +96,19 @@ GpViewRec D_dryfield_motel_loft_8017D9E0[7] = {
     { { { { -1105, 0, -3943 }, { -458, 4068, 128 }, { 3917, 476, -1098 } }, { 4980, 1500, -2080 } }, 257 },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DADC[2] = {
+SpriteBatch D_dryfield_motel_loft_8017DADC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DAEC[2] = {
+SpriteBatch D_dryfield_motel_loft_8017DAEC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DAFC[2] = {
+SpriteBatch D_dryfield_motel_loft_8017DAFC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_loft_8017DB0C[9] = {
@@ -123,10 +123,10 @@ GpSprtElem D_dryfield_motel_loft_8017DB0C[9] = {
     { 143, 0x3FC0, { .fields = { 8, 120 } }, 24, -48, 1200, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DBC0[3] = {
+SpriteBatch D_dryfield_motel_loft_8017DBC0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_loft_8017DBD8[8] = {
@@ -140,10 +140,10 @@ GpSprtElem D_dryfield_motel_loft_8017DBD8[8] = {
     { 143, 0x3FC0, { .fields = { 32, 96 } }, -160, -24, 575, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DC78[3] = {
+SpriteBatch D_dryfield_motel_loft_8017DC78[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_loft_8017DC90[7] = {
@@ -156,10 +156,10 @@ GpSprtElem D_dryfield_motel_loft_8017DC90[7] = {
     { 143, 0x3FC0, { .fields = { 24, 96 } }, -88, -80, 1000, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DD1C[3] = {
+SpriteBatch D_dryfield_motel_loft_8017DD1C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_loft_8017DD34[7] = {
@@ -172,10 +172,10 @@ GpSprtElem D_dryfield_motel_loft_8017DD34[7] = {
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 64, -80, 1000, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_loft_8017DDC0[3] = {
+SpriteBatch D_dryfield_motel_loft_8017DDC0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_motel_loft_8017DDD8[7] = {

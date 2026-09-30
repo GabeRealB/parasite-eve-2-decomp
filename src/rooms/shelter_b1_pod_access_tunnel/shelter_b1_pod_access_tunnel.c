@@ -625,14 +625,14 @@ GpViewRec D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 3985, 0, -946 }, { -429, 3649, -1809 }, { 843, 1859, 3550 } }, { -4527, 1724, 1418 } }, 251 },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_80183E40[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_80183E40[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_80183E50[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_80183E50[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_pod_access_tunnel_80183E60[68] = {
@@ -706,7 +706,7 @@ GpSprtElem D_shelter_b1_pod_access_tunnel_80183E60[68] = {
     { 143, 0x4040, { .fields = { 16, 16 } }, 32, 56, 992, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801843B0[8] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801843B0[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 12, 0, 0, { 4, 0 } },
@@ -714,7 +714,7 @@ GpSprtCmd D_shelter_b1_pod_access_tunnel_801843B0[8] = {
     { 19, 14, 0, 0, { 5, 0 } },
     { 33, 29, 0, 0, { 2, 0 } },
     { 62, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_pod_access_tunnel_801843F0[19] = {
@@ -739,61 +739,61 @@ GpSprtElem D_shelter_b1_pod_access_tunnel_801843F0[19] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 72, 661, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_8018456C[4] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_8018456C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_8018458C[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_8018458C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_8018459C[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_8018459C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845AC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845AC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845BC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845CC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845CC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845DC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845DC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845EC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845EC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_801845FC[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_801845FC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_8018460C[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_8018460C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_pod_access_tunnel_8018461C[2] = {
+SpriteBatch D_shelter_b1_pod_access_tunnel_8018461C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_pod_access_tunnel_8018462C[14] = {

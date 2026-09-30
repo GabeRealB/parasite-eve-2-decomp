@@ -183,9 +183,9 @@ GpViewRec D_neo_ark_bridge_80182838[6] = {
     { { { { -4031, 0, -725 }, { -51, 4085, 287 }, { 723, 291, -4020 } }, { 3470, 1000, 5440 } }, 257 },
 };
 
-GpSprtCmd D_neo_ark_bridge_80182910[2] = {
+SpriteBatch D_neo_ark_bridge_80182910[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_bridge_80182920[34] = {
@@ -225,10 +225,10 @@ GpSprtElem D_neo_ark_bridge_80182920[34] = {
     { 143, 0x3FC0, { .fields = { 112, 8 } }, -152, 112, 500, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_bridge_80182BC8[3] = {
+SpriteBatch D_neo_ark_bridge_80182BC8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_bridge_80182BE0[89] = {
@@ -323,13 +323,13 @@ GpSprtElem D_neo_ark_bridge_80182BE0[89] = {
     { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 112, 675, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_bridge_801832D4[6] = {
+SpriteBatch D_neo_ark_bridge_801832D4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 3, 0 } },
     { 5, 16, 0, 0, { 0, 0 } },
     { 21, 22, 0, 0, { 2, 0 } },
     { 43, 46, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_bridge_80183304[135] = {
@@ -470,12 +470,12 @@ GpSprtElem D_neo_ark_bridge_80183304[135] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 0, 883, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_bridge_80183D90[5] = {
+SpriteBatch D_neo_ark_bridge_80183D90[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
     { 20, 99, 0, 0, { 2, 0 } },
     { 119, 16, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_bridge_80183DB8[61] = {
@@ -542,12 +542,12 @@ GpSprtElem D_neo_ark_bridge_80183DB8[61] = {
     { 142, 0x3FC0, { .fields = { 88, 8 } }, 24, 112, 614, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_bridge_8018427C[5] = {
+SpriteBatch D_neo_ark_bridge_8018427C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 15, 0, 0, { 2, 0 } },
     { 21, 40, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_bridge_801842A4[34] = {
@@ -587,10 +587,10 @@ GpSprtElem D_neo_ark_bridge_801842A4[34] = {
     { 143, 0x3FC0, { .fields = { 104, 8 } }, 48, 112, 653, { .fields = { 8, 8 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_bridge_8018454C[3] = {
+SpriteBatch D_neo_ark_bridge_8018454C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_bridge_80184564[6] = {

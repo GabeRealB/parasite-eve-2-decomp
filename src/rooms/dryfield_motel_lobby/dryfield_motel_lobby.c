@@ -179,9 +179,9 @@ GpViewRec D_dryfield_motel_lobby_8017FC08[5] = {
     { { { { -3394, 0, 2291 }, { 1829, 2466, 2710 }, { -1379, 3270, -2044 } }, { -4690, 1730, -2640 } }, 289 },
 };
 
-GpSprtCmd D_dryfield_motel_lobby_8017FCBC[2] = {
+SpriteBatch D_dryfield_motel_lobby_8017FCBC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_lobby_8017FCCC[50] = {
@@ -237,11 +237,11 @@ GpSprtElem D_dryfield_motel_lobby_8017FCCC[50] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 48, 912, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_lobby_801800B4[4] = {
+SpriteBatch D_dryfield_motel_lobby_801800B4[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 1, 0 } },
     { 18, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_lobby_801800D4[52] = {
@@ -299,10 +299,10 @@ GpSprtElem D_dryfield_motel_lobby_801800D4[52] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 32, 700, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_lobby_801804E4[3] = {
+SpriteBatch D_dryfield_motel_lobby_801804E4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 52, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_motel_lobby_801804FC[71] = {
@@ -379,15 +379,15 @@ GpSprtElem D_dryfield_motel_lobby_801804FC[71] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 16, 975, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_motel_lobby_80180A88[3] = {
+SpriteBatch D_dryfield_motel_lobby_80180A88[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 71, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_motel_lobby_80180AA0[2] = {
+SpriteBatch D_dryfield_motel_lobby_80180AA0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_motel_lobby_80180AB0[5] = {

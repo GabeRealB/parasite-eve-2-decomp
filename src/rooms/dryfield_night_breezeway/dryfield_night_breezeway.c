@@ -147,9 +147,9 @@ GpViewRec D_dryfield_night_breezeway_8017EBE8[6] = {
     { { { { 0, 0, -4096 }, { 0, 4096, 0 }, { 4096, 0, 0 } }, { -0x41AC, 295, -3414 } }, 680 },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017ECC0[2] = {
+SpriteBatch D_dryfield_night_breezeway_8017ECC0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_breezeway_8017ECD0[96] = {
@@ -251,11 +251,11 @@ GpSprtElem D_dryfield_night_breezeway_8017ECD0[96] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 72, 626, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017F450[4] = {
+SpriteBatch D_dryfield_night_breezeway_8017F450[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 90, 0, 0, { 1, 0 } },
     { 90, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_breezeway_8017F470[46] = {
@@ -307,21 +307,21 @@ GpSprtElem D_dryfield_night_breezeway_8017F470[46] = {
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -32, 96, 250, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017F808[4] = {
+SpriteBatch D_dryfield_night_breezeway_8017F808[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 1, 0 } },
     { 32, 14, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017F828[2] = {
+SpriteBatch D_dryfield_night_breezeway_8017F828[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017F838[2] = {
+SpriteBatch D_dryfield_night_breezeway_8017F838[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_breezeway_8017F848[60] = {
@@ -387,10 +387,10 @@ GpSprtElem D_dryfield_night_breezeway_8017F848[60] = {
     { 142, 0x3FC0, { .fields = { 16, 80 } }, 112, 8, 298, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_breezeway_8017FCF8[3] = {
+SpriteBatch D_dryfield_night_breezeway_8017FCF8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 60, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_breezeway_8017FD10[6] = {

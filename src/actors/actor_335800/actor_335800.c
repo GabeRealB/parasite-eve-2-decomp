@@ -1115,7 +1115,7 @@ void func_actor_335800_8016224C(void)
     }
 }
 
-/// Sets `GpSprtCmd::field_4` on two sprite commands of the area's 39th view
+/// Sets `SpriteBatch::hidden` on two sprite commands of the area's 39th view
 /// record: 1 keeps their sprites out of the ordering table and also sets game
 /// flag 0x7F's nibble to 1, 0 draws them again.
 void func_actor_335800_801622C0(s32 arg0)
@@ -1123,21 +1123,21 @@ void func_actor_335800_801622C0(s32 arg0)
     GameSession*     g;
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     g    = gGameSession;
     sess = &g->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
-            cmd            = rec[38].field_4;
-            cmd[2].field_4 = 0;
-            cmd[3].field_4 = 0;
+            batches           = rec[38].field_4;
+            batches[2].hidden = 0;
+            batches[3].hidden = 0;
             break;
         case 1:
-            cmd            = rec[38].field_4;
-            cmd[2].field_4 = arg0;
-            cmd[3].field_4 = arg0;
+            batches           = rec[38].field_4;
+            batches[2].hidden = arg0;
+            batches[3].hidden = arg0;
             GameFlag_SetNibble(0x7F, 1);
             break;
     }

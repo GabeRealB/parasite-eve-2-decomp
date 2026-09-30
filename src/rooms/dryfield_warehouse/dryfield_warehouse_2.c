@@ -353,9 +353,9 @@ GpViewRec D_dryfield_warehouse_8018105C[9] = {
     { { { { -832, 0, -4010 }, { -256, 4087, 53 }, { 4002, 262, -831 } }, { -288, 1366, 916 } }, 207 },
 };
 
-GpSprtCmd D_dryfield_warehouse_801811A0[2] = {
+SpriteBatch D_dryfield_warehouse_801811A0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_warehouse_801811B0[21] = {
@@ -382,13 +382,13 @@ GpSprtElem D_dryfield_warehouse_801811B0[21] = {
     { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 56, 612, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_warehouse_80181354[6] = {
+SpriteBatch D_dryfield_warehouse_80181354[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 2, 0, 0, { 0, 0 } },
     { 4, 13, 0, 0, { 2, 0 } },
     { 17, 4, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_warehouse_80181384[25] = {
@@ -419,13 +419,13 @@ GpSprtElem D_dryfield_warehouse_80181384[25] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 0, 625, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_warehouse_80181578[6] = {
+SpriteBatch D_dryfield_warehouse_80181578[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 1, 0, 0, { 0, 0 } },
     { 3, 17, 0, 0, { 2, 0 } },
     { 20, 5, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_warehouse_801815A8[2] = {
@@ -433,15 +433,15 @@ GpSprtElem D_dryfield_warehouse_801815A8[2] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 550, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_warehouse_801815D0[3] = {
+SpriteBatch D_dryfield_warehouse_801815D0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_warehouse_801815E8[2] = {
+SpriteBatch D_dryfield_warehouse_801815E8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 static void func_dryfield_warehouse_8017DBB0(Task* arg0);

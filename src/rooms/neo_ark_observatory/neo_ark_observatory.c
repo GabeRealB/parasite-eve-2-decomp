@@ -425,14 +425,14 @@ GpViewRec D_neo_ark_observatory_80181FC8[21] = {
     { { { { -803, 0, 4016 }, { 3001, 2721, 600 }, { -2668, 3061, -534 } }, { -3016, 3531, -7604 } }, 329 },
 };
 
-GpSprtCmd D_neo_ark_observatory_801822BC[2] = {
+SpriteBatch D_neo_ark_observatory_801822BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_801822CC[2] = {
+SpriteBatch D_neo_ark_observatory_801822CC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_801822DC[21] = {
@@ -459,10 +459,10 @@ GpSprtElem D_neo_ark_observatory_801822DC[21] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -120, 1500, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80182480[3] = {
+SpriteBatch D_neo_ark_observatory_80182480[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80182498[19] = {
@@ -487,10 +487,10 @@ GpSprtElem D_neo_ark_observatory_80182498[19] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -80, 2075, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80182614[3] = {
+SpriteBatch D_neo_ark_observatory_80182614[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_8018262C[21] = {
@@ -517,10 +517,10 @@ GpSprtElem D_neo_ark_observatory_8018262C[21] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 56, 1200, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_801827D0[3] = {
+SpriteBatch D_neo_ark_observatory_801827D0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_801827E8[82] = {
@@ -608,14 +608,14 @@ GpSprtElem D_neo_ark_observatory_801827E8[82] = {
     { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 1712, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80182E50[7] = {
+SpriteBatch D_neo_ark_observatory_80182E50[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
     { 26, 10, 0, 0, { 3, 0 } },
     { 36, 23, 0, 0, { 2, 0 } },
     { 59, 8, 0, 0, { 4, 0 } },
     { 67, 15, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80182E88[83] = {
@@ -704,7 +704,7 @@ GpSprtElem D_neo_ark_observatory_80182E88[83] = {
     { 142, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 120, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80183504[11] = {
+SpriteBatch D_neo_ark_observatory_80183504[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { 16, 11, 0, 0, { 5, 0 } },
@@ -715,7 +715,7 @@ GpSprtCmd D_neo_ark_observatory_80183504[11] = {
     { 65, 9, 0, 0, { 3, 0 } },
     { 74, 6, 0, 0, { 8, 0 } },
     { 80, 3, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_8018355C[94] = {
@@ -815,12 +815,12 @@ GpSprtElem D_neo_ark_observatory_8018355C[94] = {
     { 142, 0x4000, { .fields = { 16, 16 } }, 112, 104, 800, { .fields = { 80, 232 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80183CB4[5] = {
+SpriteBatch D_neo_ark_observatory_80183CB4[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 40, 0, 0, { 1, 0 } },
     { 40, 29, 0, 0, { 2, 0 } },
     { 69, 25, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80183CDC[69] = {
@@ -895,7 +895,7 @@ GpSprtElem D_neo_ark_observatory_80183CDC[69] = {
     { 142, 0x4040, { .fields = { 32, 40 } }, 96, 48, 1350, { .fields = { 80, 128 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80184240[9] = {
+SpriteBatch D_neo_ark_observatory_80184240[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 18, 0, 0, { 4, 0 } },
@@ -904,7 +904,7 @@ GpSprtCmd D_neo_ark_observatory_80184240[9] = {
     { 48, 11, 0, 0, { 0, 0 } },
     { 59, 7, 0, 0, { 6, 0 } },
     { 66, 3, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80184288[76] = {
@@ -986,7 +986,7 @@ GpSprtElem D_neo_ark_observatory_80184288[76] = {
     { 142, 0x3FC0, { .fields = { 40, 24 } }, -72, 88, 1200, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80184878[8] = {
+SpriteBatch D_neo_ark_observatory_80184878[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 18, 0, 0, { 0, 0 } },
@@ -994,7 +994,7 @@ GpSprtCmd D_neo_ark_observatory_80184878[8] = {
     { 58, 14, 0, 0, { 1, 0 } },
     { 72, 2, 0, 0, { 4, 0 } },
     { 74, 2, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_801848B8[78] = {
@@ -1078,7 +1078,7 @@ GpSprtElem D_neo_ark_observatory_801848B8[78] = {
     { 142, 0x3FC0, { .fields = { 32, 40 } }, 32, 40, 1187, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80184ED0[8] = {
+SpriteBatch D_neo_ark_observatory_80184ED0[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 18, 0, 0, { 0, 0 } },
@@ -1086,7 +1086,7 @@ GpSprtCmd D_neo_ark_observatory_80184ED0[8] = {
     { 60, 14, 0, 0, { 1, 0 } },
     { 74, 2, 0, 0, { 4, 0 } },
     { 76, 2, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80184F10[23] = {
@@ -1115,15 +1115,15 @@ GpSprtElem D_neo_ark_observatory_80184F10[23] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, 64, 1125, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_801850DC[3] = {
+SpriteBatch D_neo_ark_observatory_801850DC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_801850F4[2] = {
+SpriteBatch D_neo_ark_observatory_801850F4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80185104[14] = {
@@ -1143,20 +1143,20 @@ GpSprtElem D_neo_ark_observatory_80185104[14] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -120, 1000, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_8018521C[3] = {
+SpriteBatch D_neo_ark_observatory_8018521C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_80185234[2] = {
+SpriteBatch D_neo_ark_observatory_80185234[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_80185244[2] = {
+SpriteBatch D_neo_ark_observatory_80185244[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80185254[21] = {
@@ -1183,10 +1183,10 @@ GpSprtElem D_neo_ark_observatory_80185254[21] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 56, 1200, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_801853F8[3] = {
+SpriteBatch D_neo_ark_observatory_801853F8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80185410[82] = {
@@ -1274,14 +1274,14 @@ GpSprtElem D_neo_ark_observatory_80185410[82] = {
     { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 1712, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80185A78[7] = {
+SpriteBatch D_neo_ark_observatory_80185A78[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
     { 26, 10, 0, 0, { 3, 0 } },
     { 36, 23, 0, 0, { 2, 0 } },
     { 59, 8, 0, 0, { 4, 0 } },
     { 67, 15, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_observatory_80185AB0[74] = {
@@ -1361,7 +1361,7 @@ GpSprtElem D_neo_ark_observatory_80185AB0[74] = {
     { 143, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 64, 96 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_observatory_80186078[10] = {
+SpriteBatch D_neo_ark_observatory_80186078[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { 16, 11, 0, 0, { 4, 0 } },
@@ -1371,17 +1371,17 @@ GpSprtCmd D_neo_ark_observatory_80186078[10] = {
     { 53, 12, 0, 0, { 6, 0 } },
     { 65, 6, 0, 0, { 7, 0 } },
     { 71, 3, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_801860C8[2] = {
+SpriteBatch D_neo_ark_observatory_801860C8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_observatory_801860D8[2] = {
+SpriteBatch D_neo_ark_observatory_801860D8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_observatory_801860E8[21] = {

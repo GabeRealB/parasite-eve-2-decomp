@@ -96,9 +96,9 @@ GpViewRec D_shelter_r49_8017DAD0[3] = {
     { { { { 4057, 0, -561 }, { 28, 4090, 208 }, { 560, -210, 4051 } }, { 770, 1400, -190 } }, 541 },
 };
 
-GpSprtCmd D_shelter_r49_8017DB3C[2] = {
+SpriteBatch D_shelter_r49_8017DB3C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_r49_8017DB4C[15] = {
@@ -119,15 +119,15 @@ GpSprtElem D_shelter_r49_8017DB4C[15] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 48, 1250, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_r49_8017DC78[3] = {
+SpriteBatch D_shelter_r49_8017DC78[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_r49_8017DC90[2] = {
+SpriteBatch D_shelter_r49_8017DC90[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_r49_8017DCA0[3] = {

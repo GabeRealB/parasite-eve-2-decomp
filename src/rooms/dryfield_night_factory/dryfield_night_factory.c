@@ -75,9 +75,9 @@ static const NightFactoryCutsceneTable3 D_dryfield_night_factory_8017D5DC = {
     { func_dryfield_night_factory_8017FDC8, func_dryfield_night_factory_8017F00C, func_dryfield_night_factory_8017F1DC },
 };
 
-GpSprtCmd D_dryfield_night_factory_80189A14[2] = {
+SpriteBatch D_dryfield_night_factory_80189A14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_factory_80189A24[19] = {

@@ -45,19 +45,19 @@ GpXformArg D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0xFFFF, 0, 0, 0 }, { -1, 0, 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_loft_8017FBB4[2] = {
+SpriteBatch D_dryfield_night_motel_loft_8017FBB4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_loft_8017FBC4[2] = {
+SpriteBatch D_dryfield_night_motel_loft_8017FBC4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_motel_loft_8017FBD4[2] = {
+SpriteBatch D_dryfield_night_motel_loft_8017FBD4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_motel_loft_8017FBE4[14] = {

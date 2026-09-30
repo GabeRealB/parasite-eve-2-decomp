@@ -139,9 +139,9 @@ GpViewRec D_dryfield_night_water_tower_8017F418[10] = {
     { { { { 1485, 0, -3816 }, { -3580, 1417, -1394 }, { 1321, 3842, 514 } }, { -3517, 4818, -1078 } }, 257 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_8017F580[2] = {
+SpriteBatch D_dryfield_night_water_tower_8017F580[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_8017F590[58] = {
@@ -205,13 +205,13 @@ GpSprtElem D_dryfield_night_water_tower_8017F590[58] = {
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -112, 16, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_8017FA18[6] = {
+SpriteBatch D_dryfield_night_water_tower_8017FA18[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 9, 0, 0, { 0, 0 } },
     { 29, 4, 0, 0, { 2, 0 } },
     { 33, 25, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_8017FA48[48] = {
@@ -265,12 +265,12 @@ GpSprtElem D_dryfield_night_water_tower_8017FA48[48] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, -56, 1458, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_8017FE08[5] = {
+SpriteBatch D_dryfield_night_water_tower_8017FE08[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 16, 0, 0, { 2, 0 } },
     { 23, 25, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_8017FE30[88] = {
@@ -364,7 +364,7 @@ GpSprtElem D_dryfield_night_water_tower_8017FE30[88] = {
     { 142, 0x3FC0, { .fields = { 16, 64 } }, 144, -56, 450, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80180510[9] = {
+SpriteBatch D_dryfield_night_water_tower_80180510[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 3, 0 } },
     { 6, 30, 0, 0, { 4, 0 } },
@@ -373,7 +373,7 @@ GpSprtCmd D_dryfield_night_water_tower_80180510[9] = {
     { 60, 3, 0, 0, { 0, 0 } },
     { 63, 25, 0, 0, { 6, 0 } },
     { 88, 0, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_80180558[56] = {
@@ -435,13 +435,13 @@ GpSprtElem D_dryfield_night_water_tower_80180558[56] = {
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 136, 24, 825, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_801809B8[6] = {
+SpriteBatch D_dryfield_night_water_tower_801809B8[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 14, 0, 0, { 0, 0 } },
     { 25, 7, 0, 0, { 2, 0 } },
     { 32, 24, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_801809E8[84] = {
@@ -531,7 +531,7 @@ GpSprtElem D_dryfield_night_water_tower_801809E8[84] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, 32, 1750, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80181078[9] = {
+SpriteBatch D_dryfield_night_water_tower_80181078[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 6, 0, 0, { 4, 0 } },
@@ -540,7 +540,7 @@ GpSprtCmd D_dryfield_night_water_tower_80181078[9] = {
     { 56, 18, 0, 0, { 0, 0 } },
     { 74, 0, 0, 0, { 6, 0 } },
     { 74, 10, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_801810C0[69] = {
@@ -615,7 +615,7 @@ GpSprtElem D_dryfield_night_water_tower_801810C0[69] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -16, -64, 2250, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80181624[9] = {
+SpriteBatch D_dryfield_night_water_tower_80181624[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 20, 0, 0, { 4, 0 } },
@@ -624,7 +624,7 @@ GpSprtCmd D_dryfield_night_water_tower_80181624[9] = {
     { 41, 3, 0, 0, { 0, 0 } },
     { 44, 6, 0, 0, { 6, 0 } },
     { 50, 19, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_8018166C[99] = {
@@ -729,7 +729,7 @@ GpSprtElem D_dryfield_night_water_tower_8018166C[99] = {
     { 142, 0x3FC0, { .fields = { 24, 40 } }, -104, -80, 1868, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80181E28[11] = {
+SpriteBatch D_dryfield_night_water_tower_80181E28[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
     { 5, 12, 0, 0, { 5, 0 } },
@@ -740,12 +740,12 @@ GpSprtCmd D_dryfield_night_water_tower_80181E28[11] = {
     { 76, 8, 0, 0, { 3, 0 } },
     { 84, 11, 0, 0, { 8, 0 } },
     { 95, 4, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80181E80[2] = {
+SpriteBatch D_dryfield_night_water_tower_80181E80[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_water_tower_80181E90[20] = {
@@ -771,11 +771,11 @@ GpSprtElem D_dryfield_night_water_tower_80181E90[20] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -48, 462, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_water_tower_80182020[4] = {
+SpriteBatch D_dryfield_night_water_tower_80182020[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_water_tower_80182040[10] = {

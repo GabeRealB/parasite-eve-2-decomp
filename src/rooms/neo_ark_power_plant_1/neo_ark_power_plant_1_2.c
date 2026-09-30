@@ -338,9 +338,9 @@ GpViewRec D_neo_ark_power_plant_1_801800B4[9] = {
     { { { { -4095, 0, -5 }, { 0, 4055, -571 }, { 5, -571, -4055 } }, { -3996, 1191, 9279 } }, 680 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801801F8[2] = {
+SpriteBatch D_neo_ark_power_plant_1_801801F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_80180208[24] = {
@@ -370,11 +370,11 @@ GpSprtElem D_neo_ark_power_plant_1_80180208[24] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, -48, 1081, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801803E8[4] = {
+SpriteBatch D_neo_ark_power_plant_1_801803E8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 1, 0 } },
     { 15, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_80180408[36] = {
@@ -416,11 +416,11 @@ GpSprtElem D_neo_ark_power_plant_1_80180408[36] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 24, 688, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801806D8[4] = {
+SpriteBatch D_neo_ark_power_plant_1_801806D8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
     { 31, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_801806F8[85] = {
@@ -511,12 +511,12 @@ GpSprtElem D_neo_ark_power_plant_1_801806F8[85] = {
     { 143, 0x4000, { .fields = { 16, 16 } }, 120, 16, 1675, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_80180D9C[5] = {
+SpriteBatch D_neo_ark_power_plant_1_80180D9C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 2, 0 } },
     { 30, 12, 0, 0, { 1, 0 } },
     { 42, 43, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_80180DC4[49] = {
@@ -571,11 +571,11 @@ GpSprtElem D_neo_ark_power_plant_1_80180DC4[49] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 40, 794, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_80181198[4] = {
+SpriteBatch D_neo_ark_power_plant_1_80181198[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 45, 0, 0, { 1, 0 } },
     { 45, 4, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_801811B8[17] = {
@@ -598,12 +598,12 @@ GpSprtElem D_neo_ark_power_plant_1_801811B8[17] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, 40, 700, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_8018130C[5] = {
+SpriteBatch D_neo_ark_power_plant_1_8018130C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 11, 0, 0, { 2, 0 } },
     { 12, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_80181334[7] = {
@@ -616,10 +616,10 @@ GpSprtElem D_neo_ark_power_plant_1_80181334[7] = {
     { 143, 0x3FC0, { .fields = { 16, 96 } }, 0, -56, 1125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801813C0[3] = {
+SpriteBatch D_neo_ark_power_plant_1_801813C0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_power_plant_1_801813D8[12] = {
@@ -637,15 +637,15 @@ GpSprtElem D_neo_ark_power_plant_1_801813D8[12] = {
     { 143, 0x3FC0, { .fields = { 48, 64 } }, 32, 56, 525, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801814C8[3] = {
+SpriteBatch D_neo_ark_power_plant_1_801814C8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_power_plant_1_801814E0[2] = {
+SpriteBatch D_neo_ark_power_plant_1_801814E0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_power_plant_1_801814F0[9] = {
@@ -944,13 +944,13 @@ static void func_neo_ark_power_plant_1_8017E184(SVECTOR* arg0, s32 arg1, s32 arg
 }
 
 /// Sprite-suppression switch for two of the area's views: 0 shows command 1
-/// of views 5 and 6 and 1 hides it, through `GpSprtCmd::field_4`; any other
+/// of views 5 and 6 and 1 hides it, through `SpriteBatch::hidden`; any other
 /// value is ignored.
 void func_neo_ark_power_plant_1_8017E524(s32 arg0)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       view;
+    SpriteBatch*     batches;
     s32              v;
 
     sess = &gGameSession->at4.loc;
@@ -958,16 +958,16 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     v    = arg0 & 0xFF;
 
     if (v == 0) {
-        view            = rec[5].field_4;
-        view[1].field_4 = 0;
-        view            = rec[6].field_4;
-        view[1].field_4 = 0;
+        batches           = rec[5].field_4;
+        batches[1].hidden = 0;
+        batches           = rec[6].field_4;
+        batches[1].hidden = 0;
         return;
     }
     if (v == 1) {
-        view            = rec[5].field_4;
-        view[1].field_4 = v;
-        view            = rec[6].field_4;
-        view[1].field_4 = v;
+        batches           = rec[5].field_4;
+        batches[1].hidden = v;
+        batches           = rec[6].field_4;
+        batches[1].hidden = v;
     }
 }

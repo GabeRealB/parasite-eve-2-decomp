@@ -2646,12 +2646,12 @@ GpViewRec D_acropolis_plaza_801988D8[8] = {
     { { { { 4051, 0, -604 }, { 18, 4094, 124 }, { 604, -126, 4049 } }, { 5040, 3595, 5660 } }, 225 },
 };
 
-GpSprtCmd D_acropolis_plaza_801989F8[1] = {
-    { 0xFFFF, 1, 0, 0, { 0, 0 } },
+SpriteBatch D_acropolis_plaza_801989F8[1] = {
+    { SPRITE_BATCH_END, 1, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_plaza_80198A00[1] = {
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+SpriteBatch D_acropolis_plaza_80198A00[1] = {
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_plaza_80198A08[8] = {

@@ -7,25 +7,34 @@
 
 #include "common.h"
 
-/// 8-byte command record. `GpSprtRec.field_4` points at a 0xFFFF-terminated
-/// list of these. `Gp_ViewSprtCmdEmpty` returns whether `field_2` is zero; when it
-/// is, `Gp_LinkViewSprts` skips the first record, otherwise it clears
-/// `gDisplayState.control.flags.imageSource`. `field_0` is the start index into
-/// `GpSprtRec.field_0`; `field_2` is the count. `field_4` nonzero skips
-/// OT-linking each prim. `field_5` nonzero skips `Gp_LinkSprtCmd` and
-/// `Gp_SetSprtShadeBits`.
-typedef struct _GpSprtCmd {
-    /* 0x0 */ u16  field_0;
-    /* 0x2 */ u16  field_2;
-    /* 0x4 */ u8   field_4;
-    /* 0x5 */ u8   field_5;
-    /* 0x6 */ byte pad_6[2];
-} GpSprtCmd;
-STATIC_ASSERT_SIZEOF(GpSprtCmd, 8);
+/// Value of `SpriteBatch.firstSprite` that terminates a view's batch list.
+enum { SPRITE_BATCH_END = 0xFFFF };
+
+/// A contiguous range of source sprites in a view's drawing list.
+///
+/// Room tables own these mutable, eight-byte records. `GpSprtRec.field_4`
+/// points to a list ending with `firstSprite == SPRITE_BATCH_END`. Each
+/// nonterminal range indexes that view's `GpSprtRec.field_0.elements`; its
+/// start plus count must fit the source array.
+///
+/// The first record's count also selects background presentation: zero requests
+/// decoded image strips and is skipped by cached-sprite linking; nonzero
+/// suppresses the strips. This test applies even to a terminal first record.
+/// Hidden ranges retain their positions in the cached packet buffers, while
+/// `skipCachedPackets` ranges do not advance the initialization/link/shade
+/// cursors. Allocation still reserves space for all nonterminal counts.
+typedef struct {
+    u16  firstSprite;       // Zero-based source index, or SPRITE_BATCH_END
+    u16  spriteCount;       // Number of source elements; first record also selects the background
+    u8   hidden;            // Cached sprites (0 linked for drawing, nonzero hidden)
+    u8   skipCachedPackets; // Cached packet processing (0 included, nonzero excluded)
+    byte field_6[2];        // Serialized bytes; role and subdivision unproven
+} SpriteBatch;
+STATIC_ASSERT_SIZEOF(SpriteBatch, 8);
 
 /// 0x14-byte SPRT source record. `GpSprtRec.field_0` is an array of these.
-/// `Gp_LinkSprtCmd` / `Gp_EmitSprts` index from `GpSprtCmd.field_0` for
-/// `field_2` entries. `otz` is the OT depth. `Gp_EmitSprts` copies the
+/// `Gp_LinkSprtCmd` / `Gp_EmitSprts` index from `SpriteBatch.firstSprite` for
+/// `SpriteBatch.spriteCount` entries. `otz` is the OT depth. `Gp_EmitSprts` copies the
 /// remaining fields into a merged `DR_TPAGE`+`SPRT` in `gGpuPrimCursor`.
 /// `flags` bit 0 skips the RGB copy (shade-tex); the byte is OR'd into
 /// the SPRT code.
@@ -71,9 +80,9 @@ typedef struct _GpSprtRec {
     /* 0x0 */ union {
         GpSprtElem* elements;
         // Empty lists retain the command-table address here; no sprite is read.
-        GpSprtCmd* empty;
+        SpriteBatch* empty;
     } field_0;
-    /* 0x4 */ GpSprtCmd*     field_4;
+    /* 0x4 */ SpriteBatch*   field_4;
     /* 0x8 */ GpDrawAreaRec* field_8;
 } GpSprtRec;
 STATIC_ASSERT_SIZEOF(GpSprtRec, 0xC);

@@ -33,21 +33,21 @@ extern GpMsgEntry D_dryfield_warehouse_8017F554[3];
 
 extern TaskDesc D_dryfield_warehouse_8017F56C[2];
 
-extern GpSprtCmd D_dryfield_warehouse_801811A0[2];
+extern SpriteBatch D_dryfield_warehouse_801811A0[2];
 
 extern GpSprtElem D_dryfield_warehouse_801811B0[21];
 
-extern GpSprtCmd D_dryfield_warehouse_80181354[6];
+extern SpriteBatch D_dryfield_warehouse_80181354[6];
 
 extern GpSprtElem D_dryfield_warehouse_80181384[25];
 
-extern GpSprtCmd D_dryfield_warehouse_80181578[6];
+extern SpriteBatch D_dryfield_warehouse_80181578[6];
 
 extern GpSprtElem D_dryfield_warehouse_801815A8[2];
 
-extern GpSprtCmd D_dryfield_warehouse_801815D0[3];
+extern SpriteBatch D_dryfield_warehouse_801815D0[3];
 
-extern GpSprtCmd D_dryfield_warehouse_801815E8[2];
+extern SpriteBatch D_dryfield_warehouse_801815E8[2];
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_warehouse_8017D5E8(Task*);

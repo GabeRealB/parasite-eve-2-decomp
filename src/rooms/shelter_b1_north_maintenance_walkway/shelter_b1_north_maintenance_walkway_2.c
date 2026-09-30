@@ -130,14 +130,14 @@ GpViewRec D_shelter_b1_north_maintenance_walkway_80184F64[6] = {
     { { { { -938, 0, -3987 }, { -839, 4004, 197 }, { 3897, 861, -917 } }, { 2967, 1799, -4953 } }, 235 },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018503C[2] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_8018503C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018504C[2] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_8018504C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_north_maintenance_walkway_8018505C[38] = {
@@ -181,27 +181,27 @@ GpSprtElem D_shelter_b1_north_maintenance_walkway_8018505C[38] = {
     { 143, 0x4000, { .fields = { 48, 16 } }, 24, -96, 925, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_80185354[5] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_80185354[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 2, 0 } },
     { 31, 1, 0, 0, { 1, 0 } },
     { 32, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018537C[2] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_8018537C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018538C[2] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_8018538C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_north_maintenance_walkway_8018539C[2] = {
+SpriteBatch D_shelter_b1_north_maintenance_walkway_8018539C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_north_maintenance_walkway_801853AC[6] = {

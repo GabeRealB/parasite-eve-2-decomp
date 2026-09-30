@@ -35,24 +35,24 @@ s32 D_dryfield_warehouse_801821B8;
 /// killed along with its parent in state 2.
 extern Task* D_dryfield_warehouse_801821B4;
 
-GpSprtCmd D_dryfield_warehouse_801815F8[2] = {
+SpriteBatch D_dryfield_warehouse_801815F8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_warehouse_80181608[2] = {
+SpriteBatch D_dryfield_warehouse_80181608[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_warehouse_80181618[2] = {
+SpriteBatch D_dryfield_warehouse_80181618[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_warehouse_80181628[2] = {
+SpriteBatch D_dryfield_warehouse_80181628[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_warehouse_80181638[9] = {

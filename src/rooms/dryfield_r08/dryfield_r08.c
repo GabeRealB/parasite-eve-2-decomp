@@ -202,9 +202,9 @@ GpViewRec D_dryfield_r08_8017FBBC[6] = {
     { { { { 108, 0, 4094 }, { 3896, 1258, -103 }, { -1257, 3897, 33 } }, { -5020, 1757, -3014 } }, 230 },
 };
 
-GpSprtCmd D_dryfield_r08_8017FC94[2] = {
+SpriteBatch D_dryfield_r08_8017FC94[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_r08_8017FCA4[85] = {
@@ -295,11 +295,11 @@ GpSprtElem D_dryfield_r08_8017FCA4[85] = {
     { 142, 0x3FC0, { .fields = { 24, 8 } }, -64, 8, 252, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_r08_80180348[4] = {
+SpriteBatch D_dryfield_r08_80180348[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 66, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_r08_80180368[12] = {
@@ -317,10 +317,10 @@ GpSprtElem D_dryfield_r08_80180368[12] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, 64, 224, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_r08_80180458[3] = {
+SpriteBatch D_dryfield_r08_80180458[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_r08_80180470[14] = {
@@ -340,7 +340,7 @@ GpSprtElem D_dryfield_r08_80180470[14] = {
     { 143, 0x3FC0, { .fields = { 40, 48 } }, -97, 0, 242, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_r08_80180588[13] = {
+SpriteBatch D_dryfield_r08_80180588[13] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 1, 0 } },
     { 2, 1, 0, 0, { 6, 0 } },
@@ -353,7 +353,7 @@ GpSprtCmd D_dryfield_r08_80180588[13] = {
     { 9, 2, 0, 0, { 0, 0 } },
     { 11, 2, 0, 0, { 10, 0 } },
     { 13, 1, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_r08_801805F0[8] = {
@@ -367,10 +367,10 @@ GpSprtElem D_dryfield_r08_801805F0[8] = {
     { 143, 0x3FC0, { .fields = { 64, 120 } }, -40, 0, 1250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_r08_80180690[3] = {
+SpriteBatch D_dryfield_r08_80180690[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_r08_801806A8[30] = {
@@ -406,10 +406,10 @@ GpSprtElem D_dryfield_r08_801806A8[30] = {
     { 142, 0x3FC0, { .fields = { 16, 32 } }, -160, 88, 239, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_r08_80180900[3] = {
+SpriteBatch D_dryfield_r08_80180900[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_r08_80180918[6] = {
@@ -1048,7 +1048,7 @@ void func_dryfield_r08_8017F334(s32 arg0)
     D_dryfield_r08_80180C24 = arg0;
 }
 
-/// Sets the skip-OT-link byte (`GpSprtCmd.field_4`) of command record
+/// Sets the skip-OT-link byte (`SpriteBatch.hidden`) of command record
 /// `arg0` + 1 in this room's sprite-table command list: non-zero leaves that
 /// record's prims out of the ordering table. `arg0` is a view index below
 /// 0xB; the record the table yields is larger than its `GpSprtRec` prefix,
@@ -1056,16 +1056,16 @@ void func_dryfield_r08_8017F334(s32 arg0)
 void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
 {
     GameLocationKey* sess;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
-        cmd = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
+        batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
         if (arg1 & 0xFF) {
-            cmd[arg0 + 1].field_4 = 1;
+            batches[arg0 + 1].hidden = 1;
             return;
         }
-        cmd[arg0 + 1].field_4 = 0;
+        batches[arg0 + 1].hidden = 0;
     }
 }
 
@@ -1073,21 +1073,21 @@ static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     sess = &gGameSession->at4.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {
-            cmd = rec[1].field_4;
+            batches = rec[1].field_4;
         } else {
-            cmd = rec[2].field_4;
+            batches = rec[2].field_4;
         }
         if (arg1 & 0xFF) {
-            cmd[1].field_4 = 1;
+            batches[1].hidden = 1;
             return;
         }
-        cmd[1].field_4 = 0;
+        batches[1].hidden = 0;
     }
 }
 

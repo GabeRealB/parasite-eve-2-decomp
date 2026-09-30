@@ -160,9 +160,9 @@ GpViewRec D_neo_ark_island_801826EC[5] = {
     { { { { 4007, 0, -846 }, { -825, 918, -3905 }, { 189, 3991, 898 } }, { -5920, 1425, 1855 } }, 257 },
 };
 
-GpSprtCmd D_neo_ark_island_801827A0[2] = {
+SpriteBatch D_neo_ark_island_801827A0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_island_801827B0[33] = {
@@ -201,11 +201,11 @@ GpSprtElem D_neo_ark_island_801827B0[33] = {
     { 142, 0x3FC0, { .fields = { 112, 8 } }, 40, 112, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_island_80182A44[4] = {
+SpriteBatch D_neo_ark_island_80182A44[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_island_80182A64[68] = {
@@ -279,13 +279,13 @@ GpSprtElem D_neo_ark_island_80182A64[68] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, 72, -48, 2500, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_island_80182FB4[6] = {
+SpriteBatch D_neo_ark_island_80182FB4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 41, 0, 0, { 0, 0 } },
     { 52, 15, 0, 0, { 2, 0 } },
     { 67, 1, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_island_80182FE4[140] = {
@@ -431,18 +431,18 @@ GpSprtElem D_neo_ark_island_80182FE4[140] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -112, 2250, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_island_80183AD4[6] = {
+SpriteBatch D_neo_ark_island_80183AD4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 36, 0, 0, { 3, 0 } },
     { 36, 14, 0, 0, { 0, 0 } },
     { 50, 80, 0, 0, { 2, 0 } },
     { 130, 10, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_island_80183B04[2] = {
+SpriteBatch D_neo_ark_island_80183B04[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_island_80183B14[5] = {

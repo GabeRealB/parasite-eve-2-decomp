@@ -106,11 +106,11 @@ extern GpRoomCoordSet D_acropolis_observatory_8018177C[1];
 
 void func_acropolis_observatory_8017E19C(Task*);
 
-extern GpSprtCmd  D_acropolis_observatory_80181794[2];
-extern GpSprtCmd  D_acropolis_observatory_80181B78[7];
-extern GpSprtCmd  D_acropolis_observatory_80182074[22];
-extern GpSprtElem D_acropolis_observatory_801817A4[49];
-extern GpSprtElem D_acropolis_observatory_80181BB0[61];
+extern SpriteBatch D_acropolis_observatory_80181794[2];
+extern SpriteBatch D_acropolis_observatory_80181B78[7];
+extern SpriteBatch D_acropolis_observatory_80182074[22];
+extern GpSprtElem  D_acropolis_observatory_801817A4[49];
+extern GpSprtElem  D_acropolis_observatory_80181BB0[61];
 
 s16 D_acropolis_observatory_8017FE68[2] = {
     -1,
@@ -367,9 +367,9 @@ GpRoomCoordSet D_acropolis_observatory_8018177C[1] = {
     { 0, NULL, 12, D_acropolis_observatory_801812FC, 0, NULL },
 };
 
-GpSprtCmd D_acropolis_observatory_80181794[2] = {
+SpriteBatch D_acropolis_observatory_80181794[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_observatory_801817A4[49] = {
@@ -424,14 +424,14 @@ GpSprtElem D_acropolis_observatory_801817A4[49] = {
     { 142, 0x4000, { .fields = { 8, 48 } }, -72, 24, 1350, { .fields = { 112, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_80181B78[7] = {
+SpriteBatch D_acropolis_observatory_80181B78[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 0, 0 } },
     { 10, 10, 0, 0, { 3, 0 } },
     { 20, 1, 0, 0, { 2, 0 } },
     { 21, 6, 0, 0, { 4, 0 } },
     { 27, 22, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_observatory_80181BB0[61] = {
@@ -498,7 +498,7 @@ GpSprtElem D_acropolis_observatory_80181BB0[61] = {
     { 142, 0x4000, { .fields = { 16, 24 } }, 48, -16, 2077, { .fields = { 96, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_80182074[22] = {
+SpriteBatch D_acropolis_observatory_80182074[22] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 16, 0 } },
     { 8, 8, 0, 0, { 3, 0 } },
@@ -520,7 +520,7 @@ GpSprtCmd D_acropolis_observatory_80182074[22] = {
     { 61, 0, 0, 0, { 18, 0 } },
     { 61, 0, 0, 0, { 17, 0 } },
     { 61, 0, 0, 0, { 4, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 u16 D_acropolis_observatory_80182124[4] = {
@@ -600,7 +600,7 @@ GpSprtElem D_acropolis_observatory_8018212C[67] = {
     { 143, 0x4080, { .fields = { 8, 32 } }, 40, -24, 2013, { .fields = { 96, 224 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_80182668[12] = {
+SpriteBatch D_acropolis_observatory_80182668[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 6, 0 } },
     { 1, 5, 0, 0, { 1, 0 } },
@@ -612,12 +612,12 @@ GpSprtCmd D_acropolis_observatory_80182668[12] = {
     { 47, 4, 0, 0, { 4, 0 } },
     { 51, 7, 0, 0, { 7, 0 } },
     { 58, 9, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_observatory_801826C8[2] = {
+SpriteBatch D_acropolis_observatory_801826C8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_observatory_801826D8[29] = {
@@ -652,13 +652,13 @@ GpSprtElem D_acropolis_observatory_801826D8[29] = {
     { 143, 0x4000, { .fields = { 72, 56 } }, 24, -80, 375, { .fields = { 32, 200 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_8018291C[6] = {
+SpriteBatch D_acropolis_observatory_8018291C[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 3, 0 } },
     { 9, 7, 0, 0, { 0, 0 } },
     { 16, 3, 0, 0, { 2, 0 } },
     { 19, 10, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_observatory_8018294C[36] = {
@@ -700,7 +700,7 @@ GpSprtElem D_acropolis_observatory_8018294C[36] = {
     { 141, 0x4000, { .fields = { 80, 24 } }, 80, 96, 203, { .fields = { 72, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_80182C1C[8] = {
+SpriteBatch D_acropolis_observatory_80182C1C[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 3, 0, 0, { 0, 0 } },
@@ -708,7 +708,7 @@ GpSprtCmd D_acropolis_observatory_80182C1C[8] = {
     { 20, 3, 0, 0, { 1, 0 } },
     { 23, 3, 0, 0, { 4, 0 } },
     { 26, 10, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_observatory_80182C5C[81] = {
@@ -795,7 +795,7 @@ GpSprtElem D_acropolis_observatory_80182C5C[81] = {
     { 143, 0x4000, { .fields = { 72, 24 } }, 16, -64, 1607, { .fields = { 16, 136 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_acropolis_observatory_801832B0[10] = {
+SpriteBatch D_acropolis_observatory_801832B0[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 6, 0 } },
     { 13, 2, 0, 0, { 1, 0 } },
@@ -805,7 +805,7 @@ GpSprtCmd D_acropolis_observatory_801832B0[10] = {
     { 46, 15, 0, 0, { 3, 0 } },
     { 61, 5, 0, 0, { 7, 0 } },
     { 66, 15, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_observatory_80183300[8] = {

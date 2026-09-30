@@ -164,9 +164,9 @@ GpViewRec D_shelter_b6_growth_room_8017FB14[8] = {
     { { { { 798, 0, -4017 }, { -97, 4094, -19 }, { 4016, 99, 798 } }, { -4250, 1470, -5010 } }, 329 },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FC34[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FC34[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b6_growth_room_8017FC44[6] = {
@@ -178,10 +178,10 @@ GpSprtElem D_shelter_b6_growth_room_8017FC44[6] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, 56, 1139, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FCBC[3] = {
+SpriteBatch D_shelter_b6_growth_room_8017FCBC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b6_growth_room_8017FCD4[19] = {
@@ -206,35 +206,35 @@ GpSprtElem D_shelter_b6_growth_room_8017FCD4[19] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 48, 1290, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FE50[3] = {
+SpriteBatch D_shelter_b6_growth_room_8017FE50[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FE68[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FE68[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FE78[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FE78[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FE88[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FE88[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FE98[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FE98[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b6_growth_room_8017FEA8[2] = {
+SpriteBatch D_shelter_b6_growth_room_8017FEA8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b6_growth_room_8017FEB8[8] = {

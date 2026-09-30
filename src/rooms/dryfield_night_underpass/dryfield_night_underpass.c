@@ -265,14 +265,14 @@ GpViewRec D_dryfield_night_underpass_8017E6F8[26] = {
     { { { { -4047, 0, 631 }, { -451, 2858, -2898 }, { -440, -2933, -2824 } }, { -0x4229, 2000, 6853 } }, 348 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EAA0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EAA0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EAB0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EAB0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017EAC0[16] = {
@@ -294,10 +294,10 @@ GpSprtElem D_dryfield_night_underpass_8017EAC0[16] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 8, 1014, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EC00[3] = {
+SpriteBatch D_dryfield_night_underpass_8017EC00[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017EC18[11] = {
@@ -314,10 +314,10 @@ GpSprtElem D_dryfield_night_underpass_8017EC18[11] = {
     { 143, 0x3FC0, { .fields = { 64, 80 } }, -160, -40, 2125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017ECF4[3] = {
+SpriteBatch D_dryfield_night_underpass_8017ECF4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017ED0C[10] = {
@@ -333,26 +333,26 @@ GpSprtElem D_dryfield_night_underpass_8017ED0C[10] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 897, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EDD4[4] = {
+SpriteBatch D_dryfield_night_underpass_8017EDD4[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EDF4[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EDF4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EE04[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EE04[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EE14[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EE14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017EE24[11] = {
@@ -369,26 +369,26 @@ GpSprtElem D_dryfield_night_underpass_8017EE24[11] = {
     { 143, 0x3FC0, { .fields = { 48, 88 } }, -160, 16, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EF00[4] = {
+SpriteBatch D_dryfield_night_underpass_8017EF00[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EF20[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EF20[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EF30[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EF30[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017EF40[2] = {
+SpriteBatch D_dryfield_night_underpass_8017EF40[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017EF50[16] = {
@@ -410,10 +410,10 @@ GpSprtElem D_dryfield_night_underpass_8017EF50[16] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 8, 1014, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F090[3] = {
+SpriteBatch D_dryfield_night_underpass_8017F090[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017F0A8[11] = {
@@ -430,10 +430,10 @@ GpSprtElem D_dryfield_night_underpass_8017F0A8[11] = {
     { 143, 0x3FC0, { .fields = { 64, 80 } }, -160, -40, 2125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F184[3] = {
+SpriteBatch D_dryfield_night_underpass_8017F184[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017F19C[10] = {
@@ -449,26 +449,26 @@ GpSprtElem D_dryfield_night_underpass_8017F19C[10] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 897, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F264[4] = {
+SpriteBatch D_dryfield_night_underpass_8017F264[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F284[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F284[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F294[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F294[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F2A4[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F2A4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_underpass_8017F2B4[11] = {
@@ -485,46 +485,46 @@ GpSprtElem D_dryfield_night_underpass_8017F2B4[11] = {
     { 143, 0x3FC0, { .fields = { 48, 88 } }, -160, 16, 1125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F390[4] = {
+SpriteBatch D_dryfield_night_underpass_8017F390[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F3B0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F3B0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F3C0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F3C0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F3D0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F3D0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F3E0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F3E0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F3F0[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F3F0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F400[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F400[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_underpass_8017F410[2] = {
+SpriteBatch D_dryfield_night_underpass_8017F410[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_underpass_8017F420[26] = {

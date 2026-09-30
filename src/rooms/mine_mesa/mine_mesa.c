@@ -1187,9 +1187,9 @@ GpViewRec D_mine_mesa_80187030[11] = {
     { { { { 639, 0, 4045 }, { 392, 4076, -61 }, { -4026, 396, 636 } }, { -0x33D2, 1931, -1371 } }, 230 },
 };
 
-GpSprtCmd D_mine_mesa_801871BC[2] = {
+SpriteBatch D_mine_mesa_801871BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_801871CC[48] = {
@@ -1243,14 +1243,14 @@ GpSprtElem D_mine_mesa_801871CC[48] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 48, 1125, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_8018758C[7] = {
+SpriteBatch D_mine_mesa_8018758C[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 0, 0 } },
     { 22, 11, 0, 0, { 3, 0 } },
     { 33, 6, 0, 0, { 2, 0 } },
     { 39, 3, 0, 0, { 4, 0 } },
     { 42, 6, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_801875C4[39] = {
@@ -1295,11 +1295,11 @@ GpSprtElem D_mine_mesa_801875C4[39] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 88, 1051, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_801878D0[4] = {
+SpriteBatch D_mine_mesa_801878D0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
     { 16, 23, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_801878F0[18] = {
@@ -1323,10 +1323,10 @@ GpSprtElem D_mine_mesa_801878F0[18] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -8, 1289, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_80187A58[3] = {
+SpriteBatch D_mine_mesa_80187A58[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_80187A70[66] = {
@@ -1398,13 +1398,13 @@ GpSprtElem D_mine_mesa_80187A70[66] = {
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 832, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_80187F98[6] = {
+SpriteBatch D_mine_mesa_80187F98[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 3, 0 } },
     { 13, 8, 0, 0, { 0, 0 } },
     { 21, 16, 0, 0, { 2, 0 } },
     { 37, 29, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_80187FC8[23] = {
@@ -1433,15 +1433,15 @@ GpSprtElem D_mine_mesa_80187FC8[23] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -32, 630, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_80188194[3] = {
+SpriteBatch D_mine_mesa_80188194[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_mesa_801881AC[2] = {
+SpriteBatch D_mine_mesa_801881AC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_801881BC[42] = {
@@ -1489,12 +1489,12 @@ GpSprtElem D_mine_mesa_801881BC[42] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 128, -32, 1359, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_80188504[5] = {
+SpriteBatch D_mine_mesa_80188504[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 1, 0 } },
     { 15, 9, 0, 0, { 2, 0 } },
     { 24, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_mesa_8018852C[24] = {
@@ -1524,20 +1524,20 @@ GpSprtElem D_mine_mesa_8018852C[24] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 64, -16, 1538, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_mesa_8018870C[3] = {
+SpriteBatch D_mine_mesa_8018870C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_mesa_80188724[2] = {
+SpriteBatch D_mine_mesa_80188724[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_mesa_80188734[2] = {
+SpriteBatch D_mine_mesa_80188734[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mine_mesa_80188744[11] = {

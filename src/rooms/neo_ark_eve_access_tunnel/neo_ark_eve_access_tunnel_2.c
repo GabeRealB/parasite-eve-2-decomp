@@ -147,49 +147,49 @@ GpViewRec D_neo_ark_eve_access_tunnel_8017F080[7] = {
     { { { { 1700, 0, 3726 }, { 1226, 3867, -559 }, { -3518, 1348, 1605 } }, { 667, 1600, -4048 } }, 257 },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_8017F17C[2] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 /// Hides or shows sprite commands of the area's views through their
-/// `GpSprtCmd::field_4`: `arg0` 0 drives command 4 of view 2, `arg0` 1 command
+/// `SpriteBatch::hidden`: `arg0` 0 drives command 4 of view 2, `arg0` 1 command
 /// 3 of view 3 and command 2 of view 4. `arg1` 0 hides them and 1 shows them;
 /// any other value changes nothing.
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
     GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    GpSprtCmd*       view;
+    SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;
 
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            view            = rec[2].field_4;
-            view[4].field_4 = 1;
+            batches           = rec[2].field_4;
+            batches[4].hidden = 1;
             return;
         }
         if (flag == 1) {
-            view            = rec[2].field_4;
-            view[4].field_4 = 0;
+            batches           = rec[2].field_4;
+            batches[4].hidden = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            view            = rec[3].field_4;
-            view[3].field_4 = run;
-            view            = rec[4].field_4;
-            view[2].field_4 = run;
+            batches           = rec[3].field_4;
+            batches[3].hidden = run;
+            batches           = rec[4].field_4;
+            batches[2].hidden = run;
             return;
         }
         if (flag == run) {
-            view            = rec[3].field_4;
-            view[3].field_4 = 0;
-            view            = rec[4].field_4;
-            view[2].field_4 = 0;
+            batches           = rec[3].field_4;
+            batches[3].hidden = 0;
+            batches           = rec[4].field_4;
+            batches[2].hidden = 0;
         }
     }
 }

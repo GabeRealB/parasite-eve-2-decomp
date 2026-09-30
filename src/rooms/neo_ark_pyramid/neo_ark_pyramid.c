@@ -177,14 +177,14 @@ GpViewRec D_neo_ark_pyramid_801802E8[8] = {
     { { { { -2878, 0, 2914 }, { 16, 4095, 16 }, { -2914, 23, -2878 } }, { 1595, 667, 6136 } }, 312 },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180408[2] = {
+SpriteBatch D_neo_ark_pyramid_80180408[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180418[2] = {
+SpriteBatch D_neo_ark_pyramid_80180418[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_pyramid_80180428[12] = {
@@ -202,10 +202,10 @@ GpSprtElem D_neo_ark_pyramid_80180428[12] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 40, 1611, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180518[3] = {
+SpriteBatch D_neo_ark_pyramid_80180518[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_pyramid_80180530[43] = {
@@ -254,11 +254,11 @@ GpSprtElem D_neo_ark_pyramid_80180530[43] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 8 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_pyramid_8018088C[4] = {
+SpriteBatch D_neo_ark_pyramid_8018088C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 1, 0 } },
     { 34, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_pyramid_801808AC[24] = {
@@ -288,10 +288,10 @@ GpSprtElem D_neo_ark_pyramid_801808AC[24] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -104, 24, 715, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180A8C[3] = {
+SpriteBatch D_neo_ark_pyramid_80180A8C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_pyramid_80180AA4[41] = {
@@ -338,21 +338,21 @@ GpSprtElem D_neo_ark_pyramid_80180AA4[41] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 48, 1273, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180DD8[4] = {
+SpriteBatch D_neo_ark_pyramid_80180DD8[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 1, 0 } },
     { 32, 9, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180DF8[2] = {
+SpriteBatch D_neo_ark_pyramid_80180DF8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_pyramid_80180E08[2] = {
+SpriteBatch D_neo_ark_pyramid_80180E08[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_pyramid_80180E18[8] = {

@@ -1874,40 +1874,40 @@ void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
     GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;
     s32              flag;
 
     if (run == 0) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            cmd            = rec[2].field_4;
-            cmd[2].field_4 = 1;
-            cmd            = rec[6].field_4;
-            cmd[1].field_4 = 1;
+            batches           = rec[2].field_4;
+            batches[2].hidden = 1;
+            batches           = rec[6].field_4;
+            batches[1].hidden = 1;
             return;
         }
         if (flag == 1) {
-            cmd            = rec[2].field_4;
-            cmd[2].field_4 = 0;
-            cmd            = rec[6].field_4;
-            cmd[1].field_4 = 0;
+            batches           = rec[2].field_4;
+            batches[2].hidden = 0;
+            batches           = rec[6].field_4;
+            batches[1].hidden = 0;
             return;
         }
     } else if (run == 1) {
         flag = arg1 & 0xFF;
         if (flag == 0) {
-            cmd            = rec[2].field_4;
-            cmd[1].field_4 = run;
-            cmd            = rec[6].field_4;
-            cmd[2].field_4 = run;
+            batches           = rec[2].field_4;
+            batches[1].hidden = run;
+            batches           = rec[6].field_4;
+            batches[2].hidden = run;
             return;
         }
         if (flag == run) {
-            cmd            = rec[2].field_4;
-            cmd[1].field_4 = 0;
-            cmd            = rec[6].field_4;
-            cmd[2].field_4 = 0;
+            batches           = rec[2].field_4;
+            batches[1].hidden = 0;
+            batches           = rec[6].field_4;
+            batches[2].hidden = 0;
         }
     }
 }

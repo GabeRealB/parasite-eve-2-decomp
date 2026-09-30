@@ -288,9 +288,9 @@ GpViewRec D_shelter_b2_operating_room_80181388[12] = {
     { { { { 16, 0, 4095 }, { 3674, 1809, -14 }, { -1809, 3674, 7 } }, { -5788, 2908, -3077 } }, 264 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_80181538[2] = {
+SpriteBatch D_shelter_b2_operating_room_80181538[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_80181548[25] = {
@@ -321,11 +321,11 @@ GpSprtElem D_shelter_b2_operating_room_80181548[25] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, 104, -120, 879, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_8018173C[4] = {
+SpriteBatch D_shelter_b2_operating_room_8018173C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 18, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_8018175C[17] = {
@@ -348,10 +348,10 @@ GpSprtElem D_shelter_b2_operating_room_8018175C[17] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -160, -120, 556, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_801818B0[3] = {
+SpriteBatch D_shelter_b2_operating_room_801818B0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_801818C8[87] = {
@@ -444,7 +444,7 @@ GpSprtElem D_shelter_b2_operating_room_801818C8[87] = {
     { 142, 0x4000, { .fields = { 88, 48 } }, -16, -112, 1621, { .fields = { 120, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_80181F94[14] = {
+SpriteBatch D_shelter_b2_operating_room_80181F94[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 7, 0 } },
     { 15, 7, 0, 0, { 2, 0 } },
@@ -458,7 +458,7 @@ GpSprtCmd D_shelter_b2_operating_room_80181F94[14] = {
     { 68, 1, 0, 0, { 4, 0 } },
     { 69, 17, 0, 0, { 11, 0 } },
     { 86, 1, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_80182004[124] = {
@@ -588,7 +588,7 @@ GpSprtElem D_shelter_b2_operating_room_80182004[124] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, 120, -96, 1460, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_801829B4[14] = {
+SpriteBatch D_shelter_b2_operating_room_801829B4[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 7, 0 } },
     { 16, 11, 0, 0, { 2, 0 } },
@@ -602,7 +602,7 @@ GpSprtCmd D_shelter_b2_operating_room_801829B4[14] = {
     { 86, 2, 0, 0, { 4, 0 } },
     { 88, 18, 0, 0, { 11, 0 } },
     { 106, 18, 0, 0, { 3, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_80182A24[40] = {
@@ -648,12 +648,12 @@ GpSprtElem D_shelter_b2_operating_room_80182A24[40] = {
     { 143, 0x4000, { .fields = { 8, 72 } }, 48, -80, 944, { .fields = { 120, 168 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_80182D44[5] = {
+SpriteBatch D_shelter_b2_operating_room_80182D44[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 1, 0 } },
     { 30, 6, 0, 0, { 2, 0 } },
     { 36, 4, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_operating_room_80182D6C[50] = {
@@ -709,13 +709,13 @@ GpSprtElem D_shelter_b2_operating_room_80182D6C[50] = {
     { 142, 0x4000, { .fields = { 8, 72 } }, -112, -104, 596, { .fields = { 120, 88 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_shelter_b2_operating_room_80183154[6] = {
+SpriteBatch D_shelter_b2_operating_room_80183154[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 3, 0 } },
     { 26, 10, 0, 0, { 0, 0 } },
     { 36, 10, 0, 0, { 2, 0 } },
     { 46, 4, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b2_operating_room_80183184[7] = {

@@ -304,17 +304,17 @@ static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              mode;
 
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     mode = arg0 & 0xFF;
     if (mode == 0) {
-        cmd            = rec[2].field_4;
-        cmd[2].field_4 = 1;
+        batches           = rec[2].field_4;
+        batches[2].hidden = 1;
     } else if (mode == 1) {
-        cmd            = rec[2].field_4;
-        cmd[2].field_4 = 0;
+        batches           = rec[2].field_4;
+        batches[2].hidden = 0;
     }
 }
 

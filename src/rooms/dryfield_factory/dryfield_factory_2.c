@@ -737,17 +737,17 @@ void func_dryfield_factory_80181620(s32 arg0)
 {
     GameSession*     g;
     GameLocationKey* sess;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     g    = gGameSession;
     sess = &g->at4.loc;
     if (sess->stage == 2) {
-        cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
         if (!(arg0 & 0xFF)) {
-            cmd[1].field_4 = 1;
+            batches[1].hidden = 1;
             return;
         }
-        cmd[1].field_4 = 0;
+        batches[1].hidden = 0;
     }
 }
 
@@ -921,17 +921,17 @@ void func_dryfield_factory_80181B38(s32 arg0)
 {
     GameSession*     g;
     GameLocationKey* sess;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     g    = gGameSession;
     sess = &g->at4.loc;
     if (sess->stage == 2) {
-        cmd = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][10].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][10].field_4;
         if (!(arg0 & 0xFF)) {
-            cmd[1].field_4 = 1;
+            batches[1].hidden = 1;
             return;
         }
-        cmd[1].field_4 = 0;
+        batches[1].hidden = 0;
     }
 }
 

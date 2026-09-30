@@ -165,9 +165,9 @@ GpViewRec D_dryfield_parking_lot_8017E900[7] = {
     { { { { 814, 0, -4014 }, { 596, 4050, 121 }, { 3969, -609, 805 } }, { -6266, 636, -2232 } }, 230 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017E9FC[2] = {
+SpriteBatch D_dryfield_parking_lot_8017E9FC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_parking_lot_8017EA0C[10] = {
@@ -183,11 +183,11 @@ GpSprtElem D_dryfield_parking_lot_8017EA0C[10] = {
     { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017EAD4[4] = {
+SpriteBatch D_dryfield_parking_lot_8017EAD4[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_dryfield_parking_lot_8017EAF4[2] = {
@@ -222,10 +222,10 @@ GpSprtElem D_dryfield_parking_lot_8017EB08[24] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017ECE8[3] = {
+SpriteBatch D_dryfield_parking_lot_8017ECE8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_parking_lot_8017ED00[9] = {
@@ -240,12 +240,12 @@ GpSprtElem D_dryfield_parking_lot_8017ED00[9] = {
     { 143, 0x3FC0, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017EDB4[5] = {
+SpriteBatch D_dryfield_parking_lot_8017EDB4[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 4, 0, 0, { 2, 0 } },
     { 7, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_parking_lot_8017EDDC[7] = {
@@ -258,10 +258,10 @@ GpSprtElem D_dryfield_parking_lot_8017EDDC[7] = {
     { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017EE68[3] = {
+SpriteBatch D_dryfield_parking_lot_8017EE68[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_parking_lot_8017EE80[21] = {
@@ -288,16 +288,16 @@ GpSprtElem D_dryfield_parking_lot_8017EE80[21] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 925, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017F024[4] = {
+SpriteBatch D_dryfield_parking_lot_8017F024[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
     { 9, 12, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_parking_lot_8017F044[2] = {
+SpriteBatch D_dryfield_parking_lot_8017F044[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_parking_lot_8017F054[7] = {

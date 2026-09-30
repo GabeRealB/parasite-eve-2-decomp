@@ -130,14 +130,14 @@ GpViewRec D_shelter_b3_incinerator_control_room_80181CE4[8] = {
     { { { { -1234, 0, -3905 }, { -938, 3975, 296 }, { 3791, 984, -1198 } }, { 5487, 1464, 1249 } }, 230 },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80181E04[2] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80181E04[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80181E14[2] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80181E14[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b3_incinerator_control_room_80181E24[13] = {
@@ -156,10 +156,10 @@ GpSprtElem D_shelter_b3_incinerator_control_room_80181E24[13] = {
     { 143, 0x3FC0, { .fields = { 56, 72 } }, 104, -80, 1725, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80181F28[3] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80181F28[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b3_incinerator_control_room_80181F40[18] = {
@@ -183,12 +183,12 @@ GpSprtElem D_shelter_b3_incinerator_control_room_80181F40[18] = {
     { 143, 0x3FC0, { .fields = { 40, 80 } }, 88, 16, 713, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_801820A8[5] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_801820A8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 2, 0, 0, { 2, 0 } },
     { 16, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b3_incinerator_control_room_801820D0[2] = {
@@ -196,25 +196,25 @@ GpSprtElem D_shelter_b3_incinerator_control_room_801820D0[2] = {
     { 143, 0x3FC0, { .fields = { 32, 72 } }, -120, -56, 753, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_801820F8[3] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_801820F8[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80182110[2] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80182110[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80182120[2] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80182120[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b3_incinerator_control_room_80182130[2] = {
+SpriteBatch D_shelter_b3_incinerator_control_room_80182130[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b3_incinerator_control_room_80182140[8] = {

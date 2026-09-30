@@ -188,15 +188,15 @@ extern GpRoomCoordSet D_acropolis_fire_escape_80182B54[1];
 
 extern GpDrawAreaRec D_acropolis_fire_escape_80182D44[2];
 extern GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182B6C[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182B7C[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182C90[3];
-extern GpSprtCmd     D_acropolis_fire_escape_80182CA8[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182D1C[3];
-extern GpSprtCmd     D_acropolis_fire_escape_80182D34[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182DBC[3];
-extern GpSprtCmd     D_acropolis_fire_escape_80182DD4[2];
-extern GpSprtCmd     D_acropolis_fire_escape_80182DE4[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182B6C[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182B7C[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182C90[3];
+extern SpriteBatch   D_acropolis_fire_escape_80182CA8[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182D1C[3];
+extern SpriteBatch   D_acropolis_fire_escape_80182D34[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182DBC[3];
+extern SpriteBatch   D_acropolis_fire_escape_80182DD4[2];
+extern SpriteBatch   D_acropolis_fire_escape_80182DE4[2];
 extern GpSprtElem    D_acropolis_fire_escape_80182B8C[13];
 extern GpSprtElem    D_acropolis_fire_escape_80182CB8[5];
 extern GpSprtElem    D_acropolis_fire_escape_80182D58[5];
@@ -353,14 +353,14 @@ GpRoomCoordSet D_acropolis_fire_escape_80182B54[1] = {
     { 0, NULL, 5, D_acropolis_fire_escape_80182974, 0, NULL },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182B6C[2] = {
+SpriteBatch D_acropolis_fire_escape_80182B6C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182B7C[2] = {
+SpriteBatch D_acropolis_fire_escape_80182B7C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_fire_escape_80182B8C[13] = {
@@ -379,15 +379,15 @@ GpSprtElem D_acropolis_fire_escape_80182B8C[13] = {
     { 143, 0x3FC0, { .fields = { 64, 240 } }, -160, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182C90[3] = {
+SpriteBatch D_acropolis_fire_escape_80182C90[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182CA8[2] = {
+SpriteBatch D_acropolis_fire_escape_80182CA8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_acropolis_fire_escape_80182CB8[5] = {
@@ -398,15 +398,15 @@ GpSprtElem D_acropolis_fire_escape_80182CB8[5] = {
     { 142, 0x3FC0, { .fields = { 48, 240 } }, -160, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182D1C[3] = {
+SpriteBatch D_acropolis_fire_escape_80182D1C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182D34[2] = {
+SpriteBatch D_acropolis_fire_escape_80182D34[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_acropolis_fire_escape_80182D44[2] = {
@@ -422,20 +422,20 @@ GpSprtElem D_acropolis_fire_escape_80182D58[5] = {
     { 142, 0x3FC0, { .fields = { 200, 40 } }, -104, 80, 500, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182DBC[3] = {
+SpriteBatch D_acropolis_fire_escape_80182DBC[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182DD4[2] = {
+SpriteBatch D_acropolis_fire_escape_80182DD4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182DE4[2] = {
+SpriteBatch D_acropolis_fire_escape_80182DE4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2] = {
@@ -443,9 +443,9 @@ GpDrawAreaRec D_acropolis_fire_escape_80182DF4[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtCmd D_acropolis_fire_escape_80182E08[2] = {
+SpriteBatch D_acropolis_fire_escape_80182E08[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_acropolis_fire_escape_80182E18[10] = {

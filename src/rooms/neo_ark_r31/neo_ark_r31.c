@@ -69,19 +69,19 @@ GpViewRec D_neo_ark_r31_8017DA5C[3] = {
     { { { { -3243, 0, 2501 }, { 1904, 2655, 2469 }, { -1621, 3118, -2102 } }, { -8340, 1050, -7830 } }, 289 },
 };
 
-GpSprtCmd D_neo_ark_r31_8017DAC8[2] = {
+SpriteBatch D_neo_ark_r31_8017DAC8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_r31_8017DAD8[2] = {
+SpriteBatch D_neo_ark_r31_8017DAD8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_r31_8017DAE8[2] = {
+SpriteBatch D_neo_ark_r31_8017DAE8[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_r31_8017DAF8[3] = {

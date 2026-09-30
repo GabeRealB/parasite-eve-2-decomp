@@ -154,14 +154,14 @@ GpViewRec D_shelter_b2_north_maintenance_walkway_80184040[8] = {
     { { { { 4008, 0, 843 }, { 619, 2780, -2942 }, { -572, 3007, 2721 } }, { -2300, 2750, -550 } }, 289 },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80184160[2] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80184160[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80184170[2] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80184170[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_north_maintenance_walkway_80184180[28] = {
@@ -195,11 +195,11 @@ GpSprtElem D_shelter_b2_north_maintenance_walkway_80184180[28] = {
     { 143, 0x4000, { .fields = { 24, 32 } }, -104, 16, 1125, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_801843B0[4] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_801843B0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 1, 0 } },
     { 23, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_north_maintenance_walkway_801843D0[44] = {
@@ -249,20 +249,20 @@ GpSprtElem D_shelter_b2_north_maintenance_walkway_801843D0[44] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 56, 843, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80184740[3] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80184740[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 44, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80184758[2] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80184758[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80184768[2] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80184768[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_north_maintenance_walkway_80184778[129] = {
@@ -397,10 +397,10 @@ GpSprtElem D_shelter_b2_north_maintenance_walkway_80184778[129] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, -120, 513, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_8018518C[3] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_8018518C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 129, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b2_north_maintenance_walkway_801851A4[118] = {
@@ -524,12 +524,12 @@ GpSprtElem D_shelter_b2_north_maintenance_walkway_801851A4[118] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 112, 297, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b2_north_maintenance_walkway_80185ADC[5] = {
+SpriteBatch D_shelter_b2_north_maintenance_walkway_80185ADC[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 1, 0 } },
     { 24, 44, 0, 0, { 2, 0 } },
     { 68, 50, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b2_north_maintenance_walkway_80185B04[8] = {

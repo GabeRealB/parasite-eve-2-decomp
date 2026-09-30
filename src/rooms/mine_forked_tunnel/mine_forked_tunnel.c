@@ -1070,9 +1070,9 @@ GpViewRec D_mine_forked_tunnel_80183D94[7] = {
     { { { { -3711, 0, -1732 }, { -1330, 2622, 2850 }, { 1109, 3145, -2376 } }, { -1662, 2731, -0x2A11 } }, 269 },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80183E90[2] = {
+SpriteBatch D_mine_forked_tunnel_80183E90[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_forked_tunnel_80183EA0[35] = {
@@ -1113,12 +1113,12 @@ GpSprtElem D_mine_forked_tunnel_80183EA0[35] = {
     { 143, 0x3FC0, { .fields = { 8, 80 } }, -72, 0, 702, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_forked_tunnel_8018415C[5] = {
+SpriteBatch D_mine_forked_tunnel_8018415C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 10, 0, 0, { 2, 0 } },
     { 24, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_forked_tunnel_80184184[36] = {
@@ -1160,11 +1160,11 @@ GpSprtElem D_mine_forked_tunnel_80184184[36] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 104, 747, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80184454[4] = {
+SpriteBatch D_mine_forked_tunnel_80184454[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 29, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_forked_tunnel_80184474[82] = {
@@ -1252,14 +1252,14 @@ GpSprtElem D_mine_forked_tunnel_80184474[82] = {
     { 143, 0x4000, { .fields = { 24, 48 } }, 0, -40, 2019, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80184ADC[7] = {
+SpriteBatch D_mine_forked_tunnel_80184ADC[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
     { 19, 13, 0, 0, { 3, 0 } },
     { 32, 17, 0, 0, { 2, 0 } },
     { 49, 31, 0, 0, { 4, 0 } },
     { 80, 2, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_forked_tunnel_80184B14[26] = {
@@ -1291,22 +1291,22 @@ GpSprtElem D_mine_forked_tunnel_80184B14[26] = {
     { 143, 0x4000, { .fields = { 24, 32 } }, -32, -24, 1271, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80184D1C[5] = {
+SpriteBatch D_mine_forked_tunnel_80184D1C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 1, 0 } },
     { 2, 18, 0, 0, { 2, 0 } },
     { 20, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80184D44[2] = {
+SpriteBatch D_mine_forked_tunnel_80184D44[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_forked_tunnel_80184D54[2] = {
+SpriteBatch D_mine_forked_tunnel_80184D54[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mine_forked_tunnel_80184D64[7] = {
@@ -1961,29 +1961,29 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
 }
 
 /// Hides (`arg0` non-zero) or shows two of the area's sprite commands by
-/// setting their `GpSprtCmd::field_4`, which keeps a command's sprites out of
+/// setting their `SpriteBatch::hidden`, which keeps a command's sprites out of
 /// the ordering table.
 static void func_mine_forked_tunnel_8017E48C(s32 arg0)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       v28;
-    GpSprtCmd*       v34;
+    SpriteBatch*     view4Batches;
+    SpriteBatch*     view5Batches;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
 
     if (!(arg0 & 0xFF)) {
-        v28            = rec[3].field_4;
-        v28[5].field_4 = 0;
-        v34            = rec[4].field_4;
-        v34[3].field_4 = 0;
+        view4Batches           = rec[3].field_4;
+        view4Batches[5].hidden = 0;
+        view5Batches           = rec[4].field_4;
+        view5Batches[3].hidden = 0;
         return;
     }
-    v28            = rec[3].field_4;
-    v28[5].field_4 = 1;
-    v34            = rec[4].field_4;
-    v34[3].field_4 = 1;
+    view4Batches           = rec[3].field_4;
+    view4Batches[5].hidden = 1;
+    view5Batches           = rec[4].field_4;
+    view5Batches[3].hidden = 1;
 }
 
 /// Draws one glow sprite at the world-space point `arg0`: projects it through

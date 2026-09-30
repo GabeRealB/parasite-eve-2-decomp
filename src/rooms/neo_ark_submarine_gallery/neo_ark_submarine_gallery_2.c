@@ -233,9 +233,9 @@ GpViewRec D_neo_ark_submarine_gallery_801823C0[7] = {
     { { { { -639, 0, 4045 }, { 1045, 3956, 165 }, { -3908, 1058, -617 } }, { -7620, -3215, -3705 } }, 272 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_801824BC[2] = {
+SpriteBatch D_neo_ark_submarine_gallery_801824BC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_801824CC[149] = {
@@ -390,13 +390,13 @@ GpSprtElem D_neo_ark_submarine_gallery_801824CC[149] = {
     { 143, 0x4040, { .fields = { 8, 88 } }, 152, -64, 1900, { .fields = { 96, 88 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_80183070[6] = {
+SpriteBatch D_neo_ark_submarine_gallery_80183070[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 69, 0, 0, { 0, 0 } },
     { 88, 22, 0, 0, { 2, 0 } },
     { 110, 39, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_801830A0[78] = {
@@ -480,12 +480,12 @@ GpSprtElem D_neo_ark_submarine_gallery_801830A0[78] = {
     { 143, 0x3FC0, { .fields = { 80, 8 } }, -112, 16, 1364, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_801836B8[5] = {
+SpriteBatch D_neo_ark_submarine_gallery_801836B8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 59, 0, 0, { 2, 0 } },
     { 78, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_801836E0[101] = {
@@ -592,13 +592,13 @@ GpSprtElem D_neo_ark_submarine_gallery_801836E0[101] = {
     { 142, 0x4000, { .fields = { 8, 56 } }, 128, -96, 900, { .fields = { 48, 176 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_80183EC4[6] = {
+SpriteBatch D_neo_ark_submarine_gallery_80183EC4[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 57, 0, 0, { 0, 0 } },
     { 76, 7, 0, 0, { 2, 0 } },
     { 83, 18, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_80183EF4[123] = {
@@ -727,14 +727,14 @@ GpSprtElem D_neo_ark_submarine_gallery_80183EF4[123] = {
     { 143, 0x4040, { .fields = { 16, 96 } }, 144, -80, 1900, { .fields = { 96, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_80184890[7] = {
+SpriteBatch D_neo_ark_submarine_gallery_80184890[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 0, 0 } },
     { 20, 20, 0, 0, { 3, 0 } },
     { 40, 44, 0, 0, { 2, 0 } },
     { 84, 19, 0, 0, { 4, 0 } },
     { 103, 20, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_801848C8[19] = {
@@ -759,10 +759,10 @@ GpSprtElem D_neo_ark_submarine_gallery_801848C8[19] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 96, 500, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_80184A44[3] = {
+SpriteBatch D_neo_ark_submarine_gallery_80184A44[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_submarine_gallery_80184A5C[33] = {
@@ -801,11 +801,11 @@ GpSprtElem D_neo_ark_submarine_gallery_80184A5C[33] = {
     { 143, 0x4000, { .fields = { 8, 56 } }, 8, -120, 2560, { .fields = { 24, 0 } }, 128, 128, 128, 2 },
 };
 
-GpSprtCmd D_neo_ark_submarine_gallery_80184CF0[4] = {
+SpriteBatch D_neo_ark_submarine_gallery_80184CF0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
     { 9, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_submarine_gallery_80184D10[7] = {

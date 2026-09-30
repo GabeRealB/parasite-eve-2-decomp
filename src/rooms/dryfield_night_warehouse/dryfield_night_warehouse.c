@@ -167,9 +167,9 @@ GpViewRec D_dryfield_night_warehouse_8017EF2C[8] = {
     { { { { 1114, 0, -3941 }, { -1359, 3844, -384 }, { 3699, 1413, 1046 } }, { -2338, 2116, 2216 } }, 257 },
 };
 
-GpSprtCmd D_dryfield_night_warehouse_8017F04C[2] = {
+SpriteBatch D_dryfield_night_warehouse_8017F04C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_warehouse_8017F05C[23] = {
@@ -198,13 +198,13 @@ GpSprtElem D_dryfield_night_warehouse_8017F05C[23] = {
     { 143, 0x3FC0, { .fields = { 56, 56 } }, -160, 56, 700, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_warehouse_8017F228[6] = {
+SpriteBatch D_dryfield_night_warehouse_8017F228[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 6, 0, 0, { 0, 0 } },
     { 8, 12, 0, 0, { 2, 0 } },
     { 20, 3, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_warehouse_8017F258[22] = {
@@ -232,23 +232,23 @@ GpSprtElem D_dryfield_night_warehouse_8017F258[22] = {
     { 143, 0x3FC0, { .fields = { 32, 80 } }, 120, 0, 1125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_warehouse_8017F410[6] = {
+SpriteBatch D_dryfield_night_warehouse_8017F410[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 3, 0, 0, { 0, 0 } },
     { 5, 14, 0, 0, { 2, 0 } },
     { 19, 3, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_warehouse_8017F440[1] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, 80, 500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_warehouse_8017F454[3] = {
+SpriteBatch D_dryfield_night_warehouse_8017F454[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_warehouse_8017F46C[4] = {

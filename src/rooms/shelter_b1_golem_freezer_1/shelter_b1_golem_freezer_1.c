@@ -168,9 +168,9 @@ GpViewRec D_shelter_b1_golem_freezer_1_8017E9E4[7] = {
     { { { { 2473, 0, -3264 }, { -442, 4058, -335 }, { 3234, 555, 2450 } }, { 880, 1490, 900 } }, 447 },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017EAE0[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017EAE0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b1_golem_freezer_1_8017EAF0[30] = {
@@ -206,35 +206,35 @@ GpSprtElem D_shelter_b1_golem_freezer_1_8017EAF0[30] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -80, 1156, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED48[3] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017ED48[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 30, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED60[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017ED60[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED70[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017ED70[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED80[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017ED80[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017ED90[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017ED90[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
+SpriteBatch D_shelter_b1_golem_freezer_1_8017EDA0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {

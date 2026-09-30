@@ -148,13 +148,13 @@ GpSprtElem D_neo_ark_eve_access_tunnel_8017F18C[69] = {
     { 143, 0x4000, { .fields = { 32, 8 } }, -150, 112, 566, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_8017F6F0[6] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_8017F6F0[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 2, 0 } },
     { 12, 29, 0, 0, { 3, 0 } },
     { 41, 25, 0, 0, { 1, 0 } },
     { 66, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_eve_access_tunnel_8017F720[48] = {
@@ -208,13 +208,13 @@ GpSprtElem D_neo_ark_eve_access_tunnel_8017F720[48] = {
     { 143, 0x3FC0, { .fields = { 64, 64 } }, -96, 0, 3603, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_8017FAE0[6] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_8017FAE0[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 27, 0, 0, { 3, 0 } },
     { 27, 3, 0, 0, { 0, 0 } },
     { 30, 14, 0, 0, { 2, 0 } },
     { 44, 4, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_eve_access_tunnel_8017FB10[34] = {
@@ -254,12 +254,12 @@ GpSprtElem D_neo_ark_eve_access_tunnel_8017FB10[34] = {
     { 143, 0x3FC0, { .fields = { 64, 72 } }, -8, -56, 2500, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_8017FDB8[5] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_8017FDB8[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 1, 0 } },
     { 12, 21, 0, 0, { 2, 0 } },
     { 33, 1, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
@@ -297,21 +297,21 @@ GpSprtElem D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
     { 143, 0x3FC0, { .fields = { 88, 96 } }, -24, -80, 1354, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_80180060[4] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_80180060[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
     { 31, 1, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_80180080[2] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_80180080[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_eve_access_tunnel_80180090[2] = {
+SpriteBatch D_neo_ark_eve_access_tunnel_80180090[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_eve_access_tunnel_801800A0[7] = {

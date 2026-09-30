@@ -15,19 +15,19 @@ GpViewRec D_dryfield_r04_8017E218[2] = {
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { -0x3A98, 0x7530, -0x3E80 } }, 0xCF },
 };
 
-static GpSprtCmd D_dryfield_r04_8017E260[2] = {
+static SpriteBatch D_dryfield_r04_8017E260[2] = {
     { 0, 0, 0, 0, { 0 } },
-    { 0xFFFF, 0, 0, 0, { 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0 } },
 };
 
-static GpSprtCmd D_dryfield_r04_8017E270[2] = {
+static SpriteBatch D_dryfield_r04_8017E270[2] = {
     { 0, 0, 0, 0, { 0 } },
-    { 0xFFFF, 0, 0, 0, { 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0 } },
 };
 
 GpSprtRec D_dryfield_r04_8017E280[2] = {
-    { (GpSprtElem*)D_dryfield_r04_8017E260, D_dryfield_r04_8017E260, NULL },
-    { (GpSprtElem*)D_dryfield_r04_8017E270, D_dryfield_r04_8017E270, NULL },
+    { { .empty = D_dryfield_r04_8017E260 }, D_dryfield_r04_8017E260, NULL },
+    { { .empty = D_dryfield_r04_8017E270 }, D_dryfield_r04_8017E270, NULL },
 };
 
 /// Three base sound ids, of the kind `GpRoomParamRec.field_4` points at. The

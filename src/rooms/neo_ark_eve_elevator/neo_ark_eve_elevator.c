@@ -108,24 +108,24 @@ GpViewRec D_neo_ark_eve_elevator_8017DA50[4] = {
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },
 };
 
-GpSprtCmd D_neo_ark_eve_elevator_8017DAE0[2] = {
+SpriteBatch D_neo_ark_eve_elevator_8017DAE0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_eve_elevator_8017DAF0[2] = {
+SpriteBatch D_neo_ark_eve_elevator_8017DAF0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_eve_elevator_8017DB00[2] = {
+SpriteBatch D_neo_ark_eve_elevator_8017DB00[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_eve_elevator_8017DB10[2] = {
+SpriteBatch D_neo_ark_eve_elevator_8017DB10[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_eve_elevator_8017DB20[4] = {

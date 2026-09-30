@@ -280,9 +280,9 @@ GpViewRec D_mine_refuge_80181BC8[7] = {
     { { { { 2270, 0, 3408 }, { 2132, 3195, -1420 }, { -2659, 2562, 1771 } }, { -2075, 1908, -3789 } }, 598 },
 };
 
-GpSprtCmd D_mine_refuge_80181CC4[2] = {
+SpriteBatch D_mine_refuge_80181CC4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_refuge_80181CD4[79] = {
@@ -367,7 +367,7 @@ GpSprtElem D_mine_refuge_80181CD4[79] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 8, 861, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_refuge_80182300[8] = {
+SpriteBatch D_mine_refuge_80182300[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 9, 0, 0, { 0, 0 } },
@@ -375,7 +375,7 @@ GpSprtCmd D_mine_refuge_80182300[8] = {
     { 31, 8, 0, 0, { 1, 0 } },
     { 39, 4, 0, 0, { 4, 0 } },
     { 43, 36, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_refuge_80182340[33] = {
@@ -414,34 +414,34 @@ GpSprtElem D_mine_refuge_80182340[33] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 0, 807, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_refuge_801825D4[7] = {
+SpriteBatch D_mine_refuge_801825D4[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
     { 5, 1, 0, 0, { 3, 0 } },
     { 6, 15, 0, 0, { 2, 0 } },
     { 21, 12, 0, 0, { 4, 0 } },
     { 33, 0, 0, 0, { 1, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_refuge_8018260C[2] = {
+SpriteBatch D_mine_refuge_8018260C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_refuge_8018261C[2] = {
+SpriteBatch D_mine_refuge_8018261C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_refuge_8018262C[2] = {
+SpriteBatch D_mine_refuge_8018262C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_mine_refuge_8018263C[2] = {
+SpriteBatch D_mine_refuge_8018263C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mine_refuge_8018264C[7] = {

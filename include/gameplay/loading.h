@@ -39,8 +39,8 @@ void Gp_LinkViewSprts(void);
 
 /// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
 /// from the current view's `GpSprtRec` records. Byte size is the sum of
-/// each record's `field_2`, times two 0x1C slots. Records with
-/// `field_5` set are skipped. RGB is `0x8000`; SPRT code is `0x65`.
+/// each batch's `spriteCount`, times two 0x1C slots. Packet initialization
+/// skips batches with `skipCachedPackets` set. RGB is `0x8000`; SPRT code is `0x65`.
 void Gp_AllocSprtLists(void);
 
 /// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte

@@ -57363,13 +57363,13 @@ function loses ~16% on `insert`/`delete`/`regs` at once.
 
 ```c
 /* duplicated lw 0x10(a0) in both arms */
-if ((flags & 0xFF) == 0) rec[1].field_4[11].field_4 = 0;
-else                     rec[1].field_4[11].field_4 = 1;
+if ((flags & 0xFF) == 0) rec[1].field_4[11].hidden = 0;
+else                     rec[1].field_4[11].hidden = 1;
 
 /* single lw 0x10(a0) ahead of the branch, as the target has */
 cmd = rec[1].field_4;
-if ((flags & 0xFF) == 0) cmd[11].field_4 = 0;
-else                     cmd[11].field_4 = 1;
+if ((flags & 0xFF) == 0) cmd[11].hidden = 0;
+else                     cmd[11].hidden = 1;
 ```
 
 Loads feeding a *value* expression are CSE'd across arms; loads feeding only a
@@ -93770,7 +93770,7 @@ k = (disp - field_offset) / sizeof(rec)
 `0xC4 = 0xC * 16 + 4` → `rec[16].field_4`, `0xD0` → `rec[17]`, `0xDC` →
 `rec[18]`, `0x100` → `rec[21]`. All four divide exactly, and the member name is
 what confirms it: the writes off each loaded pointer land on
-`GpSprtCmd.field_4` (`cmd[2].field_4 = 0` at `0x14`, `cmd[3]` at `0x1C`,
+`SpriteBatch.hidden` (`cmd[2].hidden = 0` at `0x14`, `cmd[3]` at `0x1C`,
 `cmd[6..10]` at `0x34`..`0x54`), the byte `Gp_LinkViewSprts` reads as "skip
 OT-linking" in the matched siblings `room_util16/17.c` and `acropolis_bridge_6.c`.
 
@@ -93781,8 +93781,8 @@ the function touches four sprites of that view, not a contiguous run.
 rec = Gp_SprtTables[sess->field_3 - 1][g->field_74 - 1].field_0[sess->field_2 - 1];
 
 cmd            = rec[16].field_4;
-cmd[2].field_4 = 0;
-cmd[3].field_4 = 0;
+cmd[2].hidden = 0;
+cmd[3].hidden = 0;
 ```
 
 Do this before the register work, not after: the four groups share one live
@@ -94697,25 +94697,25 @@ Example: `func_dryfield_r08_8017F3B8`. Inputs: `base_1.i`
 `a52724021c0d0dda203a0eeb4f64bfd499c6166bfff7ef0f670c12663c891609`, `base_2.i`
 `903b36038e9083a05163d6128012ef49c9a553305e84a96d80c5821b10de87f4`.
 
-## The sprite-table record is longer than `GpSprtRec`: `rec[N].field_4` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].field_4`
+## The sprite-table record is longer than `GpSprtRec`: `rec[N].field_4` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].hidden`
 
 `Gp_SprtTables[stage - 1]->field_0[room - 1]` is typed `GpSprtRec*`, but the
 record a room stores there is longer than that 0xC-byte prefix, and the
-per-view `GpSprtCmd*` lists past it keep the *same* 0xC stride the element type
+per-view `SpriteBatch*` lists past it keep the *same* 0xC stride the element type
 would index with. So a `lw r, 0x28(v0)` on that record is `rec[3].field_4`
 (3 * 0xC + 4) and not a field of some wider struct: write the index and the
 displacement falls out, with no cast and no private record type.
 
-The command list's own records are 8 bytes (`GpSprtCmd`), so an 8-scaled index
-landing at displacement 0xC addresses the *next* record's `field_4` off a base
+The command list's own records are 8 bytes (`SpriteBatch`), so an 8-scaled index
+landing at displacement 0xC addresses the *next* record's `hidden` off a base
 of `cmd`:
 
 ```c
 cmd = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1][3].field_4;
-cmd[arg0 + 1].field_4 = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
+cmd[arg0 + 1].hidden = 1;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
 ```
 
-`cmd[index].field_4` is the same shape at displacement 4 - read the
+`cmd[index].hidden` is the same shape at displacement 4 - read the
 displacement together with the scale before deciding the index is off by one.
 
 Example: `func_dryfield_r08_8017F340`, whose sibling `func_dryfield_r08_8017F3B8`
@@ -95119,7 +95119,7 @@ Input `base_1.c`
 `7fdf4978302f81ce40532dac94bf526fc6bb26562a7b33612ea78282c19aa6a4` (100.000%).
 ## A store of the compared constant comes out as a store of the compared variable (func_neo_ark_power_plant_2_8017FD88, 2026-09-16)
 
-`if (mode == 1) { cmd[2].field_4 = 1; }` compiles to
+`if (mode == 1) { cmd[2].hidden = 1; }` compiles to
 
 ```
 bne $a0, $v0, .L     # $v0 = li 1, the comparison constant
@@ -95127,7 +95127,7 @@ nop
 sb  $a0, 0x14($v1)   # $a0 = mode, not $v0
 ```
 
-so the store reads as `field_4 = mode`, and m2c writes exactly that
+so the store reads as `hidden = mode`, and m2c writes exactly that
 (`case 1: M2C_FIELD(temp_v1, s8 *, 0x14) = temp_a0;`). With two compares
 sharing a tail it also renders the whole function as an irregular two-case
 `switch`. That reading scores 43%; the real source is the plain if/else-if
@@ -95153,8 +95153,8 @@ store to the variable because the `sb` names it.
 What differs between such near-copies is only the index and the displacement:
 the brief's "Similar matched bodies" put `func_shelter_b6_nursery_80180038` at
 shape 1.00 - the same 26 instructions with `0x94`/`0xC` where this one has
-`0x40`/`0x14` (`rec[12].field_4` / `cmd[1].field_4` against `rec[5].field_4` /
-`cmd[2].field_4`). Porting that already-matched body's source form, indices
+`0x40`/`0x14` (`rec[12].field_4` / `cmd[1].hidden` against `rec[5].field_4` /
+`cmd[2].hidden`). Porting that already-matched body's source form, indices
 adjusted, was one build to 100%. Read the shape-1.00 neighbour before
 reconstructing control flow from the asm.
 Input: `base_1.i`
@@ -119406,7 +119406,7 @@ The constant's range spans the arm, so the third load must avoid `$v0`; the two
 before it do not overlap it and take `$v0` unopposed. The target's answer is that
 the *whole* function reads through one variable, as the matched room bodies do
 (`func_dryfield_night_motel_balcony_8017E4B8` writes `cmd = rec[16].field_4;
-cmd[2].field_4 = 0;` five times over). One name is one pseudo, and a pseudo with
+cmd[2].hidden = 0;` five times over). One name is one pseudo, and a pseudo with
 a definition in *both* arms is not block-local at all -- it goes to
 `global_alloc`, which homes every one of its ranges in a single register and
 cannot pick `$v0`, because the branch constant has it over an overlapping range.
@@ -119415,12 +119415,12 @@ cannot pick `$v0`, because the branch constant has it over an overlapping range.
     rec = Gp_SprtTables[sess->field_3 - 1][0].field_0[sess->field_2 - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
         cmd            = rec[3].field_4;
-        cmd[1].field_4 = 1;
+        cmd[1].hidden = 1;
         cmd            = rec[6].field_4;
-        cmd[1].field_4 = 1;
+        cmd[1].hidden = 1;
         cmd            = rec[4].field_4;
-        cmd[1].field_4 = 0;
-        cmd[2].field_4 = 1;
+        cmd[1].hidden = 0;
+        cmd[2].hidden = 1;
         ...
 ```
 
@@ -120905,9 +120905,9 @@ delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
 
 ```c
     if (sess->field_3 == 2) {
-        rec = (DwtSprtRec*)Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
-        if (!(arg0 & 0xFF)) { rec->field_1C->field_1C = 0; rec->field_58->field_C = 1; return; }
-        rec->field_1C->field_1C = 1;  rec->field_58->field_C = 0;
+        rec = Gp_SprtTables[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+        if (!(arg0 & 0xFF)) { rec[2].field_4[3].hidden = 0; rec[7].field_4[1].hidden = 1; return; }
+        rec[2].field_4[3].hidden = 1;  rec[7].field_4[1].hidden = 0;
     }
 ```
 
@@ -120927,15 +120927,15 @@ for `$v0` and wins by birth order; that is what evicts the constant.
 Writing every use through **one** variable fixes it:
 
 ```c
-    DwtSprtView* view;
+    SpriteBatch* batches;
     ...
         if (!(arg0 & 0xFF)) {
-            view = rec->field_1C; view->field_1C = 0;
-            view = rec->field_58; view->field_C  = 1;
+            batches = rec[2].field_4; batches[3].hidden = 0;
+            batches = rec[7].field_4; batches[1].hidden = 1;
             return;
         }
-        view = rec->field_1C; view->field_1C = 1;
-        view = rec->field_58; view->field_C  = 0;
+        batches = rec[2].field_4; batches[3].hidden = 1;
+        batches = rec[7].field_4; batches[1].hidden = 0;
 ```
 
 The variable is set and used in two blocks, so `REG_BASIC_BLOCK` is -1 and it

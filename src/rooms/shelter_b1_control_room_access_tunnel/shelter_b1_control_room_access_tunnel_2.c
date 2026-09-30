@@ -99,19 +99,19 @@ GpViewRec D_shelter_b1_control_room_access_tunnel_80182094[3] = {
     { { { { 32, 0, 4095 }, { 347, 4081, -2 }, { -4081, 347, 32 } }, { -6111, 1435, -85 } }, 246 },
 };
 
-GpSprtCmd D_shelter_b1_control_room_access_tunnel_80182100[2] = {
+SpriteBatch D_shelter_b1_control_room_access_tunnel_80182100[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_control_room_access_tunnel_80182110[2] = {
+SpriteBatch D_shelter_b1_control_room_access_tunnel_80182110[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b1_control_room_access_tunnel_80182120[2] = {
+SpriteBatch D_shelter_b1_control_room_access_tunnel_80182120[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b1_control_room_access_tunnel_80182130[3] = {

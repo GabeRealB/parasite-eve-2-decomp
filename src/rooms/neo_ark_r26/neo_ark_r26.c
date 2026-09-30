@@ -262,9 +262,9 @@ GpViewRec D_neo_ark_r26_8017E1C0[4] = {
     { { { { 3157, 0, 2608 }, { 2381, 1673, -2882 }, { -1065, 3738, 1289 } }, { -570, 2000, 760 } }, 257 },
 };
 
-GpSprtCmd D_neo_ark_r26_8017E250[2] = {
+SpriteBatch D_neo_ark_r26_8017E250[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_r26_8017E260[62] = {
@@ -332,11 +332,11 @@ GpSprtElem D_neo_ark_r26_8017E260[62] = {
     { 142, 0x3FC0, { .fields = { 56, 8 } }, -144, 112, 250, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_r26_8017E738[4] = {
+SpriteBatch D_neo_ark_r26_8017E738[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 54, 0, 0, { 1, 0 } },
     { 54, 8, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_r26_8017E758[14] = {
@@ -356,15 +356,15 @@ GpSprtElem D_neo_ark_r26_8017E758[14] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_r26_8017E870[3] = {
+SpriteBatch D_neo_ark_r26_8017E870[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_r26_8017E888[2] = {
+SpriteBatch D_neo_ark_r26_8017E888[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_r26_8017E898[4] = {

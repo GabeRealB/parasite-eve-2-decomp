@@ -246,9 +246,9 @@ GpViewRec D_neo_ark_altar_8017F5A0[8] = {
     { { { { -1439, 0, -3834 }, { 422, 4071, -158 }, { 3811, -450, -1431 } }, { -5375, 4872, 5719 } }, 230 },
 };
 
-GpSprtCmd D_neo_ark_altar_8017F6C0[2] = {
+SpriteBatch D_neo_ark_altar_8017F6C0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_altar_8017F6D0[24] = {
@@ -278,16 +278,16 @@ GpSprtElem D_neo_ark_altar_8017F6D0[24] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 112, 1345, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_altar_8017F8B0[4] = {
+SpriteBatch D_neo_ark_altar_8017F8B0[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_altar_8017F8D0[2] = {
+SpriteBatch D_neo_ark_altar_8017F8D0[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_altar_8017F8E0[33] = {
@@ -326,11 +326,11 @@ GpSprtElem D_neo_ark_altar_8017F8E0[33] = {
     { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, -64, 1652, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_altar_8017FB74[4] = {
+SpriteBatch D_neo_ark_altar_8017FB74[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_altar_8017FB94[6] = {
@@ -342,7 +342,7 @@ GpSprtElem D_neo_ark_altar_8017FB94[6] = {
     { 143, 0x4100, { .fields = { 56, 72 } }, -8, -8, 399, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_altar_8017FC0C[8] = {
+SpriteBatch D_neo_ark_altar_8017FC0C[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 0, 0 } },
     { 1, 1, 0, 0, { 1, 0 } },
@@ -350,12 +350,12 @@ GpSprtCmd D_neo_ark_altar_8017FC0C[8] = {
     { 3, 1, 0, 0, { 3, 0 } },
     { 4, 1, 0, 0, { 4, 0 } },
     { 5, 1, 0, 0, { 5, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_altar_8017FC4C[2] = {
+SpriteBatch D_neo_ark_altar_8017FC4C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_neo_ark_altar_8017FC5C[21] = {
@@ -382,17 +382,17 @@ GpSprtElem D_neo_ark_altar_8017FC5C[21] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -16, -48, 1922, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_neo_ark_altar_8017FE00[5] = {
+SpriteBatch D_neo_ark_altar_8017FE00[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 14, 0, 0, { 2, 0 } },
     { 15, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_neo_ark_altar_8017FE28[2] = {
+SpriteBatch D_neo_ark_altar_8017FE28[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_neo_ark_altar_8017FE38[8] = {
@@ -568,142 +568,142 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
     sess  = &gGameSession->at4.loc;
     rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     arg0 &= 0xFF;
     if (arg0 == 0) {
-        cmd            = rec[3].field_4;
-        cmd[1].field_4 = 1;
-        cmd            = rec[6].field_4;
-        cmd[1].field_4 = 1;
+        batches           = rec[3].field_4;
+        batches[1].hidden = 1;
+        batches           = rec[6].field_4;
+        batches[1].hidden = 1;
         switch (D_neo_ark_altar_801800AE) {
             case 0:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 0;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 0;
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 0;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 0;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 0;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 0;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 0;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 0;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 0;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 0;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 0;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 0;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 6;
                 break;
         }
     } else if (arg0 == 1) {
-        cmd            = rec[3].field_4;
-        cmd[1].field_4 = 0;
-        cmd            = rec[6].field_4;
-        cmd[1].field_4 = 0;
+        batches           = rec[3].field_4;
+        batches[1].hidden = 0;
+        batches           = rec[6].field_4;
+        batches[1].hidden = 0;
         switch (D_neo_ark_altar_801800AE) {
             case 6:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 0;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 0;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 0;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 0;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 0;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 0;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 0;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 0;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 0;
-                cmd[6].field_4           = 1;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 0;
+                batches[6].hidden        = 1;
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                cmd                      = rec[4].field_4;
-                cmd[1].field_4           = 1;
-                cmd[2].field_4           = 1;
-                cmd[3].field_4           = 1;
-                cmd[4].field_4           = 1;
-                cmd[5].field_4           = 1;
-                cmd[6].field_4           = 0;
+                batches                  = rec[4].field_4;
+                batches[1].hidden        = 1;
+                batches[2].hidden        = 1;
+                batches[3].hidden        = 1;
+                batches[4].hidden        = 1;
+                batches[5].hidden        = 1;
+                batches[6].hidden        = 0;
                 D_neo_ark_altar_801800AE = 0;
                 break;
         }
@@ -799,36 +799,36 @@ static void func_neo_ark_altar_8017E148(void)
 {
     GameLocationKey* sess;
     GpSprtRec*       rec;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
     s32              i;
 
     sess = &gGameSession->at4.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
-        cmd                      = rec[3].field_4;
-        cmd[1].field_4           = 1;
-        cmd                      = rec[6].field_4;
-        cmd[1].field_4           = 1;
-        cmd                      = rec[4].field_4;
-        cmd[1].field_4           = 0;
-        cmd[2].field_4           = 1;
-        cmd[3].field_4           = 1;
-        cmd[4].field_4           = 1;
-        cmd[5].field_4           = 1;
-        cmd[6].field_4           = 1;
+        batches                  = rec[3].field_4;
+        batches[1].hidden        = 1;
+        batches                  = rec[6].field_4;
+        batches[1].hidden        = 1;
+        batches                  = rec[4].field_4;
+        batches[1].hidden        = 0;
+        batches[2].hidden        = 1;
+        batches[3].hidden        = 1;
+        batches[4].hidden        = 1;
+        batches[5].hidden        = 1;
+        batches[6].hidden        = 1;
         D_neo_ark_altar_801800AE = 6;
     } else {
-        cmd                      = rec[3].field_4;
-        cmd[1].field_4           = 0;
-        cmd                      = rec[6].field_4;
-        cmd[1].field_4           = 0;
-        cmd                      = rec[4].field_4;
-        cmd[1].field_4           = 1;
-        cmd[2].field_4           = 1;
-        cmd[3].field_4           = 1;
-        cmd[4].field_4           = 1;
-        cmd[5].field_4           = 1;
-        cmd[6].field_4           = 0;
+        batches                  = rec[3].field_4;
+        batches[1].hidden        = 0;
+        batches                  = rec[6].field_4;
+        batches[1].hidden        = 0;
+        batches                  = rec[4].field_4;
+        batches[1].hidden        = 1;
+        batches[2].hidden        = 1;
+        batches[3].hidden        = 1;
+        batches[4].hidden        = 1;
+        batches[5].hidden        = 1;
+        batches[6].hidden        = 0;
         D_neo_ark_altar_801800AE = 0;
     }
     D_neo_ark_altar_801800AC = 0;

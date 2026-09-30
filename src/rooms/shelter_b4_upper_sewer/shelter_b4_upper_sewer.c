@@ -355,9 +355,9 @@ GpViewRec D_shelter_b4_upper_sewer_80186F1C[14] = {
     { { { { -1049, 0, -3959 }, { 841, 4002, -223 }, { 3868, -870, -1025 } }, { -0x2E41, 3890, 333 } }, 230 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187114[2] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187114[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187124[4] = {
@@ -367,10 +367,10 @@ GpSprtElem D_shelter_b4_upper_sewer_80187124[4] = {
     { 143, 0x3FC0, { .fields = { 56, 24 } }, -16, 96, 750, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187174[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187174[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_8018718C[5] = {
@@ -381,10 +381,10 @@ GpSprtElem D_shelter_b4_upper_sewer_8018718C[5] = {
     { 143, 0x3FC0, { .fields = { 56, 136 } }, -160, -64, 1250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_801871F0[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_801871F0[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187208[6] = {
@@ -396,10 +396,10 @@ GpSprtElem D_shelter_b4_upper_sewer_80187208[6] = {
     { 143, 0x3FC0, { .fields = { 104, 80 } }, -160, -56, 2125, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187280[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187280[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187298[11] = {
@@ -416,20 +416,20 @@ GpSprtElem D_shelter_b4_upper_sewer_80187298[11] = {
     { 143, 0x3FC0, { .fields = { 80, 40 } }, 80, -120, 1000, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187374[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187374[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_8018738C[2] = {
+SpriteBatch D_shelter_b4_upper_sewer_8018738C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_8018739C[2] = {
+SpriteBatch D_shelter_b4_upper_sewer_8018739C[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_801873AC[32] = {
@@ -467,10 +467,10 @@ GpSprtElem D_shelter_b4_upper_sewer_801873AC[32] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 96, 1275, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_8018762C[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_8018762C[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187644[8] = {
@@ -484,15 +484,15 @@ GpSprtElem D_shelter_b4_upper_sewer_80187644[8] = {
     { 143, 0x3FC0, { .fields = { 64, 8 } }, 16, 24, 1692, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_801876E4[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_801876E4[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_801876FC[2] = {
+SpriteBatch D_shelter_b4_upper_sewer_801876FC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_8018770C[3] = {
@@ -501,10 +501,10 @@ GpSprtElem D_shelter_b4_upper_sewer_8018770C[3] = {
     { 143, 0x3FC0, { .fields = { 104, 8 } }, -144, 40, 1625, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187748[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187748[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187760[26] = {
@@ -536,25 +536,25 @@ GpSprtElem D_shelter_b4_upper_sewer_80187760[26] = {
     { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 112, 775, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187968[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187968[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_shelter_b4_upper_sewer_80187980[1] = {
     { 143, 0x3FC0, { .fields = { 64, 112 } }, 0, -56, 180, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_80187994[3] = {
+SpriteBatch D_shelter_b4_upper_sewer_80187994[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_shelter_b4_upper_sewer_801879AC[2] = {
+SpriteBatch D_shelter_b4_upper_sewer_801879AC[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_shelter_b4_upper_sewer_801879BC[14] = {
@@ -1173,13 +1173,13 @@ static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 {
     GameLocationKey* sess = &gGameSession->at4.loc;
-    GpSprtCmd*       cmd;
+    SpriteBatch*     batches;
 
-    cmd = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;
     if ((arg0 & 0xFF) == 0) {
-        cmd[1].field_4 = 0;
+        batches[1].hidden = 0;
     } else {
-        cmd[1].field_4 = 1;
+        batches[1].hidden = 1;
     }
 }
 

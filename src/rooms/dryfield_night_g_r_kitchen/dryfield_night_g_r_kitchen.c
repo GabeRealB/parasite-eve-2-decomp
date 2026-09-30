@@ -155,9 +155,9 @@ GpViewRec D_dryfield_night_g_r_kitchen_8017E578[3] = {
     { { { { -3988, 0, 933 }, { -276, 3911, -1183 }, { -891, -1215, -3808 } }, { -500, 400, -2700 } }, 230 },
 };
 
-GpSprtCmd D_dryfield_night_g_r_kitchen_8017E5E4[2] = {
+SpriteBatch D_dryfield_night_g_r_kitchen_8017E5E4[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_dryfield_night_g_r_kitchen_8017E5F4[7] = {
@@ -170,15 +170,15 @@ GpSprtElem D_dryfield_night_g_r_kitchen_8017E5F4[7] = {
     { 143, 0x3FC0, { .fields = { 40, 24 } }, -96, 16, 750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_dryfield_night_g_r_kitchen_8017E680[3] = {
+SpriteBatch D_dryfield_night_g_r_kitchen_8017E680[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtCmd D_dryfield_night_g_r_kitchen_8017E698[2] = {
+SpriteBatch D_dryfield_night_g_r_kitchen_8017E698[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_dryfield_night_g_r_kitchen_8017E6A8[3] = {

@@ -45,9 +45,9 @@ extern GpObj4C        D_mine_tunnel_8017FDA0[4];
 extern GpRoomBoundVec D_mine_tunnel_8018022C[6];
 extern GpRoomCoordSet D_mine_tunnel_8017FBC0[1];
 
-extern GpSprtCmd  D_mine_tunnel_8017E944[2];
-extern GpSprtCmd  D_mine_tunnel_8017EA1C[4];
-extern GpSprtElem D_mine_tunnel_8017E954[10];
+extern SpriteBatch D_mine_tunnel_8017E944[2];
+extern SpriteBatch D_mine_tunnel_8017EA1C[4];
+extern GpSprtElem  D_mine_tunnel_8017E954[10];
 
 SVECTOR D_mine_tunnel_8017E12C[5] = {
     { 11650, -1730, 3690, 0 },
@@ -112,9 +112,9 @@ GpViewRec D_mine_tunnel_8017E890[5] = {
     { { { { 1074, 0, 3952 }, { 1078, 3940, -293 }, { -3802, 1117, 1033 } }, { -7838, 2262, -891 } }, 257 },
 };
 
-GpSprtCmd D_mine_tunnel_8017E944[2] = {
+SpriteBatch D_mine_tunnel_8017E944[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_tunnel_8017E954[10] = {
@@ -130,11 +130,11 @@ GpSprtElem D_mine_tunnel_8017E954[10] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, 32, 973, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_tunnel_8017EA1C[4] = {
+SpriteBatch D_mine_tunnel_8017EA1C[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 2, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_tunnel_8017EA3C[51] = {
@@ -191,7 +191,7 @@ GpSprtElem D_mine_tunnel_8017EA3C[51] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, -56, 2742, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_tunnel_8017EE38[9] = {
+SpriteBatch D_mine_tunnel_8017EE38[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 11, 0, 0, { 4, 0 } },
@@ -200,7 +200,7 @@ GpSprtCmd D_mine_tunnel_8017EE38[9] = {
     { 39, 7, 0, 0, { 0, 0 } },
     { 46, 2, 0, 0, { 6, 0 } },
     { 48, 3, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_tunnel_8017EE80[63] = {
@@ -269,7 +269,7 @@ GpSprtElem D_mine_tunnel_8017EE80[63] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 80, 609, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_tunnel_8017F36C[9] = {
+SpriteBatch D_mine_tunnel_8017F36C[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 11, 0, 0, { 4, 0 } },
@@ -278,7 +278,7 @@ GpSprtCmd D_mine_tunnel_8017F36C[9] = {
     { 21, 5, 0, 0, { 0, 0 } },
     { 26, 4, 0, 0, { 6, 0 } },
     { 30, 33, 0, 0, { 2, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtElem D_mine_tunnel_8017F3B4[74] = {
@@ -358,12 +358,12 @@ GpSprtElem D_mine_tunnel_8017F3B4[74] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 48, 946, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
 };
 
-GpSprtCmd D_mine_tunnel_8017F97C[5] = {
+SpriteBatch D_mine_tunnel_8017F97C[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 21, 0, 0, { 2, 0 } },
     { 34, 40, 0, 0, { 0, 0 } },
-    { 0xFFFF, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
 GpSprtRec D_mine_tunnel_8017F9A4[5] = {
