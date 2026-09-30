@@ -33,7 +33,13 @@ enum {
     /// Stored in `SndEvt::allocated`; zeroing the pool makes every slot available.
     /// Releasing a processed event restores this state without clearing its
     /// command or arguments. Availability does not depend on the command value.
-    SOUND_EVENT_SLOT_FREE      = 0,
+    SOUND_EVENT_SLOT_FREE = 0,
+    /// Occupied reservation stored in `SndEvt::allocated`.
+    ///
+    /// Written when a free slot is taken. It remains through the unqueued
+    /// hold and the later queue until release or a whole-pool clear. A slot
+    /// counts as free only when that halfword holds the free value, so this
+    /// is the only occupied value written.
     SOUND_EVENT_SLOT_ALLOCATED = 1
 };
 
@@ -538,14 +544,15 @@ void SndEvt_Reset(void)
 SndEvt* sndEvtAlloc(void)
 {
     s32     i;
-    s32     flag;
+    s32     allocated;
     SndEvt* event;
 
-    i    = 0;
-    flag = SOUND_EVENT_SLOT_ALLOCATED;
+    // Load the occupied marker before the pool address.
+    i         = 0;
+    allocated = SOUND_EVENT_SLOT_ALLOCATED;
     for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
         if (event->allocated == SOUND_EVENT_SLOT_FREE) {
-            event->allocated = flag;
+            event->allocated = allocated;
             event->command   = SOUND_EVENT_NO_OP;
             return event;
         }

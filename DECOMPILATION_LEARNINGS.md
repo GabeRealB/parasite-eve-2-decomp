@@ -8527,10 +8527,10 @@ with a local:
 ```c
 /* Matches: li a1,1 then lui/addiu of _gSndEvtPool */
 i = 0;
-flag = SOUND_EVENT_SLOT_ALLOCATED;
+allocated = SOUND_EVENT_SLOT_ALLOCATED;
 for (event = _gSndEvtPool; i < ARRAY_SIZE(_gSndEvtPool); i++, event++) {
     if (event->allocated == SOUND_EVENT_SLOT_FREE) {
-        event->allocated = flag;
+        event->allocated = allocated;
         ...
     }
 }
