@@ -129466,12 +129466,12 @@ The rule only fires when the comparison's operand is still a `BIT_AND_EXPR`, so
 it is defeated by storing the mask result first:
 
 ```c
-flag = scale & 1;
-if (flag == 1) { ... }
+placementParity = placementIndex & 1;
+if (placementParity == 1) { ... }
 ```
 
-`flag` is a `VAR_DECL`, `fold` cannot see the range, and the compare survives. A
-`switch (scale & 1)` with `case 1:` / `default:` emits the same two insns — the
+`placementParity` is a `VAR_DECL`, `fold` cannot see the range, and the compare survives. A
+`switch (placementIndex & 1)` with `case 1:` / `default:` emits the same two insns — the
 switch expression also goes through a temporary.
 
 ## A `(u16)` cast into a `u32` local keeps a real `andi 0xffff`; casting into a `u16` local becomes a `move` (func_actor_123200_8013352C, 2026-09-17)
@@ -129507,12 +129507,12 @@ that decides whether combine can see through it.
 So write the cast into the wider local, not through a narrow one:
 
 ```c
-scale = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
-flag  = scale & 1;
-if (flag == 1) {
+placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
+placementParity = placementIndex & 1;
+if (placementParity == 1) {
     work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;   /* CSEs to the raw srl */
 } else {
-    work->field_176 -= scale >> 1;             /* reads the masked value */
+    work->field_176 -= placementIndex >> 1;    /* reads the masked value */
 }
 ```
 

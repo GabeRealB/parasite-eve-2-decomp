@@ -771,8 +771,8 @@ static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
         work->field_198 += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
         work->field_176 -= (u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
-        work->field_19A -= arg0->placeKey >> 13;
-        work->field_198 -= arg0->placeKey >> 13;
+        work->field_19A -= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_198 -= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
     }
     work->origin.vx = arg1->extra.tmd->coords->coord.t[0];
     work->origin.vy = arg1->extra.tmd->coords->coord.t[1];

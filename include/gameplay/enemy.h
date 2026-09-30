@@ -61,10 +61,15 @@
 /// bank 9 in the high byte, subtype 0.
 #define ENEMY_WORK_PLAIN 0x900
 
-/// `placeKey` layout. Bits 0-7 are the area, bits 8-11 the stage and bits
-/// 12-15 the placement index. Actors then shift that index up by 8 into a
-/// sound id; that second shift is not `ENEMY_PLACE_STAGE_SHIFT`.
-#define ENEMY_PLACE_INDEX_SHIFT 0xC
+/// Bit position of the instance's placement index in `Enemy::placeKey`.
+///
+/// Shifting the unsigned 16-bit key right by this count yields an index in
+/// 0..15. Area spawns use the zero-based `AreaPlacement` table position;
+/// dynamic spawns can assign their own instance slot. Packing an index uses
+/// `index << ENEMY_PLACE_INDEX_SHIFT`; the index must fit four bits. The
+/// remaining bits hold the stage (8..11) and area (0..7).
+/// An extracted index must also fit any actor-specific table it selects.
+#define ENEMY_PLACE_INDEX_SHIFT 12
 #define ENEMY_PLACE_STAGE_SHIFT 8
 
 /// Frames the default task waits before destroying an enemy that never received a body.

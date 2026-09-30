@@ -697,18 +697,17 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 /// Spawn state of this enemy: allocates the work block, publishes it as
 /// `Task::work`, reparents the model to `gGfxViewCoord`, seeds its animation
 /// slots from `D_actor_123200_80137154` and hangs the enemy's display node off
-/// part 2 of the model's coordinate array. The top nibble of the enemy's
-/// `placeKey` biases the three timers in `field_176`, `field_198` and
-/// `field_19A` -- up by the nibble when its low bit is set, down by half of it
-/// otherwise.
+/// part 2 of the model's coordinate array. The placement index in
+/// `Enemy::placeKey` biases the initial values in `field_176`, `field_198`
+/// and `field_19A`: odd indices add the index, even indices subtract half of it.
 static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
 {
     SVECTOR          dir;
     Actor123200Work* work;
     TmdObject*       obj;
     GfxCoord*        coord;
-    u32              scale;
-    u32              flag;
+    u32              placementIndex;
+    u32              placementParity;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -750,16 +749,16 @@ static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
     work->field_198     = 5;
     work->field_19A     = 0x14;
 
-    scale = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
-    flag  = scale & 1;
-    if (flag == 1) {
+    placementIndex  = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
+    placementParity = placementIndex & 1;
+    if (placementParity == 1) {
         work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         work->field_19A += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         work->field_198 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
-        work->field_176 -= scale >> 1;
-        work->field_19A -= enemy->placeKey >> 13;
-        work->field_198 -= enemy->placeKey >> 13;
+        work->field_176 -= placementIndex >> 1;
+        work->field_19A -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_198 -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
     }
 
     work->field_1A8 = (u16)task->extra.tmd->coords->coord.t[0];

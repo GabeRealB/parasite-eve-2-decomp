@@ -1648,7 +1648,7 @@ void stalkerGrabSeq(Task* arg0)
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
             work->field_6DE = 0x1E;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             break;
         case 2:
@@ -1733,7 +1733,7 @@ void stalkerGrabSeq(Task* arg0)
                         work->field_6DC = 0x4B;
                         work->field_71A = 0;
                         work->field_6DE = 0x1E;
-                        work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                        work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                         SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     }
                 } else {
@@ -1780,7 +1780,7 @@ void stalkerGrabSeq(Task* arg0)
                     work->field_6DC = 0x4B;
                     work->field_6CE = 4;
                     work->field_6DE = 0x1E;
-                    work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
@@ -1883,7 +1883,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             work->field_6DA = 1;
             work->field_6DC = 0x14;
             work->field_6DE = 0xA;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             Gp_ArmStateF0(1);
             if (work->field_6C6 == 0) {
@@ -1941,7 +1941,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                     work->field_6F2  = 0;
                     work->field_6D4  = work->field_6DC + 0xA;
                     work->field_62A &= 0x3FFF;
-                    work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -1958,7 +1958,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             }
             work->field_6C8 = D_actor_402200_801383D8[i].value;
             if (work->field_6C4 == 0x12) {
-                snd = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 == 0x14) {
@@ -1980,7 +1980,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6DE = 0xA;
                 work->field_6CE = 4;
                 work->field_6D4 = work->field_6DC + 0xA;
-                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             break;
@@ -2039,7 +2039,7 @@ void stalkerRecoverSeq(Task* arg0)
                 work->field_6CE = 0;
                 work->field_6DE = 5;
                 work->field_6E0 = 0;
-                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan             = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
             }
