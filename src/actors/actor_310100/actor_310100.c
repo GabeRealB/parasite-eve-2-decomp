@@ -37,7 +37,7 @@
 /// Work block this overlay hangs off the task's `Task::work` slot (0x1C),
 /// which is not a `TaskIdMap` here. `func_actor_310100_801625E4` allocates it
 /// with `Mem_Malloc(0x50C)` and hands `&slots` to the model helpers as the slot
-/// array, so the prefix is the shared actor anim layout: a `GpAnimCtx` and the
+/// array, so the prefix is the shared actor anim layout: an `AnimationContext` and the
 /// nineteen slots the frame handler ticks.
 typedef struct Actor310100Work {
     /* 0x000 */ ActorAnimRig19 rig;

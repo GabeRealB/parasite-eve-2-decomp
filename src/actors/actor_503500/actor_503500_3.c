@@ -1623,22 +1623,22 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
     ext  = arg0->extra.tmd;
     if (arg2->source.index != work->field_7D6) {
         work->field_7D6 = arg2->source.index;
-        func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
+        func_800B3F84((AnimationContext*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
                       work->field_334, (AnimationSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }
     work->field_7D5 = arg2->animationId;
     if (arg2->blend != ANIMATION_BLEND_RESET && work->field_7D4 != 0) {
         for (i = 1; i < 0x14; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_7D5, 0, arg2->blendFrames);
+            func_800B4114((AnimationContext*)work, i, work->field_7D5, 0, arg2->blendFrames);
         }
     } else {
         for (i = 1; i < 0x14; i++) {
-            Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_7D5);
+            Gp_AnimResetSlot((AnimationContext*)work, i, work->field_7D5);
         }
     }
     for (i = 1; i < 0x14; i++) {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        Gp_AnimTickIndex((AnimationContext*)work, i);
     }
     work->field_7D4 = 1;
     work2           = arg0->work;
@@ -2352,7 +2352,7 @@ static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
 /// still running, so every slot 1..0x13 is ticked; once the bit is set the clip
 /// has finished, and in state 0 the boss resets the slot rates and re-applies
 /// preset `D_actor_503500_8016EAD4`. The block is passed to `Gp_AnimTickIndex`
-/// as the `GpAnimCtx` it is fronted by (`ActorAnimRig20::anim`).
+/// as the `AnimationContext` it is fronted by (`ActorAnimRig20::anim`).
 static void func_actor_503500_80136D30(Task* arg0)
 {
     Actor503500Work* work;
@@ -2367,7 +2367,7 @@ static void func_actor_503500_80136D30(Task* arg0)
             }
         } else {
             for (i = 1; i < 0x14; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                Gp_AnimTickIndex((AnimationContext*)work, i);
             }
         }
     }

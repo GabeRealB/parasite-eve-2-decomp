@@ -71,7 +71,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
 
 typedef struct Actor01600Work {
-    /* 0x000 */ GpAnimCtx              anim;
+    /* 0x000 */ AnimationContext       anim;
     /* 0x014 */ AnimationSlot          slots[9];
     /* 0x17C */ byte                   pad_17C[0x90];
     /* 0x20C */ MATRIX                 field_20C;

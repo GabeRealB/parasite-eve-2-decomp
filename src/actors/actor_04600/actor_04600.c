@@ -56,7 +56,7 @@
 /// model is pointed at, then four `WorldCollisionBody` bodies, each followed by the
 /// `WorldCollisionContact` table its `context.contacts` names.
 typedef struct Actor104600Work {
-    /* 0x000 */ GpAnimCtx             context;
+    /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
@@ -107,7 +107,7 @@ STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
 /// the first points its `context.capsule` at the `GpActorD4Rec` after it, the other
 /// two point at their own `WorldCollisionContact` tables.
 typedef struct Actor104600Enemy2Work {
-    /* 0x000 */ GpAnimCtx             context;
+    /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
@@ -479,12 +479,12 @@ static __inline__ void Actor04600_TickAnim(Task* task)
             work->field_2BA = work->field_2B8;
             work->field_2BC = 0;
             for (i = 1; i < 3; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
+                func_800B4114(&work->context, i, work->field_2B8, 0, 0);
             }
         } else {
             work->field_2BC++;
             for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                Gp_AnimTickIndex(&work->context, i);
             }
         }
     }
@@ -536,10 +536,10 @@ static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
     arg0->param              = &Actor04600_D04160;
     arg0->recs               = &work->rec154[0];
     arg0->hp                 = Actor04600_D04160.hpMax;
-    func_800B3F84((GpAnimCtx*)work, Actor04600_D05890, obj, work->field_8C, work->slots);
+    func_800B3F84(&work->context, Actor04600_D05890, obj, work->field_8C, work->slots);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);
@@ -1248,10 +1248,10 @@ static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
     arg0->param              = &Actor04600_D04160;
     arg0->recs               = &work->rec154[0];
     arg0->hp                 = Actor04600_D04160.hpMax;
-    func_800B3F84((GpAnimCtx*)work, Actor04600_D05890, obj, work->field_8C, work->slots);
+    func_800B3F84(&work->context, Actor04600_D05890, obj, work->field_8C, work->slots);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);
@@ -2196,12 +2196,12 @@ static __inline__ void _actor04600Enemy2TickAnim(Task* task)
         work->field_28E = work->field_28C;
         work->field_290 = 0;
         for (i = 1; i < 3; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+            func_800B4114(&work->context, i, work->field_28C, 0, 8);
         }
     } else {
         work->field_290++;
         for (i = 1; i < 3; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->context, i);
         }
     }
 }

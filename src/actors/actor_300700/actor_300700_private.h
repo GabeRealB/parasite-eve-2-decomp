@@ -33,7 +33,7 @@ typedef union Actor300700ContactStorage {
 } Actor300700ContactStorage;
 
 typedef struct Actor300700Work {
-    /* 0x000 */ GpAnimCtx                 anim;
+    /* 0x000 */ AnimationContext          anim;
     /* 0x014 */ byte                      pad_14[0x140];
     /* 0x154 */ WorldCollisionContact     field_154;
     /* 0x16C */ byte                      pad_16C[0x20];

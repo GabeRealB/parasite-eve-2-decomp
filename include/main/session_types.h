@@ -233,8 +233,8 @@ typedef struct _GameActor {
     /* 0x32C */ WorldCollisionContact         field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
     /* 0x3BC */ WorldCollisionContact         aimContacts[1];  // Single result for the aiming capsule
     /* 0x3D4 */ GfxCoord                      field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
-    /* 0x424 */ byte                          field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
-    /* 0x438 */ AnimationSlot                 field_438[19];   // the actor's animation slots, the array its `GpAnimCtx` walks
+    /* 0x424 */ byte                          field_424[0x14]; // AnimationContext overlay; Gp_AnimTickIndex
+    /* 0x438 */ AnimationSlot                 field_438[19];   // the actor's animation slots, the array its `AnimationContext` walks
     /* 0x730 */ byte                          pad_730[0x10];
     /* 0x740 */ byte                          pad_740[0x68];
     /* 0x7A8 */ byte                          field_7A8; // addr taken as func_800B3F84 arg3

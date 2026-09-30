@@ -49,36 +49,36 @@
 /// the slots play, `field_4A` the current animation id (low ten bits), and
 /// `field_220` latches the last trigger id reported.
 typedef struct Actor123200Work {
-    /* 0x000 */ s16           field_0;
-    /* 0x002 */ s16           field_2;
-    /* 0x004 */ s16           field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
-    /* 0x006 */ u16           field_6; // frames since the restart branch last ran
-    /* 0x008 */ s16           field_8;
-    /* 0x00A */ byte          pad_A[0x2];
-    /* 0x00C */ GpAnimCtx     anim;     // `func_800B3F84` arg0
-    /* 0x020 */ AnimationSlot slots[1]; // slots 1..5 continue past here, overlapping the fields below
-    /* 0x048 */ byte          pad_48[0x2];
-    /* 0x04A */ u16           field_4A; // low ten bits: animation id (`slots[1].field_2`)
-    /* 0x04C */ byte          pad_4C[0xC];
-    /* 0x058 */ u16           field_58;
-    /* 0x05A */ byte          pad_5A[0xB6];
-    /* 0x110 */ byte          poses[0x60]; // `func_800B3F84` arg3
-    /* 0x170 */ s16           field_170;   // motion state `func_actor_123200_801332E0` switches on
-    /* 0x172 */ s16           field_172;
-    /* 0x174 */ s16           field_174;
-    /* 0x176 */ u16           field_176;
-    /* 0x178 */ s16           field_178;
-    /* 0x17A */ s16           field_17A; // frames since the motion last restarted
-    /* 0x17C */ s16           field_17C; // frames since then with `field_58` bit 1 set
-    /* 0x17E */ s16           field_17E;
-    /* 0x180 */ byte          pad_180[0x14];
-    /* 0x194 */ u8            field_194;
-    /* 0x195 */ u8            field_195;
-    /* 0x196 */ u8            field_196;
-    /* 0x197 */ byte          pad_197[0x1];
-    /* 0x198 */ u16           field_198;
-    /* 0x19A */ u16           field_19A;
-    /* 0x19C */ byte          pad_19C[0xC];
+    /* 0x000 */ s16              field_0;
+    /* 0x002 */ s16              field_2;
+    /* 0x004 */ s16              field_4; // non-zero restarts the model (`func_actor_123200_80133820`)
+    /* 0x006 */ u16              field_6; // frames since the restart branch last ran
+    /* 0x008 */ s16              field_8;
+    /* 0x00A */ byte             pad_A[0x2];
+    /* 0x00C */ AnimationContext anim;     // `func_800B3F84` arg0
+    /* 0x020 */ AnimationSlot    slots[1]; // slots 1..5 continue past here, overlapping the fields below
+    /* 0x048 */ byte             pad_48[0x2];
+    /* 0x04A */ u16              field_4A; // low ten bits: animation id (`slots[1].field_2`)
+    /* 0x04C */ byte             pad_4C[0xC];
+    /* 0x058 */ u16              field_58;
+    /* 0x05A */ byte             pad_5A[0xB6];
+    /* 0x110 */ byte             poses[0x60]; // `func_800B3F84` arg3
+    /* 0x170 */ s16              field_170;   // motion state `func_actor_123200_801332E0` switches on
+    /* 0x172 */ s16              field_172;
+    /* 0x174 */ s16              field_174;
+    /* 0x176 */ u16              field_176;
+    /* 0x178 */ s16              field_178;
+    /* 0x17A */ s16              field_17A; // frames since the motion last restarted
+    /* 0x17C */ s16              field_17C; // frames since then with `field_58` bit 1 set
+    /* 0x17E */ s16              field_17E;
+    /* 0x180 */ byte             pad_180[0x14];
+    /* 0x194 */ u8               field_194;
+    /* 0x195 */ u8               field_195;
+    /* 0x196 */ u8               field_196;
+    /* 0x197 */ byte             pad_197[0x1];
+    /* 0x198 */ u16              field_198;
+    /* 0x19A */ u16              field_19A;
+    /* 0x19C */ byte             pad_19C[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
     /// handler samples the low 16 bits of each local translation component.
     /* 0x1A8 */ u16    field_1A8;

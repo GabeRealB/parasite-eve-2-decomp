@@ -46,35 +46,35 @@
 /// message handler copies out of its event packet, the spawn and target
 /// positions, the model's light and colour matrices and the park latch.
 typedef struct Actor223600Work {
-    /* 0x000 */ s16           field_0; ///< state
-    /* 0x002 */ s16           field_2; ///< state at the previous dispatch
-    /* 0x004 */ s16           field_4; ///< set when `field_0` moved away from `field_2`
-    /* 0x006 */ s16           field_6; ///< frames spent in the approach state
-    /* 0x008 */ s16           field_8;
-    /* 0x00A */ byte          pad_A[0x2];
-    /* 0x00C */ GpAnimCtx     anim;     ///< `func_800B3F84` arg0
-    /* 0x020 */ AnimationSlot slots[1]; ///< slots 1.. continue past here, overlapping the fields below
-    /* 0x048 */ byte          pad_48[0x2];
-    /* 0x04A */ u16           field_4A; ///< low ten bits: current animation id
-    /* 0x04C */ byte          pad_4C[0xC];
-    /* 0x058 */ u16           field_58;
-    /* 0x05A */ byte          pad_5A[0xB6];
-    /* 0x110 */ byte          poses[0x60]; ///< `func_800B3F84` arg3
-    /* 0x170 */ s16           field_170;
-    /* 0x172 */ s16           field_172;
-    /* 0x174 */ s16           field_174; ///< motion state
-    /* 0x176 */ u16           field_176;
-    /* 0x178 */ s16           field_178;
-    /* 0x17A */ s16           field_17A; ///< frames since the motion last restarted
-    /* 0x17C */ s16           field_17C; ///< frames since then with `field_58` bit 1 set
-    /* 0x17E */ s16           field_17E;
-    /* 0x180 */ u8            field_180;
-    /* 0x181 */ u8            field_181;
-    /* 0x182 */ u8            field_182;
-    /* 0x183 */ byte          pad_183[0x1];
-    /* 0x184 */ u16           field_184;
-    /* 0x186 */ u16           field_186;
-    /* 0x188 */ byte          pad_188[0xC];
+    /* 0x000 */ s16              field_0; ///< state
+    /* 0x002 */ s16              field_2; ///< state at the previous dispatch
+    /* 0x004 */ s16              field_4; ///< set when `field_0` moved away from `field_2`
+    /* 0x006 */ s16              field_6; ///< frames spent in the approach state
+    /* 0x008 */ s16              field_8;
+    /* 0x00A */ byte             pad_A[0x2];
+    /* 0x00C */ AnimationContext anim;     ///< `func_800B3F84` arg0
+    /* 0x020 */ AnimationSlot    slots[1]; ///< slots 1.. continue past here, overlapping the fields below
+    /* 0x048 */ byte             pad_48[0x2];
+    /* 0x04A */ u16              field_4A; ///< low ten bits: current animation id
+    /* 0x04C */ byte             pad_4C[0xC];
+    /* 0x058 */ u16              field_58;
+    /* 0x05A */ byte             pad_5A[0xB6];
+    /* 0x110 */ byte             poses[0x60]; ///< `func_800B3F84` arg3
+    /* 0x170 */ s16              field_170;
+    /* 0x172 */ s16              field_172;
+    /* 0x174 */ s16              field_174; ///< motion state
+    /* 0x176 */ u16              field_176;
+    /* 0x178 */ s16              field_178;
+    /* 0x17A */ s16              field_17A; ///< frames since the motion last restarted
+    /* 0x17C */ s16              field_17C; ///< frames since then with `field_58` bit 1 set
+    /* 0x17E */ s16              field_17E;
+    /* 0x180 */ u8               field_180;
+    /* 0x181 */ u8               field_181;
+    /* 0x182 */ u8               field_182;
+    /* 0x183 */ byte             pad_183[0x1];
+    /* 0x184 */ u16              field_184;
+    /* 0x186 */ u16              field_186;
+    /* 0x188 */ byte             pad_188[0xC];
     /// World X/Y/Z of the model's coordinate, narrowed to 16 bits as the spawn
     /// handler samples the low 16 bits of each local translation component.
     /* 0x194 */ u16  field_194;

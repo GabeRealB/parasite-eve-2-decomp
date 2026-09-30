@@ -2962,7 +2962,7 @@ static void Actor00300_Fn03A1C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (AnimationSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec((AnimationContext*)work, (AnimationSlot*)&work->obj38.prev);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_696 & ANIMATION_RECORD_CUE_2)) {
             sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40030001;
@@ -3616,12 +3616,12 @@ static void Actor00300_Fn04ED4(Task* arg0)
             val = 8;
         }
         for (i = 1; i < 0x13; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, val);
+            func_800B4114((AnimationContext*)work, i, work->field_66E, 0, val);
         }
     } else {
         work->field_672++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
         }
     }
 }
@@ -3755,7 +3755,7 @@ s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args)
         frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((GpAnimCtx*)work, i, work->field_66E, 0, frames);
+        func_800B4114((AnimationContext*)work, i, work->field_66E, 0, frames);
     }
     return 0;
 }

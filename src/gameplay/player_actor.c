@@ -4847,7 +4847,7 @@ void Gp_TickActorAnimState(Task* arg0)
     u16                    flags;
 
     actor = arg0->work;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
     switch (actor->field_95C) {
         case 0:
         case 1:
@@ -4866,7 +4866,7 @@ void Gp_TickActorAnimState(Task* arg0)
             actor             = arg0->work;
             if (i < actor->field_938) {
                 do {
-                    Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
+                    Gp_AnimPlaySlot((AnimationContext*)actor->field_424, i, 0, anim, 0, 0, extra,
                                     actor->animationSets);
                     actor->field_438[i].rate = actor->field_985;
                     i++;
@@ -4938,7 +4938,7 @@ void Gp_StepPlayerMove(Task* arg0)
         case 5:
         case 6:
         case 7:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+            if (Gp_AnimGetRec((AnimationContext*)actor->field_424,
                               actor->field_438 + 1) == NULL) {
                 actor->field_0 = 0;
                 actor->field_4 = 0;
@@ -5538,7 +5538,7 @@ join_50:
     anim                 = work->extra.tmd;
     inner->field_93A     = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
     inner->animationSets = Gp_PlayerAnimBlkTbl[inner->field_93A]->table.sets;
-    func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, anim, &inner->field_7A8,
+    func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, anim, &inner->field_7A8,
                   inner->field_438);
     func_801066DC(work, 1);
     actor->field_983                               = 7;
@@ -5611,7 +5611,7 @@ static void Gp_BindActorAnim(Task* arg0)
     extra                = arg0->extra.tmd;
     actor->field_93A     = Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon;
     actor->animationSets = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+    func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
 }
 
@@ -5624,7 +5624,7 @@ void Gp_AnimResetChildSlots(Task* arg0, s32 arg1)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            Gp_AnimResetSlot((GpAnimCtx*)actor->field_424, i, arg1);
+            Gp_AnimResetSlot((AnimationContext*)actor->field_424, i, arg1);
             actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
@@ -5640,7 +5640,7 @@ void Gp_AnimPlayChildSlots(Task* arg0, s32 arg1, s32 arg2)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->animationSets);
+            Gp_AnimPlaySlot((AnimationContext*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->animationSets);
             actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
@@ -5656,7 +5656,7 @@ void Gp_AnimPlayChildSlotsEx(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->animationSets);
+            Gp_AnimPlaySlot((AnimationContext*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->animationSets);
             actor->field_438[i].rate = actor->field_985;
             i++;
         } while (i < actor->field_938);
@@ -5672,7 +5672,7 @@ void Gp_AnimTickChildSlots(Task* arg0)
     i     = 1;
     if (i < inner->field_938) {
         do {
-            Gp_AnimTickIndex((GpAnimCtx*)inner->field_424, i);
+            Gp_AnimTickIndex((AnimationContext*)inner->field_424, i);
             i++;
         } while (i < inner->field_938);
     }
@@ -6058,7 +6058,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->field_956 = 1;
     if (actor->animationSets != Gp_PlayerAnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_PlayerAnimBlkTbl[request->source.index]->table.sets;
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         actor->field_93A = (u16)request->source.index;
     }
@@ -6182,7 +6182,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
     actor->field_983                               = 7;
     ((WorldCollisionBody*)actor->field_AC)->flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         if (arg2 == mode) {
             Gp_ResetActorAnimState(arg0, 0);
@@ -6196,7 +6196,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
         return 0;
     }
     if (arg2 == 1) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         func_801066DC(arg0, 1);
     } else {
@@ -6286,7 +6286,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->field_93A     = PLAYER_ACTOR_DIRECT_ANIMATION_BANK;
     actor->field_985     = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
@@ -6313,7 +6313,7 @@ s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->field_93A     = PLAYER_ACTOR_DIRECT_ANIMATION_BANK;
     actor->field_985     = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         Gp_AnimResetChildSlots(task, request->animationId);
     } else {
@@ -6891,7 +6891,7 @@ static void func_80105B0C(Task* arg0)
     i     = 1;
     if (i < inner->field_938) {
         do {
-            Gp_AnimTickSlot2((GpAnimCtx*)inner->field_424, inner->field_438 + i);
+            Gp_AnimTickSlot2((AnimationContext*)inner->field_424, inner->field_438 + i);
             i++;
         } while (i < inner->field_938);
     }
@@ -6983,7 +6983,7 @@ s32 func_80105ED4(Task* arg0)
     sound = 0;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords + 1;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
@@ -7418,7 +7418,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
         }
         Gp_UpdateLockTarget(arg0);
         if ((s8)func_801060E0(arg0) != 0 &&
-            Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) != NULL &&
+            Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) != NULL &&
             actor->field_940 == 0) {
             dir = D_80112EF8[Player_Status.weapon] != 0 ? actor->field_97F : 1;
             res = func_80106264(dir);
@@ -7515,7 +7515,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     switch (Player_Status.weapon) {
         case 3:
         case 17:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7549,7 +7549,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     break;
                 case 2:
                 case 0x64:
-                    rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                    rec = Gp_AnimGetRec((AnimationContext*)actor->field_424,
                                         actor->field_438 + 1);
                     if (rec != NULL && rec != actor->field_92C) {
                         actor->field_92C = rec;
@@ -7569,7 +7569,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 flags            = 0x20000002;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, base | (variant | flags), 0);
             } else {
-                rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                rec = Gp_AnimGetRec((AnimationContext*)actor->field_424,
                                     actor->field_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
@@ -7590,7 +7590,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                     Gp_SpawnEff(0x6006E, coord, (s32)(Player_Status.weapon), NULL);
                 }
             }
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7605,7 +7605,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 13:
         case 14:
         case 23:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7622,7 +7622,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             }
             break;
         case 15:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7653,7 +7653,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 26:
         case 28:
         case 29:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7671,7 +7671,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         case 19:
             break;
         case 27:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
@@ -7707,7 +7707,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 actor->field_95E = 1;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
             } else {
-                rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                rec = Gp_AnimGetRec((AnimationContext*)actor->field_424,
                                     actor->field_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
@@ -8125,7 +8125,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
             Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 6);
             Gp_DetachLinkNode(arg0);
         } else if ((s8)func_801060E0(arg0) != 0 &&
-                   Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                   Gp_AnimGetRec((AnimationContext*)actor->field_424,
                                  actor->field_438 + 1) != NULL &&
                    actor->field_940 == 0) {
             dir = D_80112EF8[Player_Status.weapon] != 0 ? (s8)actor->field_97F : 1;
@@ -8164,7 +8164,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
             Gp_AnimPlayChildSlotsEx(arg0, 0x28, 0, 6);
             break;
         case 1:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
                 NULL) {
                 if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
                     inner            = arg0->work;

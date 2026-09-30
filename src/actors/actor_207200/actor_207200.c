@@ -46,7 +46,7 @@
 /// own `WorldCollisionContact` table, and `Gp_InitRec18Table` zeroes each table.
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
 typedef struct ActorShared8014df20Work {
-    /* 0x000 */ GpAnimCtx             context;
+    /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
@@ -556,12 +556,12 @@ static __inline__ void _actor207200TickAnim(Task* task)
         work->field_28E = work->field_28C;
         work->field_290 = 0;
         for (i = 1; i < 3; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+            func_800B4114((AnimationContext*)work, i, work->field_28C, 0, 8);
         }
     } else {
         work->field_290++;
         for (i = 1; i < 3; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
         }
     }
 }

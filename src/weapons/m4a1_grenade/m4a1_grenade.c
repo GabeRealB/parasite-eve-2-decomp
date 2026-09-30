@@ -107,7 +107,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             actor->field_958 = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
                 NULL) {
                 actor->field_95E++;
             }
@@ -174,7 +174,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             }
             /* fallthrough */
         case 5:
-            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+            rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {

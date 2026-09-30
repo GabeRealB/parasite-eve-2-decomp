@@ -113,25 +113,31 @@ typedef struct AnimationSet {
 } AnimationSet;
 STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
-/// One model's animation state: what its playback reads and the slots that walk
-/// it.
+/// Bytes reserved for one slot's encoded transition pose, independent of encoding.
+enum { ANIMATION_POSE_BUFFER_BYTES = 16 };
+
+/// Playback bindings and encoded transition poses for one model's part animations.
 ///
-/// A context is built once from the model body it animates and the animation
-/// tables its slots index, and is handed to every later animation call on that
-/// model. It borrows the model's own per-part coordinate array and part count,
-/// so a slot tick needs nothing but the context.
+/// The context borrows the model allocation's coordinate tail, the animation-set
+/// pointer table, writable slots and a word-aligned pose buffer. Their storage
+/// and the sets' data must remain live while playback uses them. Slot setup
+/// copies the context's set table; individual slots can retain different tables.
 ///
-/// The slots and the pose buffer are the caller's: one playback slot per model
-/// part, and one pose record per slot, where a slot keeps a pose that no
-/// keyframe supplies.
+/// Indexed calls require a valid slot index and the corresponding buffer entry;
+/// each slot's coordinate index must be below `partCount`. The buffer holds
+/// `AnimationPackedPose` (12 bytes) or `AnimationPackedRotation` (4 bytes) at the
+/// start of each 16-byte entry, selected by the slot's encoding. It does not hold
+/// unpacked `GpAnimPose` values. Buffer and slot capacities are supplied by the
+/// caller and are not stored or checked here. Slot-pointer tick helpers rebind
+/// `slots` using the slot's track index, which must equal its array index.
 typedef struct {
-    AnimationSet** sets;      // Set table the slots index by animation id
-    GfxCoord*      coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
-    u8*            poses;     // Borrowed writable buffer: 16 bytes per slot, holding that slot's packed encoding
-    AnimationSlot* slots;     // Playback state, one slot per model part
-    s32            partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
-} GpAnimCtx;
-STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
+    AnimationSet** sets;                                       // Borrowed default set table copied into newly initialized slots
+    GfxCoord*      coords;                                     // Borrowed mutable model-part transforms, indexed by each slot's coordIndex
+    u8             (*poseBuffer)[ANIMATION_POSE_BUFFER_BYTES]; // Borrowed writable encoded poses, indexed by playback slot
+    AnimationSlot* slots;                                      // Borrowed playback array; may be rebound by slot-pointer helpers
+    s32            partCount;                                  // Number of model-part coordinates, copied from TmdObject.partCount
+} AnimationContext;
+STATIC_ASSERT_SIZEOF(AnimationContext, 0x14);
 
 /// Advances one playback slot and writes its interpolated pose.
 ///
@@ -144,7 +150,7 @@ STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 /// is borrowed for this call only; a zero-duration segment writes neither.
 /// Banks and encoded outputs must be word-aligned. The encoded output may
 /// alias the current slot's 16-byte buffer entry, which is read before writing.
-void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpackedDestination,
+void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose* unpackedDestination,
                            void* encodedDestination);
 
 /// Persistent head-tracking state for `func_800B17D4`, allocated by the task

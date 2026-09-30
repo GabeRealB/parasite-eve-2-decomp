@@ -98,15 +98,15 @@ typedef struct Actor312200Work {
     /// Second animation context, seeded when the 0x89A request word is 2. It
     /// lives inside the pose buffer the first context was handed, and the slots
     /// it resets are the first context's, so the two share their slot array.
-    /* 0x44C */ GpAnimCtx       anim2;
-    /* 0x460 */ byte            poses2[0x42C];
-    /* 0x88C */ s16             field_88C;
-    /* 0x88E */ byte            pad_88E[0x2];
-    /* 0x890 */ s16             field_890;
-    /* 0x892 */ u16             field_892;
-    /* 0x894 */ u16             field_894;
-    /* 0x896 */ Actor312200Rate field_896;
-    /* 0x898 */ byte            pad_898[0x2];
+    /* 0x44C */ AnimationContext anim2;
+    /* 0x460 */ byte             poses2[0x42C];
+    /* 0x88C */ s16              field_88C;
+    /* 0x88E */ byte             pad_88E[0x2];
+    /* 0x890 */ s16              field_890;
+    /* 0x892 */ u16              field_892;
+    /* 0x894 */ u16              field_894;
+    /* 0x896 */ Actor312200Rate  field_896;
+    /* 0x898 */ byte             pad_898[0x2];
     /// Request state of the second animation context, laid out like the first:
     /// 2 seeds every slot and settles on 3.
     /* 0x89A */ s16             field_89A;

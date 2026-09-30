@@ -1210,7 +1210,7 @@ void Gp_EndPlayerActorTask(Task* arg0)
         inner                = arg0->work;
         inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
         inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
-        func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
+        func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                       inner->field_438);
         Gp_AnimResetChildSlots(arg0, 1);
         next            = arg0->work;
@@ -1280,7 +1280,7 @@ Task* Gp_SetupAllyWeapon(void)
     extra                = work->extra.tmd;
     inner->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
     inner->animationSets = Gp_AnimBlkTbl[inner->field_93A]->table.sets;
-    func_800B3F84((GpAnimCtx*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
+    func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, extra, &inner->field_7A8,
                   inner->field_438);
     next            = work->work;
     next->field_954 = 0;
@@ -1520,7 +1520,7 @@ void func_8010BFCC(Task* arg0)
     extra                = arg0->extra.tmd;
     actor->field_93A     = Gp_AllyIdBase[Mc_SaveData[0].state.companionType - 1] + Mc_SaveData[0].state.companionVariant;
     actor->animationSets = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+    func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
 }
 
@@ -1655,7 +1655,7 @@ s32 func_8010C30C(Task* arg0)
     anim                 = Gp_AnimBlkTbl[actor->field_93A]->table.sets;
     changed              = prev != anim;
     actor->animationSets = anim;
-    func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+    func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
     actor->field_985 = 0x10;
     actor->field_983 = 7;
@@ -1711,7 +1711,7 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request)
     actor->field_956 = 1;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
-        func_800B3F84((GpAnimCtx*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
+        func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                       actor->field_438);
         actor->field_93A = (u16)request->source.index;
     }

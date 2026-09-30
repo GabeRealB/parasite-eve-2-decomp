@@ -1534,12 +1534,12 @@ static s32 func_actor_401000_80132824(Task* arg0)
 /// sixteenths slower than `field_8A2`, the blend slots at `field_8AA`.
 static void func_actor_401000_80132A84(Task* arg0)
 {
-    GpAnimPose       pose;
-    GpAnimPose       blendPose;
-    GpAnimCtx*       anim;
-    s16              weight;
-    s16              i;
-    Actor401000Work* work;
+    GpAnimPose        pose;
+    GpAnimPose        blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor401000Work*  work;
 
     work   = arg0->work;
     weight = work->field_8AC;

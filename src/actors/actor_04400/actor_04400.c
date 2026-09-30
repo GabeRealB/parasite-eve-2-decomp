@@ -81,29 +81,29 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`. `obj_2AC` and
 /// `obj_2CC` share `rec_2EC`; `obj_3AC` has its own table at `rec_3CC`.
 typedef struct Actor104400Work {
-    /* 0x000 */ MATRIX    matrix_0; // model root coord, copied out on the kill path
-    /* 0x020 */ MATRIX    colorMtx; // the model's `TmdObject::colorMtx`
-    /* 0x040 */ MATRIX    lightMtx; // the model's `TmdObject::lightMtx`
-    /* 0x060 */ VECTOR    field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
-    /* 0x070 */ SVECTOR   field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
-    /* 0x078 */ s16       field_78; // pitch, fed to RotMatrixX
-    /* 0x07A */ s16       field_7A; // heading
-    /* 0x07C */ s16       field_7C; // roll, fed to RotMatrixZ
-    /* 0x07E */ byte      pad_7E[0x2];
-    /* 0x080 */ u16       field_80; // spawn position: root coord.t[0]
-    /* 0x082 */ u16       field_82; // root coord.t[1], after lifting it by 0x3C
-    /* 0x084 */ u16       field_84; // root coord.t[2]
-    /* 0x086 */ byte      pad_86[0x2];
-    /* 0x088 */ s16       field_88; // x of the vector turned towards
-    /* 0x08A */ s16       field_8A;
-    /* 0x08C */ s16       field_8C; // z of the vector turned towards
-    /* 0x08E */ byte      pad_8E[0x2];
-    /* 0x090 */ u16       field_90; // root coord.t[0], snapshotted with field_92 / field_94
-    /* 0x092 */ u16       field_92; // root coord.t[1]
-    /* 0x094 */ u16       field_94; // root coord.t[2]
-    /* 0x096 */ byte      pad_96[0x2];
-    /* 0x098 */ SVECTOR   field_98; // translation of coords[6] relative to the view
-    /* 0x0A0 */ GpAnimCtx anim;
+    /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
+    /* 0x020 */ MATRIX           colorMtx; // the model's `TmdObject::colorMtx`
+    /* 0x040 */ MATRIX           lightMtx; // the model's `TmdObject::lightMtx`
+    /* 0x060 */ VECTOR           field_60; // position Actor04400_Fn022A8 snaps the root back to when blocked
+    /* 0x070 */ SVECTOR          field_70; // origin of slot 4 entry 0's coords[3], carried into view space by Actor04400_Fn05B08
+    /* 0x078 */ s16              field_78; // pitch, fed to RotMatrixX
+    /* 0x07A */ s16              field_7A; // heading
+    /* 0x07C */ s16              field_7C; // roll, fed to RotMatrixZ
+    /* 0x07E */ byte             pad_7E[0x2];
+    /* 0x080 */ u16              field_80; // spawn position: root coord.t[0]
+    /* 0x082 */ u16              field_82; // root coord.t[1], after lifting it by 0x3C
+    /* 0x084 */ u16              field_84; // root coord.t[2]
+    /* 0x086 */ byte             pad_86[0x2];
+    /* 0x088 */ s16              field_88; // x of the vector turned towards
+    /* 0x08A */ s16              field_8A;
+    /* 0x08C */ s16              field_8C; // z of the vector turned towards
+    /* 0x08E */ byte             pad_8E[0x2];
+    /* 0x090 */ u16              field_90; // root coord.t[0], snapshotted with field_92 / field_94
+    /* 0x092 */ u16              field_92; // root coord.t[1]
+    /* 0x094 */ u16              field_94; // root coord.t[2]
+    /* 0x096 */ byte             pad_96[0x2];
+    /* 0x098 */ SVECTOR          field_98; // translation of coords[6] relative to the view
+    /* 0x0A0 */ AnimationContext anim;
     /// First of the nine `AnimationSlot`s (0xB4..0x21C); the second overlaps
     /// `flags_EC`, so only the first is spelled out.
     /* 0x0B4 */ AnimationSlot         slot_B4;

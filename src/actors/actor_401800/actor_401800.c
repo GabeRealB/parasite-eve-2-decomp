@@ -1472,7 +1472,7 @@ static void func_actor_401800_801337EC(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
-    GpAnimCtx*           anim;
+    AnimationContext*    anim;
     s16                  weight;
     s16                  i;
     Actor401800AnimWork* work;

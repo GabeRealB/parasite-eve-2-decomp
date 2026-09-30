@@ -2593,7 +2593,7 @@ static void func_actor_800100_80164E60(Task* arg0)
 
     actor = arg0->work;
     d4    = actor->field_910;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
     coord = actor->field_91C->extra.tmd->coords;
     sel   = D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant];
 
@@ -3351,7 +3351,7 @@ static void func_actor_800100_80166190(Task* arg0)
             break;
 
         case 1:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+            if (Gp_AnimGetRec((AnimationContext*)actor->field_424,
                               actor->field_438 + 1) != NULL) {
                 actor->field_960 += 1;
             }

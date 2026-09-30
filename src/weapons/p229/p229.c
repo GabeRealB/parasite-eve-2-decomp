@@ -349,7 +349,7 @@ static void func_p229_8011DDA0(Task* arg0)
             actor->field_958 = 0;
             break;
         case 1:
-            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1) !=
+            if (Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) !=
                 NULL) {
                 actor->field_95E++;
             }

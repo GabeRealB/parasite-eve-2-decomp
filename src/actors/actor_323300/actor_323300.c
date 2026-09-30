@@ -70,7 +70,7 @@ STATIC_ASSERT_SIZEOF(Actor323300Work, 0x504);
 /// `color` ends flush with the allocation.
 ///
 /// The prefix is the same animation shape the 0x504 block opens with: the
-/// `GpAnimCtx` at 0, the `AnimationSlot` array inline at 0x14 and the
+/// `AnimationContext` at 0, the `AnimationSlot` array inline at 0x14 and the
 /// pose buffer at 0x30C -- the three addresses
 /// `func_actor_323300_80163718` hands `func_800B3F84`. Its animation state
 /// sits in the four `s32` words past that buffer rather than in the byte fields

@@ -706,19 +706,19 @@ GpDelayArg D_actor_356100_801732D0;
 
 /// Animation view of the work block above, as `func_actor_356100_801633DC`
 /// reads it: the `Actor01900AnimWork` layout 0xE0 bytes later, so the two
-/// `GpAnimCtx` blocks at 0x1C / 0x4C8 each sit 0x14 bytes before their
+/// `AnimationContext` blocks at 0x1C / 0x4C8 each sit 0x14 bytes before their
 /// 0x28-byte slot array. `field_982` is the clip id the slot loop copies
 /// minus 3 into `slots[i].field_9`, `field_98A` the clip written whole into
 /// `blendSlots[i].field_9`, and `field_98C` the blend weight, the same three
 /// roles `Actor01900AnimWork.field_8A2` / `field_8AA` / `field_8AC` have.
 typedef struct Actor356100AnimWork {
-    /* 0x000 */ byte          pad_0[0x1C];
-    /* 0x01C */ GpAnimCtx     anim;
-    /* 0x030 */ AnimationSlot slots[24];
-    /* 0x3F0 */ byte          pad_3F0[0xD8];
-    /* 0x4C8 */ GpAnimCtx     blendAnim;
-    /* 0x4DC */ AnimationSlot blendSlots[24];
-    /* 0x89C */ byte          pad_89C[0xDC];
+    /* 0x000 */ byte             pad_0[0x1C];
+    /* 0x01C */ AnimationContext anim;
+    /* 0x030 */ AnimationSlot    slots[24];
+    /* 0x3F0 */ byte             pad_3F0[0xD8];
+    /* 0x4C8 */ AnimationContext blendAnim;
+    /* 0x4DC */ AnimationSlot    blendSlots[24];
+    /* 0x89C */ byte             pad_89C[0xDC];
     /// The animation-state halfwords `func_actor_356100_80163508` drives, the
     /// same slots `Actor356100Work` names: `field_978` is the state it leaves
     /// at 3 once the 1/2 entry has been served, `field_97C` the clip id the
@@ -1046,7 +1046,7 @@ static void func_actor_356100_801633DC(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
-    GpAnimCtx*           anim;
+    AnimationContext*    anim;
     s16                  weight;
     s16                  i;
     Actor356100AnimWork* work;

@@ -35,7 +35,7 @@
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
-/// layout: a `GpAnimCtx` and the nineteen `AnimationSlot`s `func_800B3F84` seeds
+/// layout: a `AnimationContext` and the nineteen `AnimationSlot`s `func_800B3F84` seeds
 /// from the animation bank and the frame handler ticks. `field_43C` /
 /// `field_45C` are the light and colour matrices handed to the model
 /// `TmdObject`.

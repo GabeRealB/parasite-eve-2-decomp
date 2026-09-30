@@ -230,7 +230,7 @@ typedef struct Actor110600Work {
 STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
 /// Animation view of the same block `Actor110600Work` describes: a primary
-/// `GpAnimCtx` at 0x10 and a blend context at 0x44C, each followed by its own
+/// `AnimationContext` at 0x10 and a blend context at 0x44C, each followed by its own
 /// 24-entry `AnimationSlot` array (0x24 / 0x460). `func_actor_110600_80134438`
 /// drives both for clip ids 1..0x12: the blend weight is the halfword at 0x8A0,
 /// the two clip ids the bytes at 0x896 / 0x89E. Same view as
@@ -245,16 +245,16 @@ STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 /// armed with, `field_894` the frame counter it bumps, and `field_8AC` the
 /// word its stage setup clears.
 typedef struct Actor110600AnimWork {
-    /* 0x000 */ byte          pad_0[0x10];
-    /* 0x010 */ GpAnimCtx     anim;
-    /* 0x024 */ AnimationSlot slots[24];
-    /* 0x3E4 */ byte          pad_3E4[0x68];
-    /* 0x44C */ GpAnimCtx     blendAnim;
-    /* 0x460 */ AnimationSlot blendSlots[24];
-    /* 0x820 */ byte          pad_820[0x6C];
-    /* 0x88C */ s16           field_88C;
-    /* 0x88E */ s16           field_88E;
-    /* 0x890 */ s16           field_890;
+    /* 0x000 */ byte             pad_0[0x10];
+    /* 0x010 */ AnimationContext anim;
+    /* 0x024 */ AnimationSlot    slots[24];
+    /* 0x3E4 */ byte             pad_3E4[0x68];
+    /* 0x44C */ AnimationContext blendAnim;
+    /* 0x460 */ AnimationSlot    blendSlots[24];
+    /* 0x820 */ byte             pad_820[0x6C];
+    /* 0x88C */ s16              field_88C;
+    /* 0x88E */ s16              field_88E;
+    /* 0x890 */ s16              field_890;
     /// Clip id the slots are armed with; read as an unsigned halfword into the
     /// clamped halfword `field_890` is assigned from.
     /* 0x892 */ s16 field_892;
@@ -2043,7 +2043,7 @@ static void func_actor_110600_80134438(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
-    GpAnimCtx*           anim;
+    AnimationContext*    anim;
     s16                  weight;
     s16                  i;
     Actor110600AnimWork* work;

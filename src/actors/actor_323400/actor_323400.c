@@ -3041,12 +3041,12 @@ static void func_actor_323400_80164AA0(Task* task, s16 arg1, s16 arg2);
 /// (three below it) and `field_83A`; slots 11..17 only tick the main context.
 static void func_actor_323400_8016331C(Task* task)
 {
-    GpAnimPose       pose;
-    GpAnimPose       blendPose;
-    GpAnimCtx*       anim;
-    s16              weight;
-    s16              i;
-    Actor323000Work* work;
+    GpAnimPose        pose;
+    GpAnimPose        blendPose;
+    AnimationContext* anim;
+    s16               weight;
+    s16               i;
+    Actor323000Work*  work;
 
     work   = (Actor323000Work*)task->work;
     weight = work->field_83C;

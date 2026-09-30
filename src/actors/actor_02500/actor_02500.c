@@ -50,7 +50,7 @@
 /// arg0) and its five slots, and carries the four list nodes plus their
 /// `WorldCollisionContact` tables.
 typedef struct Actor02500Work {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         field_14[5];
     /* 0x0DC */ byte                  field_DC[0x50];
     /* 0x12C */ byte                  field_12C[0x20];

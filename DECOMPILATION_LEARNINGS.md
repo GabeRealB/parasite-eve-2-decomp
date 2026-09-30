@@ -3422,7 +3422,7 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `GpAnimCtx` (0x14) then `AnimationSlot slots[0x12]`
+`Actor400500Work` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
 (0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
@@ -32733,9 +32733,9 @@ val = one << 4;
 
 ## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
 
-`animationTickSlotPose(ctx, i, 0, ctx->poses + (i << 4))` wants `addu a3, a3, t0` in
+`animationTickSlotPose(ctx, i, 0, (u8*)ctx->poseBuffer + (i << 4))` wants `addu a3, a3, t0` in
 the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
-`call_a3 = ctx->poses + off` emits the add too early and leaves `a2 = 0` as
+`call_a3 = (u8*)ctx->poseBuffer + off` emits the add too early and leaves `a2 = 0` as
 the `jal` delay.
 
 Pin the base to `$a3` and add only at the call. A `register s32 raw
@@ -32750,7 +32750,7 @@ register u8* poseBytes asm("a3");
 
 raw = arg2;
 off = arg1 << 4;
-poseBytes = arg0->poses;
+poseBytes = (u8*)arg0->poseBuffer;
 asm volatile("" : "+r"(raw));
 animationTickSlotPose(arg0, arg1, 0, poseBytes + off);
 ```
@@ -57630,7 +57630,7 @@ func_800B4114(&start->anim, i, start->field_104, 0,
 ```
 
 The target loads it once with `lh` and uses that one register for both. With
-`gameplay/1BC.h`'s `void func_800B4114(GpAnimCtx*, s32, u16, s32, s32)` in
+`gameplay/1BC.h`'s `void func_800B4114(AnimationContext*, s32, u16, s32, s32)` in
 scope, GCC has to convert the `s16` field to `unsigned short` for the argument,
 which is a real zero-extension, so it emits a second `lhu` beside the `lh` used
 for the index. Declaring the third parameter `s32` in the caller collapses the
@@ -64469,7 +64469,7 @@ Two things to get right around it:
 
 The block behind `ActorsShared80131f9cWork` is one layout in the family, but
 where it *starts* differs: `actor_143900`, `actor_151000` and `actor_461800`
-put a 0x40-byte state prefix ahead of `GpAnimCtx anim`, while `actor_110300`
+put a 0x40-byte state prefix ahead of `AnimationContext anim`, while `actor_110300`
 and `actor_110800` start with `anim` at offset 0. Every field name shifts with
 it rather than changing - the animation-id pair is 0x4B6/0x4B8 in
 `Actor143900Work`/`Actor151000Work` and 0x476/0x478 here, exactly 0x40 lower -
@@ -71133,7 +71133,7 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `GpAnimCtx` (0x14) then `AnimationSlot slots[0x12]`
+`Actor400500Work` opens with `AnimationContext` (0x14) then `AnimationSlot slots[0x12]`
 (0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
@@ -74872,7 +74872,7 @@ s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, AnimationPlayRequest
     work            = arg0->field_1C;
     work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
+        func_800B4114((AnimationContext*)work, i, work->field_586, 0, blend);
     }
 ```
 
@@ -76710,7 +76710,7 @@ other penalty zero: 26 of 27 instructions identical, the one difference being
 mask, no extra instruction — the seed *is* the function, at the wrong address.
 
 The two halves of m2c's walking pointer are typed differently, so they scale
-differently. `temp_s1` is `GpAnimCtx *` (0x14 bytes) and the seed initialises
+differently. `temp_s1` is `AnimationContext *` (0x14 bytes) and the seed initialises
 through it — `var_s2 = temp_s1 + 0x28` is 0x28 × 20 = 0x320 — while the
 increment `var_s2 += 0x28` is on the `void *` local and stays byte-wise. The
 target walks one 0x28-byte record per step from `+0x28`, so the init has to be
@@ -79943,8 +79943,8 @@ copy of this body turns up in another actor overlay.
 
 The same seed also lost the animation slot argument: m2c emitted
 `Gp_AnimGetRec(work, work + 0x3C)` as `addiu a1, s2, 0x4B0` because its `void *`
-work had no `GpAnimCtx`. Giving the work block the real head -
-`GpAnimCtx ctx; byte slots[19][0x28];` - makes `&work->slots[1]` land at
+work had no `AnimationContext`. Giving the work block the real head -
+`AnimationContext ctx; byte slots[19][0x28];` - makes `&work->slots[1]` land at
 0x3C and removes the penalty outright. `overlay_dup_index.py promote` refuses
 this body for the other five overlays ("references its own overlay's code or
 data"), so each copy stays matched in its own unit.
@@ -81051,7 +81051,7 @@ the counter straight to the call removes the pseudo:
 
 ```c
     do {
-        func_800B4114((GpAnimCtx*)work, i, work->field_28C, 0, 8);
+        func_800B4114((AnimationContext*)work, i, work->field_28C, 0, 8);
         i++;
     } while (i < 3);
 ```
@@ -82250,7 +82250,7 @@ not scheduler barriers — do not add empty asm to "restore" them. Reaching for
 the brief's `Similar matched bodies` list first is what makes this a
 one-attempt match; the m2c seed scored 59.76%.
 
-## A `GpAnimCtx` work block's slot array is real C - index `slots[i]`, do not overlay a stride
+## An `AnimationContext` work block's slot array is real C - index `slots[i]`, do not overlay a stride
 
 The `Actor400500AnimStride` overlay above reproduces the target's `addiu 0x28` /
 `sb 0x1D` shape, but it is not needed: declare the block the way the sibling
@@ -82258,7 +82258,7 @@ overlays already do and the same code falls out unaided.
 
 ```c
 typedef struct {
-    /* 0x000 */ GpAnimCtx  anim;
+    /* 0x000 */ AnimationContext  anim;
     /* 0x014 */ AnimationSlot slots[19];
     ...
 } Actor323300Work;
@@ -82277,7 +82277,7 @@ already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 
 **Sizing the array.** Such a block hands `func_800B3F84` the block itself as its
-`GpAnimCtx`, the slot array as its `AnimationSlot*`, and a pose buffer
+`AnimationContext`, the slot array as its `AnimationSlot*`, and a pose buffer
 directly after it; those last two addresses bound the array, since
 `0x14 + N*0x28` is the buffer's address. actor_323300 passes `+0x14` and `+0x30C`,
 so `N = 19`. The tick loops then walk indices 1..0x13 -- index 0 exists and is
@@ -85781,7 +85781,7 @@ Read the explicit-offset version as a rewrite of GCC's own strength reduction,
 not as a reconstruction: when the target walks a pointer with a byte offset but
 the callee's first argument is a struct member, write the index form and let
 loop.c produce the walk. The family idiom agrees — `Actor143900Work` and
-`Actor151000Work` both put `GpAnimCtx` at 0x40 and the slots at 0x54, so
+`Actor151000Work` both put `AnimationContext` at 0x40 and the slots at 0x54, so
 `slots[1]` is the 0x7C the target's `addiu $s0,$zero,0x7C` starts at.
 
 The traces that settle it are the `;; ready list initially:` line of the
@@ -98772,7 +98772,7 @@ diagnosis. The original is bottom-tested, and the siblings say so:
         TOUCH_REG(i);
         work->field_24C += i;
         do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
             i++;
         } while (i < 6);
     }
@@ -99220,7 +99220,7 @@ order - then launches the moves in a different order. Writing the call first and
 incrementing after it restores the target's order:
 
 ```c
-func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
+func_800B4114((AnimationContext*)work, i, work->field_2B8, 0, 0);
 i++;
 ```
 
@@ -100884,10 +100884,10 @@ constant offset reports `regs=N` with every other penalty at zero, and the
 brief's leftover table sends you to `.lreg` / `.greg` for an allocation story
 that is not there.
 
-Here the m2c seed typed the `memCalloc(0x4CC, 0)` result as `GpAnimCtx*`
+Here the m2c seed typed the `memCalloc(0x4CC, 0)` result as `AnimationContext*`
 (propagated back from `func_800B3F84`'s first parameter), so the two offsets
 into that block which the assembly writes as plain byte offsets scaled by
-`sizeof(GpAnimCtx) == 0x14`:
+`sizeof(AnimationContext) == 0x14`:
 
 ```
   addiu    v0,s0,0x14        ->  addiu    v0,s0,0x190
@@ -100908,14 +100908,14 @@ The struct that fixes it here is also the layout worth reusing in this family:
 
 ```c
 typedef struct Actor311900Anim {
-    /* 0x000 */ GpAnimCtx  context;
+    /* 0x000 */ AnimationContext  context;
     /* 0x014 */ AnimationSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
-    /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx.poses, packed encodings in 0x10-byte slots */
+    /* 0x334 */ byte       poses[0x140]; /* AnimationContext.poseBuffer, packed encodings in 0x10-byte slots */
 } Actor311900Anim;
 STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
 ```
 
-so the spawn hands `func_800B3F84` the block as `(GpAnimCtx*)work`,
+so the spawn hands `func_800B3F84` the block as `(AnimationContext*)work`,
 `work->anim.slots` as arg4 and `work->anim.poses` as arg3. **Derive a slot
 count by filling the gap, and re-check it against the assert:** `0x334 - 0x14
 = 0x320` is 20 slots of 0x28, not 32 - the same 20 `actor_160600` and
@@ -109583,7 +109583,7 @@ dump (`func_actor_800100_80164E60`):
   plus a byte offset and the offset is then scaled by `sizeof(*temp_s0)`. The
   target's bare `addiu $a0, $s0, 0x424` is the tell: a two-instruction constant
   where the target has a one-instruction small immediate means the argument's
-  cast is missing. Use the project idiom (`(GpAnimCtx*)actor->field_424`,
+  cast is missing. Use the project idiom (`(AnimationContext*)actor->field_424`,
   `actor->field_438 + 1`) so the pointee is byte-sized.
 - A `sll $v0, $v0, 2` before the `addu` that the target does not have means the
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
@@ -110535,7 +110535,7 @@ against three nodes and a range (a tree). Compiled side by side from one file:
 ```
 
 `actor_421600`'s `func_actor_421600_80133B30` is the same 17-slot pose-blend
-loop as `actor_400100`'s `Actor00100_Fn01D74` -- same `GpAnimCtx` pair, same
+loop as `actor_400100`'s `Actor00100_Fn01D74` -- same `AnimationContext` pair, same
 `Gp_AnimWritePoseCopy` tail -- but the first dispatches through compares and the
 second through a five-word table (`Actor00100_Jt00044`). The table's source
 repeats a body per case; the tree's groups the labels. When the target's blend
@@ -112089,7 +112089,7 @@ contexts with `0x1000 - weight`, the rest ticked - now has three matched members
 an overlay-local `*AnimWork` view of the task work block: `Actor01900_Fn01950`
 (`anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
 weight +0xAD4, bound 0x18) and `func_actor_356100_801633DC` (`anim` +0x1C, weight
-+0x98C, bound 0x15). Because `1BC.h` `GpAnimCtx` is 0x14 bytes, each view's slot array
++0x98C, bound 0x15). Because `1BC.h` `AnimationContext` is 0x14 bytes, each view's slot array
 starts exactly 0x14 after its context, which fixes `slots[i].rate` at `+9` off that
 base - so the three displacements 0x39 / 0x39 / 0x39 are the same number and only the
 `blendSlots` base moves with the overlay. Transcribing the sibling's C verbatim and
@@ -123526,7 +123526,7 @@ local was the bug, here the *missing* second local is. The tell in both cases is
 which register the target's predicate reads.
 
 The same function also carried the m2c pointee-scaling trap documented above:
-`temp_v0 + 0x474` with `temp_v0` an `GpAnimCtx*` (0x14) emitted
+`temp_v0 + 0x474` with `temp_v0` an `AnimationContext*` (0x14) emitted
 `addiu $v0,$s1,0x5910`. Giving the work block named `MATRIX field_474` /
 `field_494` members, as its `Actor136100Work` twin has, removed it.
 
@@ -125111,7 +125111,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 reads it straight back with `lb` to index the bank table (`sll $v1,$v1,2` before
 the `lw`). The m2c baseline emitted no `lb` at all: the index came from the byte
 still in a register (`lbu` + `sll 24` / `sra 20`). Retyping the work block as its
-animation head -- `GpAnimCtx anim; AnimationSlot slots[20]; byte field_334[0x140];
+animation head -- `AnimationContext anim; AnimationSlot slots[20]; byte field_334[0x140];
 s8 field_474; s8 field_475; s8 field_476;` replacing a `byte pad_0[0x475]`, which
 keeps every later offset -- and writing the body the way the matched sibling
 `func_actor_503500_8014652C` writes it (two field stores, then
@@ -133904,7 +133904,7 @@ handler's front selects, shared by the several entries that ask for it. So a
 handler is its entry address, not a range; a step that reads a symbol's body
 from the map's rows will attribute a neighbour's variant to it.
 
-## A phantom view folds into its owner only in the form the target used: the offset is an `addiu`, the owner's own pointer member is a load (GpAnimCtx, 2026-09-19)
+## A phantom view folds into its owner only in the form the target used: the offset is an `addiu`, the owner's own pointer member is a load (AnimationContext, 2026-09-19)
 
 Decompilation invents views of an existing object: a type that pads to an offset
 and names what sits there (a view of the model object's tail), or a truncation of

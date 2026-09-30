@@ -187,8 +187,8 @@ typedef struct Actor403100Work {
     /* 0x0B6 */ byte    pad_B6[2];
     /* 0x0B8 */ union {
         struct {
-            GpAnimCtx     anim;
-            AnimationSlot slots[15];
+            AnimationContext anim;
+            AnimationSlot    slots[15];
         } animation;
         struct {
             byte             pad_B8[0x4C];

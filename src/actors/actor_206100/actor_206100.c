@@ -216,7 +216,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// its halfword or bits 0x102 of its word to decide whether to advance the
 /// actor to state 2.
 /// `anim` is the animation context at offset 0 -- the block is handed to
-/// `Gp_AnimResetSlot` as its `GpAnimCtx` -- with the 0x28-byte animation
+/// `Gp_AnimResetSlot` as its `AnimationContext` -- with the 0x28-byte animation
 /// slots at +0x14, the layout `Actor400500Work` uses.
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
@@ -225,8 +225,8 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// `WorldCollisionContact` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
-    /* 0x000 */ GpAnimCtx     anim;
-    /* 0x014 */ AnimationSlot slots[0xF];
+    /* 0x000 */ AnimationContext anim;
+    /* 0x014 */ AnimationSlot    slots[0xF];
     /// `func_800B3F84`'s arg3 buffer, the 0x90-byte scratch every animation
     /// context carries alongside its slot array.
     /* 0x26C */ byte animAux[0x90];
@@ -2444,7 +2444,7 @@ static void func_actor_206100_8014C458(Task* task)
                 anim->field_512 = anim->field_512 + 1;
             }
             for (i = 1; i < 0xF; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)anim, i);
+                Gp_AnimTickIndex(&anim->anim, i);
             }
             work->flags_514.parts.half = work->slots[1].flags;
             func_actor_206100_8014B0AC(task, work->field_54D);

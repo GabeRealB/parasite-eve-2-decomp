@@ -62,7 +62,7 @@ typedef union Actor00700ContactStorage {
 STATIC_ASSERT_SIZEOF(Actor00700ContactStorage, 0x50);
 
 typedef struct Actor00700Work {
-    /* 0x000 */ GpAnimCtx                anim;
+    /* 0x000 */ AnimationContext         anim;
     /* 0x014 */ byte                     pad_14[0x140];
     /* 0x154 */ WorldCollisionContact    field_154;
     /* 0x16C */ byte                     pad_16C[0x20];
@@ -127,7 +127,7 @@ typedef struct Actor00700Work {
 
 /// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
 typedef struct Actor00700SpawnWork {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[4];
     /* 0x0B4 */ u8                    field_B4[0x40];
     /* 0x0F4 */ MATRIX                field_F4;
@@ -186,7 +186,7 @@ STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 /// `WorldCollisionBody` collision bodies it links (object-list indices 3/2/2/3, each with its
 /// own `WorldCollisionContact` table) start at +0x1DC rather than +0x134.
 typedef struct Actor00700InitWork {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[7];
     /* 0x12C */ byte                  field_12C[0x70];
     /* 0x19C */ MATRIX                field_19C;

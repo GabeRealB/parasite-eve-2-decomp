@@ -286,7 +286,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x006 */ byte                  pad_6[0x2];
     /* 0x008 */ s16                   yaw;
     /* 0x00A */ byte                  pad_A[0x2];
-    /* 0x00C */ GpAnimCtx             anim;
+    /* 0x00C */ AnimationContext      anim;
     /* 0x020 */ AnimationSlot         slots[4];
     /* 0x0C0 */ byte                  pad_C0[0x40];
     /* 0x100 */ s16                   field_100;

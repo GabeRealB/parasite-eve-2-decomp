@@ -462,17 +462,17 @@ STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 /// each pose record is in the encoding its slot's `AnimationSlot.poseEncoding` names,
 /// so the buffer is kept as raw records.
 typedef struct ActorAnimRig20 {
-    GpAnimCtx     anim;
-    AnimationSlot slots[0x14];
-    byte          poses[0x14][0x10];
+    AnimationContext anim;
+    AnimationSlot    slots[0x14];
+    byte             poses[0x14][0x10];
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 
 /// The animation rig of a nineteen-part model, laid out as `ActorAnimRig20`.
 typedef struct ActorAnimRig19 {
-    GpAnimCtx     anim;
-    AnimationSlot slots[0x13];
-    byte          poses[0x13][0x10];
+    AnimationContext anim;
+    AnimationSlot    slots[0x13];
+    byte             poses[0x13][0x10];
 } ActorAnimRig19;
 STATIC_ASSERT_SIZEOF(ActorAnimRig19, 0x43C);
 
@@ -521,29 +521,29 @@ STATIC_ASSERT_SIZEOF(Actor341700Flags, 0x4);
 /// the handler tables walk and `field_412` the per-state frame counter;
 /// `field_414` .. `field_41C` are the animation request.
 typedef struct Actor341700Work {
-    MATRIX    savedRootMtx; // root matrix saved at death, rescaled each frame while the model shrinks
-    MATRIX    colorMtx;     // the model's `TmdObject::colorMtx`
-    MATRIX    lightMtx;     // the model's `TmdObject::lightMtx`
-    VECTOR    field_60;     // position the root snaps back to when blocked
-    SVECTOR   field_70;     // origin of slot 4 entry 0's coords[3], carried into view space
-    s16       field_78;     // pitch, fed to RotMatrixX
-    s16       field_7A;     // heading fed to rsin / rcos
-    s16       field_7C;     // roll, fed to RotMatrixZ
-    byte      pad_7E[0x2];
-    u16       field_80;     // spawn position: root coord.t[0]
-    u16       field_82;     // root coord.t[1], after lifting it by 0x3C
-    u16       field_84;     // root coord.t[2]
-    byte      pad_86[0x2];
-    s16       field_88;     // x of the offset to the nearer player actor
-    s16       field_8A;     // y of that offset
-    s16       field_8C;     // z of that offset
-    byte      pad_8E[0x2];
-    u16       field_90;     // root coord.t[0], snapshotted with the view-space origin
-    u16       field_92;     // root coord.t[1]
-    u16       field_94;     // root coord.t[2]
-    byte      pad_96[0x2];
-    SVECTOR   field_98;     // translation of coords[6] relative to the view
-    GpAnimCtx anim;
+    MATRIX           savedRootMtx; // root matrix saved at death, rescaled each frame while the model shrinks
+    MATRIX           colorMtx;     // the model's `TmdObject::colorMtx`
+    MATRIX           lightMtx;     // the model's `TmdObject::lightMtx`
+    VECTOR           field_60;     // position the root snaps back to when blocked
+    SVECTOR          field_70;     // origin of slot 4 entry 0's coords[3], carried into view space
+    s16              field_78;     // pitch, fed to RotMatrixX
+    s16              field_7A;     // heading fed to rsin / rcos
+    s16              field_7C;     // roll, fed to RotMatrixZ
+    byte             pad_7E[0x2];
+    u16              field_80;     // spawn position: root coord.t[0]
+    u16              field_82;     // root coord.t[1], after lifting it by 0x3C
+    u16              field_84;     // root coord.t[2]
+    byte             pad_86[0x2];
+    s16              field_88;     // x of the offset to the nearer player actor
+    s16              field_8A;     // y of that offset
+    s16              field_8C;     // z of that offset
+    byte             pad_8E[0x2];
+    u16              field_90;     // root coord.t[0], snapshotted with the view-space origin
+    u16              field_92;     // root coord.t[1]
+    u16              field_94;     // root coord.t[2]
+    byte             pad_96[0x2];
+    SVECTOR          field_98;     // translation of coords[6] relative to the view
+    AnimationContext anim;
     /// First of the nine `AnimationSlot`s handed to `func_800B3F84`; the second
     /// overlaps `flags_EC`, so only the first is spelled out.
     AnimationSlot         slot_B4;
@@ -603,7 +603,7 @@ STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 /// kept at `Task::work`. Animation setup fills the context and eight slots;
 /// the projectile task has its own smaller collision-work allocation.
 typedef struct Actor105500Work {
-    GpAnimCtx             anim;
+    AnimationContext      anim;
     AnimationSlot         slots[8];
     byte                  field_154[0x80];
     MATRIX                field_1D4;
@@ -694,7 +694,7 @@ STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
 /// poses, the collision nodes and records, and the state the per-frame
 /// handlers drive.
 typedef struct Actor05300Work {
-    GpAnimCtx             anim;
+    AnimationContext      anim;
     AnimationSlot         slots[10];
     GpAnimPose            poses[10];
     MATRIX                field_244;
@@ -947,7 +947,7 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// is set the two adjacent words `[field_712 * 2 - 1]` and `[field_712 * 2]`
 /// are the cue ids it plays.
 typedef struct Actor402200Work {
-    GpAnimCtx              anim;
+    AnimationContext       anim;
     AnimationSlot          slots[19];
     byte                   field_30C[0x130];
     MATRIX                 field_43C;
@@ -1275,7 +1275,7 @@ STATIC_ASSERT_SIZEOF(Actor402200GrabScratch, 0x5C);
 /// the state-change flag every state handler tests, and `field_828` onwards
 /// are the animation-state slots the state handlers seed and the tick keeps.
 ///
-/// It holds two animation contexts, each a `GpAnimCtx`, its 18-slot array
+/// It holds two animation contexts, each an `AnimationContext`, its 18-slot array
 /// and the 0x120-byte pose buffer `func_800B3F84` is handed as its arg3: the
 /// main one at 0x1C and the blend one at 0x420. The light / colour matrices
 /// the spawn handler binds to `TmdObject::lightMtx` / `colorMtx` sit after
@@ -1296,16 +1296,16 @@ typedef struct Actor323000Work {
     byte pad_8[0xE];
     /// Yaw of the root coordinate as the placement handler
     /// `func_actor_323000_80164954` leaves it, read back from the matrix.
-    s16           field_16;
-    byte          pad_18[4];
-    GpAnimCtx     anim;
-    AnimationSlot slots[18];
-    /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx.poses`.
-    byte          poses[0x120];
-    GpAnimCtx     blendAnim;
-    AnimationSlot blendSlots[18];
-    byte          blendPoses[0x120];
-    byte          pad_824[4];
+    s16              field_16;
+    byte             pad_18[4];
+    AnimationContext anim;
+    AnimationSlot    slots[18];
+    /// Pose buffer `func_800B3F84` takes as its arg3, `AnimationContext.poseBuffer`.
+    byte             poses[0x120];
+    AnimationContext blendAnim;
+    AnimationSlot    blendSlots[18];
+    byte             blendPoses[0x120];
+    byte             pad_824[4];
     /// Animation-state slots the handlers seed and the tick keeps: the seed
     /// mode the tick acts on (1 re-seeds from the per-state table, 2 resets
     /// the slots, 3 runs), whether the blend context is live, the clip the
@@ -1569,30 +1569,30 @@ typedef struct Actor403200Work {
     /// it reaches a given value.
     /* 0x006 */ s16  field_6;
     /* 0x008 */ byte pad_8[0x4];
-    /// Six back-to-back animation blocks, each a `GpAnimCtx` followed by its
+    /// Six back-to-back animation blocks, each an `AnimationContext` followed by its
     /// own `AnimationSlot[N]` and an N-entry 0x10-byte pose table -- the three
     /// argument groups the spawn state hands `func_800B3F84`. They pair up
     /// (0/1, 2/3, 4/5), eight slots in the first pair and four in the others;
     /// the even member drives the model and the odd one is the pose blended
     /// into it. The states latch their one-shot cues on `slots0[n].currentPose.indices.recordIndex`.
-    /* 0x00C */ GpAnimCtx     anim0;
-    /* 0x020 */ AnimationSlot slots0[8];
-    /* 0x160 */ byte          aux0[0x80];
-    /* 0x1E0 */ GpAnimCtx     anim1;
-    /* 0x1F4 */ AnimationSlot slots1[8];
-    /* 0x334 */ byte          aux1[0x80];
-    /* 0x3B4 */ GpAnimCtx     anim2;
-    /* 0x3C8 */ AnimationSlot slots2[4];
-    /* 0x468 */ byte          aux2[0x40];
-    /* 0x4A8 */ GpAnimCtx     anim3;
-    /* 0x4BC */ AnimationSlot slots3[4];
-    /* 0x55C */ byte          aux3[0x40];
-    /* 0x59C */ GpAnimCtx     anim4;
-    /* 0x5B0 */ AnimationSlot slots4[4];
-    /* 0x650 */ byte          aux4[0x40];
-    /* 0x690 */ GpAnimCtx     anim5;
-    /* 0x6A4 */ AnimationSlot slots5[4];
-    /* 0x744 */ byte          aux5[0x40];
+    /* 0x00C */ AnimationContext anim0;
+    /* 0x020 */ AnimationSlot    slots0[8];
+    /* 0x160 */ byte             aux0[0x80];
+    /* 0x1E0 */ AnimationContext anim1;
+    /* 0x1F4 */ AnimationSlot    slots1[8];
+    /* 0x334 */ byte             aux1[0x80];
+    /* 0x3B4 */ AnimationContext anim2;
+    /* 0x3C8 */ AnimationSlot    slots2[4];
+    /* 0x468 */ byte             aux2[0x40];
+    /* 0x4A8 */ AnimationContext anim3;
+    /* 0x4BC */ AnimationSlot    slots3[4];
+    /* 0x55C */ byte             aux3[0x40];
+    /* 0x59C */ AnimationContext anim4;
+    /* 0x5B0 */ AnimationSlot    slots4[4];
+    /* 0x650 */ byte             aux4[0x40];
+    /* 0x690 */ AnimationContext anim5;
+    /* 0x6A4 */ AnimationSlot    slots5[4];
+    /* 0x744 */ byte             aux5[0x40];
     /// Per-part yaw the fifth escort's model is being driven to, one entry per
     /// part, and the angle each part is currently at. The escort pose driver
     /// picks the targets from `field_7A4` and walks every `field_794` toward

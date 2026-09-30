@@ -87,7 +87,7 @@ STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 /// `field_336` is written to; otherwise `field_336` goes to the parent work's
 /// `field_5C2`.
 typedef struct Actor510900ChildAnim {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[11];   ///< `func_800B3F84` arg4, reset 1..10
     /* 0x1CC */ byte                  poses[0xB0]; ///< `func_800B3F84` arg3
     /* 0x27C */ MATRIX                colorMtx;    ///< handed to `TmdObject::colorMtx`
@@ -2321,7 +2321,7 @@ static void func_actor_510900_80138A9C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (AnimationSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec((AnimationContext*)work, (AnimationSlot*)&work->obj38.prev);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_59A & ANIMATION_RECORD_CUE_2)) {
             snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40780001;
@@ -2595,7 +2595,7 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             coord->coord.t[1] = 0;
             coord->coord.t[2] = 0;
             for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot((GpAnimCtx*)work, i, work->field_586);
+                Gp_AnimResetSlot((AnimationContext*)work, i, work->field_586);
             }
             if (work->field_594 == 0) {
                 work->field_594 = 1;
@@ -3240,7 +3240,7 @@ case0:
     if (func_actor_510900_8013C240(arg1) == 0) {
         i = 1;
         do {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
             i++;
         } while (i < 0xB);
         return;
@@ -3261,7 +3261,7 @@ body:
     }
     i = 1;
     do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        Gp_AnimTickIndex(&work->anim, i);
         i++;
     } while (i < 0xB);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3954,12 +3954,12 @@ static void func_actor_510900_8013BB20(Task* arg0)
         work->field_58A = 0;
         value           = D_actor_510900_80167B38[work->field_586];
         for (i = 1; i < 0x13; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, value);
+            func_800B4114((AnimationContext*)work, i, work->field_586, 0, value);
         }
     } else {
         work->field_58A++;
         for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
         }
     }
 }
@@ -4036,7 +4036,7 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     work            = arg0->work;
     work->field_586 = arg2->animationId + 0x1B;
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((GpAnimCtx*)work, i, work->field_586, 0, blend);
+        func_800B4114((AnimationContext*)work, i, work->field_586, 0, blend);
     }
     work->field_58A = 0;
     return 0;

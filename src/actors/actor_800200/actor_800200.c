@@ -2603,7 +2603,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
     sound = 0;
     actor = arg0->work;
     obj   = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
+    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
     if (rec != NULL && rec != actor->field_92C) {
         actor->field_92C = rec;
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {

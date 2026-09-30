@@ -121,7 +121,7 @@ STATIC_ASSERT_SIZEOF(Actor105100ProjScratch, 0x38);
 /// off `&coord[3]`, the second off the model's own coordinate and the third
 /// off the third-party model's.
 typedef struct Actor105100Work {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[19];
     /* 0x30C */ byte                  field_30C[0x130];
     /* 0x43C */ MATRIX                field_43C;
@@ -1046,7 +1046,7 @@ static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1)
 /// light matrix, 0x43C the colour one) and fills the context's coordinate,
 /// pair source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
-/// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
+/// The block's 0x14-prefix then becomes the `AnimationContext`: `func_800B3F84` loads
 /// the animation data into it over the nineteen `AnimationSlot`s, and slots 1..18
 /// are reset. The three list nodes at 0x47C / 0x4E4 / 0x51C are linked into the
 /// global object lists with their collision tables (`Gp_InitRec18Table`), which

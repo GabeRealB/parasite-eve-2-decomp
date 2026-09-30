@@ -97,7 +97,7 @@ typedef struct Actor00100Work {
     /* 0x014 */ s16  field_14;
     /* 0x016 */ byte pad_16[6];
     /// First of the two animation contexts, with the 0x12 slots it drives.
-    /* 0x01C */ GpAnimCtx              anim0;
+    /* 0x01C */ AnimationContext       anim0;
     /* 0x030 */ AnimationSlot          slot0;
     /* 0x058 */ byte                   pad_58[2];
     /* 0x05A */ u16                    field_5A;
@@ -105,7 +105,7 @@ typedef struct Actor00100Work {
     /* 0x068 */ u16                    field_68;
     /* 0x06A */ byte                   pad_6A[0x296];
     /* 0x300 */ byte                   data0[0x120];
-    /* 0x420 */ GpAnimCtx              anim1;
+    /* 0x420 */ AnimationContext       anim1;
     /* 0x434 */ AnimationSlot          slot1;
     /* 0x45C */ byte                   pad_45C[0x10];
     /* 0x46C */ u16                    field_46C;
@@ -2087,16 +2087,16 @@ static void Actor00100_Fn01900(Task* actor, s16 firstJoint, s16 secondJoint, s16
 
 static void Actor00100_Fn01D74(Task* arg0)
 {
-    GpAnimPose pose;
-    GpAnimPose otherPose;
-    GpAnimCtx* anim;
-    s16        part;
-    s16        index;
-    s32        blend;
-    s32        invBlend;
-    s32        offset;
-    u8*        work;
-    u8*        slotBase;
+    GpAnimPose        pose;
+    GpAnimPose        otherPose;
+    AnimationContext* anim;
+    s16               part;
+    s16               index;
+    s32               blend;
+    s32               invBlend;
+    s32               offset;
+    u8*               work;
+    u8*               slotBase;
 
     work = (u8*)((Actor00100Work*)arg0->work);
     anim = &((Actor00100Work*)work)->anim0;

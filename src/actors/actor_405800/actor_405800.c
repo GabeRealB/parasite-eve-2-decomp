@@ -130,7 +130,7 @@ typedef struct Actor405800Work {
     /* 0x09C */ u16                   field_9C; // low half of the root coordinate's world Z
     /* 0x09E */ byte                  pad_9E[0xA];
     /* 0x0A8 */ SVECTOR               field_A8; // world point `func_actor_405800_801383CC` turns to face (it reads `vx` / `vz`)
-    /* 0x0B0 */ GpAnimCtx             anim;     // slots 1..0x11 reset by func_actor_405800_80138224
+    /* 0x0B0 */ AnimationContext      anim;     // slots 1..0x11 reset by func_actor_405800_80138224
     /* 0x0C4 */ AnimationSlot         slots[0x12];
     /* 0x394 */ byte                  pad_394[0x120];
     /* 0x4B4 */ WorldCollisionBody    obj_4B4;    // collision node; unlinked on death

@@ -212,36 +212,36 @@ STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 /// per context. `field_AD4` is the blend weight, `field_AD2` the clip written
 /// to the blend slots and `field_ACA` the clip id (see `Actor403000Work`).
 typedef struct Actor403000AnimWork {
-    /* 0x000 */ byte          pad_0[0x14];
-    /* 0x014 */ GpAnimCtx     anim;
-    /* 0x028 */ AnimationSlot slots[24];
-    /* 0x3E8 */ byte          pad_3E8[0x180];
-    /* 0x568 */ GpAnimCtx     blendAnim;
-    /* 0x57C */ AnimationSlot blendSlots[24];
-    /* 0x93C */ byte          pad_93C[0x184];
-    /* 0xAC0 */ s16           field_AC0;
-    /* 0xAC2 */ s16           field_AC2;
-    /* 0xAC4 */ s16           field_AC4;
-    /* 0xAC6 */ s16           field_AC6;
-    /* 0xAC8 */ u16           field_AC8;
-    /* 0xACA */ s16           field_ACA;
-    /* 0xACC */ byte          pad_ACC[2];
-    /* 0xACE */ s16           field_ACE;
-    /* 0xAD0 */ s16           field_AD0;
-    /* 0xAD2 */ s16           field_AD2;
-    /* 0xAD4 */ s16           field_AD4;
-    /* 0xAD6 */ u16           field_AD6;
-    /* 0xAD8 */ u16           field_AD8;
-    /* 0xADA */ byte          pad_ADA[4];
-    /* 0xADE */ s16           field_ADE;
-    /* 0xAE0 */ u16           field_AE0;
-    /* 0xAE2 */ byte          pad_AE2[6];
-    /* 0xAE8 */ s8            field_AE8;
-    /* 0xAE9 */ s8            field_AE9;
-    /* 0xAEA */ s8            field_AEA;
-    /* 0xAEB */ s8            field_AEB;
-    /* 0xAEC */ byte          pad_AEC[4];
-    /* 0xAF0 */ u32           field_AF0;
+    /* 0x000 */ byte             pad_0[0x14];
+    /* 0x014 */ AnimationContext anim;
+    /* 0x028 */ AnimationSlot    slots[24];
+    /* 0x3E8 */ byte             pad_3E8[0x180];
+    /* 0x568 */ AnimationContext blendAnim;
+    /* 0x57C */ AnimationSlot    blendSlots[24];
+    /* 0x93C */ byte             pad_93C[0x184];
+    /* 0xAC0 */ s16              field_AC0;
+    /* 0xAC2 */ s16              field_AC2;
+    /* 0xAC4 */ s16              field_AC4;
+    /* 0xAC6 */ s16              field_AC6;
+    /* 0xAC8 */ u16              field_AC8;
+    /* 0xACA */ s16              field_ACA;
+    /* 0xACC */ byte             pad_ACC[2];
+    /* 0xACE */ s16              field_ACE;
+    /* 0xAD0 */ s16              field_AD0;
+    /* 0xAD2 */ s16              field_AD2;
+    /* 0xAD4 */ s16              field_AD4;
+    /* 0xAD6 */ u16              field_AD6;
+    /* 0xAD8 */ u16              field_AD8;
+    /* 0xADA */ byte             pad_ADA[4];
+    /* 0xADE */ s16              field_ADE;
+    /* 0xAE0 */ u16              field_AE0;
+    /* 0xAE2 */ byte             pad_AE2[6];
+    /* 0xAE8 */ s8               field_AE8;
+    /* 0xAE9 */ s8               field_AE9;
+    /* 0xAEA */ s8               field_AEA;
+    /* 0xAEB */ s8               field_AEB;
+    /* 0xAEC */ byte             pad_AEC[4];
+    /* 0xAF0 */ u32              field_AF0;
 } Actor403000AnimWork;
 
 /// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
@@ -4119,7 +4119,7 @@ static void func_actor_403000_801336B4(Task* arg0)
 {
     GpAnimPose           pose;
     GpAnimPose           blendPose;
-    GpAnimCtx*           anim;
+    AnimationContext*    anim;
     s16                  weight;
     s16                  i;
     Actor403000AnimWork* work;

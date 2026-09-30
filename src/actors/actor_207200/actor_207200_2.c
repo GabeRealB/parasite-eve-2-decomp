@@ -644,10 +644,10 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->recs               = work->rec3;
     arg0->hp                 = (u16)D_actor_207200_8014E7D4.hpMax;
     work->field_44C.vy       = (coord)->param.rot.vy;
-    func_800B3F84((GpAnimCtx*)work, D_actor_207200_80153ED4, obj,
+    func_800B3F84((AnimationContext*)work, D_actor_207200_80153ED4, obj,
                   work->field_12C, (AnimationSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot((AnimationContext*)work, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
 
@@ -1282,12 +1282,12 @@ static __inline__ void Actor207200_TickAnim(Task* arg0)
         work->field_48E = work->field_48C;
         work->field_490 = 0;
         for (i = 1; i < 7; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_48C, 0, 8);
+            func_800B4114((AnimationContext*)work, i, work->field_48C, 0, 8);
         }
     } else {
         work->field_490++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
         }
     }
 }

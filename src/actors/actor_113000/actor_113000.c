@@ -34,7 +34,7 @@ extern AnimationSet*  D_actor_113000_8013AB8C[9];
 extern AnimationSet** D_actor_113000_8013ABB0[1];
 
 /// Work block this actor allocates in its spawn handler and parks in
-/// `Task::work`. It is fronted by a `GpAnimCtx`: the start-preset handler
+/// `Task::work`. It is fronted by an `AnimationContext`: the start-preset handler
 /// passes the block itself, its `slots` array and the pose buffer after them
 /// to `func_800B3F84`, and the per-frame tick walks slots 1..0x13. `light` /
 /// `color` are the matrices the TMD object's `lightMtx` / `colorMtx` are

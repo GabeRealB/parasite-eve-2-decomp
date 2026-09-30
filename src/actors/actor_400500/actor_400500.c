@@ -119,7 +119,7 @@ typedef struct Actor400500HitView {
 /// and latches that id in `field_9FC`. The second slot's `field_10` overlaps
 /// `Actor400500HitView::flags_4C`.
 typedef struct Actor400500Work {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[0x12];
     /* 0x2E4 */ byte                  pad_2E4[0x524];
     /* 0x808 */ MATRIX                matrix_808; // model root coord, copied on the light-mode path

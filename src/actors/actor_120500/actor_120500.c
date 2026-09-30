@@ -47,7 +47,7 @@
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
 ///
 /// It opens with the animation state `func_800B3F84` is handed: the
-/// `GpAnimCtx`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
+/// `AnimationContext`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
 /// The two `MATRIX`es are the model's light and colour matrices, published
 /// through `TmdObject::lightMtx` / `colorMtx`. The three code/phase pairs at
 /// the end are requests the setters arm and the tick consumes.

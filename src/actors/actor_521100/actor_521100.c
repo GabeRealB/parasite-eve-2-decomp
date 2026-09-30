@@ -3632,7 +3632,7 @@ static void func_actor_521100_80135964(Task* arg0)
         }
         i = 1;
         do {
-            func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, val);
+            func_800B4114(&work->rig.anim, i, work->field_686, 0, val);
             i++;
         } while (i < 0x13);
         return;
@@ -3640,7 +3640,7 @@ static void func_actor_521100_80135964(Task* arg0)
     i                = 1;
     work->field_68A += i;
     do {
-        Gp_AnimTickIndex((GpAnimCtx*)work, i);
+        Gp_AnimTickIndex(&work->rig.anim, i);
         i++;
     } while (i < 0x13);
 }
@@ -3759,7 +3759,7 @@ s32 func_actor_521100_80135C14(Task* arg0, s32 arg1, AnimationPlayRequest* args)
         frames = args->blendFrames;
     }
     for (i = 1; i < 0x13; i++) {
-        func_800B4114((GpAnimCtx*)work, i, work->field_686, 0, frames);
+        func_800B4114(&work->rig.anim, i, work->field_686, 0, frames);
     }
     return 0;
 }

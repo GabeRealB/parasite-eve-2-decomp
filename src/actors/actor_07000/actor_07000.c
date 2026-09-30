@@ -308,7 +308,7 @@ typedef struct Actor107000Work {
 /// `Actor07000_Fn046B8` keeps its own spelling, so the two views cannot
 /// be merged without moving one of the two offsets.
 typedef struct Actor107000SpawnWork {
-    /* 0x000 */ GpAnimCtx             context;
+    /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
@@ -929,7 +929,7 @@ TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor070
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:
-/// the same `GpAnimCtx`, seven animation slots instead of three, then three
+/// the same `AnimationContext`, seven animation slots instead of three, then three
 /// `WorldCollisionBody` collision bodies where that one has four.
 ///
 /// Node 1's `context.capsule` is not a record table but the `GpActorD4Rec` at 0x1FC -
@@ -941,7 +941,7 @@ TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor070
 /// `field_370`/`field_372` are its animation id and the id the six helper slots
 /// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
 typedef struct Actor107000Spawn2Work {
-    /* 0x000 */ GpAnimCtx             context;
+    /* 0x000 */ AnimationContext      context;
     /* 0x014 */ AnimationSlot         slots[7];        // six helper slots + slot 0
     /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, func_800B3F84 arg3
     /* 0x19C */ MATRIX                field_19C;       // colour matrix, TmdObject::colorMtx
@@ -1171,12 +1171,12 @@ static __inline__ void Actor107000_TickAnim(Task* task)
             work->field_2BA = work->field_2B8;
             work->field_2BC = 0;
             for (i = 1; i < 3; i++) {
-                func_800B4114((GpAnimCtx*)work, i, work->field_2B8, 0, 0);
+                func_800B4114((AnimationContext*)work, i, work->field_2B8, 0, 0);
             }
         } else {
             work->field_2BC++;
             for (i = 1; i < 3; i++) {
-                Gp_AnimTickIndex((GpAnimCtx*)work, i);
+                Gp_AnimTickIndex((AnimationContext*)work, i);
             }
         }
     }
@@ -1231,11 +1231,11 @@ static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
     arg0->param              = &Actor07000_D06928;
     arg0->recs               = &work->rec154[0];
     arg0->hp                 = Actor07000_D06928.hpMax;
-    func_800B3F84((GpAnimCtx*)work, Actor07000_D08058, obj, work->field_8C,
+    func_800B3F84(&work->context, Actor07000_D08058, obj, work->field_8C,
                   work->slots);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);
@@ -2016,11 +2016,11 @@ static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
     arg0->param              = &Actor07000_D06928;
     arg0->recs               = &work->rec154[0];
     arg0->hp                 = Actor07000_D06928.hpMax;
-    func_800B3F84((GpAnimCtx*)work, Actor07000_D08058, obj, work->field_8C,
+    func_800B3F84(&work->context, Actor07000_D08058, obj, work->field_8C,
                   work->slots);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);
@@ -2661,10 +2661,10 @@ static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
     work->hitEffect.coord      = &arg1->extra.tmd->coords[1];
     work->hitEffect.spawnArgLo = 0x280;
     work->hitEffect.spawnArgHi = 2;
-    func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj,
+    func_800B3F84(&work->context, Actor07000_D0D77C, obj,
                   work->field_12C, work->slots);
     for (i = 1; i < 7; i++) {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
     }
     (Gp_IncStateF0Ref)(0);
     work->field_370            = 1;
@@ -3290,11 +3290,11 @@ static __inline__ void update_animation(Task* task)
         work->field_372 = work->field_370;
         work->field_374 = 0;
         for (i = 1; i < 7; i++)
-            func_800B4114((GpAnimCtx*)work, i, work->field_370, 0, 8);
+            func_800B4114(&work->context, i, work->field_370, 0, 8);
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++)
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->context, i);
     }
 }
 
@@ -3704,11 +3704,11 @@ static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     work->hitEffect.coord      = &arg1->extra.tmd->coords[1];
     work->hitEffect.spawnArgLo = 0x100;
     work->hitEffect.spawnArgHi = one;
-    func_800B3F84((GpAnimCtx*)work, Actor07000_D0D77C, obj, work->field_12C,
+    func_800B3F84(&work->context, Actor07000_D0D77C, obj, work->field_12C,
                   &work->slots[0]);
     i = 1;
     do {
-        Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
+        Gp_AnimResetSlot(&work->context, i, 1);
         i += 1;
     } while (i < 7);
     (Gp_IncStateF0Ref)(0);
@@ -4058,12 +4058,12 @@ static void Actor07000_Fn05ED4(Task* arg0)
         work->field_372 = work->field_370;
         work->field_374 = 0;
         for (i = 1; i < 7; i++) {
-            func_800B4114((GpAnimCtx*)work, i, work->field_370, 0, 8);
+            func_800B4114((AnimationContext*)work, i, work->field_370, 0, 8);
         }
     } else {
         work->field_374++;
         for (i = 1; i < 7; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex((AnimationContext*)work, i);
         }
     }
 }

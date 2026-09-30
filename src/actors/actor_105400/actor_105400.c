@@ -847,7 +847,7 @@ static void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 /// 0x264 light) at the block, and seeds the enemy's local position and the
 /// second `WorldCollisionBody` from the spawn offsets.
 ///
-/// The block's 0x14 prefix becomes the `GpAnimCtx`: `func_800B3F84` loads the
+/// The block's 0x14 prefix becomes the `AnimationContext`: `func_800B3F84` loads the
 /// animation bank into it over the ten `AnimationSlot`s and slots 1..9 are reset.
 /// The two `WorldCollisionBody` nodes at 0x284 / 0x2A4 are linked onto list 2 with their two
 /// `WorldCollisionContact` records (`Gp_InitRec18Table`), each carrying the "last element"

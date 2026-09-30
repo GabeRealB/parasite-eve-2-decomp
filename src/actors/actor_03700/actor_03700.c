@@ -55,7 +55,7 @@
 /// `field_25C` are the bob and sway phases, `field_260` the ambient cue timer,
 /// and `field_262` is set while the actor holds the player.
 typedef struct Actor103700Work {
-    /* 0x000 */ GpAnimCtx             anim;
+    /* 0x000 */ AnimationContext      anim;
     /* 0x014 */ AnimationSlot         slots[6];
     /* 0x104 */ byte                  poses[0x60]; // pose buffer, `func_800B3F84` arg3
     /* 0x164 */ MATRIX                colorMtx;

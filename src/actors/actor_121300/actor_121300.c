@@ -62,7 +62,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// `Gp_DispatchMsg` the overlay sends.
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
-/// also carry: the 0x14-byte `GpAnimCtx` `func_800B3F84` is handed as its
+/// also carry: the 0x14-byte `AnimationContext` `func_800B3F84` is handed as its
 /// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `Gp_AnimResetSlot` walks, and
 /// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
 /// model's light and colour matrices, published through `TmdObject::lightMtx`

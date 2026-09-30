@@ -43,7 +43,7 @@
 /// `Gp_BindDefaultMtx` installs.
 ///
 /// The block is fronted by the animation context `func_actor_310600_8016246C`
-/// drives: the `GpAnimCtx` (`func_800B3F84` takes the block address), the
+/// drives: the `AnimationContext` (`func_800B3F84` takes the block address), the
 /// twenty `AnimationSlot`s immediately above it, and the 0x140-byte table
 /// `func_800B3F84` also takes at 0x334. `field_474` is the once-only latch the
 /// slots are started through, and `field_476` / `field_475` are the animation

@@ -85,32 +85,32 @@
 ///
 /// The block opens with the actor's animation context -- `ctx` and the eight
 /// `AnimationSlot`s `func_800B3F84` initialises from this overlay's banks -- so the
-/// block pointer is also the `GpAnimCtx*` the animation helpers take:
+/// block pointer is also the `AnimationContext*` the animation helpers take:
 /// `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
 /// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
 /// republishes onto the model's `TmdObject::lightMtx` / `colorMtx`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
-    /* 0x000 */ GpAnimCtx     ctx;
-    /* 0x014 */ AnimationSlot slots[8];
-    /* 0x154 */ byte          pad_154[0x80];
-    /* 0x1D4 */ MATRIX        light;
-    /* 0x1F4 */ MATRIX        color;
-    /* 0x214 */ GfxCoord      coord;
-    /* 0x264 */ VECTOR        field_264;
-    /* 0x274 */ s32           field_274;
-    /* 0x278 */ s32           field_278;
-    /* 0x27C */ s32           field_27C;
-    /* 0x280 */ byte          pad_280[0x8];
-    /* 0x288 */ s32           field_288;
-    /* 0x28C */ byte          pad_28C[0xC];
-    /* 0x298 */ Task*         field_298;
-    /* 0x29C */ Task*         field_29C;
-    /* 0x2A0 */ Task*         field_2A0;
-    /* 0x2A4 */ GfxCoord*     field_2A4;
-    /* 0x2A8 */ byte          pad_2A8[0x2];
-    /* 0x2AA */ u16           field_2AA;
+    /* 0x000 */ AnimationContext ctx;
+    /* 0x014 */ AnimationSlot    slots[8];
+    /* 0x154 */ byte             pad_154[0x80];
+    /* 0x1D4 */ MATRIX           light;
+    /* 0x1F4 */ MATRIX           color;
+    /* 0x214 */ GfxCoord         coord;
+    /* 0x264 */ VECTOR           field_264;
+    /* 0x274 */ s32              field_274;
+    /* 0x278 */ s32              field_278;
+    /* 0x27C */ s32              field_27C;
+    /* 0x280 */ byte             pad_280[0x8];
+    /* 0x288 */ s32              field_288;
+    /* 0x28C */ byte             pad_28C[0xC];
+    /* 0x298 */ Task*            field_298;
+    /* 0x29C */ Task*            field_29C;
+    /* 0x2A0 */ Task*            field_2A0;
+    /* 0x2A4 */ GfxCoord*        field_2A4;
+    /* 0x2A8 */ byte             pad_2A8[0x2];
+    /* 0x2AA */ u16              field_2AA;
 } Actor342000Work;
 STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 

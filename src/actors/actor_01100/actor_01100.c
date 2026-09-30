@@ -108,13 +108,13 @@ typedef struct ActorsShared80138efcWork {
     /* 0x000 */ GfxCoord coord;
     /// Body animation. Slot 1's `flags` report the clip's end and its control
     /// entries to the state handlers, and its `currentPose.indices.setIndex` is the motion playing.
-    /* 0x050 */ GpAnimCtx     anim;
-    /* 0x064 */ AnimationSlot slots[21];
-    /* 0x3AC */ byte          poses[0x150];
+    /* 0x050 */ AnimationContext anim;
+    /* 0x064 */ AnimationSlot    slots[21];
+    /* 0x3AC */ byte             poses[0x150];
     /// Second animation, blended into the first by `field_BA2`.
-    /* 0x4FC */ GpAnimCtx     anim2;
-    /* 0x510 */ AnimationSlot slots2[21];
-    /* 0x858 */ byte          poses2[0x150];
+    /* 0x4FC */ AnimationContext anim2;
+    /* 0x510 */ AnimationSlot    slots2[21];
+    /* 0x858 */ byte             poses2[0x150];
     /// Collision bodies: the first on the model's root, the last on part 3, and
     /// between them the pair on parts 12 and 8 that the handlers switch on and
     /// off through the top two bits of `flags`.

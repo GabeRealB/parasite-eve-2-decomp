@@ -46,7 +46,7 @@
 #include "overlay.h"
 
 typedef struct Actor103800Work {
-    /* 0x000 */ GpAnimCtx              anim;
+    /* 0x000 */ AnimationContext       anim;
     /* 0x014 */ AnimationSlot          slots[6];
     /* 0x104 */ byte                   field_104[0x60];
     /* 0x164 */ MATRIX                 field_164;
@@ -2003,7 +2003,7 @@ static inline void _actor03800TickAnim(Task* task)
     } else {
         work->field_34C++;
         for (i = 1; i < 6; i++) {
-            Gp_AnimTickIndex((GpAnimCtx*)work, i);
+            Gp_AnimTickIndex(&work->anim, i);
         }
     }
 }

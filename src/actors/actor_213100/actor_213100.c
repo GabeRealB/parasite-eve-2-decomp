@@ -29,7 +29,7 @@
 /// `TaskIdMap` here.
 ///
 /// It opens with the animation context the 0x7D3 handler
-/// `func_actor_213100_8014A258` drives: the `GpAnimCtx` at the block's own
+/// `func_actor_213100_8014A258` drives: the `AnimationContext` at the block's own
 /// address, the 0x13 slots above it and the table at 0x30C, the three
 /// arguments that handler hands `func_800B3F84`. `field_43C` latches once the
 /// slots have been started, and gates the per-frame tick; `field_43E` and

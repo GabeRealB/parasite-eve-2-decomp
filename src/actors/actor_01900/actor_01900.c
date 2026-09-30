@@ -982,7 +982,7 @@ static void Actor01900_Fn01950(Task* arg0)
 {
     GpAnimPose          pose;
     GpAnimPose          blendPose;
-    GpAnimCtx*          anim;
+    AnimationContext*   anim;
     s16                 weight;
     s16                 i;
     Actor01900AnimWork* work;
