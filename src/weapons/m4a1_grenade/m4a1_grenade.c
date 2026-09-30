@@ -78,7 +78,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    slot  = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
+    slot  = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
     /* Reloaded rather than reused: the store leaves the block address in a
        caller-saved register and the copy into `spot` is a second read of
        `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
@@ -305,7 +305,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
 
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
-    slot                = Gp_GetItemSlot(Player_Status.weapon + 0x7F);
+    slot                = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F);
     blk                 = SCRATCH_STACK_RESERVE_BLOCK(M4a1GrenadeScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
@@ -316,7 +316,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
         }
         arg0->state = 2;
         Gp_SpawnEff(0x60071, coord, blk->sfx, NULL);
-        sfxbase = Player_Status.weapon << 16;
+        sfxbase = gPlayerStatus.weapon << 16;
         sfxarg  = ((blk->sfx - 0xA) << 24) | 0x20000007;
         Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
         clip = 8;

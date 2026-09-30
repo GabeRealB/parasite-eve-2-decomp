@@ -103,7 +103,7 @@ u16 Gp_GetAttachParam(s32 arg0)
     if (idx >= 0xC) {
         ret = 1;
     } else {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {

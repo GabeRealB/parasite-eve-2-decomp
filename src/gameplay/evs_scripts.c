@@ -540,7 +540,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 mode = st->pc->arg0.value;
                 if (mode == 0 || mode == 2) {
                     if (D_801156CD != 0) {
-                        Player_Status.weapon = D_801156EC;
+                        gPlayerStatus.weapon = D_801156EC;
                         Gp_SpawnWeaponEff();
                         D_801156CD = 0;
                     }
@@ -691,7 +691,7 @@ void func_800E8634(GpEvsAddress arg0, s32 arg1, GpEvsAddress arg2)
     D_801156CD               = 0;
     D_801156CE               = 0;
     D_801156F8               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    D_801156EC               = Player_Status.weapon;
+    D_801156EC               = gPlayerStatus.weapon;
     SndEvt_EnqueueType7(0xFF0D, 1);
     Task_Spawn(9, 7, arg1, arg0.address);
 }

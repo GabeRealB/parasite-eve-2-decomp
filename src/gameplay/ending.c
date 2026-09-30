@@ -257,7 +257,7 @@ void func_800A087C(Task* arg0)
     s32           tx;
     u16           add;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value == 0) {

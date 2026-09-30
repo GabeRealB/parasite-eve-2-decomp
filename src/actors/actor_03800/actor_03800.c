@@ -1354,9 +1354,9 @@ static void Actor03800_Fn01520(Task* arg0)
             work->field_360 = 0;
             work->field_35C = 0;
             work->field_35E = 0;
-            vec.vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            vec.vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec.vy          = 0;
-            vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_364 = ratan2((s16)vec.vx, (s16)vec.vz) & 0xFFF;
             work->field_348 = 9;
             if (work->field_36A == 0) {
@@ -1415,9 +1415,9 @@ static void Actor03800_Fn0166C(Task* arg0)
             break;
         case 1:
             if ((u32)(work->field_34C - 2) < 12) {
-                scratch->delta.vx = coord->coord.t[0] - Player_Status.coordMtx->t[0];
-                scratch->delta.vy = coord->coord.t[1] - Player_Status.coordMtx->t[1];
-                scratch->delta.vz = coord->coord.t[2] - Player_Status.coordMtx->t[2];
+                scratch->delta.vx = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
+                scratch->delta.vy = coord->coord.t[1] - gPlayerStatus.coordMtx->t[1];
+                scratch->delta.vz = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
                 VectorNormalS(&scratch->delta, &scratch->normal);
                 coord->coord.t[0] += (scratch->normal.vx * 17) >> 9;
                 coord->coord.t[2] += (scratch->normal.vz * 17) >> 9;
@@ -1835,9 +1835,9 @@ static void Actor03800_Fn02584(Task* arg0)
 
     switch (work->field_354) {
         case 0:
-            vec.vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            vec.vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec.vy          = 0;
-            vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_348 = 0xA;
             if (work->field_370 != 0) {
                 work->field_370 = 0;

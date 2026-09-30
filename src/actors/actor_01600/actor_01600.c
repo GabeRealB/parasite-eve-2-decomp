@@ -2383,7 +2383,7 @@ static void Actor01600_Fn017BC(Task* actor)
 
 static void Actor01600_Fn020F8(Task* actor)
 {
-    PlayerStatus*   config = &Player_Status;
+    PlayerStatus*   config = &gPlayerStatus;
     s32             neg_velocity;
     s32             reset_y;
     s32             reset_y2;

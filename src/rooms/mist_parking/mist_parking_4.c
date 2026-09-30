@@ -670,7 +670,7 @@ void func_mist_parking_801844EC(void)
 void func_mist_parking_8018451C(Task* task)
 {
     func_800BC4BC();
-    Player_Status.resourceVariant                               = 1;
+    gPlayerStatus.resourceVariant                               = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 5;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;

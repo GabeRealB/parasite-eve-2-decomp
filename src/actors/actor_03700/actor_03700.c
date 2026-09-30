@@ -1325,10 +1325,10 @@ static void Actor03700_Fn011B4(Task* task)
 
     switch (work->field_250) {
         case 0:
-            work->field_23C.vx = Player_Status.coordMtx->t[0];
+            work->field_23C.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.coordMtx->t[2];
+            work->field_23C.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = gPlayerStatus.coordMtx->t[2];
             if (work->field_26A == 0) {
                 work->field_252 = 5;
             } else {
@@ -1420,10 +1420,10 @@ static void Actor03700_Fn01550(Task* task)
             }
             break;
         case 2:
-            work->field_23C.vx = Player_Status.coordMtx->t[0];
+            work->field_23C.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.coordMtx->t[2];
+            work->field_23C.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = gPlayerStatus.coordMtx->t[2];
             work->field_252    = Actor03700_D07F1C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             work->field_254    = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if (work->field_264 != 0) {
@@ -1480,10 +1480,10 @@ static void Actor03700_Fn018C8(Task* task)
             }
             break;
         case 1:
-            work->field_23C.vx = Player_Status.coordMtx->t[0];
+            work->field_23C.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.coordMtx->t[2];
+            work->field_23C.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = gPlayerStatus.coordMtx->t[2];
             work->field_254    = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             if ((s16)--work->field_258 > 0) {
                 work->field_252 = -50;
@@ -1498,10 +1498,10 @@ static void Actor03700_Fn018C8(Task* task)
             }
             break;
         case 2:
-            work->field_23C.vx = Player_Status.coordMtx->t[0];
+            work->field_23C.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 800);
-            work->field_23C.vz = Player_Status.coordMtx->t[2];
+            work->field_23C.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x1FF) + 800);
+            work->field_23C.vz = gPlayerStatus.coordMtx->t[2];
             work->field_254    = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             work->field_252    = 5;
             Actor03700_Fn03320(task, 20);
@@ -1600,8 +1600,8 @@ static s32 Actor03700_Fn01DFC(Task* task)
     head                           = SCRATCH_HEAD_AT(scratch, void);
     vec                            = (SVECTOR*)(head - 8);
     coord                          = task->extra.tmd->coords;
-    vec->vx                        = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    dz                             = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    vec->vx                        = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    dz                             = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     SCRATCH_HEAD_AT(scratch, void) = vec;
     vec->vz                        = dz;
     dx                             = ((SVECTOR*)(head - 8))->vx;
@@ -2032,10 +2032,10 @@ static void Actor03700_Fn029C0(Task* task)
             }
             break;
         case 3:
-            work->field_23C.vx = Player_Status.coordMtx->t[0];
+            work->field_23C.vx = gPlayerStatus.coordMtx->t[0];
             gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->field_23C.vy = Player_Status.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
-            work->field_23C.vz = Player_Status.coordMtx->t[2];
+            work->field_23C.vy = gPlayerStatus.coordMtx->t[1] - (((gRandomLcgState >> 16) & 0x3FF) + 800);
+            work->field_23C.vz = gPlayerStatus.coordMtx->t[2];
             work->field_254    = Actor03700_D07F7C[((Enemy*)task->spawnArg2.pointer)->place->rowIndex];
             Actor03700_Fn01F48(task);
 

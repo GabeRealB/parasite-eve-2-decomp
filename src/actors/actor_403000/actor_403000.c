@@ -4412,9 +4412,9 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
 calc:
     scratch            = SCRATCH_STACK_RESERVE_BLOCK(Actor403000FacingScratch);
     coord              = arg0->extra.tmd->coords;
-    scratch->target.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    scratch->target.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    scratch->target.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    scratch->target.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    scratch->target.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    scratch->target.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     coord2             = arg0->extra.tmd->coords;
     angle              = ratan2(scratch->target.vx, scratch->target.vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -4830,7 +4830,7 @@ static void func_actor_403000_80134F44(Task* arg0)
 
     player = gameGetPtrSlot(3);
     enemy  = arg0->spawnArg2.pointer;
-    config = &Player_Status;
+    config = &gPlayerStatus;
     work   = arg0->work;
     if (enemy->hp > 0) {
         if (work->field_F70 > 0) {
@@ -4878,7 +4878,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             func_800E2C78(enemy, scratch->id, scratch->damage, 0);
             func_800DA6E8(&enemy->node, scratch->damage, 0);
             enemy->hp -= scratch->damage;
-            if (enemy->hp <= 0 && Player_Status.hp <= 0) {
+            if (enemy->hp <= 0 && gPlayerStatus.hp <= 0) {
                 enemy->hp = 1;
             }
             if ((work->field_0 == 0xC && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) || work->field_0 == 0xD || work->field_0 == 0xF || work->field_FC0 == 1) {
@@ -5454,7 +5454,7 @@ static void func_actor_403000_80137084(Task* arg0)
 
     work                                          = arg0->work;
     player                                        = gameGetPtrSlot(3);
-    wip                                           = &Player_Status;
+    wip                                           = &gPlayerStatus;
     head                                          = SCRATCH_STACK_CURSOR(Actor403000ChaseScratch);
     SCRATCH_STACK_CURSOR(Actor403000ChaseScratch) = head - 1;
     scratch                                       = head - 1;
@@ -5516,9 +5516,9 @@ static void func_actor_403000_80137084(Task* arg0)
         ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
         t     = &scratch->target;
         pos2  = arg0->extra.tmd->coords;
-        t->vx = Player_Status.coordMtx->t[0] - pos2->coord.t[0];
-        t->vy = Player_Status.coordMtx->t[1] - pos2->coord.t[1];
-        t->vz = Player_Status.coordMtx->t[2] - pos2->coord.t[2];
+        t->vx = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
+        t->vy = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
+        t->vz = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
         rot2  = arg0->extra.tmd->coords;
         angle = ratan2(t->vx, t->vz) - ratan2(-rot2->coord.m[2][0], rot2->coord.m[2][2]);
         if (angle < 0) {
@@ -5660,9 +5660,9 @@ static void func_actor_403000_801377C8(Task* arg0)
         if ((s16)work->field_6 == 0xA) {
             t     = &scratch->target;
             pos   = arg0->extra.tmd->coords;
-            t->vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
-            t->vy = Player_Status.coordMtx->t[1] - pos->coord.t[1];
-            t->vz = Player_Status.coordMtx->t[2] - pos->coord.t[2];
+            t->vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+            t->vy = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+            t->vz = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
             rot   = arg0->extra.tmd->coords;
             angle = ratan2(t->vx, t->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
             if (angle < 0) {
@@ -5705,9 +5705,9 @@ static void func_actor_403000_801377C8(Task* arg0)
                     scratch->playerYaw = ratan2(-gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][0], gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][2]);
                     t                  = &scratch->target;
                     pos                = arg0->extra.tmd->coords;
-                    t->vx              = Player_Status.coordMtx->t[0] - pos->coord.t[0];
-                    t->vy              = Player_Status.coordMtx->t[1] - pos->coord.t[1];
-                    t->vz              = Player_Status.coordMtx->t[2] - pos->coord.t[2];
+                    t->vx              = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+                    t->vy              = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+                    t->vz              = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
                     scratch->aimYaw    = ratan2(scratch->target.vx, scratch->target.vz) + 0x800;
                     angle              = scratch->aimYaw;
                     if (angle < 0) {
@@ -5996,9 +5996,9 @@ static void func_actor_403000_801386E8(Task* arg0)
     if ((u16)(work->field_6 - 5) < 10) {
         t      = &scratch->target;
         coord3 = arg0->extra.tmd->coords;
-        t->vx  = Player_Status.coordMtx->t[0] - coord3->coord.t[0];
-        t->vy  = Player_Status.coordMtx->t[1] - coord3->coord.t[1];
-        t->vz  = Player_Status.coordMtx->t[2] - coord3->coord.t[2];
+        t->vx  = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
+        t->vy  = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+        t->vz  = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
         coord2 = arg0->extra.tmd->coords;
         angle  = ratan2(t->vx, t->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
         if (angle < 0) {
@@ -6134,9 +6134,9 @@ static void func_actor_403000_80138DB0(Task* arg0)
         arg0->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - scratch->target.vy;
         arg0->extra.tmd->coords->coord.t[2] = player->extra.tmd->coords->coord.t[2] - scratch->target.vz;
         pos                                 = arg0->extra.tmd->coords;
-        t1->vx                              = Player_Status.coordMtx->t[0] - pos->coord.t[0];
-        t1->vy                              = Player_Status.coordMtx->t[1] - pos->coord.t[1];
-        t1->vz                              = Player_Status.coordMtx->t[2] - pos->coord.t[2];
+        t1->vx                              = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+        t1->vy                              = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+        t1->vz                              = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
         rot                                 = arg0->extra.tmd->coords;
         angle                               = ratan2(t1->vx, t1->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -6206,9 +6206,9 @@ static void func_actor_403000_80138DB0(Task* arg0)
     if ((s16)work->field_6 < 6) {
         t3     = &scratch->target;
         pos2   = arg0->extra.tmd->coords;
-        t3->vx = Player_Status.coordMtx->t[0] - pos2->coord.t[0];
-        t3->vy = Player_Status.coordMtx->t[1] - pos2->coord.t[1];
-        t3->vz = Player_Status.coordMtx->t[2] - pos2->coord.t[2];
+        t3->vx = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
+        t3->vy = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
+        t3->vz = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
         rot    = arg0->extra.tmd->coords;
         angle  = ratan2(t3->vx, t3->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
         if (angle < 0) {
@@ -7099,9 +7099,9 @@ static void func_actor_403000_8013B74C(Task* arg0)
     if (work->field_60.half & 1) {
         t      = &scratch->target;
         coord2 = arg0->extra.tmd->coords;
-        t->vx  = Player_Status.coordMtx->t[0] - coord2->coord.t[0];
-        t->vy  = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
-        t->vz  = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
+        t->vx  = gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0];
+        t->vy  = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
+        t->vz  = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
         coord  = arg0->extra.tmd->coords;
         angle  = ratan2(t->vx, t->vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         if (angle < 0) {
@@ -7381,7 +7381,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
 
     work                                  = arg1->work;
     player                                = gameGetPtrSlot(3);
-    config                                = &Player_Status;
+    config                                = &gPlayerStatus;
     states                                = D_actor_403000_80131F44;
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -7474,7 +7474,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
     }
     if (work->field_FC0 == 1) {
         work->field_FCC++;
-        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon]) {
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]) {
             switch (work->field_F94) {
                 case 1:
                     if (work->field_FCC == 42) {
@@ -7526,7 +7526,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
-            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon]) {
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]) {
                 switch (work->field_F94) {
                     case 1:
                         work->field_F94 = 2;
@@ -7552,7 +7552,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
                     case 2:
                     case 4:
                     case 6:
-                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon];
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
                         work->field_F94 = 7;
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;

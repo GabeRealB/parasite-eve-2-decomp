@@ -167,7 +167,7 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     field18 = arg0->panel.contentTop.signedValue;
     xOff    = arg0->panel.contentLeft.signedValue + 0x60;
     yBase   = field18 + 8;
-    cfg     = &Player_Status;
+    cfg     = &gPlayerStatus;
     if (arg2 == 0) {
         yBase = field18 + 0x1C;
     }
@@ -396,7 +396,7 @@ void Gp_EquipSummaryTask(Task* arg0)
 
     item   = 0;
     skip   = 0;
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     stored = (s32*)arg0->work;
     mode   = arg0->spawnArg1.value;
     obj    = arg0->spawnArg2.pointer;
@@ -672,7 +672,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
 
     menu = &D_8010E9A4;
     obj  = arg0->spawnArg2.pointer;
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     Ui_DrawText(&(obj)->panel, Gp_StrSelectWeapon);
     Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     if (arg0->state == 0) {

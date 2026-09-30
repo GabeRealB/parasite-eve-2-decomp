@@ -5,10 +5,15 @@
 
 extern WipSysFlags Wip_SysFlags;
 
-/// Resident player state, followed by its memory-card backup copy.
-/// Character IDs are one-based; the indexed callers use (&Player_Status)[id - 1].
-/// The compiler folds -1 into the address as 0x80073B08, inside the preceding
-/// save buffer. That adjusted address is not a second PlayerStatus object.
-extern PlayerStatus Player_Status;
+/// Resident player state and its serialized memory-card backup.
+///
+/// The live image occupies the first `PLAYER_STATUS_SAVE_RECORD_BYTES` bytes;
+/// memory-card operations maintain the following `saveBackup` image. This
+/// storage survives overlay loads and room changes. Its borrowed `coordMtx`
+/// must be rebound to the live player actor after loading saved bytes and
+/// before querying the player's position.
+/// Only one `PlayerStatus` object is reserved; character-indexed accesses
+/// require a zero index into this object.
+extern PlayerStatus gPlayerStatus;
 
 #endif // MAIN_WIPSYS_H

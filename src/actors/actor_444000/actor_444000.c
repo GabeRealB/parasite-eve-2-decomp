@@ -2749,7 +2749,7 @@ static void func_actor_444000_80132054(Task* task)
             break;
         case 1:
             /* Install the weapon-specific player animation on the slot-3 task. */
-            anim = Player_Status.weapon;
+            anim = gPlayerStatus.weapon;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim += 1;
             } else {
@@ -3153,9 +3153,9 @@ static void func_actor_444000_8013482C(Task* task)
     work->field_7D8 = work->slots0[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
     model      = task->extra.tmd->coords;
-    sc->dir.vx = Player_Status.coordMtx->t[0] - model->coord.t[0];
-    sc->dir.vy = Player_Status.coordMtx->t[1] - model->coord.t[1];
-    sc->dir.vz = Player_Status.coordMtx->t[2] - model->coord.t[2];
+    sc->dir.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
+    sc->dir.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
+    sc->dir.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
 
     facing = task->extra.tmd->coords;
     ang    = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
@@ -4630,7 +4630,7 @@ static void func_actor_444000_8013C060(Task* task)
     s16                    angle;
     s16                    i;
 
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     enemy = task->spawnArg2.pointer;
     work  = task->work;
     sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -4766,7 +4766,7 @@ static void func_actor_444000_8013C4B0(Task* task)
     s16                    i2;
     u16                    roll;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -4949,7 +4949,7 @@ static void func_actor_444000_8013CA60(Task* task)
     s16                    i2;
     s16                    i3;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -5152,7 +5152,7 @@ static void func_actor_444000_8013D128(Task* task)
     s16                    i2;
     s16                    i3;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = task->spawnArg2.pointer;
     work = task->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -5559,7 +5559,7 @@ static void func_actor_444000_8013E058(Task* task)
     }
     incinBossTickAnim(task);
 
-    cfg        = &Player_Status;
+    cfg        = &gPlayerStatus;
     facing     = task->extra.tmd->coords;
     dirp       = &sc->dir;
     sc->dir.vx = (u16)cfg->coordMtx->t[0] - (u16)facing->coord.t[0];
@@ -5879,7 +5879,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
     work   = arg0->work;
     enemy  = arg0->spawnArg2.pointer;
     player = gameGetPtrSlot(3);
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
 
     if (work->field_4 != 0) {
         sc = (Actor444000WarpScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor444000WarpScratch));
@@ -6282,7 +6282,7 @@ scanned:
                     if (work->field_ECA != 1 && (s16)work->field_7CA >= 0x17) {
                         work->anim.source.sets     = D_actor_444000_80161670;
                         D_actor_444000_80161670[4] = (Gp_PlayerAnimBlkTbl
-                                                          [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])
+                                                          [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                                          ->table.sets[7];
                         work->anim.animationId = 4;
                         work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;
@@ -6647,7 +6647,7 @@ static void func_actor_444000_8014105C(Task* arg0)
 }
 
 /// Idle/approach tick of the arena fight: re-arms the block on request, keeps
-/// the boss yawed at `Player_Status.coordMtx` (the player's coordinate matrix)
+/// the boss yawed at `gPlayerStatus.coordMtx` (the player's coordinate matrix)
 /// and then picks the state to run next.
 ///
 /// `field_7C4` is that yaw, relative to the host part's own facing and wrapped
@@ -6695,9 +6695,9 @@ static void func_actor_444000_801411C8(Task* arg0)
 
     d      = &vec;
     coord  = arg0->extra.tmd->coords;
-    d->vx  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    d->vx  = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    d->vy  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    d->vz  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     facing = arg0->extra.tmd->coords;
     angle  = ratan2(d->vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
@@ -6879,7 +6879,7 @@ static void func_actor_444000_80141618(Task* task)
     } else {
         work->field_EFA = 0;
     }
-    cfg          = &Player_Status;
+    cfg          = &gPlayerStatus;
     coord        = task->extra.tmd->coords;
     sc->delta.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
@@ -7114,9 +7114,9 @@ static void func_actor_444000_80141DFC(Task* arg0)
     }
     coord     = arg0->extra.tmd->coords;
     v         = &vec;
-    v->vx     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    v->vy     = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    v->vz     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    v->vx     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    v->vy     = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    v->vz     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     headCoord = arg0->extra.tmd->coords;
     angle     = ratan2(v->vx, v->vz) - ratan2(-headCoord->coord.m[2][0], headCoord->coord.m[2][2]);
     if (angle < 0) {
@@ -7250,7 +7250,7 @@ static void func_actor_444000_80142254(void)
 /// The dispatch table is a local, as in `func_actor_444000_80142F28`.
 static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
 {
-    PlayerStatus*    cfg  = &Player_Status;
+    PlayerStatus*    cfg  = &gPlayerStatus;
     Actor403200Work* work = task->work;
     VECTOR           pos;
     TaskFunc         handlers[0x15] = {

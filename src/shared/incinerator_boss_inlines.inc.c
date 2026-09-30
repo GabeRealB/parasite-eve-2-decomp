@@ -75,11 +75,11 @@ static __inline__ void incinScaleRotation(GfxCoord* coord, s16 xz, s32 y)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
-/// Horizontal gap from `coord` to the player's coordinate matrix `Player_Status.coordMtx`, as an
+/// Horizontal gap from `coord` to the player's coordinate matrix `gPlayerStatus.coordMtx`, as an
 /// `SVECTOR` the caller supplies.
 static __inline__ void incinGapToCamera(GfxCoord* coord, SVECTOR* out)
 {
-    out->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    out->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    out->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    out->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    out->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    out->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
 }

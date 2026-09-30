@@ -270,7 +270,7 @@ extern GpObj4A D_acropolis_plaza_801991A4;
 extern GpObj4A D_acropolis_plaza_801991F0;
 extern GpObj4A D_acropolis_plaza_8019923C[4];
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses.
 
@@ -3290,7 +3290,7 @@ L_case0:
     } else {
         q->movieAtEnd = 0;
     }
-    ((AcropolisPlazaSceneWork*)task->work)->mtx = Player_Status.coordMtx;
+    ((AcropolisPlazaSceneWork*)task->work)->mtx = gPlayerStatus.coordMtx;
     work->field_2E                              = 1;
     task->state                                 = task->state + 1;
     goto L_tail;
@@ -3595,7 +3595,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
         case 5:
             if (q->movieFrame >= 0x60) {
                 rec                                 = &buf.weapon.rec;
-                weaponId                            = Player_Status.weapon;
+                weaponId                            = gPlayerStatus.weapon;
                 id                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.source.index         = id;
                 rec->animationId                    = 1;
@@ -3928,7 +3928,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     state = task->state;
     switch (state) {
         case 0:
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
@@ -3978,7 +3978,7 @@ void func_acropolis_plaza_8017F620(Task* task)
 
     switch (task->state) {
         case 0:
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
@@ -4095,7 +4095,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 /// Steps the plaza's streamed scene, returning zero while it is still running.
 ///
 /// Seven steps driven by the pending `GpObj4C` event `Gp_TakePendingObj4C`
-/// reports. `ready` is that event's "take it" flag, qualified by `Player_Status.interactionPressed`
+/// reports. `ready` is that event's "take it" flag, qualified by `gPlayerStatus.interactionPressed`
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
 /// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
@@ -4120,7 +4120,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
 
     ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
     if (!((s16)evtId & 0x8000) && (ready != 0)) {
-        ready = Player_Status.interactionPressed != 0;
+        ready = gPlayerStatus.interactionPressed != 0;
     }
 
     switch (work->step) {

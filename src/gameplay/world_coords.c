@@ -1064,7 +1064,7 @@ static void Gp_DebugPanTask(Task* arg0)
     s32                          val;
 
     slot = gameGetPtrSlot(3);
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     if (slot == NULL) {
         return;
     }

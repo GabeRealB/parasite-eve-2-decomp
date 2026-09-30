@@ -2294,7 +2294,7 @@ static void func_actor_405800_80134314(Task* arg0)
     coord->coord.t[2] += (player->coord.t[2] - coord->coord.t[2]) >> 2;
     coord->coord.t[1] += (player->coord.t[1] - coord->coord.t[1]) >> 2;
     work->field_842++;
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     if (++work->field_844 == 8) {
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
         pan   = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);

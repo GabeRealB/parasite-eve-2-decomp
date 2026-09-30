@@ -164,7 +164,7 @@ static void Reflection_UpdatePlayer(Task* task)
     stage  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
     area   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
     view   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    status = &Player_Status;
+    status = &gPlayerStatus;
     if (stage == 5) {
         width = 0x140;
     }

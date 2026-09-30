@@ -73,7 +73,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
         return;
     }
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     switch (Gp_StateC08.field_0) {
         case 411:
         case 412:

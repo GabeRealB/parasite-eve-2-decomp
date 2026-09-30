@@ -33,7 +33,7 @@ void incinBossGlobHold(Enemy* enemy, Task* task)
             return;
         }
         gIncinBossCaughtAnimSets[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
         work->anim.source.sets = gIncinBossCaughtAnimSets;
         work->anim.animationId = 2;
         work->anim.blend       = armed;

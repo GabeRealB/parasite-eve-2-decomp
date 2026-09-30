@@ -1444,7 +1444,7 @@ static __inline__ s32 Actor01900_FindHit(WorldCollisionContact* records, SVECTOR
 
 static void Actor01900_Fn02A50(Task* arg0)
 {
-    PlayerStatus*    config = &Player_Status;
+    PlayerStatus*    config = &gPlayerStatus;
     Actor01900Work*  work;
     Enemy*           enemy;
     ActorHitScratch* head;
@@ -1829,7 +1829,7 @@ static void Actor01900_Fn03854(Task* arg0)
         if (work->field_68 & 0x100) {
             work->field_0 = 7;
         }
-        yaw->turn       = actorPositionYaw(arg0, &yaw->delta, &Player_Status);
+        yaw->turn       = actorPositionYaw(arg0, &yaw->delta, &gPlayerStatus);
         work->field_8AE = yaw->turn;
         if (yaw->turn >= 0x11) {
             yaw->turn = 0x10;
@@ -2053,12 +2053,12 @@ static void Actor01900_Fn042BC(Task* arg0)
             Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
         }
     }
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
     s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
                           (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     s->yaw          = ratan2(s->delta.vx, s->delta.vz) + 0x800;
     s->yaw          = actorNormalizeYaw(s->yaw);
     coord           = arg0->extra.tmd->coords;
@@ -2175,7 +2175,7 @@ static void Actor01900_Fn04D14(Task* arg0)
     } else {
         Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
     }
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_8 >= 7) {
         s->playerYaw  = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
                                (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
@@ -2232,7 +2232,7 @@ static void Actor01900_Fn04D14(Task* arg0)
         if (++work->field_6 == 5) {
             s->playerYaw = ratan2(-(gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][0],
                                   (gameGetPtrSlot(3))->extra.tmd->coords->coord.m[2][2]);
-            actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+            actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
             s->yaw = ratan2(s->delta.vx, s->delta.vz) + 0x800;
             yaw    = actorNormalizeYaw(s->yaw);
             s->yaw = yaw;
@@ -2277,7 +2277,7 @@ static void Actor01900_Fn0551C(Task* arg0)
         work->field_B48.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A08.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor01900_Fn01C94(arg0);
-        actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
         coord           = arg0->extra.tmd->coords;
         s->turn         = actorNormalizeYaw(ratan2(head[-1].delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         facing          = arg0->extra.tmd->coords;
@@ -2291,7 +2291,7 @@ static void Actor01900_Fn0551C(Task* arg0)
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     s                                       = head - 1;
     Actor01900_Fn01C94(arg0);
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
     if (work->field_C20 == work->field_C22) {
         if (work->field_C40 < 2 || overlayOutOfRange(&s->delta, 0x384)) {
             work->field_0 = 8;
@@ -2347,7 +2347,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         work->field_6          = 0;
         work->field_B48.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->field_A08.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
+        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C28 == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2477,7 +2477,7 @@ static void Actor01900_Fn06100(Task* arg0)
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
         Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
     }
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
     coord           = arg0->extra.tmd->coords;
@@ -2663,9 +2663,9 @@ static void Actor01900_Fn06B4C(Task* arg0)
     work->field_894 = work->field_5A & 0x3FF;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
-    delta.vx        = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    d->vy           = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    d->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    delta.vx        = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    d->vy           = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    d->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, work->field_C32)) {
         SndEvt_EnqueueType7(0x51030008, 1);
         if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
@@ -2756,7 +2756,7 @@ static void Actor01900_Fn06F40(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (detectSightBlocked(arg0) != 1) {
-        actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
+        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &s->delta);
         if (!overlayOutOfRange(&s->delta, work->field_C32)) {
             if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
                 work->field_0 = 6;
@@ -2803,7 +2803,7 @@ static void Actor01900_Fn07810(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
+    turn->angle     = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
     work->field_8AE = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -2858,7 +2858,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
     Actor01900_Fn01C94(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
     work->field_8AE = aim->turn;
     if (ABS(aim->turn) <= 0x80 && work->field_89E == 2) {
         work->field_8A2 = 0x16;
@@ -2930,7 +2930,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 7;
     }
-    aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    aim->turn       = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
     work->field_8AE = aim->turn;
     if (aim->turn > 0) {
         aim->turn = 0;
@@ -2978,7 +2978,7 @@ static void Actor01900_Fn083E8(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
+    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
     if (work->field_8AE < aim->turn) {
         if (aim->turn - work->field_8AE > 0x28) {
             work->field_8AE += 0x28;
@@ -3201,7 +3201,7 @@ static void Actor01900_Fn09694(Task* arg0)
 
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
+    actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
     if (work->field_6 < 0xE) {

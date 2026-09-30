@@ -68,9 +68,9 @@ void glowPodHits(Task* arg0)
                 arg0->state         = 2;
                 break;
             case 0x20000:
-                sc->delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 damage            = Gp_ComputeDamage(work->field_1A4[i].key.value,
                                                      SquareRoot0(sc->delta.vx.word * sc->delta.vx.word +
                                                                  sc->delta.vy.word * sc->delta.vy.word +

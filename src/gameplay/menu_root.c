@@ -400,7 +400,7 @@ void Gp_MenuRootTask(Task* arg0)
             Gp_ClearPreviewItems();
             D_80067634 = NULL;
             D_80114DE0 = -1;
-            cfg        = &Player_Status;
+            cfg        = &gPlayerStatus;
             D_80114DE8 = cfg->weapon;
             D_80114DE4 = cfg->weaponSlotItem;
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
@@ -539,7 +539,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             secondaryItemId = -1;
             Mem_InitAux();
-            cfg = &Player_Status;
+            cfg = &gPlayerStatus;
             Gp_SyncHeldRelated();
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
@@ -573,7 +573,7 @@ void Gp_MenuRootTask(Task* arg0)
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            cfg             = &Player_Status;
+            cfg             = &gPlayerStatus;
             secondaryItemId = -1;
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;

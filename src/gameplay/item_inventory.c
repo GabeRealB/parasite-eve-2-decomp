@@ -948,7 +948,7 @@ void func_800B8014(void)
     save                        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     scan                        = &save->state.carriedItems;
     save->state.attachLevels[0] = 1;
-    cfg                         = &Player_Status;
+    cfg                         = &gPlayerStatus;
     if (save->state.clearCount == 0) {
         cfg->bp = 0xC8;
         _gpInitStartingItems(scan, cfg);

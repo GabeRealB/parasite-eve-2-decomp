@@ -1,7 +1,7 @@
 /* Part of the patrol walker library; see patrol_walker.h. */
 
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
-/// resolves the one-based character ID in `field_6E` against `Player_Status`,
+/// resolves the one-based character ID in `field_6E` against `gPlayerStatus`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`. The
 /// working frame is carved off the scratch stack and handed back once the
 /// coordinate has been rebuilt. Same body as the acropolis bridge room's

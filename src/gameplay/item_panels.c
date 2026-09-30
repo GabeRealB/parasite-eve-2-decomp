@@ -567,7 +567,7 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
     s32           w;
     s32           h;
 
-    cfg          = &Player_Status;
+    cfg          = &gPlayerStatus;
     arg0->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(arg0)->panel, Gp_StrStatus);
     if (arg1->state == 0) {
@@ -766,7 +766,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 break;
         }
         if (arg1->status == 0xFF) {
-            cfg        = &Player_Status;
+            cfg        = &gPlayerStatus;
             slotSrc    = Gp_GetItemSlot(src);
             slotDst    = Gp_GetItemSlot(result);
             rec        = Gp_FindItemById(src);
@@ -968,7 +968,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         col       = i - row * 3;
         save      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         n         = n - i * 3 + 1;
-        cfg       = &Player_Status;
+        cfg       = &gPlayerStatus;
         if (save->state.attachLevels[col + row * 3] < n) {
             save->state.attachLevels[col + row * 3] = n;
         }
@@ -1114,7 +1114,7 @@ void Gp_PeListPanelTask(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     color          = 0x606060;
-    cfg            = &Player_Status;
+    cfg            = &gPlayerStatus;
     xOff           = obj->panel.contentLeft.signedValue;
     x              = xOff + 0x22;
     y              = obj->panel.contentTop.signedValue + 8;

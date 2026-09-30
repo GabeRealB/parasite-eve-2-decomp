@@ -1018,9 +1018,9 @@ static void Actor02500_Fn00DD8(Task* actor)
             break;
         case 1:
             work->field_326   = (s16)Actor02500_D05B78[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
-            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vector->vy        = 0;
-            vector->vz        = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vector->vz        = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_32A   = ratan2((s16)scratchEnd[-1].vx, (s16)vector->vz) & 0xFFF;
             dx                = scratchEnd[-1].vx;
             dz                = vector->vz;
@@ -1043,9 +1043,9 @@ static void Actor02500_Fn00DD8(Task* actor)
                 timer           = (u16)work->field_32E - 1;
                 work->field_32E = timer;
                 if (timer <= 0) {
-                    scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - work->field_314;
+                    scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - work->field_314;
                     vector->vy        = 0;
-                    homeDz            = Player_Status.coordMtx->t[2] - work->field_318;
+                    homeDz            = gPlayerStatus.coordMtx->t[2] - work->field_318;
                     vector->vz        = homeDz;
                     homeDx            = scratchEnd[-1].vx;
                     if (SquareRoot0((homeDx * homeDx) + (homeDz * homeDz)) >= 0x7D1) {
@@ -1148,10 +1148,10 @@ static void Actor02500_Fn012F0(Task* actor)
         case 0:
             obj->flags                                                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             ((Enemy*)actor->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            dx                                                         = Player_Status.coordMtx->t[0] - work->field_314;
+            dx                                                         = gPlayerStatus.coordMtx->t[0] - work->field_314;
             scratch->delta.vy                                          = 0;
             scratch->delta.vx                                          = dx;
-            dz                                                         = Player_Status.coordMtx->t[2] - work->field_318;
+            dz                                                         = gPlayerStatus.coordMtx->t[2] - work->field_318;
             scratch->delta.vz                                          = dz;
             dist                                                       = SquareRoot0((dx * dx) + (dz * dz));
             if (dist < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {

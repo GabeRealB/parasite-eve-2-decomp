@@ -2027,7 +2027,7 @@ static void func_actor_503500_8013E384(Task* arg0)
             }
         case 2:
             idx  = work->field_EA - 0x42;
-            arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-Player_Status.coordMtx->t[1] << 24) / 1000;
+            arg  = (D_actor_503500_8016F2E0[idx] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
             task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 1, arg);
             if (task != NULL) {
                 Gp_ComposeParentWorld(coord, &m, &pos);
@@ -2843,7 +2843,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
 }
 
 /// Sub-state of the 0x3D8 enemies. Phase 0 latches the position behind
-/// `Player_Status.coordMtx` in `field_370` and rotates its offset from the
+/// `gPlayerStatus.coordMtx` in `field_370` and rotates its offset from the
 /// parent coordinate into `field_368`; phase 1 ramps `field_3CC` to 0x2000 and
 /// re-aims once `field_3D4` is set; phases 2..4 ramp it back to 0. While in
 /// phases 0..1, `func_actor_503500_80142310` ends the state after 120 frames
@@ -2869,9 +2869,9 @@ static void func_actor_503500_801400A4(Task* arg0)
     }
     switch (work->field_3D0) {
         case 0:
-            work->field_370.vx = Player_Status.coordMtx->t[0];
-            work->field_370.vy = Player_Status.coordMtx->t[1];
-            work->field_370.vz = Player_Status.coordMtx->t[2];
+            work->field_370.vx = gPlayerStatus.coordMtx->t[0];
+            work->field_370.vy = gPlayerStatus.coordMtx->t[1];
+            work->field_370.vz = gPlayerStatus.coordMtx->t[2];
             Gp_ComposeParentWorld(coord->parent, &mtx, &pos);
             v.vx = work->field_370.vx - pos.vx;
             v.vy = work->field_370.vy - pos.vy - 5000;
@@ -4376,7 +4376,7 @@ void func_actor_503500_80143AC0(Task* arg0)
     }
     switch (arg0->state) {
         case 0:
-            if (Player_Status.hp <= 0) {
+            if (gPlayerStatus.hp <= 0) {
                 taskKill(arg0);
                 return;
             }
@@ -4423,7 +4423,7 @@ void func_actor_503500_80143AC0(Task* arg0)
                 if (++work->field_34 > 20) {
                     // The -1 arm first: reorg inverts the branch around it and
                     // leaves the `li` in the delay slot, sharing $v0 with the load.
-                    if (Player_Status.hp <= 0) {
+                    if (gPlayerStatus.hp <= 0) {
                         next = -1;
                     } else {
                         next = arg0->state + 1;
@@ -4448,7 +4448,7 @@ void func_actor_503500_80143AC0(Task* arg0)
         case 3:
             if (Gp_DispatchMsg(player, 0x3ED, 0, 0) == 0) {
                 D_actor_503500_801714DC =
-                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon]
+                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.addresses[7];
                 Gp_DispatchMsgPtr(player, 0x3FF, &D_actor_503500_80171530, 0);
                 arg0->state++;

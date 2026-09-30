@@ -68,7 +68,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             actor->field_934 = 0x1F;
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0x400;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= ~0x800;
@@ -91,24 +91,24 @@ static void func_pa3_8011D1DC(Task* arg0)
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
+                          ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
             Gp_SpawnEff(0x600A1,
                         actor->field_91C->extra.tmd->coords,
-                        (Player_Status.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
+                        (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             break;
         case 3:
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
-            if (Player_Status.weaponSlotItem != 0xD) {
+            if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
-                if (Player_Status.weaponSlotItem == 0xE) {
+                if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         spot->workm.t[0] = actor->field_32C[0].point.vx;
                         spot->workm.t[1] = actor->field_32C[0].point.vy;
                         spot->workm.t[2] = actor->field_32C[0].point.vz;
                         Gp_PlayObjSfx(spot,
-                                      ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
+                                      ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
                     }
                 } else if (hit != 0) {
                     Gp_PlayObjSfx(spot, 0x17, 1);
@@ -119,7 +119,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             if (--actor->field_934 == 0) {
                 actor->field_95E++;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                              ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
+                              ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */
         case 5:

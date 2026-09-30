@@ -55,10 +55,10 @@ void bursterContacts(Task* arg0)
             work->field_2CE = 0;
         }
     }
-    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    dx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     scratch->delta.vx.word = dx;
-    scratch->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    scratch->delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     scratch->delta.vz.word = dz;
     distance               = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320 && work->field_2C8 == 1) {

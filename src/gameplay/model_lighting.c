@@ -2613,7 +2613,7 @@ void Gp_TickPlayClock(Task* task)
     s32           companion;
 
     rec = (GpIdMap30*)task->work;
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     Gp_UpdatePadInput();
 
     temp         = gDisplayState.gameTick;

@@ -1033,7 +1033,7 @@ void func_shelter_b1_sterilization_room_80180F74(Task* task)
                     if (task->killCountdown == 0x78) {
                         Gp_DispatchMsg(player, 0x3F9, Gp_PackPair(&D_shelter_b1_sterilization_room_80188738, 0), 0);
                     } else if (task->killCountdown >= 0x79) {
-                        if (Player_Status.hp > 0) {
+                        if (gPlayerStatus.hp > 0) {
                             coord = player->extra.tmd->coords;
                             Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_shelter_b1_sterilization_room_80188590, 0);
                             Gp_PlayerWeaponId(&D_shelter_b1_sterilization_room_80188624.source.index);

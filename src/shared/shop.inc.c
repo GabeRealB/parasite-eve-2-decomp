@@ -760,7 +760,7 @@ static void Shop_BalanceTask(Task* task)
     s32                 count;
 
     obj = task->spawnArg2.pointer;
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     x   = obj->panel.contentLeft.signedValue + 2;
     col = obj->panel.contentRight.signedValue - 2;
     y   = obj->panel.contentTop.signedValue;
@@ -828,7 +828,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
 
     mode = prompt->field_C;
     if (mode == 1 && Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-        cfg   = &Player_Status;
+        cfg   = &gPlayerStatus;
         price = Gp_ItemDescs[itemId].price;
         scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
         SndEvt_EnqueueType6(0x16, 0, 0);
@@ -1101,7 +1101,7 @@ static void Shop_QuantityTask(Task* task)
         maxQty = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount - Gp_CountScanItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems);
     }
 
-    afford = Player_Status.bp / price;
+    afford = gPlayerStatus.bp / price;
     if (afford < maxQty) {
         maxQty = afford;
     }
@@ -1147,7 +1147,7 @@ static void Shop_QuantityTask(Task* task)
                 SndEvt_EnqueueType6(0x15, 0, 0);
             }
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            Player_Status.bp -= price * task->extraState.value;
+            gPlayerStatus.bp -= price * task->extraState.value;
             for (i = 0; i < task->extraState.value; i++) {
                 Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId, -1);
             }

@@ -20,9 +20,9 @@ void lungerCheckProximity(Task* arg0)
     work                         = arg0->work;
     head                         = SCRATCH_STACK_CURSOR(VECTOR);
     delta                        = head - 1;
-    head[-1].vx                  = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+    head[-1].vx                  = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
     delta->vy                    = 0;
-    dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
+    dz                           = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
     delta->vz                    = dz;
     dx                           = head[-1].vx;
     trigger                      = 0;

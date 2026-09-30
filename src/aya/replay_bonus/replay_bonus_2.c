@@ -284,7 +284,7 @@ static s32 func_replay_bonus_801175F0(UiList* list, UiObject* ctx)
     s32           sum;
     PlayerStatus* cfg;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     sum = 0;
     for (i = (s8)list->field_9.u; i < list->field_4; i++) {
         sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);

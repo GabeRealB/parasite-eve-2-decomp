@@ -26,7 +26,7 @@ s32 func_800B7420(s32 arg0);
 
 void Gp_RecalcMaxMp(void);
 
-/// Equips item `arg0` (ids `0x60..0x7F`) as `Player_Status.armor`
+/// Equips item `arg0` (ids `0x60..0x7F`) as `gPlayerStatus.armor`
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
 /// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
@@ -37,14 +37,14 @@ void Gp_EquipMod(s32 arg0);
 
 InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
-/// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
+/// Unequips `gPlayerStatus.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
 /// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, adds one of item 0x6C, heals current HP/MP
 /// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.field_5`
 /// / `field_B`.
 void Gp_ResetInventory(void);
 
-/// Unequips `Player_Status.weapon` (same slot clear as `Gp_ResetInventory`),
+/// Unequips `gPlayerStatus.weapon` (same slot clear as `Gp_ResetInventory`),
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP

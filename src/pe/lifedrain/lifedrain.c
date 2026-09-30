@@ -83,7 +83,7 @@ static struct Task* D_lifedrain_80130B0C = NULL;
 /// `Task::state`, published in `D_lifedrain_80130B0C` so every mote can find
 /// it. Cancelling (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases
 /// the work block, and states 0 and 1 first cash the banked `Gp_StateF0.field_14` into
-/// `Player_Status.hp`, clamped to the max in `field_1a`.
+/// `gPlayerStatus.hp`, clamped to the max in `field_1a`.
 ///
 /// State 0 parents the effect coordinate at the origin with an identity
 /// rotation, seeds the combo level `index` from `Gp_StateC08.field_0`, takes
@@ -111,9 +111,9 @@ void func_lifedrain_8012EF48(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if ((Gp_StateC08.field_3 == -2) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
         if ((arg0->state < 2) && (arg0->spawnArg1.value != 0)) {
-            Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
-            if (Player_Status.hp > Player_Status.hpMax) {
-                Player_Status.hp = Player_Status.hpMax;
+            gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.field_14;
+            if (gPlayerStatus.hp > gPlayerStatus.hpMax) {
+                gPlayerStatus.hp = gPlayerStatus.hpMax;
             }
         }
         Gp_ReleaseState1CMem(mem, arg0);
@@ -174,9 +174,9 @@ void func_lifedrain_8012EF48(Task* arg0)
             }
             if (mem->age == 0x1E) {
                 if (arg0->spawnArg1.value != 0) {
-                    Player_Status.hp = (u16)Player_Status.hp + Gp_StateF0.field_14;
-                    if (Player_Status.hp > Player_Status.hpMax) {
-                        Player_Status.hp = Player_Status.hpMax;
+                    gPlayerStatus.hp = (u16)gPlayerStatus.hp + Gp_StateF0.field_14;
+                    if (gPlayerStatus.hp > gPlayerStatus.hpMax) {
+                        gPlayerStatus.hp = gPlayerStatus.hpMax;
                     }
                     arg0->state = 2;
                 } else {

@@ -1576,9 +1576,9 @@ static void Actor02000_Fn00CD0(Task* arg0)
     work                         = arg0->work;
     head                         = SCRATCH_STACK_CURSOR(VECTOR);
     delta                        = head - 1;
-    head[-1].vx                  = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+    head[-1].vx                  = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
     delta->vy                    = 0;
-    dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
+    dz                           = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
     delta->vz                    = dz;
     dx                           = head[-1].vx;
     trigger                      = 0;
@@ -2160,7 +2160,7 @@ void Actor02000_Fn01DF0(Task* arg0)
     self                       = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]), dz0 = Player_Status.coordMtx->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
+            if ((work->field_698 >= 0x47) && (work->field_6CE = (s16)(work->field_6D0 > 0), ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]), dz0 = gPlayerStatus.coordMtx->t[2] - self->coord.t[2], delta->vz = dz0, dx0 = ((VECTOR*)(head - 0x10))->vx, ((SquareRoot0((dx0 * dx0) + (dz0 * dz0)) < 0x3E8) == 0))) {
                 work->field_69C = 0x84;
             } else {
                 work->field_69C = 0;
@@ -2187,8 +2187,8 @@ void Actor02000_Fn01DF0(Task* arg0)
         case 1:
             work->field_69C              = 0x84;
             work->field_69E              = 0xF;
-            ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
-            delta->vz                    = (s32)(Player_Status.coordMtx->t[2] - self->coord.t[2]);
+            ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
+            delta->vz                    = (s32)(gPlayerStatus.coordMtx->t[2] - self->coord.t[2]);
             work->field_6A4              = (s16)(ratan2((s32)(s16)((VECTOR*)(head - 0x10))->vx, (s32)(s16)delta->vz) & 0xFFF);
             dx1                          = ((VECTOR*)(head - 0x10))->vx;
             dz1                          = delta->vz;
@@ -2254,9 +2254,9 @@ void Actor02000_Fn01DF0(Task* arg0)
             }
             if (work->field_698 >= 0x3B) {
                 work->field_6CE = 0;
-                dx2             = Player_Status.coordMtx->t[0] - self->coord.t[0];
+                dx2             = gPlayerStatus.coordMtx->t[0] - self->coord.t[0];
                 delta->vx       = dx2;
-                dz2             = Player_Status.coordMtx->t[2] - self->coord.t[2];
+                dz2             = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
                 delta->vz       = dz2;
                 if (SquareRoot0((dx2 * dx2) + (dz2 * dz2)) < 0xBB8) {
                     work->field_6A6 = 4;
@@ -2297,8 +2297,8 @@ void Actor02000_Fn02294(Task* arg0)
     self                       = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            ((VECTOR*)(head - 0x10))->vx = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
-            dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
+            ((VECTOR*)(head - 0x10))->vx = (s32)(gPlayerStatus.coordMtx->t[0] - self->coord.t[0]);
+            dz                           = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
             delta->vz                    = dz;
             startFrame                   = Actor02000_D03784[work->field_694];
             frame                        = work->field_698;
@@ -2686,8 +2686,8 @@ void Actor02000_Fn02D5C(Task* arg0)
             }
             work->field_69C = speed;
             work->field_69E = 0x3C;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
             yaw             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
             work->field_6A2 = yaw;
@@ -2726,8 +2726,8 @@ void Actor02000_Fn02D5C(Task* arg0)
         case 1:
             work->field_69C = 0;
             work->field_69E = 0;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz       = dz;
             dx              = delta->vx;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x8CA) {
@@ -2751,8 +2751,8 @@ void Actor02000_Fn02D5C(Task* arg0)
                 work->field_694       = 2;
                 work->field_6A8       = 0;
             } else if (work->field_698 >= 0x60) {
-                delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
                 yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                 work->field_6A2 = yaw2;

@@ -2263,7 +2263,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work->field_0C   = -0xDC;
 
     actor->field_14C.ends[0].vz =
-        (actor->field_14C.ends[1].vz + D_80112F60[Player_Status.weapon]) << 1;
+        (actor->field_14C.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {
@@ -2479,10 +2479,10 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
 
     if (work->field_1E == 0) {
         limit = 2;
-        if (Player_Status.weapon == 2) {
+        if (gPlayerStatus.weapon == 2) {
             limit = 4;
         }
-        if (Gp_ConsumeSlotQty(Player_Status.weapon + 0x7F, 0) < limit) {
+        if (Gp_ConsumeSlotQty(gPlayerStatus.weapon + 0x7F, 0) < limit) {
             prev           = work->field_04;
             work->field_04 = 0x10;
             work->field_1E = 1;

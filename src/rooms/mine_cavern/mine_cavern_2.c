@@ -3065,11 +3065,11 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
 
     coords                                      = arg1->extra.tmd->coords;
     head                                        = SCRATCH_STACK_CURSOR(u8);
-    ((SVECTOR*)(head - 0x18))->vx               = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    ((SVECTOR*)(head - 0x18))->vx               = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
     d                                           = (SVECTOR*)(head - 0x18);
-    d->vy                                       = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    d->vy                                       = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     SCRATCH_STACK_CURSOR(_MineCavernHitScratch) = (_MineCavernHitScratch*)(head - 0x28);
-    d->vz                                       = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    d->vz                                       = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     blk                                         = (_MineCavernHitScratch*)(head - 0x28);
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||

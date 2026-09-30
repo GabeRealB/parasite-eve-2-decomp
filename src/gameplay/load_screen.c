@@ -108,8 +108,8 @@ void func_800AA548(s32 arg0)
     session->deathVariant      = 0;
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     sess                       = &session->location.loc;
-    if (Player_Status.hp <= 0) {
-        Player_Status.hp = 1;
+    if (gPlayerStatus.hp <= 0) {
+        gPlayerStatus.hp = 1;
     }
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 1;
@@ -140,7 +140,7 @@ void func_800AA548(s32 arg0)
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         // Restore the captured signed coordinates instead of the warp's start.
-        savedPos                 = &(&Player_Status)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
+        savedPos                 = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
         D_80114CB0.words.field_0 = savedPos->yaw;
         D_80114CB0.words.field_4 = savedPos->x;
         D_80114CB0.words.field_8 = savedPos->y;
@@ -253,14 +253,14 @@ void Gp_LoadWaitBoot(Task* task)
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
         save    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != Player_Status.resourceVariant) {
+        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != gPlayerStatus.resourceVariant) {
             GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
             sess                    = gGameSession;
             sess->loadedCharacterId = save->state.characterId;
-            sess->loadedConfigSet   = Player_Status.resourceVariant;
+            sess->loadedConfigSet   = gPlayerStatus.resourceVariant;
         }
         Gp_EnqueueAttach7Cd();
         task->state++;

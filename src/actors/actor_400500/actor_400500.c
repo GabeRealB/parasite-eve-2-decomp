@@ -3049,7 +3049,7 @@ static void func_actor_400500_80135770(Task* arg0)
     SVECTOR*                   vecp;
     MATRIX*                    workm;
 
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     work   = (Actor400500Work*)arg0->work;
     enemy  = (Enemy*)arg0->spawnArg2.pointer;
     extra0 = arg0->extra.tmd;

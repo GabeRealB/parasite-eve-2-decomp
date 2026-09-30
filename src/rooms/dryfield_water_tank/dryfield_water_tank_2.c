@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(DwtWork, 0x10);
 
 /// Main-executable globals with no module header yet: the cutscene task
 /// refuses to start while `Gp_StateC08.field_A` is 1 or `gDisplayState.pendingMode` is non-zero.
-/// `Player_Status.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
+/// `gPlayerStatus.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
 /// record is keyed on, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases
 /// that record uses.
 
@@ -1081,7 +1081,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                     // Taken before the record is filled, the address sits in
                     // $a1 and `field_4` is stored through it.
                     rec                         = &script;
-                    weaponId                    = Player_Status.weapon;
+                    weaponId                    = gPlayerStatus.weapon;
                     script.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                     rec->animationId            = 1;
                     script.blend                = ANIMATION_BLEND_RESET;
@@ -1103,8 +1103,8 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
 /// `DwtWork` block in `Task::work`, republishes this task as
 /// `D_dryfield_water_tank_80188D50` so the room's script commands can reach
 /// that block, and hands slot 3 the 0x3E8 message carrying the animation set of the
-/// equipped weapon: `Player_Status.weapon + 1` for the alternate block and
-/// `Player_Status.weapon + 0x22` for the base one. A failed `Mem_Malloc` kills the task
+/// equipped weapon: `gPlayerStatus.weapon + 1` for the alternate block and
+/// `gPlayerStatus.weapon + 0x22` for the base one. A failed `Mem_Malloc` kills the task
 /// outright instead of returning, so the message and the state step still run
 /// on that path. States 2, 3 and 4 only step; state 1 runs the per-frame
 /// driver once the session is up, or steps when it has already torn down;
@@ -1143,7 +1143,7 @@ L_case0:
             work->owner                    = gameGetPtrSlot(3);
             D_dryfield_water_tank_80188D50 = task;
         }
-        weaponId                    = Player_Status.weapon;
+        weaponId                    = gPlayerStatus.weapon;
         anim                        = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         script.source.index         = anim;
         script.animationId          = 1;
@@ -1192,7 +1192,7 @@ void func_dryfield_water_tank_8017EBA0(void)
 
     Gp_DispatchMsgPtr(((DwtWork*)D_dryfield_water_tank_80188D50->work)->owner, 0x3E9,
                       &D_dryfield_water_tank_801804F4, 0);
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = anim;
     rec.animationId          = 1;

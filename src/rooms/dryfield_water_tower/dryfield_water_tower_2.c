@@ -202,10 +202,10 @@ typedef struct DryfieldWaterTowerState {
 } DryfieldWaterTowerState;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses; the
-/// alternate block is indexed by `Player_Status.weapon` plus 1 against the base block's
+/// alternate block is indexed by `gPlayerStatus.weapon` plus 1 against the base block's
 /// plus 0x22.
 
 /// Placement sent to the cap and prop tasks as message 0x7D4. The cap's
@@ -307,7 +307,7 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTower2MessageEntry, 8);
 extern DryfieldWaterTower2MessageEntry D_dryfield_water_tower_80181B00[2];
 
 /// Main-executable gates the cap script checks, with no module header yet:
-/// the script only runs while `Player_Status.hp` is non-zero, and its state 8 holds
+/// the script only runs while `gPlayerStatus.hp` is non-zero, and its state 8 holds
 /// back on `Gp_StateC08.field_A` == 1 or a non-zero `gDisplayState.pendingMode`.
 
 /// The raised-cap sources the cap script restores the room's script-table
@@ -2589,7 +2589,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
 /// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.field_9` is set
-/// or `Player_Status.hp` is zero. State 0 allocates the 0x7C-byte
+/// or `gPlayerStatus.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
 /// restores the room's three pairs of script-table blocks; state 1 spawns
 /// entries 1 and 2 of the same table into `field_44` / `field_48` and state 2
@@ -2624,7 +2624,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
     GpObj4A*                 p3;
     GpObj4A*                 p14;
 
-    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Player_Status.hp == 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || gPlayerStatus.hp == 0) {
         return;
     }
 
@@ -2752,7 +2752,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// at 0x801820E4.
 ///
 /// Republishes the player's weapon to slot 3 (msg 0x3E8) the way
-/// `func_actor_136100_8013467C` does. The bank comes from `Player_Status.weapon`
+/// `func_actor_136100_8013467C` does. The bank comes from `gPlayerStatus.weapon`
 /// and the character id. A nonzero script argument selects
 /// `ANIMATION_BLEND_INTERPOLATE` and is also the blend duration in frames;
 /// zero selects `ANIMATION_BLEND_RESET` with no duration.
@@ -2763,7 +2763,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     s32                  id;
     s32                  value;
 
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     value                    = arg0 & 0xFFFF;
     rec.source.index         = id;
@@ -3029,7 +3029,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             if (Gp_StateC08.field_A == 1 || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;

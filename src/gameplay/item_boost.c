@@ -270,7 +270,7 @@ static inline void _gpRecalcMaxHp(void)
     GpStatRow*    table;
     u16           val;
 
-    cfg        = &Player_Status;
+    cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     val        = table[save->state.gameMode].base.half;
@@ -336,7 +336,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     register s32 row asm("s1");
     s32          one;
 
-    item = Player_Status.armor + 0x5F;
+    item = gPlayerStatus.armor + 0x5F;
     if (arg1->state == 0) {
         arg1->status = 0xFF;
         if (_gpGetModLevel(item) < 0xA) {
@@ -394,7 +394,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
     s32           saved;
 
     if (arg1->state == 0) {
-        cfg                 = &Player_Status;
+        cfg                 = &gPlayerStatus;
         Gp_HpMpWork.field_0 = cfg->hp;
         save                = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         Gp_HpMpWork.field_4 = cfg->mp;
@@ -421,7 +421,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     u16           val;
 
     if (arg1->state == 0) {
-        cfg                 = &Player_Status;
+        cfg                 = &gPlayerStatus;
         hp                  = cfg->hp;
         Gp_HpMpWork.field_0 = hp;
         save                = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -466,7 +466,7 @@ s32 func_800B9D80(s32 arg0)
     flags  = 0;
     stateA = 0;
     stateB = 0;
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
         attr  = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
         flags = attr->flags;
@@ -575,7 +575,7 @@ void Gp_ResetInventory(void)
     s32           i;
     s32           j;
 
-    status = &Player_Status;
+    status = &gPlayerStatus;
     if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
         _gpClearEquipSlot(status->weapon + 0x7F);
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
@@ -586,8 +586,8 @@ void Gp_ResetInventory(void)
     Gp_AddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
     Gp_EquipMod(0x6C);
 
-    Player_Status.hp = Player_Status.hpMax;
-    Player_Status.mp = Player_Status.mpMax;
+    gPlayerStatus.hp = gPlayerStatus.hpMax;
+    gPlayerStatus.mp = gPlayerStatus.mpMax;
     Gp_ApplyItemMap();
 
     for (i = 0; i < 4; i++) {
@@ -608,7 +608,7 @@ void Gp_ClearInventory(void)
     InventoryItemRow*   rec;
     s32                 i;
 
-    status = &Player_Status;
+    status = &gPlayerStatus;
     if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
         _gpClearEquipSlot(status->weapon + 0x7F);
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
@@ -630,8 +630,8 @@ void Gp_ClearInventory(void)
 
     Gp_StateC08.field_B = 0;
     Gp_StateC08.field_5 = 0;
-    Player_Status.hp    = Player_Status.hpMax;
-    Player_Status.mp    = Player_Status.mpMax;
+    gPlayerStatus.hp    = gPlayerStatus.hpMax;
+    gPlayerStatus.mp    = gPlayerStatus.mpMax;
     Gp_ApplyItemMap();
 }
 
@@ -651,7 +651,7 @@ void Gp_InitModeEquip(void)
     s32 item;
     u8  slotItem;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     acc = 0;
     if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;

@@ -1442,7 +1442,7 @@ static void func_actor_503500_80145754(Task* arg0)
             case 0:
                 work->field_3C++;
                 if (work->field_3C >= 0x5F) {
-                    if (Player_Status.coordMtx->t[1] < -1000) {
+                    if (gPlayerStatus.coordMtx->t[1] < -1000) {
                         work->head.obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     }
                     work->field_3C = 0;

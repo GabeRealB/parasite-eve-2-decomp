@@ -713,8 +713,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             }
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
-            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
-            weaponId                              = Player_Status.weapon;
+            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
+            weaponId                              = gPlayerStatus.weapon;
             rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;
@@ -823,8 +823,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             }
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
-            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
-            weaponId                              = Player_Status.weapon;
+            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
+            weaponId                              = gPlayerStatus.weapon;
             rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;

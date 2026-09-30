@@ -1523,7 +1523,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
                 if (actor->field_954 != 1) {
-                    if (Player_Status.hp < 11) {
+                    if (gPlayerStatus.hp < 11) {
                         ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->field_22 = 1;
                         actor->field_96E                                                             = 0;
                     } else {

@@ -1038,7 +1038,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             scan       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-            weaponIdx  = &Player_Status.weapon;
+            weaponIdx  = &gPlayerStatus.weapon;
             row        = &Gp_RelatedQty0.rows[(item)-0x80];
             ammo       = row->related[0];
             *weaponIdx = item - 0x7F;
@@ -1349,7 +1349,7 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     Ui_DrawText(&(obj)->panel, "BONUS");
     if (task->state == 0) {
         bonus = func_mist_shooting_gallery_80184470(score);
-        cfg   = &Player_Status;
+        cfg   = &gPlayerStatus;
         if (bonus > 0) {
             total   = cfg->bp + bonus;
             cfg->bp = total;
@@ -1712,8 +1712,8 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
-/// panel and stashes the player's `Player_Status` BP (`field_8`) and experience
-/// (`field_C`) totals in `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
+/// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
+/// `D_mist_shooting_gallery_8018E0BC` / `_8018E0C0`.
 /// State 1 waits for the panel to confirm (`result == USER_INTERFACE_RESULT_CONFIRM`), then writes both
 /// totals back scaled down by the bonus mode - the same divisor table as
 /// `func_mist_shooting_gallery_8017FA38`, clamped to 999999. Once the kill
@@ -1721,7 +1721,7 @@ void func_mist_shooting_gallery_8017F128(Task* task)
 void func_mist_shooting_gallery_8017F6C8(Task* task)
 {
     UiObject*     obj;
-    PlayerStatus* cfg = &Player_Status;
+    PlayerStatus* cfg = &gPlayerStatus;
     s32           savedBp;
     s32           savedExp;
     s32           bp;
@@ -1985,13 +1985,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             if (dst->warp == 6) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
-                Player_Status.resourceVariant                       = 4;
+                gPlayerStatus.resourceVariant                       = 4;
                 gGameSession->hideHud                               = 1;
                 Gp_ResetInventory();
             }
             if (dst->warp == 5) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
-                Player_Status.resourceVariant                       = 3;
+                gPlayerStatus.resourceVariant                       = 3;
                 gGameSession->hideHud                               = 1;
                 Gp_ClearInventory();
             }

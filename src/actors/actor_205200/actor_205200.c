@@ -527,9 +527,9 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 func_800DA6E8(&enemy->node, 0, 0);
                 break;
             }
-            vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             damage  = Gp_ComputeDamage(part->recs[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(enemy, part->recs[i].key.value, 0) != 0) {
                 damage *= 4;

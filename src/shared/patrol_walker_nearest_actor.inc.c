@@ -15,7 +15,7 @@ u8 patrolNodeNearestActor(OverlayWalker* work, s32 actor)
     SCRATCH_STACK_CURSOR(u8) = head - 0x18;
     block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearCfgScratch);
 
-    block->cfg  = &Player_Status + ((s16)actor - 1);
+    block->cfg  = &gPlayerStatus + ((s16)actor - 1);
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
         block->dx   = (u16)block->cfg->coordMtx->t[0] - work->nav->nodes[block->node].x;

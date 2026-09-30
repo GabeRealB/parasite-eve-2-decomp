@@ -32,9 +32,9 @@ void stalkerPlaceTarget(Task* arg0)
         gte_ldv0(&sc->in);
         gte_rtv0();
         gte_stlvnl(&sc->out);
-        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->out.vx;
-        work->field_6A8  = Player_Status.coordMtx->t[1];
-        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
+        work->field_6A4  = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
+        work->field_6A8  = gPlayerStatus.coordMtx->t[1];
+        work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
         work->field_5DE  = -0x3E8;
         work->field_5E0  = -0x7D0;
         work->field_5DC  = 0;
@@ -60,9 +60,9 @@ void stalkerPlaceTarget(Task* arg0)
         work->field_6E6  = (work->field_6E6 + (ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF)) & 0xFFF;
         sc->in.vx        = (u32)(rsin(work->field_6E6) * 0x4B) >> 8;
         sc->in.vz        = (u32)(rcos(work->field_6E6) * 0x4B) >> 8;
-        work->field_6A4  = Player_Status.coordMtx->t[0] + sc->in.vx;
-        work->field_6A8  = Player_Status.coordMtx->t[1];
-        work->field_6AC  = Player_Status.coordMtx->t[2] + sc->in.vz;
+        work->field_6A4  = gPlayerStatus.coordMtx->t[0] + sc->in.vx;
+        work->field_6A8  = gPlayerStatus.coordMtx->t[1];
+        work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->in.vz;
         work->field_5BA |= 0x4000;
     }
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200OffsetScratch));

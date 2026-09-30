@@ -144,7 +144,7 @@ extern Actor5035003Storage6574 D_actor_503500_80176574;
 /// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
 extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
-/// "everything is dead" message, `Player_Status.hp` is the remaining-enemy count and
+/// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
 /// `Gp_StateC08.field_A` the cutscene/among-us mode flag.
 /// Main-executable flag byte cleared when the boss enters state 2; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
@@ -445,7 +445,7 @@ static void func_actor_503500_80133270(Task* arg0)
 
 /// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
 /// boss is in state 0, rolls `field_7C8` from `gRandomLcgState`, stores the yaw to
-/// `Player_Status.coordMtx` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
+/// `gPlayerStatus.coordMtx` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
 /// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
 /// node per `field_7E2`.
 static void func_actor_503500_801334CC(Task* arg0)
@@ -471,9 +471,9 @@ static void func_actor_503500_801334CC(Task* arg0)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_7C8 = gRandomLcgState >> 16;
     coord           = arg0->extra.tmd->coords;
-    vec.vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec.vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     vec.vy          = 0;
-    vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     angle           = work->field_7D2 + ratan2(vec.vx, vec.vz);
     while (angle >= 0x800) {
         angle -= 0x1000;
@@ -534,7 +534,7 @@ static s32 func_actor_503500_80133684(Task* arg0)
          (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
          ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
         if ((((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2) &&
-            (Player_Status.hp > 0) && (Gp_StateC08.field_A != 1)) {
+            (gPlayerStatus.hp > 0) && (Gp_StateC08.field_A != 1)) {
             ret = 1;
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
@@ -574,7 +574,7 @@ static void func_actor_503500_801338E8(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    angle = ratan2(Player_Status.coordMtx->t[0] - coord->coord.t[0], Player_Status.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
@@ -588,19 +588,19 @@ static void func_actor_503500_801338E8(Task* arg0)
             work->field_7DF = work->field_7DE;
             switch (work->field_7DD) {
                 case 0:
-                    if (Player_Status.coordMtx->t[1] >= -0xAEF) {
+                    if (gPlayerStatus.coordMtx->t[1] >= -0xAEF) {
                         work->field_7DC = 1;
                     }
                     break;
                 case 1:
-                    if (Player_Status.coordMtx->t[1] >= -0x31F) {
+                    if (gPlayerStatus.coordMtx->t[1] >= -0x31F) {
                         work->field_7DC = 2;
-                    } else if (Player_Status.coordMtx->t[1] < -0xC80) {
+                    } else if (gPlayerStatus.coordMtx->t[1] < -0xC80) {
                         work->field_7DC = 0;
                     }
                     break;
                 case 2:
-                    if (Player_Status.coordMtx->t[1] < -0x4B0) {
+                    if (gPlayerStatus.coordMtx->t[1] < -0x4B0) {
                         work->field_7DC = 1;
                     }
                     break;
@@ -990,7 +990,7 @@ static void func_actor_503500_80134408(Task* arg0)
         case 1:
             if (++work->field_7BC >= 0x1F &&
                 ((GameActor*)(gameGetPtrSlot(3))->work)->field_954 != 2 &&
-                Player_Status.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+                gPlayerStatus.hp > 0 && Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
                 SndEvt_EnqueueType7(0x40230010, 0x2D);
                 work->field_7DA = work->field_7DA + 1;
@@ -1521,7 +1521,7 @@ static void func_actor_503500_80135644(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    angle = ratan2(Player_Status.coordMtx->t[0] - coord->coord.t[0], Player_Status.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
+    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->field_7B6;
     while (angle >= 0x800) {
         angle -= 0x1000;
     }
@@ -1537,7 +1537,7 @@ static void func_actor_503500_80135644(Task* arg0)
     } else if (angle < -0x300 && angle > -0x480) {
         dirMask = 0x40;
     }
-    y          = Player_Status.coordMtx->t[1];
+    y          = gPlayerStatus.coordMtx->t[1];
     heightMask = 4;
     if (y < -999) {
         heightMask = 2;
@@ -1906,7 +1906,7 @@ void func_actor_503500_8013611C(s32 arg0)
     D_actor_503500_80176D64[arg0] = 0;
 }
 
-/// Yaw from the actor's first part to `Player_Status.coordMtx`'s translation, relative to
+/// Yaw from the actor's first part to `gPlayerStatus.coordMtx`'s translation, relative to
 /// the part's own heading, wrapped into [-0x800, 0x800).
 s16 func_actor_503500_80136134(Task* arg0)
 {
@@ -1915,9 +1915,9 @@ s16 func_actor_503500_80136134(Task* arg0)
     s16       angle;
 
     coord  = arg0->extra.tmd->coords;
-    vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     vec.vy = 0;
-    vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    vec.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     angle  = ratan2(vec.vx, vec.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
     while (angle >= 0x800) {
         angle -= 0x1000;
@@ -3369,9 +3369,9 @@ static void func_actor_503500_80138C08(Task* arg0)
             }
             mat = &m;
             Gp_ComposeParentWorld(coord->parent, mat, &ofs);
-            pos.vx = Player_Status.coordMtx->t[0] - ofs.vx;
-            pos.vy = Player_Status.coordMtx->t[1] - ofs.vy - 1000;
-            pos.vz = Player_Status.coordMtx->t[2] - ofs.vz;
+            pos.vx = gPlayerStatus.coordMtx->t[0] - ofs.vx;
+            pos.vy = gPlayerStatus.coordMtx->t[1] - ofs.vy - 1000;
+            pos.vz = gPlayerStatus.coordMtx->t[2] - ofs.vz;
             gte_TransposeMatrix(mat, &rot);
             gte_SetRotMatrix(&rot);
             gte_ldv0(&pos);
@@ -3380,8 +3380,8 @@ static void func_actor_503500_80138C08(Task* arg0)
             break;
         case 2:
             if (++work->field_2DE >= 0xB) {
-                pos.vx = Player_Status.coordMtx->t[0] - work->pts[8].vx;
-                pos.vz = Player_Status.coordMtx->t[2] - work->pts[8].vz;
+                pos.vx = gPlayerStatus.coordMtx->t[0] - work->pts[8].vx;
+                pos.vz = gPlayerStatus.coordMtx->t[2] - work->pts[8].vz;
                 dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
                 if (dist < 3000) {
                     task = Task_SpawnFromTable(D_actor_503500_8016E9F0, 0, 0, dist * 3000);

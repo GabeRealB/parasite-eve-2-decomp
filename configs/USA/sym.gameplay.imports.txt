@@ -268,7 +268,7 @@ gTaskDefaultList = 0x800716E0; // absolute:True
 gMcSaveData = 0x80072168; // absolute:True size:0x1288
 gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
-Player_Status = 0x80073B88; // absolute:True size:0x80
+gPlayerStatus = 0x80073B88; // absolute:True size:0x80
 Gpu_OrderingTables = 0x8007A0E8; // absolute:True size:0x28
 D_8007A394 = 0x8007A394; // absolute:True
 D_8007A396 = 0x8007A396; // absolute:True

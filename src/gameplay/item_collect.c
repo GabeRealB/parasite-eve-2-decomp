@@ -349,7 +349,7 @@ void Gp_SavePlayerPos(void)
     // Capture the root transform with each coordinate narrowed to 16 bits.
     coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
     storedX       = (u16)coord->coord.t[0];
-    savedPos      = &Player_Status.pos;
+    savedPos      = &gPlayerStatus.pos;
     savedPos->x   = storedX;
     savedPos->y   = coord->coord.t[1];
     savedPos->z   = coord->coord.t[2];
@@ -360,7 +360,7 @@ void Gp_SavePlayerPos(void)
     } else if ((s16)angle < -PLAYER_YAW_HALF_TURN) {
         savedPos->yaw = angle + PLAYER_YAW_FULL_TURN;
     }
-    cfg                   = &Player_Status;
+    cfg                   = &gPlayerStatus;
     save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.playerExp = cfg->exp;
     save->state.playerBp  = cfg->bp;
@@ -566,7 +566,7 @@ void Gp_SyncHeldRelated(void)
     s32           idx;
     u8            item;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if (p->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
     } else {
@@ -640,7 +640,7 @@ void Gp_RecalcMaxHp(void)
     GpStatRow*    table;
     u16           val;
 
-    cfg        = &Player_Status;
+    cfg        = &gPlayerStatus;
     table      = Gp_StatRows;
     save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     val        = table[save->state.gameMode].base.half;
@@ -663,7 +663,7 @@ void Gp_FillHpMp(void)
 {
     PlayerStatus* p;
 
-    p     = &Player_Status;
+    p     = &gPlayerStatus;
     p->hp = p->hpMax;
     p->mp = p->mpMax;
 }
@@ -803,12 +803,12 @@ void Gp_ResetScanDefault(void)
 
 void func_800BC4BC(void)
 {
-    Player_Status.resourceVariant = 1;
+    gPlayerStatus.resourceVariant = 1;
     Gp_InitModeEquip();
 }
 
 void func_800BC4E4(void)
 {
-    Player_Status.resourceVariant = 2;
+    gPlayerStatus.resourceVariant = 2;
     Gp_InitModeEquip();
 }

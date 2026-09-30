@@ -630,7 +630,7 @@ void Gp_StartAreaBgm(s16* arg0)
     s8            type;
     u8            mode;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     mode = gGameSession->restartMode;
     if (mode == 3 || mode == 0xFF || !CdCmd_IsIdle() || *arg0 != 0) {
         return;
@@ -662,7 +662,7 @@ u8* Gp_GetAttachLevels(void)
     PlayerStatus* p;
     s32           cond;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
@@ -678,7 +678,7 @@ s32 Gp_IsDebugAttachRoom(void)
 {
     PlayerStatus* p;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         return 0;
     }
@@ -708,7 +708,7 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     GpStateBE8*   be8;
     GpStateC08*   p;
 
-    cfg                                   = &Player_Status;
+    cfg                                   = &gPlayerStatus;
     be8                                   = &Gp_HpMpWork;
     be8->field_0                          = cfg->hp;
     be8->field_4                          = cfg->mp;
@@ -905,7 +905,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
 
     ret = 1;
     if (arg0 < 0xC) {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
@@ -936,7 +936,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     s32           cond;
     u8*           table;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
@@ -1062,7 +1062,7 @@ static s32 func_800A7E5C(s32 arg0)
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor = work->work;
-        p     = &Player_Status;
+        p     = &gPlayerStatus;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (gGameSession->dirActionBusy == 0) {
@@ -1102,7 +1102,7 @@ s32 Gp_SpendMp(s32 arg0)
     PlayerStatus* p;
     s32           ret;
 
-    p   = &Player_Status;
+    p   = &gPlayerStatus;
     ret = 1;
     if (p->mp >= arg0) {
         p->mp -= arg0;

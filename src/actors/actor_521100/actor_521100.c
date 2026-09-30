@@ -1864,10 +1864,10 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
             continue;
         }
         coordX                 = coord->coord.t[0];
-        dx                     = Player_Status.coordMtx->t[0] - coordX;
+        dx                     = gPlayerStatus.coordMtx->t[0] - coordX;
         scratch->delta.vx.word = dx;
         scratch->delta.vy.word = 0;
-        dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->delta.vz.word = dz;
         damage                 = Gp_ComputeDamage(work->rec534[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
         hitType                = Actor521100_GetHitType(work->rec534[i].key.value);
@@ -1982,7 +1982,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         Gp_ClearRec18Occupied(work->rec62C);
     }
     if (enemy->hp <= 0) {
-        if (Player_Status.hp > 0) {
+        if (gPlayerStatus.hp > 0) {
             work->field_6B2 = 0;
         } else {
             enemy->hp = 1;
@@ -2015,9 +2015,9 @@ static void func_actor_521100_80132958(Task* arg0)
     scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
     vec                          = scratchEnd - 1;
     SCRATCH_STACK_CURSOR(VECTOR) = vec;
-    scratchEnd[-1].vx            = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    scratchEnd[-1].vx            = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     vec->vy                      = 0;
-    vec->vz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    vec->vz                      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     work->field_6AA              = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
     angle                        = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
     work->field_698              = angle;
@@ -2100,7 +2100,7 @@ static void func_actor_521100_80132958(Task* arg0)
 /// block's `field_698` and `field_696`, wrapped into [-0x800, 0x800] and then
 /// narrowed by `field_69C` being armed with 0x50; the request goes out only
 /// while fewer than 0x4E2 units of the actor's health are left, the latch
-/// `field_6BE` is clear, `Player_Status.hp` (the remaining-enemy count) is positive
+/// `field_6BE` is clear, `gPlayerStatus.hp` (the player's current HP) is positive
 /// and the player's own `GameActor::field_954` is not its mode 2. On acceptance
 /// the body rearms the motion state (2 into `field_69E`, 0xA frames of blend
 /// into `field_686`, the 0xA/0xFF/0x80 pad lerp) and returns 1; the 0x3F8
@@ -2129,7 +2129,7 @@ static s32 func_actor_521100_80132C70(Task* arg0)
     } else {
         wrap = diff + 0x1000;
     }
-    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (Player_Status.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
+    if ((wrap < 0x400) && (work->field_6AA < 0x4E2) && (work->field_6BE == 0) && (gPlayerStatus.hp > 0) && (work->field_69C = 0x50, (wrap < 0x20)) && (((GameActor*)player->work)->field_954 != 2)) {
         msg->field_14 = 0x19;
         if (Gp_DispatchMsgPtr(player, 0x3F8, msg, 0) == 0) {
             ret             = 1;
@@ -2170,9 +2170,9 @@ static void func_actor_521100_80132DE8(Task* arg0)
     vec   = head - 1;
 
     SCRATCH_STACK_CURSOR(VECTOR) = vec;
-    head[-1].vx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    head[-1].vx                  = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     vec->vy                      = 0;
-    vec->vz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    vec->vz                      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
 
     work->field_6AA = SquareRoot0(head[-1].vx * head[-1].vx + vec->vz * vec->vz);
     work->field_698 = ratan2((s16)head[-1].vx, (s16)vec->vz) & 0xFFF;
@@ -2597,7 +2597,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else if ((s16)work->field_68A == 0xC) {
-                flag                         = (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] + Player_Status.coordMtx->m[1][2] * coord->coord.m[1][2] + Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2]);
+                flag                         = (gPlayerStatus.coordMtx->m[0][2] * coord->coord.m[0][2] + gPlayerStatus.coordMtx->m[1][2] * coord->coord.m[1][2] + gPlayerStatus.coordMtx->m[2][2] * coord->coord.m[2][2]);
                 work->field_6A4              = (u32)flag >> 31;
                 sc->msg.source.sets          = D_actor_521100_8015F7CC;
                 sc->msg.animationId          = work->field_6A4 ? 2 : 6;
@@ -2679,7 +2679,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             timer           = work->field_68E - 1;
             work->field_68E = timer;
             if ((s16)timer <= 0) {
-                if (Player_Status.hp <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
+                if (gPlayerStatus.hp <= D_actor_521100_8015F570[Gp_StateF0.field_2B]) {
                     work->field_686              = 0x14;
                     work->field_6A0              = 5;
                     sc->msg.source.sets          = D_actor_521100_8015F7CC;
@@ -2696,7 +2696,7 @@ static void func_actor_521100_801339B0(Task* arg0)
             }
             if (flag != 1) {
                 flag = 0;
-                if ((work->field_6A8 == 1) && (Player_Status.hp < 0x3D) && (((D_actor_521100_8015F560.hpMax / 3) & 0xFFFF) >= ((Enemy*)arg0->spawnArg2.pointer)->hp)) {
+                if ((work->field_6A8 == 1) && (gPlayerStatus.hp < 0x3D) && (((D_actor_521100_8015F560.hpMax / 3) & 0xFFFF) >= ((Enemy*)arg0->spawnArg2.pointer)->hp)) {
                     flag = work->field_6A4 == 1;
                 }
                 if (flag != 0) {
@@ -2841,7 +2841,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                               &D_actor_521100_8015F804);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
-                Player_Status.hp = 0;
+                gPlayerStatus.hp = 0;
             }
             break;
         case 6:
@@ -2921,7 +2921,7 @@ static void func_actor_521100_80134658(Task* arg0)
 /// vector from the attach coordinate's translation to its target into the
 /// 0x18-byte scratch, of which only the `vec` half is written.
 ///
-/// Phase 0 aims at the player (`Player_Status.coordMtx->t`) and hands the actor
+/// Phase 0 aims at the player (`gPlayerStatus.coordMtx->t`) and hands the actor
 /// back to state 1, speed zeroed, once it is within 0x7D0 of it and the
 /// player's own Z is past -0x5DC; otherwise it aims at waypoint 0 and steps the
 /// phase to 1 on arrival within 0x3C. Those two paths leave the switch
@@ -2963,10 +2963,10 @@ static void func_actor_521100_80134774(Task* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->delta.vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vx    = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy    = 0;
-            sc->delta.vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-            if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) && (Player_Status.coordMtx->t[2] < -0x5DC)) {
+            sc->delta.vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) && (gPlayerStatus.coordMtx->t[2] < -0x5DC)) {
                 work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
                 work->field_69A = 0;
                 work->field_69C = 0x78;
@@ -2995,9 +2995,9 @@ static void func_actor_521100_80134774(Task* arg0)
             work->field_686 = 0x12;
             work->field_69A = 0x14;
             work->field_69C = 0x78;
-            sc->delta.vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vx    = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy    = 0;
-            sc->delta.vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->delta.vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) >= 0x7D0) {
                 sc->delta.vx = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
                 sc->delta.vy = 0;
@@ -3008,9 +3008,9 @@ static void func_actor_521100_80134774(Task* arg0)
                         goto game;
                     }
                 } while (0);
-                sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vy = 0;
-                sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             }
             work->field_698 = (u16)(ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF);
             work->field_69A = 0;
@@ -3196,10 +3196,10 @@ static void func_actor_521100_80134EDC(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
-    scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
+    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
-    scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;
-    scratch->delta.vz = Player_Status.coordMtx->t[2] - scratch->view.t[2];
+    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - offsetY;
+    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - scratch->view.t[2];
     ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
 
     if (scratch->local.vx < -0x400) {
@@ -3731,7 +3731,7 @@ static void func_actor_521100_80135B80(Enemy* arg0, Task* task)
 
 s32 func_actor_521100_80135BEC(Task* arg0)
 {
-    if (Player_Status.hp > 0) {
+    if (gPlayerStatus.hp > 0) {
         ((Actor521100Work*)arg0->work)->field_6A8 = 1;
     }
     return 0;

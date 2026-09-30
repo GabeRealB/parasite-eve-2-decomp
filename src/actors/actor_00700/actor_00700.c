@@ -1274,9 +1274,9 @@ case0:
     work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
     gRandomLcgState = rng;
     posX            = coord->coord.t[0];
-    vec.vx          = Player_Status.coordMtx->t[0] - posX;
-    vec.vy          = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    vec.vx          = gPlayerStatus.coordMtx->t[0] - posX;
+    vec.vy          = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     VectorNormalS(&vec, &work->field_370);
     goto pop;
 case1:
@@ -2155,9 +2155,9 @@ static void Actor00700_Fn02820(Task* arg0)
             work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
             break;
         case 1:
-            sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             sc->delta.vy = 0;
-            sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
             diff         = want - (work->field_2DC & 0xFFF);
             adiff        = diff >= 0 ? diff : -diff;
@@ -2259,7 +2259,7 @@ static void Actor00700_Fn02A28(Task* arg0)
                     (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
-            base               = Player_Status.coordMtx->t[1] - 0x4B0;
+            base               = gPlayerStatus.coordMtx->t[1] - 0x4B0;
             random2            = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             y                  = coord->coord.t[1];
             if (y >= base + 400) {

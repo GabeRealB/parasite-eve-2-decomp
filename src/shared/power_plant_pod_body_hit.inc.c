@@ -40,9 +40,9 @@ void podBodyHit(Task* arg0)
         if ((work->rec18[i].key.value & 0xFFFF0000) != 0x20000) {
             continue;
         }
-        scr->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-        scr->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-        scr->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        scr->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+        scr->delta.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        scr->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         damage        = Gp_ComputeDamage(work->rec18[i].key.value, SquareRoot0(scr->delta.vx * scr->delta.vx + scr->delta.vy * scr->delta.vy + scr->delta.vz * scr->delta.vz), 0, 0);
         if (work->field_336 == 0) {
             damage /= 10;

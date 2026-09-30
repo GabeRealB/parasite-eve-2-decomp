@@ -742,7 +742,7 @@ void func_actor_342000_801628C8(Task* arg0)
     }
 }
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// base weapon id, `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the alternate animation block.
 
 /// Per-tick sequence driver of the event task: raises 0x3ED on `field_48`,
@@ -750,7 +750,7 @@ void func_actor_342000_801628C8(Task* arg0)
 /// changes for the slot-3 task, the step-2 wait on 0x3F0 plus an 11-tick
 /// delay, and step 8's sound cue) and clears it. Cases 5 and 7 keep their
 /// weapon id locals block-scoped; sharing one pseudo across both cases moves
-/// the `Player_Status.weapon` load ahead of the flag load.
+/// the `gPlayerStatus.weapon` load ahead of the flag load.
 static void func_actor_342000_80162BBC(Task* arg0)
 {
     Actor342000EventWork* work;
@@ -815,7 +815,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;
@@ -837,7 +837,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;
@@ -1437,7 +1437,7 @@ void func_actor_342000_80164364(s32 arg0)
 }
 
 /// Warps the slot-3 task to the overlay's fixed placement (0x3E9), installs
-/// the animation set the current weapon selects (`Player_Status.weapon + 1` for the
+/// the animation set the current weapon selects (`gPlayerStatus.weapon + 1` for the
 /// alternate block, `+ 0x22` for the base one, sent as 0x3E8 to the slot
 /// `gameGetPtrSlot(3)` returns), raises 0x3F3, kills the child in
 /// `field_64`, and cancels any pending CD command replacement.
@@ -1451,7 +1451,7 @@ void func_actor_342000_8016439C(void)
     work = (Actor342000EventWork*)D_actor_342000_80165070->work;
     Gp_DispatchMsgPtr(work->field_48, 0x3E9, &D_actor_342000_80164948, 0);
     func_shelter_b3_garbage_incinerator_8018507C();
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 1;

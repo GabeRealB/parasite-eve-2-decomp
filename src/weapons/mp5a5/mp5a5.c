@@ -138,7 +138,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
                     actor->field_95E  = 4;
                     actor->field_934  = 3;
                     actor->field_940  = 0;
-                    actor->field_124  = Player_Status.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
+                    actor->field_124  = gPlayerStatus.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
                     rec->end0Radius   = rec->end1Radius;
                     actor->field_12A |= 0x800;
                     func_80106238(arg0, 0, 1);

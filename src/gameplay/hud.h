@@ -16,7 +16,7 @@ typedef struct _GpHudTrack {
 } GpHudTrack;
 STATIC_ASSERT_SIZEOF(GpHudTrack, 8);
 
-/// Seven `u16` masks tested against `PlayerStatus.field_25` by the party HP/MP
+/// Seven `u16` masks tested against `PlayerStatus.statusFlags` by the party HP/MP
 /// HUD (`func_800A57B0`); each set bit draws one 14x14 status icon.
 typedef struct GpHudStatusBits {
     u16 bits[7];

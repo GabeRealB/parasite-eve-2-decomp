@@ -332,7 +332,7 @@
 #include "rooms/shelter_r49.h"
 
 /// 5-byte table at `Gp_ConfigCdTable`. `Gp_EnqueueConfigCd` copies it to the stack and
-/// indexes it 1-based by `Player_Status.resourceVariant`; the byte is CdCmd 0x21
+/// indexes it 1-based by `gPlayerStatus.resourceVariant`; the byte is CdCmd 0x21
 /// param2[0].
 typedef struct _GpTbl5 {
     /* 0x0 */ u8 field_0[5];
@@ -368,8 +368,8 @@ static const TaskFuncTable6 Gp_LoadWaitFns;
 
 static const GpTbl5 Gp_ConfigCdTable;
 
-/// Maps `Player_Status.weapon` / `field_22` (and the 0x1B attach id) to a
-/// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
+/// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
+/// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
 static void Gp_EnqueueWeaponCd(void);
 
 static void Gp_LoadWaitCdBusy(Task* task);
@@ -602,8 +602,8 @@ static const TaskFuncTable6 Gp_LoadWaitFns = { {
 
 static const GpTbl5 Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
 
-/// Maps `Player_Status.weapon` / `field_22` (and the 0x1B attach id) to a
-/// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
+/// Maps `gPlayerStatus.weapon` / `gPlayerStatus.weaponSlotItem` (and the 0x1B attach id) to a
+/// CdCmd 0x21 payload. No-op when `gPlayerStatus.weapon` is 0 or the mapped byte is 0.
 static void Gp_EnqueueWeaponCd(void)
 {
     u8  param1[8];
@@ -613,7 +613,7 @@ static void Gp_EnqueueWeaponCd(void)
     s32 attach;
     s32 flag;
 
-    item = Player_Status.weapon;
+    item = gPlayerStatus.weapon;
     if (item == 0) {
         return;
     }
@@ -622,43 +622,43 @@ static void Gp_EnqueueWeaponCd(void)
     switch (item) {
         case 0xB:
             param1[0] = 1;
-            if (Player_Status.weaponSlotItem == 0xB) {
+            if (gPlayerStatus.weaponSlotItem == 0xB) {
                 param1[0] = 2;
             }
-            if (Player_Status.weaponSlotItem == 0xC) {
+            if (gPlayerStatus.weaponSlotItem == 0xC) {
                 param1[0] = 3;
             }
             break;
         case 0xC:
             param1[0] = 4;
-            if (Player_Status.weaponSlotItem == 0xB) {
+            if (gPlayerStatus.weaponSlotItem == 0xB) {
                 param1[0] = 5;
             }
-            if (Player_Status.weaponSlotItem == 0xC) {
+            if (gPlayerStatus.weaponSlotItem == 0xC) {
                 param1[0] = 6;
             }
             break;
         case 0xD:
             param1[0] = 7;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 param1[0] = 8;
             }
-            if (Player_Status.weaponSlotItem == 0xF) {
+            if (gPlayerStatus.weaponSlotItem == 0xF) {
                 param1[0] = 9;
             }
             break;
         case 0xE:
             param1[0] = 0xA;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 param1[0] = 0xB;
             }
-            if (Player_Status.weaponSlotItem == 0xF) {
+            if (gPlayerStatus.weaponSlotItem == 0xF) {
                 param1[0] = 0xC;
             }
             break;
         case 0xF:
             param1[0] = 0xD;
-            val       = Player_Status.weaponSlotItem;
+            val       = gPlayerStatus.weaponSlotItem;
             if (val == 0xE) {
                 param1[0] = val;
             }
@@ -668,10 +668,10 @@ static void Gp_EnqueueWeaponCd(void)
             break;
         case 0x17:
             param1[0] = 0x13;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 param1[0] = 0x14;
             }
-            if (Player_Status.weaponSlotItem == 0xF) {
+            if (gPlayerStatus.weaponSlotItem == 0xF) {
                 param1[0] = 0x15;
             }
             break;
@@ -912,7 +912,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
-        param2[0] = table.field_0[Player_Status.resourceVariant - 1];
+        param2[0] = table.field_0[gPlayerStatus.resourceVariant - 1];
         if ((u8)arg0 == 0) {
             param2[1] = 0;
         } else {
@@ -931,7 +931,7 @@ void Gp_EnqueueHeldWeaponCd(void)
     u8  val;
     s32 flag;
 
-    val = Player_Status.weapon;
+    val = gPlayerStatus.weapon;
     if (val == 0) {
         val = 1;
     }

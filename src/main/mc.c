@@ -108,7 +108,7 @@ GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 /// Unreferenced.
 static u8 D_80073B80[8];
 
-PlayerStatus Player_Status;
+PlayerStatus gPlayerStatus;
 
 /// Last `rand()` result drawn by `Mc_DispatchStateTable`; nothing reads it.
 static s32 Mc_LastRandomValue;
@@ -638,7 +638,7 @@ static u8 Mc_DefaultChecksumSrc[] = {
 McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
     { (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
-    { (McChecksumBlock*)&Player_Status, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
+    { (McChecksumBlock*)&gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
     { (McChecksumBlock*)GameFlag_AcropolisBanks, 0x6C, 2 },
     { (McChecksumBlock*)GameFlag_DryfieldBanks, 0xB0, 3 },
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
@@ -700,8 +700,8 @@ static void Mc_InitDualBankBuffers(void)
     s32                       two;
     s32                       idx;
 
-    Mem_Set(&Player_Status, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
-    Mem_Set(Player_Status.saveBackup, 0xFF, sizeof(Player_Status.saveBackup));
+    Mem_Set(&gPlayerStatus, 0, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    Mem_Set(gPlayerStatus.saveBackup, 0xFF, sizeof(gPlayerStatus.saveBackup));
     Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
     Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
 
@@ -736,7 +736,7 @@ static void Mc_InitDualBankBuffers(void)
     p->state.characterId          = one;
     Player_InitNewGameStats();
     idx                          = p->state.characterId - 1;
-    (&Player_Status)[idx].weapon = two;
+    (&gPlayerStatus)[idx].weapon = two;
 }
 
 /// Store the checksum of a buffer's payload (the `size - 4` bytes after its

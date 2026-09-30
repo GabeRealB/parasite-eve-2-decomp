@@ -1087,9 +1087,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 if (work->field_49E != 0) {
                     break;
                 }
-                sc->d.delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->d.delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->d.delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->d.delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->d.delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->d.delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word +
                                                   sc->d.delta.vy.word * sc->d.delta.vy.word +
                                                   sc->d.delta.vz.word * sc->d.delta.vz.word);
@@ -1160,9 +1160,9 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             if (work->field_49E != 0) {
                 break;
             }
-            sc->d.delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->d.delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            sc->d.delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->d.delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->d.delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            sc->d.delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             damage              = SquareRoot0(sc->d.delta.vx.word * sc->d.delta.vx.word + sc->d.delta.vy.word * sc->d.delta.vy.word +
                                               sc->d.delta.vz.word * sc->d.delta.vz.word);
             param               = Gp_GetIdParam0(work->rec3[i].key.value);

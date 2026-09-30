@@ -77,7 +77,7 @@ void Gp_InitStarterInv(void)
     save                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.itemLevelBonus[5] = 0;
     save->state.itemLevelBonus[0] = 0;
-    cfg                           = &Player_Status;
+    cfg                           = &gPlayerStatus;
     switch (scan->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
             tmp = Gp_ItemTable2;
@@ -145,7 +145,7 @@ void Gp_InitStarterInv(void)
     Gp_GiveItem(scan, 0xA0, 0x64);
     Gp_EquipRelatedItem(scan, 0x81, 0xA0, -1);
     Gp_GiveItem(scan, 0x92, 1);
-    cfg2     = &Player_Status;
+    cfg2     = &gPlayerStatus;
     hp       = cfg2->hpMax;
     mp       = cfg2->mpMax;
     cfg2->hp = hp;

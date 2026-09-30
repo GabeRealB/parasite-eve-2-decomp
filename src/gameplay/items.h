@@ -28,7 +28,7 @@ struct UiObject;
 s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2);
 
 /// Confirmation UI for raising `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus` of the equipped
-/// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
+/// 0x60–0x7F item (`gPlayerStatus.armor`). If the clamped level is
 /// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
 void Gp_UiBoostAttach(struct UiObject* arg0, Task* arg1);

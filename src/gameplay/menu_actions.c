@@ -188,7 +188,7 @@ static inline s32 _gpIsItemRowFree(InventoryItemRow* arg0)
     s32           id;
     s8            attachmentSlot;
 
-    p              = &Player_Status;
+    p              = &gPlayerStatus;
     ret            = 1;
     attachmentSlot = arg0->attachSlot;
     id             = arg0->itemId;
@@ -400,7 +400,7 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     PlayerStatus* p;
 
     ret = 0;
-    p   = &Player_Status;
+    p   = &gPlayerStatus;
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
         (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
@@ -542,7 +542,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     s32                        i;
 
     count = 0;
-    p     = &Player_Status;
+    p     = &gPlayerStatus;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
@@ -665,7 +665,7 @@ void Gp_EquipHeld(s32 arg0)
     InventoryItemRow* prev;
     u8                field21;
 
-    p       = &Player_Status;
+    p       = &gPlayerStatus;
     rec     = Gp_FindItemById(arg0);
     field21 = p->weapon;
     if (field21 != arg0 - 0x7F) {
@@ -1079,7 +1079,7 @@ static void Gp_DrawMapCursor(Task* arg0)
     s32             ang;
 
     obj   = arg0->spawnArg2.pointer;
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     actor = gameGetPtrSlot(3)->work;
     rec   = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
     rec   = rec + gGameSession->location.loc.area;
@@ -2086,7 +2086,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     PlayerStatus*        cfg;
 
                     slot = Gp_GetItemSlot(id);
-                    cfg  = &Player_Status;
+                    cfg  = &gPlayerStatus;
                     Gp_ClearEquipSlot(id);
                     slot->field_4 = 0;
                     if (cfg->weapon == (id - 0x7F)) {
@@ -2113,7 +2113,7 @@ void Gp_DiscardWarnTask(Task* arg0)
                     PlayerStatus* cfg;
 
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[id - 0x60] = 0;
-                    cfg                                                                = &Player_Status;
+                    cfg                                                                = &gPlayerStatus;
                     if (cfg->armor == (id - 0x5F)) {
                         cfg->armor = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
@@ -2486,7 +2486,7 @@ void Gp_PeUpgradePanelTask(Task* arg0)
             lvl3     = (id + 1) & 3;
             if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
                 if (childObj->resultValue == 0x33) {
-                    cfg   = &Player_Status;
+                    cfg   = &gPlayerStatus;
                     price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                         price = (price * 4) / 5;

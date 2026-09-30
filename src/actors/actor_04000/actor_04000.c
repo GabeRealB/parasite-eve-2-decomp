@@ -1573,9 +1573,9 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     head          = SCRATCH_STACK_CURSOR(Actor104000AimScratch);
     sc            = (Actor104000AimScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor104000AimScratch));
     pos           = arg1->extra.tmd->coords;
-    head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
-    sc->d.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
-    sc->d.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
+    head[-1].d.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+    sc->d.vy      = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+    sc->d.vz      = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
     coord         = arg1->extra.tmd->coords;
     angle         = ratan2(head[-1].d.vx, sc->d.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle     = actorWrapAngle(angle);
@@ -1832,9 +1832,9 @@ static void Actor04000_Fn026FC(Enemy* arg0, Task* arg1)
     }
     coord    = arg1->extra.tmd->coords;
     d        = &delta;
-    delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    d->vy    = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    d->vz    = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!overlayOutOfRange(d, 2000)) {
         Gp_ArmStateF0(1);
         work->field_0 = 3;
@@ -1878,9 +1878,9 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
     sc   = (ActorTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorTurnScratch));
     animDriverTick(arg1);
     pos               = arg1->extra.tmd->coords;
-    head[-1].delta.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
-    sc->delta.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
-    sc->delta.vz      = Player_Status.coordMtx->t[2] - pos->coord.t[2];
+    head[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
+    sc->delta.vy      = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
+    sc->delta.vz      = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
     coord             = arg1->extra.tmd->coords;
     angle             = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle         = actorWrapAngle(angle);
@@ -1909,9 +1909,9 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         work->field_0 = 8;
     }
     target       = arg1->extra.tmd->coords;
-    sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
     coord        = arg1->extra.tmd->coords;
     angle        = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle    = actorWrapAngle(angle);
@@ -2375,9 +2375,9 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
     }
     ActorContact_Steer(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
     target       = arg1->extra.tmd->coords;
-    sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
     if (!overlayOutOfRange(&sc->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2452,9 +2452,9 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
     }
     ActorContact_Steer(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
     target       = arg1->extra.tmd->coords;
-    sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
-    sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
-    sc->delta.vz = Player_Status.coordMtx->t[2] - target->coord.t[2];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
+    sc->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
     if (!overlayOutOfRange(&sc->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(sc->delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2906,7 +2906,7 @@ void Actor04000_Fn06380(Task* arg0)
             }
         }
         j   = 0;
-        cfg = &Player_Status;
+        cfg = &gPlayerStatus;
         for (; j < 6; j++) {
             if (Actor04000_D0C718[j] != NULL && ((Actor104000Work*)Actor04000_D0C718[j]->work)->field_0 == 0xE) {
                 coord    = Actor04000_D0C718[j]->extra.tmd->coords;

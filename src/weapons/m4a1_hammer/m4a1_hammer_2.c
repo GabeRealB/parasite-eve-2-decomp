@@ -80,7 +80,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
                 actor->field_934  = 0;
                 actor->field_979  = 9;
                 actor->field_93E  = 3;
-                actor->field_124  = Player_Status.weaponSlotItem | 0x21900;
+                actor->field_124  = gPlayerStatus.weaponSlotItem | 0x21900;
                 rec->end0Radius   = 0x100;
                 rec->end1Radius   = 0x100;
                 rec->ends[0].vz   = rec->ends[1].vz + D_80112F60[0x19];

@@ -469,7 +469,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
 end:
     Gp_ClearRec18Occupied(work->field_49C);
     if (work->field_504.flags & 1) {
-        if ((work->field_504.key.value & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
+        if ((work->field_504.key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
             work->field_588      = 1;
             Gp_StateC08.field_6 |= 1;
         }

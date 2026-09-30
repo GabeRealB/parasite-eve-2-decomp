@@ -1603,10 +1603,10 @@ static void Actor07000_Fn00A1C(Task* arg0)
             work->field_2CE = 0;
         }
     }
-    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    dx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     scratch->delta.vx.word = dx;
-    scratch->delta.vy.word = (s32)(Player_Status.coordMtx->t[1] - coord->coord.t[1]);
-    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    scratch->delta.vy.word = (s32)(gPlayerStatus.coordMtx->t[1] - coord->coord.t[1]);
+    dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     scratch->delta.vz.word = dz;
     distance               = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x320) {
@@ -1787,9 +1787,9 @@ static void Actor07000_Fn0107C(Task* arg0)
     coord        = arg0->extra.tmd->coords;
     work         = (Actor107000Work*)arg0->work;
     sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
-    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
     cur          = work->field_2B0 & 0xFFF;
     diff         = want - cur;
@@ -3127,11 +3127,11 @@ static void Actor07000_Fn03E08(Task* arg0)
         switch (kind) {
             case 0x20000:
                 if (work->field_38A == 0) {
-                    dx                     = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                    dx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                     scratch->delta.vx.word = dx;
-                    dy                     = Player_Status.coordMtx->t[1] - coord->coord.t[1];
+                    dy                     = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                     scratch->delta.vy.word = dy;
-                    dz                     = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                    dz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                     scratch->delta.vz.word = dz;
                     damage                 = Gp_ComputeDamage(work->field_24C[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (Gp_RollEnemyChance(arg0->spawnArg2.pointer, work->field_24C[i].key.value, 0) != 0) {

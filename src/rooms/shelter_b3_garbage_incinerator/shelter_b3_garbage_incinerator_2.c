@@ -680,9 +680,9 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
             param2[3]             = 0;
             arg0->spawnArg1.value = (u16)CdCmd_Enqueue(0x21, param1, param2);
             if (gGameSession->skipEventIntro == 0) {
-                if (Player_Status.weapon == 0x17) {
+                if (gPlayerStatus.weapon == 0x17) {
                     p = msg;
-                    w = Player_Status.weapon;
+                    w = gPlayerStatus.weapon;
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                         v = w + 1;
                     } else {
@@ -696,7 +696,7 @@ void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
                     Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, msg, 0);
                 } else {
                     p = msg;
-                    w = Player_Status.weapon;
+                    w = gPlayerStatus.weapon;
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                         v = w + 1;
                     } else {
@@ -970,8 +970,8 @@ void func_shelter_b3_garbage_incinerator_8017E7A4(Task* arg0)
 /// message 0x3ED to it returns nonzero, and 1 otherwise: with no `field_2C`,
 /// with `field_38` below 0x2F, or with a negative table entry nothing is sent;
 /// else the entry plus 0x2F is recorded in `field_38` and sent with message
-/// 0x3E8. The set's block is `Player_Status.weapon + 1` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and
-/// `Player_Status.weapon + 0x22` otherwise.
+/// 0x3E8. The set's block is `gPlayerStatus.weapon + 1` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and
+/// `gPlayerStatus.weapon + 0x22` otherwise.
 static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
 {
     GarbageIncineratorWork* work = (GarbageIncineratorWork*)arg0->work;
@@ -996,7 +996,7 @@ static s32 func_shelter_b3_garbage_incinerator_8017F318(Task* arg0)
     }
     anim                     = D_shelter_b3_garbage_incinerator_80186F88[work->field_38 - 0x2F] + 0x2F;
     msgWork                  = (GarbageIncineratorWork*)arg0->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     msgWork->field_38        = anim;
@@ -1088,7 +1088,7 @@ void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
             }
             break;
         case 1:
-            ps = &Player_Status;
+            ps = &gPlayerStatus;
             if (session->sceneClock > 0) {
                 ok = 0;
             } else if (ps->hp <= 0) {
@@ -1119,8 +1119,8 @@ void func_shelter_b3_garbage_incinerator_8017F8A4(Task* arg0, s32 arg1, s32 arg2
 }
 
 /// Select animation set `arg0 + 0x2F`, record it in the work block, and send
-/// it to `field_2C` with message 0x3E8. The set's block is `Player_Status.weapon + 1`
-/// when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and `Player_Status.weapon + 0x22` otherwise.
+/// it to `field_2C` with message 0x3E8. The set's block is `gPlayerStatus.weapon + 1`
+/// when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` is 1 and `gPlayerStatus.weapon + 0x22` otherwise.
 void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 {
     GarbageIncineratorWork* work;
@@ -1131,7 +1131,7 @@ void func_shelter_b3_garbage_incinerator_8017F8AC(s32 arg0)
 
     work                     = D_shelter_b3_garbage_incinerator_8018FC3C->work;
     anim                     = arg0 + 0x2F;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     work->field_38           = anim;
@@ -1176,7 +1176,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
 
 void func_shelter_b3_garbage_incinerator_8017FA3C(void)
 {
-    Player_Status.hp          = 0;
+    gPlayerStatus.hp          = 0;
     gGameSession->restartMode = GAME_SESSION_RESTART_PRESERVE_DISPLAY;
 }
 

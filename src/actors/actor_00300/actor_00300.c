@@ -1779,9 +1779,9 @@ static void Actor00300_Fn019C0(Task* arg0)
             timer           = (u16)work->field_688 - 1;
             work->field_688 = timer;
             if (timer <= 0) {
-                scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 vec->vy           = 0;
-                vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
                 angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
                 work->field_680   = angle;
@@ -1809,9 +1809,9 @@ static void Actor00300_Fn019C0(Task* arg0)
             work->field_67C   = 0x3C;
             work->field_67A   = 0x19;
             work->field_66E   = 2;
-            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy           = 0;
-            vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
             angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
             work->field_680   = angle;
@@ -1887,9 +1887,9 @@ static void Actor00300_Fn01D60(Task* arg0)
             work->field_688 = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31) + 60;
         }
     } else {
-        sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+        sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
         sc->delta.vy = 0;
-        sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         if (SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz) < 3000) {
             work->field_684 = 3;
             work->field_686 = 0;
@@ -1947,9 +1947,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
             work->field_67A = 0;
             work->field_66E = 3;
             scratchEnd[-1].delta.vx =
-                (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+                (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
-            scratch->delta.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            scratch->delta.vz = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
             yaw               = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                   0xFFF;
             work->field_680 = yaw;
@@ -1978,9 +1978,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
             Gp_StateF0.field_28 = 0;
             work->field_67C     = 0xF;
             scratchEnd[-1].delta.vx =
-                (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+                (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
-            scratch->delta.vz = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            scratch->delta.vz = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
             work->field_680 =
                 ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                 0xFFF;
@@ -2105,9 +2105,9 @@ static void Actor00300_Fn02620(Task* arg0)
             work->field_67C   = 0x3C;
             work->field_67A   = 0;
             work->field_66E   = 3;
-            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy           = 0;
-            vec->vz           = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
             work->field_680   = angle;
             delta             = (u16)angle - (u16)work->field_67E;
@@ -3075,9 +3075,9 @@ static void Actor00300_Fn04528(Task* arg0)
 
     coord        = arg0->extra.tmd->coords;
     sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
-    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
     ang          = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
     cur          = ang;

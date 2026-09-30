@@ -38,9 +38,9 @@ void podWeakPointHit(Enemy* arg0, Task* arg1)
         if (part->rec18[0].key.value & 0x8000) {
             func_800DA6E8(&arg0->node, 0, 0);
         } else {
-            vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             damage  = Gp_ComputeDamage(part->rec18[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (Gp_RollEnemyChance(arg0, part->rec18[0].key.value, 0) != 0) {
                 damage *= 4;

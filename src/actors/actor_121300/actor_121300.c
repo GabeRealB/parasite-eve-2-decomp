@@ -166,7 +166,7 @@ typedef struct Actor121300DebrisWork {
 } Actor121300DebrisWork;
 STATIC_ASSERT_SIZEOF(Actor121300DebrisWork, 0x5C);
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 message 0x3E8 record is keyed on,
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` (the cutscene mode flag) gate the actor's setup.
@@ -2445,7 +2445,7 @@ static void func_actor_121300_80133BFC(Task* task)
 /// State 0 waits until no other cutscene is up -- a `Gp_StateC08.field_A` of 1 or a live
 /// `gDisplayState.pendingMode` means one is -- and then builds the work block through
 /// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
-/// message 0x3E8 record is `Player_Status.weapon` plus 1 in the alternate weapon block
+/// message 0x3E8 record is `gPlayerStatus.weapon` plus 1 in the alternate weapon block
 /// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
 /// zero.  State 1 hands the cutscene's two script blocks to `func_800E8634`,
 /// state 2 spawns the `D_actor_121300_8013D390[9]` child while the session is
@@ -2469,7 +2469,7 @@ void func_actor_121300_80133D98(Task* arg0)
     switch (state) {
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                weaponId                         = Player_Status.weapon;
+                weaponId                         = gPlayerStatus.weapon;
                 anim                             = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 scratch.msg.source.index         = anim;
                 scratch.msg.animationId          = 1;

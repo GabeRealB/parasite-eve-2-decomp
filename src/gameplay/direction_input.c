@@ -92,7 +92,7 @@ void func_800AD6BC(void)
     GpDirActionTable funcs;
 
     funcs = Gp_DirActionFns;
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     slot  = gameGetPtrSlot(1);
     if (slot != NULL) {
         if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
@@ -190,7 +190,7 @@ void Gp_SetupDirWarp(void)
     room  = sess->area;
     slot7 = gameGetPtrSlot(7);
     slot3 = gameGetPtrSlot(3);
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     actor = slot3->work;
 
     if (gGameSession->eventState != 0) {
@@ -332,7 +332,7 @@ void Gp_CommitWarp(void)
     u8               fade;
 
     slot3 = gameGetPtrSlot(3);
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     slot7 = gameGetPtrSlot(7);
 
     sess = &gGameSession->location.loc;

@@ -6,7 +6,7 @@
 #include "hud.h"
 
 /// Pair of s32 working copies at `Gp_HpMpWork`. `Gp_ResetHudFx` (and
-/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `Player_Status.hp` /
+/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `gPlayerStatus.hp` /
 /// `field_1c` into `field_0` / `field_4`.
 typedef struct _GpStateBE8 {
     /* 0x0 */ s32 field_0;

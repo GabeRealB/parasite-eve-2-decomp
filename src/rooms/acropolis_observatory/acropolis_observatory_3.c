@@ -83,7 +83,7 @@ typedef struct AobFlareScratch {
 } AobFlareScratch;
 STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` gate the scene's setup (the latter is the
@@ -948,7 +948,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             break;
         case 5:
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;

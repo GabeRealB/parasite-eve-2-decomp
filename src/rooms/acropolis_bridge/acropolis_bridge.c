@@ -4677,7 +4677,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         case 0:
             break;
         case 1:
-            cfg                            = &Player_Status + (walker->field_6E - 1);
+            cfg                            = &gPlayerStatus + (walker->field_6E - 1);
             pos                            = (SVECTOR3*)(head - 0x24);
             ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
             pos->vy                        = (u16)cfg->coordMtx->t[1];
@@ -5195,7 +5195,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     Enemy*                    enemy;
     PlayerStatus*             cfg;
 
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -5304,7 +5304,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     PlayerStatus*             cfg;
     u16                       height;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     work = (AcropolisBridgeEnemyWork*)task->work;
     if (work->field_4 != 0) {
         enemy = (Enemy*)task->spawnArg2.pointer;
@@ -5361,7 +5361,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     Enemy*                    enemy;
     PlayerStatus*             cfg;
 
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -5684,10 +5684,10 @@ void func_acropolis_bridge_80187078(Task* task)
         rsin((gDisplayState.animFrame << 5) + task->extra.tmd->coords->coord.t[0]) >> 6;
     if (bridge_rec_kind1(work->recs) != 0) {
         coord  = task->extra.tmd->coords;
-        dir.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+        dir.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
         d      = &dir;
-        d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-        d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        d->vy  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        d->vz  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
         VectorNormalSS(d, d);
         gte_lddp(-0x10);

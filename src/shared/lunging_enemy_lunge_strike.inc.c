@@ -30,9 +30,9 @@ void lungerLungeStrikeState(Task* arg0)
     }
     anim = gLungerAnimBlendFrames[work->field_694];
     if ((work->field_698 >= anim + 0x1C) && (anim + 0x1E >= work->field_698)) {
-        dx        = Player_Status.coordMtx->t[0] - self->coord.t[0];
+        dx        = gPlayerStatus.coordMtx->t[0] - self->coord.t[0];
         delta->vx = dx;
-        dz        = Player_Status.coordMtx->t[2] - self->coord.t[2];
+        dz        = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
         delta->vz = dz;
         distance  = SquareRoot0((delta->vx * delta->vx) + (delta->vz * delta->vz));
         if (distance < 0x3E8) {

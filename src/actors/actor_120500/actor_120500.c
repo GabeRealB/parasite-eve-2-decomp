@@ -490,7 +490,7 @@ static void func_actor_120500_80132028(Task* arg0)
             Gp_DispatchMsg(arg0, 0x7D5, 2, 0);
             break;
         case 6:
-            base = Player_Status.weapon;
+            base = gPlayerStatus.weapon;
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim = base + 1;
             } else {
@@ -594,7 +594,7 @@ void func_actor_120500_8013241C(Task* arg0)
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 func_actor_120500_801322A0(arg0);
-                anim = Player_Status.weapon;
+                anim = gPlayerStatus.weapon;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     anim = anim + 1;
                 } else {

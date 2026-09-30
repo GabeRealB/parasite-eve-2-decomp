@@ -790,7 +790,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// hands back to `func_80106550` once `func_80105894` is done or the timer has
 /// run out.
 ///
-/// `Player_Status.weaponSlotItem` is the low byte `func_801061F0` packs into
+/// `gPlayerStatus.weaponSlotItem` is the low byte `func_801061F0` packs into
 /// `GameActor::field_124`. Reading it through the struct rather than as a bare
 /// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
 /// the `actor->` stores: a scalar global and a struct field do not alias, so
@@ -840,7 +840,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
                 actor->field_95A  = 0;
                 actor->field_934  = 0;
                 actor->field_93E  = 3;
-                actor->field_124  = Player_Status.weaponSlotItem | 0x21D00;
+                actor->field_124  = gPlayerStatus.weaponSlotItem | 0x21D00;
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 1);
             } else if (actor->field_97F & 2) {

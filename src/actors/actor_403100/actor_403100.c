@@ -5361,7 +5361,7 @@ static inline void _actor403100PitchArms(Task* task)
 static void func_actor_403100_80136830(Task* arg0)
 {
     TaskFuncTable11 stateHandlers;
-    PlayerStatus*   config = &Player_Status;
+    PlayerStatus*   config = &gPlayerStatus;
     s32             flashTimer;
     s32             scale;
     s16             lightTimer;
@@ -5570,10 +5570,10 @@ static void func_actor_403100_80137310(Task* task)
     u32 random1;
     u32 random2;
 
-    halfHealth = Player_Status.hpMax / 2;
+    halfHealth = gPlayerStatus.hpMax / 2;
     phase      = D_actor_403100_80155808->field_628;
     if (phase != 2 && phase != 6) {
-        if ((Player_Status.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
+        if ((gPlayerStatus.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
             random1                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                    = random1;
             D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
@@ -6522,7 +6522,7 @@ static void func_actor_403100_80139818(Task* arg0)
     playerTask = *gPlayerActorTasks;
     coords     = arg0->extra.tmd->coords;
     part       = coords + 6;
-    config     = &Player_Status;
+    config     = &gPlayerStatus;
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         if ((u8)D_actor_403100_80155808->field_65F == 1) {
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -8334,7 +8334,7 @@ static void func_actor_403100_8013E174(void)
 {
     s16 timer;
 
-    if (Player_Status.hp > 0) {
+    if (gPlayerStatus.hp > 0) {
         timer                              = (u16)D_actor_403100_80155808->field_5F4 - 1;
         D_actor_403100_80155808->field_5F4 = timer;
         if (timer < 0) {
@@ -8350,7 +8350,7 @@ static void func_actor_403100_8013E1E4(void)
     AnimationPlayRequest sp;
 
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
-        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
         sp.source.sets                      = _gActor403100PlayerAnimationSets;
         sp.blend                            = ANIMATION_BLEND_INTERPOLATE;
         sp.blendFrames                      = 3;

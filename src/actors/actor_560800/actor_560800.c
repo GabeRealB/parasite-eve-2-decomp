@@ -4969,7 +4969,7 @@ static inline void Actor560800_PlaySe(s16 arg4)
     s32 msg[5];
     s32 val;
 
-    val    = Player_Status.weapon;
+    val    = gPlayerStatus.weapon;
     msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 0;
@@ -4983,7 +4983,7 @@ static inline void Actor560800_PlaySeB(s32 arg4)
     s32 msg[5];
     s32 val;
 
-    val    = Player_Status.weapon;
+    val    = gPlayerStatus.weapon;
     msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
     msg[1] = arg4;
     msg[2] = 1;
@@ -5043,7 +5043,7 @@ static inline void Actor560800_SpawnSparksB(Task* task)
 ///
 /// Shape notes, all needed for the match: helpers take only the arguments that
 /// vary, because an inlined parameter is copied to a pseudo even when constant
-/// and CSE would then share it; `Player_Status.coordMtx` is read as a struct member so the load is
+/// and CSE would then share it; `gPlayerStatus.coordMtx` is read as a struct member so the load is
 /// in-struct and schedules after the `field_2C` store; the explicit clears in 19,
 /// 28 and the last step of 35 decide which anim tails cross-jump together.
 static void func_actor_560800_80133970(Task* arg0)
@@ -5082,7 +5082,7 @@ static void func_actor_560800_80133970(Task* arg0)
                 case 1:
                     if (work->field_2C < 100) {
                         work->field_2C               += 5;
-                        Player_Status.coordMtx->t[0] -= 5;
+                        gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
                     Actor560800_PlayAnimB(arg0, 0xC, 0xA);
@@ -5467,7 +5467,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                 case 1:
                     if (work->field_44 < 300) {
                         work->field_44               += 5;
-                        Player_Status.coordMtx->t[0] -= 5;
+                        gPlayerStatus.coordMtx->t[0] -= 5;
                         return;
                     }
                     Actor560800_PlayAnimB(arg0, 2, 0xA);
@@ -5739,7 +5739,7 @@ void func_actor_560800_80135D54(Task* arg0)
             if (gGameSession->eventState == 0) {
                 gRandomLcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
-                val    = Player_Status.weapon;
+                val    = gPlayerStatus.weapon;
                 msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
                 msg[2] = 0;
@@ -6080,7 +6080,7 @@ void func_actor_560800_801367E0(s16 arg0)
 void func_actor_560800_80136818(void)
 {
     Actor560800Work* work = (Actor560800Work*)D_actor_560800_8017578C->work;
-    PlayerStatus*    cfg  = &Player_Status;
+    PlayerStatus*    cfg  = &gPlayerStatus;
     s16              hp;
 
     Gp_KillPlayerEffs();
@@ -6110,7 +6110,7 @@ void func_actor_560800_80136878(void)
     work->field_30 = 0;
     work->field_38 = 0;
     if ((u16)work->field_64 == 0) {
-        PlayerStatus*    cfg   = &Player_Status;
+        PlayerStatus*    cfg   = &gPlayerStatus;
         Actor560800Work* work2 = (Actor560800Work*)D_actor_560800_8017578C->work;
 
         Gp_KillPlayerEffs();

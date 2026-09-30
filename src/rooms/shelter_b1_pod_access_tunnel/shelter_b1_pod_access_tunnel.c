@@ -1221,7 +1221,7 @@ void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
 }
 
 /// Two-state task: state 0, unless blocked by `Gp_StateC08.field_A` or `gDisplayState.pendingMode`,
-/// sends the slot-3 task a `AnimationPlayRequest` built from `Player_Status.weapon` (msg 0x3E8) and runs
+/// sends the slot-3 task a `AnimationPlayRequest` built from `gPlayerStatus.weapon` (msg 0x3E8) and runs
 /// `D_shelter_b1_pod_access_tunnel_80181120` through `func_800E8614`; state 1
 /// sets `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x1D and kills this task once the session is idle.
 void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
@@ -1235,7 +1235,7 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
     switch (state) {
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                weaponId                 = Player_Status.weapon;
+                weaponId                 = gPlayerStatus.weapon;
                 id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.source.index         = id;
                 rec.animationId          = 1;

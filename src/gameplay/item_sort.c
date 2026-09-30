@@ -832,7 +832,7 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 
     table = _gpScanTable(arg0);
     idx   = arg0->firstRow;
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     while (arg1 >= 0) {
         if ((u8)(table[idx].itemId + 0x80) < 0x20) {
             if (arg2 == 0) {
@@ -911,7 +911,7 @@ void Gp_RefreshItemRow(InventoryItemRow* arg0)
     }
 
     item = arg0->itemId;
-    if (item == Player_Status.weapon + 0x7F) {
+    if (item == gPlayerStatus.weapon + 0x7F) {
         return;
     }
 

@@ -446,7 +446,7 @@ void Gp_RecalcMaxMp(void)
     s32           i;
     s32           j;
 
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     acc    = 0;
     levels = (s8*)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     for (i = 0; i < 0xC; i++) {
@@ -481,7 +481,7 @@ void Gp_EquipMod(s32 arg0)
     InventoryItemRange* scan;
     s32                 i;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     if ((u32)(arg0 - 0x60) < 0x20U) {
         if (cfg->armor != (arg0 - 0x5F)) {
             InventoryItemRow* found;
@@ -503,7 +503,7 @@ void Gp_EquipMod(s32 arg0)
                     GpStatRow*    table;
                     u16           val;
 
-                    p        = &Player_Status;
+                    p        = &gPlayerStatus;
                     table    = Gp_StatRows;
                     save     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                     val      = table[save->state.gameMode].base.half;

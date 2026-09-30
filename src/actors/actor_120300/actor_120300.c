@@ -1530,7 +1530,7 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
         AnimationPlayRequest request;                                                                                                \
         s32                  weaponId;                                                                                               \
                                                                                                                                      \
-        weaponId                     = Player_Status.weapon;                                                                         \
+        weaponId                     = gPlayerStatus.weapon;                                                                         \
         request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
         request.animationId          = 1;                                                                                            \
         request.blend                = (blendChoice);                                                                                \
@@ -1852,7 +1852,7 @@ static void func_actor_120300_80132C60(Task* arg0)
 /// slots 1..19 to the 8 it first parks in `field_4D4`.
 /// `func_actor_120300_801337C4` calls it with 1 once flag nibble 0x2D is set; a
 /// zero argument additionally hands the task at 0x4B4 the player-weapon record
-/// (`AnimationPlayRequest`, built from the equip-slot addend `Player_Status.weapon`), lifts
+/// (`AnimationPlayRequest`, built from the equip-slot addend `gPlayerStatus.weapon`), lifts
 /// `field_4E0` to 0x1000 and drops the pending overlay replacement.  The
 /// request codes at 0x4C0 and 0x4C8 are cleared either way, so any phase
 /// counter armed alongside them restarts from the top.
@@ -1885,7 +1885,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsg(work->field_4BC, 0x7D5, 1, 0);
     Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
     if (arg0 == 0) {
-        weaponId                 = Player_Status.weapon;
+        weaponId                 = gPlayerStatus.weapon;
         id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.source.index         = id;
         rec.animationId          = 1;
@@ -2059,7 +2059,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     }
                     arg0->state = 4;
                 } else {
-                    weaponId = Player_Status.weapon;
+                    weaponId = gPlayerStatus.weapon;
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                         weaponId = weaponId + 1;
                     } else {
@@ -2096,7 +2096,7 @@ void func_actor_120300_801337C4(Task* arg0)
             if ((s16)Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
                 if (!((s16)evtId & 0x8000)) {
                     if ((evtId & 0x7FFF) == 5) {
-                        ready = Player_Status.interactionPressed != 0;
+                        ready = gPlayerStatus.interactionPressed != 0;
                     }
                 }
             }

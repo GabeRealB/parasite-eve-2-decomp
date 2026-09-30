@@ -529,7 +529,7 @@ void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1)
     s32           color;
     s32           max;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     xOff = arg0->contentLeft.signedValue;
     arg1 = arg1 + 8;
     x    = xOff + 6;
@@ -674,7 +674,7 @@ void Gp_HpMpBarTask(Task* arg0)
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
-        cfg                 = &Player_Status;
+        cfg                 = &gPlayerStatus;
         Gp_HpMpWork.field_0 = cfg->hp;
         Gp_HpMpWork.field_4 = cfg->mp;
         arg0->state         = arg0->state + 1;
@@ -741,7 +741,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
     GpItemAttr*   attr;
 
     obj         = arg0->spawnArg2.pointer;
-    cfg         = &Player_Status;
+    cfg         = &gPlayerStatus;
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x11);
 
@@ -959,7 +959,7 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32                  loadedItemId;
     s32                  count;
 
-    item = Player_Status.weapon;
+    item = gPlayerStatus.weapon;
     if (item > 0) {
         item += 0x7F;
     }
@@ -1011,7 +1011,7 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     s32                  y;
 
     equipped = 0;
-    cfg      = &Player_Status;
+    cfg      = &gPlayerStatus;
     buf[0]   = 0;
     buf[1]   = 0;
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
@@ -1155,7 +1155,7 @@ static inline InventoryItemRow* _gpNthLooseRec(InventoryItemRange* scan, s32 ind
     count = scan->rowCount;
     table = &table[scan->firstRow];
     if (count != 0) {
-        p   = &Player_Status;
+        p   = &gPlayerStatus;
         one = 1;
         n   = count;
         do {
@@ -1311,8 +1311,8 @@ void Gp_CountAmmoRows(UiList* arg0, s32 arg1)
     scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     {
         register s32 hi asm("v1");
-        asm volatile("lui %1, %%hi(Player_Status)\n\t"
-                     "addiu %0, %1, %%lo(Player_Status)"
+        asm volatile("lui %1, %%hi(gPlayerStatus)\n\t"
+                     "addiu %0, %1, %%lo(gPlayerStatus)"
                      : "=r"(cfg), "=r"(hi));
     }
     limit = scan->rowCount;
@@ -1402,8 +1402,8 @@ static __inline__ void countItemRows(UiList* menu)
         id = table->itemId;
         ok = 1;
         if ((table->attachSlot != INVENTORY_ATTACHMENT_NONE) ||
-            (((u32)(id - 0x60) < 0x20U) && (Player_Status.armor == id - 0x5F)) ||
-            (((u32)(id - 0x80) < 0x20U) && (Player_Status.weapon == id - 0x7F))) {
+            (((u32)(id - 0x60) < 0x20U) && (gPlayerStatus.armor == id - 0x5F)) ||
+            (((u32)(id - 0x80) < 0x20U) && (gPlayerStatus.weapon == id - 0x7F))) {
             ok = 0;
         }
         if (ok == 0) {
@@ -1588,7 +1588,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
     s32           color;
     s32           temp;
 
-    player = &Player_Status;
+    player = &gPlayerStatus;
     item   = player->weapon + 0x7F;
     if (item < 0x80) {
         item = 0;
@@ -1654,7 +1654,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     PlayerStatus*     p;
                     InventoryItemRow* rec;
 
-                    p = &Player_Status;
+                    p = &gPlayerStatus;
                     Gp_ClearEquipSlotSel(item, 0);
                     rec       = Gp_SelItemRec;
                     p->weapon = rec->itemId - 0x7F;
@@ -1730,7 +1730,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
 
     item   = 0;
     count  = 0;
-    weapon = Player_Status.weapon + 0x7F;
+    weapon = gPlayerStatus.weapon + 0x7F;
     if (weapon >= 0x80) {
         slot = Gp_GetItemSlot(weapon);
         if (prompt->field_8 == 1) {
@@ -1818,7 +1818,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 s32 currentWeapon;
                 s32 yOffset;
                 s32 xOffset;
-                currentWeapon = Player_Status.weapon + 0x7F;
+                currentWeapon = gPlayerStatus.weapon + 0x7F;
                 SndEvt_EnqueueType6(3, 0, 0);
                 child = Ui_SpawnFromDesc(&D_8010ECC8, currentWeapon, 1, 0x10, obj);
                 if (child != NULL) {
@@ -1861,7 +1861,7 @@ static inline void _gpWeaponMenuSetRows(UiList* menu)
     s32                  id;
     EquipmentWeaponLoad* slot;
 
-    id   = Player_Status.weapon + 0x7F;
+    id   = gPlayerStatus.weapon + 0x7F;
     slot = Gp_GetItemSlot(id);
     if (id < 0x80 || id == 0x92) {
         menu->field_4 = 1;
@@ -2228,7 +2228,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
     menu        = &D_8010E8AC;
     obj         = arg0->spawnArg2.pointer;
-    cfg         = &Player_Status;
+    cfg         = &gPlayerStatus;
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, Gp_StrArmor);
 
@@ -2267,7 +2267,7 @@ void Gp_ArmorMenuTask(Task* arg0)
         s32 id;
         s32 temp;
 
-        id = Player_Status.armor + 0x5F;
+        id = gPlayerStatus.armor + 0x5F;
         if (id != 0) {
             menu->field_4 = Gp_GetModLevel(id);
         }
@@ -2593,7 +2593,7 @@ static inline s32 _gpIsEquippedItem(s32 id)
     PlayerStatus* p;
 
     ret = 0;
-    p   = &Player_Status;
+    p   = &gPlayerStatus;
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&

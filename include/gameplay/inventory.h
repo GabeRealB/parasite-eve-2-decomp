@@ -49,7 +49,7 @@ typedef struct _GpItemA0 {
 STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
 
 /// The starting max HP at the head of a `Gp_StatRow`. `Gp_RecalcMaxHp` reads it
-/// as the unsigned halfword it writes straight into `Player_Status.hpMax`,
+/// as the unsigned halfword it writes straight into `gPlayerStatus.hpMax`,
 /// while the Mist shooting gallery's STATUS panel reads the same slot as a full
 /// word, so the slot is declared both ways.
 typedef union _GpStatBase {
@@ -60,7 +60,7 @@ STATIC_ASSERT_SIZEOF(GpStatBase, 0x4);
 
 /// 8-byte row in `Gp_StatRows` (4 entries), indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode`.
 /// base is the starting max HP (see `GpStatBase`). field_4 is the word added
-/// into `Player_Status.mpMax` (`Gp_RecalcMaxMp`).
+/// into `gPlayerStatus.mpMax` (`Gp_RecalcMaxMp`).
 typedef struct _GpStatRow {
     /* 0x00 */ GpStatBase base;
     /* 0x04 */ s32        field_4;

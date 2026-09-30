@@ -39,7 +39,7 @@ typedef struct _GunbladeScratch {
 } GunbladeScratch;
 STATIC_ASSERT_SIZEOF(GunbladeScratch, 0x68);
 
-/// `Player_Status.weaponSlotItem`, the attachment id of the held weapon, read under
+/// `gPlayerStatus.weaponSlotItem`, the encoded primary weapon-slot item, read under
 /// its own address wherever the value is wanted once rather than as one of a
 /// run of accesses to the config block.
 
@@ -85,7 +85,7 @@ static void func_gunblade_8011E040(Task* arg0)
 
     shake = 0;
     actor = arg0->work;
-    sfx   = (Player_Status.weaponSlotItem - 0xD) << 24;
+    sfx   = (gPlayerStatus.weaponSlotItem - 0xD) << 24;
     rec   = &actor->field_14C;
     SCRATCH_STACK_RESERVE_BYTES(sizeof(GunbladeScratch));
     blk   = SCRATCH_STACK_CURSOR(GunbladeScratch);
@@ -136,15 +136,15 @@ static void func_gunblade_8011E040(Task* arg0)
             actor->field_95E = 6;
             actor->field_14C.ends[0].vz =
                 actor->field_14C.ends[1].vz + 0x2200;
-            actor->field_124 = Player_Status.weaponSlotItem | 0x21700;
+            actor->field_124 = gPlayerStatus.weaponSlotItem | 0x21700;
             rec->end1Radius  = 0x100;
             rec->ends[0].vz  = rec->ends[1].vz + 0x2200;
             spread           = 0x900;
-            if (Player_Status.weaponSlotItem != 0xD) {
+            if (gPlayerStatus.weaponSlotItem != 0xD) {
                 spread = 0x100;
             }
             rec->end0Radius = spread;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= 0xF7FF;
@@ -153,7 +153,7 @@ static void func_gunblade_8011E040(Task* arg0)
             actor->field_12A |= 0xC000;
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
             Gp_SpawnEff(0x600A1, actor->field_91C->extra.tmd->coords,
-                        (Player_Status.weaponSlotItem << 16) | 0x17, NULL);
+                        (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
             Gp_AnimPlayChildSlotsEx(arg0, 0xB, 0, 3);
             break;
         case 3:
@@ -179,15 +179,15 @@ static void func_gunblade_8011E040(Task* arg0)
             if (actor->field_95E == 4 && (s8)func_801060E0(arg0) == 2) {
                 actor->field_95E = 5;
                 if (func_80106264(1) != 0) {
-                    if (Player_Status.weaponSlotItem < 0xF) {
-                        lvl = Player_Status.weaponSlotItem + 0xB;
+                    if (gPlayerStatus.weaponSlotItem < 0xF) {
+                        lvl = gPlayerStatus.weaponSlotItem + 0xB;
                     } else {
                         lvl = 0x20;
                     }
                     actor->field_124 = lvl | 0x21700;
                     Gp_ConsumeSlotQty(0x96, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
-                    func_gunblade_8011E008(Player_Status.weaponSlotItem);
+                    func_gunblade_8011E008(gPlayerStatus.weaponSlotItem);
                 } else {
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }
@@ -204,9 +204,9 @@ static void func_gunblade_8011E040(Task* arg0)
             break;
         case 6:
             actor->field_95E++;
-            if (Player_Status.weaponSlotItem != 0xD) {
+            if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, &blk->coord);
-                if (Player_Status.weaponSlotItem == 0xE) {
+                if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         blk->coord.workm.t[0] = actor->field_32C[0].point.vx;
                         blk->coord.workm.t[1] = actor->field_32C[0].point.vy;

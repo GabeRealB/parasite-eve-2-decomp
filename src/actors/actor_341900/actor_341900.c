@@ -179,7 +179,7 @@ typedef struct Actor341900AnimCmd {
 } Actor341900AnimCmd;
 STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the
 /// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
@@ -746,7 +746,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 s32 weaponId;
                 s32 anim;
 
-                weaponId                 = Player_Status.weapon;
+                weaponId                 = gPlayerStatus.weapon;
                 anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.source.index         = anim;
                 msg.animationId          = 1;
@@ -786,7 +786,7 @@ static void func_actor_341900_801628B8(Task* arg0)
             s32 weaponId;
             s32 anim;
 
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 9;
@@ -1128,8 +1128,8 @@ void func_actor_341900_80163584(s16 arg0)
 
 /// Installs one animation set on slot 3 (message 0x3E8) and then warps it to
 /// the overlay's fixed placement (message 0x3E9), cancelling any pending CD
-/// command replacement on the way out. The set is `Player_Status.weapon + 1` for the
-/// alternate weapon block and `Player_Status.weapon + 0x22` for the base one; its
+/// command replacement on the way out. The set is `gPlayerStatus.weapon + 1` for the
+/// alternate weapon block and `gPlayerStatus.weapon + 0x22` for the base one; its
 /// `field_4` is 9, the rest of the frame is zero.
 void func_actor_341900_801635A4(void)
 {
@@ -1139,7 +1139,7 @@ void func_actor_341900_801635A4(void)
     s32                  anim;
 
     work                     = (Actor341900Work*)D_actor_341900_80164208->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 9;

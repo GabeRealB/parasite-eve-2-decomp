@@ -1789,8 +1789,8 @@ void Actor05700_Fn01E28(Task* arg0)
             work->field_69C = -0x16;
             work->field_69E = 0x1E;
             work->field_6CE = work->field_6D0 > 0;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
             Actor05700_Fn02554(arg0);
             work->field_6AE++;
@@ -1956,9 +1956,9 @@ void Actor05700_Fn023AC(Task* arg0)
     }
     anim = gLungerAnimBlendFrames[work->field_694];
     if ((work->field_698 >= anim + 0x1C) && (anim + 0x1E >= work->field_698)) {
-        dx        = Player_Status.coordMtx->t[0] - self->coord.t[0];
+        dx        = gPlayerStatus.coordMtx->t[0] - self->coord.t[0];
         delta->vx = dx;
-        dz        = Player_Status.coordMtx->t[2] - self->coord.t[2];
+        dz        = gPlayerStatus.coordMtx->t[2] - self->coord.t[2];
         delta->vz = dz;
         distance  = SquareRoot0((delta->vx * delta->vx) + (delta->vz * delta->vz));
         if (distance < 0x3E8) {
@@ -2612,8 +2612,8 @@ void Actor05700_Fn04714(Task* arg0)
             }
             work->field_69C = speed;
             work->field_69E = 0x1E;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
             yaw             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
             work->field_6A2 = yaw;
@@ -2652,8 +2652,8 @@ void Actor05700_Fn04714(Task* arg0)
         case 1:
             work->field_69C = 0;
             work->field_69E = 0;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz       = dz;
             dx              = delta->vx;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -2663,7 +2663,7 @@ void Actor05700_Fn04714(Task* arg0)
             } else {
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = random;
-                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Player_Status.statusFlags & PLAYER_STATUS_SILENCE) &&
+                if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&
                     work->field_6C4 != 0) {
                     work->field_6A6 = 5;
                     work->field_6A8 = 0;
@@ -2690,8 +2690,8 @@ void Actor05700_Fn04714(Task* arg0)
                 work->field_694       = 2;
                 work->field_6A8       = 0;
             } else if (work->field_698 >= 0x60) {
-                delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
                 yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                 work->field_6A2 = yaw2;

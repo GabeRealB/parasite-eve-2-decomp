@@ -1035,9 +1035,9 @@ static void func_actor_105100_80132C2C(Task* arg0)
     }
     for (i = 0; i < 3; i++) {
         if ((u16)(work->field_49C[i].key.value >> 16) == 2 && work->field_58C == 0) {
-            sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->delta.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             damage       = Gp_ComputeDamage(work->field_49C[i].key.value,
                                             SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vy * sc->delta.vy +
                                                         sc->delta.vz * sc->delta.vz),
@@ -1137,7 +1137,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
         work->field_5BE = 0;
     }
     if (work->field_53C[0].flags & 1) {
-        if ((work->field_53C[0].key.value & 0xFFFF0000) == 0x10000 && Player_Status.hp > 0) {
+        if ((work->field_53C[0].key.value & 0xFFFF0000) == 0x10000 && gPlayerStatus.hp > 0) {
             work->field_5A2      = 1;
             Gp_StateC08.field_6 |= 1;
         }
@@ -2128,9 +2128,9 @@ body:
             timer          = work->field_78 + 1;
             work->field_78 = timer;
             if ((s16)timer >= 3) {
-                scratch->vec.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                scratch->vec.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                scratch->vec.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                scratch->vec.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                scratch->vec.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 Gp_OrientAlong(&scratch->vec, &coord->coord, 0);
                 work->field_7A = 3;
                 work->field_78 = 0;
@@ -2445,9 +2445,9 @@ static void func_actor_105100_80135B40(Task* arg0)
 
     sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     coord        = arg0->extra.tmd->coords;
-    sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
-    sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     ang          = ratan2((s32)(s16)sc->delta.vx, (s32)(s16)sc->delta.vz) & 0xFFF;
     snap         = ang;
     cur          = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -2741,7 +2741,7 @@ static void func_actor_105100_80136318(Task* arg0)
     s32              snd;
 
     work = arg0->work;
-    if (Player_Status.hp <= 0) {
+    if (gPlayerStatus.hp <= 0) {
         ((Enemy*)arg0->spawnArg2.pointer)->hp = 1;
         work->field_596                       = 6;
         work->field_598                       = 0;

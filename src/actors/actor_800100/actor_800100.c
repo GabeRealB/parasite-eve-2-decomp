@@ -1506,11 +1506,11 @@ static void func_actor_800100_80163214(Task* arg0)
     }
     obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->field_984              = 7;
-    savedResourceVariant          = Player_Status.resourceVariant;
-    Player_Status.resourceVariant = save->state.companionVariant;
+    savedResourceVariant          = gPlayerStatus.resourceVariant;
+    gPlayerStatus.resourceVariant = save->state.companionVariant;
     actor->field_920              = func_80104258(arg0, 0, 5, 1);
     actor->field_924              = func_80104258(arg0, 1, 5, 1);
-    Player_Status.resourceVariant = savedResourceVariant;
+    gPlayerStatus.resourceVariant = savedResourceVariant;
     if (actor->field_924 != NULL) {
         task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
@@ -3360,7 +3360,7 @@ static void func_actor_800100_8016666C(GfxCoord* arg0, s16 arg1)
 
     angle = arg1;
     if (arg1 == 0) {
-        angle = D_80112F60[Player_Status.weapon];
+        angle = D_80112F60[gPlayerStatus.weapon];
     }
     blk->tip.vy    = angle;
     blk->origin.vx = 0;
@@ -3633,7 +3633,7 @@ static void func_actor_800100_80166F50(Task* arg0)
         rec->ends[0].vx      = rec->ends[1].vx;
         rec->ends[1].vz      = 0x20;
         rec->ends[0].vy      = rec->ends[1].vy;
-        rec->ends[0].vz      = rec->ends[1].vz + D_80112F60[Player_Status.weapon];
+        rec->ends[0].vz      = rec->ends[1].vz + D_80112F60[gPlayerStatus.weapon];
         rec->end1Radius      = 1;
         rec->end0Radius      = 1;
         rec->contacts        = actor->aimContacts;

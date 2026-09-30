@@ -1263,8 +1263,8 @@ void Actor05600_Fn01E1C(Task* arg0)
             work->field_69C = -0x16;
             work->field_69E = 0x1E;
             work->field_6CE = work->field_6D0 > 0;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF;
             lungerAimLaserSight(arg0);
             work->field_6AE++;
@@ -1765,8 +1765,8 @@ void Actor05600_Fn041E4(Task* arg0)
             }
             work->field_69C = speed;
             work->field_69E = 0x1E;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
             yaw             = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
             work->field_6A2 = yaw;
@@ -1805,8 +1805,8 @@ void Actor05600_Fn041E4(Task* arg0)
         case 1:
             work->field_69C = 0;
             work->field_69E = 0;
-            delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz       = dz;
             dx              = delta->vx;
             if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -1830,8 +1830,8 @@ void Actor05600_Fn041E4(Task* arg0)
                 work->field_694       = 2;
                 work->field_6A8       = 0;
             } else if (work->field_698 >= 0x60) {
-                delta->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                delta->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                delta->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                delta->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 work->field_6A4 = (u16)(ratan2((s16)delta->vx, (s16)delta->vz) & 0xFFF);
                 yaw2            = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
                 work->field_6A2 = yaw2;

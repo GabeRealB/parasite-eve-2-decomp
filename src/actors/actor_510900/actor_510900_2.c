@@ -814,9 +814,9 @@ static void func_actor_510900_80135744(Task* arg0)
                     dmg = (s16)Gp_ComputeDamage(work->rec49C[i].key.value, 0, 0, 0) >> 1;
                     func_800E2C78(arg0->spawnArg2.pointer, work->rec49C[i].key.value, dmg, 0);
                 } else {
-                    d->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                    d->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                    d->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                    d->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                    d->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                    d->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                     full  = Gp_ComputeDamage(work->rec49C[i].key.value, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
                     dmg   = full;
                     if ((u16)param == 5) {
@@ -1129,7 +1129,7 @@ static void func_actor_510900_80136184(Task* arg0)
                         work->field_590 = 1;
                         work->field_586 = 2;
                         work->field_59C = 0;
-                    } else if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(Player_Status.weaponSlotItem - 0xA) < 3U) {
+                    } else if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - 0xA) < 3U) {
                         work->field_590 = 5;
                         work->field_586 = 0x15;
                         snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
@@ -1185,7 +1185,7 @@ static void func_actor_510900_80136184(Task* arg0)
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
-            if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(Player_Status.weaponSlotItem - 0xA) < 3U) {
+            if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - 0xA) < 3U) {
                 work->field_590 = 6;
                 work->field_586 = 0x15;
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
@@ -1328,8 +1328,8 @@ static s32 func_actor_510900_8013691C(Task* arg0)
     if (work->field_5A8 != work->field_5AA) {
         return 0;
     }
-    if (Player_Status.coordMtx->m[0][2] * coord->coord.m[0][2] +
-            Player_Status.coordMtx->m[2][2] * coord->coord.m[2][2] <
+    if (gPlayerStatus.coordMtx->m[0][2] * coord->coord.m[0][2] +
+            gPlayerStatus.coordMtx->m[2][2] * coord->coord.m[2][2] <
         0) {
         dist = work->field_5AC;
         if (dist < 0xAF0) {
@@ -1870,7 +1870,7 @@ static void func_actor_510900_80137868(Task* arg0)
                     work->field_590  = 3;
                     work->field_5B2  = 0;
                     work->field_5B6  = 1;
-                    Player_Status.hp = 0;
+                    gPlayerStatus.hp = 0;
                     Gp_PulseState1C80();
                 }
             } else {
@@ -2133,7 +2133,7 @@ static void func_actor_510900_801384C4(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (Player_Status.hp <= 0) {
+    if (gPlayerStatus.hp <= 0) {
         ((Enemy*)arg0->spawnArg2.pointer)->hp = 1;
         work->field_58E                       = 1;
         work->field_586                       = 1;
@@ -2189,10 +2189,10 @@ static void func_actor_510900_8013864C(Task* arg0)
     delta                        = head - 1;
 
     for (i = 0; i < 4; i++) {
-        if (D_actor_510900_80167BA4[i].minX < Player_Status.coordMtx->t[0] &&
-            Player_Status.coordMtx->t[0] < D_actor_510900_80167BA4[i].maxX &&
-            D_actor_510900_80167BA4[i].minZ < Player_Status.coordMtx->t[2] &&
-            Player_Status.coordMtx->t[2] < D_actor_510900_80167BA4[i].maxZ) {
+        if (D_actor_510900_80167BA4[i].minX < gPlayerStatus.coordMtx->t[0] &&
+            gPlayerStatus.coordMtx->t[0] < D_actor_510900_80167BA4[i].maxX &&
+            D_actor_510900_80167BA4[i].minZ < gPlayerStatus.coordMtx->t[2] &&
+            gPlayerStatus.coordMtx->t[2] < D_actor_510900_80167BA4[i].maxZ) {
             work->field_5AA = i;
             break;
         }
@@ -2201,10 +2201,10 @@ static void func_actor_510900_8013864C(Task* arg0)
     work->field_5B0 = __builtin_abs(work->field_5A8 * 13200 - work->field_5A6);
     work->field_5AE = __builtin_abs((work->field_5A8 + 1) * 13200 - work->field_5A6);
 
-    dx              = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    dx              = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     delta->vx       = dx;
     delta->vy       = 0;
-    dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     delta->vz       = dz;
     work->field_5AC = SquareRoot0(dx * dx + dz * dz);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
@@ -2359,10 +2359,10 @@ static void func_actor_510900_80138BF0(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
-    scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
+    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - scratch->view.t[0];
     offsetY           = scratch->view.t[1] + 0x600;
-    scratch->delta.vy = Player_Status.coordMtx->t[1] - offsetY;
-    scratch->delta.vz = Player_Status.coordMtx->t[2] - scratch->view.t[2];
+    scratch->delta.vy = gPlayerStatus.coordMtx->t[1] - offsetY;
+    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - scratch->view.t[2];
     ApplyTransposeMatrixLV(&coord->coord, &scratch->delta, &scratch->local);
 
     if (scratch->local.vx < -0x400) {
@@ -2807,10 +2807,10 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
-    dx              = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    dx              = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     scratch->pos.vy = 0;
     scratch->pos.vx = dx;
-    dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    dz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     scratch->pos.vz = dz;
     idx             = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
     if (idx >= 0xC) {
@@ -4019,7 +4019,7 @@ static void func_actor_510900_8013BC80(Task* arg0)
 
 s32 func_actor_510900_8013BD5C(Task* arg0)
 {
-    if (Player_Status.hp > 0) {
+    if (gPlayerStatus.hp > 0) {
         ((Actor510900Work*)arg0->work)->field_5BC = 1;
     }
     return 0;

@@ -1,8 +1,8 @@
 /* Part of the library; see patrol_walker.h. Inline helpers the fragments use. */
 
 /// The walker's per-tick body, open on the scratch frame `patrolWalkerTick`
-/// hands it. State 1 heads straight for the position the `Player_Status` motion
-/// config indexed by `field_6E` holds, state 2 re-runs the patrol steering and
+/// hands it. State 1 heads straight for the player matrix's translation, using
+/// `field_6E` as the one-based player selector; state 2 re-runs patrol steering and
 /// re-reads `nav`'s byte table at `cursor` whenever the step or one of the
 /// three node bytes changed, and state 3 follows the patrol route proper. The
 /// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
@@ -33,7 +33,7 @@ static __inline__ void patrolWalkerStep(OverlayWalker* walker, u8* head,
         case 0:
             break;
         case 1:
-            cfg                            = &Player_Status + (walker->field_6E - 1);
+            cfg                            = &gPlayerStatus + (walker->field_6E - 1);
             pos                            = (SVECTOR3*)(head - 0x24);
             ((SVECTOR3*)(head - 0x24))->vx = (u16)cfg->coordMtx->t[0];
             pos->vy                        = (u16)cfg->coordMtx->t[1];

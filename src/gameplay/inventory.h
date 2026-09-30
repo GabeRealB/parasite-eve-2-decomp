@@ -10,11 +10,11 @@
 /// 0x60 (armor ids 0x60–0x7F).
 /// `flags` is a bit set of abilities granted while an armor row's item is
 /// equipped.
-/// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
-/// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
+/// field_4 is the unsigned bonus added to `gPlayerStatus.hpMax` by
+/// `Gp_RecalcMaxHp` when `gPlayerStatus.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
-/// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
+/// unsigned bonus added to `gPlayerStatus.mpMax` by `Gp_RecalcMaxMp`
 /// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
     /* 0x00 */ s32 flags;

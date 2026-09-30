@@ -3398,7 +3398,7 @@ static void func_actor_421600_801354D8(Task* arg0)
 {
     s32                       callAngle;
     s32                       debugMode;
-    PlayerStatus*             config = &Player_Status;
+    PlayerStatus*             config = &gPlayerStatus;
     s16                       effect;
     s16                       delta;
     s16                       z;
@@ -4192,9 +4192,9 @@ static void func_actor_421600_80136C88(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     playerCoord                           = arg0->extra.tmd->coords;
-    scratch->delta.vx                     = Player_Status.coordMtx->t[0] - playerCoord->coord.t[0];
-    scratch->delta.vy                     = Player_Status.coordMtx->t[1] - playerCoord->coord.t[1];
-    scratch->delta.vz                     = Player_Status.coordMtx->t[2] - playerCoord->coord.t[2];
+    scratch->delta.vx                     = gPlayerStatus.coordMtx->t[0] - playerCoord->coord.t[0];
+    scratch->delta.vy                     = gPlayerStatus.coordMtx->t[1] - playerCoord->coord.t[1];
+    scratch->delta.vz                     = gPlayerStatus.coordMtx->t[2] - playerCoord->coord.t[2];
     if (!actorOutsideRadius(&scratch->delta, 2000)) {
         work->field_0 = 0x1C;
     } else if (!actorOutsideRadius(&scratch->delta, 4000)) {
@@ -4213,7 +4213,7 @@ static void func_actor_421600_80136C88(Task* arg0)
 
 static void func_actor_421600_801373D4(Task* arg0)
 {
-    PlayerStatus* config = &Player_Status;
+    PlayerStatus* config = &gPlayerStatus;
     SVECTOR       initialDelta;
 
     SVECTOR             effect;
@@ -4345,9 +4345,9 @@ static void func_actor_421600_801373D4(Task* arg0)
         if ((work->field_82E == 3) && (playerWork->field_954 != 2)) {
             work->field_8E4     = 0x80;
             temp_a1_2           = arg0->extra.tmd->coords;
-            scratch->vx         = (s16)(Player_Status.coordMtx->t[0] - temp_a1_2->coord.t[0]);
-            scratch->vy         = (s16)(Player_Status.coordMtx->t[1] - temp_a1_2->coord.t[1]);
-            temp_v0_4           = Player_Status.coordMtx->t[2] - temp_a1_2->coord.t[2];
+            scratch->vx         = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a1_2->coord.t[0]);
+            scratch->vy         = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a1_2->coord.t[1]);
+            temp_v0_4           = gPlayerStatus.coordMtx->t[2] - temp_a1_2->coord.t[2];
             scratch->vz         = temp_v0_4;
             scratch->contactYaw = ratan2(scratch->vx, temp_v0_4);
             temp_v0_5           = arg0->extra.tmd->coords;
@@ -4463,9 +4463,9 @@ static void func_actor_421600_801373D4(Task* arg0)
                 }
             }
             temp_a2_2   = arg0->extra.tmd->coords;
-            scratch->vx = (s16)(Player_Status.coordMtx->t[0] - temp_a2_2->coord.t[0]);
-            scratch->vy = (s16)(Player_Status.coordMtx->t[1] - temp_a2_2->coord.t[1]);
-            temp_a1_3   = Player_Status.coordMtx->t[2] - temp_a2_2->coord.t[2];
+            scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_2->coord.t[0]);
+            scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_2->coord.t[1]);
+            temp_a1_3   = gPlayerStatus.coordMtx->t[2] - temp_a2_2->coord.t[2];
             scratch->vz = temp_a1_3;
             temp_s0_13  = arg0->extra.tmd->coords;
             temp_s0_14  = ratan2(scratch->vx, temp_a1_3);
@@ -4480,9 +4480,9 @@ static void func_actor_421600_801373D4(Task* arg0)
     } else {
     updatePlayerYaw:
         temp_a2_3   = arg0->extra.tmd->coords;
-        scratch->vx = (s16)(Player_Status.coordMtx->t[0] - temp_a2_3->coord.t[0]);
-        scratch->vy = (s16)(Player_Status.coordMtx->t[1] - temp_a2_3->coord.t[1]);
-        temp_a1_4   = Player_Status.coordMtx->t[2] - temp_a2_3->coord.t[2];
+        scratch->vx = (s16)(gPlayerStatus.coordMtx->t[0] - temp_a2_3->coord.t[0]);
+        scratch->vy = (s16)(gPlayerStatus.coordMtx->t[1] - temp_a2_3->coord.t[1]);
+        temp_a1_4   = gPlayerStatus.coordMtx->t[2] - temp_a2_3->coord.t[2];
         scratch->vz = temp_a1_4;
         temp_s0_16  = arg0->extra.tmd->coords;
         temp_s0_17  = ratan2(scratch->vx, temp_a1_4);
@@ -4738,7 +4738,7 @@ static void func_actor_421600_80138750(Task* arg0)
         work->field_6          = 0;
         work->field_B6C.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832        = work->field_834;
-        actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, vec);
+        actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(0x20);
         gte_ldsv(vec);
@@ -4762,7 +4762,7 @@ static void func_actor_421600_80138750(Task* arg0)
     switch (state) {
         case 5:
             if (work->field_68 & 0x100) {
-                actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, vec);
+                actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, vec);
                 outside = actorOutsideRadius(vec, 2000);
                 if (outside) {
                     work->field_0 = 0x26;
@@ -4772,7 +4772,7 @@ static void func_actor_421600_80138750(Task* arg0)
             }
             break;
         case 3:
-            yaw       = actorPositionYaw(arg0, vec, &Player_Status);
+            yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
             if (Actor421600_HasRecord10(arg0)) {
                 actorMoveForward(arg0->extra.tmd->coords, 85);
@@ -4852,7 +4852,7 @@ static void func_actor_421600_80138D24(Task* arg0)
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
 /// then walks the 0xB8C `WorldCollisionContact` table through `ActorContact_PushContact`.
 /// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
-/// model coordinate from `Player_Status.coordMtx` (the player's coordinate matrix),
+/// model coordinate from `gPlayerStatus.coordMtx` (the player's coordinate matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
 /// matrix), wraps it into `[-0x800, 0x800]` into `field_840` and re-aims the
 /// coordinate with `gfxRotMatrixY`. Ends by writing the view index into
@@ -4898,9 +4898,9 @@ static void func_actor_421600_8013903C(Task* arg0)
     ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
-    head[-2].vx                           = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    vec->vy                               = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    vec->vz                               = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    head[-2].vx                           = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    vec->vy                               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    vec->vz                               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     coord2                                = arg0->extra.tmd->coords;
     angle                                 = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
     if (angle < 0) {
@@ -4936,7 +4936,7 @@ static void func_actor_421600_8013903C(Task* arg0)
 /// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
 /// two `WorldCollisionContact` movement tables 0x90C and 0xA4C through
 /// `ActorContact_Steer`. `field_0` becomes 0x22 when either walk
-/// reports a hit, and again when the squared XZ offset from `Player_Status.coordMtx` is
+/// reports a hit, and again when the squared XZ offset from `gPlayerStatus.coordMtx` is
 /// under the squared 0x5DC radius, so the actor only takes the state while the
 /// player is close. Ends by clearing the model's `composeStamp`.
 static void func_actor_421600_801392A8(Task* actor)
@@ -4973,7 +4973,7 @@ static void func_actor_421600_801392A8(Task* actor)
     if (((ActorContact_Steer(actor->extra.tmd->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((ActorContact_Steer(actor->extra.tmd->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
         work->field_0 = 0x22;
     }
-    target        = Player_Status.coordMtx;
+    target        = gPlayerStatus.coordMtx;
     coord         = actor->extra.tmd->coords;
     vec.vx        = (u16)target->t[0] - (u16)coord->coord.t[0];
     direction     = &vec;
@@ -5162,9 +5162,9 @@ static void func_actor_421600_80139718(Task* arg0)
         work->field_6   = 0;
         work->field_8   = 0;
         coord           = arg0->extra.tmd->coords;
-        head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-        scratch->vec.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-        z               = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
+        scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        z               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->vec.vz = z;
         facing          = arg0->extra.tmd->coords;
         angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
@@ -5206,10 +5206,10 @@ static void func_actor_421600_80139718(Task* arg0)
     scratch->vec.vy     = 0;
     scratch->vec.vz     = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
     coord2              = arg0->extra.tmd->coords;
-    head2[-1].target.vx = (s16)(Player_Status.coordMtx->t[0] - coord2->coord.t[0]);
+    head2[-1].target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
     target              = &head2[-1].target;
-    target->vy          = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
-    target->vz          = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
+    target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
+    target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
@@ -5328,10 +5328,10 @@ static void func_actor_421600_80139718(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord3                                = arg0->extra.tmd->coords;
-    scratch->target.vx                    = (s16)(Player_Status.coordMtx->t[0] - coord3->coord.t[0]);
+    scratch->target.vx                    = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
     target2                               = &scratch->target;
-    target2->vy                           = Player_Status.coordMtx->t[1] - coord3->coord.t[1];
-    target2->vz                           = Player_Status.coordMtx->t[2] - coord3->coord.t[2];
+    target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+    target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
     if ((s16)work->field_8 > (s16)work->field_EA6) {
         if ((s16)work->field_EAA <= 0) {
 
@@ -5538,9 +5538,9 @@ static void func_actor_421600_8013A554(Task* arg0)
             playerX            = -gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][0];
             scratch->playerYaw = ratan2(playerX, gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][2]);
             targetCoord        = arg0->extra.tmd->coords;
-            scratch->vec.vx    = (s16)(Player_Status.coordMtx->t[0] - targetCoord->coord.t[0]);
-            scratch->vec.vy    = (s16)(Player_Status.coordMtx->t[1] - targetCoord->coord.t[1]);
-            targetZ            = Player_Status.coordMtx->t[2] - targetCoord->coord.t[2];
+            scratch->vec.vx    = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
+            scratch->vec.vy    = (s16)(gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1]);
+            targetZ            = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
             scratch->vec.vz    = targetZ;
             yaw                = ratan2(scratch->vec.vx, targetZ) + 0x800;
             scratch->yaw       = yaw;
@@ -5617,9 +5617,9 @@ static void func_actor_421600_8013A554(Task* arg0)
             work->field_0 = nextState;
         }
         aimCoord        = arg0->extra.tmd->coords;
-        scratch->vec.vx = (s16)(Player_Status.coordMtx->t[0] - aimCoord->coord.t[0]);
-        scratch->vec.vy = (s16)(Player_Status.coordMtx->t[1] - aimCoord->coord.t[1]);
-        aimZ            = Player_Status.coordMtx->t[2] - aimCoord->coord.t[2];
+        scratch->vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - aimCoord->coord.t[0]);
+        scratch->vec.vy = (s16)(gPlayerStatus.coordMtx->t[1] - aimCoord->coord.t[1]);
+        aimZ            = gPlayerStatus.coordMtx->t[2] - aimCoord->coord.t[2];
         scratch->vec.vz = aimZ;
         aimFacing       = arg0->extra.tmd->coords;
         aimAngle        = ratan2(scratch->vec.vx, aimZ);
@@ -5627,9 +5627,9 @@ static void func_actor_421600_8013A554(Task* arg0)
         scratch->aim    = actorNormalizeYaw(aimDelta);
     } else {
         fallbackCoord   = arg0->extra.tmd->coords;
-        scratch->vec.vx = (s16)(Player_Status.coordMtx->t[0] - fallbackCoord->coord.t[0]);
-        scratch->vec.vy = (s16)(Player_Status.coordMtx->t[1] - fallbackCoord->coord.t[1]);
-        fallbackZ       = Player_Status.coordMtx->t[2] - fallbackCoord->coord.t[2];
+        scratch->vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - fallbackCoord->coord.t[0]);
+        scratch->vec.vy = (s16)(gPlayerStatus.coordMtx->t[1] - fallbackCoord->coord.t[1]);
+        fallbackZ       = gPlayerStatus.coordMtx->t[2] - fallbackCoord->coord.t[2];
         scratch->vec.vz = fallbackZ;
         fallbackFacing  = arg0->extra.tmd->coords;
         fallbackAngle   = ratan2(scratch->vec.vx, fallbackZ);
@@ -6094,9 +6094,9 @@ static void func_actor_421600_8013BA70(Task* arg0)
         zoneCoord       = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
         scratch->zone   = Actor421600_RouteZone(zoneCoord->coord.t[0], zoneCoord->coord.t[2]);
         coord           = arg0->extra.tmd->coords;
-        head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
-        scratch->vec.vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-        z               = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+        head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
+        scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        z               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->vec.vz = z;
         facing          = arg0->extra.tmd->coords;
         angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
@@ -6139,10 +6139,10 @@ static void func_actor_421600_8013BA70(Task* arg0)
     scratch->vec.vy     = 0;
     scratch->vec.vz     = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
     coord2              = arg0->extra.tmd->coords;
-    head2[-1].target.vx = (s16)(Player_Status.coordMtx->t[0] - coord2->coord.t[0]);
+    head2[-1].target.vx = (s16)(gPlayerStatus.coordMtx->t[0] - coord2->coord.t[0]);
     target              = &head2[-1].target;
-    target->vy          = Player_Status.coordMtx->t[1] - coord2->coord.t[1];
-    target->vz          = Player_Status.coordMtx->t[2] - coord2->coord.t[2];
+    target->vy          = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
+    target->vz          = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     if (!actorOutsideRadius(&scratch->vec, 0xA0) || (s16)work->field_6 >= 0x15) {
         facing2  = arg0->extra.tmd->coords;
         angle2   = ratan2((s32)head2[-1].target.vx, (s32)target->vz);
@@ -6265,10 +6265,10 @@ static void func_actor_421600_8013BA70(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord3                                = arg0->extra.tmd->coords;
-    scratch->target.vx                    = (s16)(Player_Status.coordMtx->t[0] - coord3->coord.t[0]);
+    scratch->target.vx                    = (s16)(gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0]);
     target2                               = &scratch->target;
-    target2->vy                           = Player_Status.coordMtx->t[1] - coord3->coord.t[1];
-    target2->vz                           = Player_Status.coordMtx->t[2] - coord3->coord.t[2];
+    target2->vy                           = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
+    target2->vz                           = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
     if ((s16)work->field_8 > (s16)work->field_EA2) {
         if ((s16)work->field_EAA <= 0) {
 
@@ -6460,9 +6460,9 @@ static void func_actor_421600_8013CD3C(Task* arg0)
     work->field_6 += 1;
     func_actor_421600_80134604(arg0);
     targetCoord     = arg0->extra.tmd->coords;
-    head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->vec.vy = Player_Status.coordMtx->t[1] - targetCoord->coord.t[1];
-    z               = Player_Status.coordMtx->t[2] - targetCoord->coord.t[2];
+    head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
+    scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
+    z               = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
     scratch->vec.vz = z;
     facing          = arg0->extra.tmd->coords;
     angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
@@ -6562,9 +6562,9 @@ static void func_actor_421600_8013D1DC(Task* arg0)
     work->field_6 += 1;
     func_actor_421600_80134604(arg0);
     targetCoord     = arg0->extra.tmd->coords;
-    head[-1].vec.vx = (s16)(Player_Status.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->vec.vy = Player_Status.coordMtx->t[1] - targetCoord->coord.t[1];
-    z               = Player_Status.coordMtx->t[2] - targetCoord->coord.t[2];
+    head[-1].vec.vx = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
+    scratch->vec.vy = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
+    z               = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
     scratch->vec.vz = z;
     facing          = arg0->extra.tmd->coords;
     angle           = ratan2((s32)head[-1].vec.vx, (s32)z);
@@ -6701,7 +6701,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
 
     work                                   = actor->work;
     player                                 = gameGetPtrSlot(3);
-    config                                 = &Player_Status;
+    config                                 = &gPlayerStatus;
     view                                   = Gp_GetViewIndex() & 0xFF;
     states                                 = D_actor_421600_80131EFC;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6825,7 +6825,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                 if (command == &Actor421600RearAnim) {
                     if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x17U)) {
                         message           = &work->field_E7C;
-                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+                        command->field_10 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
                         work->field_E80   = 4;
                         work->field_E84   = 1;
                         work->field_E88   = 3;
@@ -6834,7 +6834,7 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                     }
                 } else if ((config->hp > 0) && ((u8)work->field_E90.bytes[3] >= 0x22U)) {
                     message                       = &work->field_E7C;
-                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[7];
+                    Actor421600FrontContact.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
 
                     work->field_E80 = 4;
                     work->field_E84 = 1;
@@ -6882,9 +6882,9 @@ static void                        func_actor_421600_8013D658(Enemy* enemy, Task
                         work->field_E80 = 5;
                         nextCommand     = work->field_E7C;
                         if (nextCommand == &Actor421600RearAnim) {
-                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+                            nextCommand->field_14 = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         } else {
-                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+                            Actor421600FallbackEnd.value = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[9];
                         }
                         nextMessage = &work->field_E7C;
                         Gp_DispatchMsgPtr(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextMessage, 0);

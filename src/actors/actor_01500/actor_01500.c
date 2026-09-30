@@ -132,7 +132,7 @@ extern TmdSource Actor01500_D04A94;
 
 /// Points `Actor01500_Fn020D8` measures against: the XZ of
 /// `Actor01500_D0A090` is where it heads, its Y (`Actor01500_D0A090.vy`) the
-/// height it settles below, and `Player_Status.coordMtx` passing the X/Z bounds of
+/// height it settles below, and `gPlayerStatus.coordMtx` passing the X/Z bounds of
 /// `Actor01500_D0A098` ends the state.
 extern SVECTOR Actor01500_D0A090;
 extern SVECTOR Actor01500_D0A098;
@@ -1131,9 +1131,9 @@ static void Actor01500_Fn00CA4(Task* actor)
         work->field_362 = pose2;
     }
     work->field_376 = 0;
-    frame->vx       = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    frame->vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     frame->vy       = 0;
-    frame->vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    frame->vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (SquareRoot0(frame->vx * frame->vx + frame->vz * frame->vz) < 2500) {
         work->field_35A = 1;
         pose            = 3;
@@ -1238,7 +1238,7 @@ static void Actor01500_Fn00FC4(Task* actor)
 }
 
 /// Approach state, stepped by `field_35C`: settle vertically against the
-/// height `Player_Status.coordMtx` gives while turning to the player, then advance by a
+/// height `gPlayerStatus.coordMtx` gives while turning to the player, then advance by a
 /// random `Actor01500_D09FE8` distance; within 1000 units of the player it
 /// switches to pose 10 and rises until its collision object reports contact
 /// or it passes the height limit, then settles again.
@@ -1268,16 +1268,16 @@ static void Actor01500_Fn011B0(Task* actor)
     switch (work->field_35C) {
         case 0:
             off  = work->field_364 + 0x708;
-            diff = Player_Status.coordMtx->t[1] - off - coord->coord.t[1];
+            diff = gPlayerStatus.coordMtx->t[1] - off - coord->coord.t[1];
             dist = abs(diff);
             if (dist < 30 || --work->field_362 <= 0) {
                 work->field_35C = 1;
             } else {
                 work->field_366 = diff > 0 ? 30 : -30;
             }
-            vec->vx                = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            vec->vx                = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy                = 0;
-            vec->vz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_372        = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
             work->field_376        = 100;
             work->field_244.pos.vy = -300;
@@ -1294,9 +1294,9 @@ static void Actor01500_Fn011B0(Task* actor)
                 work->field_35C = 2;
                 work->field_35E = val;
             }
-            vec->vx         = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            vec->vx         = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy         = 0;
-            vec->vz         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec->vz         = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_372 = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
             work->field_376 = 100;
             break;
@@ -1315,9 +1315,9 @@ static void Actor01500_Fn011B0(Task* actor)
                 work->field_362 = val2;
             }
             if (work->field_36C == 0) {
-                vec->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+                vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 vec->vy = 0;
-                vec->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 if (SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz) < 1000) {
                     work->field_352        = 10;
                     work->field_35C        = 3;
@@ -1328,7 +1328,7 @@ static void Actor01500_Fn011B0(Task* actor)
             }
             break;
         case 3:
-            diff2           = Player_Status.coordMtx->t[1] - 0x640;
+            diff2           = gPlayerStatus.coordMtx->t[1] - 0x640;
             work->field_360 = 100;
             work->field_366 = 180;
             if (diff2 < coord->coord.t[1] || work->field_36A != 0) {
@@ -1342,7 +1342,7 @@ static void Actor01500_Fn011B0(Task* actor)
             break;
         case 4:
             off2  = coord->coord.t[1] + 0x708;
-            diff2 = Player_Status.coordMtx->t[1] - off2;
+            diff2 = gPlayerStatus.coordMtx->t[1] - off2;
             dist2 = abs(diff2);
             if (dist2 < 0x60 || --work->field_362 <= 0) {
                 work->field_35C = 2;
@@ -1373,13 +1373,13 @@ static void Actor01500_Fn015DC(Task* actor)
     work->field_366              = 0x80;
     head                         = SCRATCH_STACK_CURSOR(VECTOR);
     blk                          = head - 1;
-    head[-1].vx                  = coord->coord.t[0] - Player_Status.coordMtx->t[0];
+    head[-1].vx                  = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
     blk->vy                      = 0;
-    blk->vz                      = coord->coord.t[2] - Player_Status.coordMtx->t[2];
+    blk->vz                      = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
     SCRATCH_STACK_CURSOR(VECTOR) = blk;
     work->field_372              = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
-    if (coord->coord.t[1] > Player_Status.coordMtx->t[1] + 500 ||
-        coord->coord.t[1] < Player_Status.coordMtx->t[1] - 1800 ||
+    if (coord->coord.t[1] > gPlayerStatus.coordMtx->t[1] + 500 ||
+        coord->coord.t[1] < gPlayerStatus.coordMtx->t[1] - 1800 ||
         ++work->field_362 > 1800) {
         work->field_378 = 1;
     }
@@ -1529,7 +1529,7 @@ static void Actor01500_Fn01988(Task* arg0)
     coord->coord.t[0] += (coord->coord.m[0][2] * work->field_360) >> 12;
     coord->coord.t[1] += work->field_366 + bob;
     coord->coord.t[2] += (coord->coord.m[2][2] * work->field_360) >> 12;
-    if (coord->coord.t[1] - Player_Status.coordMtx->t[1] > 5000) {
+    if (coord->coord.t[1] - gPlayerStatus.coordMtx->t[1] > 5000) {
         arg0->state     = 2;
         work->field_35A = 8;
         work->field_35C = 4;
@@ -1822,7 +1822,7 @@ static void Actor01500_Fn020D8(Task* arg0)
             }
             break;
     }
-    if (Player_Status.coordMtx->t[0] > Actor01500_D0A098.vx && Player_Status.coordMtx->t[2] < Actor01500_D0A098.vz) {
+    if (gPlayerStatus.coordMtx->t[0] > Actor01500_D0A098.vx && gPlayerStatus.coordMtx->t[2] < Actor01500_D0A098.vz) {
         work->field_35A = 3;
         delay           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 60;
         work->field_352 = 5;

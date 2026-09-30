@@ -158,11 +158,11 @@ void Gp_EvtCapWeaponTask(Task* arg0)
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
                 recA              = Gp_WeaponMsgRec;
-                recA.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+                recA.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &recA, 0);
             }
             recB              = D_8010FB10;
-            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
@@ -209,7 +209,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F2, arg0->spawnArg2.value + 0x64, 0);
             }
             recB              = D_8010FB24;
-            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;
@@ -266,7 +266,7 @@ void Gp_MsgPlayerWeapon(s32 arg0)
 
     if (arg0 == 0) {
         sp              = Gp_WeaponMsgRec;
-        sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+        sp.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &sp, 0);
     } else {
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
@@ -286,7 +286,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 
 void Gp_PlayerWeaponId(s32* arg0)
 {
-    *arg0 = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+    *arg0 = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
 }
 
 void Gp_AllyAnimId(s32* arg0)
@@ -298,7 +298,7 @@ void Gp_FillPlayerHpMp(void)
 {
     PlayerStatus* p;
 
-    p     = &Player_Status;
+    p     = &gPlayerStatus;
     p->hp = p->hpMax;
     p->mp = p->mpMax;
 }

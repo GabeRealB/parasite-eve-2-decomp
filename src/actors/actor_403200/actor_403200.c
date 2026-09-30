@@ -3032,10 +3032,10 @@ s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
-    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -3098,10 +3098,10 @@ s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
-    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -3152,10 +3152,10 @@ s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
     task   = gameGetPtrSlot(3);
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
-    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -3303,10 +3303,10 @@ s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     vp     = &vec;
     coords = arg0->extra.tmd->coords;
-    vp->vx = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
+    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     dist   = vec.vx * vec.vx;
-    vp->vz = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     dist  += vec.vy * vec.vy;
     dist   = SquareRoot0(dist + (vec.vz * vec.vz));
     switch (arg1) {
@@ -3379,10 +3379,10 @@ s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
     view   = Gp_GetViewIndex() & 0xFF;
     p      = &pos;
     coords = arg0->extra.tmd->coords;
-    p->vx  = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    p->vy  = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    p->vx  = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
+    p->vy  = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
     dist   = pos.vx * pos.vx;
-    p->vz  = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    p->vz  = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     dist  += pos.vy * pos.vy;
     dist   = SquareRoot0(dist + (pos.vz * pos.vz));
     switch (arg1) {
@@ -4425,7 +4425,7 @@ static void func_actor_403200_80139A60(Task* arg0)
     Enemy*                 esc0;
     Enemy*                 esc1;
 
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor403200Work*)arg0->work;
     sc    = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -4593,7 +4593,7 @@ static void func_actor_403200_80139E94(Task* arg0)
     Enemy*                 esc0;
     Enemy*                 esc1;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -4800,7 +4800,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     Enemy*                 esc0;
     Enemy*                 esc1;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -5020,7 +5020,7 @@ static void func_actor_403200_8013AB70(Task* arg0)
     Enemy*                 esc0;
     Enemy*                 esc1;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = (Actor403200Work*)arg0->work;
     sc   = (Actor403200HitScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200HitScratch));
@@ -5339,9 +5339,9 @@ static void func_actor_403200_8013B3C8(Task* arg0)
         work->field_F06 = 1;
     }
     model      = arg0->extra.tmd->coords;
-    sc->dir.vx = Player_Status.coordMtx->t[0] - model->coord.t[0];
-    sc->dir.vy = Player_Status.coordMtx->t[1] - model->coord.t[1];
-    sc->dir.vz = Player_Status.coordMtx->t[2] - model->coord.t[2];
+    sc->dir.vx = gPlayerStatus.coordMtx->t[0] - model->coord.t[0];
+    sc->dir.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
+    sc->dir.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
     facing     = arg0->extra.tmd->coords;
     ang        = ratan2(sc->dir.vx, sc->dir.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (ang < 0) {
@@ -5413,7 +5413,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     work  = (Actor403200Work*)arg0->work;
     enemy = (Enemy*)arg0->spawnArg2.pointer;
     task  = gameGetPtrSlot(3);
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     sc    = (Actor403200DragScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200DragScratch));
 
     if (work->field_4 != 0) {
@@ -5458,7 +5458,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 
     incinBossTickAnim(arg0);
 
-    work->field_7C4 = actorPositionYaw(arg0, &sc->dir, &Player_Status);
+    work->field_7C4 = actorPositionYaw(arg0, &sc->dir, &gPlayerStatus);
 
     sc->dir.vz = 0;
     sc->dir.vy = 0;
@@ -5696,7 +5696,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 ///
 /// The tick runs the per-frame body, steps 0xF to 0xE on the second animation
 /// slot's flag, and while still in 0xF hands the player the launch message
-/// (0x3F9) with `Player_Status.hp` as its gate: the two arms either side
+/// (0x3F9) with `gPlayerStatus.hp` as its gate: the two arms either side
 /// of that dispatch write the ramp timings into `gGameSession` and stamp escort
 /// 3. The four one-shot cues all latch on the third animation slot's frame,
 /// masked to ten bits, against the frame `field_7A8` saw last, and once the
@@ -5732,7 +5732,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     work  = (Actor403200Work*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
     task  = gameGetPtrSlot(3);
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     if (work->field_4 != 0) {
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
@@ -6723,9 +6723,9 @@ static void func_actor_403200_8013EB64(Task* arg0)
 
     coord    = arg0->extra.tmd->coords;
     view     = &sc->view;
-    view->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    view->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    view->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    view->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    view->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    view->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     facing   = arg0->extra.tmd->coords;
     angle    = ratan2(view->vx, view->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
@@ -6906,7 +6906,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         } else {
             work->field_EFA = 0;
         }
-        cfg          = &Player_Status;
+        cfg          = &gPlayerStatus;
         coord        = arg0->extra.tmd->coords;
         sc->delta.vx = cfg->coordMtx->t[0] - coord->coord.t[0];
         sc->delta.vy = cfg->coordMtx->t[1] - coord->coord.t[1];
@@ -7121,9 +7121,9 @@ static void func_actor_403200_8013F700(Task* arg0)
     }
     coord = arg0->extra.tmd->coords;
     v     = &vec;
-    v->vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    v->vy = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-    v->vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    v->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    v->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+    v->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     rot   = arg0->extra.tmd->coords;
     angle = ratan2(v->vx, v->vz) - ratan2(-rot->coord.m[2][0], rot->coord.m[2][2]);
     if (angle < 0) {
@@ -7346,7 +7346,7 @@ after_mode:
         }
     }
     if (arg0->hp <= 0) {
-        if (Player_Status.hp <= 0) {
+        if (gPlayerStatus.hp <= 0) {
             arg0->hp        = 1;
             gIncinBossEnded = 0;
         }
@@ -7524,7 +7524,7 @@ after_mode:
                         work->anim.source.sets = D_actor_403200_8015E6AC;
                         D_actor_403200_8015E6AC[4] =
                             (Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])
+                                 [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                 ->table.sets[7];
                         work->anim.animationId = 4;
                         work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;

@@ -357,7 +357,7 @@ static void func_actor_110600_80134728(Task* arg0);
 static s32 func_actor_110600_80134564(Actor110600AnimWork* anim);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
-/// target `Player_Status.coordMtx` against the coordinate's own yaw into `field_8A2`, ticks
+/// target `gPlayerStatus.coordMtx` against the coordinate's own yaw into `field_8A2`, ticks
 /// the model, and moves the actor to state 3 once the walker's `field_5C` bit 0
 /// arrives.
 static void func_actor_110600_80135A18(Task* arg0);
@@ -368,7 +368,7 @@ static void func_actor_110600_80135A18(Task* arg0);
 static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
 
 /// Per-tick walker step: advances the animation the `field_68` byte selects,
-/// resolves the one-based character ID in `field_6E` against `Player_Status`,
+/// resolves the one-based character ID in `field_6E` against `gPlayerStatus`,
 /// and ramp-scales the model matrix between `field_5E` and `field_5C`.
 
 /// Measures the walker's node against the coordinate it is moving towards,
@@ -1953,9 +1953,9 @@ static void func_actor_110600_80135194(Task* arg0)
     patrolWalkerTick(&work->walker);
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
-    delta.vx = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     facing   = arg0->extra.tmd->coords;
     angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
@@ -2057,9 +2057,9 @@ static void func_actor_110600_80135454(Task* arg0)
     }
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
-    delta.vx = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     if (actorOutsideRadius(&delta, 900) == 0)
         work->walker.field_5E = 0;
     walker           = &work->walker;
@@ -2102,7 +2102,7 @@ static void func_actor_110600_80135454(Task* arg0)
 /// `field_A90.flags` and set 0x4000 of `field_950.flags`, tag the enemy's link
 /// node, then park the stage timer at 0x15 with `field_896` reloaded from
 /// `field_898`. The yaw of the delta from the model's root coordinate to
-/// `Player_Status.coordMtx`'s translation goes through `ratan2`, has the coordinate's own
+/// `gPlayerStatus.coordMtx`'s translation goes through `ratan2`, has the coordinate's own
 /// yaw (`ratan2` of `-m[2][0]`, `m[2][2]`) subtracted, and is wrapped into
 /// [-0x800, 0x800] before it lands in `field_8A2`; the model is ticked and the
 /// actor moves on (state 3) once the `field_5C` bit the walker sets arrives.
@@ -2133,9 +2133,9 @@ static void func_actor_110600_80135A18(Task* arg0)
     }
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
-    delta.vx = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     facing   = arg0->extra.tmd->coords;
     angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
@@ -2361,7 +2361,7 @@ static void func_actor_110600_80136210(Task* arg0)
 
     enemy  = arg0->spawnArg2.pointer;
     work   = arg0->work;
-    player = &Player_Status;
+    player = &gPlayerStatus;
     if (player->hp <= 0) {
         work->field_A90.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
@@ -3060,9 +3060,9 @@ static void func_actor_110600_801377FC(Task* arg0)
     work->field_8AC = work->field_4E & ANIMATION_POSE_CUE_INDEX_MASK;
     coord           = arg0->extra.tmd->coords;
     d               = &delta;
-    delta.vx        = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy           = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz           = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    delta.vx        = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    d->vy           = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    d->vz           = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     if (!actorOutsideRadius(d, 0xBB8)) {
         work->field_0 = 0x15;
     }
@@ -3073,7 +3073,7 @@ static void func_actor_110600_801377FC(Task* arg0)
 /// off `field_A90.flags` and 0x4000 on `field_950.flags`, the enemy's link node
 /// tagged 1 with `walker.field_5A` / `field_8A4` cleared and `field_896` = 0x10 — then
 /// wraps the yaw from the model's root coordinate to the player
-/// `Player_Status.coordMtx` against the coordinate's own yaw (`ratan2` of `-m[2][0]`,
+/// `gPlayerStatus.coordMtx` against the coordinate's own yaw (`ratan2` of `-m[2][0]`,
 /// `m[2][2]`) into `field_8A2`. Ticks the model and moves the actor to state 3
 /// once the `field_5C` bit the walker sets arrives. Same wrap as
 /// `func_actor_110600_80135A18`.
@@ -3104,9 +3104,9 @@ static void func_actor_110600_80137980(Task* arg0)
     }
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
-    delta.vx = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)Player_Status.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)Player_Status.coordMtx->t[2] - (u16)coord->coord.t[2];
+    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
+    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
+    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     facing   = arg0->extra.tmd->coords;
     angle    = ratan2(delta.vx, d->vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     if (angle < 0) {
@@ -3384,7 +3384,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
             goto block_24;
         }
     }
-    if (Player_Status.hp <= 0) {
+    if (gPlayerStatus.hp <= 0) {
         arg0->hp = 1;
     }
 block_24:

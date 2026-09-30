@@ -936,9 +936,9 @@ static void Actor02600_Fn00754(Task* arg0)
     coord                                                                     = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
-            scratchEnd[-1].vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+            scratchEnd[-1].vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             delta->vy         = 0;
-            dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             delta->vz         = dz;
             dx                = scratchEnd[-1].vx;
             if ((SquareRoot0((dx * dx) + (dz * dz)) < 0x9C4) || (work->field_3D0 != 0) || (Gp_StateF0.prefix.bytes.field_3 == 2)) {
@@ -985,9 +985,9 @@ static void Actor02600_Fn00914(Task* arg0)
     *(VECTOR**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) = delta;
     work                                                                      = arg0->work;
     work->field_3A2                                                           = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
-    scratchEnd[-1].vx                                                         = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+    scratchEnd[-1].vx                                                         = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
     delta->vy                                                                 = 0;
-    dz                                                                        = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    dz                                                                        = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     delta->vz                                                                 = dz;
     dx                                                                        = scratchEnd[-1].vx;
     distance                                                                  = SquareRoot0((dx * dx) + (dz * dz));
@@ -1039,9 +1039,9 @@ static void Actor02600_Fn00A94(Task* actor)
     switch (state) {
         case 0:
             if (work->field_3C6 == 0) {
-                scratchEnd[-1].vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+                scratchEnd[-1].vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
                 delta->vy         = 0;
-                dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 delta->vz         = dz;
                 dx                = scratchEnd[-1].vx;
                 if (SquareRoot0((dx * dx) + (dz * dz)) < 0x7D0) {
@@ -1101,7 +1101,7 @@ static void Actor02600_Fn00A94(Task* actor)
             break;
         case 1:
             work->field_3A0 = (u16)work->field_3A0 + ((u16)work->field_35C.vy - (u16)coord->coord.t[1]);
-            if (((Player_Status.coordMtx->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
+            if (((gPlayerStatus.coordMtx->t[1] - 0x3E8) < coord->coord.t[1]) || (work->field_3D0 != 0) || (work->field_3CE != 0)) {
                 work->field_39C = 2;
                 work->field_392 = 9;
                 work->field_3BC = 0x2D;
@@ -1185,9 +1185,9 @@ static void Actor02600_Fn00FA0(Task* arg0)
             }
             return;
         case 1:
-            scratchEnd[-1].delta.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+            scratchEnd[-1].delta.vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             delta->delta.vy         = 0;
-            delta->delta.vz         = (s32)(Player_Status.coordMtx->t[2] - coord->coord.t[2]);
+            delta->delta.vz         = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
             work->field_3A4         = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)delta->delta.vz) & 0xFFF;
             work->field_3A6         = 0x12;
             if ((s16)work->field_396 >= 0xB) {
@@ -1212,13 +1212,13 @@ static void Actor02600_Fn00FA0(Task* arg0)
                 work->field_396 = 0xB;
             }
             if (work->field_3A4 == work->field_3A2) {
-                scratchEnd[-1].delta.vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+                scratchEnd[-1].delta.vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
                 delta->delta.vy         = 0;
-                dz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                dz                      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 delta->delta.vz         = dz;
                 dx                      = scratchEnd[-1].delta.vx;
                 distance                = SquareRoot0((dx * dx) + (dz * dz));
-                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
+                if ((work->field_3C0 == 0) && (distance < 0x578) && (work->field_3B0 == 0) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
                     work->field_39A = 4;
                     work->field_39C = 0;
                     work->field_392 = 3;

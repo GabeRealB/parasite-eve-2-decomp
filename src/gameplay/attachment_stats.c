@@ -283,7 +283,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
     if (idx >= 0xC) {
         ret = 1;
     } else {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
@@ -411,7 +411,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     s32                  xBase;
     s32                  y;
 
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
     count2 = -1;
     if (Pad_RemapState->field_A != 0) {
@@ -506,7 +506,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
     if (idx >= 0xC) {
         lvl = 1;
     } else {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
@@ -553,7 +553,7 @@ static s32 Gp_CheckAttachThreshold(s32 arg0)
     s32           result;
     s32           n;
 
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
     result = 0;
     n      = getAttachLevel(arg0);
 
@@ -617,7 +617,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     s32           cond;
     u8*           table;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
@@ -659,7 +659,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
     s32           cond;
     u8*           table;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
@@ -705,7 +705,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
     if (idx >= 0xC) {
         lvl = 1;
     } else {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
@@ -770,7 +770,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     changed              = 0;
     order                = -2;
     gGameSession->uiOpen = 1;
-    cfg                  = &Player_Status;
+    cfg                  = &gPlayerStatus;
     count                = 0;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
@@ -1014,7 +1014,7 @@ static __inline__ u8* getAttachLevels(void)
     PlayerStatus* p;
     s32           cond;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
@@ -1041,7 +1041,7 @@ static __inline__ s32 hudSwapReady(void)
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor = work->work;
-        p     = &Player_Status;
+        p     = &gPlayerStatus;
         if (actor->field_954 == 0) {
             if (actor->field_956 == 0 || actor->field_956 == 2) {
                 if (gGameSession->dirActionBusy == 0) {
@@ -1125,7 +1125,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     u8            side;
     u16           mask;
 
-    cfg            = &Player_Status;
+    cfg            = &gPlayerStatus;
     flag           = 0;
     arg0->field_10 = 0;
     if (Gp_StateC08.field_8 == 1) {
@@ -1335,7 +1335,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     bad           = 0;
     stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
-    cfg           = &Player_Status;
+    cfg           = &gPlayerStatus;
     ds            = &gDisplayState;
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
         poly           = gGpuPrimCursor;
@@ -1452,7 +1452,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 s32           mode;
 
                 actor = work->work;
-                p     = &Player_Status;
+                p     = &gPlayerStatus;
                 if (actor->field_954 == 0) {
                     mode = actor->field_956;
                     if (mode == 0 || mode == 2) {
@@ -1479,7 +1479,7 @@ void Gp_HudTask(GpIdMapC* arg0)
             if (ok == 0) {
                 goto after;
             }
-            if (Player_Status.armor == PLAYER_STATUS_EQUIPMENT_NONE) {
+            if (gPlayerStatus.armor == PLAYER_STATUS_EQUIPMENT_NONE) {
                 goto after;
             }
             arg0->field_14 = 0x42;
@@ -1491,7 +1491,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 PlayerStatus* p;
                 s32           cond;
 
-                p = &Player_Status;
+                p = &gPlayerStatus;
                 if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                     cond = 0;
                 } else {
@@ -1568,7 +1568,7 @@ after:
                     goto inc1;
                 }
                 work = gameGetPtrSlot(3);
-                func_80106350(work, Player_Status.weapon, 0);
+                func_80106350(work, gPlayerStatus.weapon, 0);
                 if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                     Gp_MsgPlayerWeapon(0);
                 }
@@ -1657,7 +1657,7 @@ after:
                     Gp_DispatchMsg(w, 0x3F1, 2, 0);
                 }
             }
-            p    = &Player_Status;
+            p    = &gPlayerStatus;
             item = p->weapon + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
@@ -1682,7 +1682,7 @@ after:
             DisplayState* d4;
             GpStateC08*   q;
 
-            p = &Player_Status;
+            p = &gPlayerStatus;
             if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {

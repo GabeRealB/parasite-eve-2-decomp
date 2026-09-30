@@ -54,7 +54,7 @@
 /// consumes and `field_2E` the sub-state counter reset alongside it.
 ///
 /// `func_dryfield_motel_room_1_8017DFD0` copies the player matrix translation
-/// (`Player_Status.coordMtx->t[0..2]`) into `field_14` .. `field_1C` and hands
+/// (`gPlayerStatus.coordMtx->t[0..2]`) into `field_14` .. `field_1C` and hands
 /// `&field_14` to the slot-4 task as the three-word payload of message 0x3E9;
 /// `field_24` / `field_26` / `field_28` are the halfwords it stages next to that
 /// payload, still as `0` / `0x500` / `0`. `field_20` stays unidentified.
@@ -134,7 +134,7 @@ extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the
-/// equip-slot id `Player_Status.weapon` plus 1 in the alternate weapon block, plus 0x22
+/// equip-slot id `gPlayerStatus.weapon` plus 1 in the alternate weapon block, plus 0x22
 /// in the base one, `field_4` 9, the rest of the frame zero), then copy the
 /// player matrix translation into `Dmr1Work::field_14` .. `field_1C` and send
 /// them back to slot 4 as message 0x3E9. Same slot-3 record the actors'
@@ -149,7 +149,7 @@ void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
 /// poke at the slot-4 task and both 0x7D4 placements.
 void func_dryfield_motel_room_1_8017DF08(void);
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` (the cutscene mode flag) gate the room task's
 /// setup, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record
@@ -997,7 +997,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
         case 6:
             switch (work->field_2E) {
                 case 0:
-                    cfg            = &Player_Status;
+                    cfg            = &gPlayerStatus;
                     work->field_14 = cfg->coordMtx->t[0];
                     work->field_18 = cfg->coordMtx->t[1];
                     work->field_1C = cfg->coordMtx->t[2];
@@ -1045,7 +1045,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_34 += 0x96;
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 > 0x1000) {
-                        anim = Player_Status.weapon;
+                        anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
@@ -1067,7 +1067,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_34 -= 0x96;
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 < 0) {
-                        anim = Player_Status.weapon;
+                        anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
@@ -1088,7 +1088,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                 case 3:
                     work->field_30 += 1;
                     if (work->field_30 >= 4) {
-                        anim = Player_Status.weapon;
+                        anim = gPlayerStatus.weapon;
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
@@ -1153,7 +1153,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
-                weaponId                     = Player_Status.weapon;
+                weaponId                     = gPlayerStatus.weapon;
                 anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.rec.source.index         = anim;
                 buf.rec.animationId          = 1;
@@ -1222,7 +1222,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     s32                  anim;
 
     work                     = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 9;
@@ -1230,7 +1230,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
     msg.blendFrames          = 0;
     msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
     Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
-    cfg            = &Player_Status;
+    cfg            = &gPlayerStatus;
     work->field_14 = cfg->coordMtx->t[0];
     work->field_18 = cfg->coordMtx->t[1];
     work->field_1C = cfg->coordMtx->t[2];

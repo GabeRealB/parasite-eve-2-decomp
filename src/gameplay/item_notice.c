@@ -71,7 +71,7 @@ void func_800B65B0(Task* task)
                 // Capture the root transform before presenting the save prompt.
                 coord         = (gameGetPtrSlot(3))->extra.tmd->coords;
                 storedX       = (u16)coord->coord.t[0];
-                savedPos      = &Player_Status.pos;
+                savedPos      = &gPlayerStatus.pos;
                 savedPos->x   = storedX;
                 savedPos->y   = coord->coord.t[1];
                 savedPos->z   = coord->coord.t[2];
@@ -83,7 +83,7 @@ void func_800B65B0(Task* task)
                     savedPos->yaw = angle + PLAYER_YAW_FULL_TURN;
                 }
                 gDisplayState.gameMode = DISPLAY_GAME_MODAL;
-                cfg                    = &Player_Status;
+                cfg                    = &gPlayerStatus;
                 save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                 save->state.playerExp  = cfg->exp;
                 save->state.playerBp   = cfg->bp;

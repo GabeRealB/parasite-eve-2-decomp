@@ -185,7 +185,7 @@ s32 func_replay_bonus_80115CA4(void)
     s32 val;
 
     levels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    spend  = Player_Status.exp;
+    spend  = gPlayerStatus.exp;
     i      = 0;
     do {
         if (*levels != 0) {
@@ -296,7 +296,7 @@ static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
     s32           sum;
     PlayerStatus* cfg;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     sum = 0;
     for (i = (s8)list->field_9.u; i < list->field_4; i++) {
         sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
@@ -352,7 +352,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     obj->result = USER_INTERFACE_RESULT_NONE;
     Ui_DrawText(&(obj)->panel, D_replay_bonus_80115774);
     if (arg0->state == 0) {
-        cfg        = &Player_Status;
+        cfg        = &gPlayerStatus;
         mem        = Mem_Malloc(0x258, 0);
         arg0->work = mem;
         if (mem == NULL) {
@@ -569,7 +569,7 @@ void func_replay_bonus_801166AC(Task* arg0)
     s32           ot2;
     s32           flag;
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     obj = arg0->spawnArg2.pointer;
     if (arg0->state == 0) {
         arg0->killCountdown = 0xBC;
@@ -818,7 +818,7 @@ void func_replay_bonus_80116EC0(void)
     s32           shift;
     s32           exp;
 
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     copy = gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     Mc_InitBufferSlots();
     dst                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

@@ -130,7 +130,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
     flag  = 1;
     id    = arg0->itemId;
     actor = gameGetPtrSlot(3)->work;
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
 
     if (id != 0) {
         if ((u32)(id - 0x80) < 0x20U) {
@@ -371,7 +371,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
     s32                 val;
 
     ret = 1;
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     if (arg0 != 0) {
         if ((u32)(arg0 - 0x80) < 0x20U) {
             ret = 0;
@@ -475,7 +475,7 @@ void func_800D6334(Task* task)
     s32                 labelY;
 
     scan                               = NULL;
-    armor                              = Player_Status.armor + 0x5F;
+    armor                              = gPlayerStatus.armor + 0x5F;
     panel                              = task->spawnArg2.pointer;
     panel->result                      = USER_INTERFACE_RESULT_NONE;
     panel->panel.bounds.unsignedRect.y = 0x1C - gDisplayState.vramYOffset;

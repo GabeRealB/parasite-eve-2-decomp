@@ -519,7 +519,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 } else if ((item2 >= 0xA0 && item2 < 0xC0) && (arg1->owner->status == 0)) {
                     item = 8;
                 } else if (arg1->owner->spawnArg1.value == 1) {
-                    if ((item2 == Player_Status.weapon + 0x7F) || (item2 == Player_Status.armor + 0x5F)) {
+                    if ((item2 == gPlayerStatus.weapon + 0x7F) || (item2 == gPlayerStatus.armor + 0x5F)) {
                         item = 0xA;
                     }
                 }
@@ -738,14 +738,14 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             if (restricted != 0) {
                 prompt = 0x1E;
             } else if ((u32)(item - 0x80) < 0x20U) {
-                if ((arg1->owner->spawnArg1.value != 1) || (item != (Player_Status.weapon + 0x7F))) {
+                if ((arg1->owner->spawnArg1.value != 1) || (item != (gPlayerStatus.weapon + 0x7F))) {
                     if (prompt == -1) {
                         Gp_ClearEquipSlot(item);
                     }
                 } else {
                     prompt = 7;
                 }
-            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1.value == 1) && (item == (Player_Status.armor + 0x5F))) {
+            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1.value == 1) && (item == (gPlayerStatus.armor + 0x5F))) {
                 prompt = 7;
             }
         } else {
@@ -810,7 +810,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
                 Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else if (arg1->owner->spawnArg1.value == 1) {
-                cfg = &Player_Status;
+                cfg = &gPlayerStatus;
                 if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
                     Gp_SpawnItemPrompt(arg1, 7, 0, 0);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;

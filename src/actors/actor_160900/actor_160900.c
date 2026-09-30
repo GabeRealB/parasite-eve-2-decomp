@@ -1459,7 +1459,7 @@ static void func_actor_160900_80133238(Task* arg0)
             break;
         case 3:
             if ((u16)work->field_4E == 0) {
-                weaponId = Player_Status.weapon;
+                weaponId = gPlayerStatus.weapon;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     bankIndex = weaponId + 1;
                 } else {

@@ -141,8 +141,8 @@ typedef struct {
     s8                  saveNumber;               // Save label at this save point (1..99), distinct from total saves
     u8                  savePoint;                // Place-label index (1..16); 15 is Opening and hides mode/EXP/BP
     s8                  companionType;            // Companion family (0 none, otherwise 1..3 indexes `Gp_AllyIdBase`)
-    s32                 playerExp;                // Player experience as of the save, as `Player_Status.exp`
-    s32                 playerBp;                 // Player BP as of the save, as `Player_Status.bp`
+    s32                 playerExp;                // Player experience as of the save, as `gPlayerStatus.exp`
+    s32                 playerBp;                 // Player BP as of the save, as `gPlayerStatus.bp`
     u16                 headerChecksum;           // Sum of the 56 signed bytes beginning at `location`
     u16                 headerChecksumComplement; // Ones' complement of `headerChecksum`
     byte                unknown_20[0x1];

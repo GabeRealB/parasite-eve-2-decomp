@@ -1252,7 +1252,7 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     idx = (u16)*sel + 0x2FU;
 
     msgWork                  = (Actor136100Work*)arg0->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = idx;
@@ -1420,7 +1420,7 @@ void func_actor_136100_80132284(Task* arg0)
         s32              id;                                                                                                          \
                                                                                                                                       \
         msgWork                       = (Actor136100Work*)(task)->work;                                                               \
-        weaponId                      = Player_Status.weapon;                                                                         \
+        weaponId                      = gPlayerStatus.weapon;                                                                         \
         id                            = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
         (record).source.index         = id;                                                                                           \
         msgWork->field_4DE            = anim;                                                                                         \
@@ -1592,7 +1592,7 @@ static void func_actor_136100_80132748(Task* arg0)
                         s32              id;
 
                         msgWork                  = arg0->work;
-                        weaponId                 = Player_Status.weapon;
+                        weaponId                 = gPlayerStatus.weapon;
                         id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         rec.source.index         = id;
                         msgWork->field_4DE       = 0x30;
@@ -1902,7 +1902,7 @@ static void func_actor_136100_80133558(Task* arg0)
 /// Clears the first two value/countdown pairs, re-arms all nineteen animation
 /// slots through `Gp_AnimResetSlot` with the work block's slot count at 1, then
 /// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
-/// (`AnimationPlayRequest`) built from the equip-slot addend (`Player_Status.weapon`), the pair
+/// (`AnimationPlayRequest`) built from the equip-slot addend (`gPlayerStatus.weapon`), the pair
 /// `func_actor_136100_8013467C` sends on its own.  `field_4DE` is armed on the
 /// way past.
 ///
@@ -1940,7 +1940,7 @@ void func_actor_136100_80133690(void)
     Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, &D_actor_136100_8013F304[1], 0);
 
     msgWork                  = (Actor136100Work*)task->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = 1;
@@ -1955,7 +1955,7 @@ void func_actor_136100_80133690(void)
 /// value/countdown pairs, sends the 0x7D4 cue to the host task, re-arms all
 /// nineteen animation slots with the work block's slot count at 3, then re-sends
 /// the two placement cues and the 0x3E8 weapon record (`AnimationPlayRequest`) built from the
-/// equip-slot addend (`Player_Status.weapon`).  `arg0 == 1` additionally resets the
+/// equip-slot addend (`gPlayerStatus.weapon`).  `arg0 == 1` additionally resets the
 /// fourth bone's rotation to zero.
 ///
 /// Two `task->work` loads reach the block: the stores to `field_4C4` /
@@ -1994,7 +1994,7 @@ void func_actor_136100_8013379C(s32 arg0)
     Gp_DispatchMsgPtr(work->field_4B4, 0x3E9, D_actor_136100_8013F334, 0);
 
     msgWork                  = (Actor136100Work*)task->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     msgWork->field_4DE       = 1;
@@ -2012,7 +2012,7 @@ void func_actor_136100_8013379C(s32 arg0)
 }
 
 /// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
-/// id 5 (and `Player_Status.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
+/// id 5 (and `gPlayerStatus.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
 /// the first hit (`func_800E8634`, advancing `field_4DC`) or its repeat cue after.
 /// `ready` must be `s16`: as `s32` the `!= 0` store fuses into the callee-saved
@@ -2029,7 +2029,7 @@ static s32 func_actor_136100_80133904(Task* task)
     if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
         if (!((s16)evtId & 0x8000)) {
             if ((evtId & 0x7FFF) == 5) {
-                ready = Player_Status.interactionPressed != 0;
+                ready = gPlayerStatus.interactionPressed != 0;
             }
         }
     }
@@ -2376,7 +2376,7 @@ void func_actor_136100_8013467C(void)
     s32                  weaponId;
     s32                  id;
 
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     rec.source.index         = id;
     rec.animationId          = 1;

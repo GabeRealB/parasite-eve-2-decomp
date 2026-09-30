@@ -644,9 +644,9 @@ static void Actor02400_Fn01420(Task* task)
             flag = 1;
         }
     }
-    scratchEnd[-1].vx = (s32)(Player_Status.coordMtx->t[0] - coord->coord.t[0]);
+    scratchEnd[-1].vx = (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
     delta->vy         = 0;
-    dz                = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    dz                = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     delta->vz         = dz;
     dx                = scratchEnd[-1].vx;
     if (SquareRoot0((dx * dx) + (dz * dz)) < 0x5DC) {
@@ -695,9 +695,9 @@ static void Actor02400_Fn01590(Task* task)
     limit                                                                               = 0x1000;
     switch (work->field_13E) {
         case 0:
-            scratchEnd[-1].delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            scratchEnd[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             scratch->delta.vy       = 0;
-            scratch->delta.vz       = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            scratch->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_146         = ratan2((s16)scratchEnd[-1].delta.vx, (s16)scratch->delta.vz) & 0xFFF;
             work->field_13A         = 0x19;
             work->field_148         = 0xA;
@@ -908,9 +908,9 @@ static void Actor02400_Fn01B90(Task* task)
             break;
         case 1:
             work->field_13A   = 0x19;
-            scratchEnd[-1].vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             delta->vy         = 0;
-            delta->vz         = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            delta->vz         = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             work->field_146   = ratan2((s16)scratchEnd[-1].vx, (s16)delta->vz) & 0xFFF;
             if (work->field_142 == 0) {
                 work->field_12A += 0x80;

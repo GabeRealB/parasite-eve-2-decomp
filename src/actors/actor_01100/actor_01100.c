@@ -3268,7 +3268,7 @@ static void Actor01100_Fn05678(
     extra = task->extra.tmd;
     if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->field_BC8 == 0)) {
         actor  = gameGetPtrSlot(3)->work;
-        status = &Player_Status;
+        status = &gPlayerStatus;
         if ((actor->field_954 != 2) && (Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
             Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
             work->field_BC8 = 1;

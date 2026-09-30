@@ -5,12 +5,12 @@
 
 void Player_InitNewGameStats(void)
 {
-    Player_Status.hpMax           = 0x64;
-    Player_Status.hp              = 0x64;
-    Player_Status.mpMax           = 0x64;
-    Player_Status.mp              = 0x64;
-    Player_Status.weapon          = 2;
-    Player_Status.exp             = 0;
-    Player_Status.field_20        = 0;
-    Player_Status.resourceVariant = 4;
+    gPlayerStatus.hpMax           = 0x64;
+    gPlayerStatus.hp              = 0x64;
+    gPlayerStatus.mpMax           = 0x64;
+    gPlayerStatus.mp              = 0x64;
+    gPlayerStatus.weapon          = 2;
+    gPlayerStatus.exp             = 0;
+    gPlayerStatus.field_20        = 0;
+    gPlayerStatus.resourceVariant = 4;
 }

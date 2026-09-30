@@ -1358,9 +1358,9 @@ void stalkerTakeHits(Task* arg0)
                     work->field_6E8 = 1;
                     break;
                 }
-                sc->delta.vx.word = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-                sc->delta.vy.word = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-                sc->delta.vz.word = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+                sc->delta.vx.word = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                sc->delta.vy.word = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+                sc->delta.vz.word = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                 work->field_6D2   = (u32) ~(sc->delta.vx.word * coord->coord.m[0][2] +
                                           sc->delta.vy.word * coord->coord.m[1][2] +
                                           sc->delta.vz.word * coord->coord.m[2][2]) >>
@@ -1569,11 +1569,11 @@ void stalkerIdleSeq(Task* arg0)
 /// the display object at `field_6A4`, places the player 0x5AA in front of it
 /// with message 0x3E9 and queues a cue. States 1 and 2 step the player's
 /// animation. State 3 waits out `field_6D6`, then every 0x1E frames decides
-/// whether the hold ends: always when `Player_Status.hp` is above the
+/// whether the hold ends: always when `gPlayerStatus.hp` is above the
 /// per-difficulty `D_actor_402200_80153C0C`, otherwise by an LCG roll whose
 /// chance grows with the attempt count `field_6F6`; a raised `field_6F4`
 /// ends it early. State 5 either reacts to `field_6F4` or, at frame 0x1A,
-/// spawns the spark, sends message 0x400 and clears `Player_Status.hp`; state 7
+/// spawns the spark, sends message 0x400 and clears `gPlayerStatus.hp`; state 7
 /// then loads file 9/0x1E and queues cue 0x70010001 once the CD is idle.
 void stalkerGrabSeq(Task* arg0)
 {
@@ -1599,7 +1599,7 @@ void stalkerGrabSeq(Task* arg0)
     flag   = 0;
     switch (work->field_6CE) {
         case 0:
-            if (((GameActor*)player->work)->field_954 != 2 && Player_Status.hp > 0) {
+            if (((GameActor*)player->work)->field_954 != 2 && gPlayerStatus.hp > 0) {
                 sc->query.field_14 = 0x19;
                 if (Gp_DispatchMsgPtr(player, 0x3F8, sc, 0) == 0) {
                     work->field_6C0 = 1;
@@ -1682,11 +1682,11 @@ void stalkerGrabSeq(Task* arg0)
                 timer           = work->field_6D4 - 1;
                 work->field_6D4 = timer;
                 if (timer <= 0) {
-                    if (Player_Status.hp > D_actor_402200_80153C0C[Gp_StateF0.field_2B]) {
+                    if (gPlayerStatus.hp > D_actor_402200_80153C0C[Gp_StateF0.field_2B]) {
                         if (work->field_6F8 == 0) {
                             work->field_6F8 = 1;
                         } else {
-                            chance = work->field_6F6 * (0x32 - (Player_Status.hp * 100) / Player_Status.hpMax) / 2;
+                            chance = work->field_6F6 * (0x32 - (gPlayerStatus.hp * 100) / gPlayerStatus.hpMax) / 2;
                             if (chance > 0) {
                                 chance          = (chance * 0xFFF) / 100;
                                 gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -1795,7 +1795,7 @@ void stalkerGrabSeq(Task* arg0)
                 func_800FDB18(1, &gameGetPtrSlot(3)->extra.tmd->coords[4], &sc->in, &D_actor_402200_80154170);
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 Gp_DispatchMsg(player, 0x400, 0, 0);
-                Player_Status.hp = 0;
+                gPlayerStatus.hp = 0;
             }
             break;
         case 6:
@@ -1864,14 +1864,14 @@ void stalkerBoxApproachSeq(Task* arg0)
     switch (state) {
         case 0:
             coord->coord.t[0] = work->field_6B4[work->field_708].field_4;
-            coord->coord.t[1] = Player_Status.coordMtx->t[1];
+            coord->coord.t[1] = gPlayerStatus.coordMtx->t[1];
             coord->coord.t[2] = work->field_6B4[work->field_708].field_6;
             sc->in.vx         = 0;
             sc->in.vy         = work->field_6B4[work->field_708].field_2;
             sc->in.vz         = 0;
             RotMatrix(&sc->in, &coord->coord);
-            sc->out.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->out.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xDAC) {
                 work->field_6C0 = 4;
                 work->field_6CE = 1;
@@ -1923,8 +1923,8 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6D6--;
                 func_actor_402200_80135D5C(arg0);
             }
-            sc->out.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-            sc->out.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            sc->out.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            sc->out.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             if ((s16)SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < 0xA8C) {
                 work->field_6C0  = 7;
                 work->field_6CE  = 3;
@@ -2401,7 +2401,7 @@ void stalkerUpdateTint(Task* arg0)
 /// Raises the actor's phase `field_6F4` to 1 while enemies remain.
 s32 func_actor_402200_801381E0(Task* task)
 {
-    if (Player_Status.hp > 0) {
+    if (gPlayerStatus.hp > 0) {
         ((Actor402200Work*)task->work)->field_6F4 = 1;
     }
     return 0;

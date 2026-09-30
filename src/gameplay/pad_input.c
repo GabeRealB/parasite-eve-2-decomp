@@ -132,7 +132,7 @@ void Gp_UpdatePadInput(void)
     u16           releasedButtons;
 
     pad  = &gPadStates[0];
-    cfg  = &Player_Status;
+    cfg  = &gPlayerStatus;
     work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work == NULL) {
         return;

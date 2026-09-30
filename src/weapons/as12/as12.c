@@ -52,7 +52,7 @@ static void func_as12_8011D1DC(Task* arg0)
             actor->field_95C = 0;
             actor->field_95E++;
             actor->field_12A |= 0x400;
-            if (Player_Status.weaponSlotItem == 0xE) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 actor->field_12A |= 0x800;
             } else {
                 actor->field_12A &= ~0x800;
@@ -82,25 +82,25 @@ static void func_as12_8011D1DC(Task* arg0)
             actor->field_12A |= 0xC000;
             Gp_ConsumeSlotQty(0x8E, 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
+                          ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0005, 1);
             Gp_SpawnEff(0x600A1,
                         actor->field_91C->extra.tmd->coords,
-                        (Player_Status.weaponSlotItem << 0x10) | 0xF, NULL);
+                        (gPlayerStatus.weaponSlotItem << 0x10) | 0xF, NULL);
             Gp_AnimResetChildSlots(arg0, 0xA);
             break;
         case 4:
             actor->field_979 = 0x16;
             actor->field_95E++;
             actor->field_12A &= 0x3FFF;
-            if (Player_Status.weaponSlotItem != 0xD) {
+            if (gPlayerStatus.weaponSlotItem != 0xD) {
                 hit = Gp_PickNearestRec18(actor->field_32C, coord, spot);
-                if (Player_Status.weaponSlotItem == 0xE) {
+                if (gPlayerStatus.weaponSlotItem == 0xE) {
                     if (hit != 0 || Gp_CountRec18Hi(actor->field_32C, 0x30000) != 0) {
                         spot->workm.t[0] = actor->field_32C[0].point.vx;
                         spot->workm.t[1] = actor->field_32C[0].point.vy;
                         spot->workm.t[2] = actor->field_32C[0].point.vz;
                         Gp_PlayObjSfx(spot,
-                                      ((Player_Status.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
+                                      ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x200F0004, 1);
                     }
                 } else if (hit != 0) {
                     Gp_PlayObjSfx(spot, 0x17, 1);

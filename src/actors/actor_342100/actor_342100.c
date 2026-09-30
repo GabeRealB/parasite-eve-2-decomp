@@ -123,7 +123,7 @@ extern Actor342100MessageEntry gBlazeFadeMessages[1];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the base
+/// Main-executable globals with no module header yet: `gPlayerStatus.weapon` is the base
 /// weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the alternate
 /// set -- 1 means the second block, anything else the `+0x22` one.
 
@@ -425,7 +425,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     }
     anim                     = D_actor_342100_80164910[work->field_3C - 0x2F] + 0x2F;
     w                        = (Actor342100Work*)arg0->work;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     w->field_3C              = anim;
@@ -679,7 +679,7 @@ void func_actor_342100_801630A4(Task* arg0)
                     arg0->state++;
                 }
             }
-            cfg = &Player_Status;
+            cfg = &gPlayerStatus;
             if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
@@ -690,7 +690,7 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             break;
         case 2:
-            cfg = &Player_Status;
+            cfg = &gPlayerStatus;
             if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
                 ready = 0;
             } else {
@@ -717,8 +717,8 @@ void func_actor_342100_80163344(Task* arg0, s32 arg1, s32 arg2)
 
 /// Point the overlay's slot-3 task at the animation set `arg0 + 0x2F` and hand
 /// the work block's `field_3C` the same value, then install the set with
-/// message 0x3E8. The set's block is `Player_Status.weapon + 1` under the alternate
-/// weapon configuration and `Player_Status.weapon + 0x22` otherwise; its `field_4` is the
+/// message 0x3E8. The set's block is `gPlayerStatus.weapon + 1` under the alternate
+/// weapon configuration and `gPlayerStatus.weapon + 0x22` otherwise; its `field_4` is the
 /// same halfword the block keeps, `field_8` is 1 and `field_C` 0xF.
 void func_actor_342100_8016334C(s32 arg0)
 {
@@ -730,7 +730,7 @@ void func_actor_342100_8016334C(s32 arg0)
 
     work                     = (Actor342100Work*)D_actor_342100_80164BB8->work;
     anim                     = arg0 + 0x2F;
-    weaponId                 = Player_Status.weapon;
+    weaponId                 = gPlayerStatus.weapon;
     setId                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = setId;
     work->field_3C           = anim;
@@ -788,6 +788,6 @@ void func_actor_342100_80163454(s32 arg0)
 
 void func_actor_342100_80163518(void)
 {
-    Player_Status.hp          = 0;
+    gPlayerStatus.hp          = 0;
     gGameSession->restartMode = GAME_SESSION_RESTART_PRESERVE_DISPLAY;
 }

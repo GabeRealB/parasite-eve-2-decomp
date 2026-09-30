@@ -64,7 +64,7 @@ static inline s32 _gpIsArmorItem(u8 id)
         s32                 _n;                                                         \
                                                                                         \
         _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
-        _cfg    = &Player_Status;                                                       \
+        _cfg    = &gPlayerStatus;                                                       \
         _n      = (index);                                                              \
         _rec    = Gp_GetItemTable(_scan);                                               \
         (found) = _i = 0;                                                               \
@@ -89,7 +89,7 @@ static inline s32 _gpIsArmorItem(u8 id)
                                                                                         \
         (count) = 0;                                                                    \
         _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;               \
-        _cfg    = &Player_Status;                                                       \
+        _cfg    = &gPlayerStatus;                                                       \
         _rec    = Gp_GetItemTable(_scan);                                               \
         _i      = 0;                                                                    \
         _rec    = &_rec[_scan->firstRow];                                               \
@@ -109,7 +109,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
     s32                 found;
 
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    cfg   = &Player_Status;
+    cfg   = &gPlayerStatus;
     rec   = Gp_GetItemTable(scan);
     found = i = 0;
     rec       = &rec[scan->firstRow];
@@ -673,7 +673,7 @@ void Gp_EquipPromptTask(Task* arg0)
     if (arg0->state == 0) {
         val = arg0->spawnArg1.value;
         if ((u32)(val - 0x80) < 0x20U) {
-            p       = &Player_Status;
+            p       = &gPlayerStatus;
             rec     = Gp_FindItemById(val);
             field21 = p->weapon;
             if (field21 != val - 0x7F) {
@@ -793,7 +793,7 @@ void Gp_DrawExchangeCmd(UiList* arg0, UiObject* arg1)
             }
             if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
                 one = 1;
-                obj = Ui_SpawnFromDesc(&D_8010ECC8, Player_Status.weapon + 0x7F, one, 0x10, arg1);
+                obj = Ui_SpawnFromDesc(&D_8010ECC8, gPlayerStatus.weapon + 0x7F, one, 0x10, arg1);
             } else if ((u32)(val - 0x80) < 0x20U) {
                 one = 1;
                 obj = Ui_SpawnFromDesc(&D_8010ECE4, 0, one, 0x10, arg1);

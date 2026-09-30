@@ -178,7 +178,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
         raw  = Gp_IdParamLo[lo].params[0];
         base = raw << 8;
         if (flag != 0) {
-            if ((Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
+            if ((gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
                 base = base * 150 / 100;
             }
         }
@@ -269,7 +269,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     }
 
     if (arg3 == 0) {
-        hp    = Player_Status.hp;
+        hp    = gPlayerStatus.hp;
         col   = D_80113F54[hp / 10];
         val   = Gp_DmgRows[Gp_StateF0.field_2B].field_A[col] << 8;
         extra = Gp_StateC08.field_C;

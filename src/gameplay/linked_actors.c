@@ -460,7 +460,7 @@ void func_800A57B0(GpIdMapC* arg0)
     s32            i;
     GpStateBE8*    be8;
 
-    cfg       = &Player_Status;
+    cfg       = &gPlayerStatus;
     remap     = Pad_RemapState;
     pendingHp = 0;
     pendingMp = 0;

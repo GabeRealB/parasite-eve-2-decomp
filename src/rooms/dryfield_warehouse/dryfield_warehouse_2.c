@@ -478,7 +478,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 work->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = anim;
             rec.animationId          = 1;
@@ -566,7 +566,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 shared->playerEffActive = 0;
                 Gp_MsgPlayerWeapon(0);
             }
-            weaponId                     = Player_Status.weapon;
+            weaponId                     = gPlayerStatus.weapon;
             anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.rec.source.index         = anim;
             msg.rec.animationId          = 1;
@@ -690,7 +690,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     work->owner                   = gameGetPtrSlot(3);
                     D_dryfield_warehouse_801821BC = arg0;
                 }
-                weaponId                 = Player_Status.weapon;
+                weaponId                 = gPlayerStatus.weapon;
                 anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.source.index         = anim;
                 rec.animationId          = 1;

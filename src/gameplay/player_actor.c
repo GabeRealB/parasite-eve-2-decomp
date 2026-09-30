@@ -127,7 +127,7 @@ STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
 /// `Gp_AimPitchRec` arg1 (`D_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]`) and by
-/// `Player_Status.weapon` in `Gp_AimYawToLock`.
+/// `gPlayerStatus.weapon` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
     /* 0x2 */ s16 vy;
@@ -227,7 +227,7 @@ extern u16 D_80112B28[];
 extern u16 D_80112C6C[];
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
-/// `D_80112DFC[arg2 + Player_Status.resourceVariant - 2]`.
+/// `D_80112DFC[arg2 + gPlayerStatus.resourceVariant - 2]`.
 extern u8 D_80112DFC[];
 
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
@@ -245,24 +245,24 @@ extern u16 D_80112E20[];
 /// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `Player_Status.weapon`. `Gp_AimYawToLock`
+/// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `Gp_AimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
 /// `func_800B9D80(0x2000)` is set).
 extern u16 D_80112E30[];
 
 /// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
-/// `table[type * 4 + Player_Status.resourceVariant - 5][frame]`. `D_80112E74` is
+/// `table[type * 4 + gPlayerStatus.resourceVariant - 5][frame]`. `D_80112E74` is
 /// the `field_987` sequence; `D_80112EB4` is the `field_98A` sequence.
 extern struct _GpImgRec** D_80112E74[];
 
 extern struct _GpImgRec** D_80112EB4[];
 
-/// Per-item flag byte indexed by `Player_Status.weapon`. Nonzero makes
+/// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
 /// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.field_97F` (the current
 /// aim direction) to `func_80106264` instead of the default 1.
 extern u8 D_80112EF8[];
 
-/// 2-wide rows indexed by `Player_Status.weapon`. Zero at `[i][0]`
+/// 2-wide rows indexed by `gPlayerStatus.weapon`. Zero at `[i][0]`
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
@@ -2908,7 +2908,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         mem->index                   = (Gp_StateC08.field_0 % 10U) - 1;
         mem->angle                   = 0x20;
         mem->period                  = ((mem->index + 1) * 3) << 7;
-        mem->step                    = Player_Status.hp;
+        mem->step                    = gPlayerStatus.hp;
     }
 
     Gp_UpdateCoord(coord);
@@ -2935,8 +2935,8 @@ kill:
     return;
 continue_fx:
     saved = mem->step;
-    if (Player_Status.hp < saved) {
-        if (!(Player_Status.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
+    if (gPlayerStatus.hp < saved) {
+        if (!(gPlayerStatus.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
             s32 i;
 
             Gp_DrawEffTri(coord, 0x200, 6, rgb);
@@ -2963,7 +2963,7 @@ continue_fx:
         }
     }
 
-    mem->step = (u16)Player_Status.hp;
+    mem->step = (u16)gPlayerStatus.hp;
     if (mem->angle < 0x21) {
         return;
     }
@@ -3031,7 +3031,7 @@ void Gp_EffCtlTask0E(Task* arg0)
         gRoomEffectState->burstRequest = false;
     }
 
-    if ((Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) && (gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_STATUS_BURST) &&
+    if ((gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) && (gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_STATUS_BURST) &&
         (gRoomEffectState->battleState == ROOM_EFFECT_BATTLE_ENGAGED)) {
         return;
     }
@@ -4496,7 +4496,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     arg0->exitCallback                          = Gp_TeardownSlot0;
     actor->field_938                            = 0x13;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] = arg0;
-    Player_Status.coordMtx                      = &coord->coord;
+    gPlayerStatus.coordMtx                      = &coord->coord;
     coord->parent                               = &gGfxViewCoord;
     coord->composeStamp                         = GRAPHICS_COORD_DIRTY;
     extra->flags                                = 0;
@@ -4625,7 +4625,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         rec->ends[0].vy               = rec->ends[1].vy;
         rec->ends[0].vz               = rec->ends[1].vz + D_80112F60[id];
         scale                         = 0x100;
-        if (Player_Status.weapon == 0x13) {
+        if (gPlayerStatus.weapon == 0x13) {
             scale = 0x280;
         }
         rec->end1Radius = scale;
@@ -4829,7 +4829,7 @@ void Gp_UpdatePlayerMove(void)
     if (task != NULL) {
         actor->field_3D4 = *task->extra.tmd->coords;
         mat              = &actor->field_3D4.workm;
-        if (Player_Status.weapon != 0x17) {
+        if (gPlayerStatus.weapon != 0x17) {
             Gfx_RotMatrixX(mat, -0x400, 0);
             gfxRotMatrixY(mat, -0x20, 0);
         }
@@ -5090,7 +5090,7 @@ static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh
     s32       limit;
 
     if (actor->field_90C != NULL) {
-        rec           = &D_801131B4[Player_Status.weapon];
+        rec           = &D_801131B4[gPlayerStatus.weapon];
         src           = actor->field_91C->extra.tmd->coords;
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
@@ -5110,7 +5110,7 @@ static inline void _gpAimYawAt(GameActor* actor, GpYawScratch* block, s16 thresh
         if (SquareRoot0(dx + dz) > thresh) {
             block->angle = ratan2(block->delta.vx, block->delta.vz);
             block->angle = _gpShortestTurn(actor->field_52, block->angle);
-            limit        = (s16)D_80112E30[Player_Status.weapon];
+            limit        = (s16)D_80112E30[gPlayerStatus.weapon];
             if (func_800B9D80(0x2000) != 0) {
                 limit += limit >> 1;
             }
@@ -5200,7 +5200,7 @@ void Gp_AimPitchToLock(Task* arg0)
             actor->field_5C  = (actor->field_58 / 5) * 3;
         }
 
-        _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[Player_Status.weapon]);
+        _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
         block->dist   = _gpAimPitchLockDelta(actor, block);
         block->angle  = ratan2(-block->delta.vy, block->dist) / 7 * 4;
         block->angle -= actor->field_60;
@@ -5247,7 +5247,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
             actor->field_5C += block->angle;
         }
 
-        _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[Player_Status.weapon]);
+        _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
         block->dist   = _gpAimPitchLockDelta(actor, block);
         block->angle  = ratan2(-block->delta.vy, block->dist) / 7 * 4;
         block->angle -= actor->field_64;
@@ -5341,7 +5341,7 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->field_987 != 0) {
         actor->field_988--;
         if ((s8)actor->field_988 <= 0) {
-            img = D_80112E74[(s8)actor->field_987 * 4 + (Player_Status.resourceVariant - 5)][(s8)actor->field_989];
+            img = D_80112E74[(s8)actor->field_987 * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->field_989];
             if (img != NULL) {
                 rect->x = 0;
                 rect->y = 0x4E;
@@ -5359,7 +5359,7 @@ static void func_801030CC(Task* arg0)
     if ((s8)actor->field_98A != 0) {
         actor->field_98B--;
         if ((s8)actor->field_98B <= 0) {
-            img = D_80112EB4[(s8)actor->field_98A * 4 + (Player_Status.resourceVariant - 5)][(s8)actor->field_98C];
+            img = D_80112EB4[(s8)actor->field_98A * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->field_98C];
             if (img != NULL) {
                 rect->x = 0xC;
                 rect->y = 0x68;
@@ -5392,7 +5392,7 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->work;
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Player_Status.resourceVariant - 2;
+    type  = gPlayerStatus.resourceVariant - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -5482,13 +5482,13 @@ Task* Gp_SpawnWeaponEff(void)
         goto join_4C;
     }
 
-    task             = spawn_attach(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, Player_Status.weapon);
+    task             = spawn_attach(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
     actor->field_91C = task;
     if (task == NULL) {
         goto join_4C;
     }
 
-    cfg = &Player_Status;
+    cfg = &gPlayerStatus;
     Gp_AttachActorObj(work, cfg->weapon, cfg->weaponSlotItem);
     if (actor->field_914 != NULL) {
         goto join_50;
@@ -5508,7 +5508,7 @@ Task* Gp_SpawnWeaponEff(void)
 do_success:
     actor->field_914 = eff->task;
     Task_Reparent(work, eff->task);
-    func_80106350(work, Player_Status.weapon, 0);
+    func_80106350(work, gPlayerStatus.weapon, 0);
     goto join_50;
 
 check_19:
@@ -5536,7 +5536,7 @@ join_50:
     actor->field_98F     = 0;
     inner                = work->work;
     anim                 = work->extra.tmd;
-    inner->field_93A     = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+    inner->field_93A     = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     inner->animationSets = Gp_PlayerAnimBlkTbl[inner->field_93A]->table.sets;
     func_800B3F84((AnimationContext*)inner->field_424, inner->animationSets, anim, &inner->field_7A8,
                   inner->field_438);
@@ -5552,7 +5552,7 @@ Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = Task_Spawn(7, Player_Status.resourceVariant + 3, arg2, arg3);
+    task = Task_Spawn(7, gPlayerStatus.resourceVariant + 3, arg2, arg3);
     if (task != NULL) {
         goto have_task;
     }
@@ -5609,7 +5609,7 @@ static void Gp_BindActorAnim(Task* arg0)
 
     actor                = arg0->work;
     extra                = arg0->extra.tmd;
-    actor->field_93A     = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+    actor->field_93A     = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     actor->animationSets = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
     func_800B3F84((AnimationContext*)actor->field_424, actor->animationSets, extra, &actor->field_7A8,
                   actor->field_438);
@@ -5684,7 +5684,7 @@ static s32 Gp_HpBand(void)
     s32           temp;
     s32           ret;
 
-    p    = &Player_Status;
+    p    = &gPlayerStatus;
     temp = (u16)p->hpMax << 16;
     if ((temp >> 17) < p->hp) {
         ret = 0;
@@ -5838,7 +5838,7 @@ void Gp_TrackLockTarget(Task* arg0)
         return;
     }
     if ((s8)actor->field_97E == 2) {
-        p = &Player_Status;
+        p = &gPlayerStatus;
         if (p->weapon == 0x17) {
             val = 0x200;
         } else {
@@ -5926,7 +5926,7 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->work;
     saved = &extra->coords[D_80112E04[arg2][arg1]];
     table = D_80112DFC;
-    type  = Player_Status.resourceVariant - 2;
+    type  = gPlayerStatus.resourceVariant - 2;
     task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
     if (task == NULL) {
         return NULL;
@@ -6034,7 +6034,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
 
     actor                            = task->work;
     extra                            = task->extra.tmd;
-    playerStatus                     = &Player_Status;
+    playerStatus                     = &gPlayerStatus;
     actor->field_954                 = 2;
     actor->field_95E                 = 0;
     actor->field_973                 = 0;
@@ -6176,7 +6176,7 @@ s32 Gp_EnterActorMode2(Task* arg0, s32 arg1, s32 arg2, s32 unusedArg3)
     actor->field_10                                = coord->coord.t[0];
     actor->field_14                                = coord->coord.t[1];
     actor->field_18                                = coord->coord.t[2];
-    actor->field_93A                               = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon;
+    actor->field_93A                               = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     actor->animationSets                           = Gp_PlayerAnimBlkTbl[actor->field_93A]->table.sets;
     actor->field_985                               = 0x10;
     actor->field_983                               = 7;
@@ -6211,7 +6211,7 @@ static void func_80104A4C(Task* arg0)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     p->interactionPressed = 0;
     if (actor->field_954 != 2) {
         if (actor->field_954 == 0) {
@@ -6230,7 +6230,7 @@ static void func_80104AAC(Task* arg0)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6260,7 +6260,7 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request)
 
     actor                            = task->work;
     extra                            = task->extra.tmd;
-    playerStatus                     = &Player_Status;
+    playerStatus                     = &gPlayerStatus;
     actor->field_954                 = 2;
     actor->field_95E                 = 0;
     actor->field_973                 = 0;
@@ -6362,7 +6362,7 @@ static inline void _gpSwitchToPlayerMode2(Task* arg0)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6419,7 +6419,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GpFacingArg* arg2)
     s32           mode;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6458,7 +6458,7 @@ s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideA
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6500,7 +6500,7 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GpOverrideArg
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6543,7 +6543,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GpCountArg* arg2)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6580,7 +6580,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GpMoveArg* arg2)
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (arg2->field_12 == 0) {
-        p                     = &Player_Status;
+        p                     = &gPlayerStatus;
         actor->field_954      = 2;
         actor->field_95E      = 0;
         actor->field_973      = 0;
@@ -6620,7 +6620,7 @@ s32 func_801054D8(Task* arg0, s32 arg1, GpDelayArg* arg2)
     if ((s8)actor->field_97A != 0) {
         return 1;
     }
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6653,7 +6653,7 @@ s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6684,7 +6684,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     PlayerStatus* p;
 
     actor                 = arg0->work;
-    p                     = &Player_Status;
+    p                     = &gPlayerStatus;
     actor->field_954      = 2;
     actor->field_95E      = 0;
     actor->field_973      = 0;
@@ -6718,7 +6718,7 @@ s32 func_80105754(Task* arg0)
     actor = arg0->work;
     ret   = 0;
     if (actor->field_954 != 2) {
-        p                     = &Player_Status;
+        p                     = &gPlayerStatus;
         actor->field_954      = 2;
         actor->field_95E      = 0;
         actor->field_973      = 0;
@@ -6809,7 +6809,7 @@ s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, GpCopyArg* arg2)
     s32  i;
     s32  count;
 
-    dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon];
+    dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
     src        = arg2->source.words;
     count      = arg2->count;
     if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
@@ -6955,8 +6955,8 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
             arg2->workm.t[1] = block->coord.workm.t[1] + block->offset.vy;
             arg2->workm.t[2] = block->coord.workm.t[2] + block->offset.vz;
         }
-        if (Player_Status.weapon != 0x1D) {
-            if (Player_Status.weaponSlotItem == 0xE) {
+        if (gPlayerStatus.weapon != 0x1D) {
+            if (gPlayerStatus.weaponSlotItem == 0xE) {
                 Gp_SpawnEff(0x6008D, &block->coord, 0x300, &block->offset);
                 Gp_SpawnEff(0x60080, &block->coord, 0x300, &block->offset);
                 Gp_SpawnEff(0x60070, &block->coord, 0xC0013300, &block->offset);
@@ -7109,14 +7109,14 @@ static void func_8010615C(Task* arg0)
     actor            = arg0->work;
     actor->field_96A = 0xF89A;
     actor->field_973 = 0;
-    sp.funcs[Player_Status.weapon](arg0);
+    sp.funcs[gPlayerStatus.weapon](arg0);
 }
 
 void func_801061F0(void)
 {
     GameActor* actor = gameGetPtrSlot(3)->work;
 
-    actor->field_124 = 0x20000 | (Player_Status.weapon << 8) | Player_Status.weaponSlotItem;
+    actor->field_124 = 0x20000 | (gPlayerStatus.weapon << 8) | gPlayerStatus.weaponSlotItem;
 }
 
 void func_80106238(Task* arg0, s32 arg1, s32 arg2)
@@ -7132,7 +7132,7 @@ s32 func_80106264(s32 arg0)
     s32 item;
     s32 ret;
 
-    item = Player_Status.weapon + 0x7F;
+    item = gPlayerStatus.weapon + 0x7F;
     ret  = 0;
     if (arg0 & 1) {
         ret = Gp_ConsumeSlotQty(item, 0);
@@ -7150,7 +7150,7 @@ static s32 func_801062DC(Task* arg0, s32 arg1)
     s32 item;
 
     ret  = 0;
-    item = Player_Status.weapon;
+    item = gPlayerStatus.weapon;
     flag = arg1 != 1;
     if (Gp_UnequipRelated(item + 0x7F, flag) == 1) {
         func_801088D4(arg0, flag, ret);
@@ -7350,7 +7350,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
 
     sp    = D_8009794C;
     actor = arg0->work;
-    if (Player_Status.statusFlags & PLAYER_STATUS_CONFUSION) {
+    if (gPlayerStatus.statusFlags & PLAYER_STATUS_CONFUSION) {
         func_8010A670(arg0);
     }
     if (actor->field_97B == 0) {
@@ -7360,7 +7360,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
         actor->field_973 = 0;
         actor->field_975 = 0;
     }
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if (p->statusFlags & PLAYER_STATUS_PARALYSIS) {
         if (actor->field_956 != 7) {
             actor->field_98E++;
@@ -7392,7 +7392,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Player_Status.hp <= 0) {
+    if (gPlayerStatus.hp <= 0) {
         Gp_StopPlayerAnim(arg0, 4);
     }
 }
@@ -7422,15 +7422,15 @@ static void Gp_PlayerNormalState2(Task* arg0)
         if ((s8)func_801060E0(arg0) != 0 &&
             Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1) != NULL &&
             actor->field_940 == 0) {
-            dir = D_80112EF8[Player_Status.weapon] != 0 ? actor->field_97F : 1;
+            dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->field_97F : 1;
             res = func_80106264(dir);
             if (res > 0 ||
                 (item = actor->field_97F,
-                 D_80112F1C[Player_Status.weapon][(u8)(item - 1)] != 0)) {
-                if (Player_Status.statusFlags & PLAYER_STATUS_BERSERKER) {
+                 D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
+                if (gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) {
                     Gp_ApplyHpDamage(2);
                 }
-                if (Player_Status.hp > 0) {
+                if (gPlayerStatus.hp > 0) {
                     actor->field_97D = 1;
                     actor->field_95E = 0;
                     func_8010615C(arg0);
@@ -7441,7 +7441,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
                     actor->field_940 = 0xA;
                     if (func_801062DC(arg0, dir) == 0) {
                         func_801095BC(&variant);
-                        base = Player_Status.weapon << 16;
+                        base = gPlayerStatus.weapon << 16;
                         val  = variant | 0x20000001;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | val, 0);
                     }
@@ -7472,7 +7472,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     actor            = arg0->work;
     done             = 0;
     coord            = actor->field_91C->extra.tmd->coords;
-    base             = Player_Status.weapon << 16;
+    base             = gPlayerStatus.weapon << 16;
     actor->field_973 = 0;
     func_801095BC(&variant);
     if (actor->field_93E != 2 && (actor->field_966 & 0x40) && actor->field_95E != 0x64) {
@@ -7489,7 +7489,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         inner->field_95A = temp;
         inner->field_95C = 0;
         inner->field_95E = 0;
-        if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
+        if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
             Gp_DetachLinkNode(arg0);
             inner->field_97E = 1;
         } else {
@@ -7514,7 +7514,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         return;
     }
 
-    switch (Player_Status.weapon) {
+    switch (gPlayerStatus.weapon) {
         case 3:
         case 17:
             rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
@@ -7589,7 +7589,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 temp             = actor->field_98F;
                 actor->field_95E = 1;
                 if (temp == 0) {
-                    Gp_SpawnEff(0x6006E, coord, (s32)Player_Status.weapon, NULL);
+                    Gp_SpawnEff(0x6006E, coord, (s32)gPlayerStatus.weapon, NULL);
                 }
             }
             rec = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
@@ -7677,7 +7677,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->secondaryItemId;
+                    item = Gp_GetItemSlot(gPlayerStatus.weapon + 0x7F)->secondaryItemId;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
                     }
@@ -7724,9 +7724,9 @@ static void Gp_PlayerNormalState5(Task* arg0)
     }
     if (done != 0) {
         if (actor->field_93E != 0) {
-            Gp_FlushPendingRelated(Player_Status.weapon + 0x7F, actor->field_960);
+            Gp_FlushPendingRelated(gPlayerStatus.weapon + 0x7F, actor->field_960);
         } else {
-            Gp_FillRelated(Player_Status.weapon + 0x7F, actor->field_960);
+            Gp_FillRelated(gPlayerStatus.weapon + 0x7F, actor->field_960);
         }
     }
     Gp_UpdateLockTarget(arg0);
@@ -7753,7 +7753,7 @@ static inline void _gpEnterPlayerMode2(Task* task, s32 fade)
     inner->field_95A = temp;
     inner->field_95C = 0;
     inner->field_95E = 0;
-    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
+    if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
         Gp_DetachLinkNode(task);
         inner->field_97E = 1;
     } else {
@@ -7862,7 +7862,7 @@ static void func_8010771C(Task* arg0)
 
     actor            = arg0->work;
     actor->field_973 = 0;
-    if (!(Player_Status.statusFlags & PLAYER_STATUS_PARALYSIS)) {
+    if (!(gPlayerStatus.statusFlags & PLAYER_STATUS_PARALYSIS)) {
         actor->field_95E = 1;
         actor->field_98E = 0;
     }
@@ -7894,7 +7894,7 @@ static void func_8010771C(Task* arg0)
             inner->field_95A = temp;
             inner->field_95C = 0;
             inner->field_95E = 0;
-            if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
+            if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
                 Gp_DetachLinkNode(arg0);
                 inner->field_97E = 1;
             } else {
@@ -8116,7 +8116,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
     s32        val;
 
     actor = arg0->work;
-    if (Player_Status.hp > 0) {
+    if (gPlayerStatus.hp > 0) {
         if (Gp_StateF0.prefix.bytes.field_0 != 1) {
             actor->field_956 = 3;
             actor->field_95A = 2;
@@ -8130,18 +8130,18 @@ static void Gp_PlayerMode2StateA(Task* arg0)
                    Gp_AnimGetRec((AnimationContext*)actor->field_424,
                                  actor->field_438 + 1) != NULL &&
                    actor->field_940 == 0) {
-            dir = D_80112EF8[Player_Status.weapon] != 0 ? (s8)actor->field_97F : 1;
+            dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->field_97F : 1;
             res = func_80106264(dir);
             if (res > 0 ||
                 (item = actor->field_97F,
-                 D_80112F1C[Player_Status.weapon][(u8)(item - 1)] != 0)) {
+                 D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
                 actor->field_97D = 4;
                 actor->field_95E = 0;
                 func_8010615C(arg0);
             } else if (res == 0) {
                 func_801095BC(&variant);
                 actor->field_940 = 0x14;
-                base             = Player_Status.weapon << 16;
+                base             = gPlayerStatus.weapon << 16;
                 val              = variant | 0x20000001;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, base | val, 0);
             }
@@ -8181,7 +8181,7 @@ static void Gp_PlayerMode2StateB(Task* arg0)
                     inner->field_95A = temp;
                     inner->field_95C = 0;
                     inner->field_95E = 0;
-                    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
+                    if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
                         Gp_DetachLinkNode(arg0);
                         inner->field_97E = 1;
                     } else {
@@ -8381,7 +8381,7 @@ static void Gp_ResetActorAnimState(Task* arg0, s32 arg1)
     inner->field_95A = temp;
     inner->field_95C = 0;
     inner->field_95E = 0;
-    if (Player_Status.statusFlags & PLAYER_STATUS_DARKNESS) {
+    if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
         Gp_DetachLinkNode(arg0);
         inner->field_97E = 1;
     } else {
@@ -8432,7 +8432,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
     inner = arg0->work;
     if (arg2 == 2) {
         if (func_80106264(arg1) != 0) {
-            if (D_80112F1C[Player_Status.weapon][0] == 0) {
+            if (D_80112F1C[gPlayerStatus.weapon][0] == 0) {
                 inner->field_95E = 0x3E8;
                 return;
             }
@@ -8458,7 +8458,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
     inner->field_95E = 0;
     inner->field_960 = arg1;
     inner->field_93E = arg2;
-    func_80106350(arg0, Player_Status.weapon, 0);
+    func_80106350(arg0, gPlayerStatus.weapon, 0);
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
@@ -8515,7 +8515,7 @@ static void func_80108AD4(Task* arg0)
     Gp_DetachLinkNode(arg0);
     inner->field_12A    &= 0x3FFF;
     Gp_StateC08.field_6 |= 1;
-    func_80106350(arg0, Player_Status.weapon, 0);
+    func_80106350(arg0, gPlayerStatus.weapon, 0);
     Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
 }
 
@@ -8678,7 +8678,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
     inner = arg0->work;
     sp.funcs[inner->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Player_Status.hp <= 0 && inner->field_956 != 0xA) {
+    if (gPlayerStatus.hp <= 0 && inner->field_956 != 0xA) {
         Gp_BindActorAnim(arg0);
         Gp_StopPlayerAnim(arg0, 4);
     }
@@ -8859,7 +8859,7 @@ static void func_80109374(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Player_Status.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
+    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (gPlayerStatus.weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
         (inner->field_991 == 0)) {
         inner->field_97D = 1;
     } else {
@@ -8880,7 +8880,7 @@ static void Gp_UpdateLockTarget(Task* arg0)
         } else if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
             _gpSetLockNode(arg0, Gp_FindLockNodePad(arg0));
         }
-    } else if ((inner->field_966 & 0x80) && !(Player_Status.statusFlags & PLAYER_STATUS_DARKNESS)) {
+    } else if ((inner->field_966 & 0x80) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS)) {
         inner->field_97E = 2;
         _gpSetLockNode(arg0, Gp_FindLockNode(arg0));
     }
@@ -8930,7 +8930,7 @@ static void func_801095BC(s32* arg0)
     PlayerStatus*          p;
     volatile PlayerStatus* vp;
 
-    p = &Player_Status;
+    p = &gPlayerStatus;
     if (p->weapon == 0x1B) {
         *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId - 0x9F;
         if (*arg0 < 0) {

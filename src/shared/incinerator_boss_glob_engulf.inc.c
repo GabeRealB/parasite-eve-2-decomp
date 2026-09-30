@@ -27,7 +27,7 @@ void incinBossGlobEngulf(Enemy* enemy, Task* task)
     work   = task->work;
     player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    cfg    = &Player_Status;
+    cfg    = &gPlayerStatus;
 
     if (gIncinBossEnded == 1) {
         if (work->field_1B2 == 1) {

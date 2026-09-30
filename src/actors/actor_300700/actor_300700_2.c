@@ -871,9 +871,9 @@ static void func_actor_300700_801643D0(Task* arg0)
             work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
             gRandomLcgState = rng;
             posX            = coord->coord.t[0];
-            vec.vx          = Player_Status.coordMtx->t[0] - posX;
-            vec.vy          = Player_Status.coordMtx->t[1] - coord->coord.t[1];
-            vec.vz          = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+            vec.vx          = gPlayerStatus.coordMtx->t[0] - posX;
+            vec.vy          = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+            vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
             VectorNormalS(&vec, &work->field_370);
             return;
         case 1:

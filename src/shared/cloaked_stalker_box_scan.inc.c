@@ -25,8 +25,8 @@ void stalkerBoxScanSeq(Task* arg0)
             for (i = 0; i < work->field_6FA; i++) {
                 switch (work->field_6B4[i].field_0) {
                     case 0:
-                        sc->out.vx = work->field_6B4[i].field_4 - Player_Status.coordMtx->t[0];
-                        sc->out.vz = work->field_6B4[i].field_6 - Player_Status.coordMtx->t[2];
+                        sc->out.vx = work->field_6B4[i].field_4 - gPlayerStatus.coordMtx->t[0];
+                        sc->out.vz = work->field_6B4[i].field_6 - gPlayerStatus.coordMtx->t[2];
                         if (SquareRoot0(sc->out.vx * sc->out.vx + sc->out.vz * sc->out.vz) < work->field_6B4[i].field_2) {
                             work->field_6CE = 1;
                             coord           = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -38,20 +38,20 @@ void stalkerBoxScanSeq(Task* arg0)
                             gte_ldv0(&sc->in);
                             gte_rtv0();
                             gte_stlvnl(&sc->out);
-                            work->field_6A4 = Player_Status.coordMtx->t[0] + sc->out.vx;
-                            work->field_6A8 = Player_Status.coordMtx->t[1];
+                            work->field_6A4 = gPlayerStatus.coordMtx->t[0] + sc->out.vx;
+                            work->field_6A8 = gPlayerStatus.coordMtx->t[1];
                             SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor402200BoxScratch));
-                            work->field_6AC  = Player_Status.coordMtx->t[2] + sc->out.vz;
+                            work->field_6AC  = gPlayerStatus.coordMtx->t[2] + sc->out.vz;
                             work->field_5BA |= 0x4000;
                             work->field_5DA |= 0x4000;
                             return;
                         }
                         break;
                     case 1:
-                        if (work->field_6B4[i].field_8 < Player_Status.coordMtx->t[0] &&
-                            Player_Status.coordMtx->t[0] < work->field_6B4[i].field_C &&
-                            Player_Status.coordMtx->t[2] < work->field_6B4[i].field_A &&
-                            work->field_6B4[i].field_E < Player_Status.coordMtx->t[2]) {
+                        if (work->field_6B4[i].field_8 < gPlayerStatus.coordMtx->t[0] &&
+                            gPlayerStatus.coordMtx->t[0] < work->field_6B4[i].field_C &&
+                            gPlayerStatus.coordMtx->t[2] < work->field_6B4[i].field_A &&
+                            work->field_6B4[i].field_E < gPlayerStatus.coordMtx->t[2]) {
                             work->field_6CC = 3;
                             work->field_6CE = 0;
                             work->field_70E = 3;

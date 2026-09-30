@@ -1909,7 +1909,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.resourceVariant                       = 3;
+                gPlayerStatus.resourceVariant                       = 3;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;

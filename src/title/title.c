@@ -355,8 +355,8 @@ void Title_RestoreDemoCard(void)
     memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
-    // Restore one serialized player image using the save format's bank stride.
-    memcpy((u8*)&Player_Status + bank * PLAYER_STATUS_SAVE_RECORD_BYTES, src, PLAYER_STATUS_SAVE_RECORD_BYTES);
+    // Restore the live player image; the serialized backup stays intact.
+    memcpy((u8*)&gPlayerStatus + bank * PLAYER_STATUS_SAVE_RECORD_BYTES, src, PLAYER_STATUS_SAVE_RECORD_BYTES);
     src += PLAYER_STATUS_SAVE_RECORD_BYTES;
 
     memcpy(&GameFlag_AcropolisBanks[bank], src, 0x6C);

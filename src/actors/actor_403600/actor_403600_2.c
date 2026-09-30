@@ -1273,7 +1273,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 case 0:
                     func_800E9BDC(1, 0xF9FF);
                     temp_s1->field_70A        = 0;
-                    Player_Status.statusFlags = 0;
+                    gPlayerStatus.statusFlags = 0;
                     goto block_115;
                 case 1:
                     if ((s16)temp_s1->field_7A2 == 0xFF) {
@@ -1429,7 +1429,7 @@ static void func_actor_403600_8013A444(Task* arg0)
     GfxCoord*             var_s0;
     PlayerStatus*         temp_wip;
 
-    temp_wip = &Player_Status;
+    temp_wip = &gPlayerStatus;
     temp_s3  = (Actor403600Work*)arg0->work;
     temp_s7  = arg0->spawnArg2.pointer;
     temp_a0  = temp_s3->field_73E;
@@ -1610,7 +1610,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     if ((D_actor_403600_801605DC.vy - 0x3E8) < temp_s3->field_4B8.coord.t[1]) {
                         Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
                         var_s2 = 0;
-                        if (Player_Status.coordMtx->t[1] < -0xF3B) {
+                        if (gPlayerStatus.coordMtx->t[1] < -0xF3B) {
                             temp_s4_4                     = &temp_s3->field_4B8;
                             D_actor_403600_801606A4.power = (u16)D_actor_403600_80150EA4;
                             func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
@@ -1761,7 +1761,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     temp_s3->field_73C = 0x4B0U;
                     temp_s3->field_74A = 0;
                     if (temp_s3->field_732 == 1) {
-                        temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x258);
+                        temp_s3->field_6F0.vy = (s32)(gPlayerStatus.coordMtx->t[1] - 0x258);
                     }
                     temp_s3->field_746 = 1;
                     if (func_actor_403600_8013DFE0(arg0) < 0x7D1) {
@@ -1932,11 +1932,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     temp_s3->field_746 = 1;
                     temp_s1            = func_actor_403600_8013DFE0(arg0);
-                    temp_v1_5          = Player_Status.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_v1_5          = gPlayerStatus.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
                     temp_lo            = temp_v1_5 * temp_v1_5;
-                    temp_v1_6          = Player_Status.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_v1_6          = gPlayerStatus.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
                     temp_lo_2          = temp_v1_6 * temp_v1_6;
-                    temp_v1_7          = Player_Status.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
+                    temp_v1_7          = gPlayerStatus.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
                     temp_v0_18         = SquareRoot0(temp_lo + temp_lo_2 + (temp_v1_7 * temp_v1_7));
                     sp10               = temp_v0_18;
                     if (temp_v0_18 < 0x76DU) {
@@ -2015,7 +2015,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                 case 0:
                     temp_s3->field_746 = 1;
                     temp_s3->field_73C = 0xC8U;
-                    adjusted_y0        = Player_Status.coordMtx->t[1] + 0x1F4;
+                    adjusted_y0        = gPlayerStatus.coordMtx->t[1] + 0x1F4;
                     temp_s3->field_74A = (s16)((adjusted_y0 - temp_s3->field_4B8.coord.t[1]) / 25);
                     if (func_actor_403600_8013DDF4(arg0, 0xB0) < 0x3E9) {
                         temp_s3->field_73C = 0U;
@@ -2048,9 +2048,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                         SndEvt_EnqueueType6(temp_s4, temp_s0_19, (s32)(((temp_v0_21 >> 0x1F) + temp_v0_21) << 0x17) >> 0x18);
                     }
                     if (temp_s3->field_73A < 0x14) {
-                        temp_s3->field_6F0.vx = (s32)Player_Status.coordMtx->t[0];
-                        temp_s3->field_6F0.vy = (s32)(Player_Status.coordMtx->t[1] - 0x3E8);
-                        temp_s3->field_6F0.vz = (s32)Player_Status.coordMtx->t[2];
+                        temp_s3->field_6F0.vx = (s32)gPlayerStatus.coordMtx->t[0];
+                        temp_s3->field_6F0.vy = (s32)(gPlayerStatus.coordMtx->t[1] - 0x3E8);
+                        temp_s3->field_6F0.vz = (s32)gPlayerStatus.coordMtx->t[2];
                     }
                     if (temp_s3->field_73A >= 0x32) {
                         temp_s3->field_736 = 0x10U;
@@ -2189,11 +2189,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                         func_actor_403600_8013DFE0(arg0);
                         Task_SpawnFromTable(D_actor_403600_801421A0, 3, 2, arg0);
                     }
-                    temp_v0_26 = Player_Status.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
+                    temp_v0_26 = gPlayerStatus.coordMtx->t[0] - temp_s3->field_4B8.coord.t[0];
                     temp_lo_3  = temp_v0_26 * temp_v0_26;
-                    temp_v0_27 = Player_Status.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
+                    temp_v0_27 = gPlayerStatus.coordMtx->t[1] - temp_s3->field_4B8.coord.t[1];
                     temp_lo_4  = temp_v0_27 * temp_v0_27;
-                    temp_v0_28 = Player_Status.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
+                    temp_v0_28 = gPlayerStatus.coordMtx->t[2] - temp_s3->field_4B8.coord.t[2];
                     sp10       = SquareRoot0(temp_lo_3 + temp_lo_4 + (temp_v0_28 * temp_v0_28));
                     if (temp_s3->field_73A >= 8) {
                         temp_s3->field_73A = 0;
@@ -2256,7 +2256,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     temp_s3->field_746 = 0;
                     func_actor_403600_8013DDF4(arg0, 0xA0);
                     temp_s3->field_73C = 0x12CU;
-                    adjusted_y1        = Player_Status.coordMtx->t[1] + 0x1F4;
+                    adjusted_y1        = gPlayerStatus.coordMtx->t[1] + 0x1F4;
                     temp_s3->field_74A = (s16)((adjusted_y1 - temp_s3->field_4B8.coord.t[1]) / 25);
                     func_actor_403600_8013E470(&temp_s3->field_4B8, &sp10, &sp14);
                     if ((sp10 < 0x1389U) && (temp_s3->field_74A < 0x12D)) {
@@ -2419,7 +2419,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s3->field_73C = 0x50U;
                     }
                     adjusted_y2        = temp_s3->field_4B8.coord.t[1] + 0x3E8;
-                    temp_a0_2          = (Player_Status.coordMtx->t[1] - adjusted_y2) / 25;
+                    temp_a0_2          = (gPlayerStatus.coordMtx->t[1] - adjusted_y2) / 25;
                     temp_s3->field_74A = temp_a0_2;
                     if (sp10 < 0x7D1U) {
                         var_v0_12 = sp14;
@@ -2529,7 +2529,7 @@ static inline void _actor403600ArcFinish(Actor403600Work* work, Actor403600Targe
     gte_rtv0();
     gte_stsv(s);
     work->field_4B8.coord.t[0] = s->vector.vx + D_actor_403600_801605D4.vx;
-    work->field_4B8.coord.t[1] = Player_Status.coordMtx->t[1] - 0x3E8;
+    work->field_4B8.coord.t[1] = gPlayerStatus.coordMtx->t[1] - 0x3E8;
     work->field_4B8.coord.t[2] = s->vector.vz + D_actor_403600_801605D4.vz;
 }
 
@@ -2551,27 +2551,27 @@ static void func_actor_403600_8013C864(Task* arg0)
     }
     s = SCRATCH_STACK_RESERVE_BLOCK(Actor403600TargetScratch);
     if (!(work->field_734 & 1)) {
-        s->vector.vx = Player_Status.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
-        s->vector.vz = Player_Status.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
+        s->vector.vx = gPlayerStatus.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
+        s->vector.vz = gPlayerStatus.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
         s->angle     = ratan2(s->vector.vx, s->vector.vz);
         if (ABS(s->angle) > 0x800) {
             s->angle = (s->angle > 0) ? s->angle - 0x1000 : 0x1000 - s->angle;
         }
-        if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
-            (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
+        if ((u32)(gPlayerStatus.coordMtx->t[0] - 0xDAC) < 0x2135 &&
+            (u32)(gPlayerStatus.coordMtx->t[2] - 0x7D0) < 0x2711) {
             s->angle = -s->angle;
         }
         _actor403600ArcStart(s);
         RotMatrixY(s->angle, &s->matrix.mat);
         _actor403600ArcFinish(work, s);
-        if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
-            (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
-            work->field_6F0.vx = Player_Status.coordMtx->t[0];
-            work->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x3E8;
-            work->field_6F0.vz = Player_Status.coordMtx->t[2];
+        if ((u32)(gPlayerStatus.coordMtx->t[0] - 0xDAC) < 0x2135 &&
+            (u32)(gPlayerStatus.coordMtx->t[2] - 0x7D0) < 0x2711) {
+            work->field_6F0.vx = gPlayerStatus.coordMtx->t[0];
+            work->field_6F0.vy = gPlayerStatus.coordMtx->t[1] - 0x3E8;
+            work->field_6F0.vz = gPlayerStatus.coordMtx->t[2];
         } else {
             work->field_6F0.vx = D_actor_403600_801605D4.vx;
-            work->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x3E8;
+            work->field_6F0.vy = gPlayerStatus.coordMtx->t[1] - 0x3E8;
             work->field_6F0.vz = D_actor_403600_801605D4.vz;
         }
         work->field_780 = s->angle + 0x800;
@@ -2628,44 +2628,44 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     temp_s4                    = arg0->work;
     temp_s5                    = temp_s3;
     if (arg1 == 0) {
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[0].x;
-        temp_v1               = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[0].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[0].x;
+        temp_v1               = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[0].z;
         temp_s3->z            = temp_v1;
         temp_v0               = temp_s3->x;
         temp_s3->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[1].x;
-        temp_v1_2             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[1].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[1].x;
+        temp_v1_2             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[1].z;
         temp_s3->z            = temp_v1_2;
         temp_v0_2             = temp_s3->x;
         temp_s3->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[2].x;
-        temp_v1_3             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[2].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[2].x;
+        temp_v1_3             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[2].z;
         temp_s3->z            = temp_v1_3;
         temp_v0_3             = temp_s3->x;
         temp_s3->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[3].x;
-        temp_v1_4             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[3].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[3].x;
+        temp_v1_4             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[3].z;
         temp_s3->z            = temp_v1_4;
         temp_v0_4             = temp_s3->x;
         temp_s3->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[4].x;
-        temp_v1_5             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[4].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[4].x;
+        temp_v1_5             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[4].z;
         temp_s3->z            = temp_v1_5;
         temp_v0_5             = temp_s3->x;
         temp_s3->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[5].x;
-        temp_v1_6             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[5].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[5].x;
+        temp_v1_6             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[5].z;
         temp_s3->z            = temp_v1_6;
         temp_v0_6             = temp_s3->x;
         temp_s3->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[6].x;
-        temp_v1_7             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[6].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[6].x;
+        temp_v1_7             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[6].z;
         temp_s3->z            = temp_v1_7;
         temp_v0_7             = temp_s3->x;
         temp_s3->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
@@ -2681,14 +2681,14 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
             var_a1 += 1;
         } while ((u32)(var_a1 & 0xFF) < 7U);
     } else {
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[7].x;
-        temp_v1_8             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[7].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[7].x;
+        temp_v1_8             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[7].z;
         temp_s3->z            = temp_v1_8;
         temp_v0_8             = temp_s3->x;
         temp_s3->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
 
-        temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[8].x;
-        temp_v1_9             = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[8].z;
+        temp_s3->x            = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[8].x;
+        temp_v1_9             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[8].z;
         temp_s3->z            = temp_v1_9;
         temp_v0_9             = temp_s3->x;
         temp_v0_10            = SquareRoot0((temp_v0_9 * temp_v0_9) + (temp_v1_9 * temp_v1_9));
@@ -2700,7 +2700,7 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     do {
         temp_s4->field_6F0.vx = temp_v1_10->x;
     } while (0);
-    temp_s4->field_6F0.vy = Player_Status.coordMtx->t[1] - 0x258;
+    temp_s4->field_6F0.vy = gPlayerStatus.coordMtx->t[1] - 0x258;
     SCRATCH_STACK_RELEASE_BYTES(0x24);
     temp_s4->field_6F0.vz = temp_v1_10->z;
 }
@@ -2768,12 +2768,12 @@ static void func_actor_403600_8013D15C(Task* arg0)
         if ((s16)work->field_744 != 0) {
             continue;
         }
-        dx                     = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
+        dx                     = gPlayerStatus.coordMtx->t[0] - work->field_4B8.coord.t[0];
         scratch->delta.vx.word = dx;
-        dy                     = Player_Status.coordMtx->t[1] - 2000;
+        dy                     = gPlayerStatus.coordMtx->t[1] - 2000;
         dy                    -= work->field_4B8.coord.t[1];
         scratch->delta.vy.word = dy;
-        dz                     = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
+        dz                     = gPlayerStatus.coordMtx->t[2] - work->field_4B8.coord.t[2];
         hitKind                = 0;
         scratch->delta.vz.word = dz;
         damage                 = Gp_ComputeDamage(work->field_528[i].key.value,
@@ -2969,7 +2969,7 @@ static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
     temp_s0->hp = (u16)temp_s0->hp - arg1;
     func_800DA6E8(&temp_s0->node, arg1, 0);
     if (temp_s0->hp <= 0) {
-        if (Player_Status.hp <= 0) {
+        if (gPlayerStatus.hp <= 0) {
             temp_s0->hp = 0xA;
             return;
         }
@@ -3084,9 +3084,9 @@ static s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
 
     switch (work->field_746) {
         case 0:
-            oldHead[-1].delta.vx = Player_Status.coordMtx->t[0] - work->field_4B8.coord.t[0];
+            oldHead[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - work->field_4B8.coord.t[0];
             scratch->delta.vy    = 0;
-            scratch->delta.vz    = Player_Status.coordMtx->t[2] - work->field_4B8.coord.t[2];
+            scratch->delta.vz    = gPlayerStatus.coordMtx->t[2] - work->field_4B8.coord.t[2];
             break;
         case 1:
             oldHead[-1].delta.vx = work->field_6F0.vx - work->field_4B8.coord.t[0];
@@ -3161,11 +3161,11 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     switch (temp_v1_3) {
         case 0:
             temp_v1_2->vector[0] =
-                (s16)(Player_Status.coordMtx->t[0] - temp_s4->field_4B8.coord.t[0]);
+                (s16)(gPlayerStatus.coordMtx->t[0] - temp_s4->field_4B8.coord.t[0]);
             temp_v1_2->vector[1] =
-                (s16)(Player_Status.coordMtx->t[1] - temp_s4->field_4B8.coord.t[1]);
+                (s16)(gPlayerStatus.coordMtx->t[1] - temp_s4->field_4B8.coord.t[1]);
             temp_v1_2->vector[2] =
-                (s16)(Player_Status.coordMtx->t[2] - temp_s4->field_4B8.coord.t[2]);
+                (s16)(gPlayerStatus.coordMtx->t[2] - temp_s4->field_4B8.coord.t[2]);
             break;
         case 1:
         case 3:
@@ -3174,11 +3174,11 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
             temp_v1_2->vector[2] = (s16)(temp_s4->field_6F0.vz - temp_s4->field_4B8.coord.t[2]);
             break;
         case 2:
-            temp_s5              = (s16)(Player_Status.coordMtx->t[0] - temp_s4->field_4B8.coord.t[0]);
+            temp_s5              = (s16)(gPlayerStatus.coordMtx->t[0] - temp_s4->field_4B8.coord.t[0]);
             temp_v1_2->vector[1] = 0;
             temp_v1_2->vector[0] = temp_s5;
             temp_v1_2->vector[2] =
-                (s16)(Player_Status.coordMtx->t[2] - temp_s4->field_4B8.coord.t[2]);
+                (s16)(gPlayerStatus.coordMtx->t[2] - temp_s4->field_4B8.coord.t[2]);
             break;
     }
     temp_v0   = temp_v1_2->vector[0];
@@ -3322,10 +3322,10 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     } else if (angle < -0x800) {
         *arg2 = angle + 0x1000;
     }
-    x                    = Player_Status.coordMtx->t[0] - arg0->coord.t[0];
+    x                    = gPlayerStatus.coordMtx->t[0] - arg0->coord.t[0];
     scratch->toPlayer.vx = x;
-    scratch->toPlayer.vy = Player_Status.coordMtx->t[1] - arg0->coord.t[1];
-    z                    = Player_Status.coordMtx->t[2] - arg0->coord.t[2];
+    scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - arg0->coord.t[1];
+    z                    = gPlayerStatus.coordMtx->t[2] - arg0->coord.t[2];
     scratch->toPlayer.vz = z;
     *arg1                = SquareRoot0((x * x) + (z * z));
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor403600BearingScratch));
@@ -3462,7 +3462,7 @@ static void func_actor_403600_8013EA04(Task* arg0)
             var_a2 = 2;
         }
     } else {
-        temp_v1 = Player_Status.coordMtx->t[1];
+        temp_v1 = gPlayerStatus.coordMtx->t[1];
         if (temp_v1 >= -0x7D0) {
             temp_a0            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             temp_s2->field_772 = 2;
@@ -3483,8 +3483,8 @@ static void func_actor_403600_8013EA04(Task* arg0)
                 }
             }
         } else if (temp_v1 >= -0x1004) {
-            if (((u32)(Player_Status.coordMtx->t[0] - 0xFA0) < 0x1F41U) &&
-                ((u32)(Player_Status.coordMtx->t[2] - 0xBB8) < 0x1F41U)) {
+            if (((u32)(gPlayerStatus.coordMtx->t[0] - 0xFA0) < 0x1F41U) &&
+                ((u32)(gPlayerStatus.coordMtx->t[2] - 0xBB8) < 0x1F41U)) {
                 temp_a1            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 temp_s2->field_772 = 1;
                 temp_threshold     = temp_t0->hp;
@@ -3562,13 +3562,13 @@ static void func_actor_403600_8013EA04(Task* arg0)
             temp_s2->field_73E = 0x14;
             return;
         case 2:
-            delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016063C.x0;
+            delta     = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016063C.x0;
             temp_lo   = delta * delta;
-            delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016063C.z0;
+            delta     = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016063C.z0;
             temp_s0   = SquareRoot0(temp_lo + (delta * delta));
-            delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016063C.x1;
+            delta     = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016063C.x1;
             temp_lo_2 = delta * delta;
-            delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016063C.z1;
+            delta     = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016063C.z1;
             temp_v0_3 = SquareRoot0(temp_lo_2 + (delta * delta));
             if (temp_s2->field_772 == 1) {
                 if (temp_s0 < temp_v0_3) {
@@ -3594,13 +3594,13 @@ static void func_actor_403600_8013EA04(Task* arg0)
                     temp_s2->field_6F0.vy = (s32)D_actor_403600_8016063C.y1;
                     temp_s2->field_6F0.vz = (s32)D_actor_403600_8016063C.z1;
                 }
-                delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016064C.x0;
+                delta     = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016064C.x0;
                 temp_lo_3 = delta * delta;
-                delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016064C.z0;
+                delta     = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016064C.z0;
                 temp_s0_2 = SquareRoot0(temp_lo_3 + (delta * delta));
-                delta     = Player_Status.coordMtx->t[0] - D_actor_403600_8016064C.x1;
+                delta     = gPlayerStatus.coordMtx->t[0] - D_actor_403600_8016064C.x1;
                 temp_lo_4 = delta * delta;
-                delta     = Player_Status.coordMtx->t[2] - D_actor_403600_8016064C.z1;
+                delta     = gPlayerStatus.coordMtx->t[2] - D_actor_403600_8016064C.z1;
                 if (SquareRoot0(temp_lo_4 + (delta * delta)) < temp_s0_2) {
                     temp_s2->field_770 = (u16)(temp_s2->field_770 | 2);
                 }
@@ -4159,7 +4159,7 @@ static void func_actor_403600_801400BC(Task* arg0)
             func_actor_403600_8013DDF4(arg0, 0);
             temp_s1->field_736 = 2;
             temp_s1->field_73C = temp_s1->field_750;
-            temp_v1_2          = Player_Status.coordMtx->t[1];
+            temp_v1_2          = gPlayerStatus.coordMtx->t[1];
             temp_v0            = temp_s1->field_4B8.coord.t[1] + 0x3E8;
             temp_s1->field_74A = (s16)((temp_v1_2 - temp_v0) / 25);
             func_actor_403600_8013E470(&temp_s1->field_4B8, (s32*)&sp10, &sp14);
@@ -4934,7 +4934,7 @@ static void func_actor_403600_80141B60(Task* arg0)
     countdown       = (u16)work->field_792 - 1;
     work->field_792 = countdown;
     if ((countdown << 0x10) <= 0) {
-        config     = &Player_Status;
+        config     = &gPlayerStatus;
         currentMp  = config->mp + 1;
         config->mp = currentMp;
         if ((s16)currentMp >= config->mpMax) {

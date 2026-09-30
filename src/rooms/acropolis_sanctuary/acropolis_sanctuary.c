@@ -188,7 +188,7 @@ typedef struct AcsSpriteLevels {
     /* 0x0 */ u8 v[3];
 } AcsSpriteLevels;
 
-/// Main-executable globals with no module header yet: `Player_Status.weapon` is the
+/// `gPlayerStatus.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` gate the cutscene task's setup (the latter is
 /// the cutscene/among-us mode flag) and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two
@@ -1709,11 +1709,11 @@ void func_acropolis_sanctuary_8017D8A0(u32 arg0)
 }
 
 /// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
-/// the equipped-weapon index in `Player_Status.weapon`, has `Gp_PlayerWeaponId` stamp the
+/// the equipped-weapon index in `gPlayerStatus.weapon`, has `Gp_PlayerWeaponId` stamp the
 /// current weapon model id into its `field_0`, then sends it.
 void func_acropolis_sanctuary_8017D8CC(void)
 {
-    if (Player_Status.weapon == 2) {
+    if (gPlayerStatus.weapon == 2) {
         Gp_PlayerWeaponId(&D_acropolis_sanctuary_801809F8.source.index);
         Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
@@ -1795,7 +1795,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                     D_acropolis_sanctuary_80186C90 = arg0;
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
-                weaponId = Player_Status.weapon;
+                weaponId = gPlayerStatus.weapon;
                 idx      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.source.index         = idx;

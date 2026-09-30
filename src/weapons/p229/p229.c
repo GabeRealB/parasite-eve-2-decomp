@@ -126,7 +126,7 @@ static void func_p229_8011DDA0(Task* arg0)
             if (actor->field_97F == 1) {
                 actor->field_95E  = 3;
                 actor->field_979  = 0xA;
-                actor->field_124  = Player_Status.weaponSlotItem | 0x20500;
+                actor->field_124  = gPlayerStatus.weaponSlotItem | 0x20500;
                 rec->end0Radius   = rec->end1Radius;
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 0);

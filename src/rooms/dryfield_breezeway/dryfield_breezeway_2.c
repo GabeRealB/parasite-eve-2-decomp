@@ -513,7 +513,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             break;
         case 2:
             rec                          = &buf.rec;
-            id                           = Player_Status.weapon;
+            id                           = gPlayerStatus.weapon;
             buf.rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
             rec->animationId             = 9;
             rec->blend                   = ANIMATION_BLEND_INTERPOLATE;
@@ -564,7 +564,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
 /// next frame. It allocates the 0x14 `DbwWork` block, publishes the room task
 /// in `D_dryfield_breezeway_801843C0`, republishes the player's weapon as
 /// slot-3 msg 0x3E8 (`AnimationPlayRequest`, the record `Gp_MsgPlayerWeapon` also builds:
-/// `field_0` off the equipped-weapon index in `Player_Status.weapon`, `field_4` and
+/// `field_0` off the equipped-weapon index in `gPlayerStatus.weapon`, `field_4` and
 /// `field_8` both 1, `field_C` 0xA and `field_10` zero) and starts the room's
 /// opening cutscene through `func_800E8634`, which is what raises
 /// `gGameSession::eventState`. It then advances to state 1.
@@ -596,7 +596,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 id                            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
                 work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
-            id                       = Player_Status.weapon;
+            id                       = gPlayerStatus.weapon;
             buf.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
             buf.animationId          = 1;
             buf.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -649,7 +649,7 @@ void func_dryfield_breezeway_8017E390(void)
     DbwWork*  work;
     s32       id;
 
-    id                           = Player_Status.weapon;
+    id                           = gPlayerStatus.weapon;
     buf.rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
     buf.rec.animationId          = 9;
     buf.rec.blend                = ANIMATION_BLEND_RESET;

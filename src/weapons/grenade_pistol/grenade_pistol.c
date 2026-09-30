@@ -93,7 +93,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
             actor->field_981 = 0;
             actor->field_940 = 0x28;
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
-                          ((Player_Status.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
+                          ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
             Gp_SpawnEff(0x6006C,
                         actor->field_91C->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
@@ -101,7 +101,7 @@ static void func_grenade_pistol_8011D1D4(Task* arg0)
             /* The projectile's kind and its row of the muzzle-offset and speed tables
                (bits 16-19 of its spawn argument) both follow the variant. */
             func_80104490(arg0, 0, 1 + GRENADE_VARIANT,
-                          Player_Status.weaponSlotItem | (GRENADE_VARIANT << 16) | (GRENADE_WEAPON << 8));
+                          gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << 16) | (GRENADE_WEAPON << 8));
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
             break;
         case 3:

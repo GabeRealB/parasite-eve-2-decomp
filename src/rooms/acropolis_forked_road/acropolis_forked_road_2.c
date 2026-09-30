@@ -70,7 +70,7 @@
 
 /// Set to 1 by the fade-out task once the scene has finished.
 
-/// Per-frame path the streamed scene walks `Player_Status.coordMtx` along, indexed by
+/// Per-frame path the streamed scene walks `gPlayerStatus.coordMtx` along, indexed by
 /// `gCdCmdQueue::movieFrame - 1` for the 0x78 frames the ride lasts.
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
@@ -1230,7 +1230,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             queue->movieFrame = 1;
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4                    = 2;
-            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             place.rot.vy = 0x400;
@@ -1300,7 +1300,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 /// the far end (`0x3B - gCdCmdQueue::movieFrame`).
 ///
 /// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
-/// player's coordinate matrix (`Player_Status.coordMtx`) in it, cues the stream
+/// player's coordinate matrix (`gPlayerStatus.coordMtx`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
 /// (`gCdCmdQueue::movieReady`), moves the player to the head of the
@@ -1333,9 +1333,9 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 break;
             }
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
-            ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
+            ((RoomStreamWork*)task->work)->mtx    = gPlayerStatus.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
-            weaponId                 = Player_Status.weapon;
+            weaponId                 = gPlayerStatus.weapon;
             rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
