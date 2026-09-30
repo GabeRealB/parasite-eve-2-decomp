@@ -1906,11 +1906,12 @@ void Fs_SetupBootLoad(void)
 
 void Fs_BootImageMachine(void* arg0, void* arg1)
 {
-    void* secondary;
-    s32   ret;
-    s32   temp;
+    CdCmdQueue* queue;
+    void*       secondary;
+    s32         ret;
+    s32         temp;
 
-    arg1      = &CdCmd_Queue;
+    queue     = &CdCmd_Queue;
     secondary = NULL;
     switch ((s16)D5B498_8006AC9C) {
         case 0:
@@ -1966,7 +1967,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             break;
         case 3:
             if (D_8006ACA0 >= 0x3C) {
-                if (((CdCmdQueue*)arg1)->field_22E != 0) {
+                if (queue->holdBootImage != 0) {
                     goto draw;
                 }
                 D_8006ACB4 = 0;
@@ -1977,8 +1978,8 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             goto draw;
         case 4:
             if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
-                Fs_BootLoadPhase      = 0;
-                CdCmd_Queue.field_224 = 0;
+                Fs_BootLoadPhase           = 0;
+                CdCmd_Queue.bootLoadActive = 0;
             }
         draw:
             D_8006ACA4 = 1;

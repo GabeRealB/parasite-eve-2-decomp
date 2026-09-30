@@ -67,18 +67,18 @@ void Gp_ViewBeginLoad(Task* task)
         SetDrawStp(&D_80114C50, 0);
         DrawPrim(&D_80114C50);
         ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-        if (q->field_214 != 0) {
+        if (q->scenePayloadAvailable != 0) {
             Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
             task->state = 5;
         } else {
             D_80114C40 = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 1);
             if (D_80114C40 >= 0) {
                 Gp_FreeSlot4TmdBuffers();
-                q->field_210 = 1;
+                q->viewMovieSelected = 1;
             } else {
-                if (q->field_210 != 0) {
+                if (q->viewMovieSelected != 0) {
                     Gp_ApplyAreaTmdFlags();
-                    q->field_210 = 0;
+                    q->viewMovieSelected = 0;
                 }
             }
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {

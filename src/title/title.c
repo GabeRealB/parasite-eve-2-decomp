@@ -438,7 +438,7 @@ void Title_DemoStreamTask(Task* task)
             task->state++;
             break;
         case 2:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
@@ -455,14 +455,14 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 4:
             if (CdCmd_IsIdle()) {
-                CdCmd_Queue.field_23E = 1;
-                param1[3]             = 0;
-                param1[2]             = 0;
-                param1[0]             = 2;
-                param2[0]             = 0;
-                param2[1]             = 0;
-                param2[2]             = 0;
-                param2[3]             = 0;
+                CdCmd_Queue.preserveDisplayAfterDecode = 1;
+                param1[3]                              = 0;
+                param1[2]                              = 0;
+                param1[0]                              = 2;
+                param2[0]                              = 0;
+                param2[1]                              = 0;
+                param2[2]                              = 0;
+                param2[3]                              = 0;
                 CdCmd_Enqueue(0x21, param1, param2);
                 task->state++;
             }

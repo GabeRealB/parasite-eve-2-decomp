@@ -2256,8 +2256,8 @@ extern s16       D_room_80187A24;   /* the branch-arm store */
 `func_neo_ark_submarine_tunnel_8017F318` is the worked example (0x80187A20 /
 0x80187A24, values 1, 0x60, arg0, 1, 0x40, 0x80, 0x80); `shelter_b4_reservoir`
 carries the same body. The same shape recurs in the pointer-to-`CdCmd_Queue`
-idiom: `queue->field_22A = 2` through a local pointer emits `addiu $v1,$v0,%lo(...)`
-plus a `sh …,0x22A($v1)` displacement, where the direct `CdCmd_Queue.field_22A`
+idiom: `queue->imageMdecMode = 2` through a local pointer emits `addiu $v1,$v0,%lo(...)`
+plus a `sh …,0x22A($v1)` displacement, where the direct `CdCmd_Queue.imageMdecMode`
 folds into a `%lo(CdCmd_Queue+0x22A)` operand. `func_neo_ark_eve_access_tunnel_8017DFC0`
 is the matched reference for that form.
 
@@ -6439,18 +6439,18 @@ is the example.
 
 ## Don't name a later load from the same base as an earlier arg
 
-`seed = q->field_1AC` then later `rng = q->field_1A8; Gp_LcgState = rng;
-srand(seed)` hoists the `field_1A8` load next to the seed load (`lw a0,
-0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `field_23A = 1`
+`seed = q->savedRandSeed` then later `rng = q->savedLcgState; Gp_LcgState = rng;
+srand(seed)` hoists the `savedLcgState` load next to the seed load (`lw a0,
+0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `sceneEnded = 1`
 for that load so it sits just before the zero stores. Write the use
 directly so there is no second named value to pair-load:
 
 ```c
-seed = q->field_1AC;
-q->field_1FE = 0xFF;
-q->field_23A = 1;
-q->field_214 = 0;
-Gp_LcgState   = q->field_1A8;
+seed = q->savedRandSeed;
+q->imageLoadStatus = 0xFF;
+q->sceneEnded = 1;
+q->scenePayloadAvailable = 0;
+Gp_LcgState   = q->savedLcgState;
 srand(seed);
 ```
 
@@ -7857,11 +7857,11 @@ CdCmdQueue* queue;
 
 queue = &CdCmd_Queue;
 ...
-queue->field_22A = D_8011565C;
+queue->imageMdecMode = D_8011565C;
 ```
 
 `Gp_CapExit` is the example. The direct
-`CdCmd_Queue.field_22A = D_8011565C` stuck at 93.9% with only that
+`CdCmd_Queue.imageMdecMode = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
 ## Write a two-global fail tail through the globals, not hoisted pointers
@@ -8453,7 +8453,7 @@ Assign it to a local pointer first — the same trick `Task_ExecList` in
 CdCmdQueue* state;
 
 state = &CdCmd_Queue;
-switch (state->field_4c) { ... }
+switch (state->activeRequest.phase) { ... }
 ```
 
 Note the target may still use `%lo(sym)($sN)` for the field at offset 0 while
@@ -16957,15 +16957,15 @@ A plain second read CSEs (~96%). Route **one** of the two accesses through a
 volatile byte cast so the value cannot stay live:
 
 ```c
-if (*(volatile u8*)&p->field_50.cmd == 0) {
+if (*(volatile u8*)&p->replacementEntry.cmd == 0) {
     return -1;
 }
 …
-entry->cmd = p->field_50.cmd;   /* second load now materializes */
+entry->cmd = p->replacementEntry.cmd;   /* second load now materializes */
 ```
 
 (The cast can sit on either access.) Same shape already used in `cdcmd.c` for
-`entry->stage`. `CdCmd_CommitReplace` (commit `field_50` into the ring) is the pure
+`entry->stage`. `CdCmd_CommitReplace` (commit `replacementEntry` into the ring) is the pure
 example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
 sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.
 
@@ -17193,17 +17193,17 @@ The inverse of the previous entry: when the target uses `lhu` for a zero-check
 
 ```c
 /* target: lhu v0, 0x20E(a1); bnez v0, ... */
-if ((u16)p->field_20E != 0) {
-    p->field_4c = 1;
+if ((u16)p->sceneAudioMode != 0) {
+    p->activeRequest.phase = 1;
     return 1;
 }
 return 0;
 ```
 
-A bare `if (p->field_20E != 0)` emits `lh` and often inverts branch polarity
+A bare `if (p->sceneAudioMode != 0)` emits `lh` and often inverts branch polarity
 (`beqz` with the non-zero body as fall-through). Prefer the positive `!= 0`
 test first so GCC emits `bnez` with the zero-return as the fall-through
-epilogue. `CdCmd_ActivatePhase1` (`CdCmd_Queue.field_20E`).
+epilogue. `CdCmd_ActivatePhase1` (`CdCmd_Queue.sceneAudioMode`).
 
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
@@ -19413,19 +19413,19 @@ ptr->field` assignment tends to put the pointer in `$v0` and the halfword in
 Hold the halfword in an `s32` temporary (and keep an explicit pointer local):
 
 ```c
-CdCmd190* info;
-s32       temp;
+StreamSlot* info;
+s32         temp;
 
-info = p->field_190;
-temp = info->field_14;
+info = p->sceneStream;
+temp = info->data.scene.resumeSectorOffset;
 if (temp) {
-    func(info->field_4 + temp);
+    func(info->startSector + temp);
 }
 ```
 
 The wider temp prefers `$v0` and leaves `$v1` for the pointer. Same family as
 the `s16 ret` tip (narrow vs wide forcing different REG_EQUAL modes), just the
-other direction. `CdCmd_ProcessPhase1` case 8 / `field_190` is the pure example.
+other direction. `CdCmd_ProcessPhase1` case 8 / `sceneStream` is the pure example.
 
 ## Empty memory clobber forces `sw ra` before the first delayed branch
 
@@ -19893,7 +19893,7 @@ the original code. Writing `field != 0` emits `lhu`; cast to force the signed
 load:
 
 ```c
-if ((s16)CdCmd_Queue.field_244 != 0 && !(flags & 8)) { … }
+if ((s16)CdCmd_Queue.blockGamePause != 0 && !(flags & 8)) { … }
 ```
 
 ## OT addPrim offsets: elements, not bytes
@@ -20116,7 +20116,7 @@ func(arg0, dims.hw.w + t, dims.hw.h + u);
 When materializing queue-idle style checks:
 
 ```c
-if (field_4c != 0) {
+if (activeRequest.phase != 0) {
     ret = 0;
 } else if (writeIdx != readIdx) {
     ret = 0;
@@ -20129,7 +20129,7 @@ if (ret == 0) return 0;
 `-O2` often collapses the equality arm into `xor`/`sltiu`. The target wants:
 
 ```
-bnez field_4c, check
+bnez activeRequest.phase, check
  move v0, zero
 lhu  v1, writeIdx
 lhu  v0, readIdx
@@ -21049,24 +21049,26 @@ vmat->m[2][2] = cos2;
 around the move. `Gfx_MatrixToEuler` is the pure example (RotMatrixX-shaped block
 on the scratch arena, then `gte_MulMatrix0` with `gte.h` included).
 
-## Reuse unused `value` as an early `$a1` address temp
+## An early typed queue local can occupy `$a1` when the second parameter is unused
 
 When the second parameter is discarded and a global base is needed later via
 `lhu …, off(a1)` after a switch (so `$a1` is still the prologue value on that
-case entry), reassign the parameter at the top of the function:
+case entry), initialize a typed local at the top of the function:
 
 ```c
 void func(void* arg0, void* arg1)
 {
-    arg1 = &CdCmd_Queue; /* materialises into $a1 before the switch */
+    CdCmdQueue* queue;
+    queue = &CdCmd_Queue; /* materialises into $a1 before the switch */
     …
     case 3:
-        if (((CdCmdQueue*)arg1)->field_22E != 0) /* lhu v0, 0x22e(a1) */
+        if (queue->holdBootImage != 0) /* lhu v0, 0x22e(a1) */
 ```
 
-A separate `CdCmdQueue* q = &CdCmd_Queue` local that is live across calls is
-coloured into `$s0` instead and produces `lhu v0, 0x22e(s0)`. Absolute
-`CdCmd_Queue.field_X` is still correct for stores that the target emits with
+A queue local live across calls can instead be coloured into `$s0` and produce
+`lhu v0, 0x22e(s0)`. The typed local above matches `Fs_BootImageMachine` while
+leaving its second parameter unused. Absolute member access is still correct
+for stores that the target emits with
 `%hi(CdCmd_Queue+off)`.
 
 ## An unused middle parameter is what puts the flag in `$a2` — arity decides argument registers
@@ -21793,7 +21795,7 @@ Hold `-1` in an `s16` temporary, then store:
 s16 neg;
 
 neg          = -1;   /* addiu v0, zero, -1 */
-p->field_202 = neg;  /* sh v0, field */
+p->imageDecodeStep = neg;  /* sh v0, field */
 ```
 
 Changing the field type to `s16` also works in isolation but can break
@@ -23373,7 +23375,7 @@ CdCmd_Enqueue(cmd, zero, p);
 
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
 insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …)`
-arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
+arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.preserveDisplayAfterDecode`).
 `Title_DemoStreamTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
@@ -26859,7 +26861,7 @@ so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
 
 ## Assign `&global` at the top so the address lives in `$sN` from the prologue
 
-A single later store (`CdCmd_Queue.field_20A = 1`) rematerializes
+A single later store (`CdCmd_Queue.suppressMoviePresentation = 1`) rematerializes
 `lui v1,%hi; sh v0,%lo(global+off)` at the use, so `$s4` is never allocated
 and the stack frame shrinks (`sw ra,0x28` instead of `0x2C`). The target
 computes `&CdCmd_Queue` in the prologue — even on the early-return path that
@@ -26873,11 +26875,11 @@ CdCmdQueue* queue;
 queue = &CdCmd_Queue;
 Gp_StartAreaBgm(&arg0->killCountdown);
 ...
-queue->field_20A = 1;
+queue->suppressMoviePresentation = 1;
 ```
 
 That forces `sw s4` / `addiu s4,%lo` in the prologue and `sh v0,0x20a(s4)`
-at the store. `Gp_RestartSessionTask` is the example. Bare `CdCmd_Queue.field_20A = 1`
+at the store. `Gp_RestartSessionTask` is the example. Bare `CdCmd_Queue.suppressMoviePresentation = 1`
 stuck at 95.6% with only the frame / `$s4` save-restore different.
 
 ## Two `&global`s: force `addiu v0, %lo` then `move dest` (not `addiu dest`)
@@ -32570,7 +32572,7 @@ is the example.
 D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
 
 On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
-prim pointers before the `CdCmd_Queue.field_224` check. Keep that order
+prim pointers before the `CdCmd_Queue.bootLoadActive` check. Keep that order
 in C (`color = 0x64`, then `buf = ds->field_114`, then both `&arr[buf]`).
 
 An `s8 yoff = ds->vramYOffset` local after `x0` is what places
@@ -32592,7 +32594,7 @@ That is the same split as `Title_MenuTask`; here it is required even
 though the function is a leaf and both `addPrim`s already match.
 
 When the overlay is the first thing in the function and the only queue
-access is `field_224`, the target hoists `li a2,8` then
+access is `bootLoadActive`, the target hoists `li a2,8` then
 `lui a1,%hi(CdCmd_Queue)` (no `addiu` of the queue base) and wants:
 
 ```
@@ -32603,7 +32605,7 @@ bnez  a0, skip
  addu t2, v1, v0
 ```
 
-`if (CdCmd_Queue.field_224 == 0)` rematerialises `%hi` at the use site
+`if (CdCmd_Queue.bootLoadActive == 0)` rematerialises `%hi` at the use site
 and parks `buf` in `$a0`. Pin color to `$a2`, emit the hi with
 non-volatile `asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi))`, then load
 through that register as a C halfword (not an `asm lhu`). An `asm lhu`
@@ -32625,7 +32627,7 @@ queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(CdCmd_Queue+0x224) */
 if (queued == 0) {
 ```
 
-`0x91C4` is the signed 16-bit `%lo` of `CdCmd_Queue.field_224`
+`0x91C4` is the signed 16-bit `%lo` of `CdCmd_Queue.bootLoadActive`
 (`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
 hardcoded `lhu` offset; GNU ld still produces the same linked
 instruction as `%hi/%lo`. `Gp_LoadWaitStage` is the example.
@@ -41608,7 +41610,7 @@ statements stay literal constants, so `jump_optimize` hoists the `0` and both
 exits share one `jr $ra`:
 
 ```c
-if (p->field_4c != 0) {
+if (p->activeRequest.phase != 0) {
     idle = 0;
     goto check_idle;
 }
@@ -45578,10 +45580,10 @@ CdCmd_Queue = 0x80068FA0; // type:CdCmdQueue size:0x254
 ```
 
 `0x800691CA` is `CdCmd_Queue + 0x22A`, i.e. the already-named
-`CdCmdQueue::field_22A`, so `func_actor_121300_8013427C` matched by writing
+`CdCmdQueue::imageMdecMode`, so `func_actor_121300_8013427C` matched by writing
 
 ```c
-CdCmd_Queue.field_22A = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
+CdCmd_Queue.imageMdecMode = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
 ```
 
 which sets `MEM_IN_STRUCT_P` for the real reason. The scalar form scored
@@ -54911,7 +54913,7 @@ it by grepping `src/` for a distinctive global or field the asm touches rather
 than for the body:
 
 ```
-grep -rn "field_1EA\|field_1FA" src/     # -> acropolis_observatory_2.c
+grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 ```
 
 `func_acropolis_observatory_8017D9A8` turned out to be the same task with a
@@ -59593,7 +59595,7 @@ register.
 In `func_map_neo_ark_801799BC` the target opens its case with `li $t0, 1` and
 assigns `$a3` to `0x10000`; writing the `= 1` stores after the `= 0x180` /
 `= 0x100` stores gave the opposite pairing and a `regs` penalty of 14 across the
-block. Moving the single statement `q->field_22C = 1;` to the top of the case
+block. Moving the single statement `q->movieVramStaging = 1;` to the top of the case
 hoisted the `li` and fixed all of it -- the emitted *store* order did not
 change, because the scheduler moved the store back down on its own. Reorder the
 statement that first mentions the constant, not the stores you can see.
@@ -59642,10 +59644,10 @@ may move the insn:
 do {
     one = 1;
 } while (0);
-q->field_230 = 0x180;
-q->field_232 = 0x100;
+q->movieStagingX = 0x180;
+q->movieStagingY = 0x100;
 D_8006AC5C   = one;
-q->field_22C = one;
+q->movieVramStaging = one;
 ```
 
 Two traps in getting there. Declare the shared constant `s16`/`u16`, not `s32`:
@@ -60126,7 +60128,7 @@ four bytes.
 
 ## A global re-read while still live in a register means `volatile` — but read the compare temp non-volatile
 
-`func_acropolis_plaza_8017F9EC` loads `CdCmd_Queue.field_1EE` once, uses it for
+`func_acropolis_plaza_8017F9EC` loads `CdCmd_Queue.sceneFrame` once, uses it for
 two comparisons, and then **loads it again** in each arm of the inner
 `if`/`else`, even though the first load's register is untouched:
 
@@ -60167,9 +60169,9 @@ directly, so they stay a bare `lhu`. The shape that matched keeps both:
 
 ```c
 CdCmdQueue*   q     = &CdCmd_Queue;              /* plain, for the compare temp */
-volatile u16* frame = &CdCmd_Queue.field_1EE;    /* volatile, for the arms */
+volatile u16* frame = &CdCmd_Queue.sceneFrame;    /* volatile, for the arms */
 
-pos = q->field_1EE;                              /* one lhu, no andi */
+pos = q->sceneFrame;                              /* one lhu, no andi */
 if ((u32)(pos - 0x1F) < 0x36U) {
     vol = 0x7F;
 } else if (pos < 0x1EU) {
@@ -65238,7 +65240,7 @@ order from the scheduled assembly.
 ## Cached frame comparisons with fresh arithmetic reads: barrier placement matters
 
 `func_acropolis_plaza_8017F770` uses one `u32 pos` loaded from
-`CdCmd_Queue.field_1EE` for every comparison, then reloads the same field for
+`CdCmd_Queue.sceneFrame` for every comparison, then reloads the same field for
 volume arithmetic. An `u8 vol` local and complete division expressions in
 each arm reproduce the target's register allocation and the mode-1 shared
 division tail; the m2c numerator/denominator temporaries did not.
@@ -67719,7 +67721,7 @@ reports the function at 99.97% with everything else green. Nothing else can see
 it: the linker resolves `%lo(CdCmd_Queue)` to exactly the constant the hand-written
 offset already holds. `Gp_LoadState2` in `src/gameplay/D4.c` was the worked example.
 
-**Fix:** delete the asm and write the field access (`queued = CdCmd_Queue.field_224;`),
+**Fix:** delete the asm and write the field access (`queued = CdCmd_Queue.bootLoadActive;`),
 then recover the schedule by moving the *statement* earlier in the function. The
 list scheduler breaks priority ties on RTL order, so a read placed near the top of
 the block lets sched1 hoist the `lui` on its own and leave the dependent load down
@@ -67753,7 +67755,7 @@ compare against and the correct relocated form is charged as a register
 difference. This is not a property of the code: `Gp_LoadState2` and
 `Gp_LoadWaitStage` have byte-identical instruction windows here, and splat pairs
 the load in the first and not the second. Six functions in `src/gameplay/D4.c`
-read `CdCmd_Queue.field_224` this way and exactly one gets the paired render.
+read `CdCmd_Queue.bootLoadActive` this way and exactly one gets the paired render.
 
 **Fix:** treat it like the symbol-name artifact above - the scratch score cannot
 reach 100% on this shape, and only the linked checksum can. Confirm the object is
@@ -67941,7 +67943,7 @@ lhu  $a0, -0x6E3C($a1)
 
 **Symptom:** `target.o` therefore carries `R_MIPS_HI16` and no `R_MIPS_LO16`,
 which is exactly what the hand-built pair reproduces. So in the scratch env the
-hack scores 100.000% and the correct `queued = CdCmd_Queue.field_224;` scores
+hack scores 100.000% and the correct `queued = CdCmd_Queue.bootLoadActive;` scores
 99.950% with `regs: 1` - the scorer charges the `%lo(CdCmd_Queue+0x224)` operand
 against the constant. A loop that trusts the score alone will keep the hack.
 `Gp_LoadWaitStage` in `src/gameplay/D4.c` was the worked example.
@@ -88141,7 +88143,7 @@ Inputs: `base.i`
 **Same mechanism, different symptom: the store displacement.** The two forms
 do not have to differ in *where* the address is born to be visible in the
 object. `func_neo_ark_eve_access_tunnel_8017DFC0` stored through
-`CdCmd_Queue.field_22A` (offset 0x22A) after two calls with no pointer local,
+`CdCmd_Queue.imageMdecMode` (offset 0x22A) after two calls with no pointer local,
 and scored 86.6% with `branch=2 regs=8 reorder=1 delete=3` - the missing insns
 were one `lui`, one `addiu` and one `sw $s1`, and the store itself read
 `sh $v0, %lo(CdCmd_Queue+0x22a)($v1)`: the `%lo` was folded into the memory
@@ -92060,7 +92062,7 @@ CdCmdQueue* queue;
 queue            = &CdCmd_Queue;      /* before the call: the range spans it */
 arg0->field_24   = D_neo_ark_r31_8017D9F4;
 Game_SetPtrSlot(arg0, 7);
-queue->field_22A = 2;
+queue->imageMdecMode = 2;
 func_800E8634((s32)&D_80133F90, 0, (s32)&D_80134470);
 arg0->state      = (s32)(arg0->state + 1);
 ```
@@ -122996,16 +122998,16 @@ Written as a `static inline u16` helper called from both cases, the build is
 flag `$a0`, the target has them the other way round.
 
 Each inline expansion is its own short pseudo, so the switch value (live into
-case 2, where CSE reuses it for `field_1F8 == 2`) is allocated first in
+case 2, where CSE reuses it for `plazaStreamSubId == 2`) is allocated first in
 `global_alloc` and takes the first free register. Declaring one function-level
 `u16 on;` and writing the computation out in both cases makes the flag a
 single pseudo with twice the refs and a live range spanning both cases; it
 now sorts ahead of the switch value, takes `$v1`, and the switch value falls
 to `$a0` - 100%.
 
-Also in this function: `if (q.field_1F8 == 3) task->state = q.field_1F8;`
+Also in this function: `if (q.plazaStreamSubId == 3) task->state = q.plazaStreamSubId;`
 reloads the field into a second register (`move v0,v1`); the target's direct
-`sw v1` comes from a `u16 st = q.field_1F8;` local used for both the test and
+`sw v1` comes from a `u16 st = q.plazaStreamSubId;` local used for both the test and
 the store.
 
 ## A redundant-looking `move $sN,$vN` after a computation is `cse` keeping two pseudos: put the store *before* the variable assignment (func_actor_800300_80162D74, 2026-09-17)

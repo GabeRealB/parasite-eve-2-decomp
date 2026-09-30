@@ -1331,7 +1331,7 @@ void func_800CCDC8(Task* arg0)
         arg0->state = 2;
     }
     if (arg0->state == 2) {
-        if ((queue->field_214 != 0) || (CdCmd_IsIdle() & 0xFFFF)) {
+        if ((queue->scenePayloadAvailable != 0) || (CdCmd_IsIdle() & 0xFFFF)) {
             arg0->state = 1;
         }
     }

@@ -1042,7 +1042,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    CdCmd_Queue.field_22A            = 2;
+    CdCmd_Queue.imageMdecMode        = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;

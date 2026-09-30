@@ -73,98 +73,183 @@ enum {
     FILE_SYSTEM_IMAGE_STRIPS     = 1,
 };
 
-/// Global CD / asset load command queue (`CdCmd_Queue`).
-typedef struct _CdCmdQueue {
+/// Dispatch modes for the saved active request.
+enum {
+    CD_COMMAND_PHASE_DISPATCH = 0,
+    CD_COMMAND_PHASE_CANCEL   = 1,
+    CD_COMMAND_PHASE_SUSPEND  = 2,
+};
+
+/// Completion and header-wait markers for image loads.
+enum {
+    CD_COMMAND_IMAGE_PENDING     = 0,
+    CD_COMMAND_IMAGE_COMPLETE    = 0xFF,
+    CD_COMMAND_IMAGE_WAIT_HEADER = -1,
+    CD_COMMAND_IMAGE_START       = 0,
+    CD_COMMAND_IMAGE_WAIT_OUTPUT = 1,
+};
+
+/// Movie playback steps, including disk recovery and read-start retries.
+enum {
+    CD_COMMAND_MOVIE_WAIT_READY  = 0,
+    CD_COMMAND_MOVIE_INIT        = 1,
+    CD_COMMAND_MOVIE_SEEK_START  = 2,
+    CD_COMMAND_MOVIE_DECODE      = 3,
+    CD_COMMAND_MOVIE_PAUSE       = 4,
+    CD_COMMAND_MOVIE_FINISH      = 5,
+    CD_COMMAND_MOVIE_RECOVER     = 6,
+    CD_COMMAND_MOVIE_STOP_RETRY  = 7,
+    CD_COMMAND_MOVIE_SEEK_RESUME = 8,
+    CD_COMMAND_MOVIE_RETRY_READ  = 9,
+};
+
+/// Drive seek and pause steps stored independently of the request handler step.
+enum {
+    CD_COMMAND_SEEK_SET_LOCATION = 0,
+    CD_COMMAND_SEEK_ISSUE        = 1,
+    CD_COMMAND_SEEK_WAIT         = 2,
+    CD_COMMAND_PAUSE_ISSUE       = 0,
+    CD_COMMAND_PAUSE_WAIT        = 1,
+};
+
+/// Saved-request cancellation steps, shared by movie and scene/audio cancellation.
+enum {
+    CD_COMMAND_CANCEL_BEGIN  = 0,
+    CD_COMMAND_CANCEL_WAIT   = 1,
+    CD_COMMAND_CANCEL_FINISH = 2,
+};
+
+/// Scene/audio modes and the failed scene-slot lookup marker.
+enum {
+    CD_COMMAND_SCENE_INACTIVE       = 0,
+    CD_COMMAND_SCENE_PLAYING        = 1,
+    CD_COMMAND_SCENE_STARTING_AUDIO = 2,
+    CD_COMMAND_NO_SCENE_SLOT        = -1,
+};
+
+/// Timing words are cumulative horizontal-scanline deadlines, with two markers.
+enum {
+    CD_COMMAND_TIMING_END  = 0,
+    CD_COMMAND_TIMING_SKIP = -1,
+};
+
+/// Image MDEC input modes; bit 1 asks the decoder to set output pixel bit 15.
+enum {
+    MDEC_IMAGE_MODE_RGB16          = 0,
+    MDEC_IMAGE_MODE_RGB16_MASK_BIT = 2,
+};
+
+/// Resident CD-request ring and shared file, movie and scene/audio load state.
+///
+/// Ring indices wrap over eight entries; enqueue does not check for a full ring,
+/// so producers must avoid overtaking the consumer. `activeRequest` preserves a
+/// request while it is cancelled, suspended or requeued. Its complete 16-byte
+/// extent is cleared together, including the saved sector, phase and unknown bytes.
+///
+/// `sceneStream` borrows a descriptor until its stream table is reloaded. Scene
+/// headers are indexed by payload destination (0..4), and remain valid with the
+/// associated buffers until those buffers are reused. Decode storage comes from
+/// the auxiliary heap; VLC and timing storage may instead borrow actor buffers.
+/// The external payload buffer is caller-owned. Transfers and header offsets must
+/// fit the selected storage; this object does not record every buffer's capacity.
+/// Timing storage contains aligned u32 deadlines in horizontal scanlines, ending
+/// at 0 and skipping 0xFFFFFFFF; its extent comes from the scene descriptor/payload.
+/// Movie frame limits must fit positive s16 values for the decoder's frame clamp.
+/// Unknown storage keeps its observed extent without claiming a padding role.
+typedef struct {
     // clang-format off
-    CdCmdEntry   entries[8];
-    CdCmdEntry   field_40;
-    s32          field_48; // last CD position from CdPosToInt
-    s8           field_4c;
-    byte         unknown_4d[0x3];
-    CdCmdEntry   field_50;              // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
-    StreamSceneImageHeader field_58[5];           // 0x58..0x183 — stream decode slot table
-    void*        decodeBuffer;          // 0x184 — aux buffer (malloc of decodeBufferBytes)
-    s32          decodeBufferBytes;     // 0x188 — size for decodeBuffer malloc
-    u16*         field_18C;             // 0x18C — VLC / DCT table buffer
-    StreamSlot*  field_190;             // 0x190
-    s32          nextDecodeBufferBytes; // 0x194 — byte count for the next decode-buffer allocation
-    void*        field_198;             // 0x198 — base buffer for field_58 kind 4
-    u32*         field_19C;             // 0x19C — copy of field_1A4; timing table cursor
-    u32          field_1A0;             // 0x1A0 — timing accumulator (GameMain_Loop)
-    void*        field_1A4;             // 0x1A4 — secondary image/stream buffer
-    s32          field_1A8;             // 0x1A8 — copied to Gp_LcgState by Gp_RestoreStreamRng
-    u32          field_1AC;             // 0x1AC — srand seed restored by Gp_RestoreStreamRng
-    byte         unknown_1B0[0x18];
-    u16          writeIdx;              // 0x1C8 — next free slot (enqueue)
-    u16          readIdx;               // 0x1CA — slot being executed
-    byte         unknown_1cc[0x4];
-    u16          step;                  // 0x1D0 — sub-state of current command
-    u16          field_1d2;
-    u16          field_1d4;
-    u16          field_1D6; // state for CdCmd_SeekL
-    byte         unknown_1d8[0x6];
-    u16          field_1DE; // state for CdCmd_PausePoll
-    u16          field_1E0;
-    u16          field_1E2;
-    u16          field_1E4;
-    u16          field_1E6;
-    u16          field_1E8;
-    u16          field_1EA;
-    u16          field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
-    u16          field_1EE; // 0x1EE — stream slot latched by the plaza cutscene tasks
-    u16          field_1F0;
-    u16          field_1F2;
-    u16          field_1F4;
-    u16          field_1F6;
-    u16          field_1F8; // 0x1F8 — plaza ambience state (0/1 emitters, 2 fade)
-    u16          field_1FA;
-    u16          field_1fc;
-    u8           field_1FE; // load status (0xFF = idle/done in several paths)
-    u8           field_1FF;
-    u16          field_200;
-    u16          field_202;
-    u16          field_204;
-    byte         unknown_206[0x4];
-    u16          field_20A;
-    byte         unknown_20C[0x2];
-    s16          field_20E;
-    u16          field_210; // 0x210 — set when Stream_FindSlot succeeds (Gp_ViewBeginLoad)
-    u16          field_212;
-    u16          field_214;
-    u16          field_216;      // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers
-    u16          field_218;      // 0x218 — non-zero blocks Mdec_ResolveStreamBuffer success path
-    s16          field_21A;
-    u16          imageLayout;    // Room image layout (0 contiguous 320x240, 1 twenty 16x240 strips)
-    u16          field_21E;      // 0x21E — DecDCTvlcBuild done flag
-    byte         unknown_220[0x2];
-    u16          pausePlayClock; // Nonzero pauses the play clock during CD file loads
-    u16          field_224;
-    u16          field_226;      // sub-state for CdCmd_RecoverDisk disk recovery
-    u16          field_228;
-    u16          field_22A;      // DecDCTin mode for Mdec_DecodeToVram
-    u16          field_22C;
-    u16          field_22E;
-    u16          field_230;
-    u16          field_232;
-    s16          field_234;
-    s16          field_236;
-    s16          field_238; // 0x238 — non-zero clears field_18C in CdCmd_SetupMdecBuffers
-    s16          field_23A; // 0x23A — set to 1 by Gp_RestoreStreamRng
-    byte         unknown_23C[0x2];
-    s16          field_23E; // MoveImage vs ClearImage path for Mdec_DecodeToVram
-    s16          field_240; // non-zero enables CD timing wait (GameMain_Loop)
-    s16          field_242;
-    s16          field_244;
-    u16          field_246;
-    u16          field_248;
-    u16          field_24A;
-    u16          field_24C; // 0x24C
-    u16          field_24E; // 0x24E
-    byte         unknown_250[0x2];
-    s16          busy;      // 0x252 — non-zero while a blocking load is active
+    CdCmdEntry entries[8];                        // Pending requests; readIdx/writeIdx are in 0..7
+    struct {
+        CdCmdEntry entry;                         // Saved request, independent of the ring slot's lifetime
+        s32        resumeSector;                  // Absolute CD sector captured when suspending a movie
+        s8         phase;                         // Dispatch mode (0 normal, 1 cancel, 2 suspend)
+        byte       unknown_4d[3];                 // Role unproven; cleared with the complete active request
+    } activeRequest;
+    CdCmdEntry replacementEntry;                  // Deferred request committed to the ring; cmd=0 means empty
+    StreamSceneImageHeader sceneImageHeaders[5];  // Cached headers for decode, actor 0/1/2 and external storage
+    u8*         decodeBuffer;                     // Auxiliary-heap scene payload storage
+    s32         decodeBufferBytes;                // Byte count for buffer setup; advanced after a kind-0 payload is decoded
+    u16*        vlcTable;                         // SDK VLC table; allocated or borrowed from actor/image storage
+    StreamSlot* sceneStream;                      // Borrowed scene/audio descriptor, not a movie descriptor
+    s32         nextDecodeBufferBytes;            // Byte capacity requested by the latest kind-0 payload header
+    u8*         externalScenePayloadBuffer;       // Caller-owned storage for payload destination 4
+    u32*        timingCursor;                     // Current timing word; 0 ends advancement, 0xFFFFFFFF skips one word
+    u32         timingElapsedLines;               // Accumulated horizontal scanlines since scene timing began
+    u32*        timingBuffer;                     // Timing-table base, allocated or borrowed from an actor buffer
+    s32         savedLcgState;                    // Game LCG state restored after deterministic scene playback
+    u32         savedRandSeed;                    // Next SDK rand() result used to reseed after scene playback
+    byte        unknown_1B0[0x18];
+    u16         writeIdx;                         // Next ring slot to fill (0..7)
+    u16         readIdx;                          // Ring slot being consumed (0..7)
+    byte        unknown_1cc[4];
+    u16         step;                             // Current request handler's step; interpretation depends on opcode
+    u16         suspendResumeStep;                // Suspend/follow-up step (0 begin, 1 wait, 2 stop when suspending)
+    u16         diskError;                        // Most recent CD sync result was a disk error (0 no, 1 yes)
+    u16         seekStep;                         // Seek step (0 wait/setloc, 1 seek, 2 wait for completion)
+    byte        unknown_1d8[6];
+    u16         pauseStep;                        // Pause step (0 issue command, 1 wait/retry)
+    u16         pauseRetryCount;                  // Retries through the pause handler's status-3 path
+    u16         field_1E2;                        // Only cleared on movie shutdown; role unproven
+    u16         movieStep;                        // Playback step (0 ready, 1 init, 2 seek, 3 decode, 4 pause, 5 finish, 6..9 recovery)
+    u16         movieFrameAvailable;              // Texture movie has a decoded frame available for presentation
+    u16         continueMovie;                    // Nonzero continues decoding; zero requests stopping after a frame
+    u16         movieFrame;                       // Encoded movie frame, numbered from 1
+    u16         mdecOutputPending;                // Decoder output is in progress; completion callback clears it
+    u16         sceneFrame;                       // Scene traversal frame: movieFrame, or frameLimit-movieFrame+1 in reverse
+    u16         reverseSceneFrames;               // Scene traversal direction (0 forward, 1 reverse)
+    u16         movieFrameSubstep;                // Presentation substep (0 newly decoded/terminal frame, 1 repeated frame)
+    u16         movieFrameChanged;                // Latched frame change, consumed by the next texture presentation
+    u16         movieAtEnd;                       // Latched when the encoded frame reaches the movie's frame limit
+    u16         plazaStreamSubId;                 // Plaza movie selector (0..5), passed as the stream's subId
+    u16         movieReady;                       // Movie wait gate (0 awaiting a frame, 1 started or skipped)
+    u16         cancelStep;                       // Cancel step (0 begin, 1 fade/wait, 2 stop/resume trailing audio)
+    u8          imageLoadStatus;                  // Image completion (0 pending, 0xFF complete)
+    u8          field_1FF;                        // Set to 1 when selecting scene/audio; subsequent role unproven
+    u16         imageDecodePending;               // Nonzero while an image decode request remains outstanding
+    u16         imageDecodeStep;                  // Signed interpretation: -1 wait for header, 0 start, 1 wait for output
+    u16         suspendNormalDispatch;            // Nonzero suppresses normal ring dispatch; setter is unproven
+    byte        unknown_206[4];
+    u16         suppressMoviePresentation;        // Nonzero suppresses movie presentation during a session change
+    byte        unknown_20C[2];
+    s16         sceneAudioMode;                   // Scene/audio mode (0 inactive, 1 scene playback, 2 starting audio)
+    u16         viewMovieSelected;                // View movie selected after releasing slot-4 model buffers
+    u16         sceneAudioStarted;                // Audio has reached its started phase; next request can reuse it
+    u16         scenePayloadAvailable;            // Completed scene payload enables cached-header image decoding
+    u16         sceneBuffersNeeded;               // Scene selection requires VLC/timing/decode buffer setup
+    u16         scenePayloadLoading;              // Payload transfer in progress; cached-header resolution must wait
+    s16         sceneSlotIndex;                   // Selected scene/audio table index (-1 no matching slot)
+    u16         imageLayout;                      // Room image layout (0 contiguous 320x240, 1 twenty 16x240 strips)
+    u16         vlcTableBuilt;                    // Reserved scene VLC table has been initialized (0 no, 1 yes)
+    byte        unknown_220[2];
+    u16         pausePlayClock;                   // Nonzero pauses the play clock during CD file loads
+    u16         bootLoadActive;                   // Boot image/text load needs servicing by the CD dispatcher
+    u16         diskRecoveryStep;                 // Disk validation (0 test read, 1 wait after validation failure)
+    u16         syncRecoveryStep;                 // Sync recovery (0 poll command, 1 recover after shell-open error)
+    u16         imageMdecMode;                    // One-image input mode (0 RGB16, 2 RGB16 with pixel bit 15 set); then reset
+    u16         movieVramStaging;                 // Nonzero uploads to a fixed staging rectangle before presentation
+    u16         holdBootImage;                    // Nonzero holds the boot image/text before its closing fade
+    u16         movieStagingX;                    // Staging rectangle X in VRAM words
+    u16         movieStagingY;                    // Staging rectangle Y in VRAM rows
+    s16         rebuildImageVlcTable;             // Rebuild the image-workspace VLC table before a standalone decode
+    s16         field_236;                        // Negative fallback status after failed selection; role unproven
+    s16         sceneVlcTableMode;                // Descriptor policy (0 reserved VLC storage, 1 image-workspace VLC storage)
+    s16         sceneEnded;                       // Scene restored/ended; later payload arrivals do not enable scene decoding
+    byte        unknown_23C[2];
+    s16         preserveDisplayAfterDecode;       // One-shot copy of the displayed image instead of clearing the other buffer
+    s16         paceToSceneTiming;                // Nonzero enables main-loop pacing against the timing table
+    s16         cdOperationPending;               // CD seek/read/pause must finish before cancellation or suspension
+    s16         blockGamePause;                   // Nonzero blocks game pause unless the scene halt flag permits it
+    u16         scenePayloadReusable;             // A zero-forceReload payload may be reused until decode completion
+    u16         releasePauseBlockAfterFade;       // Session-start fade releases blockGamePause on completion
+    u16         field_24A;                        // Set by particular map movie-buffer layouts; role unproven
+    u16         movieDiskRecoveryActive;          // Latched shell-open movie recovery, cleared after restarting its read
+    u16         movieReadPending;                 // Initial movie seek/read has not yet started successfully
+    byte        unknown_250[2];
+    s16         busy;                             // Blocking CD request is active; mirrored by the display's CD-busy latch
     // clang-format on
 } CdCmdQueue;
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
+STATIC_ASSERT(sizeof(((CdCmdQueue*)0)->activeRequest) == 0x10, cd_command_active_request_size);
 
 /// Per-folder slot cleared by `Fs_PrepareFolderLoad` (50 entries, parallel to
 /// `Fs_FolderTable`). Only the first byte is written by the init path.

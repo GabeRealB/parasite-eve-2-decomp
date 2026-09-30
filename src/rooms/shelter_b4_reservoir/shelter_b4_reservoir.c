@@ -1028,7 +1028,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    CdCmd_Queue.field_22A = 2;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -1397,7 +1397,7 @@ void func_shelter_b4_reservoir_8017E610(s32 arg0)
     CdCmdQueue* queue = &CdCmd_Queue;
 
     if (arg0 <= 0) {
-        queue->field_22A                      = 2;
+        queue->imageMdecMode                  = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
         D_shelter_b4_reservoir_80187624.span  = 1;
         D_shelter_b4_reservoir_80187624.scale = 0x60;
         D_shelter_b4_reservoir_80187624.r     = 0x40;

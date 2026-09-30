@@ -77,7 +77,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);
@@ -111,7 +111,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);

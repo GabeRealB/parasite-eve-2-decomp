@@ -997,11 +997,11 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
 }
 
 /// Controller for the display model spawned from `D_actor_310100_801798FC`.
-/// Plaza ambience state 3 (`CdCmd_Queue.field_1F8`) forces the task into state
+/// Plaza stream sub-ID 3 (`CdCmd_Queue.plazaStreamSubId`) forces the task into state
 /// 3, where it idles. Otherwise state 0 allocates the 0x50C work block, and
-/// states 1 and 2 toggle the model on the plaza stream slot: it is shown while
-/// the ambience state is 0/1 with slot `field_1EE` at 0xE6 or above, or state 2
-/// with the slot outside 7..0x6B. State 1 spawns it at the area place with
+/// states 1 and 2 toggle the model against the plaza scene frame: it is shown while
+/// the stream sub-ID is 0/1 with `sceneFrame` at 0xE6 or above, or state 2
+/// with the frame outside 7..0x6B. State 1 spawns it at the area place with
 /// id 0x6C; state 2 kills it again once that condition drops.
 void func_actor_310100_801627BC(Task* task)
 {
@@ -1013,7 +1013,7 @@ void func_actor_310100_801627BC(Task* task)
     u16              st;
     u16              on;
 
-    st = CdCmd_Queue.field_1F8;
+    st = CdCmd_Queue.plazaStreamSubId;
     if (st == 3) {
         task->state = st;
     }
@@ -1029,10 +1029,10 @@ void func_actor_310100_801627BC(Task* task)
             break;
         case 1:
             on = 1;
-            if (CdCmd_Queue.field_1F8 < 2U) {
-                on = CdCmd_Queue.field_1EE >= 0xE6U;
+            if (CdCmd_Queue.plazaStreamSubId < 2U) {
+                on = CdCmd_Queue.sceneFrame >= 0xE6U;
             }
-            if (CdCmd_Queue.field_1F8 == 2 && (u32)(CdCmd_Queue.field_1EE - 7) < 0x65U) {
+            if (CdCmd_Queue.plazaStreamSubId == 2 && (u32)(CdCmd_Queue.sceneFrame - 7) < 0x65U) {
                 on = 0;
             }
             if (on) {
@@ -1053,10 +1053,10 @@ void func_actor_310100_801627BC(Task* task)
             break;
         case 2:
             on = 1;
-            if (CdCmd_Queue.field_1F8 < 2U) {
-                on = CdCmd_Queue.field_1EE >= 0xE6U;
+            if (CdCmd_Queue.plazaStreamSubId < 2U) {
+                on = CdCmd_Queue.sceneFrame >= 0xE6U;
             }
-            if (CdCmd_Queue.field_1F8 == 2 && (u32)(CdCmd_Queue.field_1EE - 7) < 0x65U) {
+            if (CdCmd_Queue.plazaStreamSubId == 2 && (u32)(CdCmd_Queue.sceneFrame - 7) < 0x65U) {
                 on = 0;
             }
             if (!on) {
@@ -1072,8 +1072,8 @@ void func_actor_310100_801627BC(Task* task)
 /// Controller for the display model spawned from `D_actor_310100_80179920`
 /// (id 0x6D), the counterpart of `func_actor_310100_801627BC`. State 0 allocates
 /// the 0x50C work block and seeds the display task's `spawnArg1` (`field_504`)
-/// with 0x18. The model is shown while the plaza ambience state is 0/1 with slot
-/// `field_1EE` in 0x4B..0xC3; states 2, 4 and 5 hide it. On hiding, state 2 keeps
+/// with 0x18. The model is shown while the plaza stream sub-ID is 0/1 with frame
+/// `sceneFrame` in 0x4B..0xC3; sub-IDs 2, 4 and 5 hide it. On hiding, state 2 keeps
 /// the display task's `field_504` before killing it.
 void func_actor_310100_801629FC(Task* task)
 {
@@ -1085,7 +1085,7 @@ void func_actor_310100_801629FC(Task* task)
     u16              on;
 
     work = (Actor310100Work*)task->work;
-    st   = CdCmd_Queue.field_1F8;
+    st   = CdCmd_Queue.plazaStreamSubId;
     if (st == 3) {
         task->state = st;
     }
@@ -1102,16 +1102,16 @@ void func_actor_310100_801629FC(Task* task)
             break;
         case 1:
             on = 1;
-            if (CdCmd_Queue.field_1F8 < 2U) {
-                on = (u32)(CdCmd_Queue.field_1EE - 0x4B) < 0x79U;
+            if (CdCmd_Queue.plazaStreamSubId < 2U) {
+                on = (u32)(CdCmd_Queue.sceneFrame - 0x4B) < 0x79U;
             }
-            if (CdCmd_Queue.field_1F8 == 2) {
+            if (CdCmd_Queue.plazaStreamSubId == 2) {
                 on = 0;
             }
-            if (CdCmd_Queue.field_1F8 == 4) {
+            if (CdCmd_Queue.plazaStreamSubId == 4) {
                 on = 0;
             }
-            if (CdCmd_Queue.field_1F8 == 5) {
+            if (CdCmd_Queue.plazaStreamSubId == 5) {
                 on = 0;
             }
             if (on) {
@@ -1131,16 +1131,16 @@ void func_actor_310100_801629FC(Task* task)
             break;
         case 2:
             on = 1;
-            if (CdCmd_Queue.field_1F8 < 2U) {
-                on = (u32)(CdCmd_Queue.field_1EE - 0x4B) < 0x79U;
+            if (CdCmd_Queue.plazaStreamSubId < 2U) {
+                on = (u32)(CdCmd_Queue.sceneFrame - 0x4B) < 0x79U;
             }
-            if (CdCmd_Queue.field_1F8 == 2) {
+            if (CdCmd_Queue.plazaStreamSubId == 2) {
                 on = 0;
             }
-            if (CdCmd_Queue.field_1F8 == 4) {
+            if (CdCmd_Queue.plazaStreamSubId == 4) {
                 on = 0;
             }
-            if (CdCmd_Queue.field_1F8 == 5) {
+            if (CdCmd_Queue.plazaStreamSubId == 5) {
                 on = 0;
             }
             if (!on) {

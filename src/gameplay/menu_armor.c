@@ -397,7 +397,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
             return;
         }
     }
-    if (queue->field_214 == 1) {
+    if (queue->scenePayloadAvailable == 1) {
         return;
     }
 

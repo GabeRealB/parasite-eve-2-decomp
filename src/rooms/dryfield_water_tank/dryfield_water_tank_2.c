@@ -955,7 +955,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SndEvt_EnqueueType6(0x52150006, 0, 0);

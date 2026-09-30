@@ -71,7 +71,7 @@ extern SVECTOR D_acropolis_forked_road_80182204[2];
 /// Set to 1 by the fade-out task once the scene has finished.
 
 /// Per-frame path the streamed scene walks `Player_Status.coordMtx` along, indexed by
-/// `CdCmd_Queue::field_1EA - 1` for the 0x78 frames the ride lasts.
+/// `CdCmd_Queue::movieFrame - 1` for the 0x78 frames the ride lasts.
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
 /// The script pair the streamed scene runs.
@@ -1212,7 +1212,7 @@ GpRoomParamRec* D_acropolis_forked_road_801850A4[8] = {
 /// block and warps slot 3 to the head of the path with a 0x3E9 placement.
 /// State 1 sends the same spot again as a 0x3F2. State 2 waits for slot 3 to
 /// go idle (msg 0x3F0) and then queues the stream's CD read. State 3 waits for
-/// the stream to come up (`CdCmd_Queue::field_1FA`), starts the script pair and
+/// the stream to come up (`CdCmd_Queue::movieReady`), starts the script pair and
 /// reparents this task under it. State 4 drives the ride, moving the camera
 /// target to the `field_1EA`th path entry every frame until the pad interrupts
 /// it or the path runs out at frame 0x78. State 5 stops the scene, restores
@@ -1236,7 +1236,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
                 taskKill(task);
                 break;
             }
-            queue->field_1EA = 1;
+            queue->movieFrame = 1;
             func_800E9BDC(3, 0x9FF);
             Gp_StateF0.field_4                    = 2;
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
@@ -1270,7 +1270,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 3:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
                                                                  D_acropolis_forked_road_80185070);
                 gGameSession->padScriptFlags |= 0x80;
@@ -1280,10 +1280,10 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             break;
 
         case 4:
-            work->mtx->t[0] = D_acropolis_forked_road_80180F80[queue->field_1EA - 1].vx;
-            work->mtx->t[1] = D_acropolis_forked_road_80180F80[queue->field_1EA - 1].vy;
-            work->mtx->t[2] = D_acropolis_forked_road_80180F80[queue->field_1EA - 1].vz;
-            if ((Pad_CheckFlag800() != 0) || ((queue->field_1EA - 1) >= 0x78)) {
+            work->mtx->t[0] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vx;
+            work->mtx->t[1] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vy;
+            work->mtx->t[2] = D_acropolis_forked_road_80180F80[queue->movieFrame - 1].vz;
+            if ((Pad_CheckFlag800() != 0) || ((queue->movieFrame - 1) >= 0x78)) {
                 task->state = task->state + 1;
             }
             break;
@@ -1306,13 +1306,13 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
 /// The forked road's return ride: the same streamed scene played backwards
 /// along `D_acropolis_forked_road_80180F80`, whose entries this one walks from
-/// the far end (`0x3B - CdCmd_Queue::field_1EA`).
+/// the far end (`0x3B - CdCmd_Queue::movieFrame`).
 ///
 /// State 0 allocates the `RoomStreamWork` block, captures slot 3 and the
 /// player's coordinate matrix (`Player_Status.coordMtx`) in it, cues the stream
 /// (slot-6 msg 0xFA4) and republishes the player's weapon to slot 3 with a
 /// 0x3E8 record. State 1 waits for the stream to come up
-/// (`CdCmd_Queue::field_1FA`), moves the player to the head of the
+/// (`CdCmd_Queue::movieReady`), moves the player to the head of the
 /// path, starts the script pair, reparents this task under it and blanks the
 /// display. State 2 drives the ride: it un-blanks after two frames, walks the
 /// player along the path, and lets the pad spawn the skip task. Once
@@ -1357,10 +1357,10 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             break;
 
         case 1:
-            if (queue->field_1FA != 0) {
-                work->mtx->t[0]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
-                work->mtx->t[1]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
-                work->mtx->t[2]               = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+            if (queue->movieReady != 0) {
+                work->mtx->t[0]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
+                work->mtx->t[1]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
+                work->mtx->t[2]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
                                                                  D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= 0x80;
@@ -1376,14 +1376,14 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             if (task->killCountdown >= 3) {
                 SetDispMask(1);
             }
-            work->mtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vx;
-            work->mtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vy;
-            work->mtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+            work->mtx->t[0] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vx;
+            work->mtx->t[1] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vy;
+            work->mtx->t[2] = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
             if (work->spawned != 0) {
                 if (Task_PollKill(work->child, &sp40) != 0) {
                     place.pos.vx = -0x190;
                     place.pos.vy = 1;
-                    place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+                    place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
                     place.rot.vz = 0;
                     place.rot.vx = 0;
                     place.rot.vy = 0xC00;
@@ -1396,10 +1396,10 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->child   = Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 3, 0, 0);
                 work->spawned = 1;
             }
-            if ((0x3B - queue->field_1EA) < 0xB) {
+            if ((0x3B - queue->movieFrame) < 0xB) {
                 place.pos.vx = -0x190;
                 place.pos.vy = 1;
-                place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->field_1EA].vz;
+                place.pos.vz = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
                 Gp_DispatchMsgPtr(((RoomStreamWork*)task->work)->target, 0x3F2, &place, 0);
                 task->state = task->state + 1;
             }

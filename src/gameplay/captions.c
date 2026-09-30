@@ -876,7 +876,7 @@ void Gp_CapExit(Task* arg0)
         if (Mc_SaveData[0].state.at4.loc.view == D_8011566C) {
             Stage_SetEndingFlag();
         } else {
-            queue->field_22A = D_8011565C;
+            queue->imageMdecMode = D_8011565C;
             Stage_BeginTransitionKind7(D_8011566C);
         }
         goto block_11;

@@ -352,7 +352,7 @@ void func_800AC0F0(Task* task)
 
 void Gp_LoadFinishTask(Task* task)
 {
-    if (CdCmd_Queue.field_224 == 0) {
+    if (CdCmd_Queue.bootLoadActive == 0) {
         Gpu_ClearOTag(0);
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
@@ -420,9 +420,9 @@ void Gp_FlashWhiteTask(Task* task)
             if (task->killCountdown > 0) {
                 return;
             }
-            if ((s16)queue->field_248 != 0) {
-                queue->field_248 = 0;
-                queue->field_244 = 0;
+            if ((s16)queue->releasePauseBlockAfterFade != 0) {
+                queue->releasePauseBlockAfterFade = 0;
+                queue->blockGamePause             = 0;
             }
             Display_ReleaseRef();
             taskKill(task);

@@ -1519,7 +1519,7 @@ void Gp_ViewGateTask(Task* task)
     sess = gGameSession;
     if (sess->viewDirty != 0) {
         q = &CdCmd_Queue;
-        if ((q->field_214 == 0) || (q->field_218 == 0)) {
+        if ((q->scenePayloadAvailable == 0) || (q->scenePayloadLoading == 0)) {
             sess->at4.loc.view = save->state.at4.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();

@@ -285,7 +285,7 @@ void func_actor_205200_80149E54(Task* arg0)
     s32 tpage1;
 
     head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    CdCmd_Queue.field_22A            = 2;
+    CdCmd_Queue.imageMdecMode        = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
     cols                             = head[-1].cols;
     scratch                          = head - 1;

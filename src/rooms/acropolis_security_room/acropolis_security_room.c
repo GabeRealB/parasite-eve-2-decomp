@@ -3550,7 +3550,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    if (queue->field_1EA >= 0x46 && st->fadeStarted == 0) {
+    if (queue->movieFrame >= 0x46 && st->fadeStarted == 0) {
         SndEvt_EnqueueType7(0x51060008, 0x14);
         st->fadeStarted = state;
     }
@@ -3593,8 +3593,8 @@ void func_acropolis_security_room_801804CC(Task* arg0)
     return;
 
 L_case0:
-    queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
+    queue->movieFrame = 1;
+    slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 

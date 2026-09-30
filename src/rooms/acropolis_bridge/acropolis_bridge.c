@@ -2791,13 +2791,13 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
     goto tail;
 
 L_case0:
-    queue->field_1EA = 1;
-    slotParam[0]     = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
+    queue->movieFrame = 1;
+    slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
 L_case1:
-    if (queue->field_1FA == 0) {
+    if (queue->movieReady == 0) {
         goto tail;
     }
     Task_Reparent(task, Gp_SpawnScript18(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
@@ -2819,7 +2819,7 @@ L_case3:
         return;
     }
 tail:
-    D_acropolis_bridge_801917A4[0] = queue->field_1EA;
+    D_acropolis_bridge_801917A4[0] = queue->movieFrame;
 }
 
 static s16 func_acropolis_bridge_8017E024(void)

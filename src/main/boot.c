@@ -167,7 +167,7 @@ void Boot_LoadInitialFile(Task* task)
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             CdCmd_Enqueue(0x55, NULL, NULL);
             Mem_ConfigureAuxHeap(0, 0);
-            while (queue->field_1FE != 0xFF) {
+            while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 CdCmd_StepVlcRebuild();
             }
             param1[3] = 0;

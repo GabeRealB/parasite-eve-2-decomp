@@ -2743,8 +2743,8 @@ void Gp_RestartSessionTask(Task* arg0)
     Gpu_ClearOTag(1);
     Mem_Init();
     CdCmd_ActivatePhase1();
-    session          = gGameSession;
-    queue->field_20A = 1;
+    session                          = gGameSession;
+    queue->suppressMoviePresentation = 1;
     if (session->restartMode != 3) {
         rect.w = 0x140;
         rect.y = 0;

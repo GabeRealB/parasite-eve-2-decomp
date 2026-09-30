@@ -30,7 +30,7 @@
 #include "rooms/room.h"
 
 /// Per-frame paths the two streamed scenes walk the player's matrix along,
-/// indexed by `CdCmd_Queue.field_1EA + 0xA8`, each with the script pair its
+/// indexed by `CdCmd_Queue.movieFrame + 0xA8`, each with the script pair its
 /// scene runs.
 extern SVECTOR D_acropolis_observatory_8017E80C[];
 
@@ -684,7 +684,7 @@ AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis
 /// State 0 allocates the `RoomStreamWork` block, cues the stream (slot-6 msg
 /// 0xFA4), captures slot 3 and the player's coordinate matrix and republishes
 /// the player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the
-/// stream (`CdCmd_Queue::field_1FA`), starts the script pair and reparents
+/// stream (`CdCmd_Queue::movieReady`), starts the script pair and reparents
 /// this task under it. State 2 drives the ride, letting the pad skip it once
 /// through the fade-out task and warping slot 3 when that task has finished
 /// or frame 0xE6 passes.
@@ -727,7 +727,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             break;
 
         case 1:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_80183480,
                                                                  D_acropolis_observatory_80183498);
                 gGameSession->padScriptFlags |= 0x80;
@@ -737,9 +737,9 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             break;
 
         case 2:
-            work->mtx->t[0] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vx;
-            work->mtx->t[1] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vy;
-            work->mtx->t[2] = D_acropolis_observatory_8017E80C[queue->field_1EA + 0xA8].vz;
+            work->mtx->t[0] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vx;
+            work->mtx->t[1] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vy;
+            work->mtx->t[2] = D_acropolis_observatory_8017E80C[queue->movieFrame + 0xA8].vz;
             if (work->spawned != 0) {
                 if (Task_PollKill(work->child, &killed) != 0) {
                     place.pos.vx = -0x968;
@@ -758,7 +758,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
                 work->child   = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->spawned = 1;
             }
-            if ((queue->field_1EA + 0xA8) >= 0xE6) {
+            if ((queue->movieFrame + 0xA8) >= 0xE6) {
                 place.pos.vx = -0x968;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x6D4;
@@ -790,7 +790,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
 /// `RoomStreamWork` block, cues the stream (slot-6 msg 0xFA4), captures slot 3
 /// and the player's coordinate matrix in the block, and republishes the
 /// player's weapon to slot 3 with a 0x3E8 record. State 1 waits for the stream
-/// to come up (`CdCmd_Queue::field_1FA`), then starts the script pair and
+/// to come up (`CdCmd_Queue::movieReady`), then starts the script pair and
 /// reparents this task under it. State 2 drives the ride: every frame it moves
 /// the player's matrix to the `field_1EA`th entry of the path table; the first
 /// time `Pad_CheckFlag800` reports the pad it spawns the fade-out task (entry 2
@@ -837,7 +837,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             break;
 
         case 1:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
                                                                  D_acropolis_observatory_801834B8);
                 gGameSession->padScriptFlags |= 0x80;
@@ -847,9 +847,9 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             break;
 
         case 2:
-            work->mtx->t[0] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vx;
-            work->mtx->t[1] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vy;
-            work->mtx->t[2] = D_acropolis_observatory_8017F16C[queue->field_1EA + 0xA8].vz + 0xC8;
+            work->mtx->t[0] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vx;
+            work->mtx->t[1] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vy;
+            work->mtx->t[2] = D_acropolis_observatory_8017F16C[queue->movieFrame + 0xA8].vz + 0xC8;
             if (work->spawned != 0) {
                 if (Task_PollKill(work->child, &killed) != 0) {
                     place.pos.vx = -0x8F8;
@@ -868,7 +868,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
                 work->child   = Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 2, 0, 0);
                 work->spawned = 1;
             }
-            if ((queue->field_1EA + 0xA8) >= 0xE6) {
+            if ((queue->movieFrame + 0xA8) >= 0xE6) {
                 place.pos.vx = -0x8F8;
                 place.pos.vy = -0xBAD;
                 place.pos.vz = -0x2936;

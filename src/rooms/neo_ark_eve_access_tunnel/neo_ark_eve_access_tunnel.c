@@ -829,7 +829,7 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
         func_neo_ark_eve_access_tunnel_8017E090(1, 0);
     }
     if (gGameSession->at4.loc.variant == 0xB) {
-        queue->field_22A = 2;
+        queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     }
 }
 

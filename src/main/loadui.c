@@ -139,8 +139,8 @@ s32 LoadUi_PollDiskSwap(void)
                 CdCmd_EnqueueLoadFile(1, 0x3D, 3);
                 D_8007A392 = 1;
             }
-            D_8007A390       = 5;
-            queue->field_244 = 1;
+            D_8007A390            = 5;
+            queue->blockGamePause = 1;
             D_8007A394++;
             return 0xFF;
         case 1:
@@ -205,7 +205,7 @@ s32 LoadUi_PollDiskSwap(void)
             if (D_8007A390 == 0) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
                 gDisplayState.gameMode                  = DISPLAY_GAME_ACTIVE;
-                queue->field_244                        = 0;
+                queue->blockGamePause                   = 0;
                 break;
             }
             return 0xFF;

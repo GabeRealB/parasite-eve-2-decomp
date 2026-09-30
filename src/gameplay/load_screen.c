@@ -189,8 +189,8 @@ void func_800AA548(s32 arg0)
     } else {
         gGameSession->areaSetupDone = 1;
     }
-    CdCmd_Queue.field_210        = 0;
-    gGameSession->freezeRoomObjs = 0;
+    CdCmd_Queue.viewMovieSelected = 0;
+    gGameSession->freezeRoomObjs  = 0;
 }
 
 void Gp_BeginSessionTask(Task* arg0)
@@ -209,9 +209,9 @@ void Gp_BeginSessionTask(Task* arg0)
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();
-    gGameSession->at4         = Mc_SaveData[0].state.at4;
-    gGameSession->sprtVariant = ds->spriteVariant;
-    queue->field_20A          = one;
+    gGameSession->at4                = Mc_SaveData[0].state.at4;
+    gGameSession->sprtVariant        = ds->spriteVariant;
+    queue->suppressMoviePresentation = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {
         MoveImage(
             &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
@@ -221,10 +221,10 @@ void Gp_BeginSessionTask(Task* arg0)
         Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
     Task_Spawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
-    ds->skipDraw     = 0;
-    queue->field_244 = one;
-    queue->field_248 = one;
-    D_8007A394       = 0;
+    ds->skipDraw                      = 0;
+    queue->blockGamePause             = one;
+    queue->releasePauseBlockAfterFade = one;
+    D_8007A394                        = 0;
 }
 
 void Gp_LoadWaitBoot(Task* task)
@@ -246,8 +246,8 @@ void Gp_LoadWaitBoot(Task* task)
         if ((u8)LoadUi_PollDiskSwap()) {
             return;
         }
-        queue->field_22E = 1;
-        if (queue->field_224 != 0) {
+        queue->holdBootImage = 1;
+        if (queue->bootLoadActive != 0) {
             Fs_EnsureBootLoadStarted();
         }
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
@@ -266,7 +266,7 @@ void Gp_LoadWaitBoot(Task* task)
         task->state++;
     }
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -300,7 +300,7 @@ void Gp_LoadWaitStage(Task* task)
     s8            yoff;
 
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -344,7 +344,7 @@ void Gp_LoadState2(Task* task)
     GameLocationKey*  sess;
 
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -406,7 +406,7 @@ void Gp_LoadWaitCompanion(Task* task)
     u8            flag;
 
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -462,7 +462,7 @@ void Gp_LoadWaitSave(Task* task)
     GameSession*     sess;
 
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -527,7 +527,7 @@ void Gp_LoadWaitAreaCd(Task* task)
     s8            yoff;
 
     color  = 8;
-    queued = CdCmd_Queue.field_224;
+    queued = CdCmd_Queue.bootLoadActive;
     ds     = &gDisplayState;
     buf    = ds->otBuffer;
     tile   = &Gp_FadeTiles[buf];
@@ -578,7 +578,7 @@ void Gp_FadeGrayHold(Task* task)
     buf   = ds->otBuffer;
     tile  = &Gp_FadeTiles[buf];
     dr    = &Gp_FadeTpages[buf];
-    if (queue->field_224 == 0) {
+    if (queue->bootLoadActive == 0) {
         setlen(tile, 3);
         setcode(tile, 0x62);
         tile->r0 = color;
@@ -596,7 +596,7 @@ void Gp_FadeGrayHold(Task* task)
     }
     task->killCountdown++;
     if (task->killCountdown >= 7) {
-        queue->field_22E = 0;
+        queue->holdBootImage = 0;
         task->state++;
     }
 }

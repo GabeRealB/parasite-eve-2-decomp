@@ -375,14 +375,14 @@ s32 func_800AF590(s32 unused0, s32 unused1)
             CdGetSector(&header, sizeof(header) / sizeof(u_long));
             D_80114D1A = 1;
             D_80114D1C = header.forceReload;
-            if ((D_80114D1C == 0) && ((s16)p->field_246 != 0)) {
+            if ((D_80114D1C == 0) && ((s16)p->scenePayloadReusable != 0)) {
                 D_80114D1A = 0;
             }
             if ((s16)header.sectorCount != 0) {
-                p->field_218        = 1;
-                (*(D_80114D14 + 1)) = header.bufferKind;
+                p->scenePayloadLoading = 1;
+                (*(D_80114D14 + 1))    = header.bufferKind;
                 if (D_80114D1A != 0) {
-                    Mem_CopyUnaligned(&header, &p->field_58[(*(D_80114D14 + 1))], sizeof(header));
+                    Mem_CopyUnaligned(&header, &p->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
                 }
                 switch ((*(D_80114D14 + 1))) {
                     case STREAM_SCENE_BUFFER_DECODE:
@@ -392,33 +392,33 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                         break;
                     case STREAM_SCENE_BUFFER_ACTOR_0:
                         D_80114D10 = (u8*)Fs_ActorLoadBase0;
-                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
-                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
+                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
+                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
                         }
                         break;
                     case STREAM_SCENE_BUFFER_ACTOR_1:
                         D_80114D10 = (u8*)Fs_ActorLoadBase1;
-                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
-                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
+                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
+                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
                         }
                         break;
                     case STREAM_SCENE_BUFFER_ACTOR_2:
                         D_80114D10 = (u8*)Fs_ActorLoadBase2;
-                        if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
                         }
-                        if (p->field_190->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
-                            D_80114D10 += p->field_190->data.scene.timingBufferBytes;
+                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
+                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
                         }
                         break;
                     case STREAM_SCENE_BUFFER_EXTERNAL:
-                        D_80114D10 = p->field_198;
+                        D_80114D10 = p->externalScenePayloadBuffer;
                         break;
                 }
                 if (D_80114D1A != 0) {
@@ -439,12 +439,12 @@ s32 func_800AF590(s32 unused0, s32 unused1)
             }
             if (D_80114D18 == 0) {
                 D_80114D18 = (u16)D_80114D18 - 1;
-                if (CdCmd_Queue.field_23A == 0) {
-                    CdCmd_Queue.field_214 = 1;
+                if (CdCmd_Queue.sceneEnded == 0) {
+                    CdCmd_Queue.scenePayloadAvailable = 1;
                 }
-                CdCmd_Queue.field_218 = 0;
+                CdCmd_Queue.scenePayloadLoading = 0;
                 if (D_80114D1C == 0) {
-                    CdCmd_Queue.field_246 = 1;
+                    CdCmd_Queue.scenePayloadReusable = 1;
                 }
                 D_80114D14[0] = 0U;
             }
@@ -485,26 +485,26 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
         return -1;
     }
 
-    Mem_Set(p->field_58, 0, sizeof(p->field_58));
-    p->field_190      = slot;
-    p->field_216      = 1;
-    decodeBufferBytes = slot->source.decodeBufferBytes;
+    Mem_Set(p->sceneImageHeaders, 0, sizeof(p->sceneImageHeaders));
+    p->sceneStream        = slot;
+    p->sceneBuffersNeeded = 1;
+    decodeBufferBytes     = slot->source.decodeBufferBytes;
     if (decodeBufferBytes != 0) {
         p->decodeBufferBytes = decodeBufferBytes;
     } else {
         p->decodeBufferBytes = 0;
     }
-    p->field_23A   = 0;
-    p->field_21E   = 0;
-    p->field_218   = 0;
-    p->imageLayout = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-    vlcTableMode   = slot->data.scene.vlcTableMode;
-    seed           = Gp_LcgState;
-    *D_80114D14    = 0;
-    p->field_238   = vlcTableMode;
-    p->field_1A8   = seed;
-    p->field_1AC   = rand();
-    Gp_LcgState    = 0;
+    p->sceneEnded          = 0;
+    p->vlcTableBuilt       = 0;
+    p->scenePayloadLoading = 0;
+    p->imageLayout         = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+    vlcTableMode           = slot->data.scene.vlcTableMode;
+    seed                   = Gp_LcgState;
+    *D_80114D14            = 0;
+    p->sceneVlcTableMode   = vlcTableMode;
+    p->savedLcgState       = seed;
+    p->savedRandSeed       = rand();
+    Gp_LcgState            = 0;
     srand(1);
     D_80114D20 = 0xFFFF;
     return i;
@@ -542,8 +542,8 @@ void Gp_StepCdAudioCmd(void)
     switch (p->step) {
         case 0:
             CdCmd_SetBusy();
-            p->field_20E = 2;
-            ret          = CdCmd_PollStatus(0, 0);
+            p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
+            ret               = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
                 if (ret < 2) {
                     if (ret == 0) {
@@ -556,7 +556,7 @@ void Gp_StepCdAudioCmd(void)
                 }
                 CdFlush();
             }
-            if (p->field_212 == 0) {
+            if (p->sceneAudioStarted == 0) {
                 p->step = p->step + 1;
                 break;
             }
@@ -569,14 +569,14 @@ void Gp_StepCdAudioCmd(void)
         case 3: {
             StreamSlot* sceneStream;
 
-            sceneStream  = p->field_190;
-            p->field_242 = 1;
+            sceneStream           = p->sceneStream;
+            p->cdOperationPending = 1;
             if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                 sector = sceneStream->startSector;
                 if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
                     sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
                 }
-                Fs_ReadSectorEx(p->field_190->startSector, sector, p->field_1A4, 0);
+                Fs_ReadSectorEx(p->sceneStream->startSector, sector, p->timingBuffer, 0);
                 p->step = p->step + 1;
             } else {
                 p->step = 5;
@@ -610,15 +610,15 @@ void Gp_StepCdAudioCmd(void)
             u16           maskbits;
             GpSndMaskRec* entry;
 
-            sceneStream = p->field_190;
+            sceneStream = p->sceneStream;
             sector      = sceneStream->startSector;
             if (sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
                 sector += 1;
                 sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
             }
-            CdAudio_StartTrack(sector, p->field_190->control.scene.volumeIndex);
+            CdAudio_StartTrack(sector, p->sceneStream->control.scene.volumeIndex);
             i_s1     = 0;
-            maskbits = p->field_190->data.scene.soundBankMask;
+            maskbits = p->sceneStream->data.scene.soundBankMask;
             if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
@@ -630,9 +630,9 @@ void Gp_StepCdAudioCmd(void)
                     i_s1++;
                 } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
             }
-            p->field_248 = 0;
-            p->field_244 = 1;
-            p->step      = p->step + 1;
+            p->releasePauseBlockAfterFade = 0;
+            p->blockGamePause             = 1;
+            p->step                       = p->step + 1;
             break;
         }
         case 6:
@@ -642,9 +642,9 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_0 != 3) {
                 break;
             }
-            one          = 1;
-            p->field_212 = one;
-            cmd          = p->entries[p->readIdx].cmd;
+            one                  = 1;
+            p->sceneAudioStarted = one;
+            cmd                  = p->entries[p->readIdx].cmd;
             if (cmd == CD_COMMAND_START_SCENE_AUDIO) {
                 CdCmd_LoadActiveEntry();
                 CdCmd_AdvanceRead();
@@ -653,19 +653,19 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
                 break;
             }
-            save23       = Mc_SaveData[0].state.demoScene;
-            p->field_20E = one;
+            save23            = Mc_SaveData[0].state.demoScene;
+            p->sceneAudioMode = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
-            if (p->field_190->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                p->field_240 = one;
+            if (p->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
+                p->paceToSceneTiming = one;
             }
-            p->field_1A0 = 0;
+            p->timingElapsedLines = 0;
             CdAudio_RequestStopB();
-            p->field_244 = one;
-            p->field_242 = 0;
-            p->step      = p->step + 1;
+            p->blockGamePause     = one;
+            p->cdOperationPending = 0;
+            p->step               = p->step + 1;
             break;
         }
         case 7: {
@@ -681,13 +681,13 @@ void Gp_StepCdAudioCmd(void)
             if (Mc_SaveData[0].state.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
-            Mem_Set(&p->field_40, 0, 0x10);
-            sceneStream     = p->field_190;
-            p->field_50.cmd = CD_COMMAND_EMPTY;
+            Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+            sceneStream             = p->sceneStream;
+            p->replacementEntry.cmd = CD_COMMAND_EMPTY;
             if (sceneStream->data.scene.resumeSectorOffset != 0) {
                 CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
-                p->field_242 = 1;
-                p->step      = p->step + 1;
+                p->cdOperationPending = 1;
+                p->step               = p->step + 1;
                 break;
             }
             i        = 0;
@@ -705,18 +705,18 @@ void Gp_StepCdAudioCmd(void)
             {
                 CdCmdQueue* q;
                 s32         ff;
-                q            = &CdCmd_Queue;
-                seed         = q->field_1AC;
-                ff           = 0xFF;
-                p->field_244 = 0;
-                p->field_20E = 0;
-                q->field_1FE = ff;
-                q->field_23A = 1;
-                q->field_214 = 0;
-                q->field_212 = 0;
-                q->field_216 = 0;
-                q->field_240 = 0;
-                Gp_LcgState  = q->field_1A8;
+                q                        = &CdCmd_Queue;
+                seed                     = q->savedRandSeed;
+                ff                       = 0xFF;
+                p->blockGamePause        = 0;
+                p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
+                q->imageLoadStatus       = ff;
+                q->sceneEnded            = 1;
+                q->scenePayloadAvailable = 0;
+                q->sceneAudioStarted     = 0;
+                q->sceneBuffersNeeded    = 0;
+                q->paceToSceneTiming     = 0;
+                Gp_LcgState              = q->savedLcgState;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -732,7 +732,7 @@ void Gp_StepCdAudioCmd(void)
                 break;
             }
             i        = 0;
-            maskbits = p->field_190->data.scene.soundBankMask;
+            maskbits = p->sceneStream->data.scene.soundBankMask;
             if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
@@ -746,19 +746,19 @@ void Gp_StepCdAudioCmd(void)
             {
                 CdCmdQueue* q;
                 s32         ff;
-                q            = &CdCmd_Queue;
-                seed         = q->field_1AC;
-                ff           = 0xFF;
-                p->field_242 = 0;
-                p->field_244 = 0;
-                p->field_20E = 0;
-                q->field_1FE = ff;
-                q->field_23A = 1;
-                q->field_214 = 0;
-                q->field_212 = 0;
-                q->field_216 = 0;
-                q->field_240 = 0;
-                Gp_LcgState  = q->field_1A8;
+                q                        = &CdCmd_Queue;
+                seed                     = q->savedRandSeed;
+                ff                       = 0xFF;
+                p->cdOperationPending    = 0;
+                p->blockGamePause        = 0;
+                p->sceneAudioMode        = CD_COMMAND_SCENE_INACTIVE;
+                q->imageLoadStatus       = ff;
+                q->sceneEnded            = 1;
+                q->scenePayloadAvailable = 0;
+                q->sceneAudioStarted     = 0;
+                q->sceneBuffersNeeded    = 0;
+                q->paceToSceneTiming     = 0;
+                Gp_LcgState              = q->savedLcgState;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -813,15 +813,15 @@ void Gp_RestoreStreamRng(void)
 {
     CdCmdQueue* p;
 
-    p            = &CdCmd_Queue;
-    p->field_1FE = 0xFF;
-    p->field_23A = 1;
-    p->field_214 = 0;
-    p->field_212 = 0;
-    p->field_216 = 0;
-    p->field_240 = 0;
-    Gp_LcgState  = p->field_1A8;
-    srand(p->field_1AC);
+    p                        = &CdCmd_Queue;
+    p->imageLoadStatus       = CD_COMMAND_IMAGE_COMPLETE;
+    p->sceneEnded            = 1;
+    p->scenePayloadAvailable = 0;
+    p->sceneAudioStarted     = 0;
+    p->sceneBuffersNeeded    = 0;
+    p->paceToSceneTiming     = 0;
+    Gp_LcgState              = p->savedLcgState;
+    srand(p->savedRandSeed);
 }
 
 s32 func_800B0118(s32 arg0, s32 arg1)
@@ -840,7 +840,7 @@ s32 func_800B0118(s32 arg0, s32 arg1)
 
 void Gp_SetStreamBuf(void* arg0)
 {
-    CdCmd_Queue.field_198 = arg0;
+    CdCmd_Queue.externalScenePayloadBuffer = arg0;
 }
 
 static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)

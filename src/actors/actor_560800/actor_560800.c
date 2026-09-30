@@ -4208,7 +4208,7 @@ void func_actor_560800_801321A0(Task* task)
             task->state++;
             break;
         case 2:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }

@@ -1732,7 +1732,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
     s32             waveX2, waveY2, waveX3, waveY3;
     s32*            state;
 
-    CdCmd_Queue.field_22A = 2;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     /* Through a pointer rather than as `arg0->state`: a member load is struct
        memory, which the scheduler lets rise above the store before it, and the
        original keeps the two in source order. */
@@ -2326,7 +2326,7 @@ void func_dryfield_dilapidated_house_8017E8E8(s32 arg0)
 
     queue = &CdCmd_Queue;
     if (arg0 <= 0) {
-        queue->field_22A = 2;
+        queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
         if (arg0 != -2) {
             if (arg0 == 0) {
                 D_dryfield_dilapidated_house_80189C94.span  = 0x64;

@@ -112,8 +112,8 @@ typedef struct AcropolisPlazaBeamWork {
 } AcropolisPlazaBeamWork;
 
 /// Spawn argument the plaza's scene task (`func_acropolis_plaza_8017DFE0`)
-/// reads once in state 0: `view` seeds both `CdCmd_Queue.field_1EE` and
-/// `field_1EA`, and a non-zero `noStream` skips the opening stream request
+/// reads once in state 0: `view` seeds both `CdCmd_Queue.sceneFrame` and
+/// `movieFrame`, and a non-zero `noStream` skips the opening stream request
 /// altogether.
 typedef struct AcropolisPlazaSceneArg {
     /* 0x0 */ u16 view;
@@ -161,7 +161,7 @@ STATIC_ASSERT_SIZEOF(AcropolisPlazaSceneWork, 0x34);
 /// 0x14..0x1D belong to `func_acropolis_plaza_8017FB50`, the scene stepper:
 /// `step` is its own state machine, `evtId`/`evtKind`/`evtSub` latch the
 /// pending `GpObj4C` event `Gp_TakePendingObj4C` hands it, `streamFrame`
-/// snapshots `CdCmd_Queue.field_1EE` when the event arrives, and `variant`
+/// snapshots `CdCmd_Queue.sceneFrame` when the event arrives, and `variant`
 /// counts how many times the entry-6 scene has run (capped at 2) so each pass
 /// spawns it with the next `Task_SpawnFromTable` arg2.
 typedef struct AcropolisPlazaWork {
@@ -220,7 +220,7 @@ typedef struct AcropolisPlazaWarpWork {
 /// Work block the plaza's cutscene tasks reach through `Task::spawnArg2`.
 /// Every one of them (`func_acropolis_plaza_8017E7E4`, `..._8017E9A8`,
 /// `..._8017F48C`, `..._8017F620`) runs the same handoff once `CdCmd_IsIdle`
-/// reports the stream has finished: latch `CdCmd_Queue.field_1EE` into
+/// reports the stream has finished: latch `CdCmd_Queue.sceneFrame` into
 /// `field_1A`, kill the task at `task`, and (in `..._8017F620`) run the
 /// capture command named by `capCmd`. Only those three fields are identified,
 /// so this declaration is deliberately partial.
@@ -305,7 +305,7 @@ extern GpEvsCmd D_acropolis_plaza_80183764[];
 
 /// The plaza's view tables, one per camera set. Each entry is a *pair* of
 /// `GpViewRec`s -- the two shots the stream alternates between -- indexed by
-/// `CdCmd_Queue.field_1EE - 1`, so a table row is 0x48 bytes.
+/// `CdCmd_Queue.sceneFrame - 1`, so a table row is 0x48 bytes.
 extern GpViewRec D_acropolis_plaza_801838B8[][2];
 extern GpViewRec D_acropolis_plaza_8018A938[][2];
 extern GpViewRec D_acropolis_plaza_8018CAFC[][2];
@@ -313,7 +313,7 @@ extern GpViewRec D_acropolis_plaza_8018F530[][2];
 extern GpViewRec D_acropolis_plaza_8018F9B4[][2];
 
 /// The plaza's camera table: one world position per stream view, indexed by
-/// `CdCmd_Queue.field_1EE - 1`.
+/// `CdCmd_Queue.sceneFrame - 1`.
 extern VECTOR3 D_acropolis_plaza_801907C4[];
 
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
@@ -2839,7 +2839,7 @@ void func_acropolis_plaza_8017D6D4(void)
                                     if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                                         Stream_PollPlayback(0, sectorOffset);
                                     } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
-                                        Stream_PollPlayback(1, q->field_48);
+                                        Stream_PollPlayback(1, q->activeRequest.resumeSector);
                                     }
                                     q->step++;
                                     /* fallthrough */
@@ -2854,7 +2854,7 @@ void func_acropolis_plaza_8017D6D4(void)
                                     CdCmd_AdvanceRead();
                                 }
                             } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
-                                if (Stream_PollPlayback(1, q->field_48) != 0) {
+                                if (Stream_PollPlayback(1, q->activeRequest.resumeSector) != 0) {
                                     CdCmd_AdvanceRead();
                                 }
                             }
@@ -3018,7 +3018,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             task->state++;
             break;
         case 2:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
@@ -3104,8 +3104,8 @@ static void func_acropolis_plaza_8017DD90(Task* arg0)
 /// Applies the plaza camera for view set `arg0`.
 ///
 /// Sets 0..3 all share the opening table and pick within a row directly:
-/// while `field_1FA` is clear the row's first shot is used, otherwise
-/// `field_1F2` steps forward or back from it depending on `field_1F0`.
+/// while `movieReady` is clear the row's first shot is used, otherwise
+/// `movieFrameSubstep` steps forward or back from it depending on `reverseSceneFrames`.
 /// Sets 4..7 (and any out-of-range value, which leaves the table whatever the
 /// caller left in place) instead index the table flat, one shot per step, and
 /// clamp the backwards walk at the start of the table.
@@ -3122,15 +3122,15 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
         case 2:
         case 3:
             tbl = D_acropolis_plaza_801838B8;
-            if (q->field_1FA == 0) {
-                s32 pair = q->field_1EE - 1;
+            if (q->movieReady == 0) {
+                s32 pair = q->sceneFrame - 1;
                 view     = tbl[pair];
-            } else if (q->field_1F0 == 0) {
-                s32 pair = q->field_1EE - 1;
-                view     = tbl[pair] + q->field_1F2;
+            } else if (q->reverseSceneFrames == 0) {
+                s32 pair = q->sceneFrame - 1;
+                view     = tbl[pair] + q->movieFrameSubstep;
             } else {
-                s32 pair = q->field_1EE - 1;
-                view     = tbl[pair] - q->field_1F2;
+                s32 pair = q->sceneFrame - 1;
+                view     = tbl[pair] - q->movieFrameSubstep;
             }
             break;
         case 4:
@@ -3146,14 +3146,14 @@ static void func_acropolis_plaza_8017DE24(s32 arg0)
             tbl = D_acropolis_plaza_8018F9B4;
         default:
         common:
-            if (q->field_1FA == 0) {
-                s32 pair = q->field_1EE - 1;
+            if (q->movieReady == 0) {
+                s32 pair = q->sceneFrame - 1;
                 view     = tbl[pair];
             } else {
-                if (q->field_1F0 == 0) {
-                    idx = ((q->field_1EE - 1) * 2) + q->field_1F2 + 1;
+                if (q->reverseSceneFrames == 0) {
+                    idx = ((q->sceneFrame - 1) * 2) + q->movieFrameSubstep + 1;
                 } else {
-                    idx = ((q->field_1EE - 1) * 2) - q->field_1F2 - 1;
+                    idx = ((q->sceneFrame - 1) * 2) - q->movieFrameSubstep - 1;
                     if (idx < 0) {
                         idx = 0;
                     }
@@ -3185,7 +3185,7 @@ static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
             w->fwd = 1;
         }
     } else if (dist < -0x14) {
-        if (cq->field_1EE != 1) {
+        if (cq->sceneFrame != 1) {
             if ((u16)w->actor->field_958 == 3) {
                 w->back = 2;
             } else {
@@ -3206,7 +3206,7 @@ static __inline__ void plaza_updateEdgeFlags(AcropolisPlazaSceneWork* w)
 /// from `baseView`, backwards from `baseView + 1` -- with the target frame
 /// packed into the request's last two bytes. States 3..5 wait for that seek to
 /// land and return to state 2, and state 6 is the parked state the task sits in
-/// while `field_1F6` blocks seeking, leaving on the first flag that matches the
+/// while `movieAtEnd` blocks seeking, leaving on the first flag that matches the
 /// current view.
 ///
 /// `loMask` holds 0xFF in a local on purpose: masking with a literal lets GCC
@@ -3231,14 +3231,14 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     work = (AcropolisPlazaSceneWork*)task->work;
 
     if (task->state != 0) {
-        switch (q->field_1F8) {
+        switch (q->plazaStreamSubId) {
             case 0:
             case 1:
             case 2:
             case 3:
-                work->pos.vx = D_acropolis_plaza_801907C4[q->field_1EE - 1].vx;
-                work->pos.vy = D_acropolis_plaza_801907C4[q->field_1EE - 1].vy;
-                work->pos.vz = D_acropolis_plaza_801907C4[q->field_1EE - 1].vz;
+                work->pos.vx = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vx;
+                work->pos.vy = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vy;
+                work->pos.vz = D_acropolis_plaza_801907C4[q->sceneFrame - 1].vz;
                 work->distX  = work->pos.vx - work->mtx->t[0];
                 break;
         }
@@ -3270,25 +3270,25 @@ L_case0:
         return;
     }
     Mem_Set(block, 0, sizeof(*block));
-    arg            = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
-    work           = (AcropolisPlazaSceneWork*)task->work;
-    startView      = arg->view;
-    q->field_1F8   = 0;
-    q->field_1EE   = startView;
-    q->field_1EA   = startView;
-    work->prevSide = 0;
-    q->field_1F0   = 0;
-    q->field_1FA   = 0;
-    q->field_1E8   = 0;
+    arg                   = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
+    work                  = (AcropolisPlazaSceneWork*)task->work;
+    startView             = arg->view;
+    q->plazaStreamSubId   = 0;
+    q->sceneFrame         = startView;
+    q->movieFrame         = startView;
+    work->prevSide        = 0;
+    q->reverseSceneFrames = 0;
+    q->movieReady         = 0;
+    q->continueMovie      = 0;
     if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
-        slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->field_1F8, 0);
-        frameOfs  = (q->field_1EA - 1) * 10;
+        slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->plazaStreamSubId, 0);
+        frameOfs  = (q->movieFrame - 1) * 10;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
         slot[2]   = openFrame & loMask;
         CdCmd_Enqueue(0x72, 0, slot);
     } else {
-        q->field_1F6 = 0;
+        q->movieAtEnd = 0;
     }
     ((AcropolisPlazaSceneWork*)task->work)->mtx = Player_Status.coordMtx;
     work->field_2E                              = 1;
@@ -3307,25 +3307,25 @@ L_case1:
     goto L_tail;
 
 L_case2:
-    work->streamLen = Stream_GetSlotField1A(q->field_1F8);
-    if (q->field_1F6 != 0) {
+    work->streamLen = Stream_GetSlotField1A(q->plazaStreamSubId);
+    if (q->movieAtEnd != 0) {
         task->state = 6;
         goto L_tail;
     }
     plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
     if (work->fwd != 0) {
-        work->prevSide = q->field_1F0;
-        q->field_1F0   = 0;
+        work->prevSide        = q->reverseSceneFrames;
+        q->reverseSceneFrames = 0;
     }
     if (work->back != 0) {
-        work->prevSide = q->field_1F0;
-        q->field_1F0   = 1;
+        work->prevSide        = q->reverseSceneFrames;
+        q->reverseSceneFrames = 1;
     }
     if (work->fwd == 0 && work->back == 0) {
         goto L_tail;
     }
-    q->field_1E8 = 1;
-    side         = q->field_1F0;
+    q->continueMovie = 1;
+    side             = q->reverseSceneFrames;
     if (side == work->prevSide) {
         if (side == 0) {
             if (work->fwd != 1) {
@@ -3333,9 +3333,9 @@ L_case2:
             }
             view = work->baseView;
         L_eqShared:
-            q->field_1F8 = view;
+            q->plazaStreamSubId = view;
             if (work->field_2E == 2) {
-                frameOfs = q->field_1EA * 40;
+                frameOfs = q->movieFrame * 40;
                 goto L_eqSetFlag;
             }
         } else {
@@ -3348,7 +3348,7 @@ L_case2:
             view = work->baseView + 1;
             goto L_eqShared;
         }
-        frameOfs = q->field_1EA * 10;
+        frameOfs = q->movieFrame * 10;
     L_eqSetFlag:
         work->field_2E = 1;
     } else {
@@ -3356,52 +3356,52 @@ L_case2:
             if (work->fwd != 1) {
                 goto L_enqueue;
             }
-            q->field_1F8 = work->baseView;
+            q->plazaStreamSubId = work->baseView;
             if (work->field_2E == 2) {
-                frameOfs = (work->streamLen - q->field_1EA) * 40;
+                frameOfs = (work->streamLen - q->movieFrame) * 40;
             } else {
-                frameOfs = (work->streamLen - q->field_1EA) * 10;
+                frameOfs = (work->streamLen - q->movieFrame) * 10;
             }
             work->field_2E = 1;
         } else if (side == 1) {
             if (work->back != side) {
                 goto L_enqueue;
             }
-            q->field_1F8 = work->baseView + 1;
+            q->plazaStreamSubId = work->baseView + 1;
             if (work->field_2E == 2) {
-                frameOfs = (work->streamLen - q->field_1EA) * 40;
+                frameOfs = (work->streamLen - q->movieFrame) * 40;
             } else {
-                frameOfs = (work->streamLen - q->field_1EA) * 10;
+                frameOfs = (work->streamLen - q->movieFrame) * 10;
             }
             work->field_2E = 1;
         }
     }
 L_enqueue:
-    slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->field_1F8, 0);
+    slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->plazaStreamSubId, 0);
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
     CdCmd_Enqueue(0x71, 0, slot);
-    q->field_1FA = 0;
-    task->state  = task->state + 1;
+    q->movieReady = 0;
+    task->state   = task->state + 1;
     goto L_tail;
 
 L_case3:
-    if (q->field_1FA != 0) {
+    if (q->movieReady != 0) {
         task->state = task->state + 1;
     }
     goto L_tail;
 
 L_case4:
     plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
-    if (q->field_1F6 != 0) {
+    if (q->movieAtEnd != 0) {
         task->state = 6;
         goto L_tail;
     }
-    if ((work->fwd == 0 && q->field_1F0 == 0) || (work->back == 0 && q->field_1F0 == 1) ||
+    if ((work->fwd == 0 && q->reverseSceneFrames == 0) || (work->back == 0 && q->reverseSceneFrames == 1) ||
         work->fwd != work->prevFwd || work->back != work->prevBack) {
-        q->field_1E8 = 0;
-        task->state  = task->state + 1;
+        q->continueMovie = 0;
+        task->state      = task->state + 1;
     }
     goto L_tail;
 
@@ -3415,7 +3415,7 @@ L_case5:
 
 L_case6:
     plaza_updateEdgeFlags((AcropolisPlazaSceneWork*)task->work);
-    switch (q->field_1F8) {
+    switch (q->plazaStreamSubId) {
         case 0:
         case 2:
             if (work->back == 0) {
@@ -3431,13 +3431,13 @@ L_case6:
         default:
             goto L_tail;
     }
-    q->field_1F6 = 0;
-    task->state  = 2;
+    q->movieAtEnd = 0;
+    task->state   = 2;
 
 L_tail:
-    if (q->field_1FA != 0) {
+    if (q->movieReady != 0) {
         func_acropolis_plaza_8017DD90(task);
-        func_acropolis_plaza_8017DE24(q->field_1F8);
+        func_acropolis_plaza_8017DE24(q->plazaStreamSubId);
     }
     work->prevBack = work->back;
     work->prevFwd  = work->fwd;
@@ -3447,7 +3447,7 @@ L_tail:
 /// slot-3 task in it and places the player at (0x3804, 0, 0xFC8) with msg
 /// 0x3F2; states 1 and 2 wait for slot 3 to go idle (msg 0x3F0), state 1
 /// following up with the 0xD55 warp (msg 0x3EE). State 3 waits for the stream
-/// to finish, latches `CdCmd_Queue.field_1EE` into the cutscene work block,
+/// to finish, latches `CdCmd_Queue.sceneFrame` into the cutscene work block,
 /// kills the task it names and runs `func_800E8634`; state 4 kills this task
 /// once the session is out of its transition.
 void func_acropolis_plaza_8017E7E4(Task* task)
@@ -3492,7 +3492,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
             taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
             func_800E8634(D_acropolis_plaza_80182734, 1, D_acropolis_plaza_80182A34);
             task->state = task->state + 1;
@@ -3511,7 +3511,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
 /// (0xF6E, 0, 0x2328) with msg 0x3F2; states 1 and 2 wait for slot 3 to go idle
 /// (msg 0x3F0), following up with the 0xD55 warp (msg 0x3EE) and then the
 /// `D_actor_310100_801797FC` script (msg 0x3F4). State 3 waits for the CD queue, latches
-/// `CdCmd_Queue.field_1EE` into the cutscene work block, kills the task it
+/// `CdCmd_Queue.sceneFrame` into the cutscene work block, kills the task it
 /// names and starts the scene's stream (`CdCmd_Enqueue(0x72, ...)`); state 4
 /// waits for the stream to report in and runs `D_acropolis_plaza_80182B24`.
 /// State 5 waits out 0x60 frames, republishes the player's weapon to slot 3
@@ -3573,27 +3573,27 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (CdCmd_IsIdle() == 0) {
                 return;
             }
-            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+            ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
             taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
-            q->field_1EE = 1;
-            q->field_1EA = 1;
-            q->field_1F8 = 2;
-            buf.slot[0]  = Stream_FindSlot((u8*)&gGameSession->at4.loc, 2, 0);
-            buf.slot[1]  = 0;
-            buf.slot[2]  = 0;
+            q->sceneFrame       = 1;
+            q->movieFrame       = 1;
+            q->plazaStreamSubId = 2;
+            buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->at4.loc, 2, 0);
+            buf.slot[1]         = 0;
+            buf.slot[2]         = 0;
             CdCmd_Enqueue(0x72, 0, buf.slot);
-            q->field_1E8 = 1;
-            task->state  = task->state + 1;
+            q->continueMovie = 1;
+            task->state      = task->state + 1;
             return;
         case 4:
-            if (q->field_1FA == 0) {
+            if (q->movieReady == 0) {
                 return;
             }
             func_800E8614(D_acropolis_plaza_80182B24, 1);
             task->state = task->state + 1;
             return;
         case 5:
-            if (q->field_1EA >= 0x60) {
+            if (q->movieFrame >= 0x60) {
                 rec                                 = &buf.weapon.rec;
                 weaponId                            = Player_Status.weapon;
                 id                                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
@@ -3704,15 +3704,15 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 return;
             }
             taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
-            q->field_1EE = 1;
-            q->field_1EA = 1;
-            q->field_1F8 = 4;
-            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 4, 0);
-            slot[1]      = 0;
-            slot[2]      = 0;
+            q->sceneFrame       = 1;
+            q->movieFrame       = 1;
+            q->plazaStreamSubId = 4;
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 4, 0);
+            slot[1]             = 0;
+            slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
-            q->field_1E8 = 1;
-            task->state  = task->state + 1;
+            q->continueMovie = 1;
+            task->state      = task->state + 1;
             return;
         case 4:
             if (CdCmd_IsIdle() != 0) {
@@ -3731,18 +3731,18 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 task->state = 8;
                 return;
             }
-            q->field_1EE = 1;
-            q->field_1EA = 1;
-            q->field_1F8 = 5;
-            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 5, 0);
-            slot[1]      = 0;
-            slot[2]      = 0;
+            q->sceneFrame       = 1;
+            q->movieFrame       = 1;
+            q->plazaStreamSubId = 5;
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 5, 0);
+            slot[1]             = 0;
+            slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
-            q->field_1E8 = 1;
-            task->state  = task->state + 1;
+            q->continueMovie = 1;
+            task->state      = task->state + 1;
             return;
         case 6:
-            if (q->field_1FA == 0) {
+            if (q->movieReady == 0) {
                 return;
             }
             Gp_DispatchMsg(work->slot3, 0x3F1, 1, 0);
@@ -3839,15 +3839,15 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             func_acropolis_plaza_8017DE24(7);
             return;
         case 9:
-            q->field_1EE = 1;
-            q->field_1EA = 1;
-            q->field_1F8 = 3;
-            slot[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
-            slot[1]      = 0;
-            slot[2]      = 0;
+            q->sceneFrame       = 1;
+            q->movieFrame       = 1;
+            q->plazaStreamSubId = 3;
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
+            slot[1]             = 0;
+            slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
-            q->field_1E8 = 0;
-            task->state  = task->state + 1;
+            q->continueMovie = 0;
+            task->state      = task->state + 1;
             /* fallthrough */
         case 10:
             if (CdCmd_IsIdle() == 0) {
@@ -3880,20 +3880,20 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 task->state = 0xF;
             } else if (gGameSession->eventState == 0) {
                 Stage_RequestMidiFromMap(0x1E0);
-                q->field_1EE = 1;
-                q->field_1EA = 1;
-                q->field_1F8 = 3;
-                buf.slot[0]  = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
-                buf.slot[1]  = 0;
-                buf.slot[2]  = 0;
+                q->sceneFrame       = 1;
+                q->movieFrame       = 1;
+                q->plazaStreamSubId = 3;
+                buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
+                buf.slot[1]         = 0;
+                buf.slot[2]         = 0;
                 CdCmd_Enqueue(0x71, 0, buf.slot);
-                q->field_1E8 = 1;
-                task->state  = task->state + 1;
+                q->continueMovie = 1;
+                task->state      = task->state + 1;
             }
             func_acropolis_plaza_8017DE24(5);
             return;
         case 14:
-            if (q->field_1FA != 0) {
+            if (q->movieReady != 0) {
                 func_800E8614(D_acropolis_plaza_801834B4, 1);
                 task->state = task->state + 1;
             }
@@ -3914,7 +3914,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish -- latching
-/// `CdCmd_Queue.field_1EE` into the work block, killing the block's task and
+/// `CdCmd_Queue.sceneFrame` into the work block, killing the block's task and
 /// running the block `spawnArg1` names -- and state 2 kills this task once the
 /// session is out of its transition.
 void func_acropolis_plaza_8017F48C(Task* task)
@@ -3940,7 +3940,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
                 taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
                 switch (task->spawnArg1.value) {
                     case 0:
@@ -3966,7 +3966,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
 
 /// Three-state cutscene tail: state 0 republishes the player's weapon to slot
 /// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
-/// control back -- latching `CdCmd_Queue.field_1EE` into the work block, killing
+/// control back -- latching `CdCmd_Queue.sceneFrame` into the work block, killing
 /// the block's task and running its capture command -- and state 2 releases
 /// slot 3 (msg 0x3F1) and kills itself.
 void func_acropolis_plaza_8017F620(Task* task)
@@ -3990,7 +3990,7 @@ void func_acropolis_plaza_8017F620(Task* task)
             break;
         case 1:
             if (CdCmd_IsIdle() != 0) {
-                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->field_1EE;
+                ((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->field_1A = q->sceneFrame;
                 taskKill(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->task);
                 Gp_RunCapCmd1(((AcropolisPlazaCutWork*)task->spawnArg2.pointer)->capCmd);
                 task->state = task->state + 1;
@@ -4016,7 +4016,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     } while (0)
 
 /// Ambience voice driver: starts the voice named by `sndId` the first time
-/// `state` is clear, then tracks `CdCmd_Queue.field_1EE` between `fadeIn` and
+/// `state` is clear, then tracks `CdCmd_Queue.sceneFrame` between `fadeIn` and
 /// `fadeOut` to ramp its volume.
 static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16* state, s32 sndId, u16 mode)
 {
@@ -4024,25 +4024,25 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
     u32         pos;
     u8          vol;
 
-    pos = q->field_1EE;
+    pos = q->sceneFrame;
     if (pos >= fadeIn && pos <= fadeOut) {
         _acropolisPlazaStartAmbience(state, sndId);
         if (mode == 0) {
             if (pos < hold) {
-                vol = ((q->field_1EE - fadeIn) * 0x7F) / (hold - fadeIn);
+                vol = ((q->sceneFrame - fadeIn) * 0x7F) / (hold - fadeIn);
             } else {
-                vol = ((fadeOut - q->field_1EE) * 0x7F) / (fadeOut - hold);
+                vol = ((fadeOut - q->sceneFrame) * 0x7F) / (fadeOut - hold);
             }
         } else if (mode == 1) {
             if (pos < hold) {
-                vol = ((q->field_1EE - fadeIn) * 0x17D) / ((hold - fadeIn) * 4);
+                vol = ((q->sceneFrame - fadeIn) * 0x17D) / ((hold - fadeIn) * 4);
             } else {
-                vol = ((fadeOut - q->field_1EE) * 0x17D) / ((fadeOut - hold) * 4);
+                vol = ((fadeOut - q->sceneFrame) * 0x17D) / ((fadeOut - hold) * 4);
             }
         } else if (pos < 0x54U) {
-            vol = (((0x54 - q->field_1EE) * 0x7F) / 332) + 0x5F;
+            vol = (((0x54 - q->sceneFrame) * 0x7F) / 332) + 0x5F;
         } else {
-            vol = ((0x82 - q->field_1EE) * 0x17D) / 184;
+            vol = ((0x82 - q->sceneFrame) * 0x17D) / 184;
         }
         SndEvt_EnqueueTypeB(sndId, vol);
         return;
@@ -4056,7 +4056,7 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
 #undef _acropolisPlazaStartAmbience
 
 /// Ambience driver for the plaza's streamed scene, stepped by
-/// `CdCmd_Queue.field_1F8`. While the stream is at 0/1 it keeps the four
+/// `CdCmd_Queue.plazaStreamSubId`. While the stream is at 0/1 it keeps the four
 /// looping voices alive (`func_acropolis_plaza_8017F770` starts a voice the
 /// first time its slot flag is clear and ramps it afterwards); at 2 it fades
 /// the crowd loop out against the stream frame counter, holding full volume
@@ -4065,12 +4065,12 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
 static void func_acropolis_plaza_8017F9EC(Task* task)
 {
     CdCmdQueue*         q     = &CdCmd_Queue;
-    volatile u16*       frame = &CdCmd_Queue.field_1EE;
+    volatile u16*       frame = &CdCmd_Queue.sceneFrame;
     AcropolisPlazaWork* work  = (AcropolisPlazaWork*)task->work;
     s32                 pos;
     s32                 vol;
 
-    switch (CdCmd_Queue.field_1F8) {
+    switch (CdCmd_Queue.plazaStreamSubId) {
         case 0:
         case 1:
             func_acropolis_plaza_8017F770(1, 0x320, 1, &work->sfxState1E, 0x51050005, 0);
@@ -4079,7 +4079,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
             func_acropolis_plaza_8017F770(0xC8, 0x172, 0x140, &work->sfxState20, 0x51050001, 1);
             break;
         case 2:
-            pos = q->field_1EE;
+            pos = q->sceneFrame;
             if ((u32)(pos - 0x1F) < 0x36U) {
                 vol = 0x7F;
             } else if (pos < 0x1EU) {
@@ -4156,7 +4156,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->evtId       = evtId;
                 work->evtKind     = evtKind;
                 work->evtSub      = evtSub;
-                work->streamFrame = q->field_1EE;
+                work->streamFrame = q->sceneFrame;
                 kind              = (s8)evtKind;
                 if (kind == 0) {
                     work->field_C =
@@ -4275,9 +4275,9 @@ void func_acropolis_plaza_8017FF18(Task* task)
 /// `Gp_KillPlayerEffs`; states 1 and 2 idle. State 3 pins the camera override
 /// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
 /// stream watcher (entry 1) and the entry-8 actor, and arms
-/// `CdCmd_Queue.field_244`. State 4 runs the ambience driver until
+/// `CdCmd_Queue.blockGamePause`. State 4 runs the ambience driver until
 /// `func_acropolis_plaza_8017FB50` reports the scene is over; state 5 records
-/// the next stage in the save block, disarms `field_244` and hands off to the
+/// the next stage in the save block, disarms `blockGamePause` and hands off to the
 /// stage-load task.
 void func_acropolis_plaza_80180054(Task* task)
 {
@@ -4319,8 +4319,8 @@ void func_acropolis_plaza_80180054(Task* task)
             work->field_8  = Task_SpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->field_10);
             Stage_RequestFromAreaTable(0);
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
-            q->field_244 = 1;
-            task->state  = task->state + 1;
+            q->blockGamePause = 1;
+            task->state       = task->state + 1;
             return;
         case 4:
             func_acropolis_plaza_8017F9EC(task);
@@ -4338,7 +4338,7 @@ void func_acropolis_plaza_80180054(Task* task)
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);
-            q->field_244 = 0;
+            q->blockGamePause = 0;
             taskKill(task);
             return;
     }

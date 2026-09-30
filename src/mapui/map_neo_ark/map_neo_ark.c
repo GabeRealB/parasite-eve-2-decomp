@@ -135,9 +135,9 @@ static void func_map_neo_ark_801799BC(u8* arg0)
             D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + stride);
             break;
         case 9:
-            q->field_22C           = 1;
-            q->field_230           = 0x180;
-            q->field_232           = 0x100;
+            q->movieVramStaging    = 1;
+            q->movieStagingX       = 0x180;
+            q->movieStagingY       = 0x100;
             D_8006AC5C             = 1;
             D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
             D_8006AC48[1]          = (u_long*)D_8006AC40;

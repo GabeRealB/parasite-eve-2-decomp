@@ -68,7 +68,7 @@ void Gp_ViewLoadImage(Task* task)
 
     q = &CdCmd_Queue;
     if (CdCmd_IsIdle() & 0xFFFF) {
-        Mem_Set(&q->field_40, 0, 0x10);
+        Mem_Set(&q->activeRequest, 0, sizeof(q->activeRequest));
         view = Gp_GetViewIndex();
         for (i = 0; i < 50; i++) {
             if (D_8006C338[i].field_0 == 2) {

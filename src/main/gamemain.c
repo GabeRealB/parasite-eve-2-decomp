@@ -280,7 +280,7 @@ static inline s32 _gameMainPauseBlocked(void)
     s32 blocked;
 
     blocked = 0;
-    if (CdCmd_Queue.field_244 != 0 && !(GameMain_HaltFlags & 8)) {
+    if (CdCmd_Queue.blockGamePause != 0 && !(GameMain_HaltFlags & 8)) {
         blocked = 1;
     } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
@@ -349,19 +349,19 @@ static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
     CdCmdQueue* q;
 
     q = &CdCmd_Queue;
-    if (q->field_240 != 0) {
-        if (elapsed + q->field_1A0 < *q->field_19C) {
-            while (((VSync(1) - start) & 0x7FFF) + q->field_1A0 < *q->field_19C) {
+    if (q->paceToSceneTiming != 0) {
+        if (elapsed + q->timingElapsedLines < *q->timingCursor) {
+            while (((VSync(1) - start) & 0x7FFF) + q->timingElapsedLines < *q->timingCursor) {
             }
-            elapsed       = (VSync(1) - start) & 0x7FFF;
-            q->field_1A0 += elapsed;
+            elapsed                = (VSync(1) - start) & 0x7FFF;
+            q->timingElapsedLines += elapsed;
         } else {
-            q->field_1A0 += elapsed;
+            q->timingElapsedLines += elapsed;
         }
-        if (*q->field_19C != 0) {
-            q->field_19C++;
-            if (*q->field_19C == -1) {
-                q->field_19C++;
+        if (*q->timingCursor != CD_COMMAND_TIMING_END) {
+            q->timingCursor++;
+            if (*q->timingCursor == CD_COMMAND_TIMING_SKIP) {
+                q->timingCursor++;
             }
         }
     }

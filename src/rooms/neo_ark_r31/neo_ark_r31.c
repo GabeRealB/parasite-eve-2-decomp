@@ -234,7 +234,7 @@ s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, GpMessageArg arg2, GpMessag
 }
 
 /// Room task state 0: installs the message table, claims pointer slot 7,
-/// sets `CdCmd_Queue.field_22A` to 2 and starts the room script with
+/// sets `CdCmd_Queue.imageMdecMode` to 2 and starts the room script with
 /// `func_800E8634`. Advances to state 1.
 static void func_neo_ark_r31_8017D90C(Task* arg0)
 {
@@ -243,19 +243,19 @@ static void func_neo_ark_r31_8017D90C(Task* arg0)
     queue          = &CdCmd_Queue;
     arg0->msgTable = D_neo_ark_r31_8017D9F4;
     Game_SetPtrSlot(arg0, 7);
-    queue->field_22A = 2;
+    queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     func_800E8634(&D_80133F90, 0, &D_80134470);
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Room task state 1: stores 2 into `CdCmd_Queue.field_22A` every tick.
+/// Room task state 1: stores 2 into `CdCmd_Queue.imageMdecMode` every tick.
 static void func_neo_ark_r31_8017D980(Task* task)
 {
-    CdCmd_Queue.field_22A = 2;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
 /// State handlers of the room task `func_neo_ark_r31_8017D990`, indexed by
-/// `Task::state`: the set-up tick, the tick that stores 2 into `CdCmd_Queue.field_22A`,
+/// `Task::state`: the set-up tick, the tick that stores 2 into `CdCmd_Queue.imageMdecMode`,
 /// and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
     {

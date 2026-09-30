@@ -2423,7 +2423,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);

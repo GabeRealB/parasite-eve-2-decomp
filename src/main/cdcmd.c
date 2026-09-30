@@ -91,64 +91,64 @@ void* CdCmd_SetupMdecBuffers(void)
     s32         size;
 
     p = &CdCmd_Queue;
-    if (p->field_216 != 0) {
-        if (p->field_238 == STREAM_SCENE_VLC_RESERVED_TABLE) {
-            vlcBufferKind = p->field_190->data.scene.vlcBufferKind;
+    if (p->sceneBuffersNeeded != 0) {
+        if (p->sceneVlcTableMode == STREAM_SCENE_VLC_RESERVED_TABLE) {
+            vlcBufferKind = p->sceneStream->data.scene.vlcBufferKind;
             switch (vlcBufferKind) {
                 case STREAM_VLC_BUFFER_ALLOCATE:
-                    p->field_18C = Mem_Malloc(STREAM_VLC_TABLE_BYTES, 1);
+                    p->vlcTable = Mem_Malloc(STREAM_VLC_TABLE_BYTES, 1);
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_0:
                     gGameSession->field_7C = 0;
-                    p->field_18C           = Fs_ActorLoadBase0;
+                    p->vlcTable            = Fs_ActorLoadBase0;
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_1:
                     gGameSession->field_7E = 0;
-                    p->field_18C           = Fs_ActorLoadBase1;
+                    p->vlcTable            = Fs_ActorLoadBase1;
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_2:
                     gGameSession->field_80 = 0;
-                    p->field_18C           = Fs_ActorLoadBase2;
+                    p->vlcTable            = Fs_ActorLoadBase2;
                     break;
             }
-            if (p->field_21E == 0) {
-                DecDCTvlcBuild(p->field_18C);
-                p->field_21E = 1;
+            if (p->vlcTableBuilt == 0) {
+                DecDCTvlcBuild(p->vlcTable);
+                p->vlcTableBuilt = 1;
             }
         } else {
-            p->field_18C = NULL;
+            p->vlcTable = NULL;
         }
 
-        p->field_1A4     = NULL;
-        timingBufferKind = p->field_190->control.scene.timingBufferKind;
+        p->timingBuffer  = NULL;
+        timingBufferKind = p->sceneStream->control.scene.timingBufferKind;
         switch (timingBufferKind) {
             case STREAM_TIMING_BUFFER_ALLOCATE:
-                p->field_1A4 = Mem_Malloc(p->field_190->data.scene.timingBufferBytes, 1);
+                p->timingBuffer = Mem_Malloc(p->sceneStream->data.scene.timingBufferBytes, 1);
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_0:
                 gGameSession->field_7C = 0;
-                p->field_1A4           = Fs_ActorLoadBase0;
-                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
+                p->timingBuffer        = Fs_ActorLoadBase0;
+                if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
+                    p->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_1:
                 gGameSession->field_7E = 0;
-                p->field_1A4           = Fs_ActorLoadBase1;
-                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
+                p->timingBuffer        = Fs_ActorLoadBase1;
+                if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
+                    p->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_2:
                 gGameSession->field_80 = 0;
-                p->field_1A4           = Fs_ActorLoadBase2;
-                if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
-                    p->field_1A4 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
+                p->timingBuffer        = Fs_ActorLoadBase2;
+                if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
+                    p->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
         }
 
-        p->field_19C = (u32*)p->field_1A4;
+        p->timingCursor = p->timingBuffer;
         if (p->decodeBufferBytes != 0) {
             p->decodeBuffer = Mem_Malloc(p->decodeBufferBytes, 1);
         }
@@ -225,18 +225,18 @@ static void CdCmd_HandleStreamDecode(void)
                 entry->cmd = CD_COMMAND_PLAY_STREAM;
             }
             if ((s16)Stream_InitializePlayback(slotIndex & 0xFFFF) != 0) {
-                p                = &CdCmd_Queue;
-                busy             = p->busy;
-                state->field_1FA = 1;
-                state->field_1F4 = 1;
+                p                        = &CdCmd_Queue;
+                busy                     = p->busy;
+                state->movieReady        = 1;
+                state->movieFrameChanged = 1;
                 if (busy != 0) {
                     p->busy              = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step           = 0;
-                p->field_1fc      = 0;
-                p->pausePlayClock = 0;
-                p->field_242      = 0;
+                p->step               = 0;
+                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                p->pausePlayClock     = 0;
+                p->cdOperationPending = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
@@ -244,22 +244,22 @@ static void CdCmd_HandleStreamDecode(void)
                 }
                 goto end_check;
             }
-            state->field_1E8 = 1;
-            Stream_PollPlayback(0, ((u16)state->field_1EA - 1) * 0xA);
+            state->continueMovie = 1;
+            Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA);
             state->step = state->step + 1;
             /* fallthrough */
         case 1:
         end_check:
-            if ((s16)Stream_PollPlayback(0, ((u16)state->field_1EA - 1) * 0xA) != 0) {
+            if ((s16)Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
                 p = &CdCmd_Queue;
                 if (p->busy != 0) {
                     p->busy              = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step           = 0;
-                p->field_1fc      = 0;
-                p->pausePlayClock = 0;
-                p->field_242      = 0;
+                p->step               = 0;
+                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                p->pausePlayClock     = 0;
+                p->cdOperationPending = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
@@ -455,7 +455,7 @@ static void CdCmd_HandleFileLoad(void)
                     state->step = 4;
                     goto end_check;
                 case 0xFF:
-                    if (state->field_1FE != status) {
+                    if (state->imageLoadStatus != status) {
                         goto end_check;
                     }
                     CdSyncCallback(NULL);
@@ -465,10 +465,10 @@ static void CdCmd_HandleFileLoad(void)
                         p->busy              = 0;
                         gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                     }
-                    p->step           = 0;
-                    p->field_1fc      = 0;
-                    p->pausePlayClock = 0;
-                    p->field_242      = 0;
+                    p->step               = 0;
+                    p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                    p->pausePlayClock     = 0;
+                    p->cdOperationPending = 0;
                     if (p->readIdx != p->writeIdx) {
                         p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                         p->readIdx                 = p->readIdx + 1;
@@ -500,7 +500,7 @@ static void CdCmd_HandleFileLoad(void)
     }
 
 end_check:
-    if (state->field_200 != 0) {
+    if (state->imageDecodePending != 0) {
         CdCmd_StepVlcRebuild();
     }
 }
@@ -611,10 +611,10 @@ static void CdCmd_HandleMount(void)
                 state->busy          = 0;
                 gDisplayState.cdBusy = DISPLAY_CD_IDLE;
             }
-            state->step           = 0;
-            state->field_1fc      = 0;
-            state->pausePlayClock = 0;
-            state->field_242      = 0;
+            state->step               = 0;
+            state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+            state->pausePlayClock     = 0;
+            state->cdOperationPending = 0;
             if (state->readIdx != state->writeIdx) {
                 (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
                 state->readIdx                         = state->readIdx + 1;
@@ -651,19 +651,19 @@ s32 CdCmd_ActivatePhase1(void)
     p   = &CdCmd_Queue;
     cmd = p->entries[p->readIdx].cmd;
     if (cmd != CD_COMMAND_EMPTY) {
-        p->field_40.cmd           = cmd;
-        p->field_40.stage         = p->entries[p->readIdx].stage;
-        p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
-        p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
-        p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
-        p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
-        p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
-        p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
-        p->field_4c               = 1;
+        p->activeRequest.entry.cmd           = cmd;
+        p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
+        p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
+        p->activeRequest.entry.fileIndex     = p->entries[p->readIdx].fileIndex;
+        p->activeRequest.entry.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+        p->activeRequest.entry.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+        p->activeRequest.entry.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+        p->activeRequest.entry.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
+        p->activeRequest.phase               = CD_COMMAND_PHASE_CANCEL;
         return 1;
     }
-    if ((u16)p->field_20E != 0) {
-        p->field_4c = 1;
+    if ((u16)p->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
+        p->activeRequest.phase = CD_COMMAND_PHASE_CANCEL;
         return 1;
     }
     return 0;
@@ -679,43 +679,43 @@ static void CdCmd_ProcessPhase1(void)
     StreamSlot* sceneStream;
 
     p = &CdCmd_Queue;
-    switch (p->field_40.cmd >> 4) {
+    switch (p->activeRequest.entry.cmd >> 4) {
         case 0:
         case 1:
         case 2:
-            p->field_4c = 0;
+            p->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
             return;
         case 3:
         case 4:
         case 6:
         case 7:
-            if (p->field_242 != 0) {
-                if ((p->field_40.cmd >> 4) == 7) {
+            if (p->cdOperationPending != 0) {
+                if ((p->activeRequest.entry.cmd >> 4) == 7) {
                     func_acropolis_plaza_8017D6D4();
                     return;
                 }
                 CdCmd_HandleStreamDecode();
                 return;
             }
-            statePtr = &p->field_1fc;
+            statePtr = &p->cancelStep;
             switch (*statePtr) {
-                case 0:
+                case CD_COMMAND_CANCEL_BEGIN:
                     if (D_8006AC58 != 0) {
                         CdVol_CacheFromSpu();
-                        p->field_1fc = p->field_1fc + 1;
+                        p->cancelStep = p->cancelStep + 1;
                     } else {
-                        p->field_1fc = 2;
+                        p->cancelStep = CD_COMMAND_CANCEL_FINISH;
                         goto case_2;
                     }
                     /* fallthrough */
-                case 1:
+                case CD_COMMAND_CANCEL_WAIT:
                     if (CdVol_StepDown() == 0) {
                         *statePtr = *statePtr + 1;
                     }
                     CdCmd_HandleStreamDecode();
                     ret = 0;
                     break;
-                case 2:
+                case CD_COMMAND_CANCEL_FINISH:
                 case_2:
                     if ((s16)CdCmd_StopMdec(1)) {
                         ret = 1;
@@ -729,17 +729,17 @@ static void CdCmd_ProcessPhase1(void)
                     break;
             }
             if (ret != 0) {
-                p->field_1E6 = 0;
-                Mem_Set(&p->field_40, 0, 0x10);
+                p->movieFrameAvailable = 0;
+                Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
                 q = &CdCmd_Queue;
                 if (q->busy != 0) {
                     q->busy              = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                q->step           = 0;
-                q->field_1fc      = 0;
-                q->pausePlayClock = 0;
-                q->field_242      = 0;
+                q->step               = 0;
+                q->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                q->pausePlayClock     = 0;
+                q->cdOperationPending = 0;
                 if (q->readIdx != q->writeIdx) {
                     q->entries[q->readIdx].cmd = CD_COMMAND_EMPTY;
                     q->readIdx                 = q->readIdx + 1;
@@ -748,32 +748,32 @@ static void CdCmd_ProcessPhase1(void)
             }
             return;
         case 8:
-            if (p->field_242 != 0) {
+            if (p->cdOperationPending != 0) {
                 Gp_StepCdAudioCmd();
                 return;
             }
-            if ((u16)p->field_20E != 0) {
-                switch (p->field_1fc) {
-                    case 0:
+            if ((u16)p->sceneAudioMode != CD_COMMAND_SCENE_INACTIVE) {
+                switch (p->cancelStep) {
+                    case CD_COMMAND_CANCEL_BEGIN:
                         if (Mc_SaveData[0].state.demoScene != 0) {
                             SndEvt_EnqueueType6(0, 0, 0);
                         }
                         CdAudio_Begin();
-                        p->field_1fc = p->field_1fc + 1;
+                        p->cancelStep = p->cancelStep + 1;
                         return;
-                    case 1:
+                    case CD_COMMAND_CANCEL_WAIT:
                         if (CdAudio_Phase.field_2 == 4) {
-                            sceneStream = p->field_190;
+                            sceneStream = p->sceneStream;
                             temp        = sceneStream->data.scene.resumeSectorOffset;
                             if (temp) {
                                 CdAudio_JumpToSector(sceneStream->startSector + temp);
-                                p->field_1fc = p->field_1fc + 1;
+                                p->cancelStep = p->cancelStep + 1;
                                 return;
                             }
                             goto case8_cleanup;
                         }
                         return;
-                    case 2:
+                    case CD_COMMAND_CANCEL_FINISH:
                         if (CdAudio_Phase.field_4 == 0xA) {
                             goto case8_cleanup;
                         }
@@ -784,20 +784,20 @@ static void CdCmd_ProcessPhase1(void)
             } else {
             case8_cleanup:
                 p = &CdCmd_Queue;
-                Mem_Set(&p->field_40, 0, 0x10);
-                p->field_50.cmd = CD_COMMAND_EMPTY;
-                p->field_244    = 0;
-                p->field_20E    = 0;
-                Gp_ApplySndBankMasks(p->field_190->data.scene.soundBankMask);
+                Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+                p->replacementEntry.cmd = CD_COMMAND_EMPTY;
+                p->blockGamePause       = 0;
+                p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
+                Gp_ApplySndBankMasks(p->sceneStream->data.scene.soundBankMask);
                 Gp_RestoreStreamRng();
                 if (p->busy != 0) {
                     p->busy              = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                p->step           = 0;
-                p->field_1fc      = 0;
-                p->pausePlayClock = 0;
-                p->field_242      = 0;
+                p->step               = 0;
+                p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+                p->pausePlayClock     = 0;
+                p->cdOperationPending = 0;
                 if (p->readIdx != p->writeIdx) {
                     p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
                     p->readIdx                 = p->readIdx + 1;
@@ -817,7 +817,7 @@ u16 CdCmd_ActivatePhase2(void)
     u8          cmd;
 
     p = &CdCmd_Queue;
-    if (p->field_4c != 0) {
+    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 1;
     }
     cmd = p->entries[p->readIdx].cmd;
@@ -828,15 +828,15 @@ u16 CdCmd_ActivatePhase2(void)
     }
     return 0;
 do_work:
-    p->field_40.cmd           = cmd;
-    p->field_40.stage         = p->entries[p->readIdx].stage;
-    p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
-    p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
-    p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
-    p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
-    p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
-    p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
-    p->field_4c               = 2;
+    p->activeRequest.entry.cmd           = cmd;
+    p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
+    p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
+    p->activeRequest.entry.fileIndex     = p->entries[p->readIdx].fileIndex;
+    p->activeRequest.entry.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+    p->activeRequest.entry.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+    p->activeRequest.entry.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+    p->activeRequest.entry.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
+    p->activeRequest.phase               = CD_COMMAND_PHASE_SUSPEND;
     return 1;
 }
 
@@ -851,32 +851,32 @@ static void CdCmd_ProcessPhase2(void)
     s32         pos;
 
     p = &CdCmd_Queue;
-    switch (p->field_40.cmd >> 4) {
+    switch (p->activeRequest.entry.cmd >> 4) {
         case 0:
         case 1:
         case 2:
-            p->field_4c  = 0;
-            p->field_212 = 0;
+            p->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
+            p->sceneAudioStarted   = 0;
             break;
         case 4:
         case 6:
         case 7:
-            if (p->field_242 != 0) {
-                if ((p->field_40.cmd >> 4) == 7) {
+            if (p->cdOperationPending != 0) {
+                if ((p->activeRequest.entry.cmd >> 4) == 7) {
                     func_acropolis_plaza_8017D6D4();
                 } else {
                     CdCmd_HandleStreamDecode();
                 }
                 break;
             }
-            statePtr = &p->field_1d2;
+            statePtr = &p->suspendResumeStep;
             switch (*statePtr) {
                 case 0:
                     if (D_8006AC58 != 0) {
                         CdVol_CacheFromSpu();
-                        p->field_1d2 = p->field_1d2 + 1;
+                        p->suspendResumeStep = p->suspendResumeStep + 1;
                     } else {
-                        p->field_1d2 = 2;
+                        p->suspendResumeStep = 2;
                         goto case_2;
                     }
                     /* fallthrough */
@@ -902,25 +902,25 @@ static void CdCmd_ProcessPhase2(void)
             }
             if (ret != 0) {
                 CdControlB(CdlGetlocL, NULL, result);
-                loc.minute   = result[0];
-                loc.second   = result[1];
-                loc.sector   = result[2];
-                loc.track    = 0;
-                pos          = CdPosToInt(&loc);
-                p2           = &CdCmd_Queue;
-                p->field_48  = pos;
-                p->field_4c  = 0;
-                p->field_1d2 = 0;
+                loc.minute                    = result[0];
+                loc.second                    = result[1];
+                loc.sector                    = result[2];
+                loc.track                     = 0;
+                pos                           = CdPosToInt(&loc);
+                p2                            = &CdCmd_Queue;
+                p->activeRequest.resumeSector = pos;
+                p->activeRequest.phase        = CD_COMMAND_PHASE_DISPATCH;
+                p->suspendResumeStep          = 0;
                 if (p2->busy != 0) {
                     p2->busy             = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
                 Mem_Set(p2->entries, 0, sizeof(p2->entries));
-                p2->writeIdx  = 0;
-                p2->readIdx   = 0;
-                p2->step      = 0;
-                p2->field_1fc = 0;
-                p2->field_1d2 = 0;
+                p2->writeIdx          = 0;
+                p2->readIdx           = 0;
+                p2->step              = 0;
+                p2->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
+                p2->suspendResumeStep = 0;
             }
             break;
         case 3:
@@ -964,7 +964,7 @@ static inline u16 _cdCmdIsIdle(void)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (p->field_4c != 0) {
+    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 0;
     }
     if (p->writeIdx != p->readIdx) {
@@ -979,7 +979,7 @@ u16 CdCmd_EnqueueFollowUp(void)
     u8          params[4];
 
     p = &CdCmd_Queue;
-    switch (p->field_40.cmd >> 4) {
+    switch (p->activeRequest.entry.cmd >> 4) {
         case 0:
         case 1:
         case 2:
@@ -989,22 +989,22 @@ u16 CdCmd_EnqueueFollowUp(void)
             break;
         case 6:
         case 7:
-            switch (p->field_1d2) {
+            switch (p->suspendResumeStep) {
                 case 0:
-                    params[3] = p->field_40.stage;
-                    params[2] = p->field_40.fileGroup;
-                    params[0] = p->field_40.fileIndex;
-                    if ((p->field_40.cmd >> 4) == 6) {
-                        _cdCmdEnqueue(CD_COMMAND_CONTINUE_STREAM, params, p->field_40.args.bytes);
-                    } else if ((p->field_40.cmd >> 4) == 7) {
-                        _cdCmdEnqueue(CD_COMMAND_RESUME_STREAM_AT_POSITION, params, p->field_40.args.bytes);
+                    params[3] = p->activeRequest.entry.stage;
+                    params[2] = p->activeRequest.entry.fileGroup;
+                    params[0] = p->activeRequest.entry.fileIndex;
+                    if ((p->activeRequest.entry.cmd >> 4) == 6) {
+                        _cdCmdEnqueue(CD_COMMAND_CONTINUE_STREAM, params, p->activeRequest.entry.args.bytes);
+                    } else if ((p->activeRequest.entry.cmd >> 4) == 7) {
+                        _cdCmdEnqueue(CD_COMMAND_RESUME_STREAM_AT_POSITION, params, p->activeRequest.entry.args.bytes);
                     }
-                    p->field_1d2++;
+                    p->suspendResumeStep++;
                     return 0;
                 case 1:
-                    if (p->field_1FA != 0 || _cdCmdIsIdle()) {
-                        Mem_Set(&p->field_40, 0, 0x10);
-                        p->field_1d2 = 0;
+                    if (p->movieReady != 0 || _cdCmdIsIdle()) {
+                        Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
+                        p->suspendResumeStep = 0;
                         break;
                     }
                     return 0;
@@ -1026,7 +1026,7 @@ u16 CdCmd_IsIdle(void)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (p->field_4c != 0) {
+    if (p->activeRequest.phase != CD_COMMAND_PHASE_DISPATCH) {
         return 0;
     }
     return p->writeIdx == p->readIdx;
@@ -1039,7 +1039,7 @@ u16 CdCmd_IsSlotEmpty(s16 arg0)
 
 void CdCmd_BuildVlcIfStream(void)
 {
-    CdCmd_Queue.field_1EA = 1;
+    CdCmd_Queue.movieFrame = 1;
     if (Stream_HasActiveLowId(&gGameSession->at4.loc.view) != 0) {
         DecDCTvlcBuild(Fs_ActorLoadBase0);
         gGameSession->field_7C = 0;
@@ -1086,7 +1086,7 @@ void CdCmd_SelectMdecBuffer(void)
     if (Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
-    p->field_1E6 = 0;
+    p->movieFrameAvailable = 0;
 }
 
 static s32 CdCmd_GetOverlayStatus(void)
@@ -1095,7 +1095,7 @@ static s32 CdCmd_GetOverlayStatus(void)
     s32         ret;
 
     p = &CdCmd_Queue;
-    if (p->field_21A >= 0) {
+    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
         return 2;
     }
     if (p->field_236 < 0) {
@@ -1107,17 +1107,17 @@ static s32 CdCmd_GetOverlayStatus(void)
 
 static s16 CdCmd_GetStreamMode(void)
 {
-    return CdCmd_Queue.field_20E;
+    return CdCmd_Queue.sceneAudioMode;
 }
 
 void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
 {
     CdCmdQueue* p;
 
-    p            = &CdCmd_Queue;
-    p->field_1FF = 1;
-    p->field_236 = -1;
-    p->field_21A = Gp_FindStreamSlot(arg0, arg1, arg2, 0);
+    p                 = &CdCmd_Queue;
+    p->field_1FF      = 1;
+    p->field_236      = -1;
+    p->sceneSlotIndex = Gp_FindStreamSlot(arg0, arg1, arg2, 0);
 }
 
 void CdCmd_UnusedStub0(void)
@@ -1126,7 +1126,7 @@ void CdCmd_UnusedStub0(void)
 
 void CdCmd_CancelReplaceAndActivate(void)
 {
-    CdCmd_Queue.field_50.cmd = CD_COMMAND_EMPTY;
+    CdCmd_Queue.replacementEntry.cmd = CD_COMMAND_EMPTY;
     CdCmd_ActivatePhase1();
     Gp_RestoreStreamRng();
 }
@@ -1149,12 +1149,12 @@ void CdCmd_EnqueueOverlay81(void)
     u8          sp10;
 
     p = &CdCmd_Queue;
-    if (p->field_21A >= 0) {
-        sp10         = p->field_21A;
-        p->field_20E = 2;
+    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        sp10              = p->sceneSlotIndex;
+        p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
         CdCmd_Enqueue(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
     } else {
-        p->field_20E = 1;
+        p->sceneAudioMode = CD_COMMAND_SCENE_PLAYING;
     }
 }
 
@@ -1164,8 +1164,8 @@ static void CdCmd_EnqueueReplaceOverlay81(void)
     u8          sp10;
 
     p = &CdCmd_Queue;
-    if (p->field_21A >= 0) {
-        sp10 = p->field_21A;
+    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        sp10 = p->sceneSlotIndex;
         CdCmd_EnqueueReplace(CD_COMMAND_PLAY_SCENE_AUDIO, 0, &sp10);
     }
 }
@@ -1176,9 +1176,9 @@ void CdCmd_EnqueueOverlay82(void)
     u8          sp10;
 
     p = &CdCmd_Queue;
-    if (p->field_21A >= 0) {
-        sp10         = p->field_21A;
-        p->field_20E = 2;
+    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        sp10              = p->sceneSlotIndex;
+        p->sceneAudioMode = CD_COMMAND_SCENE_STARTING_AUDIO;
         CdCmd_Enqueue(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
     }
 }
@@ -1189,8 +1189,8 @@ void CdCmd_EnqueueReplaceOverlay82(void)
     u8          sp10;
 
     p = &CdCmd_Queue;
-    if (p->field_21A >= 0) {
-        sp10 = p->field_21A;
+    if (p->sceneSlotIndex > CD_COMMAND_NO_SCENE_SLOT) {
+        sp10 = p->sceneSlotIndex;
         CdCmd_EnqueueReplace(CD_COMMAND_START_SCENE_AUDIO, 0, &sp10);
     }
 }
@@ -1201,7 +1201,7 @@ void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
     CdCmdEntry* entry;
 
     p                    = &CdCmd_Queue;
-    entry                = &p->field_50;
+    entry                = &p->replacementEntry;
     entry->cmd           = cmd;
     entry->stage         = paramA[3];
     entry->fileGroup     = paramA[2];
@@ -1222,28 +1222,28 @@ s32 CdCmd_CommitReplace(void)
     u8*         paramB;
 
     p = &CdCmd_Queue;
-    if (*(volatile u8*)&p->field_50.cmd == CD_COMMAND_EMPTY) {
+    if (*(volatile u8*)&p->replacementEntry.cmd == CD_COMMAND_EMPTY) {
         return -1;
     }
 
-    paramA[3] = p->field_50.stage;
-    paramA[2] = p->field_50.fileGroup;
-    paramA[0] = p->field_50.fileIndex;
+    paramA[3] = p->replacementEntry.stage;
+    paramA[2] = p->replacementEntry.fileGroup;
+    paramA[0] = p->replacementEntry.fileIndex;
 
     writeIdx         = p->writeIdx;
     entry            = &p->entries[writeIdx];
-    entry->cmd       = p->field_50.cmd;
+    entry->cmd       = p->replacementEntry.cmd;
     entry->stage     = paramA[3];
     entry->fileGroup = paramA[2];
     entry->fileIndex = paramA[0];
 
-    paramB               = p->field_50.args.bytes;
+    paramB               = p->replacementEntry.args.bytes;
     entry->args.bytes[0] = paramB[0];
     entry->args.bytes[1] = paramB[1];
     entry->args.bytes[2] = paramB[2];
     entry->args.bytes[3] = paramB[3];
 
-    p->field_50.cmd = CD_COMMAND_EMPTY;
+    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
 
     writeIdx    = p->writeIdx;
     next        = writeIdx + 1;
@@ -1310,11 +1310,11 @@ static void CdCmd_ResetRing(void)
 
     state = &CdCmd_Queue;
     Mem_Set(state->entries, 0, sizeof(state->entries));
-    state->writeIdx  = 0;
-    state->readIdx   = 0;
-    state->step      = 0;
-    state->field_1fc = 0;
-    state->field_1d2 = 0;
+    state->writeIdx          = 0;
+    state->readIdx           = 0;
+    state->step              = 0;
+    state->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
+    state->suspendResumeStep = 0;
 }
 
 void CdCmd_ResetEntryIter(void)
@@ -1357,10 +1357,10 @@ void CdCmd_AdvanceRead(void)
         state->busy          = 0;
         gDisplayState.cdBusy = DISPLAY_CD_IDLE;
     }
-    state->step           = 0;
-    state->field_1fc      = 0;
-    state->pausePlayClock = 0;
-    state->field_242      = 0;
+    state->step               = 0;
+    state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+    state->pausePlayClock     = 0;
+    state->cdOperationPending = 0;
     if (state->readIdx != state->writeIdx) {
         state->entries[state->readIdx].cmd = CD_COMMAND_EMPTY;
         state->readIdx                     = state->readIdx + 1;
@@ -1372,15 +1372,15 @@ void CdCmd_LoadActiveEntry(void)
 {
     CdCmdQueue* p;
 
-    p                         = &CdCmd_Queue;
-    p->field_40.cmd           = p->entries[p->readIdx].cmd;
-    p->field_40.stage         = p->entries[p->readIdx].stage;
-    p->field_40.fileGroup     = p->entries[p->readIdx].fileGroup;
-    p->field_40.fileIndex     = p->entries[p->readIdx].fileIndex;
-    p->field_40.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
-    p->field_40.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
-    p->field_40.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
-    p->field_40.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
+    p                                    = &CdCmd_Queue;
+    p->activeRequest.entry.cmd           = p->entries[p->readIdx].cmd;
+    p->activeRequest.entry.stage         = p->entries[p->readIdx].stage;
+    p->activeRequest.entry.fileGroup     = p->entries[p->readIdx].fileGroup;
+    p->activeRequest.entry.fileIndex     = p->entries[p->readIdx].fileIndex;
+    p->activeRequest.entry.args.bytes[0] = p->entries[p->readIdx].args.bytes[0];
+    p->activeRequest.entry.args.bytes[1] = p->entries[p->readIdx].args.bytes[1];
+    p->activeRequest.entry.args.bytes[2] = p->entries[p->readIdx].args.bytes[2];
+    p->activeRequest.entry.args.bytes[3] = p->entries[p->readIdx].args.bytes[3];
 }
 
 void CdCmd_Dispatch(void)
@@ -1388,13 +1388,13 @@ void CdCmd_Dispatch(void)
     CdCmdQueue* state; // The indirection is required.
 
     state = &CdCmd_Queue;
-    switch (state->field_4c) {
-        case 0:
-            if (state->field_204 == 0) {
+    switch (state->activeRequest.phase) {
+        case CD_COMMAND_PHASE_DISPATCH:
+            if (state->suspendNormalDispatch == 0) {
                 switch (state->entries[state->readIdx].cmd >> 4) {
-                    case 0:
+                    case CD_COMMAND_PHASE_DISPATCH:
                         break;
-                    case 2:
+                    case CD_COMMAND_PHASE_SUSPEND:
                         CdCmd_HandleFileLoad();
                         break;
                     case 6:
@@ -1412,15 +1412,15 @@ void CdCmd_Dispatch(void)
                 }
             }
             break;
-        case 1:
+        case CD_COMMAND_PHASE_CANCEL:
             CdCmd_ProcessPhase1();
             break;
-        case 2:
+        case CD_COMMAND_PHASE_SUSPEND:
             CdCmd_ProcessPhase2();
             break;
     }
 
-    if (state->field_224 != 0) {
+    if (state->bootLoadActive != 0) {
         Fs_StepBootImage();
     }
 }

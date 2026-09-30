@@ -925,7 +925,7 @@ L_case1:
     goto advance;
 
 L_case2:
-    if (queue->field_1FA == 0) {
+    if (queue->movieReady == 0) {
         return;
     }
     SetDispMask(1);

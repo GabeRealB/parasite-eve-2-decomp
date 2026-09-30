@@ -1747,7 +1747,7 @@ static void        func_actor_121300_80133BFC(Task* task);
 /// is set.
 ///
 /// `Task::state` is read as a scalar through a cast: that keeps the load
-/// behind the `CdCmd_Queue.field_22A` store, which a member read lets GCC hoist above it.
+/// behind the `CdCmd_Queue.imageMdecMode` store, which a member read lets GCC hoist above it.
 void func_actor_121300_80131EB0(Task* arg0)
 {
     OverlayWaveCtx* ctx;
@@ -1760,7 +1760,7 @@ void func_actor_121300_80131EB0(Task* arg0)
     s32             waveX0, waveY0, waveX1, waveY1;
     s32             waveX2, waveY2, waveX3, waveY3;
 
-    CdCmd_Queue.field_22A = 2;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     switch (*(s32*)((u8*)arg0 + OFFSET_OF(Task, state))) {
         case 0:
             for (i = 0; i < 11; i++) {
@@ -2469,7 +2469,7 @@ static void func_actor_121300_80133854(Task* arg0)
             break;
         case 5:
             work->wave.state        = 2;
-            queue->field_22A        = 0;
+            queue->imageMdecMode    = MDEC_IMAGE_MODE_RGB16;
             D_actor_121300_8013D41C = 0;
             work->field_498         = 0;
             break;
@@ -2525,7 +2525,7 @@ static void func_actor_121300_80133854(Task* arg0)
             func_actor_121300_8013343C(arg0, 1);
             break;
         case 12:
-            queue->field_22A = 2;
+            queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
         case 0:
         default:
             work->field_498 = 0;
@@ -2763,16 +2763,16 @@ void func_actor_121300_80134250(s16 arg0)
 
 void func_actor_121300_80134270(void)
 {
-    CdCmd_Queue.field_22A = 0;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
 }
 
 void func_actor_121300_8013427C(void)
 {
     Actor121300Work* work = (Actor121300Work*)D_actor_121300_8013D418->work;
 
-    D_actor_121300_8013D41C = 0;
-    work->wave.state        = 2;
-    CdCmd_Queue.field_22A   = 0;
+    D_actor_121300_8013D41C   = 0;
+    work->wave.state          = 2;
+    CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
     Gp_DispatchMsg(work->field_488, 0x3F3, 1, 0);
     CdCmd_CancelReplaceAndActivate();
 }

@@ -1097,7 +1097,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
             task->state++;
             return;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);

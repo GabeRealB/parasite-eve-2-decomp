@@ -233,7 +233,7 @@ void func_mist_parking_801837B8(Task* task)
             task->state = task->state + 1;
             return;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);

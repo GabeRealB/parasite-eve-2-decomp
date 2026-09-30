@@ -1496,7 +1496,7 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
     work  = (AcropolisFountainSndWork*)task->work;
     switch (work->state) {
         case 0:
-            frame = queue->field_1EA;
+            frame = queue->movieFrame;
             if (frame >= 0xF0) {
                 if (D_acropolis_fountain_8017E7F8 != 0) {
                     SndEvt_EnqueueType7(0x51080001, 0x14);
@@ -1603,7 +1603,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             switch ((u16)view) {
                 case 3:
                 case 5:
-                    if (queue->field_20A != 0) {
+                    if (queue->suppressMoviePresentation != 0) {
                         return;
                     }
                     gGameSession->field_4E = 1;
@@ -1642,14 +1642,14 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                 case 2:
                 case 8:
                     if (gDisplayState.animFrame & 1) {
-                        queue2            = &CdCmd_Queue;
-                        key2              = gGameSession->at4;
-                        key2.loc.view     = Gp_FindViewIndex(4);
-                        loopStream        = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);
-                        count             = queue2->field_1EA + 1;
-                        queue2->field_1EA = count;
+                        queue2             = &CdCmd_Queue;
+                        key2               = gGameSession->at4;
+                        key2.loc.view      = Gp_FindViewIndex(4);
+                        loopStream         = Stream_GetSlot(Stream_FindSlot((u8*)&key2, 0, 1) & 0xFFFF);
+                        count              = queue2->movieFrame + 1;
+                        queue2->movieFrame = count;
                         if (count >= loopStream->data.movie.frameLimit - 0xA) {
-                            queue2->field_1EA = 1;
+                            queue2->movieFrame = 1;
                         }
                     }
                     break;

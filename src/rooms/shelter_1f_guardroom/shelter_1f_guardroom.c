@@ -342,13 +342,13 @@ void func_shelter_1f_guardroom_8017D8D8(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_shelter_1f_guardroom_8017D9CC(0);
-            queue->field_1EA = 1;
-            slotParam[0]     = Stream_FindSlot((u8*)&gGameSession->at4, 0, 0);
+            queue->movieFrame = 1;
+            slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->at4, 0, 0);
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             arg0->state++;
             break;
         case 1:
-            if (queue->field_1FA != 0) {
+            if (queue->movieReady != 0) {
                 arg0->state = 2;
             }
             break;

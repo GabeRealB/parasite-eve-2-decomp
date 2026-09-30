@@ -364,7 +364,7 @@ void func_actor_120500_80131E58(Task* arg0)
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
             goto advance;
         case 2:
-            if (queue->field_1FA == 0) {
+            if (queue->movieReady == 0) {
                 return;
             }
             SndEvt_EnqueueType6(0x521E0007, 0, 0);

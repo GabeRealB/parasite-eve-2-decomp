@@ -131,14 +131,14 @@ static void func_map_akropolis_80179988(u8* arg0)
 
     switch (arg0[2]) {
         case 5:
-            q->field_22C  = 1;
-            q->field_230  = 0x2C0;
-            D_8006AC3C    = 0;
-            q->field_232  = 0;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + 0x10000);
-            D_8006AC50[1] = (u_long*)D_8006AC40;
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
-            D_8006AC48[0] = D_8006AC48[1];
+            q->movieVramStaging = 1;
+            q->movieStagingX    = 0x2C0;
+            D_8006AC3C          = 0;
+            q->movieStagingY    = 0;
+            D_8006AC50[0]       = (u_long*)((u8*)D_8006AC60 + 0x10000);
+            D_8006AC50[1]       = (u_long*)D_8006AC40;
+            D_8006AC48[1]       = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
+            D_8006AC48[0]       = D_8006AC48[1];
             break;
         case 8:
             /* The loop note pins `li 1` at the top of the block; without it the
@@ -146,10 +146,10 @@ static void func_map_akropolis_80179988(u8* arg0)
             do {
                 one = 1;
             } while (0);
-            q->field_230           = 0x180;
-            q->field_232           = 0x100;
+            q->movieStagingX       = 0x180;
+            q->movieStagingY       = 0x100;
             D_8006AC5C             = one;
-            q->field_22C           = one;
+            q->movieVramStaging    = one;
             strideA                = D_8006AC5A * D_8006AC6C * 2;
             D_8006AC50[0]          = (u_long*)((u8*)D_8006AC60 + 0x10000);
             D_8006AC48[0]          = (u_long*)D_8006AC40;

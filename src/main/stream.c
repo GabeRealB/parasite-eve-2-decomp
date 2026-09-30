@@ -129,14 +129,14 @@ static void Mdec_SetupBuffers(u8* arg0)
     s32     temp_lo_2;
     u16*    temp_v1_5;
 
-    D_8006AC5C            = 0;
-    D_8006AC3C            = 1;
-    CdCmd_Queue.field_24A = 0;
-    CdCmd_Queue.field_22C = 0;
-    D_8006AC24            = 0x20;
-    D_8006AC38            = Fs_ActorLoadBase0;
-    D_8006AC60            = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
-    D_8006AC64            = D_8006AC40;
+    D_8006AC5C                   = 0;
+    D_8006AC3C                   = 1;
+    CdCmd_Queue.field_24A        = 0;
+    CdCmd_Queue.movieVramStaging = 0;
+    D_8006AC24                   = 0x20;
+    D_8006AC38                   = Fs_ActorLoadBase0;
+    D_8006AC60                   = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
+    D_8006AC64                   = D_8006AC40;
 
     switch ((s8)(arg0[3] + 1)) {
         case 0:
@@ -187,20 +187,20 @@ static void Stream_InitFromSlot(u32 arg0)
     StreamSlot* slots;
     StreamSlot* slot;
 
-    CdCmd_Queue.field_20A = 0;
-    slots                 = Stream_Slots;
-    D_8006AC12            = 0;
-    slot                  = &slots[arg0 & 0xFFFF];
-    D_8006AC08            = slot->startSector;
-    D_8006AC0C            = slot->data.movie.frameLimit;
-    D_8006AC5A            = slot->data.movie.width;
-    D_8006AC6C            = slot->data.movie.height;
-    D_8006AC0E            = slot->data.movie.vramX;
-    D_8006AC10            = slot->data.movie.vramY;
-    D_8006AC16            = slot->data.movie.loopMode;
-    D_8006AC14            = slot->data.movie.displayMode;
-    D_8006AC58            = slot->data.movie.volumeTableIndex;
-    D_8006AC18            = slot->data.movie.uploadMode;
+    CdCmd_Queue.suppressMoviePresentation = 0;
+    slots                                 = Stream_Slots;
+    D_8006AC12                            = 0;
+    slot                                  = &slots[arg0 & 0xFFFF];
+    D_8006AC08                            = slot->startSector;
+    D_8006AC0C                            = slot->data.movie.frameLimit;
+    D_8006AC5A                            = slot->data.movie.width;
+    D_8006AC6C                            = slot->data.movie.height;
+    D_8006AC0E                            = slot->data.movie.vramX;
+    D_8006AC10                            = slot->data.movie.vramY;
+    D_8006AC16                            = slot->data.movie.loopMode;
+    D_8006AC14                            = slot->data.movie.displayMode;
+    D_8006AC58                            = slot->data.movie.volumeTableIndex;
+    D_8006AC18                            = slot->data.movie.uploadMode;
 }
 
 s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
@@ -368,8 +368,8 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         goto ret_one;
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        p->field_244 = 0;
-        D_8006AC28   = D_8006AC28 + 1;
+        p->blockGamePause = 0;
+        D_8006AC28        = D_8006AC28 + 1;
         return 1;
     }
     goto ret_zero;
@@ -403,12 +403,12 @@ u32 Stream_InitializePlayback(u32 slotIndex)
     CdCmdQueue* queue;
     u32         slot;
 
-    slot             = slotIndex & 0xFFFF;
-    queue            = &CdCmd_Queue;
-    queue->field_1F2 = 0;
-    queue->field_1E4 = 0;
-    queue->field_1F6 = 0;
-    queue->field_1F4 = 0;
+    slot                     = slotIndex & 0xFFFF;
+    queue                    = &CdCmd_Queue;
+    queue->movieFrameSubstep = 0;
+    queue->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
+    queue->movieAtEnd        = 0;
+    queue->movieFrameChanged = 0;
     Stream_InitFromSlot(slot);
     if (D_8006AC58 != 0) {
         if (D_8006AC30.sector == 0) {
@@ -419,7 +419,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
         params[3] = 0xFF;
         Mdec_SetupBuffers(params);
-        queue->field_1EA = 1;
+        queue->movieFrame = 1;
         _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
@@ -450,10 +450,10 @@ s32 CdCmd_StopMdec(s32 arg0)
         ac14                 = D_8006AC14;
         Wip_SysFlags.field_6 = 0;
         p->field_24A         = 0;
-        p->field_1FA         = 0;
-        p->field_1F4         = 0;
+        p->movieReady        = 0;
+        p->movieFrameChanged = 0;
         p->field_1E2         = 0;
-        p->field_1E4         = 0;
+        p->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
         if (ac14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
             f12a = gDisplayState.videoMode;
             if (f12a == 1) {
@@ -472,10 +472,10 @@ s32 CdCmd_StopMdec(s32 arg0)
                 }
                 Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
             }
-            p->field_1E6             = 0;
+            p->movieFrameAvailable   = 0;
             gDisplayState.mdecActive = 0;
         } else if (D_8006AC3C != 0) {
-            p->field_244 = 0;
+            p->blockGamePause = 0;
         }
         return 1;
     }
@@ -512,19 +512,19 @@ static void Stream_StartDecoder(void)
     if ((s16)D_8006AC0C < frame) {
         frame = (s16)D_8006AC0C;
     }
-    if (queue->field_1EA != frame) {
-        queue->field_1EA = (u16)frame;
-        queue->field_1F4 = 1;
-        queue->field_1FA = 1;
+    if (queue->movieFrame != frame) {
+        queue->movieFrame        = (u16)frame;
+        queue->movieFrameChanged = 1;
+        queue->movieReady        = 1;
     }
-    if (queue->field_1F0 == 0) {
-        queue->field_1EE = (u16)frame;
+    if (queue->reverseSceneFrames == 0) {
+        queue->sceneFrame = (u16)frame;
     } else {
-        queue->field_1EE = (D_8006AC0C - frame) + 1;
+        queue->sceneFrame = (D_8006AC0C - frame) + 1;
     }
-    queue->field_1EC = 0;
+    queue->mdecOutputPending = 0;
     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_TEXTURE) {
-        queue->field_1E6 = 1;
+        queue->movieFrameAvailable = 1;
     } else {
         nextStrip  = D_8006AC1C + 1;
         D_8006AC1C = nextStrip;
@@ -551,9 +551,9 @@ static void Stream_StartDecoder(void)
         gDisplayState.frameBuffer ^= 1;
     }
     stripWidth = 0x10;
-    if (queue->field_22C != 0) {
-        x         = queue->field_230;
-        y         = queue->field_232;
+    if (queue->movieVramStaging != 0) {
+        x         = queue->movieStagingX;
+        y         = queue->movieStagingY;
         stripRect = &rect;
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             stripWidth = 0x18;
@@ -659,9 +659,9 @@ static void Mdec_KickStrip(void)
         base = D_8006AC48;
         DecDCTout(base[D_8005EAEE ^ 1], size);
     }
-    p->field_1EC = 1;
-    D_8006AC1A   = 0;
-    D_8005EAEC  ^= 1;
+    p->mdecOutputPending = 1;
+    D_8006AC1A           = 0;
+    D_8005EAEC          ^= 1;
 }
 
 static void Mdec_DecodeFrame(void)
@@ -685,11 +685,11 @@ static void Mdec_DecodeFrame(void)
     header = (StHEADER*)headerWords;
     if (header->frameCount >= (u32)D_8006AC0C) {
         CdVol_ApplyFromTable(0);
-        p->field_1F6 = 1;
-        p->field_1E4 = 4;
+        p->movieAtEnd = 1;
+        p->movieStep  = CD_COMMAND_MOVIE_PAUSE;
     }
 
-    p->field_242 = 0;
+    p->cdOperationPending = 0;
     if (D_8006AC12 != 0) {
         DecDCTvlcSize2(0);
     } else {
@@ -702,8 +702,8 @@ static void Mdec_DecodeFrame(void)
         D_8006AC1A = 1;
     }
 
-    if (p->field_1E8 == 0) {
-        p->field_1E4 = 4;
+    if (p->continueMovie == 0) {
+        p->movieStep = CD_COMMAND_MOVIE_PAUSE;
     }
 }
 
@@ -729,8 +729,8 @@ static __inline__ void _streamStartDecode(void)
     Wip_SysFlags.field_6 = 1;
     DecDCToutCallback(Mdec_UploadSlice);
     CdVol_ApplyFromTable(0);
-    queue->field_1EC = 0;
-    D_8006AC1A       = 0;
+    queue->mdecOutputPending = 0;
+    D_8006AC1A               = 0;
 }
 
 /* Starts the streaming read; ADPCM playback is enabled when the stream's
@@ -757,87 +757,87 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
     s32         displayMode;
 
     state = &CdCmd_Queue;
-    switch (state->field_1E4) {
-        case 0:
+    switch (state->movieStep) {
+        case CD_COMMAND_MOVIE_WAIT_READY:
             if (D_8006AC5C == 0) {
-                state->field_248 = 0;
-                state->field_244 = 1;
+                state->releasePauseBlockAfterFade = 0;
+                state->blockGamePause             = 1;
             }
-            state->field_24C = 0;
+            state->movieDiskRecoveryActive = 0;
             switch ((s16)CdCmd_PollStatus(0, 0)) {
                 case 0:
                     break;
                 case 2:
                     CdFlush();
                 case 1:
-                    state->field_1E4++;
+                    state->movieStep++;
                     break;
             }
             break;
-        case 1:
+        case CD_COMMAND_MOVIE_INIT:
             _streamStartDecode();
-            state->field_1D6 = 0;
-            state->field_1E4++;
-        case 2:
+            state->seekStep = CD_COMMAND_SEEK_SET_LOCATION;
+            state->movieStep++;
+        case CD_COMMAND_MOVIE_SEEK_START:
             if ((resume & 0xFFFF) == 0) {
                 sector = D_8006AC08 + sectorOffset;
             } else {
                 sector = sectorOffset;
             }
-            state->field_242 = 1;
-            state->field_24E = 1;
+            state->cdOperationPending = 1;
+            state->movieReadPending   = 1;
             CdIntToPos(sector, &scratch.location);
             ready = Stream_SeekPosition((u8*)&scratch.location);
             if (ready & 0xFFFF) {
                 CdVol_ApplyFromTable((u8)D_8006AC58);
                 if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 1;
-                    state->field_1E4 = 9;
+                    state->movieStep = CD_COMMAND_MOVIE_RETRY_READ;
                     return 0;
                 }
-                state->field_242 = 0;
-                state->field_24E = 0;
-                state->field_1E4++;
+                state->cdOperationPending = 0;
+                state->movieReadPending   = 0;
+                state->movieStep++;
                 if (D_8006AC5C != 0) {
                     CdCmd_ClearBusy();
                 }
             }
             break;
-        case 3:
+        case CD_COMMAND_MOVIE_DECODE:
             Mdec_DecodeFrame();
             if (CdSync_IsShellOpenBitSet() != 0) {
-                state->field_24C = 1;
+                state->movieDiskRecoveryActive = 1;
                 CdCmd_SetBusy();
-                state->field_1E4 = 6;
+                state->movieStep = CD_COMMAND_MOVIE_RECOVER;
             }
             break;
-        case 4:
+        case CD_COMMAND_MOVIE_PAUSE:
             Mdec_DecodeFrame();
-            state->field_242 = 1;
+            state->cdOperationPending = 1;
             if (CdCmd_PausePoll() & 0xFFFF) {
-                state->field_1E4++;
+                state->movieStep++;
             }
             break;
-        case 5:
+        case CD_COMMAND_MOVIE_FINISH:
             if (D_8006AC16 == STREAM_MOVIE_REPEAT) {
                 CdCmd_SetBusy();
-                state->field_1EA = 1;
-                state->field_1E4 = 1;
+                state->movieFrame = 1;
+                state->movieStep  = CD_COMMAND_MOVIE_INIT;
                 return 0;
             }
-            state->field_242 = 0;
-            stop             = &CdCmd_Queue;
+            state->cdOperationPending = 0;
+            stop                      = &CdCmd_Queue;
             DecDCToutCallback(NULL);
             DecDCTReset(0);
             StClearRing();
             StUnSetRing();
-            videoMode            = D_8006AC14;
-            Wip_SysFlags.field_6 = 0;
-            stop->field_24A      = 0;
-            stop->field_1FA      = 0;
-            stop->field_1F4      = 0;
-            stop->field_1E2      = 0;
-            stop->field_1E4      = 0;
+            videoMode               = D_8006AC14;
+            Wip_SysFlags.field_6    = 0;
+            stop->field_24A         = 0;
+            stop->movieReady        = 0;
+            stop->movieFrameChanged = 0;
+            stop->field_1E2         = 0;
+            stop->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
             if (videoMode != 0) {
                 displayMode = gDisplayState.videoMode;
                 if (displayMode == 1) {
@@ -854,18 +854,18 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                     ClearImage(&scratch.rect, 0, 0, 0);
                     Display_SetMode(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 }
-                stop->field_1E6          = 0;
-                gDisplayState.mdecActive = 0;
+                stop->movieFrameAvailable = 0;
+                gDisplayState.mdecActive  = 0;
             } else if (D_8006AC3C != 0) {
-                stop->field_244 = 0;
+                stop->blockGamePause = 0;
             }
             return 1;
-        case 6:
+        case CD_COMMAND_MOVIE_RECOVER:
             if (CdCmd_RecoverDisk() != 0) {
-                state->field_1E4++;
+                state->movieStep++;
             }
             break;
-        case 7:
+        case CD_COMMAND_MOVIE_STOP_RETRY:
             if ((s16)CdCmd_StopMdec(0) != 0) {
                 if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
                     if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
@@ -873,29 +873,29 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                     }
                     gDisplayState.mdecActive = 1;
                 }
-                state->field_242 = 1;
-                state->field_1E4 = 8;
+                state->cdOperationPending = 1;
+                state->movieStep          = CD_COMMAND_MOVIE_SEEK_RESUME;
             }
             break;
-        case 8:
-            CdIntToPos(D_8006AC08 + (state->field_1EA - 1) * 10, &scratch.location);
+        case CD_COMMAND_MOVIE_SEEK_RESUME:
+            CdIntToPos(D_8006AC08 + (state->movieFrame - 1) * 10, &scratch.location);
             ready = Stream_SeekPosition((u8*)&scratch.location);
             if (ready & 0xFFFF) {
                 if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 8;
-                    state->field_1E4 = 9;
+                    state->movieStep = CD_COMMAND_MOVIE_RETRY_READ;
                     return 0;
                 }
                 _streamStartDecode();
                 CdVol_ApplyFromTable((u8)D_8006AC58);
-                state->field_24C = 0;
-                state->field_242 = 0;
-                state->field_1E4 = 3;
+                state->movieDiskRecoveryActive = 0;
+                state->cdOperationPending      = 0;
+                state->movieStep               = CD_COMMAND_MOVIE_DECODE;
             }
             break;
-        case 9:
+        case CD_COMMAND_MOVIE_RETRY_READ:
             if ((s16)CdCmd_StopMdec(0) != 0) {
-                state->field_1E4 = D_8006AC20;
+                state->movieStep = D_8006AC20;
             }
             break;
     }
@@ -947,23 +947,23 @@ void Stream_PresentFrame(void)
     s32         y;
 
     queue = &CdCmd_Queue;
-    if ((queue->field_20A == 0) && (queue->field_1E6 != 0)) {
-        if (queue->field_1EA == D_8006AC0C) {
-            queue->field_1F2 = 0;
-        } else if (queue->field_1F4 != 0) {
-            queue->field_1F4 = 0;
-            queue->field_1F2 = 0;
+    if ((queue->suppressMoviePresentation == 0) && (queue->movieFrameAvailable != 0)) {
+        if (queue->movieFrame == D_8006AC0C) {
+            queue->movieFrameSubstep = 0;
+        } else if (queue->movieFrameChanged != 0) {
+            queue->movieFrameChanged = 0;
+            queue->movieFrameSubstep = 0;
         } else {
-            queue->field_1F2 = 1;
+            queue->movieFrameSubstep = 1;
         }
-        if (queue->field_22C == 0) {
+        if (queue->movieVramStaging == 0) {
             useDisplayBuffer = D_8006AC18 != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
             x                = D_8006AC0E;
             y                = D_8006AC10;
             Stream_UploadFrameStrips(&rect, x, y, useDisplayBuffer);
         } else {
-            rect.x = queue->field_230;
-            rect.y = queue->field_232;
+            rect.x = queue->movieStagingX;
+            rect.y = queue->movieStagingY;
             rect.w = (s16)D_8006AC5A;
             rect.h = (s16)D_8006AC6C;
             if (D_8006AC18 == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
@@ -1007,8 +1007,8 @@ void Mem_AllocAuxWithImages(s16 arg0)
         rect.h = 0x100;
         MoveImage2(&rect, 0x360, 0);
     }
-    D_8006AC1E   = arg0;
-    p->field_244 = 1;
+    D_8006AC1E        = arg0;
+    p->blockGamePause = 1;
 }
 
 void Stream_ResetRestoreState(void)
