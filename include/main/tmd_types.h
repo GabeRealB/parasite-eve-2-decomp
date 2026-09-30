@@ -254,7 +254,24 @@ STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, obj) == 0x80, tmd_workspace_object_o
 /// High-bit marker on a cached vertex depth whose projection raised a GTE error.
 #define TMD_VERTEX_DEPTH_INVALID 0x80000000U
 
-/// Summary error bit in the GTE FLAG word saved by stream draw handlers.
+/// Bit 31 of the GTE FLAG word saved in `TmdStreamWorkspace.gteFlag`.
+///
+/// The hardware ORs FLAG bits 30..23 and 18..13 into this bit. A perspective
+/// transform sets it on MAC overflow, IR1 or IR2 saturation, SZ or OTZ
+/// saturation, divide overflow, or screen-coordinate saturation. IR3
+/// saturation and color saturation remain their own FLAG bits. A set bit
+/// means the projection failed. Direct draw skips that primitive. A vertex
+/// pre-pass marks the saved screen Z with `TMD_VERTEX_DEPTH_INVALID`, and
+/// later commands reject a negative depth. The two constants are the same
+/// bit and name different words. Storing FLAG with `gte_stflg` publishes the
+/// transform just run; a handler that does not store it tests the word a
+/// previous command left there. The handwritten pre-passes test the register
+/// itself with `bgez` and OR the depth marker into the cache.
+///
+/// `gteFlag` is signed, so a comparison with zero tests this bit as well.
+/// That comparison and this mask are different instructions. Handlers that
+/// hoist the mask keep the mask test. The value does not fit in a signed
+/// enumerator, so it stays an unsigned macro.
 #define TMD_GTE_ERROR_FLAG 0x80000000U
 
 #endif // MAIN_TMD_TYPES_H

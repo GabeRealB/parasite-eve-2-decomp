@@ -34091,7 +34091,7 @@ The paired `lw 68(block)` is `block->mat.t[0]` (offset 0x44). Volatile
 `lui` plus `memory` keeps it from sinking below `out` / `off`.
 `func_800DDC2C` is the example.
 
-## Hoist `&field_24` and AND `0x80000000` for TMD FLAG clip (not `>= 0`)
+## Hoist `&field_24` and AND `TMD_GTE_ERROR_FLAG` for TMD FLAG clip (not `>= 0`)
 
 `func_8009D388` (POLY_FT3) tests FLAG with `if (ws->gteFlag >= 0)` and
 computes `&ws->gteFlag` inside the loop (`addiu v0, a3, 0x24` after
@@ -34109,7 +34109,7 @@ and the mask, and store FLAG a second time after `gte_stsxy3_f3`:
 
 ```c
 flg      = &ws->gteFlag;
-clipMask = 0x80000000;
+clipMask = TMD_GTE_ERROR_FLAG;
 opz      = &ws->gteResult;
 ...
 gte_stflg(flg);
@@ -39663,7 +39663,7 @@ preheader and down into the loop body, immediately before their first use and
 
 ```c
 if (ws->elemCount-- > 0) {
-    flg = &ws->gteFlag; clipMask = 0x80000000; opz = &ws->gteResult;
+    flg = &ws->gteFlag; clipMask = TMD_GTE_ERROR_FLAG; opz = &ws->gteResult;
     do {
         ...
         gte_ldrgb(&col2);          /* discovered first -> hoisted first */
