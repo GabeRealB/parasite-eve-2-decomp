@@ -8,17 +8,17 @@
 
 #include "rooms/room_common.h"
 
-extern u8 D_dryfield_night_general_store_801858B4;
+extern u8 gStoreSavedView;
 
-extern ScreenFade D_dryfield_night_general_store_801858B8;
+extern ScreenFade gStoreFade;
 
 extern RoomEventMsg gRoomEventMsg;
 
 extern u8 gRoomEventActive;
 
-extern u8 D_dryfield_night_general_store_801858C5;
+extern u8 gStoreWarp;
 
-extern u8 D_dryfield_night_general_store_801858C6;
+extern u8 gStoreRoom;
 
 extern RoomEventReq gRoomEventReq;
 

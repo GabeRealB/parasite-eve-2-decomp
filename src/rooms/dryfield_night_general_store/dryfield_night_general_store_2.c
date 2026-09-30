@@ -40,6 +40,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#include "../../shared/general_store.h"
 
 extern GpGridParams               D_dryfield_night_general_store_8017F484[1];
 extern GpObj3A                    D_dryfield_night_general_store_801855C4[4];
@@ -1436,17 +1437,17 @@ GpRoomParamRec* D_dryfield_night_general_store_80185894[8] = {
     D_dryfield_night_general_store_8018587C,
 };
 
-u8 D_dryfield_night_general_store_801858B4 = 0;
+u8 gStoreSavedView = 0;
 
-ScreenFade D_dryfield_night_general_store_801858B8 = { 0 };
+ScreenFade gStoreFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-u8 D_dryfield_night_general_store_801858C5 = 0;
+u8 gStoreWarp = 0;
 
-u8 D_dryfield_night_general_store_801858C6 = 0;
+u8 gStoreRoom = 0;
 
 u8 D_dryfield_night_general_store_801858C7 = 3;
 

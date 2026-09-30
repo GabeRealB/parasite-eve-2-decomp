@@ -43,6 +43,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#include "../../shared/general_store.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -53,22 +54,22 @@ extern u8           gRoomEventActive;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskDesc D_dryfield_general_store_8017E164[];
+extern TaskDesc gStoreTaskDescs[];
 
 /// The stage byte `Mc_SaveData[0].state.location.loc.view` held when the cutscene began, saved by
-/// `func_dryfield_general_store_8017DAC0`'s first state and restored into
+/// `storeCutsceneTask`'s first state and restored into
 /// `Mc_SaveData[0].state.location.loc.view` when the cutscene is cut short.
-extern u8 D_dryfield_general_store_801856F8;
+extern u8 gStoreSavedView;
 
 /// The two script arguments, latched from the message that armed the cutscene
-/// task `D_dryfield_general_store_8017E164`; the task itself reads them back to
+/// task `gStoreTaskDescs`; the task itself reads them back to
 /// place its actors.
-extern u8 D_dryfield_general_store_80185709;
-extern u8 D_dryfield_general_store_8018570A;
+extern u8 gStoreWarp;
+extern u8 gStoreRoom;
 
-/// The 4-byte record `func_dryfield_general_store_8017DAC0` hands the helper
+/// The 4-byte record `storeCutsceneTask` hands the helper
 /// task 0x31 when the script's CAP event key asks for it.
-extern ScreenFade D_dryfield_general_store_801856FC;
+extern ScreenFade gStoreFade;
 
 extern GpMsgEntry D_dryfield_general_store_8017E188[];
 extern s32        D_dryfield_general_store_8017E1B8;
@@ -96,28 +97,24 @@ extern GpObj4C                    D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern GpRoomCoordSet             D_dryfield_general_store_801854E8[1];
 
-s32  func_dryfield_general_store_8017D8D4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
 s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessageArg);
-void func_dryfield_general_store_8017DAC0(Task*);
-void func_dryfield_general_store_8017DC78(Task*);
 void func_dryfield_general_store_8017DFB4(Task*);
 void func_dryfield_general_store_8017E064(Task*);
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_dryfield_general_store_8017E164[3] = {
-    { 0, 32, func_dryfield_general_store_8017DC78, { .model = NULL } },
-    { 0, 32, func_dryfield_general_store_8017DAC0, { .model = NULL } },
+TaskDesc gStoreTaskDescs[3] = {
+    { 0, 32, storeToggleTask, { .model = NULL } },
+    { 0, 32, storeCutsceneTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
 GpMsgEntry D_dryfield_general_store_8017E188[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_general_store_8017D8D4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, storeDoorMsg },
     { 5105, func_dryfield_general_store_8017DDF4 },
-    { 5104, func_dryfield_general_store_8017DD58 },
+    { 5104, storeActionMsg },
     { 5106, func_dryfield_general_store_8017DDC0 },
     { 5103, func_dryfield_general_store_8017DDFC },
     { 0x7FFFFFFF, NULL },
@@ -1546,17 +1543,17 @@ GpRoomParamRec* D_dryfield_general_store_801856D8[8] = {
     D_dryfield_general_store_801856C8,
 };
 
-u8 D_dryfield_general_store_801856F8 = 0;
+u8 gStoreSavedView = 0;
 
-ScreenFade D_dryfield_general_store_801856FC = { 0 };
+ScreenFade gStoreFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-u8 D_dryfield_general_store_80185709 = 0;
+u8 gStoreWarp = 0;
 
-u8 D_dryfield_general_store_8018570A = 0;
+u8 gStoreRoom = 0;
 
 u8 D_dryfield_general_store_8018570B = 208;
 
@@ -1566,153 +1563,9 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 #include "../../shared/room_event_task.inc.c"
 
-/// Handler for the store's two event ids. Both answer with a furniture-style
-/// "which variant" byte in `out->room`, and a non-zero `queryOnly` asks what
-/// would happen without the side effects.
-///
-/// Message 1 is the grandfather clock: with nibble 0x63 clear the reply is the
-/// id itself, otherwise 4, or 2 + nibble 0x61 while nibble 0x7A is still below
-/// 4. The final arm offers the gate a request that plays the two stage sounds
-/// 0x5203000C / 0x52030003 under flag nibble 0x3B.
-///
-/// Message 0x26 is the shop till: with nibble 0xC9 set the reply is 2, or 1
-/// while nibble 0x53 is clear, plus 2 more while nibble 0x51 is clear;
-/// otherwise 5, or 6 while nibble 0x51 is clear. The arm that is not asking
-/// latches `warp` / `room` for the spawned task and answers 2, or runs
-/// CAP command 0xE when nibble 0x62 is set. Anything else answers 1.
-s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    RoomEventReq req;
-    u16          msgId;
-    s32          v;
+#include "../../shared/general_store_door_msg.inc.c"
 
-    *out  = *in;
-    msgId = in->areaId;
-    if (msgId == 1 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x63) == 0) {
-            out->room = msgId;
-        } else {
-            if (GameFlag_GetNibble(0x7A) >= 4) {
-                v = 4;
-            } else {
-                v = GameFlag_GetNibble(0x61) + 2;
-            }
-            out->room = v;
-        }
-    }
-    if (in->areaId == 0x26 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0xC9) != 0) {
-            if (GameFlag_GetNibble(0x53) == 0) {
-                out->room = 1;
-            } else {
-                out->room = 2;
-            }
-            if (GameFlag_GetNibble(0x51) == 0) {
-                out->room = out->room + 2;
-            }
-        } else if (GameFlag_GetNibble(0x51) == 0) {
-            out->room = 6;
-        } else {
-            out->room = 5;
-        }
-    }
-    if (in->areaId == 1) {
-        req.capCmd        = 0xD;
-        req.missingCapCmd = 0xD;
-        req.firstSnd      = Gp_PackStageSndId(0x5203000C);
-        req.secondSnd     = Gp_PackStageSndId(0x52030003);
-        req.flagId        = 0x3B;
-        req.collectedBit  = 0;
-        return roomEventGate(&req, in);
-    }
-    if (in->areaId != 0x26) {
-        return 1;
-    }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 2;
-    }
-    if (GameFlag_GetNibble(0x62) == 0) {
-        Task_SpawnFromTable(D_dryfield_general_store_8017E164, 1, 0, 0);
-        D_dryfield_general_store_80185709 = in->warp;
-        D_dryfield_general_store_8018570A = in->room;
-    } else {
-        Gp_RunCapCmd1(0xE);
-    }
-    return 2;
-}
-
-/// The store's cutscene task, the one the shop-till arm of
-/// `func_dryfield_general_store_8017D8D4` spawns. It runs as a state script:
-/// states 0 and 2 arm the cutscene and states 1 / 3 are the idle steps that
-/// wait for CAP command 0xF to finish.
-///
-/// State 0 silences the player's weapon messages and latches the save's stage
-/// byte into `D_dryfield_general_store_801856F8` before forcing that byte to
-/// 0x10, the stage the cutscene belongs to. State 2 queues stage sound
-/// 0x5203000D, hands CAP command 0xF the screen and raises `Gp_StateF0.field_4` /
-/// `D_80115690` with it.
-///
-/// State 4 is the exit test. CAP event key 0xB means the script asked for the
-/// helper task 0x31, which it spawns with a `ScreenFade` whose `rampFrames`
-/// is 8; any other key cuts the cutscene short instead -
-/// captions off, stage sound 0x5203000E, the latched stage byte back into
-/// `Mc_SaveData[0].state.location.loc.view` and the player's weapon messages re-enabled.
-///
-/// State 5 is the commit: it queues sound event 0x80000000, points the save's
-/// location at area 0x26 with the two latched script arguments as its warp
-/// point and room, raises `gDisplayState.spriteVariant` and spawns helper task 0x11.
-///
-/// Every arm that is finished with the task, state 5's and the cut-short arm of
-/// state 4's, leaves through the shared `taskKill` below the switch.
-void func_dryfield_general_store_8017DAC0(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_MsgPlayer3F3(0);
-            D_dryfield_general_store_801856F8      = Mc_SaveData[0].state.location.loc.view;
-            Mc_SaveData[0].state.location.loc.view = 0x10;
-            arg0->state                           += 1;
-            return;
-        case 1:
-        case 3:
-            arg0->state += 1;
-            return;
-        case 2:
-            Gp_EnqueueStageSnd6(0x5203000D, 0, 0);
-            Gp_StateF0.field_4 = 1;
-            Gp_RunCapCmd1(0xF);
-            D_80115690   = 1;
-            arg0->state += 1;
-            return;
-        case 4:
-            if (Gp_GetCapEventKey() == 0xB) {
-                D_dryfield_general_store_801856FC.blend      = SCREEN_FADE_SUBTRACT;
-                D_dryfield_general_store_801856FC.phase      = SCREEN_FADE_RUNNING;
-                D_dryfield_general_store_801856FC.rampFrames = 8;
-                Task_Spawn(1, 0x31, 0, &D_dryfield_general_store_801856FC);
-                arg0->state += 1;
-                return;
-            }
-            Gp_StateF0.field_4 = 0;
-            Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            Mc_SaveData[0].state.location.loc.view = D_dryfield_general_store_801856F8;
-            Gp_MsgPlayerWeapon(1);
-            Gp_MsgPlayer3F3(1);
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 0x26;
-            Mc_SaveData[0].state.location.loc.warp = D_dryfield_general_store_80185709;
-            Mc_SaveData[0].state.location.loc.room = D_dryfield_general_store_8018570A;
-            gDisplayState.spriteVariant            = 1;
-            Task_Spawn(0, 0x11, 0, 0);
-            break;
-        default:
-            return;
-    }
-    taskKill(arg0);
-}
+#include "../../shared/general_store_cutscene_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_general_store_8017DF5C`: the entry state
@@ -1722,56 +1575,9 @@ static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
     { func_dryfield_general_store_8017DEAC, func_dryfield_general_store_8017DF4C, taskKill },
 };
 
-/// A task that runs cap command `spawnArg2` and waits for it to finish; if the
-/// cap then reports an event key of 0xA or above, it toggles game-flag nibble
-/// `spawnArg1` between 0 and 1. The task then kills itself.
-void func_dryfield_general_store_8017DC78(Task* task)
-{
-    s32 flag;
-    s32 cmd;
+#include "../../shared/general_store_toggle_task.inc.c"
 
-    flag = task->spawnArg1.value;
-    cmd  = task->spawnArg2.value;
-    switch (task->state) {
-        case 0:
-            Gp_RunCapCmd1(cmd);
-            goto advance;
-        case 1:
-            if (Gp_CapBusy() != 0) {
-                break;
-            }
-            goto advance;
-        case 2:
-            if (Gp_GetCapEventKey() >= 0xA) {
-                GameFlag_SetNibble(flag, GameFlag_GetNibble(flag) == 0);
-            }
-        advance:
-            task->state = task->state + 1;
-            break;
-        case 3:
-            taskKill(task);
-            break;
-    }
-}
-
-s32 func_dryfield_general_store_8017DD58(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    s32   arg;
-    void* slot;
-
-    if (arg2 == 0x18) {
-        slot = gameGetPtrSlot(0xA);
-        arg  = 0x19;
-        if (slot != 0) {
-            arg = 0x18;
-        }
-        Gp_SpawnIfCapIdle(arg, 0);
-    }
-    if (arg2 == 9) {
-        Task_SpawnFromTable(D_dryfield_general_store_8017E164, 0, 0x53, 9);
-    }
-    return 0;
-}
+#include "../../shared/general_store_action_msg.inc.c"
 
 /// Message handler that plays stage sound 0x52030007 on action 7. Always
 /// returns 0.

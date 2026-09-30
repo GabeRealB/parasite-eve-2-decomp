@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_general_store.
 gRoomEventTaskDesc = 0x8017E78C; // size:0xC defined:True
-D_dryfield_night_general_store_8017E798 = 0x8017E798; // size:0x24 defined:True
+gStoreTaskDescs = 0x8017E798; // size:0x24 defined:True
 D_dryfield_night_general_store_8017E7BC = 0x8017E7BC; // size:0x30 defined:True
 D_dryfield_night_general_store_8017E7EC = 0x8017E7EC; // size:0x20 defined:True
 D_dryfield_night_general_store_8017E80C = 0x8017E80C; // size:0x10 defined:True
@@ -64,8 +64,8 @@ D_dryfield_night_general_store_8018587C = 0x8018587C; // size:0x8 defined:True
 D_dryfield_night_general_store_80185884 = 0x80185884; // size:0x8 defined:True
 D_dryfield_night_general_store_8018588C = 0x8018588C; // size:0x8 defined:True
 D_dryfield_night_general_store_80185894 = 0x80185894; // size:0x20 defined:True
-D_dryfield_night_general_store_801858B4 = 0x801858B4; // size:0x1 defined:True
-D_dryfield_night_general_store_801858B8 = 0x801858B8; // size:0x4 defined:True
+gStoreSavedView = 0x801858B4; // size:0x1 defined:True
+gStoreFade = 0x801858B8; // size:0x4 defined:True
 gRoomEventMsg = 0x801858BC; // size:0x8 defined:True
 D_8010CAF8 = 0x8010CAF8; // absolute:True
 D_80138C80 = 0x80138C80; // absolute:True
@@ -78,8 +78,8 @@ D_map_dryfield_full_8017AF18 = 0x8017AF18; // absolute:True
 D_map_dryfield_full_8017AF58 = 0x8017AF58; // absolute:True
 D_map_dryfield_full_8017AFE8 = 0x8017AFE8; // absolute:True
 gRoomEventActive = 0x801858C4; // size:0x1 defined:True
-D_dryfield_night_general_store_801858C5 = 0x801858C5; // size:0x1 defined:True
-D_dryfield_night_general_store_801858C6 = 0x801858C6; // size:0x1 defined:True
+gStoreWarp = 0x801858C5; // size:0x1 defined:True
+gStoreRoom = 0x801858C6; // size:0x1 defined:True
 D_dryfield_night_general_store_801858C7 = 0x801858C7; // size:0x1 defined:True
 gRoomEventReq = 0x801858C8; // size:0x14 defined:True
 
@@ -87,3 +87,7 @@ func_dryfield_night_general_store_8017E6C8 = 0x8017E6C8; // type:func
 glowDrawShaft = 0x8017DEE0; // type:func
 roomEventGate = 0x8017D630; // type:func
 roomEventTask = 0x8017D794; // type:func
+storeDoorMsg = 0x8017D904; // type:func
+storeCutsceneTask = 0x8017DAF0; // type:func
+storeToggleTask = 0x8017DCA8; // type:func
+storeActionMsg = 0x8017DD88; // type:func
