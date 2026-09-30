@@ -933,7 +933,7 @@ TaskDesc Actor07000_D0D7E8 = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn067B4, 
 /// `WorldCollisionBody` collision bodies where that one has four.
 ///
 /// Node 1's `context.capsule` is not a record table but the `WorldCollisionCapsule` at 0x1FC -
-/// the shape `GpActorD4` keeps, where the record's own `contacts` points at the
+/// the shape `CompanionWork` keeps, where the record's own `contacts` points at the
 /// `WorldCollisionContact` run beside it (here the single record at 0x214). Nodes 2 and 3
 /// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
 ///
@@ -3651,7 +3651,7 @@ default_body:
 ///
 /// Node 1 is the odd one: it points its context at the `WorldCollisionCapsule` at 0x1FC
 /// rather than at a record table, and the record's own `contacts` names the one
-/// `WorldCollisionContact` beside it - the pair `GpActorD4` keeps, and the three constants it
+/// `WorldCollisionContact` beside it - the pair `CompanionWork` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
 /// sibling `Actor07000_Fn000EC` computes for its `part`.

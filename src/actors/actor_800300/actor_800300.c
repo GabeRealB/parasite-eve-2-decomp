@@ -1597,23 +1597,25 @@ static void func_actor_800300_8016259C(Task* arg0);
 
 static void func_actor_800300_80161E80(Task* arg0)
 {
+    enum { COMPANION_DISTRESS_INITIAL_INTERVAL = 150 };
+
     GameActor*             actor;
     TmdObject*             extra;
     GfxCoord*              coord;
     GfxCoord*              next;
     GfxCoord**             addr;
-    GpActorD4*             d4;
+    CompanionWork*         companion;
     WorldCollisionBody*    obj;
     WorldCollisionContact* recs;
     McSaveData*            save;
     s32                    packed;
-    s8                     fcc;
+    s8                     intervalByte;
 
-    actor = arg0->work;
-    extra = arg0->extra.tmd;
-    d4    = actor->field_910;
-    addr  = &extra->coords;
-    coord = *addr;
+    actor     = arg0->work;
+    extra     = arg0->extra.tmd;
+    companion = actor->field_910;
+    addr      = &extra->coords;
+    coord     = *addr;
     arg0->state++;
     arg0->msgTable                                 = D_actor_800300_80168880;
     arg0->exitCallback                             = &func_actor_800300_801625A8;
@@ -1670,8 +1672,8 @@ static void func_actor_800300_80161E80(Task* arg0)
     obj->flags      |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actor->field_984 = 7;
     func_8010BF7C(arg0, 0x3C, 0x7F);
-    fcc             = -0x6A;
-    d4->repeatCount = fcc;
+    intervalByte                                = (s8)COMPANION_DISTRESS_INITIAL_INTERVAL;
+    companion->activity.distress.flinchInterval = intervalByte;
 }
 
 static void func_actor_800300_80162064(Task* arg0)
@@ -1890,33 +1892,41 @@ static const TaskFuncTable9 D_actor_800300_80161E40 = { {
 
 static void func_actor_800300_80162658(Task* arg0)
 {
+    enum {
+        COMPANION_DISTRESS_INTERVAL_DECREMENT  = 7,
+        COMPANION_DISTRESS_INTERVAL_THRESHOLD  = 90,
+        COMPANION_DISTRESS_RESTART_INTERVAL    = 60,
+        COMPANION_DISTRESS_SEVERE_FLINCH_COUNT = 5
+    };
+
     TaskFuncTable9 sp;
     GameActor*     actor;
-    GpActorD4*     d4;
+    CompanionWork* companion;
     GfxCoord*      obj;
-    s8             cc;
+    s8             nextInterval;
     s32            pan;
     s32            depth;
     s32            anim;
     s32            sound;
 
-    sp    = D_actor_800300_80161E40;
-    actor = arg0->work;
-    d4    = actor->field_910;
-    obj   = arg0->extra.tmd->coords;
-    if (d4->decisionTimer > 0) {
-        d4->decisionTimer = (u16)d4->decisionTimer - 1;
+    sp        = D_actor_800300_80161E40;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    obj       = arg0->extra.tmd->coords;
+    if (companion->decisionTimer > 0) {
+        companion->decisionTimer = (u16)companion->decisionTimer - 1;
     }
     if (D_8017A99C >= 0x30C) {
         if (actor->field_956 != 5) {
             actor->field_942++;
-            if ((s16)actor->field_942 >= (s8)d4->repeatCount) {
+            if ((s16)actor->field_942 >= (s8)companion->activity.distress.flinchInterval) {
                 actor->field_942 = 0;
-                d4->actionCount++;
-                cc              = (u8)d4->repeatCount - 7;
-                d4->repeatCount = cc;
-                if (cc < 0x5A) {
-                    d4->repeatCount = 0x3C;
+                companion->activity.distress.flinchCount++;
+                // Keep the signed byte intermediate used by the interval threshold.
+                nextInterval                                = (u8)companion->activity.distress.flinchInterval - COMPANION_DISTRESS_INTERVAL_DECREMENT;
+                companion->activity.distress.flinchInterval = nextInterval;
+                if (nextInterval < COMPANION_DISTRESS_INTERVAL_THRESHOLD) {
+                    companion->activity.distress.flinchInterval = COMPANION_DISTRESS_RESTART_INTERVAL;
                 }
                 actor->field_95C = 7;
                 actor->field_956 = 5;
@@ -1929,7 +1939,7 @@ static void func_actor_800300_80162658(Task* arg0)
                     return;
                 }
                 anim = 0x10;
-                if ((s8)d4->actionCount >= 5) {
+                if ((s8)companion->activity.distress.flinchCount >= COMPANION_DISTRESS_SEVERE_FLINCH_COUNT) {
                     anim = 0x11;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);

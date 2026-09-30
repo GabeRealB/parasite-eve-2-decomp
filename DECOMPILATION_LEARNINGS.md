@@ -3293,7 +3293,7 @@ but it does not share:
     switch (actor->field_960) {
         ...
         case 1:
-            d4->field_D0 = actor->field_960;   /* lbu v0, 0x960(s0) */
+            companion->routeComplete = actor->field_960;   /* lbu v0, 0x960(s0) */
 ```
 
 `expand_assignment`/`store_field` expands the RHS in the *field's* mode, so the
@@ -3317,7 +3317,7 @@ switch wants, and the byte store subregs it:
     switch (state) {
         ...
         case 1:
-            d4->field_D0 = state;
+            companion->routeComplete = state;
             func_actor_800200_801654EC(arg0, 0);
             break;
 ```
@@ -3369,7 +3369,7 @@ the one `li $v0,1` in the dispatch delay slot feeds both `beq v1,v0` and the
 `sh`. `.greg`'s disposition list is the evidence: `85 in 2` beside `129 in 2`.
 
 **The local must be referenced exactly twice** (one set, one use). With a second
-use — here `d4->field_D0 = flag;` at a label reached both from `case 0`'s `goto`
+use — here `companion->routeComplete = flag;` at a label reached both from `case 0`'s `goto`
 and straight from the dispatch — the pseudo is live across blocks instead of
 block-local, global-alloc cannot give it `$v0`, and it takes a callee-saved
 register: `li s4,1` / `sh s4,0x960(s0)` / `sb s4,0xD0(s2)`, `regs=12`, 93.2%.
@@ -7467,7 +7467,7 @@ A 0x50-byte struct copy that the target does as five aligned 16-byte
 `u8 data[0x50]` has alignment 1, so GCC emits an `or`/`andi 3` check plus
 an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
-`Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->coords`).
+`Gp_BindActorD4` is the example (`CompanionWork.probe.coord = *extra->coords`).
 
 ## A 0x20-byte MATRIX assign is two groups of four `lw`/`sw`
 
@@ -75295,7 +75295,7 @@ and the target keeps the two in different registers (`$s0` for the first,
 
 ```c
 GameActor* actor = arg0->actor;   /* -> $s0 */
-actor->field_910->repeatCount = arg1;
+actor->field_910->activity.combat.repeatsRemaining = arg1;
 if (Gp_StateF0.field_0 == 1) { actor->field_90C = Gp_FindLockNode(arg0); }
 ...
 actor = arg0->actor;              /* still the same pseudo: one quantity */
@@ -82122,7 +82122,7 @@ argument 6 / 5 in case 1 under one `s32 flag`:
             actor->field_960 = flag;
             ...
             flag = 6;                                   /* case 1 */
-            if (d4->field_CE == 1) {
+            if (companion->waypointIndex == 1) {
                 flag = 5;
             }
             func_actor_800200_80165408(arg0, flag);
@@ -98393,8 +98393,8 @@ Example: `func_actor_800300_80161E80`. Inputs: `base_5.i`
 ## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (func_actor_800300_80161E80, 2026-09-16)
 
 The last instruction of `func_actor_800300_80161E80` is `li $2,-0x6a` followed by
-`sb $2,0xcc($s6)`. `GpActorD4::repeatCount` really is `u8` - `func_actor_800100_80165C38`
-reads it with `lbu` at 0xCC - and `d4->repeatCount = -0x6A;` compiles to `li $2,150`:
+`sb $2,0xcc($s6)`. `CompanionWork::activity.distress.flinchInterval` really is `u8` - `func_actor_800100_80165C38`
+reads the same byte as `activity.combat.repeatsRemaining` with `lbu` at 0xCC - and `companion->activity.distress.flinchInterval = -0x6A;` compiles to `li $2,150`:
 
 - the conversion to an unsigned 8-bit type masks the constant at tree level, so
   `convert_modes (QImode, SImode, -106, unsignedp = 1)` yields 150;
@@ -98405,10 +98405,10 @@ An `s8`-typed *variable* does keep it, because the assignment first builds
 `(set (reg:QI) (const_int -106))` and the copy into the store stays QImode, where
 `trunc_int_for_mode` sign-extends:
 
-    s8           fcc;
+    s8 intervalByte;
     ...
-    fcc          = -0x6A;
-    d4->field_CC = fcc;
+    intervalByte = -0x6A;
+    companion->activity.distress.flinchInterval = intervalByte;
 
 The byte stored is 0x96 either way, so the program is unchanged; only the
 register's upper bits differ, and those are what the object compares. Expect this
@@ -105506,7 +105506,7 @@ HImode constant (`(set (reg:HI 86) (const_int 1))`) and no later pass folds it
 before the first followed branch and shares it.
 
 Consequence beyond one instruction: the unshared constant can be merged with a
-*second* `= 1` further down (e.g. a shared `field_D0 = 1` tail), and on the arm
+*second* `= 1` further down (e.g. a shared `routeComplete = 1` tail), and on the arm
 where `state == 1` was proven, `record_jump_equiv` ties `state ≡ const`, after
 which `fold_rtx` canonicalises that tail's store to
 `(subreg:QI (reg:SI <extended state>) 0)`. The zero-extended switch value then
@@ -105515,7 +105515,7 @@ register up a slot and adds a save/restore — `func_actor_800200_80163A54` sat
 at 86.4% (13/13 blocks, calls matching, two extra frame insns) with
 `Register 129 used 4 times across 30 insns; crosses 1 call` in `.lreg` as the
 tell. Reading the store back to a value that is *not* the compared register
-(`d4->field_D0 = actor->field_960;`) restores `predicates_match=True` and the
+(`companion->routeComplete = actor->field_960;`) restores `predicates_match=True` and the
 target's `bnez`, at the cost of one load.
 
 Symptoms to look for: a `sh`/`sb` in one arm using a fresh `li` where the
@@ -105569,7 +105569,7 @@ different types of comparison and it drops to 94.2%.
 
 ## An explicit arrival join breaks CSE's constant lifetime; an SI local then permits delay-slot redundancy removal (func_actor_800200_80163A54, 2026-09-20)
 
-The 86.370% archived seed duplicated `pathDone = 1; 654EC(index, 0)` in
+The 86.370% archived seed duplicated `routeComplete = 1; 654EC(index, 0)` in
 both switch arms. First CSE reused the case-0 HI constant and case-1 state
 respectively, carrying both across the distance call. The immediate matched
 sibling's `goto arrived` fixes this before allocation: place `arrived:` inside
@@ -105602,9 +105602,9 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 
 ## A switch's shared tail is emitted where its label sits - an earlier case `goto`s into the later case's branch (func_actor_800200_80163B90, 2026-09-16)
 
-**Symptom:** both arms end in `field_D0 = 1; func_...4EC(index, 0);`. Written once after the switch (the
+**Symptom:** both arms end in `routeComplete = 1; func_...4EC(index, 0);`. Written once after the switch (the
 join-point fix recorded above) the instructions are all correct but the block order is not: the tail is
-emitted last, after the `field_CE++` and `func_...5408` blocks, so the branches into it come out mirrored
+emitted last, after the `waypointIndex++` and `func_...5408` blocks, so the branches into it come out mirrored
 (`beq` where the target has `bne`) and the case-0 tail is threaded differently - 92.1% with
 `branch=2 reorder=7 insert=1 delete=1`, every instruction present, 79/79.
 
@@ -105624,13 +105624,13 @@ switch's end - it lies *between* case 1's body and case 1's two inner sub-blocks
     case 1:
         ...
         if (func_80103DD4(...) < 0x201) {
-            if (d4->field_CE == 4) {
+            if (companion->waypointIndex == 4) {
             arrived:
-                d4->field_D0 = 1;
+                companion->routeComplete = 1;
                 func_actor_800200_801654EC(arg0, 0);
                 return;
             }
-            d4->field_CE++;
+            companion->waypointIndex++;
             ...
         }
         ...
@@ -105734,25 +105734,25 @@ cross-jump at all.
 Consequence for reading a target: one `jal` reached from two paths does not mean
 the source called once. `func_actor_800200_80163E14` (`actor_800200`) shows a
 single `jal func_actor_800200_80165534`, entered both by its `arrived` label
-(case 0's `< 0x401` test, and case 1's `field_CE == 4`) and by the `field_CE++`
-path, with the `field_D0 = 1` store in the `j`'s delay slot. The sibling bodies
+(case 0's `< 0x401` test, and case 1's `waypointIndex == 4`) and by the `waypointIndex++`
+path, with the `routeComplete = 1` store in the `j`'s delay slot. The sibling bodies
 in the same file duplicate the call, and so does the source that matches:
 
 ```c
-    if (d4->field_CE == 4) {
+    if (companion->waypointIndex == 4) {
     arrived:
-        d4->field_D0 = 1;
+        companion->routeComplete = 1;
         func_actor_800200_80165534(arg0);
         return;
     }
-    d4->field_CE++;
+    companion->waypointIndex++;
     func_actor_800200_80165534(arg0);
     return;
 ```
 
 The call is still two `(call ...)` insns in `.rtl` through `.sched2` and becomes
 one at `.jump2`. Spelling it hoisted instead - an `if`/`else` that only sets
-`field_D0` or increments `field_CE`, then one call after it - scores the same
+`routeComplete` or increments `waypointIndex`, then one call after it - scores the same
 100.00% with all-zero penalties and produces byte-identical assembly. The two
 sources are therefore indistinguishable from the target, so a shared `jal` is no
 evidence that the original hoisted, and a matched sibling's duplicated tail
@@ -105783,20 +105783,20 @@ The landed body itself is the family shape already described here: the m2c seed
 scored 81.273% because it typed the path table as 4-byte elements (an `sll 0x5`
 where the target has `sll 0x3`) and scaled `coord + 0x18` by `sizeof(*coord)`
 into `0x780`. Declaring `GpActorPathStep D_actor_800200_8016A058[]` and writing
-`D_actor_800200_8016A058[1]` / `[d4->field_CE]` with the sibling idiom matched
+`D_actor_800200_8016A058[1]` / `[companion->waypointIndex]` with the sibling idiom matched
 100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
 across calls that the seed lacked came out of the source by itself, with no pin.
 
 ## A duplicated call whose constant *argument* differs is not cross-jumped: hoist it into a variable (func_actor_800200_80162BFC, 2026-09-16)
 
 `func_actor_800200_80162BFC` ends `case 1` with a call whose second argument is
-`5` or `6` depending on `d4->field_CE == 3`, and the ROM has **one** `jal`:
+`5` or `6` depending on `companion->waypointIndex == 3`, and the ROM has **one** `jal`:
 
 ```asm
     lb    $v1, 0xCE($s1)
     bne   $v1, $v0, .L
      addiu $a1, $zero, 6        /* fall-through value, rides the delay slot */
-    addiu $a1, $zero, 5         /* taken when field_CE == 3 */
+    addiu $a1, $zero, 5         /* taken when waypointIndex == 3 */
 .L:
     jal   func_actor_800200_80165408
      addu $a0, $s4, $zero
@@ -105816,14 +105816,14 @@ was hoisted instead, the source selected it into a variable first:
 
 ```c
             mode = 6;
-            if (d4->field_CE == 3) {
+            if (companion->waypointIndex == 3) {
                 mode = 5;
             }
             func_actor_800200_80165408(arg0, mode);
 ```
 
 100.00% with all-zero penalties, and the same idiom already lands in the matched
-sibling `func_actor_800200_801637B4` (`mode = 6; if (d4->field_CE == 1) mode = 5;`).
+sibling `func_actor_800200_801637B4` (`mode = 6; if (companion->waypointIndex == 1) mode = 5;`).
 
 ## Widening a stale `(void)` prototype does not disturb a matched caller whose argument is still in `$a0`
 
@@ -105840,7 +105840,7 @@ build's silence.
 
 `func_actor_800200_80162BFC` itself then matched on the first typed attempt after
 the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
-`[d4->field_CE]` `GpActorPathStep` idiom of its siblings; the seed had typed the
+`[companion->waypointIndex]` `GpActorPathStep` idiom of its siblings; the seed had typed the
 table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GfxCoord)`.
 
 ## A stored literal the arm also compares against needs no `SC` local (func_actor_800200_8016337C, 2026-09-16)
@@ -105851,7 +105851,7 @@ the arm that grew its own `li` for `field_960 = 1` and needed the local. The nei
 literals, because the value its arm stores is also the constant a nearby test compares against:
 
 ```c
-    if (d4->field_CE == 2) {
+    if (companion->waypointIndex == 2) {
     arrived:
         ...
     }
@@ -105862,7 +105862,7 @@ literals, because the value its arm stores is also the constant a nearby test co
 cse gives the constant `2` one register for both uses, so the arm materialises nothing of its own: the
 store is `sh $s3,0x960($s0)` - the same `$s3` the `bne $v0,$s3` tests - and its definition is the
 `addiu $s3,$zero,2` the scheduler parks in the `beqz` delay slot two branches above. The two byte-shape
-twins in the same overlay differ exactly here: `func_actor_800200_80162BFC` compares `field_CE` against
+twins in the same overlay differ exactly here: `func_actor_800200_80162BFC` compares `waypointIndex` against
 `3` and `func_actor_800200_80163180` against `1` while both store `2`, so no constant is shared and both
 materialise `2` at the store. Reach for the `s32` local only when the stored constant has no other reader
 in the arm's extended basic block.
@@ -106039,10 +106039,10 @@ Same function, second leftover: `mode = 4` was assigned *before* the `if` and on
 it and it never leaves `$a1`, as the target's `li a1,4` shows. m2c had hoisted the assignment with the
 `var_a1 = 4` it invented, and that is where the register and the delay slot both came from.
 
-Also in this function: `temp_s0->field_910 + 0xA0` where `field_910` is a `GpActorD4*` (sizeof 0xD4)
+Also in this function: `temp_s0->field_910 + 0xA0` where `field_910` is a `CompanionWork*` (sizeof 0xD4)
 compiles to `li $v1,0x8480` + `addu $a1,$a1,$v1` - m2c's pointer-typed add is *scaled*, and the
-constant is unrecognisable. Reaching the same address by field, `&actor->field_910->contact`,
-gives the target's `addiu $a1,$a1,0xA0`. Read `GpActorD4`'s field list before debugging the constant.
+constant is unrecognisable. Reaching the same address by field, `actor->field_910->probe.contacts`,
+gives the target's `addiu $a1,$a1,0xA0`. Read `CompanionWork`'s field list before debugging the constant.
 
 Inputs: `base_2.i` (96.343%, `< 0xE00` polarity), `base_3.i` (100%)
 `99fc539087a26265b047311d06b188fc4c7a72c4729ebb460579fe61de6ac2fe`.
@@ -106119,7 +106119,7 @@ displacement 0, and only the checksum notices.
 
 `func_actor_800200_80162990` reads its path table both ways and they agree on one
 symbol: case 0 is `D_actor_800200_80169FF8[3]` (`%lo(...9FF8)` + `0x18`) and case
-1 is `D_actor_800200_80169FF8[d4->field_CE]` (same base, `sll 3` folded into the
+1 is `D_actor_800200_80169FF8[companion->waypointIndex]` (same base, `sll 3` folded into the
 register, displacement 0). Splat printed that base as an auto-named
 `D_actor_800200_80169FF8`; it links as declared, needing nothing beyond the
 `extern GpActorPathStep D_actor_800200_80169FF8[];` the neighbouring tables in
@@ -106254,7 +106254,7 @@ the one that defines the source, CSE rewrites that definition to target the
 copy's destination and turns the copy into a dead store of the source, which
 then disappears. The precondition is `SET_DEST (PATTERN (prev)) ==
 SET_SRC (copy)` with `prev` found by skipping notes. Any real insn between the
-definition and the copy defeats it — an interposed `d4 = actor->field_910;` was
+definition and the copy defeats it — an interposed `companion = actor->field_910;` was
 enough.
 
 **CSE's `src_eqv` substitution**: a copy whose source register holds a plain
@@ -136465,8 +136465,8 @@ hoists it before the byte load, so the local byte in v0 becomes a hard conflict
 and the global angle/timer value takes v1 (base_11, 94.688%).
 
 The successful controlled experiment reuses that angle/timer variable for the
-byte too: `val = (u8)d4->turnDir; actor->field_975 = val; val = actor->field_52;
-state = d4->targetHeading; dist = val - state;`. In base_12.lreg the actor-angle
+byte too: `val = (u8)companion->turnDir; actor->field_975 = val; val = actor->field_52;
+state = companion->targetHeading; dist = val - state;`. In base_12.lreg the actor-angle
 load UID128 has REG_DEP_OUTPUT on byte load UID120 and REG_DEP_ANTI on byte
 store UID123. It stays after the store. Global r87 loses hard conflict 2 and
 allocates v0, while state r91 remains v1. The rest of r87's timer/LCG ranges

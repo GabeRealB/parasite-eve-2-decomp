@@ -1416,7 +1416,7 @@ static void func_actor_800100_80163214(Task* arg0)
     McSaveData*            save;
     WorldCollisionContact* recs;
     WorldCollisionBody*    obj;
-    GpActorD4*             d4;
+    CompanionWork*         companion;
     EffectWork*            eff;
     Task*                  task;
     SVECTOR3*              scratch;
@@ -1515,11 +1515,11 @@ static void func_actor_800100_80163214(Task* arg0)
         task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
-            d4  = actor->field_910;
-            idx = D_actor_800100_80167218[save->state.companionVariant];
+            companion = actor->field_910;
+            idx       = D_actor_800100_80167218[save->state.companionVariant];
             Gp_AttachActorObj(arg0, idx, D_actor_800100_80167224[save->state.companionVariant]);
-            actor->field_124 |= 0x80;
-            d4->actionCount   = D_actor_800100_80167230[save->state.companionVariant];
+            actor->field_124                           |= 0x80;
+            companion->activity.combat.attacksRemaining = D_actor_800100_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4) {
                 eff = Gp_SpawnEff(0x80060180, actor->field_91C->extra.tmd->coords, idx, 0);
                 if (eff != NULL) {
@@ -1548,7 +1548,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     TmdObject*                extra;
     GfxCoord*                 coord;
     GfxCoord*                 ground;
-    GpActorD4*                d4;
+    CompanionWork*            companion;
     Task*                     task;
     WorldCollisionBody*       objs[2];
     s32                       dy;
@@ -1563,7 +1563,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     scratch                            = (Actor800100ShadowScratch*)(head - 0x18);
     coord                              = work->coords;
     actor                              = arg0->work;
-    d4                                 = actor->field_910;
+    companion                          = actor->field_910;
 
     if (actor->field_954 != 2 &&
         (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x200)) {
@@ -1587,8 +1587,8 @@ static void func_actor_800100_801635F4(Task* arg0)
         Gfx_RotMatrixX(&actor->field_3D4.workm, -0x400, 0);
     }
 
-    d4->coord = *arg0->extra.tmd->coords;
-    gfxRotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
+    companion->probe.coord = *arg0->extra.tmd->coords;
+    gfxRotMatrixY(&companion->probe.coord.workm, companion->scanAngle, 0);
 
     objs[0] = (WorldCollisionBody*)actor->field_AC;
     objs[1] = (WorldCollisionBody*)actor->field_EC;
@@ -1610,7 +1610,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     func_actor_800100_80163A58(arg0);
 
     Gp_ClearRec18Occupied(actor->field_17C);
-    Gp_ClearRec18Occupied(&actor->field_910->contact);
+    Gp_ClearRec18Occupied(actor->field_910->probe.contacts);
     if (actor->field_91C != NULL) {
         Gp_ClearRec18Occupied(actor->field_32C);
     }
@@ -1729,12 +1729,12 @@ static void func_actor_800100_80163BF8(Task* arg0)
 
 static void func_actor_800100_80163C04(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    Task*      task;
+    GameActor*     actor;
+    CompanionWork* companion;
+    Task*          task;
 
     actor                                          = arg0->work;
-    d4                                             = actor->field_910;
+    companion                                      = actor->field_910;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     task                                           = actor->field_914;
     if (task != NULL) {
@@ -1760,7 +1760,7 @@ static void func_actor_800100_80163C04(Task* arg0)
     Gp_UnlinkObj((WorldCollisionBody*)actor->field_CC);
     Gp_UnlinkObj((WorldCollisionBody*)actor->field_EC);
     Gp_UnlinkObj((WorldCollisionBody*)actor->field_10C);
-    Gp_UnlinkObj(&d4->obj);
+    Gp_UnlinkObj(&companion->probe.body);
     taskKill(arg0);
 }
 
@@ -1864,18 +1864,18 @@ static void func_actor_800100_80163F04(Task* arg0)
     SVECTOR         sp40;
     SVECTOR         sp48;
     GameActor*      actor;
-    GpActorD4*      d4;
+    CompanionWork*  companion;
     GfxCoord*       coord;
     s16             temp;
     s16             rem;
     s32             pan;
 
-    sp    = D_actor_800100_80161E58;
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    d4    = actor->field_910;
-    if (d4->decisionTimer > 0) {
-        d4->decisionTimer--;
+    sp        = D_actor_800100_80161E58;
+    actor     = arg0->work;
+    coord     = arg0->extra.tmd->coords;
+    companion = actor->field_910;
+    if (companion->decisionTimer > 0) {
+        companion->decisionTimer--;
     }
     sp.funcs[actor->field_956](arg0);
     if ((u32)(func_80105ED4(arg0) + 0xEFFFFF77) < 4) {
@@ -1917,7 +1917,7 @@ static void func_actor_800100_80163F04(Task* arg0)
 /// Lock-on entry and step of the actor's `field_95E` state machine. An aim
 /// within `0x301` of the lock node re-arms the actor: `field_956` takes the
 /// 10-frame delay, `field_95A`/`field_97E` latch the turn and decay, `field_960`
-/// keeps the old `field_956`, and the `field_910` record's `scanDist` /
+/// keeps the old `field_956`, and the `field_910` record's `scanClearance` /
 /// `scanAngle` are re-armed for the next sweep before the slot-1 child
 /// animation. Otherwise state 0 zeroes `field_934` and picks state 2 (with
 /// `field_958` 3) or state 1 (with `field_958` 1) from `func_8010BC70`'s
@@ -1929,35 +1929,35 @@ static void func_actor_800100_80163F04(Task* arg0)
 /// `func_8010BD88` and `func_8010BE5C`.
 static void func_actor_800100_80164184(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    s32        flag;
-    s32        dist;
-    s32        r;
-    s32        arg;
-    u16        timer;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    GfxCoord*      target;
+    s32            flag;
+    s32            dist;
+    s32            r;
+    s32            arg;
+    u16            timer;
 
     coord  = arg0->extra.tmd->coords;
     target = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor  = arg0->work;
     flag   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
-    dist   = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
+    dist   = _actor800100GetContactDistance(coord, actor->field_910->probe.contacts, NULL);
     if (dist != 0 && dist < 0x301 && flag == 0) {
         GameActor* actor2 = arg0->work;
 
-        timer             = actor2->field_956;
-        actor2->field_956 = 0xA;
-        actor2->field_95A = 1;
-        actor2->field_97E = 1;
-        d4                = actor2->field_910;
-        actor2->field_954 = 0;
-        actor2->field_95C = 0;
-        actor2->field_95E = 0;
-        actor2->field_960 = timer;
-        d4->scanDist      = -1;
-        d4->scanAngle     = 0;
+        timer                    = actor2->field_956;
+        actor2->field_956        = 0xA;
+        actor2->field_95A        = 1;
+        actor2->field_97E        = 1;
+        companion                = actor2->field_910;
+        actor2->field_954        = 0;
+        actor2->field_95C        = 0;
+        actor2->field_95E        = 0;
+        actor2->field_960        = timer;
+        companion->scanClearance = COMPANION_SCAN_UNTESTED;
+        companion->scanAngle     = 0;
         Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
         return;
     }
@@ -2153,7 +2153,7 @@ static void func_actor_800100_80164710(Task* arg0)
     GameActor*              actor;
     GameActor*              actor2;
     GameActor*              actor3;
-    GpActorD4*              d4;
+    CompanionWork*          companion;
     WorldTargetNode*        node;
     WorldTargetNode*        lock;
     GfxCoord*               coord;
@@ -2167,7 +2167,7 @@ static void func_actor_800100_80164710(Task* arg0)
     actor                      = arg0->work;
     scratch                    = head - 1;
     SCRATCH_STACK_CURSOR(void) = scratch;
-    d4                         = actor->field_910;
+    companion                  = actor->field_910;
     Gp_TrackAllyLockTarget(arg0, 3);
     state = actor->field_95E;
     if (state != 0) {
@@ -2195,7 +2195,7 @@ static void func_actor_800100_80164710(Task* arg0)
             if (dist < 0x181) {
                 actor->field_95E += 1;
             block_10:
-                if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+                if (((s8)companion->activity.combat.repeatsRemaining <= 0) || (node = actor->field_90C, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                     // Stored through a plain pointer: the member-access spelling schedules differently.
                     *&actor->field_90C = NULL;
                     actor->field_97E   = 1;
@@ -2228,25 +2228,25 @@ static void func_actor_800100_80164710(Task* arg0)
 /// mirrors `field_93E` into `field_975` and, once the aim distance reaches
 /// `field_934`, advances the state and plays slot 4. Case 2 counts
 /// `field_934` down and, while it runs, asks `_actor800100GetContactDistance` for
-/// the planar distance to what the ally block's `field_910->contact` recorded: under
+/// the planar distance to what the ally block's `field_910->probe.contacts` recorded: under
 /// 0x281 the actor hands over to the `0xA` / slot-1 chain (`field_97E` set,
 /// `field_956` kept in `field_960`), otherwise `field_975` is cleared; a spent
 /// counter resets the state to slot 9.
 static void func_actor_800100_80164940(Task* arg0)
 {
-    void**     scratch;
-    VECTOR*    head;
-    VECTOR3*   pos;
-    GameActor* actor;
-    GfxCoord*  coord;
-    GpActorD4* d4;
-    u16        old;
-    s16        distance;
-    s32        flag;
-    s32        arg;
-    s32        val;
-    s32        count;
-    s32        dist;
+    void**         scratch;
+    VECTOR*        head;
+    VECTOR3*       pos;
+    GameActor*     actor;
+    GfxCoord*      coord;
+    CompanionWork* companion;
+    u16            old;
+    s16            distance;
+    s32            flag;
+    s32            arg;
+    s32            val;
+    s32            count;
+    s32            dist;
 
     scratch                          = SCRATCH_HEAD_ADDR;
     head                             = SCRATCH_HEAD_AT(scratch, VECTOR);
@@ -2299,22 +2299,22 @@ static void func_actor_800100_80164940(Task* arg0)
                 actor2->field_975 = 0;
                 Gp_AnimPlayChildSlotsEx(arg0, 9, 0, 6);
             } else {
-                distance = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
+                distance = _actor800100GetContactDistance(coord, actor->field_910->probe.contacts, NULL);
                 if (distance != 0) {
                     if (distance < 0x281) {
-                        s16        anim   = 1;
-                        GameActor* actor3 = arg0->work;
-                        old               = actor3->field_956;
-                        actor3->field_956 = 0xA;
-                        actor3->field_97E = anim;
-                        d4                = actor3->field_910;
-                        actor3->field_954 = 0;
-                        actor3->field_95A = flag;
-                        actor3->field_95C = 0;
-                        actor3->field_95E = 0;
-                        actor3->field_960 = old;
-                        d4->scanDist      = -1;
-                        d4->scanAngle     = 0;
+                        s16        anim          = 1;
+                        GameActor* actor3        = arg0->work;
+                        old                      = actor3->field_956;
+                        actor3->field_956        = 0xA;
+                        actor3->field_97E        = anim;
+                        companion                = actor3->field_910;
+                        actor3->field_954        = 0;
+                        actor3->field_95A        = flag;
+                        actor3->field_95C        = 0;
+                        actor3->field_95E        = 0;
+                        actor3->field_960        = old;
+                        companion->scanClearance = COMPANION_SCAN_UNTESTED;
+                        companion->scanAngle     = 0;
                         Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
                     }
                 } else {
@@ -2327,7 +2327,7 @@ static void func_actor_800100_80164940(Task* arg0)
 }
 
 /// Aim/lock drive for the actor's `field_95E` phase machine. While the planar distance
-/// to what the ally block's `field_910->contact` recorded is nonzero and under
+/// to what the ally block's `field_910->probe.contacts` recorded is nonzero and under
 /// `0x301`, `field_93E` counts up and the LCG decides the next aim window:
 /// once the step passes `((Gp_LcgState >> 16) & 0x3F) + 0x28` the actor
 /// latches into the `0xA` / child-slot-1 chain, keeping the old `field_956` in
@@ -2343,7 +2343,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
     GameActor*              actor;
     GameActor*              actor2;
     GameActor*              actor3;
-    GpActorD4*              d4;
+    CompanionWork*          companion;
     GfxCoord*               coord;
     GfxCoord*               target;
     Actor800100LockScratch* block;
@@ -2360,26 +2360,26 @@ static void func_actor_800100_80164B9C(Task* arg0)
     coord    = arg0->extra.tmd->coords;
     target   = (gameGetPtrSlot(3))->extra.tmd->coords;
     actor    = arg0->work;
-    distance = _actor800100GetContactDistance(coord, &actor->field_910->contact, NULL);
+    distance = _actor800100GetContactDistance(coord, actor->field_910->probe.contacts, NULL);
     if (distance != 0 && distance < 0x301) {
         step             = actor->field_93E + 1;
         actor->field_93E = step;
         random           = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState      = random;
         if ((s16)step >= (s32)(((random >> 16) & 0x3F) + 0x28)) {
-            anim              = 1;
-            actor2            = arg0->work;
-            old               = actor2->field_956;
-            actor2->field_956 = 0xA;
-            actor2->field_95A = anim;
-            actor2->field_97E = anim;
-            d4                = actor2->field_910;
-            actor2->field_954 = 0;
-            actor2->field_95C = 0;
-            actor2->field_95E = 0;
-            actor2->field_960 = old;
-            d4->scanDist      = -1;
-            d4->scanAngle     = 0;
+            anim                     = 1;
+            actor2                   = arg0->work;
+            old                      = actor2->field_956;
+            actor2->field_956        = 0xA;
+            actor2->field_95A        = anim;
+            actor2->field_97E        = anim;
+            companion                = actor2->field_910;
+            actor2->field_954        = 0;
+            actor2->field_95C        = 0;
+            actor2->field_95E        = 0;
+            actor2->field_960        = old;
+            companion->scanClearance = COMPANION_SCAN_UNTESTED;
+            companion->scanAngle     = 0;
             Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
             return;
         }
@@ -2440,16 +2440,16 @@ static void func_actor_800100_80164E60(Task* arg0)
 {
     GameActor*             actor;
     GameActor*             target;
-    GpActorD4*             d4;
+    CompanionWork*         companion;
     const AnimationRecord* rec;
     GfxCoord*              coord;
     s16                    sel;
 
-    actor = arg0->work;
-    d4    = actor->field_910;
-    rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
-    coord = actor->field_91C->extra.tmd->coords;
-    sel   = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    actor     = arg0->work;
+    companion = actor->field_910;
+    rec       = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
+    coord     = actor->field_91C->extra.tmd->coords;
+    sel       = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
 
     switch (sel) {
         case 3:
@@ -2488,7 +2488,7 @@ static void func_actor_800100_80164E60(Task* arg0)
             break;
     }
 
-    d4->actionCount = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    companion->activity.combat.attacksRemaining = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
     if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
         target            = arg0->work;
         target->field_954 = 0;
@@ -2503,57 +2503,58 @@ static void func_actor_800100_80164E60(Task* arg0)
 
 static void func_actor_800100_80165010(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    s32        dist;
-    u32        rng;
-    s32        arg;
-    s32        slot;
-    s32        diff;
-    s32        flag;
-    s32        turn;
-    s32        state;
-    s32        heading;
-    u16        angle;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    GfxCoord*      target;
+    s32            dist;
+    u32            rng;
+    s32            arg;
+    s32            slot;
+    s32            diff;
+    s32            flag;
+    s32            turn;
+    s32            state;
+    s32            heading;
+    u16            angle;
 
-    coord  = arg0->extra.tmd->coords;
-    target = (gameGetPtrSlot(3))->extra.tmd->coords;
-    actor  = arg0->work;
-    d4     = actor->field_910;
-    dist   = _actor800100GetContactDistance(coord, &d4->contact, NULL);
-    state  = actor->field_95E;
-    flag   = 1;
+    coord     = arg0->extra.tmd->coords;
+    target    = (gameGetPtrSlot(3))->extra.tmd->coords;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    dist      = _actor800100GetContactDistance(coord, companion->probe.contacts, NULL);
+    state     = actor->field_95E;
+    flag      = 1;
 
     switch (state) {
         case 0:
-            if (d4->scanAngle < 0x1000) {
-                if (d4->scanDist != 0 && (d4->scanDist < dist || dist == 0)) {
-                    d4->scanDist      = dist;
-                    d4->targetHeading = d4->scanAngle;
+            if (companion->scanAngle < ACTOR_TRANSFORM_ANGLE_TURN) {
+                // Prefer the farthest contact, with a clear direction ending the search.
+                if (companion->scanClearance != COMPANION_SCAN_CLEAR && (companion->scanClearance < dist || dist == COMPANION_SCAN_CLEAR)) {
+                    companion->scanClearance = dist;
+                    companion->targetHeading = companion->scanAngle;
                 }
-                d4->scanAngle += 0x80;
+                companion->scanAngle += COMPANION_SCAN_ANGLE_STEP;
             } else {
-                actor->field_95E  = flag;
-                angle             = (d4->targetHeading + actor->field_52) & 0xFFF;
-                d4->targetHeading = angle;
-                turn              = func_80103E7C(actor->field_52, angle);
-                arg               = 5;
+                actor->field_95E         = flag;
+                angle                    = (companion->targetHeading + actor->field_52) & ACTOR_TRANSFORM_ANGLE_MASK;
+                companion->targetHeading = angle;
+                turn                     = func_80103E7C(actor->field_52, angle);
+                arg                      = 5;
                 if (turn > 0) {
-                    arg         = 6;
-                    d4->turnDir = flag;
+                    arg                = 6;
+                    companion->turnDir = flag;
                 } else {
-                    d4->turnDir = -1;
+                    companion->turnDir = -1;
                 }
                 Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
             }
             break;
         case 1:
-            actor->field_975 = (u8)d4->turnDir;
+            actor->field_975 = (u8)companion->turnDir;
             do {
                 heading = actor->field_52;
-                state   = d4->targetHeading;
+                state   = companion->targetHeading;
                 diff    = heading - state;
                 if (diff < 0) {
                     diff = -diff;
@@ -2561,7 +2562,7 @@ static void func_actor_800100_80165010(Task* arg0)
             } while (0);
             if (diff < 0x40) {
                 actor->field_95E++;
-                actor->field_52  = d4->targetHeading;
+                actor->field_52  = companion->targetHeading;
                 actor->field_975 = 0;
                 if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                     slot             = 4;
@@ -2597,52 +2598,52 @@ static void func_actor_800100_80165010(Task* arg0)
 
 static void func_actor_800100_801652B0(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    GameActor* target;
-    GpActorD4* targetD4;
-    s32        flag;
-    s32        arg;
-    s32        val;
-    s32        dist;
-    s32        targetDist;
-    s32        turn;
-    s32        state;
-    s16        ang;
-    s16        anim;
-    u16        old;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GameActor*     target;
+    CompanionWork* targetCompanion;
+    s32            flag;
+    s32            arg;
+    s32            val;
+    s32            dist;
+    s32            targetDist;
+    s32            turn;
+    s32            state;
+    s16            ang;
+    s16            anim;
+    u16            old;
 
     actor      = arg0->work;
-    d4         = actor->field_910;
-    targetDist = _actor800100GetContactDistance(arg0->extra.tmd->coords, &d4->contact, NULL);
+    companion  = actor->field_910;
+    targetDist = _actor800100GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, NULL);
     state      = actor->field_95E;
     flag       = 1;
     switch (state) {
         case 0:
-            actor->field_95E  = flag;
-            ang               = (actor->field_52 + (rand() & 0xFFF)) & 0xFFF;
-            d4->targetHeading = ang;
-            turn              = func_80103E7C(actor->field_52, ang);
-            arg               = 5;
+            actor->field_95E         = flag;
+            ang                      = (actor->field_52 + (rand() & ACTOR_TRANSFORM_ANGLE_MASK)) & ACTOR_TRANSFORM_ANGLE_MASK;
+            companion->targetHeading = ang;
+            turn                     = func_80103E7C(actor->field_52, ang);
+            arg                      = 5;
             if (turn << 16 > 0) {
-                arg         = 6;
-                d4->turnDir = flag;
+                arg                = 6;
+                companion->turnDir = flag;
             } else {
-                d4->turnDir = -1;
+                companion->turnDir = -1;
             }
             Gp_AnimPlayChildSlotsEx(arg0, arg, 0, 3);
         case 1:
-            val              = (u8)d4->turnDir;
+            val              = (u8)companion->turnDir;
             actor->field_975 = val;
             val              = actor->field_52;
-            state            = d4->targetHeading;
+            state            = companion->targetHeading;
             dist             = val - state;
             if (dist < 0) {
                 dist = -dist;
             }
             if (dist < 0x40) {
                 actor->field_95E += 1;
-                actor->field_52   = (u16)d4->targetHeading;
+                actor->field_52   = (u16)companion->targetHeading;
                 actor->field_975  = 0;
                 actor->field_958  = 1;
                 val               = Gp_LcgState * 5 + 0x71357911;
@@ -2660,19 +2661,19 @@ static void func_actor_800100_801652B0(Task* arg0)
                 break;
             }
             if (targetDist < 0x401 && targetDist != 0) {
-                anim                = 1;
-                target              = arg0->work;
-                old                 = target->field_956;
-                target->field_956   = 0xA;
-                target->field_97E   = anim;
-                targetD4            = target->field_910;
-                target->field_954   = 0;
-                target->field_95A   = flag;
-                target->field_95C   = 0;
-                target->field_95E   = 0;
-                target->field_960   = old;
-                targetD4->scanDist  = -1;
-                targetD4->scanAngle = 0;
+                anim                           = 1;
+                target                         = arg0->work;
+                old                            = target->field_956;
+                target->field_956              = 0xA;
+                target->field_97E              = anim;
+                targetCompanion                = target->field_910;
+                target->field_954              = 0;
+                target->field_95A              = flag;
+                target->field_95C              = 0;
+                target->field_95E              = 0;
+                target->field_960              = old;
+                targetCompanion->scanClearance = COMPANION_SCAN_UNTESTED;
+                targetCompanion->scanAngle     = 0;
                 Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 6);
                 break;
             }
@@ -2719,14 +2720,14 @@ static void func_actor_800100_801655C0(Task* arg0)
 {
     GameActor* actor;
 
-    actor                         = arg0->work;
-    actor->field_956              = 3;
-    actor->field_954              = 0;
-    actor->field_95C              = 0;
-    actor->field_95E              = 0;
-    actor->field_910->repeatCount = 0;
-    actor->field_97E              = 2;
-    actor->field_90C              = Gp_FindLockNode(arg0);
+    actor                                              = arg0->work;
+    actor->field_956                                   = 3;
+    actor->field_954                                   = 0;
+    actor->field_95C                                   = 0;
+    actor->field_95E                                   = 0;
+    actor->field_910->activity.combat.repeatsRemaining = 0;
+    actor->field_97E                                   = 2;
+    actor->field_90C                                   = Gp_FindLockNode(arg0);
     Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
 }
 
@@ -2748,22 +2749,22 @@ static void func_actor_800100_80165630(Task* arg0)
 
 static void func_actor_800100_80165664(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    u16        temp;
+    GameActor*     actor;
+    CompanionWork* companion;
+    u16            temp;
 
-    actor            = arg0->work;
-    temp             = actor->field_956;
-    actor->field_956 = 0xA;
-    actor->field_95A = 1;
-    actor->field_97E = 1;
-    d4               = actor->field_910;
-    actor->field_954 = 0;
-    actor->field_95C = 0;
-    actor->field_95E = 0;
-    actor->field_960 = temp;
-    d4->scanDist     = -1;
-    d4->scanAngle    = 0;
+    actor                    = arg0->work;
+    temp                     = actor->field_956;
+    actor->field_956         = 0xA;
+    actor->field_95A         = 1;
+    actor->field_97E         = 1;
+    companion                = actor->field_910;
+    actor->field_954         = 0;
+    actor->field_95C         = 0;
+    actor->field_95E         = 0;
+    actor->field_960         = temp;
+    companion->scanClearance = COMPANION_SCAN_UNTESTED;
+    companion->scanAngle     = 0;
     Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
 }
 
@@ -2813,14 +2814,14 @@ static void func_actor_800100_80165748(Task* arg0)
     GameActor* actor;
 
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-        actor                         = arg0->work;
-        actor->field_956              = 3;
-        actor->field_954              = 0;
-        actor->field_95C              = 0;
-        actor->field_95E              = 0;
-        actor->field_910->repeatCount = 0;
-        actor->field_97E              = 2;
-        actor->field_90C              = Gp_FindLockNode(arg0);
+        actor                                              = arg0->work;
+        actor->field_956                                   = 3;
+        actor->field_954                                   = 0;
+        actor->field_95C                                   = 0;
+        actor->field_95E                                   = 0;
+        actor->field_910->activity.combat.repeatsRemaining = 0;
+        actor->field_97E                                   = 2;
+        actor->field_90C                                   = Gp_FindLockNode(arg0);
         Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 6);
         return;
     }
@@ -2917,7 +2918,7 @@ static void func_actor_800100_80165930(Task* arg0)
 static void func_actor_800100_801659EC(Task* arg0)
 {
     GameActor*       actor;
-    GpActorD4*       d4;
+    CompanionWork*   companion;
     WorldTargetNode* node;
     GfxCoord*        coord;
     VECTOR3*         lock;
@@ -2934,7 +2935,7 @@ static void func_actor_800100_801659EC(Task* arg0)
     lock                          = (VECTOR3*)(head - 1);
     SCRATCH_STACK_CURSOR(VECTOR3) = lock;
     actor                         = arg0->work;
-    d4                            = actor->field_910;
+    companion                     = actor->field_910;
     coord                         = arg0->extra.tmd->coords;
     node                          = Gp_FindLockNode(arg0);
     actor->field_90C              = node;
@@ -2980,12 +2981,12 @@ static void func_actor_800100_801659EC(Task* arg0)
         case 0:
             break;
         case 1:
-            if ((s8)d4->actionCount <= 0) {
+            if ((s8)companion->activity.combat.attacksRemaining <= 0) {
                 func_actor_800100_80166E94(arg0, 0);
             } else {
-                actor->field_97E = 2;
-                actor->field_940 = (rand() & 0x1F) + 0xF;
-                d4->repeatCount  = D_actor_800100_80167310[rand() & 7];
+                actor->field_97E                            = 2;
+                actor->field_940                            = (rand() & 0x1F) + 0xF;
+                companion->activity.combat.repeatsRemaining = D_actor_800100_80167310[rand() & 7];
                 func_actor_800100_80166DD0(arg0);
             }
             break;
@@ -3005,27 +3006,27 @@ static void func_actor_800100_801659EC(Task* arg0)
 
 static void func_actor_800100_80165C38(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    GfxCoord*  coord;
-    GfxCoord*  place;
-    u16        state;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    GfxCoord*      place;
+    u16            state;
 
     place = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
 
-    actor = arg0->work;
-    d4    = actor->field_910;
-    state = actor->field_960;
-    coord = actor->field_91C->extra.tmd->coords;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    state     = actor->field_960;
+    coord     = actor->field_91C->extra.tmd->coords;
 
     switch (state) {
         case 0:
-            actor->field_954 = 0;
-            actor->field_958 = 0;
-            actor->field_95A = 0;
-            actor->field_95C = 0;
-            actor->field_960 = 1;
-            d4->actionCount -= 1;
+            actor->field_954                             = 0;
+            actor->field_958                             = 0;
+            actor->field_95A                             = 0;
+            actor->field_95C                             = 0;
+            actor->field_960                             = 1;
+            companion->activity.combat.attacksRemaining -= 1;
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             func_80106238(arg0, 0, 0);
             actor->field_12A |= 0xC800;
@@ -3043,8 +3044,8 @@ static void func_actor_800100_80165C38(Task* arg0)
 
         case 2:
             if (func_80105894(arg0, 8, 0, 0) == 0) {
-                actor->field_940 = 0xA;
-                d4->repeatCount -= 1;
+                actor->field_940                             = 0xA;
+                companion->activity.combat.repeatsRemaining -= 1;
                 func_actor_800100_80166DD0(arg0);
             }
             break;
@@ -3054,15 +3055,15 @@ static void func_actor_800100_80165C38(Task* arg0)
 
 static void func_actor_800100_80165DE8(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    u16        state;
-    GfxCoord*  coord;
+    GameActor*     actor;
+    CompanionWork* companion;
+    u16            state;
+    GfxCoord*      coord;
 
-    actor = arg0->work;
-    d4    = actor->field_910;
-    state = actor->field_960;
-    coord = actor->field_91C->extra.tmd->coords;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    state     = actor->field_960;
+    coord     = actor->field_91C->extra.tmd->coords;
 
     switch (state) {
         case 0:
@@ -3072,8 +3073,8 @@ static void func_actor_800100_80165DE8(Task* arg0)
             actor->field_95C = 0;
             /* fallthrough */
         case 1:
-            actor->field_960 = 2;
-            d4->actionCount -= 1;
+            actor->field_960                             = 2;
+            companion->activity.combat.attacksRemaining -= 1;
             Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 3);
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
@@ -3085,8 +3086,8 @@ static void func_actor_800100_80165DE8(Task* arg0)
             return;
         case 2:
             if (func_80105894(arg0, 8, 0, 0) == 0) {
-                actor->field_940 = 0x12;
-                d4->repeatCount -= 1;
+                actor->field_940                             = 0x12;
+                companion->activity.combat.repeatsRemaining -= 1;
                 func_actor_800100_80166DD0(arg0);
             }
             break;
@@ -3104,32 +3105,32 @@ static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
 
 static void func_actor_800100_80165F50(Task* arg0)
 {
-    GameActor* actor;
-    GpActorD4* d4;
-    GfxCoord*  coord;
-    GfxCoord*  place;
-    u16        state;
-    void**     scratch;
-    GfxCoord*  head;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    GfxCoord*      place;
+    u16            state;
+    void**         scratch;
+    GfxCoord*      head;
 
     scratch                            = SCRATCH_HEAD_ADDR;
     head                               = SCRATCH_HEAD_AT(scratch, GfxCoord);
     SCRATCH_HEAD_AT(scratch, GfxCoord) = head - 1;
     place                              = head - 1;
 
-    actor = arg0->work;
-    d4    = actor->field_910;
-    state = actor->field_960;
-    coord = actor->field_91C->extra.tmd->coords;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    state     = actor->field_960;
+    coord     = actor->field_91C->extra.tmd->coords;
 
     switch (state) {
         case 0:
-            actor->field_954  = 0;
-            actor->field_958  = 0;
-            actor->field_95A  = 2;
-            actor->field_95C  = 0;
-            d4->repeatCount   = (rand() & 7) + 3;
-            actor->field_12A |= 0x800;
+            actor->field_954                            = 0;
+            actor->field_958                            = 0;
+            actor->field_95A                            = 2;
+            actor->field_95C                            = 0;
+            companion->activity.combat.repeatsRemaining = (rand() & 7) + 3;
+            actor->field_12A                           |= 0x800;
             /* fallthrough */
 
         case 1:
@@ -3143,9 +3144,9 @@ static void func_actor_800100_80165F50(Task* arg0)
         case 2:
             actor->field_934 -= 1;
             if (actor->field_934 == 0) {
-                actor->field_960 += 1;
-                d4->actionCount  -= 1;
-                actor->field_12A |= 0xC000;
+                actor->field_960                            += 1;
+                companion->activity.combat.attacksRemaining -= 1;
+                actor->field_12A                            |= 0xC000;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
                 Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
@@ -3161,9 +3162,9 @@ static void func_actor_800100_80165F50(Task* arg0)
             /* fallthrough */
 
         case 4:
-            d4->repeatCount -= 1;
-            if ((s8)d4->repeatCount > 0) {
-                if ((s8)d4->actionCount > 0) {
+            companion->activity.combat.repeatsRemaining -= 1;
+            if ((s8)companion->activity.combat.repeatsRemaining > 0) {
+                if ((s8)companion->activity.combat.attacksRemaining > 0) {
                     goto block_4;
                 }
             }
@@ -3177,23 +3178,23 @@ static void func_actor_800100_80165F50(Task* arg0)
 
 static void func_actor_800100_80166190(Task* arg0)
 {
-    void**     scratch;
-    GfxCoord*  head;
-    GameActor* actor;
-    GpActorD4* d4;
-    GfxCoord*  coord;
-    GfxCoord*  place;
-    u16        state;
+    void**         scratch;
+    GfxCoord*      head;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    GfxCoord*      place;
+    u16            state;
 
     scratch                            = SCRATCH_HEAD_ADDR;
     head                               = SCRATCH_HEAD_AT(scratch, GfxCoord);
     SCRATCH_HEAD_AT(scratch, GfxCoord) = head - 1;
     place                              = head - 1;
 
-    actor = arg0->work;
-    d4    = actor->field_910;
-    state = actor->field_960;
-    coord = actor->field_91C->extra.tmd->coords;
+    actor     = arg0->work;
+    companion = actor->field_910;
+    state     = actor->field_960;
+    coord     = actor->field_91C->extra.tmd->coords;
 
     switch (state) {
         case 0:
@@ -3237,11 +3238,11 @@ static void func_actor_800100_80166190(Task* arg0)
         case 3:
             if (actor->field_93E != 0) {
                 if (actor->field_934 == 0) {
-                    actor->field_93E  = (u16)actor->field_93E - 1;
-                    actor->field_934  = 3;
-                    actor->field_12A |= 0xC000;
-                    d4->actionCount  -= 1;
-                    if ((s8)d4->actionCount == 0) {
+                    actor->field_93E                             = (u16)actor->field_93E - 1;
+                    actor->field_934                             = 3;
+                    actor->field_12A                            |= 0xC000;
+                    companion->activity.combat.attacksRemaining -= 1;
+                    if ((s8)companion->activity.combat.attacksRemaining == 0) {
                         actor->field_93E = 0;
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
@@ -3285,8 +3286,8 @@ static void func_actor_800100_80166190(Task* arg0)
 
         case 6:
             if (func_80105894(arg0, 8, 0, 0) == 0) {
-                actor->field_940 = 0xF;
-                d4->repeatCount  = (actor->field_97F == 1) ? d4->repeatCount - 1 : 0;
+                actor->field_940                            = 0xF;
+                companion->activity.combat.repeatsRemaining = (actor->field_97F == 1) ? companion->activity.combat.repeatsRemaining - 1 : 0;
                 func_actor_800100_80166DD0(arg0);
             }
             break;

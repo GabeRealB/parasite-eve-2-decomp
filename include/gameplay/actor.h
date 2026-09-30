@@ -76,43 +76,56 @@ typedef struct WorldCollisionBody {
 } WorldCollisionBody;
 STATIC_ASSERT_SIZEOF(WorldCollisionBody, 0x20);
 
-/// The companion block `Gp_SpawnAlly` allocates (`Mem_Set` size 0xD4) and
-/// `GameActor.field_910` holds: the collision body a companion carries with it,
-/// and the counters its own AI drives. Nothing outside the companion overlays
-/// reads the block itself, only whether the pointer is set, which is how the
-/// rest of gameplay tells a companion from any other actor.
+/// Probe sweep step in angle units and clearance-distance sentinels.
+enum {
+    COMPANION_SCAN_UNTESTED   = -1,
+    COMPANION_SCAN_CLEAR      = 0,
+    COMPANION_SCAN_ANGLE_STEP = 0x80
+};
+
+/// Companion behavior state and its forward collision probe.
 ///
-/// `coord` / `obj` / `shape` / `contact` are that body. `Gp_BindActorD4` fills
-/// them in: the actor's model coordinate copied into `coord`, a kind-3 `obj`
-/// hung off it, and the one-entry `contact` table `shape` records its
-/// collisions in. Only the companion that walks a scripted route binds one, so
-/// the others carry the body around unused and their `contact` table stays
-/// empty - which is why the helpers that read it take a zero to mean nothing is
-/// touching the companion.
+/// `GameActor.field_910` owns this separately allocated, zeroed primary-heap
+/// block; a NULL pointer identifies an ordinary actor. The armed and scripted
+/// companions bind the probe; the noncombatant leaves it unbound. Its embedded
+/// transform, capsule and single-result table must stay alive while the body
+/// is linked. A zero contact key means the probe has no recorded obstruction.
 ///
-/// The rest is the AI's: `decisionTimer` paces when the companion picks its
-/// next action, `scanAngle` / `targetHeading` / `scanDist` steer the turn it
-/// makes then, `repeatCount` / `actionCount` bound the burst of work it is in
-/// the middle of, and the last three walk it along its route.
-typedef struct GpActorD4 {
-    /* 0x00 */ byte                  pad_0[0x18];
-    /* 0x18 */ GfxCoord              coord;         // the body's transform, a copy of the actor's model coordinate
-    /* 0x68 */ WorldCollisionBody    obj;           // the body: a kind-3 node whose `context.capsule` is `shape`
-    /* 0x88 */ WorldCollisionCapsule shape;         // the capsule the body's collisions are tested with
-    /* 0xA0 */ WorldCollisionContact contact;       // the one-entry table `shape` records its contacts in
-    /* 0xB8 */ byte                  pad_B8[0xC];
-    /* 0xC4 */ s16                   decisionTimer; // frames left before the companion picks its next action
-    /* 0xC6 */ s16                   scanAngle;     // sweep angle: 0x80 a tick, and past 0x1000 the sweep is over
-    /* 0xC8 */ s16                   targetHeading; // heading being turned to, in the 0..0xFFF angle unit
-    /* 0xCA */ s16                   scanDist;      // the contact distance the sweep compares its candidates by
-    /* 0xCC */ u8                    repeatCount;   // swings left in the attack burst, or the flinch interval of the companion that does not fight
-    /* 0xCD */ u8                    actionCount;   // attacks left before the fighting companions stop, or flinches taken by the other one
-    /* 0xCE */ s8                    pathStep;      // waypoint the companion is walking to
-    /* 0xCF */ s8                    turnDir;       // +1 or -1: the way it turns to `targetHeading`
-    /* 0xD0 */ s8                    pathDone;      // 1 once the last waypoint is reached
-    /* 0xD1 */ byte                  pad_D1[3];
-} GpActorD4;
-STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
+/// Angles use 4096 units per turn. The sweep chooses the greatest planar contact
+/// distance, preferring a direction with no contact. `activity.combat` holds
+/// action repetitions and a weapon's remaining attack allowance;
+/// `activity.distress` holds the noncombatant's flinch interval and count.
+/// Keep the byte storage and explicit signed comparisons: the initial interval
+/// is 0x96, and interpreting it as s8 is part of the behavior.
+typedef struct CompanionWork {
+    byte unknown_0[0x18];                  // Zeroed allocation bytes; role unproven
+    struct {
+        GfxCoord              coord;       // Actor model transform; armed companion additionally rotates it by scanAngle
+        WorldCollisionBody    body;        // Linked capsule body borrowing this probe's transform and shape
+        WorldCollisionCapsule shape;       // Forward segment and radii, with contacts pointing to the table below
+        WorldCollisionContact contacts[1]; // Single result; key 0 means no obstruction, LAST terminates the table
+    } probe;                               // Collision storage used to detect obstructions ahead of the companion
+    byte unknown_B8[0xC];                  // Zeroed allocation bytes; role unproven
+    s16  decisionTimer;                    // Active behavior ticks left before the next idle decision
+    s16  scanAngle;                        // Relative probe yaw (0..4096); 4096 marks the completed sweep
+    s16  targetHeading;                    // Selected relative yaw during scanning, absolute yaw (0..4095) when turning
+    s16  scanClearance;                    // Best planar distance in game units (-1 untested, 0 clear direction)
+    union {
+        struct {
+            u8 repeatsRemaining; // Repetitions left in the current action burst; stop checks use s8
+            u8 attacksRemaining; // Weapon attacks left before refresh; stop checks use s8
+        } combat;
+        struct {
+            u8 flinchInterval; // Interval byte compared as s8; initially 0x96, later reset to 60
+            u8 flinchCount;    // Flinches taken; signed comparison at 5 selects the severe reaction
+        } distress;
+    } activity;                // Counter interpretation selected by the companion kind
+    s8   waypointIndex;        // Index into the current scripted route; must be within that table
+    s8   turnDir;              // Signed turn direction (-1 negative yaw, +1 positive yaw)
+    s8   routeComplete;        // Scripted route completion latch (0 pending, 1 complete)
+    byte unknown_D1[3];        // Zeroed allocation bytes; role unproven
+} CompanionWork;
+STATIC_ASSERT_SIZEOF(CompanionWork, 0xD4);
 
 /// 0x14-byte scratch from the scratch stack used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to

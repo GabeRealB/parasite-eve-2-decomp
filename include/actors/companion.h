@@ -14,7 +14,7 @@ extern s16 D_80167218[];
 extern s16 D_80167224[];
 
 /// Overlay-imported u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and stored
-/// at `GpActorD4.actionCount` (`Gp_SetupAllyWeapon`).
+/// at `CompanionWork.activity.combat.attacksRemaining` (`Gp_SetupAllyWeapon`).
 extern u8 D_80167230[];
 
 /// Overlay import. `func_801088D4` calls it with `gameGetPtrSlot(0xA)` when

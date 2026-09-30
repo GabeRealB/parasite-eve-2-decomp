@@ -1235,18 +1235,18 @@ void Gp_EndPlayerActorTask(Task* arg0)
 
 Task* Gp_SetupAllyWeapon(void)
 {
-    Task*       work;
-    GameActor*  actor;
-    GameActor*  inner;
-    GameActor*  next;
-    Task*       task;
-    McSaveData* save;
-    GpActorD4*  block;
-    s16         val1;
-    s16         val2;
-    EffectWork* eff;
-    TmdObject*  extra;
-    Task*       ret;
+    Task*          work;
+    GameActor*     actor;
+    GameActor*     inner;
+    GameActor*     next;
+    Task*          task;
+    McSaveData*    save;
+    CompanionWork* companion;
+    s16            val1;
+    s16            val2;
+    EffectWork*    eff;
+    TmdObject*     extra;
+    Task*          ret;
 
     work  = gameGetPtrSlot(0xA);
     actor = work->work;
@@ -1259,12 +1259,12 @@ Task* Gp_SetupAllyWeapon(void)
         task             = func_80104364(actor->field_924, save->state.companionType + 1, save->state.companionVariant, 0);
         actor->field_91C = task;
         if (task != NULL) {
-            block = actor->field_910;
-            val1  = D_80167218[save->state.companionVariant];
-            val2  = D_80167224[save->state.companionVariant];
+            companion = actor->field_910;
+            val1      = D_80167218[save->state.companionVariant];
+            val2      = D_80167224[save->state.companionVariant];
             Gp_AttachActorObj(work, val1, val2);
-            actor->field_124  |= 0x80;
-            block->actionCount = D_80167230[save->state.companionVariant];
+            actor->field_124                           |= 0x80;
+            companion->activity.combat.attacksRemaining = D_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4 && actor->field_914 == NULL) {
                 eff = Gp_SpawnEff(
                     0x80060180, actor->field_91C->extra.tmd->coords, (s32)(val1), 0);
@@ -1338,11 +1338,11 @@ void func_8010B9A4(Task* arg0)
 
 Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
 {
-    Task*      task;
-    GameActor* actor;
-    GpActorD4* block;
-    GfxCoord*  coord;
-    s32        type;
+    Task*          task;
+    GameActor*     actor;
+    CompanionWork* companion;
+    GfxCoord*      coord;
+    s32            type;
 
     if (arg1 == 1) {
         type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant + 0x7F;
@@ -1365,15 +1365,15 @@ fail:
     return NULL;
 
 have_actor:
-    block = memCalloc(0xD4, 0);
-    if (block == NULL) {
+    companion = memCalloc(sizeof(*companion), 0);
+    if (companion == NULL) {
         goto fail;
     }
     Game_SetPtrSlot(task, 0xA);
     Mem_Set(actor, 0, 0x998);
-    Mem_Set(block, 0, 0xD4);
+    Mem_Set(companion, 0, sizeof(*companion));
     task->work       = actor;
-    actor->field_910 = block;
+    actor->field_910 = companion;
     Gp_PumpTmdStream(task);
     actor->field_93C  = *arg3;
     actor->field_52   = arg0->field_0;
@@ -1592,35 +1592,35 @@ void func_8010C180(Task* arg0)
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 {
     GfxCoord*              src;
-    GpActorD4*             block;
+    CompanionWork*         companion;
     WorldCollisionBody*    obj;
     WorldCollisionCapsule* rec;
     s16                    vz;
 
-    block                = ((GameActor*)arg0->work)->field_910;
-    src                  = arg0->extra.tmd->coords;
-    obj                  = &block->obj;
-    rec                  = &block->shape;
-    block->coord         = *src;
-    obj->coord           = &block->coord;
-    obj->pos.vz          = -0xA0;
-    obj->key             = 0x60000;
-    obj->context.capsule = rec;
-    obj->pos.vx          = 0;
-    obj->pos.vy          = 0;
-    obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
-    rec->ends[1].vx      = arg1->vx;
-    rec->ends[1].vy      = arg1->vy;
-    vz                   = arg1->vz;
-    rec->ends[0].vz      = arg2;
-    rec->ends[0].vx      = rec->ends[1].vx;
-    rec->end1Radius      = 0x80;
-    rec->end0Radius      = 0x80;
-    rec->contacts        = &block->contact;
-    rec->ends[1].vz      = vz;
-    rec->ends[0].vy      = rec->ends[1].vy;
+    companion              = ((GameActor*)arg0->work)->field_910;
+    src                    = arg0->extra.tmd->coords;
+    obj                    = &companion->probe.body;
+    rec                    = &companion->probe.shape;
+    companion->probe.coord = *src;
+    obj->coord             = &companion->probe.coord;
+    obj->pos.vz            = -0xA0;
+    obj->key               = 0x60000;
+    obj->context.capsule   = rec;
+    obj->pos.vx            = 0;
+    obj->pos.vy            = 0;
+    obj->flags             = WORLD_COLLISION_BODY_CAPSULE;
+    rec->ends[1].vx        = arg1->vx;
+    rec->ends[1].vy        = arg1->vy;
+    vz                     = arg1->vz;
+    rec->ends[0].vz        = arg2;
+    rec->ends[0].vx        = rec->ends[1].vx;
+    rec->end1Radius        = 0x80;
+    rec->end0Radius        = 0x80;
+    rec->contacts          = companion->probe.contacts;
+    rec->ends[1].vz        = vz;
+    rec->ends[0].vy        = rec->ends[1].vy;
     Gp_LinkObj(1, obj);
-    Gp_InitRec18Table(rec->contacts, 1, 0);
+    Gp_InitRec18Table(rec->contacts, ARRAY_SIZE(companion->probe.contacts), 0);
     obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 

@@ -11,7 +11,7 @@
 
 #include "main/coord.h"
 
-struct GpActorD4;
+struct CompanionWork;
 struct AnimationRecord;
 struct AnimationSet;
 struct WorldTargetNode;
@@ -247,7 +247,7 @@ typedef struct _GameActor {
     /* 0x7A8 */ byte                          field_7A8; // addr taken as func_800B3F84 arg3
     /* 0x7A9 */ byte                          pad_7A9[0x163];
     /* 0x90C */ struct WorldTargetNode*       field_90C;
-    /* 0x910 */ struct GpActorD4*             field_910;
+    /* 0x910 */ struct CompanionWork*         field_910;
     /* 0x914 */ struct Task*                  field_914;
     /* 0x918 */ struct Task*                  field_918;
     /* 0x91C */ struct Task*                  field_91C;

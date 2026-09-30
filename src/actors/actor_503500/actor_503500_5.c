@@ -64,7 +64,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// Head of the work block used by the two enemies whose teardown clears a
 /// four-entry record table (`func_actor_503500_801454E0` and
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
-/// `GpActorD4` convention: the display node's `context.capsule` points at the
+/// `CompanionWork` convention: the display node's `context.capsule` points at the
 /// `WorldCollisionCapsule` directly behind it, whose `contacts` in turn points at the
 /// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
 /// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
