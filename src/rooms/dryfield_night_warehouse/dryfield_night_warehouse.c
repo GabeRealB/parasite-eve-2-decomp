@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
@@ -650,8 +651,8 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
     SCRATCH_POP(RoomQuadScratch);
 }
 
-/// Per-frame effect on the room's model task: recomputes the model's world
-/// matrix and then re-poses it. The current visit is the stage-visit byte
+/// Per-frame effect on the room's coordinate task: recomputes the task's composed
+/// matrix and then draws the room geometry. The current visit is the stage-visit byte
 /// `gGameSession->at4.loc.view` taken as a bit index, and each pose is gated on that
 /// bit being one of a fixed set of visits.
 void func_dryfield_night_warehouse_8017E778(Task* arg0)
@@ -659,7 +660,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     GfxCoord* coord;
     s32       mask;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x24C) {

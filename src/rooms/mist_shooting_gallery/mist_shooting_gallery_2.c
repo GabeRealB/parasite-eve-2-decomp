@@ -18,6 +18,7 @@ s32 D_mist_shooting_gallery_8018E0C0;
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/area.h"
 #include "gameplay/attachment_state.h"
@@ -2048,7 +2049,7 @@ void func_mist_shooting_gallery_80182064(Task* task)
     u32        rand2;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState != 0) {
         func_mist_shooting_gallery_80182294(coord, work->index, 0x600, work->angle);

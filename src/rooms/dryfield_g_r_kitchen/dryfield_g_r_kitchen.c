@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -744,7 +745,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
     SCRATCH_POP_BYTES(0x28);
 }
 
-/// Draws two light beams under the coordinate of the model in `arg0->extra`,
+/// Draws two light beams under the task's coordinate in `arg0->extra.disp2d->coord`,
 /// picked by the current view `gGameSession->at4.loc.view`: in view 2 the
 /// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
 /// `func_dryfield_g_r_kitchen_8017D9FC`, in view 3 those of
@@ -754,7 +755,7 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (gGameSession->at4.loc.view == 2) {
         func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
         func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);

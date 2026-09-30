@@ -13,7 +13,7 @@
 /// instead of walking the task list.
 extern TmdListNode gTmdList;
 
-/// Head of the 2D-display list: the anchor for the coordinate nodes a task
+/// Head of the coordinate-body list: the anchor for the coordinate nodes a task
 /// attaches in place of a model.
 ///
 /// A node here carries a single coordinate rather than a model with parts, so

@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -570,7 +571,7 @@ void func_dryfield_r08_8017D8B4(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_dryfield_r08_8017DEFC(coord, work->index, work->scale, work->angle);
         if (Gp_State1C->eventState >= 4) {

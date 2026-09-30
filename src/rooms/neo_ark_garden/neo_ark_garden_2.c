@@ -11,6 +11,7 @@
 
 #include "neo_ark_garden_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -708,7 +709,7 @@ void func_neo_ark_garden_8017F790(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -824,7 +825,7 @@ void func_neo_ark_garden_8017FCE8(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -1060,7 +1061,7 @@ void func_neo_ark_garden_80180948(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

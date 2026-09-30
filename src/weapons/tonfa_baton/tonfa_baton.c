@@ -11,6 +11,7 @@
 
 #include "tonfa_baton_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -88,7 +89,7 @@ void func_tonfa_baton_8011D1EC(Task* task)
     s32        flags;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);

@@ -11,6 +11,7 @@
 
 #include "dryfield_night_motel_loft_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -588,7 +589,7 @@ static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32
 }
 
 /// Task driving one tumbling triangle, drawn each frame by
-/// `func_dryfield_night_motel_loft_8017E540` at the task's model coordinate.
+/// `func_dryfield_night_motel_loft_8017E540` at the task's coordinate coordinate.
 /// State 0 rolls a random velocity (downward in Y), gain, shade and spin, with
 /// the size taken from `Task::spawnArg1`. Each later frame rebuilds the
 /// coordinate's rotation from the spin, moves it by the velocity scaled by the
@@ -602,7 +603,7 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
 {
     _DryfieldNightMotelLoftShard* w     = task->spawnArg2.pointer;
     s16                           ev    = Gp_State1C->eventState;
-    GfxCoord*                     coord = task->extra.tmd->coords;
+    GfxCoord*                     coord = task->extra.disp2d->coord;
     SVECTOR                       step;
 
     if (ev < 4) {

@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
@@ -1115,8 +1116,8 @@ static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 
     SCRATCH_POP_BYTES(0x14);
 }
 
-/// Per-frame effect on a model task: draws the glow sprites the current visit
-/// lights, one per point in `D_...EAD0` (in the model's local space) whose
+/// Per-frame effect on a coordinate task: draws the glow sprites the current visit
+/// lights, one per point in `D_...EAD0` (in the task's local space) whose
 /// `D_...EB10` bitmask contains the visit's bit (`gGameSession->at4.loc.view`).
 /// The whole effect is skipped unless nibble 0x53 is clear.
 void func_dryfield_underpass_8017DE30(Task* task)
@@ -1127,7 +1128,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
     SVECTOR*  vec;
     s16*      flags;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     if (GameFlag_GetNibble(0x53) == 0) {
         i     = 0;

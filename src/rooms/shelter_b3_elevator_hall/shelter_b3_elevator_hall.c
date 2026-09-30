@@ -11,6 +11,7 @@
 
 #include "shelter_b3_elevator_hall_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
 #include "gameplay/effect_tasks.h"
@@ -650,7 +651,7 @@ void func_shelter_b3_elevator_hall_8017E7F4(Task* task)
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -911,7 +912,7 @@ void func_shelter_b3_elevator_hall_8017F53C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -997,7 +998,7 @@ void func_shelter_b3_elevator_hall_8017F8D4(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1375,7 +1376,7 @@ void func_shelter_b3_elevator_hall_80180CE4(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

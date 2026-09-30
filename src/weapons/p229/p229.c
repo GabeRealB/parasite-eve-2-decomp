@@ -11,6 +11,7 @@
 
 #include "p229_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
@@ -67,7 +68,7 @@ void func_p229_8011D1DC(Task* task)
     s32           i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 

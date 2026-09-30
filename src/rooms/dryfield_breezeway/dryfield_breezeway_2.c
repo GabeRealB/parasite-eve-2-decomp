@@ -11,6 +11,7 @@
 
 #include "dryfield_breezeway_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
@@ -1686,7 +1687,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
 
     mask   = 1 << gGameSession->at4.loc.view;
     eff    = task->spawnArg2.pointer;
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     player = gameGetPtrSlot(3)->extra.tmd->coords;
     if (mask & 0x18) {
         func_dryfield_breezeway_8018034C(coord, D_dryfield_breezeway_80183164, 0x600, 0x80);
@@ -1991,7 +1992,7 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
 void func_dryfield_breezeway_80181264(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     MATRIX*    m;
     SVECTOR    delta;
     SVECTOR    dir;

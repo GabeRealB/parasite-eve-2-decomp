@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
@@ -48,7 +49,7 @@ void func_dryfield_water_hole_8017F118(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

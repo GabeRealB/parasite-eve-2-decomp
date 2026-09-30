@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
@@ -98,7 +99,7 @@ void func_necrosis_8012EF34(Task* arg0)
 
     work     = (NecrosisWork*)arg0->work;
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.tmd->coords;
+    coord    = arg0->extra.disp2d->coord;
     old      = mem->age;
     tick     = old + 1;
     mem->age = tick;
@@ -225,7 +226,7 @@ void func_necrosis_8012F52C(Task* arg0)
     GpEffWork* spawned;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0) {
         return;
     }
@@ -331,7 +332,7 @@ void func_necrosis_8012FAF8(Task* arg0)
     u16        temp_v0;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0) {
         return;
     }

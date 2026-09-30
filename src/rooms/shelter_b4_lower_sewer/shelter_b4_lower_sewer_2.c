@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -752,7 +753,7 @@ void func_shelter_b4_lower_sewer_8017EEE4(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b4_lower_sewer_8017F038(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -879,7 +880,7 @@ void func_shelter_b4_lower_sewer_8017F36C(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -1122,7 +1123,7 @@ void func_shelter_b4_lower_sewer_8017FEB0(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1308,7 +1309,7 @@ void func_shelter_b4_lower_sewer_80180914(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1509,7 +1510,7 @@ void func_shelter_b4_lower_sewer_801811FC(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

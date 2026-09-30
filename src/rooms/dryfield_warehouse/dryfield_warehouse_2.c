@@ -11,6 +11,7 @@
 
 #include "dryfield_warehouse_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -1013,10 +1014,10 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
     SCRATCH_POP(RoomQuadScratch);
 }
 
-/// Per-frame effect on the room's model task: re-poses the model for the
+/// Per-frame effect on the room's coordinate task: draws the room geometry for the
 /// current stage visit, then publishes variant 2 as the room's
-/// `Gp_State1C->roomEffectMode` index. `Task::extra` is the task's `TmdObject`, so
-/// `field_8` is the coordinate every pose shares. The stage-visit byte
+/// `Gp_State1C->roomEffectMode` index. `Task::extra.disp2d->coord` is the
+/// coordinate every draw shares. The stage-visit byte
 /// `gGameSession->at4.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
 /// pose through `func_dryfield_warehouse_8017E414`, bit 2 (`4`) also drives
 /// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
@@ -1030,7 +1031,7 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
 
     mask     = 1 << gGameSession->at4.loc.view;
     poseMask = mask & 0x24C;
-    coord    = arg0->extra.tmd->coords;
+    coord    = arg0->extra.disp2d->coord;
     if (poseMask != 0) {
         func_dryfield_warehouse_8017E414(coord, 8);
     }

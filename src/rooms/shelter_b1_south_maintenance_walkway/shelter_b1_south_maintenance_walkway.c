@@ -846,7 +846,7 @@ void func_shelter_b1_south_maintenance_walkway_8017E760(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1027,7 +1027,7 @@ void func_shelter_b1_south_maintenance_walkway_8017F1C4(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1224,7 +1224,7 @@ void func_shelter_b1_south_maintenance_walkway_8017FAAC(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {
@@ -1426,7 +1426,7 @@ void func_shelter_b1_south_maintenance_walkway_801806F4(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -1542,7 +1542,7 @@ void func_shelter_b1_south_maintenance_walkway_80180C4C(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -1771,7 +1771,7 @@ void func_shelter_b1_south_maintenance_walkway_801818AC(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

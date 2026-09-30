@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -1015,7 +1016,7 @@ void func_neo_ark_power_plant_2_8017DDF4(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1195,7 +1196,7 @@ void func_neo_ark_power_plant_2_8017E858(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -1393,7 +1394,7 @@ void func_neo_ark_power_plant_2_8017F140(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

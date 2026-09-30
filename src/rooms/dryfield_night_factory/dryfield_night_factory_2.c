@@ -10,6 +10,7 @@
 
 #include "dryfield_night_factory_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/captions.h"
@@ -1979,7 +1980,7 @@ static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 ar
     SCRATCH_POP_BYTES(0x14);
 }
 
-/// Per-frame effect: refreshes the world matrix of the task's model, then draws
+/// Per-frame effect: refreshes the task's composed matrix, then draws
 /// one of three glowing discs at fixed points in the room. The draw set is
 /// selected by the stage-visit byte `gGameSession->at4.loc.view` taken as a bit
 /// index, and each of the three groups also gates on a story flag, so a disc
@@ -1989,7 +1990,7 @@ void func_dryfield_night_factory_801825F0(Task* task)
     s32 state;
 
     state = 1 << gGameSession->at4.loc.view;
-    Gp_UpdateCoord(task->extra.tmd->coords);
+    Gp_UpdateCoord(task->extra.disp2d->coord);
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
         func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);
     }

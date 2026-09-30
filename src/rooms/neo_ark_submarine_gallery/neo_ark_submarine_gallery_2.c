@@ -15,6 +15,7 @@
 
 #include "actors/waypoints.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
@@ -940,7 +941,7 @@ void func_neo_ark_submarine_gallery_8017EFEC(Task* arg0)
     GfxCoord* coord;
     s32       view;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (arg0->state == 0) {
         D_8011574C  = 0x60193;
         D_80115738  = 0x60194;
@@ -1008,7 +1009,7 @@ void func_neo_ark_submarine_gallery_8017F288(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_submarine_gallery_8017F3DC(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1136,7 +1137,7 @@ void func_neo_ark_submarine_gallery_8017F710(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

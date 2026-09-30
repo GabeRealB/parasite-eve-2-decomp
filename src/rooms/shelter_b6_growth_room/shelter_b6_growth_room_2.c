@@ -11,6 +11,7 @@
 
 #include "shelter_b6_growth_room_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
 #include "gameplay/collision.h"
@@ -644,7 +645,7 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 void func_shelter_b6_growth_room_8017E564(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     s32        vz;
     s32        t;
     s16        f2a;
@@ -780,7 +781,7 @@ static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     s32        vz;
     s16        f2a;
     u32        rng2;

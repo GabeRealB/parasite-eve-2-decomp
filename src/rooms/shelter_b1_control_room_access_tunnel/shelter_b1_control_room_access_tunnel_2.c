@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -263,7 +264,7 @@ void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -377,7 +378,7 @@ void func_shelter_b1_control_room_access_tunnel_801807C4(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;
@@ -602,7 +603,7 @@ void func_shelter_b1_control_room_access_tunnel_80181424(Task* task)
     u16        temp;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);

@@ -270,17 +270,17 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
     return node;
 }
 
-GpDisp2d* gpAttachDisp2d(Task* task)
+ModelObjectCoordBody* gpAttachDisp2d(Task* task)
 {
-    GpDisp2d*    node;
-    TmdListNode* last;
-    TmdListNode* list;
-    GfxCoord*    coord;
+    ModelObjectCoordBody* node;
+    TmdListNode*          last;
+    TmdListNode*          list;
+    GfxCoord*             coord;
 
     node = memCalloc(sizeof(*node), 0);
     if (node != NULL) {
-        coord         = &node->coord;
-        node->coords  = coord;
+        coord         = &node->ownedCoord;
+        node->coord   = coord;
         node->field_C = 1;
         coord->parent = &gGfxViewCoord;
         gfxSetRotIdentity(&coord->coord);
@@ -368,7 +368,7 @@ void modelObjectUnlinkDisp2d(TmdListNode* node)
     prev->next = node->next;
 }
 
-void gpFreeDisp2d(GpDisp2d* node)
+void gpFreeDisp2d(ModelObjectCoordBody* node)
 {
     memFree(node);
 }
@@ -432,7 +432,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
                     }
                     break;
                 case TASK_BODY_DISP2D:
-                    coord = task->extra.disp2d->coords;
+                    coord = task->extra.disp2d->coord;
                     if (coord == targetCoord) {
                         found = 1;
                     }

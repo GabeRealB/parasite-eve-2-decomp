@@ -11,6 +11,7 @@
 
 #include "shelter_b6_training_room_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effect_tasks.h"
@@ -694,7 +695,7 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -941,7 +942,7 @@ void func_shelter_b6_training_room_8017F8B8(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1293,7 +1294,7 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1371,7 +1372,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
     GfxCoord*  coord;
 
     mem   = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b6_training_room_80181368(mem, coord, task->spawnArg1.value);
         if (Gp_State1C->eventState < 4) {
@@ -1553,7 +1554,7 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
     GfxCoord*  coord;
 
     mem   = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1739,7 +1740,7 @@ void func_shelter_b6_training_room_8018245C(Task* task)
 
     mem        = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
-    coord      = task->extra.tmd->coords;
+    coord      = task->extra.disp2d->coord;
     if (eventState != 0) {
         if (eventState < 4) {
             return;
@@ -1779,7 +1780,7 @@ void func_shelter_b6_training_room_801825C0(Task* task)
     GfxCoord*  coord;
 
     mem   = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         if (task->state == 0) {
@@ -1811,7 +1812,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
     GfxCoord*  coord;
 
     mem   = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState == 0) {
         mem->age++;
         if (task->state == 0) {

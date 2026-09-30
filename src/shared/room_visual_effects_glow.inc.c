@@ -140,7 +140,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
     u8         col[4];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             return;
@@ -256,7 +256,7 @@ static inline void RoomFx_FlyingSparkTask(Task* task)
     VECTOR     delta;
 
     work   = task->spawnArg2.pointer;
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     target = task->spawnArg1.pointer;
     if (Gp_State1C->eventState == 0) {
         work->age++;

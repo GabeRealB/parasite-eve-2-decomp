@@ -11,6 +11,7 @@
 
 #include "m4a1_bayonet_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -75,7 +76,7 @@ void func_m4a1_bayonet_8011D1E4(Task* task)
     s32        alive;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     phase = Gp_State1C->eventState;
     if (phase == 0) {
         work->age++;

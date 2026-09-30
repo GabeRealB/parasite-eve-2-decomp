@@ -16,6 +16,7 @@
 
 #include "actors/actors_shared_80131fc8.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -1577,7 +1578,7 @@ void func_actor_403600_80134398(Task* arg0)
     SVECTOR*                      temp_v1;
     SVECTOR*                      point;
 
-    coord  = arg0->extra.tmd->coords;
+    coord  = arg0->extra.disp2d->coord;
     sp10   = D_actor_403600_80131E24;
     player = Gp_ActorSlots[0];
     if (player == NULL) {
@@ -2293,7 +2294,7 @@ void func_actor_403600_80135C28(Task* arg0)
 
     temp_a0 = arg0->spawnArg2.pointer;
     temp_v1 = temp_a0->work;
-    temp_s4 = arg0->extra.tmd->coords;
+    temp_s4 = arg0->extra.disp2d->coord;
     temp_s2 = temp_v1->field_710;
     if (temp_v1->field_742 == 1) {
         temp_v0                 = temp_a0->extra.tmd;

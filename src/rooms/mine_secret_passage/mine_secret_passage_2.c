@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -952,7 +953,7 @@ void func_mine_secret_passage_8017E868(Task* task)
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1221,7 +1222,7 @@ void func_mine_secret_passage_8017F5B0(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1311,7 +1312,7 @@ void func_mine_secret_passage_8017F948(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1692,7 +1693,7 @@ void func_mine_secret_passage_80180D58(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

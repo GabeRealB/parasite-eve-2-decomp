@@ -5,7 +5,7 @@
 
 #include "main/tmd_types.h"
 
-struct GpDisp2d;
+struct ModelObjectCoordBody;
 struct Task;
 
 /// Recognized body kinds in `Task::spawnType`, plus the teardown-complete marker.
@@ -16,11 +16,11 @@ enum {
     TASK_BODY_RELEASED = 0xFF
 };
 
-/// The body a task owns, whose kind its `spawnType` names: a model for 1, a 2D
-/// display for 2, nothing for 0.
+/// The body a task owns, whose kind its `spawnType` names: a model for 1, a
+/// coordinate body for 2, nothing for 0.
 typedef union TaskBody {
-    TmdObject*       tmd;    // spawnType 1
-    struct GpDisp2d* disp2d; // spawnType 2
+    TmdObject*                   tmd;    // spawnType 1
+    struct ModelObjectCoordBody* disp2d; // spawnType 2
 } TaskBody;
 
 /// A task handler taking its live task as the only argument and returning nothing.
@@ -174,7 +174,7 @@ STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 ///
 /// Killing a task that owns a body is spread over two steps, so nothing frees it
 /// while its callback is still running: `taskKill` releases the body — a TMD model
-/// only once its `killCountdown` has run out, a 2D display straight away — and
+/// only once its `killCountdown` has run out, a coordinate body straight away — and
 /// marks the task with `spawnType` 0xFF, and the exec pass that sees the mark
 /// unlinks and frees the task once the callback has returned.
 typedef struct Task {
@@ -187,7 +187,7 @@ typedef struct Task {
     void*        work;          // Per-task work block, freed on kill; whatever the spawned type needs
     TaskSpawnArg spawnArg2;     // Second spawn argument; its meaning is the spawned type's
     void*        msgTable;      // Table of id/handler records the task answers messages with
-    u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 2D display); 0xFF marks a task to collect
+    u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 coordinate body); 0xFF marks a task to collect
     u8           priority;      // List position; lower runs earlier, and selects which pass picks the task up
     s16          killCountdown; // Frames left before the body is released; the task's own timer otherwise
     TaskBody     extra;         // The body the task owns, attached and released according to `spawnType`
@@ -214,7 +214,7 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 /// The argument is the descriptor's own: a kind-1 descriptor names the model its
 /// task attaches, and one that attaches no model keeps whatever it needs there.
 typedef struct {
-    u16      flags;         // Body kind in the low byte (0 none, 1 TMD model, 2 2D display), plus bit 8 to attach the model without allocating its buffer
+    u16      flags;         // Body kind in the low byte (0 none, 1 TMD model, 2 coordinate body), plus bit 8 to attach the model without allocating its buffer
     u16      priority;      // List position the spawned task takes; its low byte is what `Task::priority` gets
     TaskFunc callback;      // Per-frame entry point the spawned task runs
     union {

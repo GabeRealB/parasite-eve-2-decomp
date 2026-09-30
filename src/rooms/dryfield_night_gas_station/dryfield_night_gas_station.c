@@ -12,6 +12,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -3463,7 +3464,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     s32                             i;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mask  = 1 << Gp_GetViewIndex();
     if (task->state == 0) {
         D_80115758                 = 0x60006;
@@ -3724,7 +3725,7 @@ void func_dryfield_night_gas_station_80181D80(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -3903,7 +3904,7 @@ void func_dryfield_night_gas_station_801827E4(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -4095,7 +4096,7 @@ void func_dryfield_night_gas_station_801830CC(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

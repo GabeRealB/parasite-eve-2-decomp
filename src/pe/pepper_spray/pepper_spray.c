@@ -9,6 +9,7 @@
 #include "gte.h"
 #include "types.h"
 
+#include "gameplay/display.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/effects.h"
@@ -63,7 +64,7 @@ void func_pepper_spray_8012EF34(Task* arg0)
     base  = Gp_RoomCoords;
     slot  = &base->light;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if ((Gp_StateC08.field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03F0001, 1);
         Gp_ReleaseState1CMem(mem, arg0);

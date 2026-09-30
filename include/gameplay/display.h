@@ -19,21 +19,23 @@ typedef struct GpFadeWork {
 } GpFadeWork;
 STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 
-/// A 2D-display body: the node a spawnType-2 task carries and hangs on
-/// `gTmdDisp2dList`, holding one coordinate of its own instead of a model.
+/// A task-owned coordinate body refreshed by the model draw passes.
 ///
-/// Nothing is drawn from the body — the model passes compose its coordinate once
-/// a frame and walk on — so what it is for is the task that owns it, which
-/// places the coordinate and reads back the world matrix composed from it. Code
-/// identifies the body through `Task::extra.disp2d`; the display list's links
-/// belong to this type. `coords` points at the body's own `coord`, rather than
-/// at the per-part array carried by a `TmdObject`.
-typedef struct GpDisp2d {
-    TmdListNode link;    // Its place on `gTmdDisp2dList`
-    GfxCoord*   coords;  // The body's coordinate, i.e. `&coord`
-    s32         field_C; // Set to 1 when the body is attached; no reader found, so the role is unproven
-    GfxCoord    coord;   // Coordinate the body occupies: its task places it, the passes compose `workm` from it
-} GpDisp2d;
-STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
+/// `Task::extra.disp2d` owns this body when `spawnType` is `TASK_BODY_DISP2D`.
+/// It supplies one transform for effects and other tasks that draw their own
+/// primitives. Attachment initializes an identity transform beneath
+/// `gGfxViewCoord`; tasks may change its local matrix and borrowed parent.
+/// Matrix units and cache invalidation follow `GfxCoord`.
+///
+/// `coord` points to `ownedCoord` for the body's lifetime. Keep the body at its
+/// allocated address, unlink it from `gTmdDisp2dList` before releasing it, and
+/// keep any borrowed parent alive while its transform is composed.
+typedef struct ModelObjectCoordBody {
+    TmdListNode link;       // Intrusive link on `gTmdDisp2dList`; forward traversal ends at NULL
+    GfxCoord*   coord;      // Single coordinate node, pointing to `ownedCoord`
+    s32         field_C;    // Initialized to 1; meaning unproven
+    GfxCoord    ownedCoord; // Owned local transform and composed-matrix cache
+} ModelObjectCoordBody;
+STATIC_ASSERT_SIZEOF(ModelObjectCoordBody, 0x60);
 
 #endif // GAMEPLAY_DISPLAY_H

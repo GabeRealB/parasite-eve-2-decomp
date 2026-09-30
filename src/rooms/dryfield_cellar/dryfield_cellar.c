@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -931,15 +932,15 @@ static void func_dryfield_cellar_8017D7DC(GfxCoord* arg0, SVECTOR* arg1, s32 arg
     SCRATCH_POP_BYTES(0x14);
 }
 
-/// Per-frame effect on a model task: once event nibble 0x52 is 1, draws a glow
+/// Per-frame effect on a coordinate task: once event nibble 0x52 is 1, draws a glow
 /// sprite on each of the two points belonging to the current camera view
-/// (`gGameSession->at4.loc.view`), 2 or 3, placed in the model's coordinate
+/// (`gGameSession->at4.loc.view`), 2 or 3, placed in the task's coordinate
 /// space. Every other view draws nothing.
 void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
     GfxCoord* coord;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (GameFlag_GetNibble(0x52) == 1) {
         if (gGameSession->at4.loc.view == 2) {
             func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);

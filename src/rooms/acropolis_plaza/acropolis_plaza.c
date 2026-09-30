@@ -13,6 +13,7 @@
 
 #include "actors/actor_310100.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -4372,7 +4373,7 @@ void func_acropolis_plaza_801802C0(Task* task)
     slot       = task->spawnArg1.value;
     entry      = &Gp_RoomCoords[slot & 7];
     light      = &entry->light;
-    coord      = task->extra.tmd->coords;
+    coord      = task->extra.disp2d->coord;
     work       = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     lightCoord = &light->head.u.coord;
     if (task->state == 0) {
@@ -4592,7 +4593,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     s32                         pulse;
     u32                         pulse2;
     s16                         level;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     work  = (AcropolisPlazaBeamWork*)task->spawnArg2.pointer;
     if (task->state == 0) {
         yawInit     = (task->spawnArg1.value & 1) << 11;
@@ -4765,7 +4766,7 @@ void func_acropolis_plaza_80182054(Task* task)
     s32                        brightness, shade0, shade1;
     s16                        red, green, blue;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     Gp_UpdateCoord(coord);
     SCRATCH_PUSH(AcropolisPlazaGlowScratch);
     blk         = SCRATCH_HEAD(AcropolisPlazaGlowScratch);
@@ -4835,7 +4836,7 @@ void func_acropolis_plaza_8018251C(Task* task)
     GfxCoord* coord;
     s32       i;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (task->state == 0) {
         for (i = 0xC; i < 0x13; i++) {
             Gp_SpawnEff(0x60096, coord, i, &D_acropolis_plaza_80198820[i]);

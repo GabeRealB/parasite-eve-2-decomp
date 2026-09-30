@@ -6,6 +6,7 @@
 
 #include "common.h"
 
+#include "gameplay/display.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -1678,7 +1679,7 @@ void func_actor_503500_80132778(Task* task)
     SVECTOR*            pos;
     u8                  done;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (task->state == 0) {
         pos                 = &D_actor_503500_8014B97C[task->spawnArg1.value];
         coord->coord.t[0]   = pos->vx;

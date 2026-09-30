@@ -11,6 +11,7 @@
 
 #include "dryfield_night_dilapidated_house_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
@@ -2598,8 +2599,8 @@ static void func_dryfield_night_dilapidated_house_8017DD30(GfxCoord* coord, s16 
     SCRATCH_POP(RoomQuadScratch);
 }
 
-/// Per-frame draw of the room's model task: recomputes the model's world
-/// coordinate, then draws up to three prisms, from corner sets 0, 8 and 0x10.
+/// Per-frame draw of the room's coordinate task: recomputes the task's composed
+/// matrix, then draws up to three prisms, from corner sets 0, 8 and 0x10.
 /// Each is gated on `gGameSession->at4.loc.view` taken as a bit index into a
 /// fixed mask; the second mask is contained in the other two, so a view in it
 /// draws all three.
@@ -2608,7 +2609,7 @@ void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
     GfxCoord* coord;
     s32       mask;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x99C) {

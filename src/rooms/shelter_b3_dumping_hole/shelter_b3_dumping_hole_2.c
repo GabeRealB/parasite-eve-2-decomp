@@ -16,6 +16,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -2102,7 +2103,7 @@ static u16 func_shelter_b3_dumping_hole_8017DA00(GfxCoord* coord, s16 w, s16 h, 
 void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 {
     DumpingHoleAnimWork* W      = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord  = arg0->extra.tmd->coords;
+    GfxCoord*            coord  = arg0->extra.disp2d->coord;
     DumpingHoleEntity*   entity = D_shelter_b3_dumping_hole_8018F4A8->work;
 
     if (entity->field_42 == 1) {
@@ -2174,7 +2175,7 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
 void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 {
     DumpingHoleAnimWork* W     = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord = arg0->extra.tmd->coords;
+    GfxCoord*            coord = arg0->extra.disp2d->coord;
     SVECTOR              vec;
     SVECTOR              pos;
     DVECTOR              sxy;
@@ -2279,7 +2280,7 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
 void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
 {
     DumpingHoleAnimWork* work  = (DumpingHoleAnimWork*)arg0->work;
-    GfxCoord*            coord = arg0->extra.tmd->coords;
+    GfxCoord*            coord = arg0->extra.disp2d->coord;
     SVECTOR              vec;
     s32                  sa1;
     u32                  roll1;
@@ -3041,7 +3042,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
     s16                  sy;
 
     work  = (DumpingHoleShard*)arg0->work;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     cfg   = (DumpingHoleShardCfg*)arg0->spawnArg2.pointer;
     if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
         taskKill(arg0);
@@ -4463,7 +4464,7 @@ void func_shelter_b3_dumping_hole_8018521C(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->spawnArg1.value < 0) {
             func_shelter_b3_dumping_hole_80185DCC(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -4757,7 +4758,7 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -4994,7 +4995,7 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
     s32        i;
 
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b3_dumping_hole_80186AB8(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (Gp_State1C->eventState >= 4) {

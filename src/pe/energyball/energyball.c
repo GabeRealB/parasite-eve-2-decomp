@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
@@ -102,7 +103,7 @@ void func_energyball_8012EF48(Task* arg0)
     s32        rng;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.tmd->coords;
+    coord    = arg0->extra.disp2d->coord;
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
@@ -173,7 +174,7 @@ void func_energyball_8012F180(Task* arg0)
     slot  = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
     sc    = &slot->light.head.u.coord;
     tail  = &slot->light;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     fade  = Gp_State1C->fadeState;
     work  = (EnergyBallWork*)arg0->work;
     mem   = arg0->spawnArg2.pointer;
@@ -735,7 +736,7 @@ void func_energyball_8013107C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         return;
     }

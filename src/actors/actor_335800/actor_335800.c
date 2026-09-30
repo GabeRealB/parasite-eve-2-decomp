@@ -7,6 +7,7 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -964,7 +965,7 @@ void func_actor_335800_80161E88(Task* task)
     VECTOR3   pos;
     SVECTOR*  rot;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     switch (task->state) {
         case 0:
             coord->coord.t[0]   = D_actor_335800_80164F80.x;
@@ -1004,7 +1005,7 @@ void func_actor_335800_80161E88(Task* task)
             taskKill(task);
             break;
     }
-    if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords->workm), &pos) != 0) {
+    if (func_800EA1A8(MATRIX_TRANS(&task->extra.disp2d->coord->workm), &pos) != 0) {
         Gp_DrawEffGroundQuad(&pos, 0x800, Gp_State1C->groundShade);
     }
 }

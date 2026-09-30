@@ -11,6 +11,7 @@
 
 #include "mp5a5_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
@@ -76,7 +77,7 @@ void func_mp5a5_8011D1E0(Task* task)
     s32           i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     base  = &Gp_RoomCoords[0];
     slot  = &base->light;
 

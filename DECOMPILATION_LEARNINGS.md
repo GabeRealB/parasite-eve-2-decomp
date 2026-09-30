@@ -26790,14 +26790,14 @@ case 1:
     /* walk coord */
     break;
 case 2:
-    coord = task->extra.disp2d->coords; /* lw v1, 8(v0) — not lw v0 */
+    coord = task->extra.disp2d->coord; /* lw v1, 8(v0) — not lw v0 */
     if (coord == targetCoord) {
         found = 1;
     }
     break;
 ```
 
-`_modelObjectFindTaskByCoord` is the example. `if (task->extra.disp2d->coords == targetCoord)`
+`_modelObjectFindTaskByCoord` is the example. `if (task->extra.disp2d->coord == targetCoord)`
 stuck at 99.8% with only that load dest different.
 
 ## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
@@ -28195,7 +28195,7 @@ with `$v0` for both the constant and the `Mc_SaveData` address.
 
 ## Pin `&node->field` in `$v1` so `$a0` can hold `ONE` then a global
 
-A calloc'd node with an embedded coord at +0x10 needs `&node->coord` live
+A calloc'd node with an embedded coord at +0x10 needs `&node->ownedCoord` live
 in `$v1` across the identity-matrix stores. Without that pin GCC gives the
 pointer `$a0`, `ONE` lands in `$v1`, and `&Global` is delayed until after
 the zero stores (the pointer still occupies `$a0`).
@@ -28208,10 +28208,10 @@ the zero stores (the pointer still occupies `$a0`).
 register GfxCoord* coord asm("v1");
 
 node  = memCalloc(0x60, 0);
-coord = &node->coord;
+coord = &node->ownedCoord;
 if (node != NULL) {
     node->field_C = 1;
-    node->coords  = coord;
+    node->coord   = coord;
     coord->parent    = &gGfxViewCoord;
     one           = ONE;
     ...
@@ -52287,13 +52287,13 @@ and the Euler `SVECTOR` over libgs's `param` / `super` bytes, is this node
 whatever it is called, and a new declaration for it is a duplicate to fold in
 rather than a type to name.
 
-`GpDisp2d` embeds the coordinate and points `coords` at its own copy. The model
-subsystem walks its list through `PARENT_OF(link, GpDisp2d, link)`, while the
+`ModelObjectCoordBody` embeds `ownedCoord` and points `coord` at it. The model
+subsystem walks its list through `PARENT_OF(link, ModelObjectCoordBody, link)`, while the
 model list uses `PARENT_OF(link, TmdObject, link)`.
 
 Which body a task's `extra` is, the task says, not the access path: `spawnType`
-is 1 for a model body and 2 for a 2D-display one: `task->extra.tmd->coords` and
-`task->extra.disp2d->coords` select the matching body. A display body's `coords`
+is 1 for a model body and 2 for a coordinate body: `task->extra.tmd->coords` and
+`task->extra.disp2d->coord` select the matching body. A coordinate body's `coord`
 points at a single coordinate embedded in the node, where a model body's points at the
 per-part array that follows it — and the task's own spawn type (or the
 descriptor that built it) is what decides which type is in hand.
@@ -54682,23 +54682,23 @@ Fix is to delete m2c's goto and write each arm's call inline with its own
 constant, exactly as above. Ignore the `/* irregular */` comment — it is m2c
 reporting its own lowering, not evidence about the source.
 
-## Room effect task prologue: read `extra->coords` before `spawnArg2`, and both before `state`
+## Room effect task prologue: read `body->coord` before `spawnArg2`, and both before `state`
 
 A room's `Gp_State1C` effect task opens by unpacking three `Task` fields, and
 m2c reliably orders them wrong. `func_acropolis_square_801823DC` starts with
 
 ```
-lw v0, 0x2C(s1)     # task->extra
+lw v0, 0x2C(s1)     # task->extra.disp2d
 lw v1, 0x30(s1)     # task->state
 lw s0, 0x20(s1)     # task->spawnArg2
-lw s2, 0x8(v0)      # ((TmdObject*)extra)->coords
+lw s2, 0x8(v0)      # body->coord
 ```
 
 m2c emits its temporaries in the order the *values are used*, so `state` comes
 first and the object dump opens `0x30, 0x2C, 0x20, 0x8(v0)`. The source order is
 
 ```c
-coord = ((TmdObject*)task->extra)->coords;
+coord = task->extra.disp2d->coord;
 work  = task->spawnArg2;
 switch (task->state) { ... }
 ```
@@ -55610,7 +55610,7 @@ the guard clauses, instead of after them:
 
 ```c
 work  = task->spawnArg2;
-coord = ((TmdObject*)task->extra)->coords;
+coord = task->extra.disp2d->coord;
 base  = &Gp_RoomCoords[1];
 light = &base->coord;                 /* not after the two `return`s */
 slot  = (GpCoordTail*)light;
@@ -91956,14 +91956,14 @@ Inputs: `base_1.i`
 `3c18e603b12656d7e4b4653d317328a2882cab207fcb4fb1037ee113d42ba8ad` (100.000%,
 first hypothesis), target
 `a7e0d28dccb3e47cda2115ba118b6bcb60b59ef88355ffe215f50f9850f2baf4`.
-## A room model-task body needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (func_dryfield_night_dilapidated_house_8017E670, 2026-09-16)
+## A room coordinate-body task needs its `coord` in a local, because 2.8.1 will not CSE a load across a call (func_dryfield_night_dilapidated_house_8017E670, 2026-09-16)
 
-Rooms carry a per-frame task of a recurring shape: fetch the model's coordinate
-array out of `Task::extra`, take the stage-visit byte as a bit index, refresh the
-world matrix, and re-pose the parts whose visit set the current visit falls in.
+Rooms carry a per-frame task of a recurring shape: fetch the body's single coordinate
+out of `Task::extra.disp2d`, take the stage-visit byte as a bit index, refresh the
+world matrix, and draw the primitives whose visit set the current visit falls in.
 
 ```c
-coord = ((TmdObject*)arg0->extra)->coords;
+coord = arg0->extra.disp2d->coord;
 mask  = 1 << gGameSession->at4.loc.view;
 Gp_UpdateCoord(coord);
 if (mask & 0x99C) {
@@ -91975,7 +91975,7 @@ if (mask & 0x998) {
 ```
 
 m2c seeds this body correctly - `M2C_FIELD(M2C_FIELD(index, void **, 0x2C), s32 *, 8)`
-is `((TmdObject*)index->extra)->coords` - so the retype to project structs is the
+is `index->extra.disp2d->coord` - so the retype to project structs is the
 whole job and it matches on the first build. The one thing to preserve while
 retyping is the **local**: the `coord` in a `GfxCoord*` local is what keeps
 the pointer in `$s1` across the four calls.
@@ -91983,9 +91983,9 @@ the pointer in `$s1` across the four calls.
 Writing the same expression inline at each call site is not equivalent:
 
 ```c
-Gp_UpdateCoord(((TmdObject*)arg0->extra)->coords);
+Gp_UpdateCoord(arg0->extra.disp2d->coord);
 if (mask & 0x99C) {
-    pose(((TmdObject*)arg0->extra)->coords, 0);
+    pose(arg0->extra.disp2d->coord, 0);
 }
 /* ... */
 ```
@@ -132106,8 +132106,8 @@ covers it and the wrappers can name the same base for the life of the program.
 
 An intrusive list whose elements carry the links themselves can be headed by a
 sentinel of the same shape as those links, and one such node type can serve more
-than one list. `TmdListNode` heads both the model list and the 2D-display list:
-its `next` and `prev` point to links, and both `TmdObject` and `GpDisp2d` embed
+than one list. `TmdListNode` heads both the model list and the coordinate-body list:
+its `next` and `prev` point to links, and both `TmdObject` and `ModelObjectCoordBody` embed
 one as their first member. The append and unlink work on those links; a walk
 recovers the container its particular list holds with `PARENT_OF`.
 
@@ -132443,7 +132443,7 @@ bridge header for overlay symbols, which pulls in main headers only. That
 works while the signature is expressible in main types - the body types those
 prototypes take are declared in `main/tmd.h`, `main/task.h` and
 `main/session.h` - and stops working the moment the honest parameter type is
-one the overlay owns: `gpFreeDisp2d` releases the `GpDisp2d` body, and no main
+one the overlay owns: `gpFreeDisp2d` releases the `ModelObjectCoordBody` body, and no main
 header declares that type.
 
 Three ways out, and only one of them is right:

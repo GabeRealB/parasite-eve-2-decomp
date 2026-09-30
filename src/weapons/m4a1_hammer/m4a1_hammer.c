@@ -11,6 +11,7 @@
 
 #include "m4a1_hammer_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/hud_sprites.h"
@@ -94,7 +95,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     s32           j;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.u.coord;
     slot  = &base->light;
@@ -300,7 +301,7 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
     GfxCoord*  parent;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mem->age++;
     switch (arg0->state) {
         case 0:

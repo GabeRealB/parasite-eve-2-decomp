@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -118,7 +119,7 @@ void func_antibody_8012EF34(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if ((state->field_3 != -2) && (Gp_State1C->fadeState < 4)) {
         mem->age = mem->age + 1;
         switch (arg0->state) {
@@ -315,7 +316,7 @@ void func_antibody_8012F734(Task* arg0)
     s16         idx;
 
     mem                 = arg0->spawnArg2.pointer;
-    coord               = arg0->extra.tmd->coords;
+    coord               = arg0->extra.disp2d->coord;
     mem->age            = mem->age + 1;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     switch (arg0->state) {

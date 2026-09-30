@@ -12,6 +12,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
@@ -1752,7 +1753,7 @@ void func_acropolis_square_801823DC(Task* task)
     GpEffWork* work;
     GfxCoord*  coord;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     work  = task->spawnArg2.pointer;
     switch (task->state) { /* irregular */
         case 0:
@@ -1812,7 +1813,7 @@ void func_acropolis_square_801825DC(Task* task)
     u32              tag;
     u_long*          ot;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(RoomGlowScratch);

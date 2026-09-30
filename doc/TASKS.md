@@ -78,7 +78,7 @@ Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
 | 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — 3D TMD | unlink + free TMD (often deferred 2 frames) |
-| 2 | `gpAttachDisp2d(task)` — 2D | unlink Disp2d (often deferred 1 frame) |
+| 2 | `gpAttachDisp2d(task)` — coordinate body | unlink coordinate body (often deferred 1 frame) |
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
 defaults to `taskKill`.
@@ -190,7 +190,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `0B` | `10` | `Mc_DispatchStateTable26` | Memcard variant |
 | `0C` | `C0` | `func_80036A1C` | Memcard menu dispatcher (`mcmenu.c`) |
 | `0D` | `10` | `Text_BootTask` | Boot: load CLUT, spawn `Title_TaskDescs[0]`, kill self. `Boot` also spawns this |
-| `0E` | `2F` | `func_800A8654` | Type **2** (Disp2d). Gameplay dispatcher |
+| `0E` | `2F` | `func_800A8654` | Type **2** (coordinate body). Gameplay dispatcher |
 | `0F` | `2F` | `Gp_ApplyViewTask` | Camera / view. `Gp_TrySpawnViewTask` / `Gp_SpawnViewTasks` |
 | `10` | `40` | `func_800AD50C` | Gameplay state dispatcher (`D4.c`) |
 | `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
@@ -323,7 +323,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 
 | Slot | Typical payload |
 |------|-----------------|
-| `extra` | `TmdObject*` / TMD object (type 1) or Disp2d (type 2) |
+| `extra` | `TmdObject*` / TMD object (type 1) or a coordinate body (type 2) |
 | `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
 | `work` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
 | `msgTable` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |

@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -815,7 +816,7 @@ void func_shelter_b2_pod_access_tunnel_8017E6E0(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_shelter_b2_pod_access_tunnel_8017ED5C(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -1095,7 +1096,7 @@ void func_shelter_b2_pod_access_tunnel_8017F608(Task* task)
     s32        lifetime;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1363,7 +1364,7 @@ void func_shelter_b2_pod_access_tunnel_80180350(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1453,7 +1454,7 @@ void func_shelter_b2_pod_access_tunnel_801806E8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1832,7 +1833,7 @@ void func_shelter_b2_pod_access_tunnel_80181AF8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -1867,7 +1868,7 @@ void func_shelter_b2_pod_access_tunnel_80181C2C(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -2048,7 +2049,7 @@ void func_shelter_b2_pod_access_tunnel_80182690(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2246,7 +2247,7 @@ void func_shelter_b2_pod_access_tunnel_80182F78(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

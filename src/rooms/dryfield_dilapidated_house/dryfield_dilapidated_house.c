@@ -15,6 +15,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -3569,7 +3570,7 @@ void func_dryfield_dilapidated_house_80181F08(Task* task)
     s32        i;
 
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -3719,7 +3720,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
 /// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a
 /// 12-bit `Gp_LcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
-/// fade quad), maps the placed model's own coordinate onto
+/// fade quad), maps the task's own coordinate onto
 /// `Gp_RoomCoords[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
 /// and runs two more draws against the same coordinate. While the
@@ -3741,7 +3742,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
     u8            rgb[3];
 
     work           = task->spawnArg2.pointer;
-    coord          = task->extra.tmd->coords;
+    coord          = task->extra.disp2d->coord;
     tick           = work->field_22;
     tick1          = tick + 1;
     work->field_22 = tick1;
@@ -4104,7 +4105,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     s32       mask;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);
     }
@@ -4144,7 +4145,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
         mem->field_26 = 0x100;
         arg0->state   = 1;
     }
-    func_dryfield_dilapidated_house_80182A18(arg0->extra.tmd->coords, mem->field_26, mem->field_24);
+    func_dryfield_dilapidated_house_80182A18(arg0->extra.disp2d->coord, mem->field_26, mem->field_24);
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
     angle        += 0x40;
@@ -4159,7 +4160,7 @@ void func_dryfield_dilapidated_house_80183C8C(Task* arg0)
 /// Per-frame handler of the effect family whose work block is `DdhEffWork`
 /// (`task->spawnArg2.pointer`). While the `Gp_State1C` state word at 0x4 is clear it
 /// seeds the ramp (0x80 / 0x100) on the first frame and then, every frame,
-/// clears the model coordinate's update flag, refreshes the coordinate and feeds
+/// clears the task coordinate's update flag, refreshes the coordinate and feeds
 /// the angle/scale pair to `func_dryfield_dilapidated_house_80183728`, stepping
 /// the scale by -8 and the angle by +0x80. Once the scale drops below 9 - and
 /// immediately when that state word has already reached 4 - it releases the work
@@ -4174,7 +4175,7 @@ void func_dryfield_dilapidated_house_80183D5C(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);

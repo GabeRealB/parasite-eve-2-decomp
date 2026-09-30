@@ -11,6 +11,7 @@
 
 #include "shelter_b2_pod_bottom_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/collision.h"
 #include "gameplay/effects.h"
 #include "gameplay/loading.h"
@@ -296,7 +297,7 @@ void func_shelter_b2_pod_bottom_8017D850(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_shelter_b2_pod_bottom_8017DECC(coord, work->index | work->pos.vx, work->scale, work->angle);
@@ -673,7 +674,7 @@ void func_shelter_b2_pod_bottom_8017EC78(Task* task)
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         tick                = work->age;
@@ -837,7 +838,7 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1037,7 +1038,7 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
     u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         work->age++;
         switch (task->state) {
@@ -1184,7 +1185,7 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -1313,7 +1314,7 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
     u32        rnd;
 
     work  = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             rnd         = Gp_LcgState * 5 + 0x71357911;
@@ -1514,7 +1515,7 @@ void func_shelter_b2_pod_bottom_80181B48(Task* arg0)
     s16        y;
 
     work  = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState >= 4) {
         Gp_ReleaseState1CMem(work, arg0);
         return;

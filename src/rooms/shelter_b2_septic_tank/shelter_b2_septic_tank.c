@@ -1753,7 +1753,7 @@ void func_shelter_b2_septic_tank_8017F040(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_shelter_b2_septic_tank_8017F194(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -1881,7 +1881,7 @@ void func_shelter_b2_septic_tank_8017F4C8(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {
@@ -2343,7 +2343,7 @@ void func_shelter_b2_septic_tank_80180BE0(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2529,7 +2529,7 @@ void func_shelter_b2_septic_tank_80181644(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2730,7 +2730,7 @@ void func_shelter_b2_septic_tank_80181F2C(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

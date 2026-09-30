@@ -11,6 +11,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -1085,7 +1086,7 @@ void func_actor_800100_80161F20(Task* task)
     u32           ang;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     base  = &Gp_RoomCoords[3];
     light = &base->light.head.u.coord;
     slot  = &base->light;
@@ -1284,7 +1285,7 @@ void func_actor_800100_801624F0(Task* task)
     beam  = (Actor800100Beam*)task->work;
     work  = task->spawnArg2.pointer;
     fade  = Gp_State1C->eventState;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (fade >= 4) {
         if (task->state != 0) {
             Gp_UnlinkObj(&beam->obj);

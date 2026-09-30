@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "gameplay/display.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/effects.h"
@@ -42,7 +43,7 @@ void ofudaEffectTask(Task* arg0)
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if ((state->field_3 == -2) || (Gp_State1C->fadeState != 0)) {
         SndEvt_EnqueueType7(0xE03D0001, 1);
         goto kill;

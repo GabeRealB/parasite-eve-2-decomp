@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -2408,18 +2409,18 @@ static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
     return 1;
 }
 
-/// Per-frame effect on the room's model task: recomputes the model's world
+/// Per-frame effect on the room's coordinate task: recomputes the task's composed
 /// matrix, then draws every effect whose view mask includes the current view
 /// `gGameSession->at4.loc.view`. Positions 0-5 and 20-22 are drawn with UV
 /// column 0 and half-extent 0x200, 6-10 with column 1 and 0x1C0, and 23-27
-/// with column 0 and 0x300; the two helpers in between take the model's coord.
+/// with column 0 and 0x300; the two helpers in between take the task's coord.
 void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
 {
     GfxCoord* coord;
     s32       mask;
     s32       i;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {

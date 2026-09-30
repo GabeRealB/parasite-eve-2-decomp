@@ -14,6 +14,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
@@ -2897,7 +2898,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     SVECTOR    ofs;
 
     work                    = task->spawnArg2.pointer;
-    coord                   = task->extra.tmd->coords;
+    coord                   = task->extra.disp2d->coord;
     Gp_State1C->groundShade = 0xFF;
     hi                      = 0;
     if (gGameSession->at4.loc.view < 0x20) {
@@ -3236,7 +3237,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 }
 
 /// Per-frame handler of a falling room effect task that bounces. The first
-/// frame resets the model's rotation to identity, keeps the low twelve bits of
+/// frame resets the coordinate's rotation to identity, keeps the low twelve bits of
 /// `Task::spawnArg1` in `pos.vx`, sets the speed `scale` to 0xA0, and rolls
 /// a frame period (0..7) into `pos.vy`, a start frame into `index`, a value
 /// into `pos.vz` and its per-tick step into `period`. When the spawner left
@@ -3244,9 +3245,9 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 /// 0x20..0x11F in y; otherwise about +-0x80 on every axis) and turns it into
 /// `parent`'s frame. `spawnArg1` is then replaced by two bits of its upper half.
 /// Later frames step `pos.vz`, advance `index` once per period and move the
-/// model by the drift scaled to `scale`. When `func_800DE7CC` reports a hit
+/// coordinate by the drift scaled to `scale`. When `func_800DE7CC` reports a hit
 /// along the view-space step, the move is undone, the drift is bent halfway
-/// towards the vector it returns, speed and step are halved and the model moves
+/// towards the vector it returns, speed and step are halved and the coordinate moves
 /// again; a hit within eight ticks of the previous one at a speed below 0x20
 /// moves the task to state 2. Without a hit, `0xA000 / scale` is added to the
 /// drift's y. Both states draw through
@@ -3256,7 +3257,7 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     MATRIX*    m;
     s32        half;
     SVECTOR    delta;
@@ -3468,7 +3469,7 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
 void func_dryfield_night_motel_balcony_80180580(Task* task)
 {
     void*     work  = task->spawnArg2.pointer;
-    GfxCoord* coord = task->extra.tmd->coords;
+    GfxCoord* coord = task->extra.disp2d->coord;
     s32       i;
 
     if (Gp_State1C->eventState != 0) {
@@ -3566,7 +3567,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 
     work  = task->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -3722,7 +3723,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 void func_dryfield_night_motel_balcony_80181024(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     s32        lo;
     s32        arg;
 
@@ -3809,7 +3810,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 
 /// Per-frame handler of a drifting room effect task, a variant of
 /// `func_dryfield_night_motel_balcony_80181E7C`. The first frame resets the
-/// model's rotation to identity, keeps the low twelve bits of
+/// coordinate's rotation to identity, keeps the low twelve bits of
 /// `Task::spawnArg1` in `pos.vx`, rolls a frame period (1..4 ticks) into
 /// `pos.vy` and a value into `pos.vz`, and, when the spawner left no drift,
 /// rolls one whose ranges depend on `spawnArg1` (bit 30: +-0x80 on every axis;
@@ -3817,14 +3818,14 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 /// 0..15 in y) and turns it into `parent`'s frame. The drift is normalised and scaled to `scale`
 /// (0x40 with bit 30 or bit 29, else 0x80), and `spawnArg1` is replaced by
 /// two bits of its upper half. Later frames advance `index` once per period,
-/// move the model by the drift, decrementing its y by one a tick, and hand
+/// move the coordinate by the drift, decrementing its y by one a tick, and hand
 /// the task to `func_dryfield_night_motel_balcony_801819E0` until `index`
 /// reaches 12, when it is released. Event states 2 and 3 suspend it, 4 and
 /// above release it at once, and state 1 freezes the drift and the tick.
 void func_dryfield_night_motel_balcony_8018158C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     MATRIX*    m;
     s32        half; // default drift length and the centre of the wide drift rolls
 
@@ -3996,11 +3997,11 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 }
 
 /// Per-frame handler of a drifting room effect task. The first frame resets the
-/// model's rotation to identity, rolls a starting animation step (0..9) and a
+/// coordinate's rotation to identity, rolls a starting animation step (0..9) and a
 /// lifetime (5..14 ticks), and, when the spawner left no drift, rolls one and
 /// turns it into `parent`'s frame. The drift is then normalised and scaled to a
 /// length chosen by `Task::spawnArg1` (8 when negative, 0x80 with bit 30, 0x20
-/// otherwise). Later frames move the model by the drift, bending it by one
+/// otherwise). Later frames move the coordinate by the drift, bending it by one
 /// unit a tick, and draw it through `func_dryfield_night_motel_balcony_8018221C`,
 /// fading its colour over the last ten ticks before releasing the task. Event
 /// states 2 and 3 suspend it; 4 and above release it at once, and any non-zero
@@ -4008,7 +4009,7 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 {
     GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.tmd->coords;
+    GfxCoord*  coord = task->extra.disp2d->coord;
     MATRIX*    m;
     s32        seed;
     s16        tick;

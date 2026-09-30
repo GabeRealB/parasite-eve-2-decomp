@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -3625,7 +3626,7 @@ void func_acropolis_security_room_801805A4(Task* task)
     s32        i;
 
     work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
 
     switch (task->state) {
         case 0: {
@@ -3791,7 +3792,7 @@ void func_acropolis_security_room_80180E34(Task* arg0)
     u16        cx;
     u16        cy;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -3845,7 +3846,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
     SCRATCH_PUSH(RoomQuadScratch);
     blk   = SCRATCH_HEAD(RoomQuadScratch);
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
@@ -3983,7 +3984,7 @@ void func_acropolis_security_room_801817A4(Task* task)
     s16              green;
     s32              i;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     scratch       = SCRATCH_PUSH(AsrFlashScratch);

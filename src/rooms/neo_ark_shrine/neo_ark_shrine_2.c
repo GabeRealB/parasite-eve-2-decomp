@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/action_prompt.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
@@ -1965,7 +1966,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Effect task drawing a glow at its model's position: over `spawnArg1` frames
+/// Effect task drawing a glow at its coordinate's position: over `spawnArg1` frames
 /// it grows two starbursts and a ring, flashes the screen when that ends, then
 /// shrinks a two-ring billboard until it fades out and releases its work.
 void func_neo_ark_shrine_8017FEA0(Task* task)
@@ -1975,7 +1976,7 @@ void func_neo_ark_shrine_8017FEA0(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2158,7 +2159,7 @@ void func_neo_ark_shrine_80180904(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2344,7 +2345,7 @@ static void func_neo_ark_shrine_80180DF4(GfxCoord* arg0, GfxCoord* arg1, s16 arg
     SCRATCH_POP(RoomDraw03Scratch);
 }
 
-/// Effect task of a burst at its model's position: spawns its particle effects
+/// Effect task of a burst at its coordinate's position: spawns its particle effects
 /// on the first frame, then either sprays sparks in random directions or grows
 /// two fading rings for seven frames, and releases its work.
 void func_neo_ark_shrine_801811EC(Task* task)
@@ -2353,7 +2354,7 @@ void func_neo_ark_shrine_801811EC(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

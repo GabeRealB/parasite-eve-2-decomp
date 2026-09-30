@@ -11,6 +11,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "actor.h"
 #include "gameplay/actor_render.h"
@@ -1297,16 +1298,16 @@ static const TaskFuncTable3 Gp_EffTask07States;
 
 void Gp_EffSprTask46(Task* arg0)
 {
-    GpEffWork* mem;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    s16        flag;
-    s32        param;
+    GpEffWork*            mem;
+    ModelObjectCoordBody* body;
+    GfxCoord*             coord;
+    s16                   flag;
+    s32                   param;
 
     mem   = arg0->spawnArg2.pointer;
-    extra = arg0->extra.tmd;
+    body  = arg0->extra.disp2d;
     flag  = Gp_State1C->eventState;
-    coord = extra->coords;
+    coord = body->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -1481,19 +1482,19 @@ static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
 
 void Gp_EffSprTask81(Task* arg0)
 {
-    GpEffWork* mem;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    GfxCoord*  parent;
-    MATRIX*    m;
-    MATRIX*    world;
-    s16        flag;
-    s32        one;
+    GpEffWork*            mem;
+    ModelObjectCoordBody* body;
+    GfxCoord*             coord;
+    GfxCoord*             parent;
+    MATRIX*               m;
+    MATRIX*               world;
+    s16                   flag;
+    s32                   one;
 
-    extra  = arg0->extra.tmd;
+    body   = arg0->extra.disp2d;
     mem    = arg0->spawnArg2.pointer;
     flag   = Gp_State1C->eventState;
-    coord  = extra->coords;
+    coord  = body->coord;
     parent = mem->parent;
     if (flag >= 2) {
         Gp_ReleaseState1CMem(mem, arg0);
@@ -1598,7 +1599,7 @@ void Gp_EffSprTask55(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1721,7 +1722,7 @@ void Gp_EffSprTask42(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -1837,7 +1838,7 @@ void func_800F91AC(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag < 4) {
         if (arg0->state == 0) {
             coord->parent       = mem->parent;
@@ -1893,7 +1894,7 @@ void Gp_EffCtlTask9B(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag < 4) {
         if (arg0->state == 0) {
             coord->parent       = mem->parent;
@@ -1954,7 +1955,7 @@ void Gp_EffSprTask30(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -2345,7 +2346,7 @@ void func_800FAA14(Task* arg0)
     s32        pan;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (arg0->state == 0) {
         arg0->spawnArg1.value = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
                                            ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
@@ -2397,7 +2398,7 @@ void Gp_EffCtlTask32(Task* arg0)
     s32        newState;
 
     mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.tmd->coords;
+    coord    = arg0->extra.disp2d->coord;
     step     = mem->age + 1;
     mem->age = step;
     state    = arg0->state;
@@ -2521,7 +2522,7 @@ void Gp_EffCtlTaskAE(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     state = arg0->state;
     switch (state) {
         case 0:
@@ -2660,7 +2661,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -2704,7 +2705,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     u8         rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0 ||
         ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
         if (Gp_State1C->fadeState >= 4) {
@@ -2821,7 +2822,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->fadeState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             goto kill;
@@ -2884,7 +2885,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     s32        temp;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0 ||
         ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
         if (Gp_State1C->fadeState < 4) {
@@ -2991,7 +2992,7 @@ void Gp_EffCtlTask0E(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
@@ -3066,7 +3067,7 @@ void Gp_EffCtlTaskA5(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag >= 4) {
             SndEvt_EnqueueType7(0xFF0D, 1);
@@ -3132,7 +3133,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag < 4) {
         switch (arg0->state) {
             case 0:
@@ -3369,7 +3370,7 @@ void Gp_EffSprTaskA7(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -3590,7 +3591,7 @@ void Gp_EffCtlTask7F(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -3678,7 +3679,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -3728,7 +3729,7 @@ void Gp_EffSprTask80(Task* arg0)
     u8*            head;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         head               = SCRATCH_HEAD(u8) - 0x18;
         SCRATCH_HEAD(void) = head;
@@ -3845,7 +3846,7 @@ void Gp_EffSprTask8D(Task* arg0)
     s32            c;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_PUSH(GpRingScratch);
@@ -3947,7 +3948,7 @@ void Gp_EffSprTask3F(Task* arg0)
     s32              temp;
 
     mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4) {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_PUSH(GpFxQuadScratch);
@@ -4063,7 +4064,7 @@ void func_800FF710(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -4152,7 +4153,7 @@ void Gp_EffSprTaskE0(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag < 2) {
         Gp_UpdateCoord(coord);
         head                                      = SCRATCH_HEAD(u8);
@@ -4253,7 +4254,7 @@ void Gp_EffSprTaskE1(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag >= 2) {
         if (flag < 4) {
             return;
@@ -4349,7 +4350,7 @@ void Gp_EffSprTaskE2(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag < 2) {
         if (arg0->state == 0) {
             if (arg0->spawnArg1.value < 0) {

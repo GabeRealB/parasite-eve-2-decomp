@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -2300,7 +2301,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     GfxCoord* coord;
 
     mask  = 1 << gGameSession->at4.loc.view;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (mask & 0x104) {
         func_dryfield_trailer_coach_801829A8(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);
         return;

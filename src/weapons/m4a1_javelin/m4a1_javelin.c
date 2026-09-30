@@ -11,6 +11,7 @@
 
 #include "m4a1_javelin_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
@@ -137,7 +138,7 @@ void func_m4a1_javelin_8011D1E4(Task* task)
     slot  = &base->light;
     light = &base->light.head.u.coord;
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -751,7 +752,7 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

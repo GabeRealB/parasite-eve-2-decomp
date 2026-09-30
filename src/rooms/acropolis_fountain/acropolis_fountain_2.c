@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
@@ -1382,7 +1383,7 @@ void func_acropolis_fountain_8017DD44(Task* task)
     u16               vz;
     s32               level;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState < 4 && ((0x1040C0 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch     = (void**)G_SCRATCH_HEAD;
@@ -1453,7 +1454,7 @@ void func_acropolis_fountain_8017E014(Task* task)
     s32                      bit;
     s16                      id;
 
-    coord  = task->extra.tmd->coords;
+    coord  = task->extra.disp2d->coord;
     splash = task->spawnArg2.pointer;
     view   = Gp_GetViewIndex();
     switch (task->state) {

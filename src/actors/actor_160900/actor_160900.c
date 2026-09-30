@@ -10,6 +10,7 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -1388,7 +1389,7 @@ void func_actor_160900_80132E80(Task* task)
     DR_TPAGE* tp;
     s16       i;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     verts = &((Actor160900ChildWork*)task->work)->field_0;
     Gp_UpdateCoord(coord);
     gte_SetTransMatrix(&coord->workm);

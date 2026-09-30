@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
@@ -1731,7 +1732,7 @@ void func_shelter_b6_nursery_80181820(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     work->age++;
     switch (task->state) {
         case 0:
@@ -1995,7 +1996,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
 
     work       = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
-    coord      = task->extra.tmd->coords;
+    coord      = task->extra.disp2d->coord;
     if (eventState >= 2) {
         if (eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2112,7 +2113,7 @@ void func_shelter_b6_nursery_80182D28(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -2293,7 +2294,7 @@ void func_shelter_b6_nursery_8018378C(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -2490,7 +2491,7 @@ void func_shelter_b6_nursery_80184074(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

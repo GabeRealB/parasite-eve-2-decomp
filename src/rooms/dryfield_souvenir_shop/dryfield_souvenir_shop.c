@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -547,12 +548,11 @@ static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1)
     SCRATCH_POP(RoomQuadScratch);
 }
 
-/// Per-frame effect on the room's model task: `Task::extra` is the task's
-/// `TmdObject`, and both of the room's prisms are drawn under its first
-/// coordinate.
+/// Per-frame effect on the room's coordinate task: both prisms are drawn under
+/// the single coordinate in `Task::extra.disp2d->coord`.
 void func_dryfield_souvenir_shop_8017DFD4(Task* task)
 {
-    GfxCoord* coord = task->extra.tmd->coords;
+    GfxCoord* coord = task->extra.disp2d->coord;
 
     func_dryfield_souvenir_shop_8017D6B4(coord, 0);
     func_dryfield_souvenir_shop_8017D6B4(coord, 8);

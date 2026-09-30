@@ -12,7 +12,7 @@ struct Task;
 
 TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 
-/// Gives a task a 2D-display body and returns it, or `NULL` when there is no
+/// Gives a task a coordinate body and returns it, or `NULL` when there is no
 /// memory for one, in which case the task is left without a body.
 ///
 /// The body carries a coordinate of its own instead of a model. That coordinate
@@ -21,7 +21,7 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 /// `gTmdDisp2dList`, where the frame's draw passes compose it. Recording it as
 /// the task's body (`spawnType` 2) is what later releases it; `Gp_AttachTmd` is
 /// the model-side counterpart.
-GpDisp2d* gpAttachDisp2d(Task* task);
+ModelObjectCoordBody* gpAttachDisp2d(Task* task);
 
 TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 
@@ -35,21 +35,21 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 /// Releases a model body: the buffer it owns, then the body itself.
 ///
 /// The body has already left its list, so this is the second half of the
-/// release: `gpFreeDisp2d` is its counterpart on the 2D-display side.
+/// release: `gpFreeDisp2d` is its counterpart for coordinate bodies.
 void gpFreeTmd(TmdObject* obj);
 
-/// Unlinks a 2D-display body from the 2D-display list (`gTmdDisp2dList`).
+/// Unlinks a coordinate body from its refresh list (`gTmdDisp2dList`).
 ///
 /// `node` must be an element's link currently on this list, never the sentinel
 /// or an already detached link. The body stays allocated and its old links
 /// remain in place; release it with `gpFreeDisp2d` after unlinking.
 void modelObjectUnlinkDisp2d(TmdListNode* node);
 
-/// Releases a 2D-display body, returning its memory to the heap.
+/// Releases a coordinate body, returning its memory to the heap.
 ///
 /// The body has already left its list, so this is the second half of the
 /// release: `gpFreeTmd` is its counterpart on the model side.
-void gpFreeDisp2d(GpDisp2d* node);
+void gpFreeDisp2d(ModelObjectCoordBody* node);
 
 void Gp_DrawDisp2dOt(struct Task* unused);
 

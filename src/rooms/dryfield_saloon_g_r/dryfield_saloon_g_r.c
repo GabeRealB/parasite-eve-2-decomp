@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
@@ -927,8 +928,8 @@ void func_dryfield_saloon_g_r_8017DA18(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws the room's light effects under the coordinate of the model in
-/// `arg0->extra`, each only when its mask in `D_dryfield_saloon_g_r_8017ED84`
+/// Draws the room's light effects under the task's coordinate in
+/// `arg0->extra.disp2d->coord`, each only when its mask in `D_dryfield_saloon_g_r_8017ED84`
 /// includes the current view `gGameSession->at4.loc.view`: sprites at
 /// positions 0-5 with frame 0 and 6-10 with frame 2, the two light shafts,
 /// and the beam from position 13 to position 12.
@@ -938,7 +939,7 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
     s32       mask;
     s32       i;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mask  = 1 << gGameSession->at4.loc.view;
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {

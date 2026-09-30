@@ -1238,20 +1238,20 @@ static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
 
 void func_800A8654(Task* task)
 {
-    VECTOR*    vec;
-    GfxCoord*  src;
-    GfxCoord*  c1;
-    GfxCoord*  c2;
-    GfxCoord*  c3;
-    TmdObject* extra;
-    s32        i;
-    s32        j;
+    VECTOR*               vec;
+    GfxCoord*             src;
+    GfxCoord*             c1;
+    GfxCoord*             c2;
+    GfxCoord*             c3;
+    ModelObjectCoordBody* body;
+    s32                   i;
+    s32                   j;
 
     i              = 0;
     c1             = &Gfx_ViewOffsetCoord;
-    extra          = task->extra.tmd;
+    body           = task->extra.disp2d;
     vec            = (VECTOR*)task->work;
-    src            = extra->coords;
+    src            = body->coord;
     c1->coord.t[0] = vec->vx;
     c2             = &gGfxViewRotCoord;
     c1->coord.t[1] = vec->vy;

@@ -11,6 +11,7 @@
 
 #include "hypervelocity_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effect_tasks.h"
@@ -171,7 +172,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.u.coord;
     slot  = &base->light;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
@@ -354,7 +355,7 @@ void func_hypervelocity_8011D830(Task* task)
 
     beam  = (HyperBeam*)task->work;
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     base  = &Gp_RoomCoords[0];
     light = &base->light.head.u.coord;
     slot  = &base->light;
@@ -887,7 +888,7 @@ void func_hypervelocity_8011F168(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;
@@ -925,7 +926,7 @@ void func_hypervelocity_8011F270(Task* arg0)
 
     mem   = arg0->spawnArg2.pointer;
     flag  = Gp_State1C->eventState;
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     if (flag != 0) {
         if (flag < 4) {
             return;

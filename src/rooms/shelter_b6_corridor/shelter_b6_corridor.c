@@ -12,6 +12,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/attachment_state.h"
@@ -1057,7 +1058,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 
     mem        = task->spawnArg2.pointer;
     eventState = Gp_State1C->eventState;
-    coord      = task->extra.tmd->coords;
+    coord      = task->extra.disp2d->coord;
     if (eventState != 0) {
         if (eventState < 4) {
             return;

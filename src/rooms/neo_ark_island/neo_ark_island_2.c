@@ -11,6 +11,7 @@
 
 #include "neo_ark_island_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
@@ -102,7 +103,7 @@ void func_neo_ark_island_8017EB68(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_island_8017ECB4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -226,7 +227,7 @@ void func_neo_ark_island_8017EFE8(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (task->state < 2) {
             func_neo_ark_island_8017F4A4(coord, (u16)work->index, work->scale, work->angle);
@@ -480,7 +481,7 @@ void func_neo_ark_island_8017FB9C(Task* task)
     u8         rgb[3];
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState >= 4) {
             Gp_ReleaseState1CMem(work, task);
@@ -666,7 +667,7 @@ void func_neo_ark_island_80180600(Task* task)
 
     coords   = task->work;
     work     = (GpEffWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
 
     if (Gp_State1C->eventState < 2) {
         work->age++;
@@ -862,7 +863,7 @@ void func_neo_ark_island_80180EE8(Task* task)
     GpEffWork* work;
     u8         rgb[4];
 
-    objCoord = task->extra.tmd->coords;
+    objCoord = task->extra.disp2d->coord;
     work     = (GpEffWork*)task->spawnArg2.pointer;
 
     if (Gp_State1C->eventState != 0) {

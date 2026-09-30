@@ -12,6 +12,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -742,7 +743,7 @@ void func_acropolis_east_elevator_hall_8017F5B4(Task* task)
 {
     GfxCoord* coord;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     switch (task->state) {
         case 0:
             Task_Spawn(1, 0x25, 0, 0);
@@ -798,7 +799,7 @@ void func_acropolis_east_elevator_hall_8017F77C(Task* arg0)
     s32               pulse;
     s32               level;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     head               = SCRATCH_HEAD(void);

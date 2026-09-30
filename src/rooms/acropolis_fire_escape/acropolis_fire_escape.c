@@ -11,6 +11,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
@@ -968,7 +969,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     switch (task->state) {
         case 0:
             work->move.vx = 0xB58;
@@ -1032,7 +1033,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
     u16                             level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     play  = 0;
     if (Gp_State1C->eventState < 4 && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
@@ -1176,7 +1177,7 @@ void func_acropolis_fire_escape_80180B20(Task* task)
     u32                             tag;
     u_long*                         ot;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mem   = task->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     blk         = SCRATCH_PUSH(AcropolisFireEscapeGlowScratch);

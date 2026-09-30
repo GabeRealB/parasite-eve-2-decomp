@@ -12,6 +12,7 @@
 
 #include "neo_ark_woodland_path_private.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/collision.h"
 #include "gameplay/effect_tasks.h"
@@ -382,7 +383,7 @@ void func_neo_ark_woodland_path_8017ED00(Task* task)
     s32        vz;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     Gp_UpdateCoord(coord);
     work->age++;
     switch (task->state) {
@@ -558,7 +559,7 @@ void func_neo_ark_woodland_path_8017F4A0(Task* task)
     GfxCoord*  coord;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         func_neo_ark_woodland_path_8017F5F4(coord, work->angle, work->scale);
         if (Gp_State1C->eventState >= 4) {
@@ -684,7 +685,7 @@ void func_neo_ark_woodland_path_8017F928(Task* task)
     s32        level;
 
     work  = task->spawnArg2.pointer;
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     if (Gp_State1C->eventState != 0) {
         if (Gp_State1C->eventState < 4) {
             if (task->state < 2) {

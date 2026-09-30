@@ -65,10 +65,10 @@ enum {
     TMD_STREAM_END      = -1  // End of the complete stream
 };
 
-/// Intrusive link for an attached model or 2D-display body, also used as a
+/// Intrusive link for an attached model or coordinate body, also used as a
 /// list's sentinel head.
 ///
-/// `TmdObject` and `GpDisp2d` embed this as their first member. The list being
+/// `TmdObject` and `ModelObjectCoordBody` embed this as their first member. The list being
 /// walked determines which container `PARENT_OF` recovers; a sentinel belongs
 /// to neither container. Elements must be unlinked before their owner frees
 /// them, and their link fields are not cleared by unlinking.

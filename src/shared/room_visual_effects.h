@@ -16,6 +16,8 @@
 #ifndef SRC_SHARED_ROOM_VISUAL_EFFECTS_H
 #define SRC_SHARED_ROOM_VISUAL_EFFECTS_H
 
+#include "gameplay/display.h"
+
 #include "main/task_types.h"
 
 #include "rooms/room.h"

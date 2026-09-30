@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
@@ -1007,7 +1008,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
     s16              x;
     s16              y;
 
-    coord = arg0->extra.tmd->coords;
+    coord = arg0->extra.disp2d->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
 
@@ -1080,7 +1081,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
     SVECTOR*  vec;
     u16*      flags;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.disp2d->coord;
     mask  = 1 << Gp_GetViewIndex();
     if (Gp_State1C->eventState < 4) {
         i     = 0;
