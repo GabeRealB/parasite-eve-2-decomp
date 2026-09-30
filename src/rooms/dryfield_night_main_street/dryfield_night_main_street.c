@@ -65,6 +65,7 @@
 #include "../../shared/glow_draw.h"
 #define ROOM_EVENT_LATCHED gRoomEventLatched.value
 #include "../../shared/room_events.h"
+#include "../../shared/main_street.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 #define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
@@ -107,13 +108,13 @@
     }
 
 /// Descriptor of the room's own event task, which the message handler spawns.
-extern TaskDesc D_dryfield_night_main_street_8018208C;
+extern TaskDesc gMainStreetEventTaskDesc;
 
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Descriptor of the task `func_dryfield_night_main_street_8017DE78` runs as.
-extern TaskDesc D_dryfield_night_main_street_801820A4;
+/// Descriptor of the task `mainStreetPlayTimeTask` runs as.
+extern TaskDesc gMainStreetPlayTimeTaskDesc;
 
 /// Message table installed at `Task::msgTable` by the room task's state 0
 /// (ids `0x13EE`-`0x13F1`).
@@ -149,7 +150,7 @@ typedef struct {
 } DryfieldNightMainStreetStorage8BB4;
 STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BB4, 8);
 
-extern DryfieldNightMainStreetStorage8BB4 D_dryfield_night_main_street_80188BB4;
+extern DryfieldNightMainStreetStorage8BB4 gMainStreetEventSpawned;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -172,14 +173,9 @@ extern u8 gRoomEventActive;
 static void func_dryfield_night_main_street_8017E064(Task* arg0);
 static void func_dryfield_night_main_street_8017E0B8(Task* task);
 static void func_dryfield_night_main_street_8017E118(void);
-static void func_dryfield_night_main_street_8017F608(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32  func_dryfield_night_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_main_street_8017DEF0(Task*, s32, s32, s32);
-s32  func_dryfield_night_main_street_8017DFC8(Task*, s32, s32, TaskMessageArg);
-s32  func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
-void func_dryfield_night_main_street_8017DE78(Task*);
+s32 func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams D_dryfield_night_main_street_801833D0[1];
 extern GpGridParams D_dryfield_night_main_street_80184540[1];
@@ -229,18 +225,18 @@ extern SpriteSource D_dryfield_night_main_street_80186CCC[53];
 extern SpriteSource D_dryfield_night_main_street_80187128[57];
 extern TaskDesc     D_8014D8A4;
 
-TaskDesc D_dryfield_night_main_street_8018208C = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gMainStreetEventTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_dryfield_night_main_street_801820A4 = { 0, 32, func_dryfield_night_main_street_8017DE78, { .model = NULL } };
+TaskDesc gMainStreetPlayTimeTaskDesc = { 0, 32, mainStreetPlayTimeTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_main_street_801820B0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_main_street_8017DA6C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, mainStreetResolveMsg },
     { 5105, func_dryfield_night_main_street_8017E054 },
     { 5103, func_dryfield_night_main_street_8017E05C },
-    { 5104, func_dryfield_night_main_street_8017DFC8 },
-    { 5106, func_dryfield_night_main_street_8017DEF0 },
+    { 5104, mainStreetTalkMsg },
+    { 5106, mainStreetCapSoundCue },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -1620,7 +1616,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-DryfieldNightMainStreetStorage8BB4 D_dryfield_night_main_street_80188BB4 = { 0 };
+DryfieldNightMainStreetStorage8BB4 gMainStreetEventSpawned = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -1641,202 +1637,13 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
     { func_dryfield_night_main_street_8017E064, func_dryfield_night_main_street_8017E0B8, taskKill },
 };
 
-/// Message handler for the room. Messages 0x19, 1 and 0xF answer in the copy's
-/// `room` from story nibbles. Messages 0xB and 0xC run the room's own event
-/// gate: unless the event's nibble is already set, the message and event are
-/// latched, the nibble is set and the room's event task is spawned. Messages
-/// 0xD and 0xE go through the event gate `roomEventGate`
-/// and, when it fires, swap collected bits
-/// 0x10F / 0x112 for 0x113. Anything else is not consumed.
-s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
-{
-    RoomEventReq     req;
-    RoomLatchedEvent ev;
-    s32              ret;
+#include "../../shared/main_street_resolve_msg.inc.c"
 
-    *out = *msg;
-    if (msg->areaId == 0x19) {
-        if (gGameSession->location.loc.stage == 2) {
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (GameFlag_GetNibble(0x3A) >= 2) {
-                    out->room = 2;
-                } else {
-                    out->room = 1;
-                }
-            }
-        } else if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
-        }
-    }
-    if (msg->areaId == 1 && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x63) == 0) {
-            out->room = 1;
-        } else if (GameFlag_GetNibble(0x7A) >= 4) {
-            out->room = 4;
-        } else {
-            out->room = GameFlag_GetNibble(0x61) + 2;
-        }
-    }
-    if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    if (msg->areaId == 0x19 && GameFlag_GetNibble(0x61) != 0) {
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_SetNibbleIf(msg->flagId, 2);
-            Gp_RunCapCmd1(0x13);
-            return 2;
-        }
-        return 2;
-    }
-    if (msg->areaId == 0xB) {
-        ev.capCmd                                   = 3;
-        ev.stageSnd                                 = 0x52020005;
-        ev.flagId                                   = 0x57;
-        ev.fade                                     = 0;
-        D_dryfield_night_main_street_80188BB4.value = 0;
-        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
-            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
-                if (ev.flagId != 0) {
-                    GameFlag_SetNibble(ev.flagId, 1);
-                }
-                Task_SpawnFromTable(&D_dryfield_night_main_street_8018208C, 0, 0, 0);
-                D_dryfield_night_main_street_80188BB4.value = 1;
-                return 2;
-            }
-            return 2;
-        }
-        return 1;
-    } else if (msg->areaId == 0xC) {
-        ev.capCmd                                   = 4;
-        ev.stageSnd                                 = 0x52020005;
-        ev.flagId                                   = 0x58;
-        ev.fade                                     = 0;
-        D_dryfield_night_main_street_80188BB4.value = 0;
-        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
-            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
-                if (ev.flagId != 0) {
-                    GameFlag_SetNibble(ev.flagId, 1);
-                }
-                Task_SpawnFromTable(&D_dryfield_night_main_street_8018208C, 0, 0, 0);
-                D_dryfield_night_main_street_80188BB4.value = 1;
-                return 2;
-            }
-            return 2;
-        }
-        return 1;
-    } else if (msg->areaId == 0xD) {
-        req.capCmd        = 0xA;
-        req.missingCapCmd = 5;
-        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
-        req.secondSnd     = Gp_PackStageSndId(0x52020005);
-        req.flagId        = 0x41;
-        req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
-        if (ret == 0) {
-            ret = 2;
-        }
-        if (gRoomEventActive != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
-            Gp_SetItemSeenBit(0x113, 1);
-        }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x93) == 0) {
-            Gp_SetNibbleIf(msg->flagId, 0);
-        }
-        return ret;
-    } else if (msg->areaId == 0xE) {
-        req.capCmd        = 0xB;
-        req.missingCapCmd = 6;
-        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
-        req.secondSnd     = Gp_PackStageSndId(0x52020005);
-        req.flagId        = 0x42;
-        req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
-        if (ret == 0) {
-            ret = 2;
-        }
-        if (gRoomEventActive != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
-            Gp_SetItemSeenBit(0x113, 1);
-        }
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x94) == 0) {
-            Gp_SetNibbleIf(msg->flagId, 0);
-        }
-        return ret;
-    }
-    return 1;
-}
+#include "../../shared/main_street_play_time_task.inc.c"
 
-/// Waits for the CAP script to go idle, then records the play time when the
-/// script's event key is 1, drops collected bit 0x11A when 0x119 is also held,
-/// and ends.
-void func_dryfield_night_main_street_8017DE78(Task* task)
-{
-    if (Gp_CapBusy() == 0) {
-        if (Gp_GetCapEventKey() == 1) {
-            Gp_MarkPlayTime();
-        }
-        if (Gp_HasCollectedBit(0x119) != 0 && Gp_HasCollectedBit(0x11A) != 0) {
-            Gp_ClearCollectedBit(0x11A);
-        }
-        taskKill(task);
-    }
-}
+#include "../../shared/main_street_cap_sound_cue.inc.c"
 
-/// Plays the stage sound a CAP script cue asks for: cues 8, 9 and 0xC play
-/// their own sound (9 also plays 0xC's), and cues 0x65 and 0x78 play sound
-/// 0xD when the event key is 1 and 0 respectively.
-s32 func_dryfield_night_main_street_8017DEF0(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    switch (arg2) {
-        case 0x8:
-            Gp_EnqueueStageSnd6(0x52020008, 0, 0);
-            break;
-        case 0x9:
-            Gp_EnqueueStageSnd6(0x52020009, 0, 0);
-            /* fallthrough */
-        case 0xC:
-            Gp_EnqueueStageSnd6(0x5202000C, 0, 0);
-            break;
-        case 0x65:
-            if (Gp_GetCapEventKey() == 1) {
-                Gp_EnqueueStageSnd6(0x5202000D, 0, 0);
-            }
-            break;
-        case 0x78:
-            if (Gp_GetCapEventKey() == 0) {
-                Gp_EnqueueStageSnd6(0x5202000D, 0, 0);
-            }
-            break;
-    }
-    return 0;
-}
-
-/// Acts only on `arg2 == 1`. Once nibble 0x7B has reached 2 it ages flag
-/// 0x119, sets current-bit flag 0x1B unless collected bit 0x119 is held,
-/// spawns CAP entry 1 and the task above; before that it spawns CAP entry
-/// 0x14 instead.
-s32 func_dryfield_night_main_street_8017DFC8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
-{
-    if (arg2 == 1) {
-        if (GameFlag_GetNibble(0x7B) >= 2) {
-            Gp_AgeFlag119();
-            if (Gp_HasCollectedBit(0x119) == 0) {
-                Gp_SetCurBit2Flag(0x1B, 1);
-            }
-            Gp_SpawnIfCapIdle(1, 1);
-            Task_SpawnFromTable(&D_dryfield_night_main_street_801820A4, 0, 0, 0);
-        } else {
-            Gp_SpawnIfCapIdle(0x14, 1);
-        }
-    }
-    return 0;
-}
+#include "../../shared/main_street_talk_msg.inc.c"
 
 s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
@@ -1954,148 +1761,9 @@ void func_dryfield_night_main_street_8017E484(Task* task)
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-void func_dryfield_night_main_street_8017F3B0(Task* task)
-{
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+#include "../../shared/main_street_puff_task.inc.c"
 
-    work->age++;
-    if (task->state == 0) {
-        work->scale = task->spawnArg1.value & 0xFFF;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        work->angle = (Gp_LcgState >> 16) & 0xFFF;
-
-        if (task->spawnArg1.value & 0xF000) {
-            work->period = (task->spawnArg1.value >> 12) & 0x7;
-        } else {
-            work->period = 1;
-        }
-
-        work->age   = 0;
-        task->state = 1;
-
-        if (task->spawnArg1.value & 0xFF0000) {
-            f2a = (task->spawnArg1.value >> 16) & 0xFF;
-        } else {
-            f2a = 0x40;
-        }
-
-        work->step    = f2a;
-        work->move.vy = 0;
-        rng2          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng2;
-        work->move.vx = -(((u32)rng2 >> 16) & 0x7F);
-        rng3          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng3;
-        vz            = 0x80 - (((u32)rng3 >> 16) & 0xFF);
-        work->move.vz = vz;
-        VectorNormalSS(&work->move, &work->move);
-
-        gte_lddp(work->step);
-        gte_ldsv(&work->move);
-        gte_gpf12();
-        gte_stsv(&work->move);
-    }
-
-    func_dryfield_night_main_street_8017F608(coord, (u16)work->index, work->scale, work->angle);
-
-    coord->coord.t[0]  += work->move.vx;
-    coord->coord.t[1]  += work->move.vy;
-    coord->coord.t[2]  += work->move.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    if ((work->age % work->period) == 0) {
-        work->index++;
-        if (work->index >= 0xA) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative and `otz` is at least 0x41, queues one
-/// semi-transparent shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4383) rotated
-/// about the projected centre. `arg1` selects a 48-texel UV tile in a 5-wide
-/// grid: u = `(arg1 % 5) * 48`, v = `(arg1 / 5) * 48 - 0x80`. `arg2` is a
-/// signed half-extent; the on-screen radius is `(s16)arg2 * 47 / otz`.
-/// `arg3` is the spin angle, applied at `arg3` and `arg3 + 0x400` through
-/// `rsin`/`rcos`.
-static void func_dryfield_night_main_street_8017F608(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    void**             scratch;
-    GpEffFlareScratch* head;
-    GpEffFlareScratch* block;
-    s32*               otzp;
-    POLY_FT4*          prim;
-    s32                ang;
-    s32                ang2;
-    s32                sine;
-    s32                span;
-    s32                u0;
-    s32                v0;
-    s32                u1;
-    s32                v1;
-    u16                vz;
-    u16                tex;
-
-    scratch       = SCRATCH_HEAD_ADDR;
-    head          = SCRATCH_HEAD_AT(scratch, GpEffFlareScratch);
-    block         = head - 1;
-    block->vec.vx = (u16)arg0->workm.t[0];
-    block->vec.vy = (u16)arg0->workm.t[1];
-    vz            = (u16)arg0->workm.t[2];
-    otzp          = &block->otz;
-    *scratch      = block;
-    block->vec.vz = vz;
-    tex           = arg1;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(otzp);
-        if (block->otz >= 0x41) {
-            ang         = (s16)arg3;
-            prim->tpage = 0x2B;
-            prim->clut  = 0x4383;
-            prim->code |= 3;
-            u0          = (tex % 5) * 0x30;
-            v0          = (tex / 5) * 0x30;
-            u1          = u0 + 0x2F;
-            v1          = v0 - 0x51;
-            v0          = v0 - 0x80;
-            setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-            sine      = rsin(ang);
-            span      = (s16)arg2 * 0x2F;
-            block->dx = ((span / block->otz) * sine) >> 12;
-            block->dy = ((span / block->otz) * rcos(ang)) >> 12;
-            prim->x0  = block->sx + (u16)block->dx;
-            prim->x3  = block->sx - (u16)block->dx;
-            prim->y0  = block->sy - (u16)block->dy;
-            prim->y3  = block->sy + (u16)block->dy;
-            ang2      = ang + 0x400;
-            block->dx = ((span / block->otz) * rsin(ang2)) >> 12;
-            block->dy = ((span / block->otz) * rcos(ang2)) >> 12;
-            prim->x1  = block->sx + (u16)block->dx;
-            prim->x2  = block->sx - (u16)block->dx;
-            prim->y1  = block->sy - (u16)block->dy;
-            prim->y2  = block->sy + (u16)block->dy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
-}
+#include "../../shared/main_street_draw_puff.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

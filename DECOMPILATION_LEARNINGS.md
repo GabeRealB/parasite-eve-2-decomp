@@ -146193,3 +146193,9 @@ The three bytes after the flag are nonzero (`2, 240, 207` by day, `2, 0, 0` at
 night) and unreferenced. They cannot be a `u8[3]`, because `DATA_ALIGNMENT`
 word-aligns every array (see the entry on the 2-byte gap above) and the image
 grows by 4. Three `u8` scalars defined after the flag reproduce the bytes.
+
+The room-event flag `gRoomEventActive` has the same shape in the day
+`dryfield_main_street` (a scalar in the night package): declared `u8[4]`, the
+shared fragment's `gRoomEventActive != 0` compiled to an address test and the
+image came out 8 bytes short. Rooms that define `ROOM_EVENT_ACTIVE` as
+`gRoomEventActive[0]` are candidates for the same scalar split.

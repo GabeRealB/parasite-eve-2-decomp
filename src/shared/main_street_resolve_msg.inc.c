@@ -1,0 +1,132 @@
+/* Part of the Dryfield main street library; see main_street.h. */
+
+/// Message handler for the room. Messages 0x19, 1 and 0xF answer in the copy's
+/// `room` from story nibbles. Messages 0xB and 0xC run the room's own event
+/// gate: unless the event's nibble is already set, the message and event are
+/// latched, the nibble is set and the room's event task is spawned. Messages
+/// 0xD and 0xE go through the event gate `roomEventGate`
+/// and, when it fires, swap collected bits
+/// 0x10F / 0x112 for 0x113. Anything else is not consumed.
+s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
+{
+    RoomEventReq     req;
+    RoomLatchedEvent ev;
+    s32              ret;
+
+    *out = *msg;
+    if (msg->areaId == 0x19) {
+        if (gGameSession->location.loc.stage == 2) {
+            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
+                if (GameFlag_GetNibble(0x3A) >= 2) {
+                    out->room = 2;
+                } else {
+                    out->room = 1;
+                }
+            }
+        } else if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
+            out->room = GameFlag_GetNibble(0x61) + 1;
+        }
+    }
+    if (msg->areaId == 1 && msg->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (GameFlag_GetNibble(0x63) == 0) {
+            out->room = 1;
+        } else if (GameFlag_GetNibble(0x7A) >= 4) {
+            out->room = 4;
+        } else {
+            out->room = GameFlag_GetNibble(0x61) + 2;
+        }
+    }
+    if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
+        out->room = GameFlag_GetNibble(0x61) + 1;
+    }
+    if (msg->areaId == 0x19 && GameFlag_GetNibble(0x61) != 0) {
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
+            Gp_SetNibbleIf(msg->flagId, 2);
+            Gp_RunCapCmd1(0x13);
+            return 2;
+        }
+        return 2;
+    }
+    if (msg->areaId == 0xB) {
+        ev.capCmd                     = 3;
+        ev.stageSnd                   = 0x52020005;
+        ev.flagId                     = 0x57;
+        ev.fade                       = 0;
+        gMainStreetEventSpawned.value = 0;
+        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
+                gRoomEventStagedMsg     = *out;
+                gRoomEventLatched.value = ev;
+                if (ev.flagId != 0) {
+                    GameFlag_SetNibble(ev.flagId, 1);
+                }
+                Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
+                gMainStreetEventSpawned.value = 1;
+                return 2;
+            }
+            return 2;
+        }
+        return 1;
+    } else if (msg->areaId == 0xC) {
+        ev.capCmd                     = 4;
+        ev.stageSnd                   = 0x52020005;
+        ev.flagId                     = 0x58;
+        ev.fade                       = 0;
+        gMainStreetEventSpawned.value = 0;
+        if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
+            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
+                gRoomEventStagedMsg     = *out;
+                gRoomEventLatched.value = ev;
+                if (ev.flagId != 0) {
+                    GameFlag_SetNibble(ev.flagId, 1);
+                }
+                Task_SpawnFromTable(&gMainStreetEventTaskDesc, 0, 0, 0);
+                gMainStreetEventSpawned.value = 1;
+                return 2;
+            }
+            return 2;
+        }
+        return 1;
+    } else if (msg->areaId == 0xD) {
+        req.capCmd        = 0xA;
+        req.missingCapCmd = 5;
+        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
+        req.secondSnd     = Gp_PackStageSndId(0x52020005);
+        req.flagId        = 0x41;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
+        if (ret == 0) {
+            ret = 2;
+        }
+        if (gRoomEventActive != 0) {
+            Gp_ClearCollectedBit(0x10F);
+            Gp_ClearCollectedBit(0x112);
+            Gp_SetItemSeenBit(0x113, 1);
+        }
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x93) == 0) {
+            Gp_SetNibbleIf(msg->flagId, 0);
+        }
+        return ret;
+    } else if (msg->areaId == 0xE) {
+        req.capCmd        = 0xB;
+        req.missingCapCmd = 6;
+        req.firstSnd      = Gp_PackStageSndId(0x5202000A);
+        req.secondSnd     = Gp_PackStageSndId(0x52020005);
+        req.flagId        = 0x42;
+        req.collectedBit  = 0x13;
+        ret               = roomEventGate(&req, out);
+        if (ret == 0) {
+            ret = 2;
+        }
+        if (gRoomEventActive != 0) {
+            Gp_ClearCollectedBit(0x10F);
+            Gp_ClearCollectedBit(0x112);
+            Gp_SetItemSeenBit(0x113, 1);
+        }
+        if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x94) == 0) {
+            Gp_SetNibbleIf(msg->flagId, 0);
+        }
+        return ret;
+    }
+    return 1;
+}

@@ -2,9 +2,9 @@
 D_dryfield_night_main_street_80182178 = 0x80182178; // size:0x30 defined:True
 D_dryfield_night_main_street_801821A8 = 0x801821A8; // size:0x88 defined:True
 D_dryfield_night_main_street_80182230 = 0x80182230; // size:0x40 defined:True
-D_dryfield_night_main_street_8018208C = 0x8018208C; // size:0xC defined:True
+gMainStreetEventTaskDesc = 0x8018208C; // size:0xC defined:True
 gRoomEventTaskDesc = 0x80182098; // size:0xC defined:True
-D_dryfield_night_main_street_801820A4 = 0x801820A4; // size:0xC defined:True
+gMainStreetPlayTimeTaskDesc = 0x801820A4; // size:0xC defined:True
 D_dryfield_night_main_street_801820B0 = 0x801820B0; // size:0x30 defined:True
 D_dryfield_night_main_street_801820E0 = 0x801820E0; // size:0x10 defined:True
 D_dryfield_night_main_street_801820F0 = 0x801820F0; // size:0x10 defined:True
@@ -112,7 +112,7 @@ D_map_dryfield_full_8017ADF8 = 0x8017ADF8; // absolute:True
 D_map_dryfield_full_8017AE78 = 0x8017AE78; // absolute:True
 D_map_dryfield_full_8017AE98 = 0x8017AE98; // absolute:True
 gRoomEventStagedMsg = 0x80188BAC; // size:0x8 defined:True
-D_dryfield_night_main_street_80188BB4 = 0x80188BB4; // size:0x8 defined:True
+gMainStreetEventSpawned = 0x80188BB4; // size:0x8 defined:True
 gRoomEventMsg = 0x80188BBC; // size:0x8 defined:True
 gRoomEventActive = 0x80188BC4; // size:0x1 defined:True
 gRoomEventLatched = 0x80188BC8; // size:0x10 defined:True
@@ -120,7 +120,7 @@ gRoomEventReq = 0x80188BD8; // size:0x14 defined:True
 
 func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func
 
-func_dryfield_night_main_street_8017F3B0 = 0x8017F3B0; // type:func
+mainStreetPuffTask = 0x8017F3B0; // type:func
 
 func_dryfield_night_main_street_8017FA68 = 0x8017FA68; // type:func
 
@@ -140,3 +140,8 @@ roomEventGate = 0x8017D798; // type:func
 roomEventTask = 0x8017D8FC; // type:func
 glowDrawFlare = 0x8017F128; // type:func
 roomEventStagedTask = 0x8017D600; // type:func
+mainStreetResolveMsg = 0x8017DA6C; // type:func
+mainStreetPlayTimeTask = 0x8017DE78; // type:func
+mainStreetCapSoundCue = 0x8017DEF0; // type:func
+mainStreetTalkMsg = 0x8017DFC8; // type:func
+mainStreetDrawPuff = 0x8017F608; // type:func
