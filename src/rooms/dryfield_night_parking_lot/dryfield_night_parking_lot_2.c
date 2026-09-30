@@ -40,6 +40,8 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 /// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
@@ -86,7 +88,7 @@ AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
     { NULL, D_dryfield_night_parking_lot_8017E7E4, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_night_parking_lot_8017EC54 = { 0, 32, func_dryfield_night_parking_lot_8017D760, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { 5102, func_dryfield_night_parking_lot_8017D8D0 },

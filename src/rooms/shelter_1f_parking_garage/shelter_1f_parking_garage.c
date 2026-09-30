@@ -52,6 +52,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#define ROOM_EVENT_FADE gRoomEventFade
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -69,9 +71,9 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
 
-extern GpFadeWork   D_shelter_1f_parking_garage_80181974;
+extern GpFadeWork   gRoomEventFade;
 extern GpFadeWork   D_shelter_1f_parking_garage_80181978;
-extern RoomEventMsg D_shelter_1f_parking_garage_8018197C;
+extern RoomEventMsg gRoomEventStagedMsg;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -82,7 +84,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
 
 extern Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
-extern RoomLatchedEvent                  D_shelter_1f_parking_garage_80181998;
+extern RoomLatchedEvent                  gRoomEventLatched;
 
 static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
@@ -101,12 +103,11 @@ s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEven
 s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_shelter_1f_parking_garage_8017D7E8(Task*);
-void func_shelter_1f_parking_garage_8017D958(Task*);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
 
 TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, func_shelter_1f_parking_garage_8017D7E8, { .model = NULL } };
 
-TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, func_shelter_1f_parking_garage_8017D958, { .model = NULL } };
+TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
@@ -352,11 +353,11 @@ GpRoomParamRec* D_shelter_1f_parking_garage_80181954[8] = {
     D_shelter_1f_parking_garage_80181944,
 };
 
-GpFadeWork D_shelter_1f_parking_garage_80181974 = { 0 };
+GpFadeWork gRoomEventFade = { 0 };
 
 GpFadeWork D_shelter_1f_parking_garage_80181978 = { 0 };
 
-RoomEventMsg D_shelter_1f_parking_garage_8018197C = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_1f_parking_garage_80181984[4] = {
     0,
@@ -367,7 +368,7 @@ u8 D_shelter_1f_parking_garage_80181984[4] = {
 
 Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
 
-RoomLatchedEvent D_shelter_1f_parking_garage_80181998;
+RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
@@ -380,8 +381,8 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
     D_shelter_1f_parking_garage_80181984_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_1f_parking_garage_8018197C = *dst;
-            D_shelter_1f_parking_garage_80181998 = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }
@@ -547,57 +548,7 @@ void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
     }
 }
 
-/// The room's event task, spawned when the message handler starts an event.
-/// State 0 runs the latched event's CAP command; state 1 waits for it and,
-/// when the event's `fade` asks for it, spawns helper task 0x31; states 2
-/// and 3 play the event's stage sound, if any, and wait for it; state 4
-/// commits the latched message's area, warp and room to the save data, spawns
-/// task type 0x11 and kills itself.
-void func_shelter_1f_parking_garage_8017D958(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_parking_garage_80181998.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_parking_garage_80181998.fade != 0) {
-                    D_shelter_1f_parking_garage_80181974.field_0 = 0;
-                    D_shelter_1f_parking_garage_80181974.field_1 = 0;
-                    D_shelter_1f_parking_garage_80181974.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_parking_garage_80181974);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_1f_parking_garage_80181998.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_parking_garage_80181998.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_parking_garage_80181998.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_parking_garage_8018197C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_parking_garage_8018197C.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_parking_garage_8018197C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble

@@ -27,16 +27,18 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_night_parking_lot_8018156C[4];
+extern u8 gRoomEventActive[4];
 
 /// The `GpAreaApplyRec` list the 0x11 event applies when it fires.
 
 /// The message and request the event gate latched for its event task.
-extern RoomEventMsg D_dryfield_night_parking_lot_80181564;
-extern RoomEventReq D_dryfield_night_parking_lot_80181570;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
@@ -46,128 +48,23 @@ GpAreaApplyRec D_dryfield_night_parking_lot_8018155C[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomEventMsg D_dryfield_night_parking_lot_80181564 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_parking_lot_8018156C[4] = {
+u8 gRoomEventActive[4] = {
     0,
     63,
     252,
     16,
 };
 
-RoomEventReq D_dryfield_night_parking_lot_80181570;
+RoomEventReq gRoomEventReq;
 
-static s32  func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_parking_lot_8017DBB0(Task* task);
 static void func_dryfield_night_parking_lot_8017DC28(Task* task);
 
-/// The room's event gate. A request whose flag nibble is already set (or clear,
-/// for a negative `flagId`) answers 1. One whose prerequisite item is missing
-/// runs the request's CAP command `field_4` and answers 0. Otherwise the
-/// message and request are latched, the nibble is written, the event task is
-/// spawned and the answer is 2. A non-zero `queryOnly` on the message only
-/// reports the answer, with none of the side effects.
-static s32 func_dryfield_night_parking_lot_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                     = req->flagId;
-    D_dryfield_night_parking_lot_8018156C[0] = 0;
-    neg                                      = flag < 0;
-    got                                      = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_parking_lot_80181564 = *msg;
-                D_dryfield_night_parking_lot_80181570 = *req;
-                id                                    = req->flagId;
-                mode                                  = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_parking_lot_8017EC54, 0, 0, 0);
-                D_dryfield_night_parking_lot_8018156C[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns. State 0 runs the latched request's CAP
-/// command; states 1-4 play its two sounds in turn (`field_8`, then
-/// `field_C`), each skipped when zero and waited on until its voice falls
-/// silent; state 5 writes the latched message's destination into the save
-/// data and hands over to task type 0x11.
-void func_dryfield_night_parking_lot_8017D760(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_parking_lot_80181570.field_0);
-            if (D_dryfield_night_parking_lot_80181570.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_parking_lot_80181570.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_parking_lot_80181570.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_parking_lot_80181570.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_parking_lot_80181570.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_parking_lot_80181570.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_parking_lot_80181564.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_parking_lot_80181564.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_parking_lot_80181564.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Handler for message 0x13EE in the room's message table: the room's two
 /// reports and its two events. The incoming record is first copied to `out`.
@@ -178,7 +75,7 @@ void func_dryfield_night_parking_lot_8017D760(Task* task)
 /// it is set.
 ///
 /// Messages 0x11 and 0x12 are the events: each builds a request for the
-/// room's event gate `func_dryfield_night_parking_lot_8017D5FC` - message 0x11
+/// room's event gate `roomEventGate` - message 0x11
 /// on nibble 0x40 with item 0x12, message 0x12 on nibble 0x35 with item 0x10.
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `D_dryfield_night_parking_lot_8018155C` and sets nibbles 0x46 and 0x97,
@@ -216,11 +113,11 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x520F0007);
         req.flagId  = 0x40;
         req.itemId  = 0x12;
-        ret         = func_dryfield_night_parking_lot_8017D5FC(&req, out);
+        ret         = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_night_parking_lot_8018156C[0] != 0) {
+        if (gRoomEventActive[0] != 0) {
             Gp_ApplyAreaRecs(D_dryfield_night_parking_lot_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
@@ -232,8 +129,8 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x520F0007);
         req.flagId  = 0x35;
         req.itemId  = 0x10;
-        ret         = func_dryfield_night_parking_lot_8017D5FC(&req, out);
-        if (D_dryfield_night_parking_lot_8018156C[0] != 0) {
+        ret         = roomEventGate(&req, out);
+        if (gRoomEventActive[0] != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {

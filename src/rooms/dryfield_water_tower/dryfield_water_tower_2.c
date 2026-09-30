@@ -56,6 +56,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "overlay.h"
+#include "../../shared/room_events.h"
 
 extern ActorTransform D_dryfield_water_tower_80181A70[3];
 
@@ -419,7 +420,7 @@ extern s16*       D_dryfield_water_tower_80183584[16];
 void              func_dryfield_water_tower_8017F77C(Task*, s32, ActorTransform* placement);
 void              func_dryfield_water_tower_8017F808(Task*, s32, ActorCommand* msg);
 
-TaskDesc D_dryfield_water_tower_80180394 = { 0, 32, func_dryfield_water_tower_8017D7D8, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 DryfieldWaterTowerMessageEntry D_dryfield_water_tower_801803A0[7] = {
     { 5102, { .call1 = func_dryfield_water_tower_8017DAF8 } },

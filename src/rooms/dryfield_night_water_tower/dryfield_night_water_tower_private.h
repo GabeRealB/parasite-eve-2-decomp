@@ -7,12 +7,11 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_water_tower_8017E6E0;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_water_tower_8017E6EC[6];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_water_tower_8017D770(Task*);
 
 s32 func_dryfield_night_water_tower_8017D8E0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

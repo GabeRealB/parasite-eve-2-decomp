@@ -30,6 +30,7 @@ Task* D_dryfield_water_tower_801876A4;
 #include "main/task.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -37,13 +38,13 @@ Task* D_dryfield_water_tower_801876A4;
 /// The saved view byte the scene task keeps while its CAP command runs, and
 /// puts back when the answer is not 0xA.
 
-/// The event the room's gate `func_dryfield_water_tower_8017D674` latched:
+/// The event the room's gate `roomEventGate` latched:
 /// the incoming message and the request, kept for the event task it spawns
-/// from `D_dryfield_water_tower_80180394`, and the flag the gate sets once it
+/// from `gRoomEventTaskDesc`, and the flag the gate sets once it
 /// has done so.
-extern RoomEventMsg D_dryfield_water_tower_80187694;
-extern RoomEventReq D_dryfield_water_tower_801876B0;
-extern u8           D_dryfield_water_tower_8018769C;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
+extern u8           gRoomEventActive;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
@@ -54,124 +55,19 @@ static void func_dryfield_water_tower_8017DDD0(Task* task);
 
 static void func_dryfield_water_tower_8017DCB4(void);
 
-RoomEventMsg D_dryfield_water_tower_80187694 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_water_tower_8018769C = 0;
+u8 gRoomEventActive = 0;
 
 u16 D_dryfield_water_tower_801876A8;
 
 Task* D_dryfield_water_tower_801876AC;
 
-RoomEventReq D_dryfield_water_tower_801876B0;
+RoomEventReq gRoomEventReq;
 
-static s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// The room's event gate. A request whose flag nibble is already set (or clear,
-/// for a negative `flagId`) answers 1. One whose prerequisite item is missing
-/// runs the request's CAP command and answers 0. Otherwise the message and
-/// request are latched, the nibble is written, the event task is spawned and
-/// the answer is 2. A non-zero `queryOnly` on the message only reports the
-/// answer, with none of the side effects.
-static s32 func_dryfield_water_tower_8017D674(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                            = req->flagId;
-    D_dryfield_water_tower_8018769C = 0;
-    neg                             = flag < 0;
-    got                             = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_water_tower_80187694 = *msg;
-                D_dryfield_water_tower_801876B0 = *req;
-                id                              = req->flagId;
-                mode                            = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_water_tower_80180394, 0, 0, 0);
-                D_dryfield_water_tower_8018769C = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's CAP command,
-/// plays its two sound events in turn and waits for each to finish, then
-/// writes the latched message's destination into the save data and hands over
-/// to task type 0x11 to load it.
-void func_dryfield_water_tower_8017D7D8(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_water_tower_801876B0.field_0);
-            if (D_dryfield_water_tower_801876B0.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_water_tower_801876B0.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_water_tower_801876B0.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_water_tower_801876B0.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_water_tower_801876B0.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_water_tower_801876B0.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_water_tower_80187694.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_water_tower_80187694.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_water_tower_80187694.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room entry task's three states: install the room and spawn the cap
 /// script, idle, and `taskKill`.
@@ -257,11 +153,11 @@ s32 func_dryfield_water_tower_8017DAF8(Task* task, s32 msgId, RoomEventMsg* msg,
         req.field_C = Gp_PackStageSndId(0x52140003);
         req.flagId  = 0x34;
         req.itemId  = 0x10;
-        ret         = func_dryfield_water_tower_8017D674(&req, msg);
+        ret         = roomEventGate(&req, msg);
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_water_tower_8018769C != 0) {
+        if (gRoomEventActive != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
         return ret;

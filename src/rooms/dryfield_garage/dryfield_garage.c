@@ -38,20 +38,22 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_garage_8018022C[4];
+extern u8 gRoomEventActive[4];
 
 extern TaskDesc D_80141B6C[];
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
-extern RoomEventMsg D_dryfield_garage_80180224;
-extern RoomEventReq D_dryfield_garage_80180230;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
-/// Descriptor of the event task `func_dryfield_garage_8017D74C`.
-extern TaskDesc D_dryfield_garage_8017DC70;
+/// Descriptor of the event task `roomEventTask`.
+extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, installed on the room task by its entry state.
 extern GpMsgEntry D_dryfield_garage_8017DC7C[];
@@ -73,7 +75,6 @@ STATIC_ASSERT_SIZEOF(DryfieldGarageStorage021C, 8);
 
 extern DryfieldGarageStorage021C D_dryfield_garage_8018021C;
 
-void        func_dryfield_garage_8017D74C(Task* task);
 static void func_dryfield_garage_8017DB18(Task* arg0);
 static void func_dryfield_garage_8017DC08(Task* task);
 
@@ -89,10 +90,9 @@ s32                               func_dryfield_garage_8017D914(Task*, s32, Task
 s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, TaskMessageArg);
 s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, TaskMessageArg);
-void                              func_dryfield_garage_8017D74C(Task*);
 void                              func_dryfield_garage_8017DAA0(Task*);
 
-TaskDesc D_dryfield_garage_8017DC70 = { 0, 32, func_dryfield_garage_8017D74C, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_garage_8017DC7C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
@@ -597,125 +597,20 @@ GpAreaApplyRec D_dryfield_garage_80180204[6] = {
 
 DryfieldGarageStorage021C D_dryfield_garage_8018021C = { 0 };
 
-RoomEventMsg D_dryfield_garage_80180224 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_garage_8018022C[4] = {
+u8 gRoomEventActive[4] = {
     0,
     222,
     221,
     253,
 };
 
-RoomEventReq D_dryfield_garage_80180230;
+RoomEventReq gRoomEventReq;
 
-static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// Event gate for a room exit. Returns 1 when game-flag nibble `req->flagId`
-/// already reads set (clear, for a negative id). Otherwise, when
-/// `req->itemId` has been collected or is 0, it returns 2 and - unless
-/// `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets the
-/// nibble and spawns the event task. When the item is missing it returns 0
-/// and, outside a dry run, runs cap command `req->field_4`. Nothing in this
-/// room calls it.
-static s32 func_dryfield_garage_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                          = req->flagId;
-    D_dryfield_garage_8018022C[0] = 0;
-    neg                           = flag < 0;
-    got                           = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_garage_80180224 = *msg;
-                D_dryfield_garage_80180230 = *req;
-                id                         = req->flagId;
-                mode                       = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_garage_8017DC70, 0, 0, 0);
-                D_dryfield_garage_8018022C[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's cap command,
-/// plays its two sound ids in turn, each waited out, then warps to the area,
-/// warp point and room the latched message names.
-void func_dryfield_garage_8017D74C(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_garage_80180230.field_0);
-            if (D_dryfield_garage_80180230.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_garage_80180230.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_garage_80180230.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_garage_80180230.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_garage_80180230.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_garage_80180230.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_garage_80180224.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_garage_80180224.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_garage_80180224.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_garage_8017DC10`: the entry state

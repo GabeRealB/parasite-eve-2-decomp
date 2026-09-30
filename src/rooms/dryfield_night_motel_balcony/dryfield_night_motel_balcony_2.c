@@ -23,12 +23,14 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 void func_dryfield_night_motel_balcony_8017E068(Task*);
 
 void func_dryfield_night_motel_balcony_8017DDD0(Task*);
 
-TaskDesc D_dryfield_night_motel_balcony_801827F8 = { 0, 32, func_dryfield_night_motel_balcony_8017D7F8, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_motel_balcony_80182804[6] = {
     { 5102, func_dryfield_night_motel_balcony_8017D968 },

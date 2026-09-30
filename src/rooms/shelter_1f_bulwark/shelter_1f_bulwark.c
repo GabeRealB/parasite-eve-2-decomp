@@ -58,6 +58,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#define ROOM_EVENT_FADE gRoomEventFade
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -71,10 +73,10 @@ extern TaskDesc         D_shelter_1f_bulwark_80180354;
 extern TaskDesc         D_shelter_1f_bulwark_80180360[];
 extern SVECTOR          D_shelter_1f_bulwark_80180378[];
 extern SVECTOR          D_shelter_1f_bulwark_80180398[];
-extern GpFadeWork       D_shelter_1f_bulwark_80180EBC;
+extern GpFadeWork       gRoomEventFade;
 extern GpFadeWork       D_shelter_1f_bulwark_80180EC0;
-extern RoomEventMsg     D_shelter_1f_bulwark_80180EC4;
-extern RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
+extern RoomEventMsg     gRoomEventStagedMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_bulwark_8017DBD4(Task* task);
 static void func_shelter_1f_bulwark_8017DC18(Task* task);
@@ -89,12 +91,11 @@ s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, TaskMessageArg, TaskMessageArg);
-void func_shelter_1f_bulwark_8017D61C(Task*);
 void func_shelter_1f_bulwark_8017DA60(Task*);
 void func_shelter_1f_bulwark_8017DC78(Task*);
 void func_shelter_1f_bulwark_8017DE04(Task*);
 
-TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, func_shelter_1f_bulwark_8017D61C, { .model = NULL } };
+TaskDesc D_shelter_1f_bulwark_80180320 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_bulwark_8018032C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_bulwark_8017D7B4 },
@@ -291,11 +292,11 @@ GpRoomParamRec* D_shelter_1f_bulwark_80180E9C[8] = {
     D_shelter_1f_bulwark_80180E8C,
 };
 
-GpFadeWork D_shelter_1f_bulwark_80180EBC = { 0 };
+GpFadeWork gRoomEventFade = { 0 };
 
 GpFadeWork D_shelter_1f_bulwark_80180EC0 = { 0 };
 
-RoomEventMsg D_shelter_1f_bulwark_80180EC4 = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_bulwark_80180ECC[4] = {
     0,
@@ -304,70 +305,20 @@ s8 D_shelter_1f_bulwark_80180ECC[4] = {
     -119,
 };
 
-RoomLatchedEvent D_shelter_1f_bulwark_80180ED0;
+RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
-/// The room's event task, spawned by its message handler for a latched event.
-/// State 0 runs the event's CAP command; state 1 waits for it to finish and,
-/// when the event asks for it, starts helper task 0x31; states 2 and 3 play
-/// the event's stage sound, if any, and wait for it to end; state 4 moves the
-/// save location to the latched message's area, warp and room and hands over
-/// to task type 0x11.
-void func_shelter_1f_bulwark_8017D61C(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_bulwark_80180ED0.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_bulwark_80180ED0.fade != 0) {
-                    D_shelter_1f_bulwark_80180EBC.field_0 = 0;
-                    D_shelter_1f_bulwark_80180EBC.field_1 = 0;
-                    D_shelter_1f_bulwark_80180EBC.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EBC);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_1f_bulwark_80180ED0.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_bulwark_80180ED0.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_bulwark_80180ED0.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_shelter_1f_bulwark_80180EC4.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_bulwark_80180EC4.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_bulwark_80180EC4.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_bulwark_80180ECC_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_1f_bulwark_80180EC4 = *dst;
-            D_shelter_1f_bulwark_80180ED0 = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

@@ -9,14 +9,13 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_parking_lot_8017EC54;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6];
 
 extern GpEvsCmd D_dryfield_night_parking_lot_8017ECB4[11];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_parking_lot_8017D760(Task*);
 
 s32 func_dryfield_night_parking_lot_8017D8D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

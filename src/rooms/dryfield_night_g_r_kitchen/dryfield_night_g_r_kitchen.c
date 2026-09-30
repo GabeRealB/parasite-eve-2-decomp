@@ -45,18 +45,20 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_night_g_r_kitchen_8017EC2C[4];
+extern u8 gRoomEventActive[4];
 
-/// The event the room's gate `func_dryfield_night_g_r_kitchen_8017D5E8`
+/// The event the room's gate `roomEventGate`
 /// latched: the incoming message and the request, kept for the event task it
-/// spawns from `D_dryfield_night_g_r_kitchen_8017E248`, and the flag the gate
+/// spawns from `gRoomEventTaskDesc`, and the flag the gate
 /// sets once it has done so.
-extern RoomEventMsg D_dryfield_night_g_r_kitchen_8017EC24;
-extern RoomEventReq D_dryfield_night_g_r_kitchen_8017EC30;
-extern TaskDesc     D_dryfield_night_g_r_kitchen_8017E248;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
+extern TaskDesc     gRoomEventTaskDesc;
 
 /// The room's message table, `(msgId, handler)` pairs ending at 0x7FFFFFFF,
 /// which the entry task installs as its own `Task::msgTable`.
@@ -68,18 +70,17 @@ extern GpMsgEntry D_dryfield_night_g_r_kitchen_8017E254[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
-void func_dryfield_night_g_r_kitchen_8017D74C(Task*);
-s32  func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_g_r_kitchen_8017E554[1];
 extern GpObj4C        D_dryfield_night_g_r_kitchen_8017E864[2];
 extern GpObj4C        D_dryfield_night_g_r_kitchen_8017E8FC[7];
 extern GpRoomCoordSet D_dryfield_night_g_r_kitchen_8017E84C[1];
 
-TaskDesc D_dryfield_night_g_r_kitchen_8017E248 = { 0, 32, func_dryfield_night_g_r_kitchen_8017D74C, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_g_r_kitchen_8017D8C4 },
@@ -273,127 +274,23 @@ GpRoomParamRec* D_dryfield_night_g_r_kitchen_8017EC04[8] = {
     D_dryfield_night_g_r_kitchen_8017EBF4,
 };
 
-RoomEventMsg D_dryfield_night_g_r_kitchen_8017EC24 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_g_r_kitchen_8017EC2C[4] = {
+u8 gRoomEventActive[4] = {
     0,
     0,
     222,
     254,
 };
 
-RoomEventReq D_dryfield_night_g_r_kitchen_8017EC30;
+RoomEventReq gRoomEventReq;
 
-static s32  func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_g_r_kitchen_8017D958(Task* task);
 static void func_dryfield_night_g_r_kitchen_8017D99C(Task* task);
 
-/// The room's event gate. A request whose flag nibble is already set (or clear,
-/// for a negative `flagId`) answers 1. One whose prerequisite item is missing
-/// runs the request's CAP command and answers 0. Otherwise the message and
-/// request are latched, the nibble is written, the event task is spawned and
-/// the answer is 2. A non-zero `queryOnly` on the message only reports the
-/// answer, with none of the side effects.
-static s32 func_dryfield_night_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                     = req->flagId;
-    D_dryfield_night_g_r_kitchen_8017EC2C[0] = 0;
-    neg                                      = flag < 0;
-    got                                      = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_g_r_kitchen_8017EC24 = *msg;
-                D_dryfield_night_g_r_kitchen_8017EC30 = *req;
-                id                                    = req->flagId;
-                mode                                  = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_g_r_kitchen_8017E248, 0, 0, 0);
-                D_dryfield_night_g_r_kitchen_8017EC2C[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's CAP command,
-/// plays its two sound events in turn and waits for each to finish, then
-/// writes the latched message's destination into the save data and hands over
-/// to task type 0x11 to load it.
-void func_dryfield_night_g_r_kitchen_8017D74C(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_g_r_kitchen_8017EC30.field_0);
-            if (D_dryfield_night_g_r_kitchen_8017EC30.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_g_r_kitchen_8017EC30.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_g_r_kitchen_8017EC30.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_g_r_kitchen_8017EC30.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_g_r_kitchen_8017EC30.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_g_r_kitchen_8017EC30.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_g_r_kitchen_8017EC24.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_g_r_kitchen_8017EC24.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_g_r_kitchen_8017EC24.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room's handler for message 0x13F1: answers 0.
 s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -418,7 +315,7 @@ s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg*
         req.field_C = 0x53130004;
         req.flagId  = 0x34;
         req.itemId  = 0;
-        return func_dryfield_night_g_r_kitchen_8017D5E8(&req, in);
+        return roomEventGate(&req, in);
     }
     return 1;
 }

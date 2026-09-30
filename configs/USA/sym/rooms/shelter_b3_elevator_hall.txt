@@ -2,7 +2,7 @@
 D_shelter_b3_elevator_hall_80182A74 = 0x80182A74; // size:0x40 defined:True
 D_shelter_b3_elevator_hall_80182AB4 = 0x80182AB4; // size:0x40 defined:True
 D_shelter_b3_elevator_hall_80182AF4 = 0x80182AF4; // size:0x40 defined:True
-D_shelter_b3_elevator_hall_80182A20 = 0x80182A20; // size:0xC defined:True
+gRoomEventTaskDesc = 0x80182A20; // size:0xC defined:True
 D_shelter_b3_elevator_hall_80182A2C = 0x80182A2C; // size:0xC defined:True
 D_shelter_b3_elevator_hall_80182A38 = 0x80182A38; // size:0x30 defined:True
 D_shelter_b3_elevator_hall_80182A68 = 0x80182A68; // size:0xC defined:True
@@ -61,10 +61,10 @@ D_8013647C = 0x8013647C; // absolute:True
 D_80142604 = 0x80142604; // absolute:True
 D_80148110 = 0x80148110; // absolute:True
 D_8015F400 = 0x8015F400; // absolute:True
-D_shelter_b3_elevator_hall_80184A00 = 0x80184A00; // size:0x8 defined:True
-D_shelter_b3_elevator_hall_80184A08 = 0x80184A08; // size:0x4 defined:True
-D_shelter_b3_elevator_hall_80184A0C = 0x80184A0C; // size:0x14 defined:True
-_gRoomEffectHaloShades = 0x80182B34; // size:0x14 defined:True
+gRoomEventMsg = 0x80184A00; // size:0x8 defined:True
+gRoomEventActive = 0x80184A08; // size:0x4 defined:True
+gRoomEventReq = 0x80184A0C; // size:0x14 defined:True
+RoomFx_HaloShades = 0x80182B34; // size:0x14 defined:True
 
 func_shelter_b3_elevator_hall_8017DE70 = 0x8017DE70; // type:func
 
@@ -93,3 +93,5 @@ RoomFx_DrawFlyingDisc = 0x80181C3C; // type:func
 RoomFx_DrawBurst2Glow = 0x8018217C; // type:func
 RoomFx_DrawGround2Quad = 0x801826A8; // type:func
 glowDrawCapsule = 0x8017DFB0; // type:func
+roomEventGate = 0x8017D62C; // type:func
+roomEventTask = 0x8017D790; // type:func

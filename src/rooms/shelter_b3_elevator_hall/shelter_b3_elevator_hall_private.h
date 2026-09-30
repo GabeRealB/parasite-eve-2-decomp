@@ -7,10 +7,10 @@
 
 #include "rooms/room_common.h"
 
-extern RoomEventMsg D_shelter_b3_elevator_hall_80184A00;
+extern RoomEventMsg gRoomEventMsg;
 
-extern u8 D_shelter_b3_elevator_hall_80184A08[4];
+extern u8 gRoomEventActive[4];
 
-extern RoomEventReq D_shelter_b3_elevator_hall_80184A0C;
+extern RoomEventReq gRoomEventReq;
 
 #endif // SRC_ROOMS_SHELTER_B3_ELEVATOR_HALL_SHELTER_B3_ELEVATOR_HALL_PRIVATE_H

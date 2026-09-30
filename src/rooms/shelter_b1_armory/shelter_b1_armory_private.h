@@ -20,11 +20,11 @@ extern s32 Shop_Data_80187628;
 
 extern GpItemMap* Shop_Data_8018762C;
 
-extern RoomEventMsg D_shelter_b1_armory_80185584;
+extern RoomEventMsg gRoomEventMsg;
 
-extern u8 D_shelter_b1_armory_8018558C[4];
+extern u8 gRoomEventActive[4];
 
-extern RoomEventReq D_shelter_b1_armory_80185590;
+extern RoomEventReq gRoomEventReq;
 
 extern ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C;
 

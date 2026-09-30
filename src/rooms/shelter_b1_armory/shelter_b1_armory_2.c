@@ -33,6 +33,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 #define D_shelter_b1_armory_80182538 (D_shelter_b1_armory_80182528 + 2)
 #define D_shelter_b1_armory_80182558 (D_shelter_b1_armory_80182528 + 6)
@@ -532,16 +534,16 @@ GpItemMap* Shop_Data_8018762C = NULL;
 
 ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C = { 0 };
 
-RoomEventMsg D_shelter_b1_armory_80185584 = { 0, 0, 0, 0, 0, 0 };
+RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
-u8 D_shelter_b1_armory_8018558C[4] = {
+u8 gRoomEventActive[4] = {
     0,
     237,
     62,
     46,
 };
 
-RoomEventReq D_shelter_b1_armory_80185590;
+RoomEventReq gRoomEventReq;
 
 void func_shelter_b1_armory_801807E4(Task* unused)
 {

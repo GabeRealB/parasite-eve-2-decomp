@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b2_south_maintenance_walkway.
 D_actor_444000_801528DC = 0x801528DC; // absolute:True
 RoomFx_DiscShades = 0x80182630; // size:0xC defined:True
-D_shelter_b2_south_maintenance_walkway_80182538 = 0x80182538; // size:0xC defined:True
+gRoomEventTaskDesc = 0x80182538; // size:0xC defined:True
 D_shelter_b2_south_maintenance_walkway_80182544 = 0x80182544; // size:0xC defined:True
 D_shelter_b2_south_maintenance_walkway_80182550 = 0x80182550; // size:0x28 defined:True
 D_shelter_b2_south_maintenance_walkway_80182578 = 0x80182578; // size:0xA8 defined:True
@@ -42,7 +42,7 @@ D_shelter_b2_south_maintenance_walkway_80183898 = 0x80183898; // size:0xC define
 D_shelter_b2_south_maintenance_walkway_801838A4 = 0x801838A4; // size:0x8 defined:True
 D_shelter_b2_south_maintenance_walkway_801838AC = 0x801838AC; // size:0x8 defined:True
 D_shelter_b2_south_maintenance_walkway_801838B4 = 0x801838B4; // size:0x20 defined:True
-D_shelter_b2_south_maintenance_walkway_801838D4 = 0x801838D4; // size:0x8 defined:True
+gRoomEventFade = 0x801838D4; // size:0x8 defined:True
 D_80135C30 = 0x80135C30; // absolute:True
 D_8013647C = 0x8013647C; // absolute:True
 D_80142604 = 0x80142604; // absolute:True
@@ -53,12 +53,12 @@ D_801528DC = 0x801528DC; // absolute:True
 D_80153EC8 = 0x80153EC8; // absolute:True
 D_8015FAB8 = 0x8015FAB8; // absolute:True
 RoomFx_TrailOffsets = 0x80182620; // size:0x10 defined:True
-D_shelter_b2_south_maintenance_walkway_801838DC = 0x801838DC; // size:0x8 defined:True
-D_shelter_b2_south_maintenance_walkway_801838E4 = 0x801838E4; // size:0x8 defined:True
-D_shelter_b2_south_maintenance_walkway_801838EC = 0x801838EC; // size:0x8 defined:True
+gRoomEventMsg = 0x801838DC; // size:0x8 defined:True
+gRoomEventActive = 0x801838E4; // size:0x8 defined:True
+gRoomEventStagedMsg = 0x801838EC; // size:0x8 defined:True
 D_shelter_b2_south_maintenance_walkway_801838F4 = 0x801838F4; // size:0x4 defined:True
-D_shelter_b2_south_maintenance_walkway_801838F8 = 0x801838F8; // size:0x20 defined:True
-D_shelter_b2_south_maintenance_walkway_80183918 = 0x80183918; // size:0xC defined:True
+gRoomEventReq = 0x801838F8; // size:0x20 defined:True
+gRoomEventLatched = 0x80183918; // size:0xC defined:True
 
 func_shelter_b2_south_maintenance_walkway_8017DCC4 = 0x8017DCC4; // type:func
 
@@ -84,3 +84,6 @@ RoomFx_DrawBurst2Glow = 0x80181C94; // type:func
 RoomFx_DrawGround2Quad = 0x801821C0; // type:func
 glowDrawCone = 0x8017DEC4; // type:func
 glowDrawRedDisc = 0x8017E640; // type:func
+roomEventGate = 0x8017D610; // type:func
+roomEventTask = 0x8017D774; // type:func
+roomEventStagedTask = 0x8017D8E4; // type:func

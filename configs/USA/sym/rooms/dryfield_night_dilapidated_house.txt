@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_dilapidated_house.
-D_dryfield_night_dilapidated_house_8018A104 = 0x8018A104; // size:0x8 defined:True
+gRoomEventMsg = 0x8018A104; // size:0x8 defined:True
 D_dryfield_night_dilapidated_house_801872CC = 0x801872CC; // size:0xC0 defined:True
 D_dryfield_night_dilapidated_house_8018738C = 0x8018738C; // size:0x8 defined:True
 D_dryfield_night_dilapidated_house_80187394 = 0x80187394; // size:0x10 defined:True
@@ -57,9 +57,9 @@ D_80156500 = 0x80156500; // absolute:True
 D_map_dryfield_full_8017B558 = 0x8017B558; // absolute:True
 D_map_dryfield_full_8017B5D8 = 0x8017B5D8; // absolute:True
 D_map_dryfield_full_8017B648 = 0x8017B648; // absolute:True
-D_dryfield_night_dilapidated_house_8018A10C = 0x8018A10C; // size:0x4 defined:True
-D_dryfield_night_dilapidated_house_8018A110 = 0x8018A110; // size:0x14 defined:True
-D_dryfield_night_dilapidated_house_8017E6F4 = 0x8017E6F4; // size:0xC defined:True
+gRoomEventActive = 0x8018A10C; // size:0x4 defined:True
+gRoomEventReq = 0x8018A110; // size:0x14 defined:True
+gRoomEventTaskDesc = 0x8017E6F4; // size:0xC defined:True
 D_dryfield_night_dilapidated_house_8017E700 = 0x8017E700; // size:0x28 defined:True
 D_dryfield_night_dilapidated_house_8017E728 = 0x8017E728; // size:0x48 defined:True
 D_dryfield_night_dilapidated_house_8017E770 = 0x8017E770; // size:0xB8 defined:True
@@ -299,3 +299,5 @@ D_dryfield_night_dilapidated_house_801868F4 = 0x801868F4; // size:0x840 defined:
 D_dryfield_night_dilapidated_house_80187134 = 0x80187134; // size:0x180 defined:True
 
 func_dryfield_night_dilapidated_house_8017E670 = 0x8017E670; // type:func
+roomEventGate = 0x8017D600; // type:func
+roomEventTask = 0x8017D764; // type:func

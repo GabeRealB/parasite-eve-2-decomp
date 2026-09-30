@@ -64,6 +64,8 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
+#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+#include "../../shared/room_events.h"
 
 // Unreferenced leading zero word immediately before the independently addressed task descriptor. It does not align the descriptor, whose address is only word aligned. Preserve the word with the neighboring descriptor; original ownership remains unresolved.
 typedef struct {
@@ -80,11 +82,11 @@ extern u8 D_shelter_b2_main_corridor_8018965C[4];
 extern u8 D_shelter_b2_main_corridor_8018965C_value __asm__("D_shelter_b2_main_corridor_8018965C");
 
 /// Spawn argument of the helper task 0x31 the room's exit task starts.
-extern RoomFadeStorage D_shelter_b2_main_corridor_8018964C;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The outgoing message of the exit being taken; the exit task copies its
 /// destination into the save location.
-extern RoomEventMsg D_shelter_b2_main_corridor_80189654;
+extern RoomEventMsg gRoomEventStagedMsg;
 
 /// Cleared whenever the handler considers an exit, set once the exit task has
 /// been spawned. Nothing else in the room reads it.
@@ -112,7 +114,7 @@ typedef struct {
 } ShelterB2MainCorridorStorage9674;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9674, 16);
 
-extern ShelterB2MainCorridorStorage9674 D_shelter_b2_main_corridor_80189674;
+extern ShelterB2MainCorridorStorage9674 gRoomEventLatched;
 
 /// The staged event block, read by the task spawned from
 /// `D_shelter_b2_main_corridor_80182C44`.
@@ -175,7 +177,6 @@ s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, TaskMessageArg, TaskMess
 s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
 void func_shelter_b2_main_corridor_8017D6BC(Task*);
-void func_shelter_b2_main_corridor_8017D82C(Task*);
 void func_shelter_b2_main_corridor_8017DEB0(Task*);
 void func_shelter_b2_main_corridor_8017E210(Task*);
 void func_shelter_b2_main_corridor_8017EB8C(Task*);
@@ -204,7 +205,7 @@ AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
     { NULL, D_shelter_b2_main_corridor_801828F0, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b2_main_corridor_80182C08 = { 0, 32, func_shelter_b2_main_corridor_8017D82C, { .model = NULL } };
+TaskDesc D_shelter_b2_main_corridor_80182C08 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_main_corridor_80182C14[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_main_corridor_8017D9C4 },
@@ -1580,9 +1581,9 @@ GpAreaApplyRec D_shelter_b2_main_corridor_80189644[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomFadeStorage D_shelter_b2_main_corridor_8018964C = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b2_main_corridor_80189654 = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_main_corridor_8018965C[4] = {
     0,
@@ -1595,7 +1596,7 @@ u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
 ShelterB2MainCorridorStorage9664 D_shelter_b2_main_corridor_80189664 = { 0 };
 
-ShelterB2MainCorridorStorage9674 D_shelter_b2_main_corridor_80189674 = { { 0 }, { 0 } };
+ShelterB2MainCorridorStorage9674 gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
@@ -1656,58 +1657,7 @@ void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
     }
 }
 
-/// Carries out a room exit staged by the message handler in
-/// `D_shelter_b2_main_corridor_80189674.value`. State 0 runs the exit's capture
-/// command; state 1 waits for it to finish and, when the exit's `field_A` asks
-/// for it, spawns helper task 0x31; states 2 and 3 queue the exit's stage
-/// sound, if any, and wait for its voice to end. State 4 copies the destination
-/// of the outgoing message `D_shelter_b2_main_corridor_80189654` into the save
-/// location and spawns the room-load task 0x11.
-void func_shelter_b2_main_corridor_8017D82C(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b2_main_corridor_80189674.value.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_main_corridor_80189674.value.fade != 0) {
-                    D_shelter_b2_main_corridor_8018964C.fade.field_0 = 0;
-                    D_shelter_b2_main_corridor_8018964C.fade.field_1 = 0;
-                    D_shelter_b2_main_corridor_8018964C.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b2_main_corridor_8018964C.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b2_main_corridor_80189674.value.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_main_corridor_80189674.value.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_main_corridor_80189674.value.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_main_corridor_80189654.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_main_corridor_80189654.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_main_corridor_80189654.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
@@ -1778,8 +1728,8 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
         if (out->queryOnly != ROOM_EVENT_EXECUTE) {
             return 2;
         }
-        D_shelter_b2_main_corridor_80189654       = *out;
-        D_shelter_b2_main_corridor_80189674.value = staged;
+        gRoomEventStagedMsg     = *out;
+        gRoomEventLatched.value = staged;
         if (p->flagId != 0) {
             GameFlag_SetNibble(p->flagId, 1);
         }

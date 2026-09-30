@@ -52,14 +52,17 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive.value
+#define ROOM_EVENT_REQ    gRoomEventReq.value
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b1_access_tunnel_8017FF6C[4];
 
-/// Task descriptor `func_shelter_b1_access_tunnel_8017D5FC` spawns when a
+/// Task descriptor `roomEventGate` spawns when a
 /// gated event fires.
-extern TaskDesc D_shelter_b1_access_tunnel_8017E704;
+extern TaskDesc gRoomEventTaskDesc;
 
 /// Task descriptor for the room's event task, spawned when the message handler
 /// starts the latched event.
@@ -73,13 +76,13 @@ extern SVECTOR D_shelter_b1_access_tunnel_8017E7B4[];
 extern SVECTOR D_shelter_b1_access_tunnel_8017E7D4[];
 
 extern GpAreaApplyRec  D_shelter_b1_access_tunnel_8017FF44[];
-extern RoomFadeStorage D_shelter_b1_access_tunnel_8017FF4C;
+extern RoomFadeStorage gRoomEventFade;
 
 /// Copy of the message that fired a gated event, kept for the task
-/// `func_shelter_b1_access_tunnel_8017D760` to warp from.
-extern RoomEventMsg D_shelter_b1_access_tunnel_8017FF54;
+/// `roomEventTask` to warp from.
+extern RoomEventMsg gRoomEventMsg;
 
-/// Set by `func_shelter_b1_access_tunnel_8017D5FC` when the event it gates has
+/// Set by `roomEventGate` when the event it gates has
 /// just fired, clear otherwise.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -90,12 +93,12 @@ typedef struct {
 } ShelterB1AccessTunnelStorageFF5C;
 STATIC_ASSERT_SIZEOF(ShelterB1AccessTunnelStorageFF5C, 8);
 
-extern ShelterB1AccessTunnelStorageFF5C D_shelter_b1_access_tunnel_8017FF5C;
+extern ShelterB1AccessTunnelStorageFF5C gRoomEventActive;
 
-extern RoomEventMsg D_shelter_b1_access_tunnel_8017FF64;
+extern RoomEventMsg gRoomEventStagedMsg;
 
 /// Copy of the request that fired a gated event, whose cap command and voice
-/// lines the task `func_shelter_b1_access_tunnel_8017D760` plays.
+/// lines the task `roomEventTask` plays.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -105,23 +108,21 @@ typedef struct {
 } ShelterB1AccessTunnelStorageFF70;
 STATIC_ASSERT_SIZEOF(ShelterB1AccessTunnelStorageFF70, 32);
 
-extern ShelterB1AccessTunnelStorageFF70 D_shelter_b1_access_tunnel_8017FF70;
+extern ShelterB1AccessTunnelStorageFF70 gRoomEventReq;
 
-extern RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_access_tunnel_8017DCBC(Task* task);
 static void func_shelter_b1_access_tunnel_8017DD00(Task* task);
 
-void func_shelter_b1_access_tunnel_8017D760(Task*);
-void func_shelter_b1_access_tunnel_8017D8D0(Task*);
-s32  func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_shelter_b1_access_tunnel_8017E704 = { 0, 32, func_shelter_b1_access_tunnel_8017D760, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_shelter_b1_access_tunnel_8017E710 = { 0, 32, func_shelter_b1_access_tunnel_8017D8D0, { .model = NULL } };
+TaskDesc D_shelter_b1_access_tunnel_8017E710 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_access_tunnel_8017DA68 },
@@ -519,13 +520,13 @@ GpAreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomFadeStorage D_shelter_b1_access_tunnel_8017FF4C = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b1_access_tunnel_8017FF54 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB1AccessTunnelStorageFF5C D_shelter_b1_access_tunnel_8017FF5C = { 0 };
+ShelterB1AccessTunnelStorageFF5C gRoomEventActive = { 0 };
 
-RoomEventMsg D_shelter_b1_access_tunnel_8017FF64 = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
     0,
@@ -534,168 +535,17 @@ u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
     210,
 };
 
-ShelterB1AccessTunnelStorageFF70 D_shelter_b1_access_tunnel_8017FF70;
+ShelterB1AccessTunnelStorageFF70 gRoomEventReq;
 
-RoomLatchedEvent D_shelter_b1_access_tunnel_8017FF90;
+RoomLatchedEvent gRoomEventLatched;
 
-static s32            func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
-/// Gates an event on a game-flag nibble and a collected item: returns 1 when
-/// the nibble already shows the event done, 0 (running the request's refusal
-/// cap command) when the item is missing, and 2 when it fires, which unless
-/// `msg` is a dry run records the request, sets the nibble and spawns the
-/// event task.
-static s32 func_shelter_b1_access_tunnel_8017D5FC(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                      = req->flagId;
-    D_shelter_b1_access_tunnel_8017FF5C.value = 0;
-    neg                                       = flag < 0;
-    got                                       = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b1_access_tunnel_8017FF54       = *msg;
-                D_shelter_b1_access_tunnel_8017FF70.value = *req;
-                id                                        = req->flagId;
-                mode                                      = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b1_access_tunnel_8017E704, 0, 0, 0);
-                D_shelter_b1_access_tunnel_8017FF5C.value = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
+#include "../../shared/room_event_task.inc.c"
 
-/// Event task: plays the recorded request's cap command and voice lines, then
-/// copies the recorded message's area, warp and room into the save location,
-/// spawns task 0x11 and ends.
-void func_shelter_b1_access_tunnel_8017D760(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b1_access_tunnel_8017FF70.value.field_0);
-            if (D_shelter_b1_access_tunnel_8017FF70.value.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_access_tunnel_8017FF70.value.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b1_access_tunnel_8017FF70.value.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b1_access_tunnel_8017FF70.value.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_access_tunnel_8017FF70.value.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b1_access_tunnel_8017FF70.value.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF54.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF54.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_access_tunnel_8017FF54.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
-
-/// The room's event task, spawned by the message handler when it starts the
-/// latched event. It runs the event's CAP command, waits for it to finish and
-/// optionally starts helper task 0x31, then plays the event's stage sound and
-/// waits for it; finally it writes the latched message's destination into the
-/// save location and hands over to task 0x11.
-void func_shelter_b1_access_tunnel_8017D8D0(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b1_access_tunnel_8017FF90.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b1_access_tunnel_8017FF90.fade != 0) {
-                    D_shelter_b1_access_tunnel_8017FF4C.fade.field_0 = 0;
-                    D_shelter_b1_access_tunnel_8017FF4C.fade.field_1 = 0;
-                    D_shelter_b1_access_tunnel_8017FF4C.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_access_tunnel_8017FF4C.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b1_access_tunnel_8017FF90.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b1_access_tunnel_8017FF90.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_access_tunnel_8017FF90.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_access_tunnel_8017FF64.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_access_tunnel_8017FF64.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_access_tunnel_8017FF64.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -706,8 +556,8 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
     D_shelter_b1_access_tunnel_8017FF6C[0] = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b1_access_tunnel_8017FF64 = *dst;
-            D_shelter_b1_access_tunnel_8017FF90 = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }
@@ -754,7 +604,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         req.field_C = 0x54130001;
         req.flagId  = 0xAD;
         req.itemId  = 0;
-        return func_shelter_b1_access_tunnel_8017D5FC(&req, out);
+        return roomEventGate(&req, out);
     }
     if (in->areaId == 0x14) {
         event.capCmd   = 4;

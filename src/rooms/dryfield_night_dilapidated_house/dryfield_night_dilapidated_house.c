@@ -33,14 +33,16 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_night_dilapidated_house_8018A10C[4];
+extern u8 gRoomEventActive[4];
 
 /// The message and request the event gate latched for the event task.
-extern RoomEventMsg D_dryfield_night_dilapidated_house_8018A104;
-extern RoomEventReq D_dryfield_night_dilapidated_house_8018A110;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
@@ -160,128 +162,23 @@ GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
     D_dryfield_night_dilapidated_house_8018A0CC,
 };
 
-RoomEventMsg D_dryfield_night_dilapidated_house_8018A104 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_dilapidated_house_8018A10C[4] = {
+u8 gRoomEventActive[4] = {
     0,
     192,
     47,
     192,
 };
 
-RoomEventReq D_dryfield_night_dilapidated_house_8018A110;
+RoomEventReq gRoomEventReq;
 
-static s32  func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0);
 static void func_dryfield_night_dilapidated_house_8017DA08(Task* task);
 
-/// The room's event gate. A request whose flag nibble already records the
-/// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One
-/// whose prerequisite item has not been collected runs the request's CAP
-/// command and answers 0. Otherwise the gate answers 2 and - unless the
-/// message's `queryOnly` asks for a dry run - latches the message and the
-/// request, writes the flag nibble and spawns the event task.
-static s32 func_dryfield_night_dilapidated_house_8017D600(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                           = req->flagId;
-    D_dryfield_night_dilapidated_house_8018A10C[0] = 0;
-    neg                                            = flag < 0;
-    got                                            = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_dilapidated_house_8018A104 = *msg;
-                D_dryfield_night_dilapidated_house_8018A110 = *req;
-                id                                          = req->flagId;
-                mode                                        = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_dilapidated_house_8017E6F4, 0, 0, 0);
-                D_dryfield_night_dilapidated_house_8018A10C[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns. It raises `Gp_StateF0.field_4`, runs the latched
-/// request's CAP command, plays its two stage sounds in turn (either may be
-/// absent) waiting for each voice to finish, then stores the latched
-/// message's `msgId`, `warp` and `room` as the save location's area,
-/// warp and room, spawns task 0x11 and kills itself.
-void func_dryfield_night_dilapidated_house_8017D764(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_dilapidated_house_8018A110.field_0);
-            if (D_dryfield_night_dilapidated_house_8018A110.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_dilapidated_house_8018A110.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_dilapidated_house_8018A110.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_dilapidated_house_8018A110.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_dilapidated_house_8018A110.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_dilapidated_house_8018A110.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_dilapidated_house_8018A104.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_dilapidated_house_8018A104.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_dilapidated_house_8018A104.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 s32 func_dryfield_night_dilapidated_house_8017D8D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
@@ -305,7 +202,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
         req.field_C = 0x53090001;
         req.flagId  = 0x3F;
         req.itemId  = 0;
-        return func_dryfield_night_dilapidated_house_8017D600(&req, in);
+        return roomEventGate(&req, in);
     }
     return 1;
 }

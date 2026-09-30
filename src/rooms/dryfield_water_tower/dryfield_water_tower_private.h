@@ -35,7 +35,7 @@ extern Task* D_dryfield_water_tower_801876A4;
 
 extern Task* D_dryfield_water_tower_801876AC;
 
-extern TaskDesc D_dryfield_water_tower_80180394;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_water_tower_801803D8[2];
 
@@ -51,7 +51,6 @@ void func_dryfield_water_tower_801802D8(u8 arg0);
 void func_dryfield_water_tower_8017D948(Task*);
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_water_tower_8017D7D8(Task*);
 
 s32 func_dryfield_water_tower_8017DAF8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

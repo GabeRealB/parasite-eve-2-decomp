@@ -44,6 +44,8 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 /// The prism corners, eight per prism: a lit ring of four, then the far ring.
 extern SVECTOR D_dryfield_night_dilapidated_house_801872CC[];
@@ -55,7 +57,7 @@ extern GpObj4C D_dryfield_night_dilapidated_house_801892A0[8];
 void func_dryfield_night_dilapidated_house_8017DB20(Task*);
 void func_dryfield_night_dilapidated_house_8017DCE0(Task*);
 
-TaskDesc D_dryfield_night_dilapidated_house_8017E6F4 = { 0, 32, func_dryfield_night_dilapidated_house_8017D764, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
     { 5102, func_dryfield_night_dilapidated_house_8017D8DC },

@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_parking_lot.
-D_dryfield_parking_lot_8017FB50 = 0x8017FB50; // size:0x8 defined:True
-D_dryfield_parking_lot_8017DBF8 = 0x8017DBF8; // size:0xC defined:True
+gRoomEventMsg = 0x8017FB50; // size:0x8 defined:True
+gRoomEventTaskDesc = 0x8017DBF8; // size:0xC defined:True
 D_dryfield_parking_lot_8017DC04 = 0x8017DC04; // size:0x30 defined:True
 D_dryfield_parking_lot_8017DC34 = 0x8017DC34; // size:0x10 defined:True
 D_dryfield_parking_lot_8017DC44 = 0x8017DC44; // size:0x10 defined:True
@@ -57,9 +57,11 @@ D_map_dryfield_8017B1C4 = 0x8017B1C4; // absolute:True
 D_map_dryfield_8017B1D4 = 0x8017B1D4; // absolute:True
 D_map_dryfield_8017B204 = 0x8017B204; // absolute:True
 D_map_dryfield_8017B284 = 0x8017B284; // absolute:True
-D_dryfield_parking_lot_8017FB58 = 0x8017FB58; // size:0x4 defined:True
-D_dryfield_parking_lot_8017FB5C = 0x8017FB5C; // size:0x14 defined:True
+gRoomEventActive = 0x8017FB58; // size:0x4 defined:True
+gRoomEventReq = 0x8017FB5C; // size:0x14 defined:True
 
 D_dryfield_night_parking_lot_8018155C = 0x8018155C; // absolute:True owner=dryfield_night_parking_lot
 
 func_dryfield_parking_lot_8017DBAC = 0x8017DBAC; // type:func
+roomEventGate = 0x8017D5E8; // type:func
+roomEventTask = 0x8017D74C; // type:func

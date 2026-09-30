@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_g_r_kitchen.
 D_dryfield_night_g_r_kitchen_8017E27C = 0x8017E27C; // size:0x20 defined:True
 D_dryfield_night_g_r_kitchen_8017E29C = 0x8017E29C; // size:0x20 defined:True
-D_dryfield_night_g_r_kitchen_8017E248 = 0x8017E248; // size:0xC defined:True
+gRoomEventTaskDesc = 0x8017E248; // size:0xC defined:True
 D_dryfield_night_g_r_kitchen_8017E254 = 0x8017E254; // size:0x28 defined:True
 D_dryfield_night_g_r_kitchen_8017E2BC = 0x8017E2BC; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017E2C4 = 0x8017E2C4; // size:0x10 defined:True
@@ -32,7 +32,7 @@ D_dryfield_night_g_r_kitchen_8017EBE8 = 0x8017EBE8; // size:0xC defined:True
 D_dryfield_night_g_r_kitchen_8017EBF4 = 0x8017EBF4; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EBFC = 0x8017EBFC; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EC04 = 0x8017EC04; // size:0x20 defined:True
-D_dryfield_night_g_r_kitchen_8017EC24 = 0x8017EC24; // size:0x8 defined:True
+gRoomEventMsg = 0x8017EC24; // size:0x8 defined:True
 D_8013E500 = 0x8013E500; // absolute:True
 D_801445DC = 0x801445DC; // absolute:True
 D_80150C80 = 0x80150C80; // absolute:True
@@ -41,8 +41,10 @@ D_80156500 = 0x80156500; // absolute:True
 D_map_dryfield_full_8017BF08 = 0x8017BF08; // absolute:True
 D_map_dryfield_full_8017BF88 = 0x8017BF88; // absolute:True
 D_map_dryfield_full_8017C038 = 0x8017C038; // absolute:True
-D_dryfield_night_g_r_kitchen_8017EC2C = 0x8017EC2C; // size:0x4 defined:True
-D_dryfield_night_g_r_kitchen_8017EC30 = 0x8017EC30; // size:0x14 defined:True
+gRoomEventActive = 0x8017EC2C; // size:0x4 defined:True
+gRoomEventReq = 0x8017EC30; // size:0x14 defined:True
 
 func_dryfield_night_g_r_kitchen_8017E1E4 = 0x8017E1E4; // type:func
 glowDrawShaft = 0x8017D9FC; // type:func
+roomEventGate = 0x8017D5E8; // type:func
+roomEventTask = 0x8017D74C; // type:func

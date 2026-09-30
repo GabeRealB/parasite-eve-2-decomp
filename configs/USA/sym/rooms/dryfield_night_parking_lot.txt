@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_parking_lot.
 D_dryfield_night_parking_lot_8018155C = 0x8018155C; // size:0x8 defined:True
-D_dryfield_night_parking_lot_80181564 = 0x80181564; // size:0x8 defined:True
+gRoomEventMsg = 0x80181564; // size:0x8 defined:True
 D_dryfield_night_parking_lot_8017EDBC = 0x8017EDBC; // size:0x10 defined:True
 D_dryfield_night_parking_lot_8017EDCC = 0x8017EDCC; // size:0x10 defined:True
 D_dryfield_night_parking_lot_8017EDDC = 0x8017EDDC; // size:0x8 defined:True
@@ -74,14 +74,14 @@ D_map_dryfield_full_8017BB28 = 0x8017BB28; // absolute:True
 D_map_dryfield_full_8017BB78 = 0x8017BB78; // absolute:True
 D_map_dryfield_full_8017BBE8 = 0x8017BBE8; // absolute:True
 D_map_dryfield_full_8017BC08 = 0x8017BC08; // absolute:True
-D_dryfield_night_parking_lot_8018156C = 0x8018156C; // size:0x4 defined:True
-D_dryfield_night_parking_lot_80181570 = 0x80181570; // size:0x14 defined:True
+gRoomEventActive = 0x8018156C; // size:0x4 defined:True
+gRoomEventReq = 0x80181570; // size:0x14 defined:True
 D_dryfield_night_parking_lot_8017E7E4 = 0x8017E7E4; // size:0x78 defined:True
 D_dryfield_night_parking_lot_8017E85C = 0x8017E85C; // size:0x17C defined:True
 D_dryfield_night_parking_lot_8017E9D8 = 0x8017E9D8; // size:0x22C defined:True
 D_dryfield_night_parking_lot_8017EC04 = 0x8017EC04; // size:0x28 defined:True
 D_dryfield_night_parking_lot_8017EC2C = 0x8017EC2C; // size:0x28 defined:True
-D_dryfield_night_parking_lot_8017EC54 = 0x8017EC54; // size:0xC defined:True
+gRoomEventTaskDesc = 0x8017EC54; // size:0xC defined:True
 D_dryfield_night_parking_lot_8017EC60 = 0x8017EC60; // size:0x30 defined:True
 D_dryfield_night_parking_lot_8017EC90 = 0x8017EC90; // size:0x8 defined:True
 D_dryfield_night_parking_lot_8017EC98 = 0x8017EC98; // size:0x8 defined:True
@@ -89,3 +89,5 @@ D_dryfield_night_parking_lot_8017ECA0 = 0x8017ECA0; // size:0x14 defined:True
 D_dryfield_night_parking_lot_8017ECB4 = 0x8017ECB4; // size:0x108 defined:True
 
 func_dryfield_night_parking_lot_8017DC88 = 0x8017DC88; // type:func
+roomEventGate = 0x8017D5FC; // type:func
+roomEventTask = 0x8017D760; // type:func

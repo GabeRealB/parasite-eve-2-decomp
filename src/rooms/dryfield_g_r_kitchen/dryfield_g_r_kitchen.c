@@ -44,21 +44,23 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 #define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
 #define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_g_r_kitchen_8017F564[4];
+extern u8 gRoomEventActive[4];
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
-extern RoomEventMsg D_dryfield_g_r_kitchen_8017F55C;
-extern RoomEventReq D_dryfield_g_r_kitchen_8017F568;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
-/// Descriptor of the event task `func_dryfield_g_r_kitchen_8017D74C`.
-extern TaskDesc D_dryfield_g_r_kitchen_8017EBB4;
+/// Descriptor of the event task `roomEventTask`.
+extern TaskDesc gRoomEventTaskDesc;
 
 /// The room's message table, installed on the room task by its entry state.
 extern GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[];
@@ -70,25 +72,23 @@ extern GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[];
 /// Endpoints of the two beams drawn in view 3: `[0]` to `[1]` and `[2]` to
 /// `[3]`.
 
-void        func_dryfield_g_r_kitchen_8017D74C(Task* task);
 static void func_dryfield_g_r_kitchen_8017D958(Task* task);
 static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
 static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
-void func_dryfield_g_r_kitchen_8017D74C(Task*);
-s32  func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_g_r_kitchen_8017EEC0[1];
 extern GpObj4C        D_dryfield_g_r_kitchen_8017F038[2];
 extern GpObj4C        D_dryfield_g_r_kitchen_8017F0D0[7];
 extern GpRoomCoordSet D_dryfield_g_r_kitchen_8017F464[1];
 
-TaskDesc D_dryfield_g_r_kitchen_8017EBB4 = { 0, 32, func_dryfield_g_r_kitchen_8017D74C, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_g_r_kitchen_8017D8C4 },
@@ -272,124 +272,20 @@ GpRoomParamRec* D_dryfield_g_r_kitchen_8017F53C[8] = {
     D_dryfield_g_r_kitchen_8017F52C,
 };
 
-RoomEventMsg D_dryfield_g_r_kitchen_8017F55C = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_g_r_kitchen_8017F564[4] = {
+u8 gRoomEventActive[4] = {
     0,
     34,
     223,
     253,
 };
 
-RoomEventReq D_dryfield_g_r_kitchen_8017F568;
+RoomEventReq gRoomEventReq;
 
-static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// Event gate for the room's exit. Returns 1 when game-flag nibble
-/// `req->flagId` already reads set (clear, for a negative id). Otherwise, when
-/// `req->itemId` has been collected or is 0, it returns 2 and - unless
-/// `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets the
-/// nibble and spawns the event task. When the item is missing it returns 0
-/// and, outside a dry run, runs cap command `req->field_4`.
-static s32 func_dryfield_g_r_kitchen_8017D5E8(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                               = req->flagId;
-    D_dryfield_g_r_kitchen_8017F564[0] = 0;
-    neg                                = flag < 0;
-    got                                = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_g_r_kitchen_8017F55C = *msg;
-                D_dryfield_g_r_kitchen_8017F568 = *req;
-                id                              = req->flagId;
-                mode                            = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_g_r_kitchen_8017EBB4, 0, 0, 0);
-                D_dryfield_g_r_kitchen_8017F564[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's cap command,
-/// plays its two sound ids in turn, each waited out, then warps to the area,
-/// warp point and room the latched message names.
-void func_dryfield_g_r_kitchen_8017D74C(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_g_r_kitchen_8017F568.field_0);
-            if (D_dryfield_g_r_kitchen_8017F568.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_g_r_kitchen_8017F568.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_g_r_kitchen_8017F568.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_g_r_kitchen_8017F568.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_g_r_kitchen_8017F568.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_g_r_kitchen_8017F568.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_g_r_kitchen_8017F55C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_g_r_kitchen_8017F55C.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_g_r_kitchen_8017F55C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
 /// `func_dryfield_g_r_kitchen_8017D9A4`: the entry state
@@ -424,7 +320,7 @@ s32 func_dryfield_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, R
         req.field_C = 0x52130004;
         req.flagId  = 0x34;
         req.itemId  = 0;
-        ret         = func_dryfield_g_r_kitchen_8017D5E8(&req, in);
+        ret         = roomEventGate(&req, in);
     } else {
         ret = 1;
     }

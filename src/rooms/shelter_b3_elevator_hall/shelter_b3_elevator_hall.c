@@ -54,10 +54,12 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 /// Set when the gate latched a request and spawned the task that runs it.
 /// Descriptor of the task that runs a latched request.
-extern TaskDesc D_shelter_b3_elevator_hall_80182A20;
+extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
 /// The room's message table, which its CAP scripts index.
@@ -71,7 +73,6 @@ extern SVECTOR    D_shelter_b3_elevator_hall_80182AF4[];
 static void func_shelter_b3_elevator_hall_8017DDCC(Task* task);
 static void func_shelter_b3_elevator_hall_8017DE10(Task* task);
 
-void func_shelter_b3_elevator_hall_8017D790(Task*);
 void func_shelter_b3_elevator_hall_8017D900(Task*);
 void func_shelter_b3_elevator_hall_8017DAF0(Task*);
 s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -80,7 +81,7 @@ s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, TaskMessageArg, TaskMess
 s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, TaskMessageArg);
 
-TaskDesc D_shelter_b3_elevator_hall_80182A20 = { 0, 32, func_shelter_b3_elevator_hall_8017D790, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
     { 0, 32, func_shelter_b3_elevator_hall_8017D900, { .model = NULL } },
@@ -145,114 +146,9 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// Decides whether the event `req` describes fires for message `msg`. A set
-/// flag nibble (a clear one for a negative `flagId`) means it already has, and
-/// the answer is 1. Without the prerequisite collected item the request's CAP
-/// command runs and the answer is 0. Otherwise the request and message are
-/// latched, the flag nibble is written, the task that runs the request is
-/// spawned, and the answer is 2. A non-zero `queryOnly` on the message only asks
-/// for the answer and changes nothing.
-static s32 func_shelter_b3_elevator_hall_8017D62C(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                                   = req->flagId;
-    D_shelter_b3_elevator_hall_80184A08[0] = 0;
-    neg                                    = flag < 0;
-    got                                    = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b3_elevator_hall_80184A00 = *msg;
-                D_shelter_b3_elevator_hall_80184A0C = *req;
-                id                                  = req->flagId;
-                mode                                = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b3_elevator_hall_80182A20, 0, 0, 0);
-                D_shelter_b3_elevator_hall_80184A08[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// Runs a latched event request: plays its CAP command and its two voice
-/// cues in turn, waiting for each to finish, then queues a type-7 sound event
-/// and loads the area, warp and room the latched message names.
-void func_shelter_b3_elevator_hall_8017D790(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b3_elevator_hall_80184A0C.field_0);
-            if (D_shelter_b3_elevator_hall_80184A0C.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b3_elevator_hall_80184A0C.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b3_elevator_hall_80184A0C.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b3_elevator_hall_80184A0C.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b3_elevator_hall_80184A0C.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b3_elevator_hall_80184A0C.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b3_elevator_hall_80184A00.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b3_elevator_hall_80184A00.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b3_elevator_hall_80184A00.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Destination choice: waits for the CAP prompt to close, then maps the
 /// chosen event key 0xB, 0xC or 0xD to area 9 warp 3, area 0x1B warp 2 or
@@ -403,7 +299,7 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
         req.field_C = 0x542A0003;
         req.flagId  = 0xA7;
         req.itemId  = 0;
-        return func_shelter_b3_elevator_hall_8017D62C(&req, out);
+        return roomEventGate(&req, out);
     }
     if (in->areaId != 0x1A) {
         return 1;

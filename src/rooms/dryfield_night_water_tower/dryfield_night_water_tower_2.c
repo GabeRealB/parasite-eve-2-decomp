@@ -39,6 +39,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 /// The world points the room's effect draw places its glow sprites and light
 /// shaft at, `SVECTOR`s laid out back to back; the first two are the ends of
@@ -56,7 +58,7 @@ extern GpRoomCoordSet D_dryfield_night_water_tower_801823F8[1];
 
 extern TaskDesc D_80142604;
 
-TaskDesc D_dryfield_night_water_tower_8017E6E0 = { 0, 32, func_dryfield_night_water_tower_8017D770, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_water_tower_8017E6EC[6] = {
     { 5102, func_dryfield_night_water_tower_8017D8E0 },

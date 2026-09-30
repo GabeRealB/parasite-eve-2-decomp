@@ -10,7 +10,7 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_motel_balcony_801827F8;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_motel_balcony_80182804[6];
 
@@ -23,7 +23,6 @@ extern SVECTOR D_dryfield_night_motel_balcony_80182C80;
 extern SVECTOR D_dryfield_night_motel_balcony_80182C90;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_motel_balcony_8017D7F8(Task*);
 
 s32 func_dryfield_night_motel_balcony_8017D968(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

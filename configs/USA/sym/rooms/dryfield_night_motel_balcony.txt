@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_motel_balcony.
-D_dryfield_night_motel_balcony_8018F2D4 = 0x8018F2D4; // size:0x8 defined:True
+gRoomEventMsg = 0x8018F2D4; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182D00 = 0x80182D00; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182D08 = 0x80182D08; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182D10 = 0x80182D10; // size:0x8 defined:True
@@ -178,8 +178,8 @@ D_dryfield_night_motel_balcony_8018284C = 0x8018284C; // size:0xC defined:True
 D_dryfield_night_motel_balcony_80182C60 = 0x80182C60; // size:0x10 defined:True
 D_dryfield_night_motel_balcony_80182C70 = 0x80182C70; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_8018F2AC = 0x8018F2AC; // size:0x20 defined:True
-D_dryfield_night_motel_balcony_8018F2DC = 0x8018F2DC; // size:0x4 defined:True
-D_dryfield_night_motel_balcony_8018F2E0 = 0x8018F2E0; // size:0x14 defined:True
+gRoomEventActive = 0x8018F2DC; // size:0x4 defined:True
+gRoomEventReq = 0x8018F2E0; // size:0x14 defined:True
 D_dryfield_night_motel_balcony_80182CF0 = 0x80182CF0; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182CF8 = 0x80182CF8; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182C78 = 0x80182C78; // size:0x8 defined:True
@@ -190,7 +190,7 @@ D_dryfield_night_motel_balcony_80182C88 = 0x80182C88; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182C90 = 0x80182C90; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_8018F2CC = 0x8018F2CC; // size:0x8 defined:True
 D_dryfield_night_motel_balcony_80182C98 = 0x80182C98; // size:0x8 defined:True
-D_dryfield_night_motel_balcony_801827F8 = 0x801827F8; // size:0xC defined:True
+gRoomEventTaskDesc = 0x801827F8; // size:0xC defined:True
 D_dryfield_night_motel_balcony_80182804 = 0x80182804; // size:0x30 defined:True
 D_dryfield_night_motel_balcony_80182834 = 0x80182834; // size:0x18 defined:True
 
@@ -224,3 +224,5 @@ func_dryfield_night_motel_balcony_8017DD0C = 0x8017DD0C; // type:func
 
 func_dryfield_night_motel_balcony_8017E554 = 0x8017E554; // type:func
 glowDrawShaft = 0x8017EC58; // type:func
+roomEventGate = 0x8017D694; // type:func
+roomEventTask = 0x8017D7F8; // type:func

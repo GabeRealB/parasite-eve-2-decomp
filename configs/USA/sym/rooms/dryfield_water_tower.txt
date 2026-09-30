@@ -1,8 +1,8 @@
 // Overlay-local symbols for dryfield_water_tower.
 D_dryfield_water_tower_801876AA = 0x801876AA; // type:u16 size:0x2
 D_actor_213000_80151254 = 0x80151254; // absolute:True
-D_dryfield_water_tower_80187694 = 0x80187694; // size:0x8 defined:True
-D_dryfield_water_tower_8018769C = 0x8018769C; // size:0x1 defined:True
+gRoomEventMsg = 0x80187694; // size:0x8 defined:True
+gRoomEventActive = 0x8018769C; // size:0x1 defined:True
 D_dryfield_water_tower_801876A0 = 0x801876A0; // size:0x4 defined:True
 D_dryfield_water_tower_801876A4 = 0x801876A4; // size:0x4 defined:True
 D_dryfield_water_tower_801876A8 = 0x801876A8; // size:0x2 defined:True
@@ -13,7 +13,7 @@ D_dryfield_water_tower_801827EC = 0x801827EC; // size:0xE0 defined:True
 D_dryfield_water_tower_80183298 = 0x80183298; // size:0x34 defined:True
 D_dryfield_water_tower_80183584 = 0x80183584; // size:0x40 defined:True
 D_dryfield_water_tower_801876AC = 0x801876AC; // size:0x4 defined:True
-D_dryfield_water_tower_801876B0 = 0x801876B0; // size:0x14 defined:True
+gRoomEventReq = 0x801876B0; // size:0x14 defined:True
 D_dryfield_water_tower_8018245C = 0x8018245C; // size:0x6 defined:True
 D_dryfield_water_tower_80182464 = 0x80182464; // size:0x210 defined:True
 D_dryfield_water_tower_80182674 = 0x80182674; // size:0x108 defined:True
@@ -126,9 +126,11 @@ D_dryfield_water_tower_80187678 = 0x80187678; // size:0x4 defined:True
 D_dryfield_water_tower_8018767C = 0x8018767C; // size:0x10 defined:True
 D_dryfield_water_tower_8018768C = 0x8018768C; // size:0x8 defined:True
 D_dryfield_water_tower_801803D8 = 0x801803D8; // size:0x18 defined:True
-D_dryfield_water_tower_80180394 = 0x80180394; // size:0xC defined:True
+gRoomEventTaskDesc = 0x80180394; // size:0xC defined:True
 D_dryfield_water_tower_801803A0 = 0x801803A0; // size:0x38 defined:True
 D_dryfield_water_tower_80181A40 = 0x80181A40; // size:0x30 defined:True
 D_dryfield_water_tower_80181A70 = 0x80181A70; // size:0x48 defined:True
 
 func_dryfield_water_tower_80180348 = 0x80180348; // type:func
+roomEventGate = 0x8017D674; // type:func
+roomEventTask = 0x8017D7D8; // type:func

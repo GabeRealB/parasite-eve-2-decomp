@@ -31,7 +31,7 @@ extern GpObj3A D_dryfield_night_dilapidated_house_80189F08[1];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12];
 
-extern TaskDesc D_dryfield_night_dilapidated_house_8017E6F4;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_dryfield_night_dilapidated_house_8017E700[5];
 
@@ -44,7 +44,6 @@ extern GpPointLight D_dryfield_night_dilapidated_house_80189500[8];
 extern DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidated_house_80189800;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_night_dilapidated_house_8017D764(Task*);
 
 s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 

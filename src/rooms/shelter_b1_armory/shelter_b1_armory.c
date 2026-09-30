@@ -42,6 +42,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
 /// chooses from, and the one it returns when no case matches.
@@ -148,7 +150,7 @@ static UiObjectDesc   Shop_Data_80181C10;
 
 /// Descriptor of the event task the door gate spawns, and the table the
 /// room's own tasks are spawned from.
-extern TaskDesc D_shelter_b1_armory_801824DC;
+extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b1_armory_801824E8[];
 
 /// Message handlers the room's controller task installs in pointer slot 7.
@@ -168,7 +170,6 @@ s32 func_shelter_b1_armory_801805A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b1_armory_80180698(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b1_armory_801806F8(Task*, s32, DirectionActionRequest* request, s32);
 
-void func_shelter_b1_armory_801800A4(Task*);
 void func_shelter_b1_armory_80180214(Task*);
 void func_shelter_b1_armory_8018034C(Task*);
 
@@ -178,7 +179,7 @@ void func_shelter_b1_armory_8018034C(Task*);
 
 TaskDesc D_shelter_b1_armory_801824D0 = { 0, 192, Shop_SessionTask, { .model = NULL } };
 
-TaskDesc D_shelter_b1_armory_801824DC = { 0, 32, func_shelter_b1_armory_801800A4, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_shelter_b1_armory_801824E8[2] = {
     { 0, 192, func_shelter_b1_armory_80180214, { .model = NULL } },
@@ -194,116 +195,14 @@ GpMsgEntry D_shelter_b1_armory_80182500[5] = {
 };
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);
-static s32        func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg);
 
 #include "../../shared/shop.inc.c"
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
-/// Event gate for a door message. Returns 1 while the request's flag nibble
-/// (inverted when `flagId` is negative) is set. Otherwise, if the required
-/// item has been collected (or none is required), it latches the message and
-/// request, sets the nibble and spawns the event task, returning 2; without
-/// the item it runs the request's `field_4` cap command and returns 0.
-static s32 func_shelter_b1_armory_8017FF40(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                            = req->flagId;
-    D_shelter_b1_armory_8018558C[0] = 0;
-    neg                             = flag < 0;
-    got                             = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b1_armory_80185584 = *msg;
-                D_shelter_b1_armory_80185590 = *req;
-                id                           = req->flagId;
-                mode                         = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b1_armory_801824DC, 0, 0, 0);
-                D_shelter_b1_armory_8018558C[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: plays the latched request's cap command and
-/// its two voice lines in turn, then warps to the area, warp point and room
-/// the latched message names.
-void func_shelter_b1_armory_801800A4(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b1_armory_80185590.field_0);
-            if (D_shelter_b1_armory_80185590.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_armory_80185590.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b1_armory_80185590.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b1_armory_80185590.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_armory_80185590.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b1_armory_80185590.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_armory_80185584.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_armory_80185584.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_armory_80185584.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// State handlers of the room's controller task: installing its message
 /// table, an idle tick, and the kill.
@@ -444,7 +343,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         req.field_C = 0x540D0001;
         req.flagId  = 0xA6;
         req.itemId  = 0;
-        return func_shelter_b1_armory_8017FF40(&req, out);
+        return roomEventGate(&req, out);
     }
     if (in->areaId != 0xD) {
         return 1;

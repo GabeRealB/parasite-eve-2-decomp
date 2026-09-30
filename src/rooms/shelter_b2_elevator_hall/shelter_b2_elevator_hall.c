@@ -64,30 +64,31 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
-/// Task descriptor `func_shelter_b2_elevator_hall_8017D610` spawns when a
+/// Task descriptor `roomEventGate` spawns when a
 /// gated event fires.
-extern TaskDesc D_shelter_b2_elevator_hall_80183790;
+extern TaskDesc gRoomEventTaskDesc;
 
 /// Message table `func_shelter_b2_elevator_hall_8017DCBC` installs on its task.
 extern GpMsgEntry D_shelter_b2_elevator_hall_801837A8[];
 
 /// Copy of the message that fired a gated event, kept for the task
-/// `func_shelter_b2_elevator_hall_8017D774` to warp from.
-extern RoomEventMsg D_shelter_b2_elevator_hall_80184D7C;
+/// `roomEventTask` to warp from.
+extern RoomEventMsg gRoomEventMsg;
 
 /// Copy of the request that fired a gated event, whose cap command and voice
-/// lines the task `func_shelter_b2_elevator_hall_8017D774` plays.
-extern RoomEventReq D_shelter_b2_elevator_hall_80184D88;
+/// lines the task `roomEventTask` plays.
+extern RoomEventReq gRoomEventReq;
 
 /// Event task: plays the recorded request's cap command and voice lines, then
 /// copies the recorded message's area, warp and room into the save location,
 /// spawns task 0x11 and ends.
-void func_shelter_b2_elevator_hall_8017D774(Task* task);
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b2_elevator_hall_80184D84[4];
+extern u8 gRoomEventActive[4];
 
 extern TaskDesc D_shelter_b2_elevator_hall_8018379C;
 extern SVECTOR  D_shelter_b2_elevator_hall_801837D8[];
@@ -107,7 +108,7 @@ s32  func_shelter_b2_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMess
 s32  func_shelter_b2_elevator_hall_8017DC80(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_elevator_hall_8017DC88(Task*, s32, s32, TaskMessageArg);
 
-TaskDesc D_shelter_b2_elevator_hall_80183790 = { 0, 32, func_shelter_b2_elevator_hall_8017D774, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_shelter_b2_elevator_hall_8018379C = { 0, 32, func_shelter_b2_elevator_hall_8017D8E4, { .model = NULL } };
 
@@ -481,120 +482,20 @@ GpRoomParamRec* D_shelter_b2_elevator_hall_80184D5C[8] = {
     D_shelter_b2_elevator_hall_80184D44,
 };
 
-RoomEventMsg D_shelter_b2_elevator_hall_80184D7C = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_shelter_b2_elevator_hall_80184D84[4] = {
+u8 gRoomEventActive[4] = {
     0,
     253,
     152,
     217,
 };
 
-RoomEventReq D_shelter_b2_elevator_hall_80184D88;
+RoomEventReq gRoomEventReq;
 
-static s32 func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// Gates an event on a game-flag nibble and a collected item: returns 1 when
-/// the nibble already shows the event done, 0 (running the request's refusal
-/// cap command) when the item is missing, and 2 when it fires, which unless
-/// `msg` is a dry run records the request, sets the nibble and spawns the
-/// event task.
-static s32 func_shelter_b2_elevator_hall_8017D610(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                                   = req->flagId;
-    D_shelter_b2_elevator_hall_80184D84[0] = 0;
-    neg                                    = flag < 0;
-    got                                    = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b2_elevator_hall_80184D7C = *msg;
-                D_shelter_b2_elevator_hall_80184D88 = *req;
-                id                                  = req->flagId;
-                mode                                = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b2_elevator_hall_80183790, 0, 0, 0);
-                D_shelter_b2_elevator_hall_80184D84[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-void func_shelter_b2_elevator_hall_8017D774(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b2_elevator_hall_80184D88.field_0);
-            if (D_shelter_b2_elevator_hall_80184D88.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_elevator_hall_80184D88.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b2_elevator_hall_80184D88.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b2_elevator_hall_80184D88.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_elevator_hall_80184D88.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b2_elevator_hall_80184D88.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_elevator_hall_80184D7C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_elevator_hall_80184D7C.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_elevator_hall_80184D7C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Elevator task: sends player-weapon message 0 and waits for the cap to go
 /// idle, then picks the destination from the cap event key (0xB: area 9 warp 3,
@@ -666,7 +567,7 @@ void func_shelter_b2_elevator_hall_8017D8E4(Task* task)
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 0x21 and 0x1C build a request for the gate
-/// `func_shelter_b2_elevator_hall_8017D610` (nibble 0xAB with no item, and
+/// `roomEventGate` (nibble 0xAB with no item, and
 /// nibble 0xA9 with item 0x21, which also sets item-seen bit 0x121 when the
 /// gate reports the event fired). Message 0x1A
 /// answers 0 and, unless `in->queryOnly` asks for a dry run, either sets the
@@ -687,7 +588,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.field_C = 0x541B0005;
         req.flagId  = 0xAB;
         req.itemId  = 0;
-        return func_shelter_b2_elevator_hall_8017D610(&req, out);
+        return roomEventGate(&req, out);
     }
     if (in->areaId == 0x1C) {
         req.field_0 = 3;
@@ -696,8 +597,8 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.field_C = 0x541B0003;
         req.flagId  = 0xA9;
         req.itemId  = 0x21;
-        ret         = func_shelter_b2_elevator_hall_8017D610(&req, out);
-        if (D_shelter_b2_elevator_hall_80184D84[0] != 0) {
+        ret         = roomEventGate(&req, out);
+        if (gRoomEventActive[0] != 0) {
             Gp_SetItemSeenBit(0x121, 1);
         }
         return ret;

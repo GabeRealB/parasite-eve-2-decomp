@@ -27,10 +27,12 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_night_motel_balcony_8018F2DC[4];
+extern u8 gRoomEventActive[4];
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 
@@ -42,8 +44,8 @@ extern s32 D_80165798;
 extern u8  D_80165720;
 
 /// The message and request the event gate latched for the event task.
-extern RoomEventMsg D_dryfield_night_motel_balcony_8018F2D4;
-extern RoomEventReq D_dryfield_night_motel_balcony_8018F2E0;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
@@ -53,128 +55,23 @@ GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomEventMsg D_dryfield_night_motel_balcony_8018F2D4 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_motel_balcony_8018F2DC[4] = {
+u8 gRoomEventActive[4] = {
     0,
     115,
     55,
     136,
 };
 
-RoomEventReq D_dryfield_night_motel_balcony_8018F2E0;
+RoomEventReq gRoomEventReq;
 
-static s32  func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_motel_balcony_8017DC30(Task* task);
 static void func_dryfield_night_motel_balcony_8017DD0C(Task* task);
 
-/// The balcony's event gate. A request whose flag nibble already records the
-/// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One
-/// whose prerequisite item has not been collected runs the request's CAP
-/// command and answers 0. Otherwise the gate answers 2 and - unless the
-/// message's `queryOnly` asks for a dry run - latches the message and the
-/// request, writes the flag nibble and spawns the event task.
-static s32 func_dryfield_night_motel_balcony_8017D694(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                       = req->flagId;
-    D_dryfield_night_motel_balcony_8018F2DC[0] = 0;
-    neg                                        = flag < 0;
-    got                                        = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_motel_balcony_8018F2D4 = *msg;
-                D_dryfield_night_motel_balcony_8018F2E0 = *req;
-                id                                      = req->flagId;
-                mode                                    = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_motel_balcony_801827F8, 0, 0, 0);
-                D_dryfield_night_motel_balcony_8018F2DC[0] = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns. It raises `Gp_StateF0.field_4`, runs the latched
-/// request's CAP command, plays its two stage sounds in turn (either may be
-/// absent) waiting for each voice to finish, then stores the latched
-/// message's `msgId`, `warp` and `room` as the save location's area,
-/// warp and room, spawns task 0x11 and kills itself.
-void func_dryfield_night_motel_balcony_8017D7F8(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_motel_balcony_8018F2E0.field_0);
-            if (D_dryfield_night_motel_balcony_8018F2E0.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_motel_balcony_8018F2E0.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_motel_balcony_8018F2E0.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_motel_balcony_8018F2E0.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_motel_balcony_8018F2E0.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_motel_balcony_8018F2E0.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_motel_balcony_8018F2D4.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_motel_balcony_8018F2D4.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_motel_balcony_8018F2D4.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room's message handler. It copies `msg` to `out`, filling `room`
 /// from game flags for messages 0x1C, 0xF and 0x1F, then routes messages 0x1C,
@@ -206,8 +103,8 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.field_C = Gp_PackStageSndId(0x521D0001);
         req.flagId  = 0x43;
         req.itemId  = 0x13;
-        ret         = func_dryfield_night_motel_balcony_8017D694(&req, out);
-        if (D_dryfield_night_motel_balcony_8018F2DC[0] != 0) {
+        ret         = roomEventGate(&req, out);
+        if (gRoomEventActive[0] != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -219,8 +116,8 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.field_C = Gp_PackStageSndId(0x521D0001);
         req.flagId  = 0x44;
         req.itemId  = 0x13;
-        ret         = func_dryfield_night_motel_balcony_8017D694(&req, out);
-        if (D_dryfield_night_motel_balcony_8018F2DC[0] != 0) {
+        ret         = roomEventGate(&req, out);
+        if (gRoomEventActive[0] != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -232,8 +129,8 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.field_C = Gp_PackStageSndId(0x521D0001);
         req.flagId  = 0x2E;
         req.itemId  = 0xF;
-        ret         = func_dryfield_night_motel_balcony_8017D694(&req, out);
-        if (D_dryfield_night_motel_balcony_8018F2DC[0] != 0) {
+        ret         = roomEventGate(&req, out);
+        if (gRoomEventActive[0] != 0) {
             GameFlag_SetNibble(0x30, 1);
             Mc_SaveData[0].state.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);

@@ -62,6 +62,9 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_ACTIVE gRoomEventActive.value
+#define ROOM_EVENT_REQ    gRoomEventReq.value
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -70,7 +73,7 @@ extern u8 D_shelter_b1_main_corridor_80185D44[4];
 /// The event the gate last accepted: the message that triggered it, whose
 /// `msgId`, `field_2` and `field_3` name the area, warp and room the event
 /// task finally loads, and the request whose CAP command and sounds it runs.
-extern RoomEventMsg D_shelter_b1_main_corridor_80185D2C;
+extern RoomEventMsg gRoomEventMsg;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -80,7 +83,7 @@ typedef struct {
 } ShelterB1MainCorridorStorage5D48;
 STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorStorage5D48, 32);
 
-extern ShelterB1MainCorridorStorage5D48 D_shelter_b1_main_corridor_80185D48;
+extern ShelterB1MainCorridorStorage5D48 gRoomEventReq;
 /// Set once the gate has latched an event and spawned its task.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -91,19 +94,19 @@ typedef struct {
 } ShelterB1MainCorridorStorage5D34;
 STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorStorage5D34, 8);
 
-extern ShelterB1MainCorridorStorage5D34 D_shelter_b1_main_corridor_80185D34;
-/// Spawn descriptor of the event task, `func_shelter_b1_main_corridor_8017D784`.
-extern TaskDesc D_shelter_b1_main_corridor_8018308C;
+extern ShelterB1MainCorridorStorage5D34 gRoomEventActive;
+/// Spawn descriptor of the event task, `roomEventTask`.
+extern TaskDesc gRoomEventTaskDesc;
 
 /// The event the message handler last started: the message that triggered it,
 /// the flag saying one was latched and its task spawned, and the event record.
 /// `D_shelter_b1_main_corridor_80183098` spawns that event's task,
-/// `func_shelter_b1_main_corridor_8017D8F4`.
-extern RoomEventMsg     D_shelter_b1_main_corridor_80185D3C;
-extern RoomLatchedEvent D_shelter_b1_main_corridor_80185D68;
+/// `roomEventStagedTask`.
+extern RoomEventMsg     gRoomEventStagedMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 extern TaskDesc         D_shelter_b1_main_corridor_80183098;
 /// Spawn argument the event task hands to task 0x31.
-extern RoomFadeStorage D_shelter_b1_main_corridor_80185D24;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The room's message table, which its tasks answer from.
 extern GpMsgEntry D_shelter_b1_main_corridor_801830A4[];
@@ -123,17 +126,15 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 
 static void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-void func_shelter_b1_main_corridor_8017D784(Task*);
-void func_shelter_b1_main_corridor_8017D8F4(Task*);
-s32  func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_main_corridor_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b1_main_corridor_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
+s32 func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_main_corridor_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_main_corridor_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
 
-TaskDesc D_shelter_b1_main_corridor_8018308C = { 0, 32, func_shelter_b1_main_corridor_8017D784, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
-TaskDesc D_shelter_b1_main_corridor_80183098 = { 0, 32, func_shelter_b1_main_corridor_8017D8F4, { .model = NULL } };
+TaskDesc D_shelter_b1_main_corridor_80183098 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_main_corridor_8017DA8C },
@@ -689,13 +690,13 @@ GpRoomParamRec* D_shelter_b1_main_corridor_80185D04[8] = {
     D_shelter_b1_main_corridor_80185CEC,
 };
 
-RoomFadeStorage D_shelter_b1_main_corridor_80185D24 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b1_main_corridor_80185D2C = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB1MainCorridorStorage5D34 D_shelter_b1_main_corridor_80185D34 = { 0 };
+ShelterB1MainCorridorStorage5D34 gRoomEventActive = { 0 };
 
-RoomEventMsg D_shelter_b1_main_corridor_80185D3C = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b1_main_corridor_80185D44[4] = {
     0,
@@ -704,173 +705,19 @@ u8 D_shelter_b1_main_corridor_80185D44[4] = {
     0,
 };
 
-ShelterB1MainCorridorStorage5D48 D_shelter_b1_main_corridor_80185D48;
+ShelterB1MainCorridorStorage5D48 gRoomEventReq;
 
-RoomLatchedEvent D_shelter_b1_main_corridor_80185D68;
+RoomLatchedEvent gRoomEventLatched;
 
-static s32            func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b1_main_corridor_8017DD4C(Task* task);
 static void           func_shelter_b1_main_corridor_8017DD90(Task* task);
 
-/// The corridor's event gate: given a request and the incoming message,
-/// answers whether the event fires. A nibble already in its fired state (set,
-/// or clear for a negative `flagId`) answers 1. A missing collected-bit
-/// prerequisite answers 0 and runs the request's CAP command. Otherwise the
-/// message and request are latched, the nibble is written and the event task
-/// is spawned, for 2. A non-zero `queryOnly` on the message only asks for the
-/// answer and suppresses every side effect.
-static s32 func_shelter_b1_main_corridor_8017D620(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                      = req->flagId;
-    D_shelter_b1_main_corridor_80185D34.value = 0;
-    neg                                       = flag < 0;
-    got                                       = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b1_main_corridor_80185D2C       = *msg;
-                D_shelter_b1_main_corridor_80185D48.value = *req;
-                id                                        = req->flagId;
-                mode                                      = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b1_main_corridor_8018308C, 0, 0, 0);
-                D_shelter_b1_main_corridor_80185D34.value = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
+#include "../../shared/room_event_task.inc.c"
 
-/// Event task the gate spawns: runs the latched request's CAP command, plays
-/// its two sounds in turn (each optional) and waits for each to finish, then
-/// queues sound event 0x80000000, records the latched message's area, warp and
-/// room in the save data's location, spawns task 0x11 and kills itself.
-void func_shelter_b1_main_corridor_8017D784(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b1_main_corridor_80185D48.value.field_0);
-            if (D_shelter_b1_main_corridor_80185D48.value.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_main_corridor_80185D48.value.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b1_main_corridor_80185D48.value.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b1_main_corridor_80185D48.value.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b1_main_corridor_80185D48.value.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b1_main_corridor_80185D48.value.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D2C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D2C.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D2C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
-
-/// The event task the message handler spawns: runs the latched event's CAP
-/// command and waits for it, spawns task 0x31 if the event asks for it, plays
-/// the event's stage sound (if any) and waits for it to end, then queues sound
-/// event 0x80000000, records the latched message's area, warp and room in the
-/// save data's location, spawns task 0x11 and kills itself.
-void func_shelter_b1_main_corridor_8017D8F4(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b1_main_corridor_80185D68.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b1_main_corridor_80185D68.fade != 0) {
-                    D_shelter_b1_main_corridor_80185D24.fade.field_0 = 0;
-                    D_shelter_b1_main_corridor_80185D24.fade.field_1 = 0;
-                    D_shelter_b1_main_corridor_80185D24.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_main_corridor_80185D24.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b1_main_corridor_80185D68.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b1_main_corridor_80185D68.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_main_corridor_80185D68.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_main_corridor_80185D3C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_main_corridor_80185D3C.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_main_corridor_80185D3C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -881,8 +728,8 @@ static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
     D_shelter_b1_main_corridor_80185D44[0] = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b1_main_corridor_80185D3C = *dst;
-            D_shelter_b1_main_corridor_80185D68 = *event;
+            gRoomEventStagedMsg = *dst;
+            gRoomEventLatched   = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }
@@ -941,7 +788,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.field_C = 0x540F0001;
         req.flagId  = 0xA5;
         req.itemId  = 0;
-        return func_shelter_b1_main_corridor_8017D620(&req, out);
+        return roomEventGate(&req, out);
     }
     if (in->areaId == 0x18) {
         if (GameFlag_GetNibble(0xAC) == 0) {
