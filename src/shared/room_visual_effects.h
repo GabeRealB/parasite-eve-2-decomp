@@ -53,6 +53,14 @@ static inline void RoomFx_FlyingSparkTask(Task* task);
 
 static inline void RoomFx_OrangeBurst2Task(Task* arg0);
 
+/// Halo shade storage whose three shades are followed by a retained halfword.
+/// The halfword differs between rooms and nothing reads it; whether it belongs
+/// to this object is unresolved.
+typedef struct {
+    RoomHaloShade entries[3];
+    u16           retained;
+} RoomFxHaloStorage;
+
 extern SVECTOR       RoomFx_TrailOffsets[2];
 extern RoomHaloShade RoomFx_DiscShades[2];
 
