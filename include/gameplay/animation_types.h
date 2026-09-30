@@ -11,7 +11,16 @@ struct AnimationSet;
 /// One normal-rate playback frame per tick, in sixteenths of a frame.
 enum { ANIMATION_RATE_ONE = 0x10 };
 
-/// Selects the slot's writable context-buffer pose instead of a bank keyframe.
+/// Set-index sentinel selecting the slot's pose-buffer entry instead of a bank keyframe.
+///
+/// Stored in an endpoint's set index. Pose lookup then reads that slot's
+/// context-buffer entry and ignores the record index. Stores leave the record
+/// index in place, so whole-key compares and copies still include it. The value
+/// is not a set-table index, and keyframe-record lookup of a buffered current
+/// endpoint finds none. The reference is valid only for the slot whose buffer
+/// captured the pose. Time walking indexes the set table without testing this
+/// sentinel: a forward step uses the next endpoint's set index, and a backward
+/// step uses the current one.
 enum { ANIMATION_SET_BUFFERED_POSE = 0x7FFF };
 
 /// Results of the latest slot tick or track walk. Initialization and each tick clear them first.
