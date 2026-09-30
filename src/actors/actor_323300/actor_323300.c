@@ -40,6 +40,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_toilet.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, the
@@ -94,7 +95,7 @@ STATIC_ASSERT_SIZEOF(Actor323300MtxWork, 0x6B0);
 
 /// Message table `func_actor_323300_80161E78` parks in `Task::msgTable`:
 /// `Gp_DispatchMsg` matches an incoming id against these and calls the handler.
-/// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `func_actor_323300_801628B8`,
+/// Ids 0x7D3/0x7D4/0x7D5/0x7DB reach `actorMotionPlayAnim19`,
 /// `func_actor_323300_801629F0`, `func_actor_323300_80162208` and
 /// `func_actor_323300_80162360`; the 0x7FFFFFFF terminator ends the walk.
 /// Message entries with the payload signature selected by each message id.
@@ -112,9 +113,9 @@ STATIC_ASSERT_SIZEOF(_Actor323300MessageEntry, 8);
 extern _Actor323300MessageEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
-/// `func_actor_323300_801628B8` index by the 0x504 block's bank byte.
+/// `actorMotionPlayAnim19` index by the 0x504 block's bank byte.
 extern AnimationSet*  D_actor_323300_80172548[4];
-extern AnimationSet** D_actor_323300_80172558[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Descriptor table the 0x7DB handler spawns its child from; index 1 is the
 /// task parked in `Actor323300Work::field_4B8`.
@@ -124,7 +125,7 @@ extern TaskDesc D_actor_323300_8017255C[];
 extern ActorTransform D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
-/// hand `func_actor_323300_801628B8`.
+/// hand `actorMotionPlayAnim19`.
 extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
@@ -152,7 +153,6 @@ static void func_actor_323300_801626EC(Task* arg0);
 static void func_actor_323300_801626F4(Task* arg0);
 static void func_actor_323300_80162748(Task* arg0);
 static void func_actor_323300_801627B4(Task* arg0);
-s32         func_actor_323300_801628B8(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
 s32         func_actor_323300_801629F0(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
 static void func_actor_323300_801634B0(Task* arg0);
 static void func_actor_323300_80163510(Task* arg0);
@@ -170,7 +170,6 @@ static const TaskFuncTable3 D_actor_323300_80161E24 = { {
 
 s32 func_actor_323300_80162208(Task*, s32, s32, s32);
 s32 func_actor_323300_80162360(Task*, s32, ActorCommand* msg, ActorTransform* place);
-s32 func_actor_323300_801628B8(Task*, s32, AnimationPlayRequest*, s32);
 s32 func_actor_323300_801629F0(Task*, s32, ActorTransform* transform, s32);
 
 extern TmdSource D_actor_323300_80169200;
@@ -321,7 +320,7 @@ AnimationSet* D_actor_323300_80172548[4] = {
     &D_actor_323300_801720E8,
 };
 
-AnimationSet** D_actor_323300_80172558[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_323300_80172548,
 };
 
@@ -331,7 +330,7 @@ TaskDesc D_actor_323300_8017255C[2] = {
 };
 
 _Actor323300MessageEntry D_actor_323300_80172574[5] = {
-    { 2003, { .animation = func_actor_323300_801628B8 } },
+    { 2003, { .animation = actorMotionPlayAnim19 } },
     { 2004, { .placement = func_actor_323300_801629F0 } },
     { 2005, { .mode = func_actor_323300_80162208 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .command = func_actor_323300_80162360 } },
@@ -474,7 +473,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     arg0->msgTable = &D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, 0x7D5, 0, 0);
     func_actor_323300_801629F0(arg0, 0x7D3, &D_actor_323300_8017259C, 0);
-    func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725B4, 0);
+    actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725B4, 0);
     SndEvt_EnqueueType6(0x52100006, 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;
     arg0->state       += 1;
@@ -616,7 +615,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// shows the model through the 0x7D5 visibility switch, 10/11 spawn and kill
 /// the child at `field_4B8`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
-/// `func_actor_323300_801628B8`), 13 posts effect 0x600A2 on part 6.
+/// `actorMotionPlayAnim19`), 13 posts effect 0x600A2 on part 6.
 s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTransform* place)
 {
     Actor323300Work*      w;
@@ -668,7 +667,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
             if (preset->source.index != work->model.bank) {
                 work->model.bank   = preset->source.index;
                 work->model.animId = -1;
-                func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], extra,
+                func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], extra,
                               work->rig.poses, work->rig.slots);
             }
             if (preset->animationId != work->model.animId) {
@@ -753,7 +752,7 @@ static void func_actor_323300_80162748(Task* arg0)
     s32              i;
 
     work = (Actor323300Work*)arg0->work;
-    func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
+    actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 8;
     }
@@ -767,7 +766,7 @@ static void func_actor_323300_80162748(Task* arg0)
 /// dispatches, the turn-to-face body. Euler-extracts the root coordinate into `vec`
 /// and, while the yaw gap to the target `work->walk.rotY` stays under 0x41,
 /// snaps `vec.vy` to that target, plays anim 0x7D3 through
-/// `func_actor_323300_801628B8` and parks all 18 animation slots at 0x16 --
+/// `actorMotionPlayAnim19` and parks all 18 animation slots at 0x16 --
 /// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, with `composeStamp`
@@ -796,7 +795,7 @@ static void func_actor_323300_801627B4(Task* arg0)
         }
     } else {
         vec.vy = work->walk.rotY;
-        func_actor_323300_801628B8(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
+        actorMotionPlayAnim19(arg0, 0x7D3, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = 0x16;
         }
@@ -814,42 +813,7 @@ static void func_actor_323300_801627B4(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_323300_801628B8(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor323300Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor323300Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_323300_80172558[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message-0x7D4 handler: places the actor at `transform`. The translation goes
 /// straight into the root part's local matrix, the Euler angles into the
@@ -1223,7 +1187,7 @@ static s32 func_actor_323300_8016369C(Task* task, s32 msgId, ActorTransform* tra
 
 /// Start-preset handler for the 0x6B0 `Actor323300MtxWork` block
 /// `func_actor_323300_80162BE4` parks in `Task::work`, and the twin of
-/// `func_actor_323300_801628B8` (which drives the 0x504 block the same way).
+/// `actorMotionPlayAnim19` (which drives the 0x504 block the same way).
 /// A preset bank the block is not already on re-seeds it: the animation id is
 /// reset to -1, the bank is stored and the bank's animation source goes to
 /// `func_800B3F84` with the block's context, slots and matrix table. A

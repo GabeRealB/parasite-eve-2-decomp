@@ -48,7 +48,7 @@ D_actor_323300_801722BC = 0x801722BC; // size:0x23C defined:True
 D_actor_323300_801724F8 = 0x801724F8; // size:0x28 defined:True
 D_actor_323300_80172520 = 0x80172520; // size:0x28 defined:True
 D_actor_323300_80172548 = 0x80172548; // size:0x10 defined:True
-D_actor_323300_80172558 = 0x80172558; // size:0x4 defined:True
+gActorMotionAnimBanks19 = 0x80172558; // size:0x4 defined:True
 D_actor_323300_80174A60 = 0x80174A60; // size:0x10 defined:True
 D_actor_323300_80174A70 = 0x80174A70; // size:0x4 defined:True
 D_actor_323300_80174A74 = 0x80174A74; // size:0x14 defined:True
@@ -56,3 +56,4 @@ D_actor_323300_80174A88 = 0x80174A88; // size:0x28 defined:True
 D_actor_323300_80174AB0 = 0x80174AB0; // size:0x18 defined:True
 
 D_dryfield_toilet_801865D0 = 0x801865D0; // absolute:True
+actorMotionPlayAnim19 = 0x801628B8; // type:func

@@ -22,6 +22,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig and the model state, whose
@@ -44,12 +45,12 @@ STATIC_ASSERT_SIZEOF(Actor317000Work, 0x4CC);
 typedef GpSpawnAnimArg Actor317000SpawnAnim;
 
 /// Indexed by `Actor317000Work::model.bank` for `func_800B3F84`'s second
-/// argument by `func_actor_317000_80162458` and `func_actor_317000_80162A10`.
+/// argument by `func_actor_317000_80162458` and `actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
 extern AnimationSet*  D_actor_317000_8016CF1C[9];
-extern AnimationSet** D_actor_317000_8016CF40[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_317000_8016267C`; terminator id 0x7FFFFFFF.
@@ -80,7 +81,6 @@ static void func_actor_317000_80162768(Task* arg0);
 static void func_actor_317000_801627D0(Task* arg0);
 static void func_actor_317000_801628D8(Task* task);
 static void func_actor_317000_80162950(Task* arg0);
-s32         func_actor_317000_80162A10(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 s32         func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
 
 /// The actor's three task states, which `func_actor_317000_80162624` runs by
@@ -106,7 +106,6 @@ static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 extern TmdSource D_actor_317000_801683A4;
 s32              func_actor_317000_80162458(Task*, s32, ActorTransform* place, Actor317000SpawnAnim*);
-s32              func_actor_317000_80162A10(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_317000_80162B48(Task*, s32, ActorTransform* args);
 s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
 s32              func_actor_317000_80162CA0(Task*, s32, ActorCommand* msg);
@@ -332,14 +331,14 @@ AnimationSet* D_actor_317000_8016CF1C[9] = {
     &D_actor_317000_8016CEF4,
 };
 
-AnimationSet** D_actor_317000_8016CF40[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_317000_8016CF1C,
 };
 
 TaskDesc D_actor_317000_8016CF44 = { (TASK_BODY_TMD | 0x100), 192, func_actor_317000_80162624, { .model = &D_actor_317000_801683A4 } };
 
 Actor317000MsgEntry D_actor_317000_8016CF50[6] = {
-    { 2003, { .call0 = func_actor_317000_80162A10 } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_317000_80162B48 } },
     { 2005, { .call4 = func_actor_317000_80162BC4 } },
     { 2013, { .call3 = func_actor_317000_80162458 } },
@@ -548,9 +547,9 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// animation (2 when absent) with `model.nextAnimId` taking its companion byte (1 when
 /// absent), `field_8` 1, `field_C` 5 and `field_10` 1.
 ///
-/// The preset is then installed the way `func_actor_317000_80162A10` installs
+/// The preset is then installed the way `actorMotionPlayAnim19` installs
 /// one, written out in-line: a changed `field_0` resets the bank in
-/// `D_actor_317000_8016CF40` through `func_800B3F84` (`model.bank` latches it,
+/// `gActorMotionAnimBanks19` through `func_800B3F84` (`model.bank` latches it,
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
 /// for slots when `model.ticking` says the slots are already ticking -- is pushed
 /// onto `func_800B4114`'s per-slot loop instead of the `Gp_AnimResetSlot`
@@ -591,7 +590,7 @@ s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, Acto
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_317000_8016CF40[work->model.bank], ext, work->rig.poses,
+        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
@@ -736,7 +735,7 @@ static void func_actor_317000_801627D0(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
         work->field_4C4 = 0;
         work->walk.motionStep++;
     }
@@ -795,7 +794,7 @@ static void func_actor_317000_80162950(Task* arg0)
     preset.blend                = ANIMATION_BLEND_INTERPOLATE;
     preset.blendFrames          = 5;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    func_actor_317000_80162A10(arg0, 0x7D3, &preset, 0);
+    actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x400A000B, pan, (s8)gpGetObjDepth(coord));
 
@@ -806,42 +805,7 @@ static void func_actor_317000_80162950(Task* arg0)
     work->walk.motionStep++;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_317000_80162A10(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor317000Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor317000Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_317000_8016CF40[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message 0x7D4 handler of `D_actor_317000_8016CF50`: writes the payload's
 /// position into the root coordinate's translation and its Euler angles into

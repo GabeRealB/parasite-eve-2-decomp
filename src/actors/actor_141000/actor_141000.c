@@ -34,6 +34,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_motion.h"
 
 extern GpImgRec D_actor_141000_8013D72C[2];
 
@@ -130,7 +131,7 @@ extern TaskDesc D_actor_141000_801348D8[];
 /// Animation bank table `func_800B3F84` re-seeds the slots from, indexed by
 /// the preset's bank index.
 extern AnimationSet*  D_actor_141000_8013D74C[11];
-extern AnimationSet** D_actor_141000_8013D778[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_141000_8013392C`; terminator id 0x7FFFFFFF.
@@ -162,7 +163,6 @@ static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1);
 static void func_actor_141000_80133204(Task* task);
 static void func_actor_141000_80133260(Task* arg0);
 static void func_actor_141000_801332A0(Task* task);
-static void func_actor_141000_80133490(Task* arg0);
 static void func_actor_141000_801335D4(Task* arg0);
 static void func_actor_141000_8013392C(Task* arg0);
 static void func_actor_141000_801339BC(Task* arg0);
@@ -172,7 +172,6 @@ static void func_actor_141000_80133A00(Task* arg0);
 static void func_actor_141000_80133A68(Task* task);
 static void func_actor_141000_80133B28(Task* arg0);
 static void func_actor_141000_80133BD8(Task* arg0);
-s32         func_actor_141000_80133CD8(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// The model actor's attach states: chain under the spawner, then draw the
 /// sixteen quads every frame, then `taskKill`. Dispatched by
@@ -214,7 +213,7 @@ static const TaskFuncTable3 D_actor_141000_80131E4C = { {
 static const TaskFuncTable4 D_actor_141000_80131E58 = { {
     func_actor_141000_80133A68,
     func_actor_141000_80133B28,
-    func_actor_141000_80133490,
+    actorMotionArrive19,
     func_actor_141000_80133BD8,
 } };
 
@@ -245,7 +244,6 @@ extern AnimationSet D_actor_141000_8013C41C;
 extern AnimationSet D_actor_141000_8013C66C;
 extern TmdSource    D_actor_141000_8013A0B0;
 s32                 func_actor_141000_801336DC(Task*, s32, ActorTransform* place, Actor141000SpawnAnim*);
-s32                 func_actor_141000_80133CD8(Task*, s32, AnimationPlayRequest*, s32);
 s32                 func_actor_141000_80133E10(Task*, s32, ActorTransform* args);
 s32                 func_actor_141000_80133E8C(Task*, s32, s32);
 s32                 func_actor_141000_80133F6C(Task*, s32, ActorCommand* msg);
@@ -1877,14 +1875,14 @@ AnimationSet* D_actor_141000_8013D74C[11] = {
     &D_actor_141000_8013A6B8,
 };
 
-AnimationSet** D_actor_141000_8013D778[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_141000_8013D74C,
 };
 
 TaskDesc D_actor_141000_8013D77C = { (TASK_BODY_TMD | 0x100), 192, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
-    { 2003, { .call0 = func_actor_141000_80133CD8 } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_141000_80133E10 } },
     { 2005, { .call4 = func_actor_141000_80133E8C } },
     { 2013, { .call3 = func_actor_141000_801336DC } },
@@ -2419,50 +2417,7 @@ static void func_actor_141000_801332A0(Task* task)
     }
 }
 
-/// State 2 of the main-body table `D_actor_141000_80131E58`: the approach
-/// test. Once the X/Z distance from the root coordinate to `target` stops
-/// shrinking below `limit`, plays anim 0x7D3 with a preset carrying the
-/// `model.nextAnimId` byte, clears `step` and advances the state; otherwise records
-/// the distance as the new `limit`.
-static void func_actor_141000_80133490(Task* arg0)
-{
-    Actor141000Work*     work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
-
-    work  = (Actor141000Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_141000_80133CD8(arg0, 0x7D3, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
-        work->walk.motionStep++;
-        return;
-    }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
-}
+#include "../../shared/actor_motion_arrive19.inc.c"
 
 /// Texture-upload state of the enemy actor: runs the countdown at
 /// `Actor141000Work::field_4C6` down one a frame while `field_4CA` names the
@@ -2511,7 +2466,7 @@ static void func_actor_141000_801335D4(Task* arg0)
 }
 
 /// Placement handler: stores the spawn position and rotation, resets the body
-/// state, then applies a start preset exactly as `func_actor_141000_80133CD8`
+/// state, then applies a start preset exactly as `actorMotionPlayAnim19`
 /// does (inlined here). The default anim id is chosen by the `field_4C8`
 /// variant; writing it as an if/else into the preset (not a ternary) is what
 /// keeps CSE from reusing the earlier constant 1 for the `model.nextAnimId` store.
@@ -2555,7 +2510,7 @@ s32 func_actor_141000_801336DC(Task* task, s32 arg1, ActorTransform* place, Acto
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_141000_8013D778[work->model.bank], ext, work->rig.poses,
+        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
@@ -2753,7 +2708,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_141000_80133CD8(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
     }
@@ -2768,42 +2723,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_141000_80133CD8(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor141000Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor141000Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_141000_8013D778[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message-0x7D4 handler: places the model at once. Writes the payload's
 /// translation into the root coordinate, keeps its Euler angles in the

@@ -136,7 +136,6 @@ static void func_actor_335800_80162FF4(Task* arg0);
 static void func_actor_335800_80162FFC(Task* task);
 static void func_actor_335800_80163124(Task* task);
 static void func_actor_335800_80163568(Task* task);
-static void func_actor_335800_8016373C(Task* arg0);
 static void func_actor_335800_80163AA0(Task* arg0);
 static void func_actor_335800_80163B34(Task* arg0);
 static void func_actor_335800_80163B54(Task* arg0);
@@ -145,7 +144,6 @@ static void func_actor_335800_80163B78(Task* arg0);
 static void func_actor_335800_80163BE0(Task* task);
 static void func_actor_335800_80163CA0(Task* task);
 static void func_actor_335800_80163D20(Task* arg0);
-s32         func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
 /// spawns, dispatched by `func_actor_335800_80162E34`.
@@ -190,7 +188,7 @@ static const TaskFuncTable3 D_actor_335800_80161E5C = { {
 static const TaskFuncTable4 D_actor_335800_80161E68 = { {
     func_actor_335800_80163BE0,
     func_actor_335800_80163CA0,
-    func_actor_335800_8016373C,
+    actorMotionArrive19,
     func_actor_335800_80163D20,
 } };
 
@@ -239,7 +237,6 @@ s32                         func_actor_335800_801633C0(Task*, s32, ActorTransfor
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
 s32                         func_actor_335800_80163880(Task*, s32, ActorTransform* place, Actor335800SpawnAnim*);
-s32                         func_actor_335800_80163E20(Task*, s32, AnimationPlayRequest*, s32);
 s32                         func_actor_335800_80163F3C(Task*, s32, ActorTransform* args);
 s32                         func_actor_335800_80163FB8(Task*, s32, s32);
 s32                         func_actor_335800_80164098(void);
@@ -928,7 +925,7 @@ AnimationSet** D_actor_335800_80172E98[1] = {
 TaskDesc D_actor_335800_80172E9C = { (TASK_BODY_TMD | 0x100), 192, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
-    { 2003, { .call1 = func_actor_335800_80163E20 } },
+    { 2003, { .call1 = actorMotionPlayAnim19 } },
     { 2004, { .call3 = func_actor_335800_80163F3C } },
     { 2005, { .call5 = func_actor_335800_80163FB8 } },
     { 2013, { .call4 = func_actor_335800_80163880 } },
@@ -1592,52 +1589,11 @@ static void func_actor_335800_80163568(Task* task)
     }
 }
 
-/// Approach test for the child block, the twin of `actorMotionArrive`:
-/// once the X/Z distance to `target` stops shrinking below `limit`, plays anim
-/// 0x7D3, clears `step` and advances the state; otherwise records the distance.
-static void func_actor_335800_8016373C(Task* arg0)
-{
-    Actor335800Work*     work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
-
-    work  = (Actor335800Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_335800_80163E20(arg0, 0x7D3, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
-        work->walk.motionStep++;
-        return;
-    }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
-}
+#include "../../shared/actor_motion_arrive19.inc.c"
 
 /// Placement handler for the child block, the twin of
 /// `actorMotionStartWalk`: stores the spawn position and rotation, then
-/// applies a start preset exactly as `func_actor_335800_80163E20` does
+/// applies a start preset exactly as `actorMotionPlayAnim19` does
 /// (inlined here).
 s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, Actor335800SpawnAnim* anim)
 {
@@ -1863,7 +1819,7 @@ static void func_actor_335800_80163D20(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_335800_80163E20(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
     }
@@ -1882,7 +1838,7 @@ static void func_actor_335800_80163D20(Task* arg0)
 /// `actorMotionPlayAnim`: re-seeds the slot array off bank table
 /// `D_actor_335800_80172E98` when the preset's bank index changes, then
 /// restarts or resets every slot and ticks them.
-s32 func_actor_335800_80163E20(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
 {
     Actor335800Work* work;
     TmdObject*       ext;

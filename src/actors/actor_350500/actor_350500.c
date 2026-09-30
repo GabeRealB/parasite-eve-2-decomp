@@ -24,6 +24,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_motion.h"
 
 /// Optional start animation the placement handler takes: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 3 (or 2
@@ -32,7 +33,7 @@ typedef GpSpawnAnimArg Actor350500SpawnAnim;
 
 /// Animation bank table the preset's bank index selects from.
 extern AnimationSet*  D_actor_350500_80168E8C[5];
-extern AnimationSet** D_actor_350500_80168EA0[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_350500_801623CC`; terminator id 0x7FFFFFFF.
@@ -53,7 +54,6 @@ STATIC_ASSERT_SIZEOF(Actor350500MsgEntry, 8);
 extern Actor350500MsgEntry D_actor_350500_80168EB0[];
 
 static void func_actor_350500_80161E50(Task* arg0);
-static void func_actor_350500_80162038(Task* arg0);
 static void func_actor_350500_801623CC(Task* arg0);
 static void func_actor_350500_8016245C(Task* arg0);
 static void func_actor_350500_8016247C(Task* arg0);
@@ -62,7 +62,6 @@ static void func_actor_350500_801624A0(Task* arg0);
 static void func_actor_350500_80162508(Task* task);
 static void func_actor_350500_801625E4(Task* arg0);
 static void func_actor_350500_8016272C(Task* arg0);
-s32         func_actor_350500_80162828(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 /// Spawn, tick and exit handlers, dispatched by `func_actor_350500_80162360`.
 static const TaskFuncTable3 D_actor_350500_80161E24 = { {
@@ -77,7 +76,7 @@ static const TaskFuncTable3 D_actor_350500_80161E24 = { {
 static const TaskFuncTable4 D_actor_350500_80161E30 = { {
     func_actor_350500_80162508,
     func_actor_350500_801625E4,
-    func_actor_350500_80162038,
+    actorMotionArrive19,
     func_actor_350500_8016272C,
 } };
 
@@ -87,7 +86,6 @@ static const VECTOR D_actor_350500_80161E40 = { 0, 0, 0x200000, 0 };
 
 extern TmdSource D_actor_350500_8016785C;
 s32              func_actor_350500_8016217C(Task*, s32, ActorTransform* place, Actor350500SpawnAnim*);
-s32              func_actor_350500_80162828(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_350500_80162960(Task*, s32, ActorTransform* args);
 s32              func_actor_350500_801629DC(Task*, s32, s32);
 s32              func_actor_350500_80162ABC(Task*, s32, ActorCommand* msg);
@@ -221,14 +219,14 @@ AnimationSet* D_actor_350500_80168E8C[5] = {
     &D_actor_350500_80168E64,
 };
 
-AnimationSet** D_actor_350500_80168EA0[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350500_80168E8C,
 };
 
 TaskDesc D_actor_350500_80168EA4 = { (TASK_BODY_TMD | 0x100), 192, func_actor_350500_80162360, { .model = &D_actor_350500_8016785C } };
 
 Actor350500MsgEntry D_actor_350500_80168EB0[6] = {
-    { 2003, { .call0 = func_actor_350500_80162828 } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_350500_80162960 } },
     { 2005, { .call4 = func_actor_350500_801629DC } },
     { 2013, { .call3 = func_actor_350500_8016217C } },
@@ -285,54 +283,12 @@ static void func_actor_350500_80161E50(Task* arg0)
     }
 }
 
-/// Walk step 2, the approach test. Once the X/Z distances from the root
-/// coordinate to `target` stop shrinking below `limit`, plays the `model.nextAnimId`
-/// animation, clears `step` and advances `walk.motionStep`; otherwise records the
-/// distances as the new `limit`.
-static void func_actor_350500_80162038(Task* arg0)
-{
-    Actor350500Work*     work;
-    GfxCoord*            coord;
-    SVECTOR              d;
-    s32                  dx;
-    s32                  dz;
-    AnimationPlayRequest preset;
-
-    work  = (Actor350500Work*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.limit.vx && d.vz >= work->walk.limit.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_350500_80162828(arg0, 0x7D3, &preset, 0);
-        work->walk.step.vx = 0;
-        work->walk.step.vy = 0;
-        work->walk.step.vz = 0;
-        work->walk.motionStep++;
-        return;
-    }
-    work->walk.limit.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.limit.vz = d.vz < 0 ? -d.vz : d.vz;
-}
+#include "../../shared/actor_motion_arrive19.inc.c"
 
 /// Placement message handler: seeds the work block's target and placement
 /// rotation from `place`, starts the walk sequence, and picks the start
 /// animation from `anim` (or anim 3, 2 once `field_4C4` is set), installing
-/// it with the body of `func_actor_350500_80162828` written out inline.
+/// it with the body of `actorMotionPlayAnim19` written out inline.
 /// Returns 0.
 s32 func_actor_350500_8016217C(Task* task, s32 arg1, ActorTransform* place, Actor350500SpawnAnim* anim)
 {
@@ -374,7 +330,7 @@ s32 func_actor_350500_8016217C(Task* task, s32 arg1, ActorTransform* place, Acto
     if (msg->source.index != work->model.bank) {
         work->model.bank   = msg->source.index;
         work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_350500_80168EA0[work->model.bank], ext, work->rig.poses,
+        func_800B3F84(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
                       work->rig.slots);
     }
     if (msg->animationId != work->model.animId) {
@@ -574,7 +530,7 @@ static void func_actor_350500_8016272C(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 4;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_350500_80162828(arg0, 0x7D3, &preset, 0);
+        actorMotionPlayAnim19(arg0, 0x7D3, &preset, 0);
         work->walk.motion     = 0;
         work->walk.motionStep = 0;
     }
@@ -589,42 +545,7 @@ static void func_actor_350500_8016272C(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_350500_80162828(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor350500Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor350500Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_350500_80168EA0[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message-0x7D4 handler: places the root part at `args`. The translation
 /// goes straight into the local matrix, the Euler angles into the

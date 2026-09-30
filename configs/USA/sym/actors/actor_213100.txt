@@ -59,4 +59,5 @@ D_actor_213100_80152048 = 0x80152048; // size:0xE4 defined:True
 D_actor_213100_8015212C = 0x8015212C; // size:0x28 defined:True
 D_actor_213100_80152154 = 0x80152154; // size:0x28 defined:True
 D_actor_213100_8015217C = 0x8015217C; // size:0x28 defined:True
-D_actor_213100_801521A4 = 0x801521A4; // size:0x4 defined:True
+gActorMotionAnimBanks19 = 0x801521A4; // size:0x4 defined:True
+actorMotionPlayAnim19 = 0x8014A258; // type:func

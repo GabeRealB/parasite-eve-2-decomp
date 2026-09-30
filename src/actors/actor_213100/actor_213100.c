@@ -23,13 +23,14 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
 /// `TaskIdMap` here.
 ///
 /// It opens with the animation context the 0x7D3 handler
-/// `func_actor_213100_8014A258` drives: the `AnimationContext` at the block's own
+/// `actorMotionPlayAnim19` drives: the `AnimationContext` at the block's own
 /// address, the 0x13 slots above it and the table at 0x30C, the three
 /// arguments that handler hands `func_800B3F84`. `field_43C` latches once the
 /// slots have been started, and gates the per-frame tick; `field_43E` and
@@ -55,14 +56,14 @@ STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 /// Animation bank table the 0x7D3 handler indexes with the preset's
 /// `field_0`.
 extern AnimationSet*  D_actor_213100_8015217C[10];
-extern AnimationSet** D_actor_213100_801521A4[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// Spawn table the spawn state takes its child from; entry 1 is the child,
 /// whose body is `func_actor_213100_80149FE4`.
 extern TaskDesc D_actor_213100_801521A8[];
 
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
-/// animation handler `func_actor_213100_8014A258`, 0x7D4 the placement
+/// animation handler `actorMotionPlayAnim19`, 0x7D4 the placement
 /// handler `func_actor_213100_8014A390` and 0x7D5 the display handler
 /// `func_actor_213100_8014A40C`.
 // Message-table callbacks use the argument views required by this TU.
@@ -87,11 +88,9 @@ static void func_actor_213100_8014A0B8(Task* task);
 static void func_actor_213100_8014A118(Task* arg0);
 static void func_actor_213100_8014A21C(Task* arg0);
 static void func_actor_213100_8014A23C(Task* arg0);
-s32         func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 
 extern TmdSource D_actor_213100_801501E4;
 extern TmdSource D_actor_213100_801503DC;
-s32              func_actor_213100_8014A258(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_213100_8014A390(Task*, s32, ActorTransform* args);
 s32              func_actor_213100_8014A40C(Task*, s32, s32);
 void             func_actor_213100_80149FE4(Task*);
@@ -368,7 +367,7 @@ AnimationSet* D_actor_213100_8015217C[10] = {
     &D_actor_213100_80152154,
 };
 
-AnimationSet** D_actor_213100_801521A4[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_213100_8015217C,
 };
 
@@ -378,7 +377,7 @@ TaskDesc D_actor_213100_801521A8[2] = {
 };
 
 Actor213100MessageEntry D_actor_213100_801521C0[4] = {
-    { 2003, { .call0 = func_actor_213100_8014A258 } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call1 = func_actor_213100_8014A390 } },
     { 2005, { .call2 = func_actor_213100_8014A40C } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -572,7 +571,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     preset.blend                = ANIMATION_BLEND_RESET;
     preset.blendFrames          = 0;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    func_actor_213100_8014A258(arg0, 0, &preset, 0);
+    actorMotionPlayAnim19(arg0, 0, &preset, 0);
     arg0->msgTable     = D_actor_213100_801521C0;
     arg0->exitCallback = func_actor_213100_8014A21C;
     arg0->state++;
@@ -597,43 +596,7 @@ static void func_actor_213100_8014A23C(Task* arg0)
     ext->colorMtx = &work->color;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_213100_8014A258(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
-{
-    Actor213100Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor213100Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->field_43E) {
-        work->field_43E = msg->source.index;
-        work->field_43D = -1;
-        func_800B3F84(&work->rig.anim, D_actor_213100_801521A4[work->field_43E], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    if (msg->animationId != work->field_43D) {
-        work->field_43D = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->field_43C != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->field_43D, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->field_43D);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->field_43C = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message-0x7D4 handler: places the actor at the message's arguments -
 /// the translation goes straight into the root coordinate's local matrix, the

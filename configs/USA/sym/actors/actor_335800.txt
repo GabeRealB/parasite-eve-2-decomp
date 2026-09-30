@@ -126,3 +126,5 @@ actorMotionFaceTarget = 0x80163064; // type:func
 actorMotionTurnToYaw = 0x801631A4; // type:func
 actorMotionPlayAnim = 0x801632A4; // type:func
 actorMotionStartWalk = 0x80162C80; // type:func
+actorMotionArrive19 = 0x8016373C; // type:func
+actorMotionPlayAnim19 = 0x80163E20; // type:func

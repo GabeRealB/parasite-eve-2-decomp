@@ -42,6 +42,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_motion.h"
 
 /// Work block allocated by `func_actor_361100_80162D28` and
 /// `func_actor_361100_80163410` (`memCalloc(0x4A4)`)
@@ -92,7 +93,7 @@ extern GpScriptCmd D_actor_361100_80166AD0[2];
 extern GpScriptRec D_actor_361100_80166AD8;
 
 extern AnimationSet*  D_actor_361100_8016BAD0[4];
-extern AnimationSet** D_actor_361100_8016BAE0[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 typedef struct {
@@ -158,7 +159,6 @@ extern AnimationSet D_actor_361100_8016B55C;
 extern AnimationSet D_actor_361100_8016B8C8;
 extern AnimationSet D_actor_361100_8016BAA8;
 extern TmdSource    D_actor_361100_8016B2B8;
-s32                 func_actor_361100_80162E20(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_361100_80162F58(Task*, s32, ActorTransform* placement);
 s32                 func_actor_361100_80162FF4(Task*, s32, s32);
 s32                 func_actor_361100_801630D4(Task*, s32, ActorCommand* msg);
@@ -779,14 +779,14 @@ AnimationSet* D_actor_361100_8016BAD0[4] = {
     &D_actor_361100_8016BAA8,
 };
 
-AnimationSet** D_actor_361100_8016BAE0[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_361100_8016BAD0,
 };
 
 TaskDesc D_actor_361100_8016BAE4 = { (TASK_BODY_TMD | 0x100), 192, func_actor_361100_80162CBC, { .model = &D_actor_361100_8016B2B8 } };
 
 Actor361100MsgEntry D_actor_361100_8016BAF0[5] = {
-    { 2003, { .call0 = func_actor_361100_80162E20 } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_361100_80162F58 } },
     { 2005, { .call3 = func_actor_361100_80162FF4 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_361100_801630D4 } },
@@ -1612,43 +1612,7 @@ static void func_actor_361100_80162E04(Task* arg0)
     ext->colorMtx = &work->model.color;
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
-///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_361100_80162E20(Task* task, s32 arg1, AnimationPlayRequest* msg)
-{
-    Actor361100Work* work;
-    TmdObject*       ext;
-    s32              i;
-
-    work = (Actor361100Work*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_361100_8016BAE0[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Places the actor at `placement`: drops the opcode's translation straight
 /// into the root part's local matrix, stores its Euler angles in the

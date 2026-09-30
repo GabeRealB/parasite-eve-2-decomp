@@ -42,6 +42,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/actor_motion.h"
 
 extern AnimationSet* D_actor_503500_8016EA54[20];
 
@@ -187,7 +188,7 @@ static void            func_actor_503500_8014618C(Task* arg0);
 static void            func_actor_503500_80146524(Task* arg0);
 
 extern AnimationSet*  D_actor_503500_80176514[3];
-extern AnimationSet** D_actor_503500_80176520[1];
+extern AnimationSet** gActorMotionAnimBanks19[1];
 static void           func_actor_503500_80144E8C(Task* arg0);
 static void           func_actor_503500_80145428(Task* arg0);
 static void           func_actor_503500_801455A4(Task* arg0);
@@ -210,7 +211,6 @@ static const TaskFuncTable3 D_actor_503500_801321F4 = {
 extern AnimationSet D_actor_503500_80176314;
 extern AnimationSet D_actor_503500_801764EC;
 extern TmdSource    D_actor_503500_80175DC8;
-s32                 func_actor_503500_8014652C(Task*, s32, AnimationPlayRequest*);
 s32                 func_actor_503500_80146664(Task*, s32, ActorTransform* args);
 s32                 func_actor_503500_801466E0(Task*, s32, s32);
 s32                 func_actor_503500_801467C0(Task*, s32, ActorCommand* msg);
@@ -1109,14 +1109,14 @@ AnimationSet* D_actor_503500_80176514[3] = {
     &D_actor_503500_801764EC,
 };
 
-AnimationSet** D_actor_503500_80176520[1] = {
+AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_503500_80176514,
 };
 
 TaskDesc D_actor_503500_80176524 = { (TASK_BODY_TMD | 0x100), 192, func_actor_503500_801463C0, { .model = &D_actor_503500_80175DC8 } };
 
 Actor5035005MsgEntry D_actor_503500_80176530[5] = {
-    { 2003, { .call0 = func_actor_503500_8014652C } },
+    { 2003, { .call0 = actorMotionPlayAnim19 } },
     { 2004, { .call2 = func_actor_503500_80146664 } },
     { 2005, { .call3 = func_actor_503500_801466E0 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_503500_801467C0 } },
@@ -1891,38 +1891,7 @@ static void func_actor_503500_80146524(Task* arg0)
 {
 }
 
-s32 func_actor_503500_8014652C(Task* task, s32 arg1, AnimationPlayRequest* msg)
-{
-    Actor503500Effect4CC* work;
-    TmdObject*            ext;
-    s32                   i;
-
-    work = (Actor503500Effect4CC*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = -1;
-        func_800B3F84(&work->rig.anim, D_actor_503500_80176520[work->model.bank], ext, work->rig.poses,
-                      work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                func_800B4114(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x13; i++) {
-                Gp_AnimResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    return 0;
-}
+#include "../../shared/actor_motion_play19.inc.c"
 
 /// Message-0x7D4 handler of the effect task's table (the one
 /// `func_actor_503500_8014642C` installs): places the effect's model at `args`
