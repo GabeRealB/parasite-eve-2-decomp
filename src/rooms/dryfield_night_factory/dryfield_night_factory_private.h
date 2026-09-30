@@ -40,33 +40,33 @@ extern GpGridParams D_dryfield_night_factory_80186DBC;
 
 extern SpriteBatch D_dryfield_night_factory_80187EC0[2];
 
-extern GpSprtElem D_dryfield_night_factory_80187ED0[13];
+extern SpriteSource D_dryfield_night_factory_80187ED0[13];
 
 extern SpriteBatch D_dryfield_night_factory_80187FD4[6];
 
-extern GpSprtElem D_dryfield_night_factory_80188004[12];
+extern SpriteSource D_dryfield_night_factory_80188004[12];
 
 extern SpriteBatch D_dryfield_night_factory_801880F4[5];
 
-extern GpSprtElem D_dryfield_night_factory_8018811C[82];
+extern SpriteSource D_dryfield_night_factory_8018811C[82];
 
 extern SpriteBatch D_dryfield_night_factory_80188784[7];
 
 extern SpriteBatch D_dryfield_night_factory_801887BC[2];
 
-extern GpSprtElem D_dryfield_night_factory_801887CC[32];
+extern SpriteSource D_dryfield_night_factory_801887CC[32];
 
 extern SpriteBatch D_dryfield_night_factory_80188A4C[7];
 
-extern GpSprtElem D_dryfield_night_factory_80188A84[39];
+extern SpriteSource D_dryfield_night_factory_80188A84[39];
 
 extern SpriteBatch D_dryfield_night_factory_80188D90[8];
 
-extern GpSprtElem D_dryfield_night_factory_80188DD0[12];
+extern SpriteSource D_dryfield_night_factory_80188DD0[12];
 
 extern SpriteBatch D_dryfield_night_factory_80188EC0[3];
 
-extern GpSprtElem D_dryfield_night_factory_80188ED8[4];
+extern SpriteSource D_dryfield_night_factory_80188ED8[4];
 
 extern SpriteBatch D_dryfield_night_factory_80188F28[3];
 
@@ -80,17 +80,17 @@ extern SpriteBatch D_dryfield_night_factory_80188F70[2];
 
 extern SpriteBatch D_dryfield_night_factory_80188F80[2];
 
-extern GpSprtElem D_dryfield_night_factory_80188F90[78];
+extern SpriteSource D_dryfield_night_factory_80188F90[78];
 
 extern SpriteBatch D_dryfield_night_factory_801895A8[6];
 
-extern GpSprtElem D_dryfield_night_factory_801895D8[32];
+extern SpriteSource D_dryfield_night_factory_801895D8[32];
 
 extern SpriteBatch D_dryfield_night_factory_80189858[5];
 
 extern SpriteBatch D_dryfield_night_factory_80189880[2];
 
-extern GpSprtElem D_dryfield_night_factory_80189890[17];
+extern SpriteSource D_dryfield_night_factory_80189890[17];
 
 extern SpriteBatch D_dryfield_night_factory_801899E4[6];
 

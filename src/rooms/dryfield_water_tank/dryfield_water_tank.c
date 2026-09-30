@@ -535,7 +535,7 @@ SpriteBatch D_dryfield_water_tank_80187048[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_80187058[31] = {
+SpriteSource D_dryfield_water_tank_80187058[31] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, -120, 3693, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, -120, 1131, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -120, 1028, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
@@ -576,7 +576,7 @@ SpriteBatch D_dryfield_water_tank_801872C4[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_801872E4[88] = {
+SpriteSource D_dryfield_water_tank_801872E4[88] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -96, -120, 1275, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, -120, 1250, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -80, -120, 1125, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
@@ -675,7 +675,7 @@ SpriteBatch D_dryfield_water_tank_801879C4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_801879EC[10] = {
+SpriteSource D_dryfield_water_tank_801879EC[10] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 32, 8, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 8, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 8, 625, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
@@ -694,7 +694,7 @@ SpriteBatch D_dryfield_water_tank_80187AB4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_80187ACC[25] = {
+SpriteSource D_dryfield_water_tank_80187ACC[25] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -24, 500, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 32, 500, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, -136, -24, 500, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
@@ -738,7 +738,7 @@ SpriteBatch D_dryfield_water_tank_80187CE8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_80187CF8[1] = {
+SpriteSource D_dryfield_water_tank_80187CF8[1] = {
     { 143, 0x3FC0, { .fields = { 88, 240 } }, -40, -120, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
@@ -748,7 +748,7 @@ SpriteBatch D_dryfield_water_tank_80187D0C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_water_tank_80187D24[27] = {
+SpriteSource D_dryfield_water_tank_80187D24[27] = {
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -88, 750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 750, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -16, 750, { .fields = { 56, 192 } }, 128, 128, 128, 0 },

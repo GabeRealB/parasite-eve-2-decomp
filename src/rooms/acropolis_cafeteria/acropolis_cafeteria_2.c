@@ -125,14 +125,14 @@ extern SpriteBatch   D_acropolis_cafeteria_8018BC44[2];
 extern SpriteBatch   D_acropolis_cafeteria_8018BC54[2];
 extern SpriteBatch   D_acropolis_cafeteria_8018BC64[2];
 extern SpriteBatch   D_acropolis_cafeteria_8018C250[19];
-extern GpSprtElem    D_acropolis_cafeteria_8018AA40[40];
-extern GpSprtElem    D_acropolis_cafeteria_8018ADB0[67];
-extern GpSprtElem    D_acropolis_cafeteria_8018B3B8[39];
-extern GpSprtElem    D_acropolis_cafeteria_8018B734[7];
-extern GpSprtElem    D_acropolis_cafeteria_8018B7D8[2];
-extern GpSprtElem    D_acropolis_cafeteria_8018B828[31];
-extern GpSprtElem    D_acropolis_cafeteria_8018BB1C[12];
-extern GpSprtElem    D_acropolis_cafeteria_8018BC74[75];
+extern SpriteSource  D_acropolis_cafeteria_8018AA40[40];
+extern SpriteSource  D_acropolis_cafeteria_8018ADB0[67];
+extern SpriteSource  D_acropolis_cafeteria_8018B3B8[39];
+extern SpriteSource  D_acropolis_cafeteria_8018B734[7];
+extern SpriteSource  D_acropolis_cafeteria_8018B7D8[2];
+extern SpriteSource  D_acropolis_cafeteria_8018B828[31];
+extern SpriteSource  D_acropolis_cafeteria_8018BB1C[12];
+extern SpriteSource  D_acropolis_cafeteria_8018BC74[75];
 
 GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1] = {
     { 0, NULL, 15, D_acropolis_cafeteria_80189E24, 1, D_acropolis_cafeteria_8018A3C4.active },
@@ -143,7 +143,7 @@ SpriteBatch D_acropolis_cafeteria_8018AA30[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018AA40[40] = {
+SpriteSource D_acropolis_cafeteria_8018AA40[40] = {
     { 143, 0x3FC0, { .fields = { 48, 8 } }, 72, 48, 751, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 56, 709, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 16 } }, 72, 64, 677, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
@@ -199,7 +199,7 @@ SpriteBatch D_acropolis_cafeteria_8018AD60[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018ADB0[67] = {
+SpriteSource D_acropolis_cafeteria_8018ADB0[67] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, -24, 1444, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -8, 1443, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, 0, 1460, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
@@ -306,7 +306,7 @@ GpDrawAreaRec D_acropolis_cafeteria_8018B3A4[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018B3B8[39] = {
+SpriteSource D_acropolis_cafeteria_8018B3B8[39] = {
     { 143, 0x3FC0, { .fields = { 64, 64 } }, -160, -120, 525, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 64 } }, -96, -120, 525, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 64 } }, -32, -120, 525, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
@@ -377,7 +377,7 @@ SpriteBatch D_acropolis_cafeteria_8018B724[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018B734[7] = {
+SpriteSource D_acropolis_cafeteria_8018B734[7] = {
     { 143, 0x3FC0, { .fields = { 40, 8 } }, 8, 64, 525, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 72, 492, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 8 } }, 32, 72, 636, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
@@ -393,7 +393,7 @@ SpriteBatch D_acropolis_cafeteria_8018B7C0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018B7D8[2] = {
+SpriteSource D_acropolis_cafeteria_8018B7D8[2] = {
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -48, 0, 675, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -8, 0, 675, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
 };
@@ -409,7 +409,7 @@ SpriteBatch D_acropolis_cafeteria_8018B818[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018B828[31] = {
+SpriteSource D_acropolis_cafeteria_8018B828[31] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 40, 1100, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -16, 975, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 48, 1000, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
@@ -463,7 +463,7 @@ SpriteBatch D_acropolis_cafeteria_8018BA94[17] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018BB1C[12] = {
+SpriteSource D_acropolis_cafeteria_8018BB1C[12] = {
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, -120, 750, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 72 } }, -160, -40, 750, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, 32, 750, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
@@ -509,7 +509,7 @@ SpriteBatch D_acropolis_cafeteria_8018BC64[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018BC74[75] = {
+SpriteSource D_acropolis_cafeteria_8018BC74[75] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, -24, 1444, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -8, 1443, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, 0, 1460, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
@@ -614,7 +614,7 @@ SpriteBatch D_acropolis_cafeteria_8018C2E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018C2F8[16] = {
+SpriteSource D_acropolis_cafeteria_8018C2F8[16] = {
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, -120, 525, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -120, -120, 475, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -96, -120, 425, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
@@ -641,7 +641,7 @@ SpriteBatch D_acropolis_cafeteria_8018C438[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_cafeteria_8018C460[1] = {
+SpriteSource D_acropolis_cafeteria_8018C460[1] = {
     { 143, 0x3FC0, { .fields = { 88, 24 } }, -80, 96, 672, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 

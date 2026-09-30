@@ -128,7 +128,7 @@ SpriteBatch D_shelter_1f_tent_8018247C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_tent_8018248C[78] = {
+SpriteSource D_shelter_1f_tent_8018248C[78] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 0, 636, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 8, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 0, 703, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
@@ -219,7 +219,7 @@ SpriteBatch D_shelter_1f_tent_80182AA4[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_tent_80182ADC[67] = {
+SpriteSource D_shelter_1f_tent_80182ADC[67] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -24, 850, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -8, 850, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 24, 950, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
@@ -297,7 +297,7 @@ SpriteBatch D_shelter_1f_tent_80183018[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_tent_80183040[47] = {
+SpriteSource D_shelter_1f_tent_80183040[47] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -24, 1106, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 32, 813, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 881, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
@@ -369,7 +369,7 @@ SpriteBatch D_shelter_1f_tent_8018342C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_tent_8018343C[40] = {
+SpriteSource D_shelter_1f_tent_8018343C[40] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 704, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 32, 700, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 80, 683, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
@@ -419,7 +419,7 @@ SpriteBatch D_shelter_1f_tent_8018375C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_tent_8018377C[16] = {
+SpriteSource D_shelter_1f_tent_8018377C[16] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 363, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 8, 375, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 24, 379, { .fields = { 120, 160 } }, 128, 128, 128, 0 },

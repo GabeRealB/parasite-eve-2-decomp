@@ -187,7 +187,7 @@ SpriteBatch D_shelter_1f_bulwark_801806E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_bulwark_801806F8[8] = {
+SpriteSource D_shelter_1f_bulwark_801806F8[8] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 32, 1225, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 8 } }, -104, 40, 1225, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 16 } }, -120, 48, 1225, { .fields = { 64, 112 } }, 128, 128, 128, 0 },

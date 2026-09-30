@@ -358,7 +358,7 @@ SpriteBatch D_dryfield_warehouse_801811A0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_warehouse_801811B0[21] = {
+SpriteSource D_dryfield_warehouse_801811B0[21] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, 16, 1012, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, 24, 1025, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 48 } }, -112, 64, 450, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
@@ -391,7 +391,7 @@ SpriteBatch D_dryfield_warehouse_80181354[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_warehouse_80181384[25] = {
+SpriteSource D_dryfield_warehouse_80181384[25] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 32, 962, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 32, 875, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 40 } }, 48, 32, 825, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -428,7 +428,7 @@ SpriteBatch D_dryfield_warehouse_80181578[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_warehouse_801815A8[2] = {
+SpriteSource D_dryfield_warehouse_801815A8[2] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 80, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 550, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
 };

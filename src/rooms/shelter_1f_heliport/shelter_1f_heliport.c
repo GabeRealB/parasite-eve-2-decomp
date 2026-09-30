@@ -354,7 +354,7 @@ SpriteBatch D_shelter_1f_heliport_80181B48[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_heliport_80181B58[21] = {
+SpriteSource D_shelter_1f_heliport_80181B58[21] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 72, 1239, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -40, 1539, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -16, 1500, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
@@ -424,7 +424,7 @@ SpriteBatch D_shelter_1f_heliport_80181D84[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_heliport_80181D94[13] = {
+SpriteSource D_shelter_1f_heliport_80181D94[13] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 72, 1100, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 72, 1075, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 80, 1175, { .fields = { 120, 112 } }, 128, 128, 128, 0 },

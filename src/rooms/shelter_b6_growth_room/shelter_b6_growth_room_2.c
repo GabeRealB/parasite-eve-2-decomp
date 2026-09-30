@@ -169,7 +169,7 @@ SpriteBatch D_shelter_b6_growth_room_8017FC34[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b6_growth_room_8017FC44[6] = {
+SpriteSource D_shelter_b6_growth_room_8017FC44[6] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 40, 1110, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 40, 1124, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 24, 1129, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
@@ -184,7 +184,7 @@ SpriteBatch D_shelter_b6_growth_room_8017FCBC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b6_growth_room_8017FCD4[19] = {
+SpriteSource D_shelter_b6_growth_room_8017FCD4[19] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 16, 1203, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 40, 1154, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 16, 1164, { .fields = { 112, 56 } }, 128, 128, 128, 0 },

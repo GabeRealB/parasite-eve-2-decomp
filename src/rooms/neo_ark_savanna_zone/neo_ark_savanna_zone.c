@@ -153,7 +153,7 @@ SpriteBatch D_neo_ark_savanna_zone_8017FC84[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_savanna_zone_8017FC94[24] = {
+SpriteSource D_neo_ark_savanna_zone_8017FC94[24] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 825, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 16, 825, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -8, 875, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
@@ -189,7 +189,7 @@ SpriteBatch D_neo_ark_savanna_zone_8017FE74[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_savanna_zone_8017FEA4[35] = {
+SpriteSource D_neo_ark_savanna_zone_8017FEA4[35] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 625, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 625, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 625, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
@@ -235,7 +235,7 @@ SpriteBatch D_neo_ark_savanna_zone_80180160[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_savanna_zone_80180188[29] = {
+SpriteSource D_neo_ark_savanna_zone_80180188[29] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 0, 1312, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 1312, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 1312, { .fields = { 8, 0 } }, 128, 128, 128, 0 },

@@ -166,7 +166,7 @@ SpriteBatch D_shelter_1f_airlock_8017E920[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_airlock_8017E930[24] = {
+SpriteSource D_shelter_1f_airlock_8017E930[24] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 24, -96, 1150, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -48, 1163, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -32, 1201, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
@@ -205,7 +205,7 @@ GpDrawAreaRec D_shelter_1f_airlock_8017EB30[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_1f_airlock_8017EB44[26] = {
+SpriteSource D_shelter_1f_airlock_8017EB44[26] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -88, 1275, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -120, -88, 1275, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -88, -88, 1275, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
@@ -246,7 +246,7 @@ GpDrawAreaRec D_shelter_1f_airlock_8017ED6C[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_1f_airlock_8017ED80[36] = {
+SpriteSource D_shelter_1f_airlock_8017ED80[36] = {
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, -120, 311, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, -80, 311, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -72, 0, 435, { .fields = { 96, 0 } }, 128, 128, 128, 0 },

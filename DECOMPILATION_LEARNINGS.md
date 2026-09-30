@@ -6788,9 +6788,9 @@ sw     ra / s7 / s6 / ...
 ## Two array pointers so `p++` and `i++` fill different load delays
 
 One pointer through a `0x14`-byte record increments both `$s3` (base)
-and `$s1` (base+0xC) together. A second copy (`elem` for offset-0
-`tpage`, `cur` for the rest) lets `elem++` fill the `wh` load delay
-while `cur++` waits until after both OT-index loads.
+and `$s1` (base+0xC) together. A second copy (`texturePageSource` for offset-0
+`tpage`, `source` for the rest) lets `texturePageSource++` fill the `wh` load delay
+while `source++` waits until after both OT-index loads.
 
 A loop counter that is only compared at the backedge sinks into the
 later delay (`addiu s4` with `wh` instead of `xy`). `asm volatile("" :
@@ -6805,11 +6805,11 @@ count and a later pointer) makes GCC store a known-zero `count` with
 `count == 0` path emits `sw $0`. Reuse `$s1` later with a *nested-block*
 `register T* mid asm("s1")` once `count` is dead.
 
-`elem++` updates both the base (`$s2`) and GCC's derived `elem+4`
+`source++` updates both the base (`$s2`) and GCC's derived `source+4`
 (`$s1`) as one pair, in register order (`s1` then `s2`). The target
 wants `s2++` in an earlier load delay and `s1++` in the backedge delay.
-A second pointer at `&elem->w`, pinned with `asm volatile("" : "+r"(mid))`
-right after the assignment, breaks the equivalence so `elem++` and
+A second pointer at `&source->size.fields.w`, pinned with `asm volatile("" : "+r"(mid))`
+right after the assignment, breaks the equivalence so `source++` and
 `mid++` schedule independently. `Gp_AllocSprtLists` is the example.
 
 ## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
@@ -30553,7 +30553,7 @@ lui   t3, 0xFF00
 addiu a2, a0, 0xC
 ```
 
-`addPrim(...)` alone hoists the masks *after* `&elem->field_C` and gives
+`addPrim(...)` alone hoists the masks *after* `&source->depth` and gives
 the `0xFFFFFF` constant `$t0`. Zeroing the loop index at entry (the
 `Gp_FindViewIndex` trick) is not enough: the constant is referenced more
 often than the index, so it still wins `$t0`.
@@ -30570,7 +30570,7 @@ u32          maskHi;
 i      = 0;
 mask   = 0xFFFFFF;
 maskHi = 0xFF000000;
-/* then z = &elem->field_C, then the loop */
+/* then z = &source->depth, then the loop */
 ```
 
 `register ... asm("t0")` is required here — unlike `Gp_FindViewIndex` the

@@ -45,9 +45,9 @@ extern GpObj4C                    D_mine_tunnel_8017FDA0[4];
 extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
 extern GpRoomCoordSet             D_mine_tunnel_8017FBC0[1];
 
-extern SpriteBatch D_mine_tunnel_8017E944[2];
-extern SpriteBatch D_mine_tunnel_8017EA1C[4];
-extern GpSprtElem  D_mine_tunnel_8017E954[10];
+extern SpriteBatch  D_mine_tunnel_8017E944[2];
+extern SpriteBatch  D_mine_tunnel_8017EA1C[4];
+extern SpriteSource D_mine_tunnel_8017E954[10];
 
 SVECTOR D_mine_tunnel_8017E12C[5] = {
     { 11650, -1730, 3690, 0 },
@@ -117,7 +117,7 @@ SpriteBatch D_mine_tunnel_8017E944[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_tunnel_8017E954[10] = {
+SpriteSource D_mine_tunnel_8017E954[10] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -120, 577, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 104, 532, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, -120, 594, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
@@ -137,7 +137,7 @@ SpriteBatch D_mine_tunnel_8017EA1C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_tunnel_8017EA3C[51] = {
+SpriteSource D_mine_tunnel_8017EA3C[51] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -120, 577, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, -120, 580, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 64, 32 } }, 96, -120, 693, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
@@ -203,7 +203,7 @@ SpriteBatch D_mine_tunnel_8017EE38[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_tunnel_8017EE80[63] = {
+SpriteSource D_mine_tunnel_8017EE80[63] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -64, 2988, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -64, 3024, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -88, 2910, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
@@ -281,7 +281,7 @@ SpriteBatch D_mine_tunnel_8017F36C[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_tunnel_8017F3B4[74] = {
+SpriteSource D_mine_tunnel_8017F3B4[74] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -120, 1212, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 8, 1336, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -40, 1274, { .fields = { 24, 0 } }, 128, 128, 128, 0 },

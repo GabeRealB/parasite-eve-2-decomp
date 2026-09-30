@@ -344,7 +344,7 @@ SpriteBatch D_shelter_r36_8017EC60[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_r36_8017EC70[62] = {
+SpriteSource D_shelter_r36_8017EC70[62] = {
     { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 16, 0, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 16 } }, 120, 24, 0, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 40, 0, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
@@ -416,7 +416,7 @@ SpriteBatch D_shelter_r36_8017F148[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_r36_8017F168[14] = {
+SpriteSource D_shelter_r36_8017F168[14] = {
     { 143, 0x3FC0, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 32, 0, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 56, 56 } }, 128, 128, 128, 0 },

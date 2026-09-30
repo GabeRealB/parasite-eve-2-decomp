@@ -101,7 +101,7 @@ SpriteBatch D_shelter_r49_8017DB3C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_r49_8017DB4C[15] = {
+SpriteSource D_shelter_r49_8017DB4C[15] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 0, { .fields = { 72, 0 } }, 128, 128, 128, 0 },

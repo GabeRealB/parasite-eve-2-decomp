@@ -429,7 +429,7 @@ SpriteBatch D_dryfield_main_street_80182E94[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_80182EA4[51] = {
+SpriteSource D_dryfield_main_street_80182EA4[51] = {
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -160, -120, 1250, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 80 } }, -160, -16, 1250, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 152 } }, -72, -120, 2350, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
@@ -494,7 +494,7 @@ SpriteBatch D_dryfield_main_street_801832A0[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_801832E0[26] = {
+SpriteSource D_dryfield_main_street_801832E0[26] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 920, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -120, 1006, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, -120, 1060, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -529,7 +529,7 @@ SpriteBatch D_dryfield_main_street_801834E8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_80183500[17] = {
+SpriteSource D_dryfield_main_street_80183500[17] = {
     { 143, 0x3FC0, { .fields = { 8, 112 } }, -160, -120, 960, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, -120, 998, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, -120, 1037, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
@@ -555,7 +555,7 @@ SpriteBatch D_dryfield_main_street_80183654[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_8018366C[27] = {
+SpriteSource D_dryfield_main_street_8018366C[27] = {
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -8, -120, 1375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, -8, 1475, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 16, -56, 1489, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -591,7 +591,7 @@ SpriteBatch D_dryfield_main_street_80183888[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_801838A0[26] = {
+SpriteSource D_dryfield_main_street_801838A0[26] = {
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -24, -64, 1801, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, -72, 1617, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, -80, 1450, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
@@ -629,7 +629,7 @@ SpriteBatch D_dryfield_main_street_80183AA8[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_80183AD8[31] = {
+SpriteSource D_dryfield_main_street_80183AD8[31] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 0, 2025, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 64 } }, -80, -24, 2025, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 8, 2041, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
@@ -681,7 +681,7 @@ SpriteBatch D_dryfield_main_street_80183D7C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_80183D8C[12] = {
+SpriteSource D_dryfield_main_street_80183D8C[12] = {
     { 141, 0x3FC0, { .fields = { 8, 96 } }, 80, -40, 1977, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 96 } }, 72, -40, 2058, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 88 } }, 64, -32, 2142, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
@@ -712,7 +712,7 @@ SpriteBatch D_dryfield_main_street_80183EA4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_main_street_80183EB4[53] = {
+SpriteSource D_dryfield_main_street_80183EB4[53] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, -48, 1675, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -24, 1675, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 0, 1675, { .fields = { 56, 168 } }, 128, 128, 128, 0 },

@@ -159,28 +159,28 @@ void                        func_acropolis_patio_8017DFE4(s32);
 void                        func_acropolis_patio_8017E024(void);
 void                        func_acropolis_patio_8017E054(Task*);
 
-extern SpriteBatch D_acropolis_patio_80184AF0[2];
-extern SpriteBatch D_acropolis_patio_80184D1C[7];
-extern SpriteBatch D_acropolis_patio_801850D8[15];
-extern SpriteBatch D_acropolis_patio_8018527C[5];
-extern SpriteBatch D_acropolis_patio_801852A4[2];
-extern SpriteBatch D_acropolis_patio_801853B8[4];
-extern SpriteBatch D_acropolis_patio_8018557C[5];
-extern SpriteBatch D_acropolis_patio_80185A04[20];
-extern SpriteBatch D_acropolis_patio_80185E50[15];
-extern SpriteBatch D_acropolis_patio_80185EC8[2];
-extern SpriteBatch D_acropolis_patio_80185ED8[2];
-extern SpriteBatch D_acropolis_patio_80185EE8[2];
-extern SpriteBatch D_acropolis_patio_80185F08[2];
-extern SpriteBatch D_acropolis_patio_80185F18[2];
-extern SpriteBatch D_acropolis_patio_80185F28[2];
-extern GpSprtElem  D_acropolis_patio_80184B00[27];
-extern GpSprtElem  D_acropolis_patio_80184D54[45];
-extern GpSprtElem  D_acropolis_patio_80185150[15];
-extern GpSprtElem  D_acropolis_patio_801852B4[13];
-extern GpSprtElem  D_acropolis_patio_801853D8[21];
-extern GpSprtElem  D_acropolis_patio_801855A4[56];
-extern GpSprtElem  D_acropolis_patio_80185AA4[47];
+extern SpriteBatch  D_acropolis_patio_80184AF0[2];
+extern SpriteBatch  D_acropolis_patio_80184D1C[7];
+extern SpriteBatch  D_acropolis_patio_801850D8[15];
+extern SpriteBatch  D_acropolis_patio_8018527C[5];
+extern SpriteBatch  D_acropolis_patio_801852A4[2];
+extern SpriteBatch  D_acropolis_patio_801853B8[4];
+extern SpriteBatch  D_acropolis_patio_8018557C[5];
+extern SpriteBatch  D_acropolis_patio_80185A04[20];
+extern SpriteBatch  D_acropolis_patio_80185E50[15];
+extern SpriteBatch  D_acropolis_patio_80185EC8[2];
+extern SpriteBatch  D_acropolis_patio_80185ED8[2];
+extern SpriteBatch  D_acropolis_patio_80185EE8[2];
+extern SpriteBatch  D_acropolis_patio_80185F08[2];
+extern SpriteBatch  D_acropolis_patio_80185F18[2];
+extern SpriteBatch  D_acropolis_patio_80185F28[2];
+extern SpriteSource D_acropolis_patio_80184B00[27];
+extern SpriteSource D_acropolis_patio_80184D54[45];
+extern SpriteSource D_acropolis_patio_80185150[15];
+extern SpriteSource D_acropolis_patio_801852B4[13];
+extern SpriteSource D_acropolis_patio_801853D8[21];
+extern SpriteSource D_acropolis_patio_801855A4[56];
+extern SpriteSource D_acropolis_patio_80185AA4[47];
 
 extern AnimationPlayRequest D_acropolis_patio_8018037C;
 extern AnimationSet*        D_acropolis_patio_80180364[6];
@@ -1009,7 +1009,7 @@ SpriteBatch D_acropolis_patio_80184AF0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_80184B00[27] = {
+SpriteSource D_acropolis_patio_80184B00[27] = {
     { 143, 0x3FC0, { .fields = { 16, 96 } }, -88, -40, 1275, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 104 } }, -120, -40, 1200, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 112 } }, -160, -40, 1150, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -1049,7 +1049,7 @@ SpriteBatch D_acropolis_patio_80184D1C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_80184D54[45] = {
+SpriteSource D_acropolis_patio_80184D54[45] = {
     { 142, 0x3FC0, { .fields = { 120, 144 } }, -160, -120, 2625, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 88, 48 } }, -112, -24, 2625, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -24, -24, 2700, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
@@ -1115,7 +1115,7 @@ SpriteBatch D_acropolis_patio_801850D8[15] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_80185150[15] = {
+SpriteSource D_acropolis_patio_80185150[15] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -152, -104, 1250, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 96 } }, -136, -72, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 24, 1450, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
@@ -1146,7 +1146,7 @@ SpriteBatch D_acropolis_patio_801852A4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_801852B4[13] = {
+SpriteSource D_acropolis_patio_801852B4[13] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 24, 1325, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -120, 1300, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, 128, -96, 1300, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -1169,7 +1169,7 @@ SpriteBatch D_acropolis_patio_801853B8[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_801853D8[21] = {
+SpriteSource D_acropolis_patio_801853D8[21] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 32, 837, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 48, 920, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 862, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -1201,7 +1201,7 @@ SpriteBatch D_acropolis_patio_8018557C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_801855A4[56] = {
+SpriteSource D_acropolis_patio_801855A4[56] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -120, 725, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 88 } }, -152, -80, 725, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 56 } }, -144, 8, 725, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
@@ -1283,7 +1283,7 @@ SpriteBatch D_acropolis_patio_80185A04[20] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_80185AA4[47] = {
+SpriteSource D_acropolis_patio_80185AA4[47] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -88, 300, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -48, 300, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 0, 300, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
@@ -1391,7 +1391,7 @@ SpriteBatch D_acropolis_patio_80185F38[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_80185F48[20] = {
+SpriteSource D_acropolis_patio_80185F48[20] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 800, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 800, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 80, 800, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
@@ -1420,7 +1420,7 @@ SpriteBatch D_acropolis_patio_801860D8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_patio_801860F0[30] = {
+SpriteSource D_acropolis_patio_801860F0[30] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -16, 1500, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -120, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -120, 750, { .fields = { 64, 16 } }, 128, 128, 128, 0 },

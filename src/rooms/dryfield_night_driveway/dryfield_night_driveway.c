@@ -581,7 +581,7 @@ SpriteBatch D_dryfield_night_driveway_80180D98[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_driveway_80180DA8[9] = {
+SpriteSource D_dryfield_night_driveway_80180DA8[9] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 112, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 40, 978, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 88, 375, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
@@ -600,7 +600,7 @@ SpriteBatch D_dryfield_night_driveway_80180E5C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_driveway_80180E7C[17] = {
+SpriteSource D_dryfield_night_driveway_80180E7C[17] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 240, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 40 } }, -120, 80, 240, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 32 } }, -56, 88, 240, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
@@ -635,7 +635,7 @@ GpDrawAreaRec D_dryfield_night_driveway_80181008[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_night_driveway_8018101C[54] = {
+SpriteSource D_dryfield_night_driveway_8018101C[54] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -80, -16, 1075, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -96, -24, 1025, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
@@ -708,7 +708,7 @@ SpriteBatch D_dryfield_night_driveway_80181454[13] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_driveway_801814BC[12] = {
+SpriteSource D_dryfield_night_driveway_801814BC[12] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 0, 969, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 8, 948, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 16, 888, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
@@ -745,7 +745,7 @@ SpriteBatch D_dryfield_night_driveway_801815EC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_driveway_801815FC[9] = {
+SpriteSource D_dryfield_night_driveway_801815FC[9] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 112, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 40, 978, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 88, 375, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
@@ -764,7 +764,7 @@ SpriteBatch D_dryfield_night_driveway_801816B0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_driveway_801816D0[17] = {
+SpriteSource D_dryfield_night_driveway_801816D0[17] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 240, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 40 } }, -120, 80, 240, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 32 } }, -56, 88, 240, { .fields = { 32, 112 } }, 128, 128, 128, 0 },

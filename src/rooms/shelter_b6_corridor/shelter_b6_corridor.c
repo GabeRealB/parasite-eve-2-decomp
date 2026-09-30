@@ -321,7 +321,7 @@ SpriteBatch D_shelter_b6_corridor_8017FB68[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b6_corridor_8017FB78[35] = {
+SpriteSource D_shelter_b6_corridor_8017FB78[35] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 32, 1246, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -120, 906, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -88, 1012, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
@@ -366,7 +366,7 @@ SpriteBatch D_shelter_b6_corridor_8017FE34[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b6_corridor_8017FE54[22] = {
+SpriteSource D_shelter_b6_corridor_8017FE54[22] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -104, 1199, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -72, 1396, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -40, 1450, { .fields = { 96, 80 } }, 128, 128, 128, 0 },

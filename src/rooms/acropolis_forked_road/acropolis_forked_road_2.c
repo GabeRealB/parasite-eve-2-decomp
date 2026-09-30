@@ -108,21 +108,21 @@ extern GpObj4C              D_acropolis_forked_road_80182DDC[7];
 extern GpRoomCoordSet       D_acropolis_forked_road_80184E70[1];
 void                        func_acropolis_forked_road_8017E288(void);
 
-extern SpriteBatch D_acropolis_forked_road_80183284[2];
-extern SpriteBatch D_acropolis_forked_road_80183938[12];
-extern SpriteBatch D_acropolis_forked_road_80183A10[3];
-extern SpriteBatch D_acropolis_forked_road_80183A28[2];
-extern SpriteBatch D_acropolis_forked_road_80183AB0[3];
-extern SpriteBatch D_acropolis_forked_road_80183AC8[2];
-extern SpriteBatch D_acropolis_forked_road_80183F70[6];
-extern SpriteBatch D_acropolis_forked_road_80183FA0[2];
-extern SpriteBatch D_acropolis_forked_road_80183FB0[2];
-extern SpriteBatch D_acropolis_forked_road_80184498[7];
-extern GpSprtElem  D_acropolis_forked_road_80183294[85];
-extern GpSprtElem  D_acropolis_forked_road_80183998[6];
-extern GpSprtElem  D_acropolis_forked_road_80183A38[6];
-extern GpSprtElem  D_acropolis_forked_road_80183AE8[58];
-extern GpSprtElem  D_acropolis_forked_road_80183FC0[62];
+extern SpriteBatch  D_acropolis_forked_road_80183284[2];
+extern SpriteBatch  D_acropolis_forked_road_80183938[12];
+extern SpriteBatch  D_acropolis_forked_road_80183A10[3];
+extern SpriteBatch  D_acropolis_forked_road_80183A28[2];
+extern SpriteBatch  D_acropolis_forked_road_80183AB0[3];
+extern SpriteBatch  D_acropolis_forked_road_80183AC8[2];
+extern SpriteBatch  D_acropolis_forked_road_80183F70[6];
+extern SpriteBatch  D_acropolis_forked_road_80183FA0[2];
+extern SpriteBatch  D_acropolis_forked_road_80183FB0[2];
+extern SpriteBatch  D_acropolis_forked_road_80184498[7];
+extern SpriteSource D_acropolis_forked_road_80183294[85];
+extern SpriteSource D_acropolis_forked_road_80183998[6];
+extern SpriteSource D_acropolis_forked_road_80183A38[6];
+extern SpriteSource D_acropolis_forked_road_80183AE8[58];
+extern SpriteSource D_acropolis_forked_road_80183FC0[62];
 
 TaskDesc D_acropolis_forked_road_80180F44[5] = {
     { 0, 192, func_acropolis_forked_road_8017DA24, { .model = NULL } },
@@ -772,7 +772,7 @@ SpriteBatch D_acropolis_forked_road_80183284[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_forked_road_80183294[85] = {
+SpriteSource D_acropolis_forked_road_80183294[85] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -32, 1212, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -32, 1237, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 104, -56, 1237, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
@@ -875,7 +875,7 @@ SpriteBatch D_acropolis_forked_road_80183938[12] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_forked_road_80183998[6] = {
+SpriteSource D_acropolis_forked_road_80183998[6] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
@@ -895,7 +895,7 @@ SpriteBatch D_acropolis_forked_road_80183A28[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_forked_road_80183A38[6] = {
+SpriteSource D_acropolis_forked_road_80183A38[6] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
@@ -920,7 +920,7 @@ SpriteBatch D_acropolis_forked_road_80183AD8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_forked_road_80183AE8[58] = {
+SpriteSource D_acropolis_forked_road_80183AE8[58] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -96, 750, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, -104, 750, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -72, -88, 750, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
@@ -947,38 +947,38 @@ GpSprtElem D_acropolis_forked_road_80183AE8[58] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, -64, 1125, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, -72, 1125, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -64, 1125, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -40, -88, 1178, { .fields = { 40, 184 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 32, -88, 1178, { .fields = { 40, 160 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -80, 1185, { .fields = { 40, 168 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -80, 1197, { .fields = { 64, 232 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -80, 1197, { .fields = { 48, 160 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -80, 1195, { .fields = { 40, 176 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -72, 1195, { .fields = { 40, 200 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -72, 1200, { .fields = { 40, 240 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -72, 1200, { .fields = { 40, 232 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -72, 1195, { .fields = { 40, 208 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -64, 1200, { .fields = { 32, 120 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -64, 1200, { .fields = { 32, 112 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 40, -64, 1175, { .fields = { 48, 168 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -64, 1195, { .fields = { 56, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -64, 1175, { .fields = { 48, 232 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -80, 1175, { .fields = { 40, 128 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -32, -96, 1181, { .fields = { 40, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -16, -96, 1187, { .fields = { 40, 216 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 16, -96, 1181, { .fields = { 32, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 0, -96, 1187, { .fields = { 32, 16 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 40, -80, 1175, { .fields = { 40, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -80, 1195, { .fields = { 40, 112 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -16, -80, 1200, { .fields = { 64, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, 0, -80, 1200, { .fields = { 24, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -64, -80, 757, { .fields = { 64, 160 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -80, 756, { .fields = { 64, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -80, 757, { .fields = { 80, 128 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 32, -80, 757, { .fields = { 96, 224 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -56, -104, 750, { .fields = { 72, 216 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -112, 762, { .fields = { 96, 64 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -112, 762, { .fields = { 96, 160 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, 32, -104, 751, { .fields = { 72, 192 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -40, -88, 1178, { .fields = { 40, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 32, -88, 1178, { .fields = { 40, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -80, 1185, { .fields = { 40, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -80, 1197, { .fields = { 64, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -80, 1197, { .fields = { 48, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -80, 1195, { .fields = { 40, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -72, 1195, { .fields = { 40, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -72, 1200, { .fields = { 40, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -72, 1200, { .fields = { 40, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -72, 1195, { .fields = { 40, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -64, 1200, { .fields = { 32, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -64, 1200, { .fields = { 32, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, 40, -64, 1175, { .fields = { 48, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -64, 1195, { .fields = { 56, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -64, 1175, { .fields = { 48, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -80, 1175, { .fields = { 40, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -32, -96, 1181, { .fields = { 40, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, -16, -96, 1187, { .fields = { 40, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, 16, -96, 1181, { .fields = { 32, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, 0, -96, 1187, { .fields = { 32, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 40, -80, 1175, { .fields = { 40, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -80, 1195, { .fields = { 40, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 8 } }, -16, -80, 1200, { .fields = { 64, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 8 } }, 0, -80, 1200, { .fields = { 24, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, -64, -80, 757, { .fields = { 64, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -80, 756, { .fields = { 64, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -80, 757, { .fields = { 80, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, 32, -80, 757, { .fields = { 96, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 24 } }, -56, -104, 750, { .fields = { 72, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -112, 762, { .fields = { 96, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -112, 762, { .fields = { 96, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 24 } }, 32, -104, 751, { .fields = { 72, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_acropolis_forked_road_80183F70[6] = {
@@ -1000,7 +1000,7 @@ SpriteBatch D_acropolis_forked_road_80183FB0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_forked_road_80183FC0[62] = {
+SpriteSource D_acropolis_forked_road_80183FC0[62] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, 80, 1075, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 80, 1062, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -24, 80, 1050, { .fields = { 104, 80 } }, 128, 128, 128, 0 },

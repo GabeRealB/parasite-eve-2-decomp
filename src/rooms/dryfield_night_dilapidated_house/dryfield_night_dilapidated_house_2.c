@@ -1269,7 +1269,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80187EF4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80187F04[71] = {
+SpriteSource D_dryfield_night_dilapidated_house_80187F04[71] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 48, -48, 641, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 56, -48, 623, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, -56, 617, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
@@ -1351,7 +1351,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188490[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_801884B8[62] = {
+SpriteSource D_dryfield_night_dilapidated_house_801884B8[62] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -48, 1227, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -32, 1299, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -24, 0, 1163, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
@@ -1423,7 +1423,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188990[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_801889B0[45] = {
+SpriteSource D_dryfield_night_dilapidated_house_801889B0[45] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, -64, 1503, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -32, 2189, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 2230, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
@@ -1477,7 +1477,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188D34[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80188D4C[7] = {
+SpriteSource D_dryfield_night_dilapidated_house_80188D4C[7] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 1429, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 0, 1397, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 0, 1475, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
@@ -1493,7 +1493,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188DD8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80188DF0[11] = {
+SpriteSource D_dryfield_night_dilapidated_house_80188DF0[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -8, 837, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 48, 828, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 88, 8, 834, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
@@ -1513,7 +1513,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188ECC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80188EE4[9] = {
+SpriteSource D_dryfield_night_dilapidated_house_80188EE4[9] = {
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -64, 2714, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, -72, 2500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 112, 0, 2475, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
@@ -1531,7 +1531,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80188F98[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80188FB0[15] = {
+SpriteSource D_dryfield_night_dilapidated_house_80188FB0[15] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, 8, -80, 2329, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, 0, 2179, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 80 } }, 24, -80, 2164, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -1565,7 +1565,7 @@ SpriteBatch D_dryfield_night_dilapidated_house_80189104[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_dilapidated_house_80189114[12] = {
+SpriteSource D_dryfield_night_dilapidated_house_80189114[12] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 32, -88, 2089, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, 32, 0, 2087, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, 48, -96, 1918, { .fields = { 64, 88 } }, 128, 128, 128, 0 },

@@ -239,7 +239,7 @@ SpriteBatch D_dryfield_night_parking_lot_8017FC80[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_8017FC90[10] = {
+SpriteSource D_dryfield_night_parking_lot_8017FC90[10] = {
     { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
@@ -264,7 +264,7 @@ GpDrawAreaRec D_dryfield_night_parking_lot_8017FD78[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_8017FD8C[24] = {
+SpriteSource D_dryfield_night_parking_lot_8017FD8C[24] = {
     { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
@@ -297,7 +297,7 @@ SpriteBatch D_dryfield_night_parking_lot_8017FF6C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_8017FF84[16] = {
+SpriteSource D_dryfield_night_parking_lot_8017FF84[16] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 48, -88, 925, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, -80, 925, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, -72, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
@@ -325,7 +325,7 @@ SpriteBatch D_dryfield_night_parking_lot_801800C4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_801800F4[7] = {
+SpriteSource D_dryfield_night_parking_lot_801800F4[7] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
@@ -341,7 +341,7 @@ SpriteBatch D_dryfield_night_parking_lot_80180180[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_80180198[21] = {
+SpriteSource D_dryfield_night_parking_lot_80180198[21] = {
     { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 64, 500, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 64, 500, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 24, 500, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
@@ -377,7 +377,7 @@ SpriteBatch D_dryfield_night_parking_lot_8018035C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_8018036C[10] = {
+SpriteSource D_dryfield_night_parking_lot_8018036C[10] = {
     { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
@@ -402,7 +402,7 @@ GpDrawAreaRec D_dryfield_night_parking_lot_80180454[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_80180468[7] = {
+SpriteSource D_dryfield_night_parking_lot_80180468[7] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
@@ -418,7 +418,7 @@ SpriteBatch D_dryfield_night_parking_lot_801804F4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_parking_lot_8018050C[6] = {
+SpriteSource D_dryfield_night_parking_lot_8018050C[6] = {
     { 143, 0x3FC0, { .fields = { 24, 64 } }, 136, -80, 500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, 136, -16, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 56 } }, 112, -64, 500, { .fields = { 72, 136 } }, 128, 128, 128, 0 },

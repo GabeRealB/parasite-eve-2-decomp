@@ -161,7 +161,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80182DC0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80182DD0[54] = {
+SpriteSource D_shelter_b2_pod_bottom_80182DD0[54] = {
     { 142, 0x3FC0, { .fields = { 32, 8 } }, -160, -16, 2336, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 8 } }, -160, -8, 2346, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 80, 941, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
@@ -232,7 +232,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80183208[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80183260[48] = {
+SpriteSource D_shelter_b2_pod_bottom_80183260[48] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 0, 4470, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 8, 3248, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 8 } }, -40, 16, 2550, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
@@ -291,7 +291,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80183620[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80183648[61] = {
+SpriteSource D_shelter_b2_pod_bottom_80183648[61] = {
     { 142, 0x3FC0, { .fields = { 80, 24 } }, -80, -8, 2460, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 24 } }, 0, -8, 2567, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 24 } }, 80, -8, 2331, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -367,7 +367,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80183B0C[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80183B54[95] = {
+SpriteSource D_shelter_b2_pod_bottom_80183B54[95] = {
     { 142, 0x3FC0, { .fields = { 72, 8 } }, -64, 88, 1184, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 88, 1178, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 72, 24 } }, -160, 96, 1177, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
@@ -478,7 +478,7 @@ SpriteBatch D_shelter_b2_pod_bottom_801842C0[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80184310[58] = {
+SpriteSource D_shelter_b2_pod_bottom_80184310[58] = {
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 0, 2500, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 8, 2768, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, 48, 3000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -553,7 +553,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80184798[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_801847F0[57] = {
+SpriteSource D_shelter_b2_pod_bottom_801847F0[57] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -8, 4626, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 0, 3451, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 8, 2805, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
@@ -622,7 +622,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80184C64[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80184C94[50] = {
+SpriteSource D_shelter_b2_pod_bottom_80184C94[50] = {
     { 143, 0x3FC0, { .fields = { 64, 16 } }, -160, -8, 2278, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 72, 16 } }, -96, -8, 2378, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 72, 16 } }, -24, -8, 2508, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
@@ -686,7 +686,7 @@ SpriteBatch D_shelter_b2_pod_bottom_8018507C[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_801850BC[55] = {
+SpriteSource D_shelter_b2_pod_bottom_801850BC[55] = {
     { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 24, 2075, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 16, 2075, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 32, 2050, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
@@ -754,7 +754,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80185508[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80185540[11] = {
+SpriteSource D_shelter_b2_pod_bottom_80185540[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 104, 1071, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 32, 1000, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -136, 40, 1000, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
@@ -774,7 +774,7 @@ SpriteBatch D_shelter_b2_pod_bottom_8018561C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80185634[25] = {
+SpriteSource D_shelter_b2_pod_bottom_80185634[25] = {
     { 142, 0x3FC0, { .fields = { 32, 56 } }, -160, 64, 1551, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -128, 48, 1580, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -96, 32, 1624, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
@@ -814,7 +814,7 @@ SpriteBatch D_shelter_b2_pod_bottom_80185848[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_pod_bottom_80185858[5] = {
+SpriteSource D_shelter_b2_pod_bottom_80185858[5] = {
     { 143, 0x3FC0, { .fields = { 64, 16 } }, -160, 56, 1394, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 16 } }, -96, 56, 1402, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -16, 48, 1402, { .fields = { 96, 0 } }, 128, 128, 128, 0 },

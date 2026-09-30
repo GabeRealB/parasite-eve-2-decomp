@@ -120,18 +120,18 @@ extern SpriteBatch   D_acropolis_helicopter_landing_pad_801877D0[2];
 extern SpriteBatch   D_acropolis_helicopter_landing_pad_801877E0[2];
 extern SpriteBatch   D_acropolis_helicopter_landing_pad_801877F0[2];
 extern SpriteBatch   D_acropolis_helicopter_landing_pad_80187800[2];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186B10[17];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186CA0[5];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186D1C[8];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186DE8[10];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80186EDC[29];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_8018715C[10];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187250[12];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_8018736C[27];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187604[1];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187654[3];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_801876A8[4];
-extern GpSprtElem    D_acropolis_helicopter_landing_pad_80187730[6];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80186B10[17];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80186CA0[5];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80186D1C[8];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80186DE8[10];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80186EDC[29];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_8018715C[10];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80187250[12];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_8018736C[27];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80187604[1];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80187654[3];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_801876A8[4];
+extern SpriteSource  D_acropolis_helicopter_landing_pad_80187730[6];
 
 GpObj4C D_acropolis_helicopter_landing_pad_80185E7C[9] = {
     { NULL, NULL, NULL, { -6528, -32, -6208, 0 }, { { -384, 0, -192, 0 }, { 384, 0, -192, 0 }, { -384, 0, 192, 0 }, { 384, 0, 192, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 429, 259, 0, 0, 2, 0 },
@@ -216,7 +216,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80186B00[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80186B10[17] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80186B10[17] = {
     { 141, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 721, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 24 } }, -96, 0, 658, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 605, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -252,7 +252,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_80186C8C[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80186CA0[5] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80186CA0[5] = {
     { 142, 0x3FC0, { .fields = { 16, 112 } }, 0, -104, 2125, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 144 } }, -16, -112, 1750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 208 } }, -48, -120, 1500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -266,7 +266,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80186D04[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80186D1C[8] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80186D1C[8] = {
     { 143, 0x3FC0, { .fields = { 56, 80 } }, -160, 0, 500, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 80 } }, -104, 16, 500, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 96 } }, -56, 24, 500, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
@@ -288,7 +288,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_80186DD4[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80186DE8[10] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80186DE8[10] = {
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, 56, 500, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 72 } }, -128, 48, 550, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -96, 40, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -312,7 +312,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_80186EC8[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80186EDC[29] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80186EDC[29] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -24, 500, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 72 } }, -144, -16, 420, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 80 } }, -128, -8, 417, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -357,7 +357,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_80187148[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_8018715C[10] = {
+SpriteSource D_acropolis_helicopter_landing_pad_8018715C[10] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 0, 900, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, 8, 900, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -104, 8, 900, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -381,7 +381,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_8018723C[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80187250[12] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80187250[12] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -104, -64, 3000, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -88, -72, 2500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 72 } }, -128, -32, 700, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
@@ -407,7 +407,7 @@ GpDrawAreaRec D_acropolis_helicopter_landing_pad_80187358[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_8018736C[27] = {
+SpriteSource D_acropolis_helicopter_landing_pad_8018736C[27] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, -64, 550, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -40, 550, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -88, -16, 525, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
@@ -470,7 +470,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_801875F4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80187604[1] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80187604[1] = {
     { 143, 0x3FC0, { .fields = { 16, 136 } }, -16, -16, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
@@ -490,7 +490,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80187644[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80187654[3] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80187654[3] = {
     { 143, 0x3FC0, { .fields = { 104, 136 } }, -160, -24, 400, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 120, 56 } }, -56, 56, 375, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 56 } }, 64, 64, 390, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
@@ -502,7 +502,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80187690[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_801876A8[4] = {
+SpriteSource D_acropolis_helicopter_landing_pad_801876A8[4] = {
     { 143, 0x3FC0, { .fields = { 120, 40 } }, -160, 40, 675, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 168, 40 } }, -160, 80, 450, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 152, 32 } }, 8, 88, 450, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
@@ -525,7 +525,7 @@ SpriteBatch D_acropolis_helicopter_landing_pad_80187720[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_helicopter_landing_pad_80187730[6] = {
+SpriteSource D_acropolis_helicopter_landing_pad_80187730[6] = {
     { 143, 0x3FC0, { .fields = { 72, 32 } }, -160, 88, 250, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 40 } }, -88, 80, 250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -32, 72, 250, { .fields = { 80, 192 } }, 128, 128, 128, 0 },

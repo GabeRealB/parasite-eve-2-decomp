@@ -201,7 +201,7 @@ SpriteBatch D_shelter_b2_elevator_8017E324[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_elevator_8017E334[56] = {
+SpriteSource D_shelter_b2_elevator_8017E334[56] = {
     { 142, 0x3FC0, { .fields = { 56, 24 } }, 104, -24, 0, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -48, 0, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -64, 0, { .fields = { 16, 240 } }, 128, 128, 128, 0 },

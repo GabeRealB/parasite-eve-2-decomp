@@ -459,7 +459,7 @@ SpriteBatch D_shelter_b1_sterilization_room_8018A228[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_sterilization_room_8018A238[89] = {
+SpriteSource D_shelter_b1_sterilization_room_8018A238[89] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -120, 800, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -88, 825, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 850, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
@@ -604,7 +604,7 @@ SpriteBatch D_shelter_b1_sterilization_room_8018A9D4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_sterilization_room_8018A9E4[42] = {
+SpriteSource D_shelter_b1_sterilization_room_8018A9E4[42] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -32, 687, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -16, 875, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -56, 691, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
@@ -660,7 +660,7 @@ SpriteBatch D_shelter_b1_sterilization_room_8018AD44[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_sterilization_room_8018AD54[30] = {
+SpriteSource D_shelter_b1_sterilization_room_8018AD54[30] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 32, 645, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 40, 658, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 481, { .fields = { 104, 168 } }, 128, 128, 128, 0 },

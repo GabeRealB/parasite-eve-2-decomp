@@ -300,7 +300,7 @@ SpriteBatch D_neo_ark_forest_zone_80182370[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_forest_zone_80182380[4] = {
+SpriteSource D_neo_ark_forest_zone_80182380[4] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -104, 1000, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 88 } }, -160, -120, 1000, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, -32, 1000, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
@@ -313,7 +313,7 @@ SpriteBatch D_neo_ark_forest_zone_801823D0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_forest_zone_801823E8[5] = {
+SpriteSource D_neo_ark_forest_zone_801823E8[5] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 72, 1604, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 104, 32 } }, -160, -120, 1550, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 96, 48 } }, -160, -88, 1571, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
@@ -327,7 +327,7 @@ SpriteBatch D_neo_ark_forest_zone_8018244C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_forest_zone_80182464[5] = {
+SpriteSource D_neo_ark_forest_zone_80182464[5] = {
     { 143, 0x3FC0, { .fields = { 96, 96 } }, 64, -120, 1050, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 48 } }, 96, -24, 1050, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 8 } }, 80, 24, 1050, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
@@ -341,7 +341,7 @@ SpriteBatch D_neo_ark_forest_zone_801824C8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_forest_zone_801824E0[7] = {
+SpriteSource D_neo_ark_forest_zone_801824E0[7] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -40, 1342, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 96, 48 } }, 64, -40, 1125, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 104, 48 } }, 56, 8, 1125, { .fields = { 8, 192 } }, 128, 128, 128, 0 },

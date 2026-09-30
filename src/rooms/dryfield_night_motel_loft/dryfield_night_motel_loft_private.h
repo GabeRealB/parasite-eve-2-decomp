@@ -25,27 +25,27 @@ extern SpriteBatch D_dryfield_night_motel_loft_8017F2D0[2];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F2E0[2];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F2F0[8];
+extern SpriteSource D_dryfield_night_motel_loft_8017F2F0[8];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F390[3];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F3A8[13];
+extern SpriteSource D_dryfield_night_motel_loft_8017F3A8[13];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F4AC[3];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F4C4[20];
+extern SpriteSource D_dryfield_night_motel_loft_8017F4C4[20];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F654[3];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F66C[13];
+extern SpriteSource D_dryfield_night_motel_loft_8017F66C[13];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F770[3];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F788[25];
+extern SpriteSource D_dryfield_night_motel_loft_8017F788[25];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017F97C[6];
 
-extern GpSprtElem D_dryfield_night_motel_loft_8017F9AC[22];
+extern SpriteSource D_dryfield_night_motel_loft_8017F9AC[22];
 
 extern SpriteBatch D_dryfield_night_motel_loft_8017FB64[4];
 

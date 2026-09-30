@@ -109,7 +109,7 @@ SpriteBatch D_shelter_b3_elevator_hall_801835F8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b3_elevator_hall_80183608[29] = {
+SpriteSource D_shelter_b3_elevator_hall_80183608[29] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -96, 1399, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -56, 1443, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -32, 1440, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
@@ -153,7 +153,7 @@ GpDrawAreaRec D_shelter_b3_elevator_hall_8018386C[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_b3_elevator_hall_80183880[13] = {
+SpriteSource D_shelter_b3_elevator_hall_80183880[13] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 0, 0, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, -16, 2214, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, -32, 2208, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
@@ -181,7 +181,7 @@ GpDrawAreaRec D_shelter_b3_elevator_hall_801839A4[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_b3_elevator_hall_801839B8[24] = {
+SpriteSource D_shelter_b3_elevator_hall_801839B8[24] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 48, 1064, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, -8, 1070, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -56, 1072, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
@@ -220,7 +220,7 @@ GpDrawAreaRec D_shelter_b3_elevator_hall_80183BB8[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_b3_elevator_hall_80183BCC[73] = {
+SpriteSource D_shelter_b3_elevator_hall_80183BCC[73] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 72, 0, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 8 } }, 80, 72, 607, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 40, 72, 658, { .fields = { 88, 208 } }, 128, 128, 128, 0 },

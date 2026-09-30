@@ -144,7 +144,7 @@ SpriteBatch D_dryfield_night_water_tower_8017F580[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_8017F590[58] = {
+SpriteSource D_dryfield_night_water_tower_8017F590[58] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 8, 1261, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 8, 1416, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, -120, 613, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -214,7 +214,7 @@ SpriteBatch D_dryfield_night_water_tower_8017FA18[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_8017FA48[48] = {
+SpriteSource D_dryfield_night_water_tower_8017FA48[48] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, -120, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -112, 1250, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -72, 1250, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
@@ -273,7 +273,7 @@ SpriteBatch D_dryfield_night_water_tower_8017FE08[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_8017FE30[88] = {
+SpriteSource D_dryfield_night_water_tower_8017FE30[88] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -88, -120, 1149, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -80, -120, 4608, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -72, -120, 1254, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -376,7 +376,7 @@ SpriteBatch D_dryfield_night_water_tower_80180510[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_80180558[56] = {
+SpriteSource D_dryfield_night_water_tower_80180558[56] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -120, 875, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 144, -112, 875, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -120, 875, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
@@ -444,7 +444,7 @@ SpriteBatch D_dryfield_night_water_tower_801809B8[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_801809E8[84] = {
+SpriteSource D_dryfield_night_water_tower_801809E8[84] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -120, 1125, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 88, 1125, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 72, 1125, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
@@ -543,7 +543,7 @@ SpriteBatch D_dryfield_night_water_tower_80181078[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_801810C0[69] = {
+SpriteSource D_dryfield_night_water_tower_801810C0[69] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, -56, 1750, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -24, -56, 1875, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -40, 1750, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
@@ -627,7 +627,7 @@ SpriteBatch D_dryfield_night_water_tower_80181624[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_8018166C[99] = {
+SpriteSource D_dryfield_night_water_tower_8018166C[99] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, -56, 1250, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -128, -32, 1500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, -16, 1625, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
@@ -748,7 +748,7 @@ SpriteBatch D_dryfield_night_water_tower_80181E80[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_water_tower_80181E90[20] = {
+SpriteSource D_dryfield_night_water_tower_80181E90[20] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 112, 1000, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, 40, 575, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, 64, 612, { .fields = { 96, 0 } }, 128, 128, 128, 0 },

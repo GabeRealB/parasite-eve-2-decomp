@@ -22,6 +22,9 @@
 #include "main/session.h"
 #include "main/task.h"
 
+/// Texture-page bits retained from a source when building the GPU draw-mode word.
+enum { SPRITE_SOURCE_TEXTURE_PAGE_MASK = 0x9FF };
+
 /// Each allocated primitive has the same packet layout as an emitted sprite.
 typedef GpTpageSprt GpSprtPrim;
 
@@ -32,7 +35,7 @@ GpSprtPrim* Gp_SprtCursor;
 /// the same block.
 extern GpSprtPrim* Gp_SprtLists[];
 
-static void Gp_EmitSprts(GpSprtElem* arg0, SpriteBatch* batch);
+static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch);
 
 static void Gp_SetSprtShadeBits(s32 arg0);
 
@@ -42,7 +45,7 @@ static s32 Gp_ViewSprtCmdEmpty(void);
 
 static void func_800AD024(void);
 
-static void Gp_LinkSprtCmd(GpSprtElem* arg0, SpriteBatch* batch);
+static void Gp_LinkSprtCmd(SpriteSource* sources, SpriteBatch* batch);
 
 static void func_800AD620(Task* task);
 
@@ -62,7 +65,7 @@ void Gp_LinkViewSprts(void)
     GpSprtTbl*       tbl;
     GpSprtRec*       recs;
     SpriteBatch*     batch;
-    GpSprtElem*      base;
+    SpriteSource*    sources;
 
     sess          = &gGameSession->location.loc;
     view          = Gp_GetViewIndex();
@@ -72,7 +75,7 @@ void Gp_LinkViewSprts(void)
     tbl           = Gp_SprtTables[sess->stage - 1];
     recs          = tbl->field_0[sess->area - 1];
     batch         = recs[(u8)view - 1].field_4;
-    base          = recs[(u8)view - 1].field_0.elements;
+    sources       = recs[(u8)view - 1].field_0.elements;
     // The first count selects decoded strips or the cached sprite background.
     if (batch->spriteCount == 0) {
         batch++;
@@ -82,57 +85,58 @@ void Gp_LinkViewSprts(void)
     if (batch->firstSprite != SPRITE_BATCH_END) {
         do {
             if (batch->skipCachedPackets == 0) {
-                Gp_LinkSprtCmd(base, batch);
+                Gp_LinkSprtCmd(sources, batch);
             }
             batch++;
         } while (batch->firstSprite != SPRITE_BATCH_END);
     }
 }
 
-static void Gp_EmitSprts(GpSprtElem* arg0, SpriteBatch* batch)
+static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
 {
     u32             i;
     GpTpageSprt*    dest;
-    GpSprtElem*     elem;
-    GpSprtElem*     cur;
+    SpriteSource*   texturePageSource;
+    SpriteSource*   source;
     DisplayState*   ds;
     u32             maskHi;
     u32             mask;
     GpSpritePacket* sprt;
     u32             tpage;
 
-    i              = 0;
-    dest           = gGpuPrimCursor;
-    elem           = arg0 + batch->firstSprite;
-    gGpuPrimCursor = dest + batch->spriteCount;
+    i                 = 0;
+    dest              = gGpuPrimCursor;
+    texturePageSource = sources + batch->firstSprite;
+    gGpuPrimCursor    = dest + batch->spriteCount;
     if (batch->spriteCount != 0) {
         ds     = &gDisplayState;
         mask   = 0xFFFFFF;
         maskHi = 0xFF000000;
-        cur    = elem;
+        source = texturePageSource;
         do {
             sprt = &dest->sprt;
-            if ((cur->flags & 1) == 0) {
-                sprt->packed.color = GPU_PRIMITIVE_COLOR_WORD(cur, 0);
+            // Copy source geometry and texture state, then link the merged packet by depth.
+            if ((source->codeFlags & SPRITE_SOURCE_RAW_TEXTURE) == 0) {
+                sprt->packed.color = GPU_PRIMITIVE_COLOR_WORD(source, 0);
             }
-            tpage = elem->tpage;
+            tpage = texturePageSource->tpage;
             setlen(&dest->tpage, 1);
             setlen(&sprt->fields, 4);
             setcode(&sprt->fields, 0x64);
-            dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
+            dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
             MargePrim(dest, &sprt->fields);
-            sprt->fields.code             |= cur->flags;
-            sprt->packed.uv                = cur->uv.packed;
-            sprt->fields.clut              = cur->clut;
-            PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(cur, 0);
+            sprt->fields.code             |= source->codeFlags;
+            sprt->packed.uv                = source->uv.packed;
+            sprt->fields.clut              = source->clut;
+            PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(source, 0);
             i++;
-            sprt->packed.size = cur->size.packed;
-            elem++;
-            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
-            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
-                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)cur->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
+            sprt->packed.size = source->size.packed;
+            texturePageSource++;
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & mask);
+            *GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) =
+                (*GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)source->depth << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) & maskHi) | ((u32)dest & mask);
             dest++;
-            cur++;
+            source++;
         } while (i < batch->spriteCount);
     }
 }
@@ -184,8 +188,8 @@ void Gp_AllocSprtLists(void)
     s32             i;
     GpSprtRec*      recs;
     SpriteBatch*    batch;
-    GpSprtElem*     elems;
-    GpSprtElem*     elem;
+    SpriteSource*   sources;
+    SpriteSource*   source;
     s32             bufIdx;
     GpTpageSprt*    buf[2];
     GpTpageSprt*    dest;
@@ -197,7 +201,7 @@ void Gp_AllocSprtLists(void)
     view          = Gp_GetViewIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     batch         = recs[view - 1].field_4;
-    elems         = recs[view - 1].field_0.elements;
+    sources       = recs[view - 1].field_0.elements;
     while (batch->firstSprite != SPRITE_BATCH_END) {
         count.address += batch->spriteCount;
         batch++;
@@ -229,23 +233,24 @@ void Gp_AllocSprtLists(void)
             continue;
         }
         for (bufIdx = 0; bufIdx < 2; bufIdx++) {
-            elem = elems + batch->firstSprite;
+            // Snapshot the source range into both buffers with raw texture enabled.
+            source = sources + batch->firstSprite;
             for (i = 0; i < batch->spriteCount; i++) {
                 dest               = buf[bufIdx];
                 sprt               = &dest->sprt;
                 sprt->packed.color = PRIM_RGBC(0, 0x80, 0, 0);
                 setlen(&dest->tpage, 1);
-                tpage = elem->tpage;
+                tpage = source->tpage;
                 setlen(&dest->sprt.fields, 4);
-                setcode(&dest->sprt.fields, 0x65);
-                dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
+                setcode(&dest->sprt.fields, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
+                dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
                 MargePrim(dest, &sprt->fields);
-                sprt->fields.code             |= elem->flags;
-                sprt->packed.uv                = elem->uv.packed;
-                sprt->fields.clut              = elem->clut;
-                PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(elem, 0);
-                sprt->packed.size              = elem->size.packed;
-                elem++;
+                sprt->fields.code             |= source->codeFlags;
+                sprt->packed.uv                = source->uv.packed;
+                sprt->fields.clut              = source->clut;
+                PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(source, 0);
+                sprt->packed.size              = source->size.packed;
+                source++;
                 buf[bufIdx]++;
             }
         }
@@ -476,21 +481,21 @@ void Gp_RoomObjState1(Task* task)
     func_800AD024();
 }
 
-static void Gp_LinkSprtCmd(GpSprtElem* arg0, SpriteBatch* batch)
+static void Gp_LinkSprtCmd(SpriteSource* sources, SpriteBatch* batch)
 {
-    u32         i;
-    GpSprtPrim* prim;
-    GpSprtElem* elem;
+    u32           i;
+    GpSprtPrim*   prim;
+    SpriteSource* source;
 
     if (Gp_SprtLists[0] == NULL) {
         return;
     }
-    prim = Gp_SprtCursor;
-    elem = arg0 + batch->firstSprite;
+    prim   = Gp_SprtCursor;
+    source = sources + batch->firstSprite;
     // Hiding a batch preserves its packet positions for later batches.
-    for (i = 0; i < batch->spriteCount; prim++, i++, elem++) {
+    for (i = 0; i < batch->spriteCount; prim++, i++, source++) {
         if (batch->hidden == 0) {
-            addPrim(&gGpuCurrentOt[((u32)elem->otz << gDisplayState.otDepthShift) >> 4 & 0x3FF], prim);
+            addPrim(&gGpuCurrentOt[((u32)source->depth << gDisplayState.otDepthShift) >> 4 & 0x3FF], prim);
         }
     }
     Gp_SprtCursor = prim;

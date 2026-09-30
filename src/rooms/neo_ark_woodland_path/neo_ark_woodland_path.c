@@ -138,7 +138,7 @@ SpriteBatch D_neo_ark_woodland_path_80181EE8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80181EF8[25] = {
+SpriteSource D_neo_ark_woodland_path_80181EF8[25] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 72, 837, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 88, 954, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 112, 575, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
@@ -172,7 +172,7 @@ SpriteBatch D_neo_ark_woodland_path_801820EC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80182104[11] = {
+SpriteSource D_neo_ark_woodland_path_80182104[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -88, 944, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -72, 983, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 814, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
@@ -192,7 +192,7 @@ SpriteBatch D_neo_ark_woodland_path_801821E0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_801821F8[65] = {
+SpriteSource D_neo_ark_woodland_path_801821F8[65] = {
     { 141, 0x3FC0, { .fields = { 8, 8 } }, 88, 96, 1148, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 64 } }, 40, -120, 1075, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 56 } }, 56, -120, 0x61A7, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
@@ -274,7 +274,7 @@ SpriteBatch D_neo_ark_woodland_path_8018270C[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80182764[78] = {
+SpriteSource D_neo_ark_woodland_path_80182764[78] = {
     { 141, 0x3FC0, { .fields = { 24, 72 } }, 16, -120, 0x61A7, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 120 } }, 40, -120, 1321, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 176 } }, 56, -120, 1354, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -370,7 +370,7 @@ SpriteBatch D_neo_ark_woodland_path_80182D7C[12] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80182DDC[47] = {
+SpriteSource D_neo_ark_woodland_path_80182DDC[47] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -120, 1063, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 24, 995, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 176 } }, -160, -120, 1058, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -430,7 +430,7 @@ SpriteBatch D_neo_ark_woodland_path_80183188[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_801831C0[55] = {
+SpriteSource D_neo_ark_woodland_path_801831C0[55] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -120, 1100, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -40, 882, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, -40, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
@@ -498,7 +498,7 @@ SpriteBatch D_neo_ark_woodland_path_8018360C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80183644[32] = {
+SpriteSource D_neo_ark_woodland_path_80183644[32] = {
     { 142, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 96, 250, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 96, 112 } }, 64, -120, 1749, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
@@ -542,7 +542,7 @@ SpriteBatch D_neo_ark_woodland_path_801838C4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_801838F4[26] = {
+SpriteSource D_neo_ark_woodland_path_801838F4[26] = {
     { 142, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 250, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 48, 1425, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 192 } }, -160, -120, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
@@ -580,7 +580,7 @@ SpriteBatch D_neo_ark_woodland_path_80183AFC[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_woodland_path_80183B2C[14] = {
+SpriteSource D_neo_ark_woodland_path_80183B2C[14] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 100, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 96, 125, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, 88, 150, { .fields = { 64, 56 } }, 128, 128, 128, 0 },

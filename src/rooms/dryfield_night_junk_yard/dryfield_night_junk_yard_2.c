@@ -158,7 +158,7 @@ SpriteBatch D_dryfield_night_junk_yard_80181368[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80181378[30] = {
+SpriteSource D_dryfield_night_junk_yard_80181378[30] = {
     { 143, 0x3FC0, { .fields = { 32, 128 } }, -40, -104, 3066, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 64 } }, 24, -72, 6500, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 120 } }, 56, -112, 5000, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
@@ -201,7 +201,7 @@ SpriteBatch D_dryfield_night_junk_yard_801815D0[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80181608[58] = {
+SpriteSource D_dryfield_night_junk_yard_80181608[58] = {
     { 142, 0x3FC0, { .fields = { 88, 24 } }, -104, -80, 1516, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -104, 0, 1538, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -56, 0, 1522, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
@@ -270,7 +270,7 @@ SpriteBatch D_dryfield_night_junk_yard_80181A90[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80181AB8[25] = {
+SpriteSource D_dryfield_night_junk_yard_80181AB8[25] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -64, -16, 2084, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, 0, 2125, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 16, 2042, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
@@ -306,7 +306,7 @@ SpriteBatch D_dryfield_night_junk_yard_80181CAC[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80181CD4[97] = {
+SpriteSource D_dryfield_night_junk_yard_80181CD4[97] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 16, -112, 8250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -96, -48, 1825, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -96, -120, 1825, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
@@ -426,7 +426,7 @@ SpriteBatch D_dryfield_night_junk_yard_801824C8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_801824D8[64] = {
+SpriteSource D_dryfield_night_junk_yard_801824D8[64] = {
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -56, -88, 4064, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -32, 2340, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -32, 2312, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
@@ -503,7 +503,7 @@ SpriteBatch D_dryfield_night_junk_yard_801829D8[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80182A10[34] = {
+SpriteSource D_dryfield_night_junk_yard_80182A10[34] = {
     { 142, 0x3FC0, { .fields = { 32, 32 } }, -40, -8, 3066, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 96 } }, -40, -104, 3066, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 24, -72, 6500, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
@@ -550,7 +550,7 @@ SpriteBatch D_dryfield_night_junk_yard_80182CB8[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80182CF0[25] = {
+SpriteSource D_dryfield_night_junk_yard_80182CF0[25] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -80, -120, 2069, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -40, 2069, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -24, 2101, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
@@ -586,7 +586,7 @@ SpriteBatch D_dryfield_night_junk_yard_80182EE4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_junk_yard_80182F0C[97] = {
+SpriteSource D_dryfield_night_junk_yard_80182F0C[97] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -48, 2676, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 56, -48, 2513, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, -56, 2167, { .fields = { 64, 184 } }, 128, 128, 128, 0 },

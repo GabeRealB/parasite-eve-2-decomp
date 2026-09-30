@@ -275,7 +275,7 @@ SpriteBatch D_dryfield_night_underpass_8017EAB0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017EAC0[16] = {
+SpriteSource D_dryfield_night_underpass_8017EAC0[16] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 48, -120, 1016, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 80, 964, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 88, -120, 1000, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
@@ -300,7 +300,7 @@ SpriteBatch D_dryfield_night_underpass_8017EC00[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017EC18[11] = {
+SpriteSource D_dryfield_night_underpass_8017EC18[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 96, 2125, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 2129, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 0, 56, 1860, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
@@ -320,7 +320,7 @@ SpriteBatch D_dryfield_night_underpass_8017ECF4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017ED0C[10] = {
+SpriteSource D_dryfield_night_underpass_8017ED0C[10] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -120, 910, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -48, 913, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -96, 995, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
@@ -355,7 +355,7 @@ SpriteBatch D_dryfield_night_underpass_8017EE14[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017EE24[11] = {
+SpriteSource D_dryfield_night_underpass_8017EE24[11] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -112, 1325, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 56 } }, -120, -120, 1325, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -120, 1325, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
@@ -391,7 +391,7 @@ SpriteBatch D_dryfield_night_underpass_8017EF40[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017EF50[16] = {
+SpriteSource D_dryfield_night_underpass_8017EF50[16] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 48, -120, 1016, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 80, 964, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 88, -120, 1000, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
@@ -416,7 +416,7 @@ SpriteBatch D_dryfield_night_underpass_8017F090[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017F0A8[11] = {
+SpriteSource D_dryfield_night_underpass_8017F0A8[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 96, 2125, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 2129, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 0, 56, 1860, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
@@ -436,7 +436,7 @@ SpriteBatch D_dryfield_night_underpass_8017F184[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017F19C[10] = {
+SpriteSource D_dryfield_night_underpass_8017F19C[10] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -120, 910, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -48, 913, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -96, 995, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
@@ -471,7 +471,7 @@ SpriteBatch D_dryfield_night_underpass_8017F2A4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_underpass_8017F2B4[11] = {
+SpriteSource D_dryfield_night_underpass_8017F2B4[11] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -112, 1325, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 56 } }, -120, -120, 1325, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, -120, 1325, { .fields = { 32, 80 } }, 128, 128, 128, 0 },

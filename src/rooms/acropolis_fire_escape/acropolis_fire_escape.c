@@ -197,9 +197,9 @@ extern SpriteBatch   D_acropolis_fire_escape_80182D34[2];
 extern SpriteBatch   D_acropolis_fire_escape_80182DBC[3];
 extern SpriteBatch   D_acropolis_fire_escape_80182DD4[2];
 extern SpriteBatch   D_acropolis_fire_escape_80182DE4[2];
-extern GpSprtElem    D_acropolis_fire_escape_80182B8C[13];
-extern GpSprtElem    D_acropolis_fire_escape_80182CB8[5];
-extern GpSprtElem    D_acropolis_fire_escape_80182D58[5];
+extern SpriteSource  D_acropolis_fire_escape_80182B8C[13];
+extern SpriteSource  D_acropolis_fire_escape_80182CB8[5];
+extern SpriteSource  D_acropolis_fire_escape_80182D58[5];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -363,7 +363,7 @@ SpriteBatch D_acropolis_fire_escape_80182B7C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_fire_escape_80182B8C[13] = {
+SpriteSource D_acropolis_fire_escape_80182B8C[13] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -104, 1025, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, -48, 1025, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, 8, 1025, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
@@ -390,7 +390,7 @@ SpriteBatch D_acropolis_fire_escape_80182CA8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_fire_escape_80182CB8[5] = {
+SpriteSource D_acropolis_fire_escape_80182CB8[5] = {
     { 143, 0x3FC0, { .fields = { 16, 240 } }, -32, -120, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 240 } }, -48, -120, 650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 240 } }, -72, -120, 625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -414,7 +414,7 @@ GpDrawAreaRec D_acropolis_fire_escape_80182D44[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_acropolis_fire_escape_80182D58[5] = {
+SpriteSource D_acropolis_fire_escape_80182D58[5] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 112, 490, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 112, 516, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 160, 112 } }, -88, -120, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },

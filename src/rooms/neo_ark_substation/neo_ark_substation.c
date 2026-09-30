@@ -208,7 +208,7 @@ SpriteBatch D_neo_ark_substation_8017E9E8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_substation_8017E9F8[45] = {
+SpriteSource D_neo_ark_substation_8017E9F8[45] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -120, 304, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -88, 334, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 391, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
@@ -262,7 +262,7 @@ SpriteBatch D_neo_ark_substation_8017ED7C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_substation_8017ED94[75] = {
+SpriteSource D_neo_ark_substation_8017ED94[75] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -24, 300, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -120, 303, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, -120, 309, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
@@ -346,7 +346,7 @@ SpriteBatch D_neo_ark_substation_8017F370[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_substation_8017F388[19] = {
+SpriteSource D_neo_ark_substation_8017F388[19] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -64, 555, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, -32, 666, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -104, 581, { .fields = { 64, 48 } }, 128, 128, 128, 0 },

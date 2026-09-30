@@ -160,7 +160,7 @@ SpriteBatch D_dryfield_night_g_r_kitchen_8017E5E4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_g_r_kitchen_8017E5F4[7] = {
+SpriteSource D_dryfield_night_g_r_kitchen_8017E5F4[7] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, -88, 625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 24 } }, -120, -40, 675, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, -16, 725, { .fields = { 88, 184 } }, 128, 128, 128, 0 },

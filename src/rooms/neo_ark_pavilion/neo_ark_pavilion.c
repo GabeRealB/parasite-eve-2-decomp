@@ -271,7 +271,7 @@ SpriteBatch D_neo_ark_pavilion_80184304[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_80184314[149] = {
+SpriteSource D_neo_ark_pavilion_80184314[149] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -8, 2183, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 96 } }, -160, 8, 1125, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 96 } }, -152, 8, 1125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -407,20 +407,20 @@ GpSprtElem D_neo_ark_pavilion_80184314[149] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, 136, -24, 3000, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 144, -32, 3000, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -40, 3000, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 80 } }, -40, -64, 1500, { .fields = { 88, 176 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 80 } }, -32, -72, 1500, { .fields = { 72, 160 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 80 } }, -24, -80, 1848, { .fields = { 72, 80 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 88 } }, -16, -80, 1500, { .fields = { 88, 88 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, -8, -80, 1500, { .fields = { 32, 56 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, 0, -80, 1500, { .fields = { 40, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 96 } }, 24, -64, 1500, { .fields = { 96, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 88 } }, 32, -56, 1375, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 0, -24, 2500, { .fields = { 8, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -8, -24, 2571, { .fields = { 8, 192 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -24, 1694, { .fields = { 16, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -24, 1875, { .fields = { 16, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -72, 1662, { .fields = { 8, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -72, 1572, { .fields = { 16, 48 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 80 } }, -40, -64, 1500, { .fields = { 88, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 80 } }, -32, -72, 1500, { .fields = { 72, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 80 } }, -24, -80, 1848, { .fields = { 72, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 88 } }, -16, -80, 1500, { .fields = { 88, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 56 } }, -8, -80, 1500, { .fields = { 32, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 56 } }, 0, -80, 1500, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 96 } }, 24, -64, 1500, { .fields = { 96, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 88 } }, 32, -56, 1375, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 0, -24, 2500, { .fields = { 8, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -8, -24, 2571, { .fields = { 8, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -24, 1694, { .fields = { 16, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -24, 1875, { .fields = { 16, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -72, 1662, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -72, 1572, { .fields = { 16, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_pavilion_80184EB8[8] = {
@@ -434,7 +434,7 @@ SpriteBatch D_neo_ark_pavilion_80184EB8[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_80184EF8[97] = {
+SpriteSource D_neo_ark_pavilion_80184EF8[97] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -55, -8, 2285, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 8 } }, -71, 0, 2250, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 88, 8 } }, 9, 0, 2250, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
@@ -543,7 +543,7 @@ SpriteBatch D_neo_ark_pavilion_8018568C[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_801856BC[157] = {
+SpriteSource D_neo_ark_pavilion_801856BC[157] = {
     { 143, 0x3FC0, { .fields = { 8, 96 } }, -160, 8, 1125, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 96 } }, -152, 8, 1125, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, 48, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -684,23 +684,23 @@ GpSprtElem D_neo_ark_pavilion_801856BC[157] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 136, -24, 3125, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 144, -32, 3125, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -40, 3125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 88 } }, 32, -56, 1335, { .fields = { 104, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 96 } }, 24, -64, 1471, { .fields = { 120, 104 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -72, 1572, { .fields = { 8, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -72, 1662, { .fields = { 16, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 0, -80, 1629, { .fields = { 16, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -8, -80, 1650, { .fields = { 32, 56 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -16, -80, 1646, { .fields = { 32, 104 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, -24, -80, 1674, { .fields = { 40, 56 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -32, -72, 1671, { .fields = { 24, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 80 } }, -40, -64, 1859, { .fields = { 88, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -32, -24, 2491, { .fields = { 40, 224 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 8, 24 } }, -24, -24, 2452, { .fields = { 88, 72 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 8, 40 } }, -16, -32, 2452, { .fields = { 112, 80 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, -8, -32, 2556, { .fields = { 48, 168 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 56 } }, 0, -32, 2257, { .fields = { 40, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -24, 1862, { .fields = { 8, 192 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -24, 1694, { .fields = { 32, 152 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 88 } }, 32, -56, 1335, { .fields = { 104, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 96 } }, 24, -64, 1471, { .fields = { 120, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -72, 1572, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -72, 1662, { .fields = { 16, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 0, -80, 1629, { .fields = { 16, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -8, -80, 1650, { .fields = { 32, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -16, -80, 1646, { .fields = { 32, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 56 } }, -24, -80, 1674, { .fields = { 40, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -32, -72, 1671, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 80 } }, -40, -64, 1859, { .fields = { 88, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 32 } }, -32, -24, 2491, { .fields = { 40, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 8, 24 } }, -24, -24, 2452, { .fields = { 88, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 8, 40 } }, -16, -32, 2452, { .fields = { 112, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 56 } }, -8, -32, 2556, { .fields = { 48, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 56 } }, 0, -32, 2257, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 8, -24, 1862, { .fields = { 8, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 16, -24, 1694, { .fields = { 32, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_pavilion_80186300[8] = {
@@ -714,7 +714,7 @@ SpriteBatch D_neo_ark_pavilion_80186300[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_80186340[115] = {
+SpriteSource D_neo_ark_pavilion_80186340[115] = {
     { 142, 0x3FC0, { .fields = { 32, 8 } }, -56, -8, 2287, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 80, 8 } }, -72, 0, 2250, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 88, 8 } }, 8, 0, 2250, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
@@ -841,7 +841,7 @@ SpriteBatch D_neo_ark_pavilion_80186C3C[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_80186C6C[43] = {
+SpriteSource D_neo_ark_pavilion_80186C6C[43] = {
     { 142, 0x3FC0, { .fields = { 16, 88 } }, -160, -56, 375, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 88 } }, -160, 32, 375, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 88 } }, -144, -56, 375, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
@@ -893,7 +893,7 @@ SpriteBatch D_neo_ark_pavilion_80186FC8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_pavilion_80186FE0[48] = {
+SpriteSource D_neo_ark_pavilion_80186FE0[48] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, -96, 1125, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 72, -88, 1125, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -120, -40, 1000, { .fields = { 112, 120 } }, 128, 128, 128, 0 },

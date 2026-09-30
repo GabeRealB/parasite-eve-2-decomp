@@ -159,7 +159,7 @@ SpriteBatch D_shelter_b2_north_maintenance_walkway_80184170[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_north_maintenance_walkway_80184180[28] = {
+SpriteSource D_shelter_b2_north_maintenance_walkway_80184180[28] = {
     { 143, 0x3FC0, { .fields = { 56, 56 } }, -80, -32, 1500, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 56 } }, -136, -32, 1500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 48 } }, -136, -80, 1404, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
@@ -197,7 +197,7 @@ SpriteBatch D_shelter_b2_north_maintenance_walkway_801843B0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_north_maintenance_walkway_801843D0[44] = {
+SpriteSource D_shelter_b2_north_maintenance_walkway_801843D0[44] = {
     { 143, 0x3FC0, { .fields = { 8, 176 } }, -40, -96, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -48, -8, 0, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 88 } }, -48, -96, 877, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -260,7 +260,7 @@ SpriteBatch D_shelter_b2_north_maintenance_walkway_80184768[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_north_maintenance_walkway_80184778[129] = {
+SpriteSource D_shelter_b2_north_maintenance_walkway_80184778[129] = {
     { 143, 0x3FC0, { .fields = { 8, 168 } }, 112, -112, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 160 } }, 104, -104, 0, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 160 } }, 96, -104, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -398,7 +398,7 @@ SpriteBatch D_shelter_b2_north_maintenance_walkway_8018518C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_north_maintenance_walkway_801851A4[118] = {
+SpriteSource D_shelter_b2_north_maintenance_walkway_801851A4[118] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, -48, 0, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, -8, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, -48, 200, { .fields = { 72, 120 } }, 128, 128, 128, 0 },

@@ -1276,7 +1276,7 @@ SpriteBatch D_mist_shooting_gallery_80189C34[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_80189C44[13] = {
+SpriteSource D_mist_shooting_gallery_80189C44[13] = {
     { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 112, 625, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 104, 625, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 88, 8 } }, -160, 96, 625, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
@@ -1298,7 +1298,7 @@ SpriteBatch D_mist_shooting_gallery_80189D48[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_80189D60[32] = {
+SpriteSource D_mist_shooting_gallery_80189D60[32] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 48, 750, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 32, 750, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 750, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
@@ -1344,7 +1344,7 @@ SpriteBatch D_mist_shooting_gallery_80189FF8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A008[24] = {
+SpriteSource D_mist_shooting_gallery_8018A008[24] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, -104, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -136, -104, 937, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -136, -24, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -1378,7 +1378,7 @@ SpriteBatch D_mist_shooting_gallery_8018A1E8[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A208[25] = {
+SpriteSource D_mist_shooting_gallery_8018A208[25] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -104, -8, 975, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 8 } }, -112, 0, 862, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 8 } }, -136, 8, 762, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
@@ -1418,7 +1418,7 @@ SpriteBatch D_mist_shooting_gallery_8018A41C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A42C[9] = {
+SpriteSource D_mist_shooting_gallery_8018A42C[9] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 88, -56, 2625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 72, -48, 2812, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 88 } }, 80, -56, 2750, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
@@ -1438,7 +1438,7 @@ SpriteBatch D_mist_shooting_gallery_8018A4E0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A508[13] = {
+SpriteSource D_mist_shooting_gallery_8018A508[13] = {
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -56, -56, 1837, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -40, -56, 1837, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -24, -56, 1837, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -1462,7 +1462,7 @@ SpriteBatch D_mist_shooting_gallery_8018A60C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A634[14] = {
+SpriteSource D_mist_shooting_gallery_8018A634[14] = {
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -160, -120, 1000, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 128 } }, -160, -8, 1000, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 112 } }, -144, -120, 1000, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
@@ -1485,7 +1485,7 @@ SpriteBatch D_mist_shooting_gallery_8018A74C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A764[12] = {
+SpriteSource D_mist_shooting_gallery_8018A764[12] = {
     { 143, 0x3FC0, { .fields = { 8, 96 } }, 88, -40, 850, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 80 } }, 88, -120, 850, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 96 } }, 96, -120, 850, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -1506,7 +1506,7 @@ SpriteBatch D_mist_shooting_gallery_8018A854[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018A86C[29] = {
+SpriteSource D_mist_shooting_gallery_8018A86C[29] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 88, 500, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 88, 500, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 88, 500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
@@ -1546,17 +1546,17 @@ SpriteBatch D_mist_shooting_gallery_8018AAB0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018AAD8[164] = {
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 0, -32, 1875, { .fields = { 32, 72 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 16, -32, 1875, { .fields = { 24, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 32, -32, 1875, { .fields = { 40, 168 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 48, -32, 1875, { .fields = { 40, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, -32, 1875, { .fields = { 8, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -32, 1875, { .fields = { 0, 72 } }, 128, 128, 128, 2 },
-    { 142, 0x3FC0, { .fields = { 16, 72 } }, 96, -32, 1875, { .fields = { 120, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, -32, 1875, { .fields = { 24, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 128, -32, 1875, { .fields = { 16, 72 } }, 128, 128, 128, 2 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 144, -32, 1875, { .fields = { 8, 0 } }, 128, 128, 128, 2 },
+SpriteSource D_mist_shooting_gallery_8018AAD8[164] = {
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 0, -32, 1875, { .fields = { 32, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 16, -32, 1875, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 32, -32, 1875, { .fields = { 40, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 48, -32, 1875, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, -32, 1875, { .fields = { 8, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -32, 1875, { .fields = { 0, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x3FC0, { .fields = { 16, 72 } }, 96, -32, 1875, { .fields = { 120, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, -32, 1875, { .fields = { 24, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 128, -32, 1875, { .fields = { 16, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x3FC0, { .fields = { 16, 72 } }, 144, -32, 1875, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
     { 142, 0x4000, { .fields = { 8, 8 } }, -128, 64, 1194, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
     { 142, 0x4000, { .fields = { 8, 8 } }, -120, 64, 1847, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
     { 142, 0x4000, { .fields = { 8, 8 } }, -112, 64, 1847, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
@@ -1721,7 +1721,7 @@ SpriteBatch D_mist_shooting_gallery_8018B7A8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018B7D0[58] = {
+SpriteSource D_mist_shooting_gallery_8018B7D0[58] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, -24, 1285, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, -16, 1204, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, -8, 1907, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
@@ -1788,7 +1788,7 @@ SpriteBatch D_mist_shooting_gallery_8018BC58[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_shooting_gallery_8018BC70[6] = {
+SpriteSource D_mist_shooting_gallery_8018BC70[6] = {
     { 143, 0x4000, { .fields = { 8, 8 } }, 88, 32, 1375, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
     { 143, 0x4000, { .fields = { 48, 16 } }, -120, 16, 1375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x4000, { .fields = { 56, 16 } }, -72, 0, 1375, { .fields = { 72, 16 } }, 128, 128, 128, 0 },

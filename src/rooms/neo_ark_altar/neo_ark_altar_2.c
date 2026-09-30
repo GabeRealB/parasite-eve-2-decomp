@@ -251,7 +251,7 @@ SpriteBatch D_neo_ark_altar_8017F6C0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_altar_8017F6D0[24] = {
+SpriteSource D_neo_ark_altar_8017F6D0[24] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 72, 1380, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
@@ -290,7 +290,7 @@ SpriteBatch D_neo_ark_altar_8017F8D0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_altar_8017F8E0[33] = {
+SpriteSource D_neo_ark_altar_8017F8E0[33] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -8, -64, 1802, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
@@ -333,7 +333,7 @@ SpriteBatch D_neo_ark_altar_8017FB74[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_altar_8017FB94[6] = {
+SpriteSource D_neo_ark_altar_8017FB94[6] = {
     { 143, 0x3FC0, { .fields = { 56, 72 } }, -8, -8, 386, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
     { 143, 0x4000, { .fields = { 56, 72 } }, -8, -8, 389, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
     { 143, 0x4040, { .fields = { 56, 72 } }, -8, -8, 391, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -358,7 +358,7 @@ SpriteBatch D_neo_ark_altar_8017FC4C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_altar_8017FC5C[21] = {
+SpriteSource D_neo_ark_altar_8017FC5C[21] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, 16, 1897, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 64, 839, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 72, 693, { .fields = { 112, 248 } }, 128, 128, 128, 0 },

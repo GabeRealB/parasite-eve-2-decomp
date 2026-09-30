@@ -167,7 +167,7 @@ SpriteBatch D_dryfield_g_r_kitchen_8017EF50[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_g_r_kitchen_8017EF60[7] = {
+SpriteSource D_dryfield_g_r_kitchen_8017EF60[7] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, -88, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 24 } }, -120, -40, 675, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, -16, 725, { .fields = { 88, 176 } }, 128, 128, 128, 0 },

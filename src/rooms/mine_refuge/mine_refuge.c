@@ -285,7 +285,7 @@ SpriteBatch D_mine_refuge_80181CC4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_refuge_80181CD4[79] = {
+SpriteSource D_mine_refuge_80181CD4[79] = {
     { 142, 0x3FC0, { .fields = { 64, 16 } }, 40, 32, 487, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 40, 48, 524, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 72, 48, 503, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
@@ -378,7 +378,7 @@ SpriteBatch D_mine_refuge_80182300[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_refuge_80182340[33] = {
+SpriteSource D_mine_refuge_80182340[33] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 104, 482, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, 80, 513, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 88, 495, { .fields = { 104, 32 } }, 128, 128, 128, 0 },

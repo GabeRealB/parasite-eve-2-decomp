@@ -139,7 +139,7 @@ SpriteBatch D_dryfield_souvenir_shop_8017E690[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_souvenir_shop_8017E6A0[45] = {
+SpriteSource D_dryfield_souvenir_shop_8017E6A0[45] = {
     { 143, 0x3FC0, { .fields = { 40, 96 } }, -144, 24, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, -104, 72, 600, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 88, 64 } }, -144, 56, 450, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
@@ -197,7 +197,7 @@ SpriteBatch D_dryfield_souvenir_shop_8017EA24[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_souvenir_shop_8017EA5C[53] = {
+SpriteSource D_dryfield_souvenir_shop_8017EA5C[53] = {
     { 143, 0x3FC0, { .fields = { 72, 96 } }, 72, 24, 625, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, -8, 925, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 56 } }, -32, -8, 925, { .fields = { 56, 200 } }, 128, 128, 128, 0 },

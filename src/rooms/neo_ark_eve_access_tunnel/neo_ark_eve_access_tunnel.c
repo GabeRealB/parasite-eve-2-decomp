@@ -74,9 +74,9 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
 extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2];
 extern GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3];
 
-extern GpSprtElem D_neo_ark_eve_access_tunnel_8017F18C[69];
+extern SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69];
 
-GpSprtElem D_neo_ark_eve_access_tunnel_8017F18C[69] = {
+SpriteSource D_neo_ark_eve_access_tunnel_8017F18C[69] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 16, 0, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 40, 761, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 64, 837, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
@@ -157,7 +157,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F6F0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_eve_access_tunnel_8017F720[48] = {
+SpriteSource D_neo_ark_eve_access_tunnel_8017F720[48] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 40, 540, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 48, 544, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, 56, 545, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
@@ -217,7 +217,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017FAE0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_eve_access_tunnel_8017FB10[34] = {
+SpriteSource D_neo_ark_eve_access_tunnel_8017FB10[34] = {
     { 143, 0x3FC0, { .fields = { 24, 80 } }, -40, -120, 1180, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -40, -40, 1180, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 8, 1187, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
@@ -262,7 +262,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017FDB8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
+SpriteSource D_neo_ark_eve_access_tunnel_8017FDE0[32] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, -8, 678, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 809, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, -120, 725, { .fields = { 48, 96 } }, 128, 128, 128, 0 },

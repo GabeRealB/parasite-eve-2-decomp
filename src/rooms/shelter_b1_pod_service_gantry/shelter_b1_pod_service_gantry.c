@@ -198,7 +198,7 @@ GpViewRec D_shelter_b1_pod_service_gantry_801801E8[46] = {
     { { { { 1676, 0, -3737 }, { -1100, 3914, -493 }, { 3571, 1205, 1601 } }, { -7948, 590, -2568 } }, 329 },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80180860[23] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80180860[23] = {
     { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, 48, 386, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, 104, 56, 386, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, 64, 381, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
@@ -231,7 +231,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80180A2C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80180A4C[8] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80180A4C[8] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 1300, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, 0, 1237, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -104, -48, 1237, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
@@ -248,7 +248,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80180AEC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80180B04[12] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80180B04[12] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 0, 2300, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 72, -40, 2025, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, -56, 2300, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
@@ -275,7 +275,7 @@ GpDrawAreaRec D_shelter_b1_pod_service_gantry_80180C14[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80180C28[82] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80180C28[82] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -88, 80, 1075, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -112, 88, 1050, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, 88, 1050, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
@@ -373,7 +373,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181290[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_801812E0[15] = {
+SpriteSource D_shelter_b1_pod_service_gantry_801812E0[15] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 925, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 700, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -96, 72, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -408,7 +408,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_8018143C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_8018144C[10] = {
+SpriteSource D_shelter_b1_pod_service_gantry_8018144C[10] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -152, -56, 1950, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -112, -56, 1950, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -56, 1900, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
@@ -427,7 +427,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181514[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_8018152C[24] = {
+SpriteSource D_shelter_b1_pod_service_gantry_8018152C[24] = {
     { 143, 0x3FC0, { .fields = { 48, 16 } }, -64, 0, 812, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, -8, 800, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -8, 800, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -469,7 +469,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181744[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80181754[2] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80181754[2] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 88, 104, 520, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 104, 511, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
 };
@@ -490,7 +490,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_801817A4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_801817B4[14] = {
+SpriteSource D_shelter_b1_pod_service_gantry_801817B4[14] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 212, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 72, 212, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -64, 72, 212, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -663,7 +663,7 @@ SpriteBatch D_shelter_b1_pod_service_gantry_80181AB4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_pod_service_gantry_80181AC4[9] = {
+SpriteSource D_shelter_b1_pod_service_gantry_80181AC4[9] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 0, 902, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 915, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 24 } }, -128, 96, 875, { .fields = { 40, 216 } }, 128, 128, 128, 0 },

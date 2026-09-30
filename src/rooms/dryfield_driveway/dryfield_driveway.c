@@ -301,7 +301,7 @@ SpriteBatch D_dryfield_driveway_8017EF28[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_driveway_8017EF38[9] = {
+SpriteSource D_dryfield_driveway_8017EF38[9] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 112, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 88, 375, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 80, 375, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
@@ -320,7 +320,7 @@ SpriteBatch D_dryfield_driveway_8017EFEC[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_driveway_8017F00C[17] = {
+SpriteSource D_dryfield_driveway_8017F00C[17] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 240, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 40 } }, -120, 80, 240, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 32 } }, -56, 88, 240, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
@@ -355,7 +355,7 @@ GpDrawAreaRec D_dryfield_driveway_8017F198[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_driveway_8017F1AC[50] = {
+SpriteSource D_dryfield_driveway_8017F1AC[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -425,7 +425,7 @@ SpriteBatch D_dryfield_driveway_8017F594[14] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_driveway_8017F604[12] = {
+SpriteSource D_dryfield_driveway_8017F604[12] = {
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 8, 948, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 16, 888, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 24, 895, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
@@ -452,7 +452,7 @@ SpriteBatch D_dryfield_driveway_8017F714[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_driveway_8017F724[60] = {
+SpriteSource D_dryfield_driveway_8017F724[60] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 120, 64 } }, 128, 128, 128, 0 },

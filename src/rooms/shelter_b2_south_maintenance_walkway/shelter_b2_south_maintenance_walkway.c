@@ -220,7 +220,7 @@ SpriteBatch D_shelter_b2_south_maintenance_walkway_80182AD0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_south_maintenance_walkway_80182AE0[64] = {
+SpriteSource D_shelter_b2_south_maintenance_walkway_80182AE0[64] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 72, 0, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 80, 0, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 0, { .fields = { 72, 80 } }, 128, 128, 128, 0 },

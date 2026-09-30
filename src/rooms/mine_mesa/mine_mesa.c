@@ -1183,7 +1183,7 @@ SpriteBatch D_mine_mesa_801871BC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_801871CC[48] = {
+SpriteSource D_mine_mesa_801871CC[48] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -24, -48, 2094, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -48, 1954, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, -48, 1938, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
@@ -1244,7 +1244,7 @@ SpriteBatch D_mine_mesa_8018758C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_801875C4[39] = {
+SpriteSource D_mine_mesa_801875C4[39] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 8, 1183, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 908, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 80, 1085, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
@@ -1293,7 +1293,7 @@ SpriteBatch D_mine_mesa_801878D0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_801878F0[18] = {
+SpriteSource D_mine_mesa_801878F0[18] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 0, 2026, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, -8, 1828, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -32, -24, 1574, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1320,7 +1320,7 @@ SpriteBatch D_mine_mesa_80187A58[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_80187A70[66] = {
+SpriteSource D_mine_mesa_80187A70[66] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -40, 1440, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, -16, 1426, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 16, 1505, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
@@ -1398,7 +1398,7 @@ SpriteBatch D_mine_mesa_80187F98[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_80187FC8[23] = {
+SpriteSource D_mine_mesa_80187FC8[23] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -8, 1420, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -8, 1273, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -24, 1200, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
@@ -1435,7 +1435,7 @@ SpriteBatch D_mine_mesa_801881AC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_801881BC[42] = {
+SpriteSource D_mine_mesa_801881BC[42] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -72, 2064, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -48, 1903, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, -32, 1974, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
@@ -1488,7 +1488,7 @@ SpriteBatch D_mine_mesa_80188504[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_mesa_8018852C[24] = {
+SpriteSource D_mine_mesa_8018852C[24] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 64, 1327, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 32 } }, -120, 72, 1340, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 16 } }, -64, 72, 1580, { .fields = { 16, 240 } }, 128, 128, 128, 0 },

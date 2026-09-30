@@ -172,7 +172,7 @@ SpriteBatch D_dryfield_night_warehouse_8017F04C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_warehouse_8017F05C[23] = {
+SpriteSource D_dryfield_night_warehouse_8017F05C[23] = {
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -8, 16, 1075, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 24, 1025, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -112, 64, 475, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -207,7 +207,7 @@ SpriteBatch D_dryfield_night_warehouse_8017F228[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_warehouse_8017F258[22] = {
+SpriteSource D_dryfield_night_warehouse_8017F258[22] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 32, 975, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 32, 925, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 88, 32, 875, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
@@ -241,7 +241,7 @@ SpriteBatch D_dryfield_night_warehouse_8017F410[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_warehouse_8017F440[1] = {
+SpriteSource D_dryfield_night_warehouse_8017F440[1] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, 80, 500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
 };
 

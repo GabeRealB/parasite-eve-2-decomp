@@ -236,7 +236,7 @@ SpriteBatch D_dryfield_toilet_801815B4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_toilet_801815C4[45] = {
+SpriteSource D_dryfield_toilet_801815C4[45] = {
     { 142, 0x3FC0, { .fields = { 24, 8 } }, -40, 64, 325, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -16, 80, 392, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 24 } }, -88, 96, 350, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
@@ -291,7 +291,7 @@ SpriteBatch D_dryfield_toilet_80181948[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_toilet_80181968[47] = {
+SpriteSource D_dryfield_toilet_80181968[47] = {
     { 142, 0x3FC0, { .fields = { 56, 16 } }, 40, 0, 525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 24, 16, 400, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, 56, 650, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
@@ -347,7 +347,7 @@ SpriteBatch D_dryfield_toilet_80181D14[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_toilet_80181D2C[13] = {
+SpriteSource D_dryfield_toilet_80181D2C[13] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, 56, -32, 575, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 184 } }, 64, -104, 513, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 192 } }, 72, -104, 495, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -369,7 +369,7 @@ SpriteBatch D_dryfield_toilet_80181E30[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_toilet_80181E48[39] = {
+SpriteSource D_dryfield_toilet_80181E48[39] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, 112, 402, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -40, 48, 765, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 40, 600, { .fields = { 24, 136 } }, 128, 128, 128, 0 },

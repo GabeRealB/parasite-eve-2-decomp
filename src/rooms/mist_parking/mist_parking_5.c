@@ -242,7 +242,7 @@ SpriteBatch D_mist_parking_801924F8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80192508[21] = {
+SpriteSource D_mist_parking_80192508[21] = {
     { 143, 0x3FC0, { .fields = { 48, 128 } }, -160, -120, 725, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 112 } }, -160, 8, 725, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 128 } }, -112, -120, 725, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
@@ -277,7 +277,7 @@ SpriteBatch D_mist_parking_801926C4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_801926D4[26] = {
+SpriteSource D_mist_parking_801926D4[26] = {
     { 142, 0x3FC0, { .fields = { 64, 24 } }, -120, -8, 720, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -56, -8, 802, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 16 } }, -16, -8, 799, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -314,7 +314,7 @@ SpriteBatch D_mist_parking_801928DC[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80192904[39] = {
+SpriteSource D_mist_parking_80192904[39] = {
     { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
@@ -364,7 +364,7 @@ SpriteBatch D_mist_parking_80192C10[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80192C38[37] = {
+SpriteSource D_mist_parking_80192C38[37] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 48 } }, 104, -16, 1250, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
@@ -414,7 +414,7 @@ SpriteBatch D_mist_parking_80192F1C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80192F54[9] = {
+SpriteSource D_mist_parking_80192F54[9] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -120, 1425, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -56, 1325, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 8, 1412, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -442,7 +442,7 @@ SpriteBatch D_mist_parking_80193030[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80193040[25] = {
+SpriteSource D_mist_parking_80193040[25] = {
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -120, 125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -56, 125, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -120, 112, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
@@ -476,7 +476,7 @@ SpriteBatch D_mist_parking_80193234[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_8019324C[4] = {
+SpriteSource D_mist_parking_8019324C[4] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -64, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -104, -56, 675, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, -112, -32, 700, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
@@ -519,7 +519,7 @@ SpriteBatch D_mist_parking_80193304[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_80193314[35] = {
+SpriteSource D_mist_parking_80193314[35] = {
     { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
@@ -565,7 +565,7 @@ SpriteBatch D_mist_parking_801935D0[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mist_parking_801935F8[43] = {
+SpriteSource D_mist_parking_801935F8[43] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -16, 1250, { .fields = { 80, 48 } }, 128, 128, 128, 0 },

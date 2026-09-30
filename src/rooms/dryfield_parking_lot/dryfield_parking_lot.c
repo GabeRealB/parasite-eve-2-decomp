@@ -170,7 +170,7 @@ SpriteBatch D_dryfield_parking_lot_8017E9FC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_parking_lot_8017EA0C[10] = {
+SpriteSource D_dryfield_parking_lot_8017EA0C[10] = {
     { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
@@ -195,7 +195,7 @@ GpDrawAreaRec D_dryfield_parking_lot_8017EAF4[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_parking_lot_8017EB08[24] = {
+SpriteSource D_dryfield_parking_lot_8017EB08[24] = {
     { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
@@ -228,7 +228,7 @@ SpriteBatch D_dryfield_parking_lot_8017ECE8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_parking_lot_8017ED00[9] = {
+SpriteSource D_dryfield_parking_lot_8017ED00[9] = {
     { 143, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 16 } }, 48, -88, 925, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, -72, 925, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
@@ -248,7 +248,7 @@ SpriteBatch D_dryfield_parking_lot_8017EDB4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_parking_lot_8017EDDC[7] = {
+SpriteSource D_dryfield_parking_lot_8017EDDC[7] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 88, 750, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
@@ -264,7 +264,7 @@ SpriteBatch D_dryfield_parking_lot_8017EE68[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_parking_lot_8017EE80[21] = {
+SpriteSource D_dryfield_parking_lot_8017EE80[21] = {
     { 142, 0x3FC0, { .fields = { 40, 24 } }, 120, -80, 528, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -56, 531, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 993, { .fields = { 120, 216 } }, 128, 128, 128, 0 },

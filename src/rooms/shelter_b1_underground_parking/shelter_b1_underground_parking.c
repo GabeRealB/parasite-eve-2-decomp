@@ -411,14 +411,14 @@ void                              func_shelter_b1_underground_parking_80183804(u
 void                              func_shelter_b1_underground_parking_80184234(Task*);
 void                              func_shelter_b1_underground_parking_80184284(Task*);
 
-extern SpriteBatch D_shelter_b1_underground_parking_80189AD8[2];
-extern SpriteBatch D_shelter_b1_underground_parking_80189AE8[2];
-extern SpriteBatch D_shelter_b1_underground_parking_80189BFC[3];
-extern SpriteBatch D_shelter_b1_underground_parking_80189E94[4];
-extern SpriteBatch D_shelter_b1_underground_parking_80189EB4[2];
-extern SpriteBatch D_shelter_b1_underground_parking_80189EC4[2];
-extern GpSprtElem  D_shelter_b1_underground_parking_80189AF8[13];
-extern GpSprtElem  D_shelter_b1_underground_parking_80189C14[32];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189AD8[2];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189AE8[2];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189BFC[3];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189E94[4];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189EB4[2];
+extern SpriteBatch  D_shelter_b1_underground_parking_80189EC4[2];
+extern SpriteSource D_shelter_b1_underground_parking_80189AF8[13];
+extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -1009,7 +1009,7 @@ SpriteBatch D_shelter_b1_underground_parking_80189AE8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_80189AF8[13] = {
+SpriteSource D_shelter_b1_underground_parking_80189AF8[13] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -120, 1158, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -80, 1514, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 689, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
@@ -1031,7 +1031,7 @@ SpriteBatch D_shelter_b1_underground_parking_80189BFC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_80189C14[32] = {
+SpriteSource D_shelter_b1_underground_parking_80189C14[32] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 1327, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 16, 1339, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 32, 1367, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
@@ -1098,7 +1098,7 @@ SpriteBatch D_shelter_b1_underground_parking_80189EF4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_80189F04[11] = {
+SpriteSource D_shelter_b1_underground_parking_80189F04[11] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 104, 780, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 88, 772, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 88, 700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1123,7 +1123,7 @@ SpriteBatch D_shelter_b1_underground_parking_80189FF8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_8018A008[42] = {
+SpriteSource D_shelter_b1_underground_parking_8018A008[42] = {
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -120, 1158, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -96, -80, 1514, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 689, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
@@ -1175,7 +1175,7 @@ SpriteBatch D_shelter_b1_underground_parking_8018A350[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_8018A370[65] = {
+SpriteSource D_shelter_b1_underground_parking_8018A370[65] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 1327, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 16, 1339, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 32, 1367, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
@@ -1266,7 +1266,7 @@ SpriteBatch D_shelter_b1_underground_parking_8018A8CC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b1_underground_parking_8018A8DC[28] = {
+SpriteSource D_shelter_b1_underground_parking_8018A8DC[28] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -32, 1061, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, -8, 1084, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 8, 1096, { .fields = { 72, 120 } }, 128, 128, 128, 0 },

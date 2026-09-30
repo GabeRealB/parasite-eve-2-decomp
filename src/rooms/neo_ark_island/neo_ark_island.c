@@ -165,7 +165,7 @@ SpriteBatch D_neo_ark_island_801827A0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_island_801827B0[33] = {
+SpriteSource D_neo_ark_island_801827B0[33] = {
     { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 8, 1814, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 16, 1314, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1450, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
@@ -208,7 +208,7 @@ SpriteBatch D_neo_ark_island_80182A44[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_island_80182A64[68] = {
+SpriteSource D_neo_ark_island_80182A64[68] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 56, 775, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 56, 775, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 8 } }, 80, 64, 775, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -288,7 +288,7 @@ SpriteBatch D_neo_ark_island_80182FB4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_island_80182FE4[140] = {
+SpriteSource D_neo_ark_island_80182FE4[140] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, -120, 2233, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 8 } }, -8, -96, 2264, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 8 } }, -8, -88, 2213, { .fields = { 24, 160 } }, 128, 128, 128, 0 },

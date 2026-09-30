@@ -177,7 +177,7 @@ SpriteBatch D_neo_ark_bridge_80182910[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_bridge_80182920[34] = {
+SpriteSource D_neo_ark_bridge_80182920[34] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 16, 1450, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 24, 1425, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 96, 8 } }, -40, 24, 1425, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
@@ -220,7 +220,7 @@ SpriteBatch D_neo_ark_bridge_80182BC8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_bridge_80182BE0[89] = {
+SpriteSource D_neo_ark_bridge_80182BE0[89] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 96, 561, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 96, 665, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, 80, 646, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
@@ -321,7 +321,7 @@ SpriteBatch D_neo_ark_bridge_801832D4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_bridge_80183304[135] = {
+SpriteSource D_neo_ark_bridge_80183304[135] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -128, 16, 974, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, 112, 559, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 24, 625, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
@@ -467,7 +467,7 @@ SpriteBatch D_neo_ark_bridge_80183D90[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_bridge_80183DB8[61] = {
+SpriteSource D_neo_ark_bridge_80183DB8[61] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 112, 497, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 96, 625, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 112 } }, 88, 8, 625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -539,7 +539,7 @@ SpriteBatch D_neo_ark_bridge_8018427C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_bridge_801842A4[34] = {
+SpriteSource D_neo_ark_bridge_801842A4[34] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 8, 1625, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 8, 1538, { .fields = { 112, 8 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 120, 8 } }, -40, 16, 1600, { .fields = { 8, 16 } }, 128, 128, 128, 0 },

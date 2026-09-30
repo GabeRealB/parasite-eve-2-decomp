@@ -202,7 +202,7 @@ SpriteBatch D_mine_secret_passage_80181758[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_secret_passage_80181768[48] = {
+SpriteSource D_mine_secret_passage_80181768[48] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -40, 1940, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -32, 1983, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 16, 2017, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
@@ -259,7 +259,7 @@ SpriteBatch D_mine_secret_passage_80181B28[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_secret_passage_80181B40[50] = {
+SpriteSource D_mine_secret_passage_80181B40[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -48, 3070, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -8, 3071, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, -80, 3070, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
@@ -319,7 +319,7 @@ SpriteBatch D_mine_secret_passage_80181F28[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_secret_passage_80181F48[55] = {
+SpriteSource D_mine_secret_passage_80181F48[55] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -8, 16, 1431, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 16, 1409, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 48 } }, -128, 16, 1943, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
@@ -373,8 +373,8 @@ GpSprtElem D_mine_secret_passage_80181F48[55] = {
     { 142, 0x3FC0, { .fields = { 48, 72 } }, -160, 48, 1515, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 88 } }, -120, -40, 3125, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 88 } }, -80, -40, 3125, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 48 } }, 144, 24, 1138, { .fields = { 88, 144 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 48 } }, 120, 24, 1174, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 16, 48 } }, 144, 24, 1138, { .fields = { 88, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 48 } }, 120, 24, 1174, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_mine_secret_passage_80182394[9] = {
@@ -389,7 +389,7 @@ SpriteBatch D_mine_secret_passage_80182394[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_secret_passage_801823DC[55] = {
+SpriteSource D_mine_secret_passage_801823DC[55] = {
     { 143, 0x3FC0, { .fields = { 40, 72 } }, -88, -120, 1000, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 40 } }, -48, -120, 1000, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 88 } }, -160, -120, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
@@ -437,14 +437,14 @@ GpSprtElem D_mine_secret_passage_801823DC[55] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 88, 56, 1244, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 56, 1380, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 48, 1423, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -32, 16, 1493, { .fields = { 8, 104 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -16, 24, 1448, { .fields = { 0, 72 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 8, 40, 1415, { .fields = { 24, 216 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 24, 40, 1386, { .fields = { 24, 120 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 40, 48, 1367, { .fields = { 16, 40 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 56, 56, 1340, { .fields = { 24, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 72, 64, 1323, { .fields = { 8, 200 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 88, 72, 1296, { .fields = { 56, 232 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 16, 32 } }, -32, 16, 1493, { .fields = { 8, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 32 } }, -16, 24, 1448, { .fields = { 0, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 8, 40, 1415, { .fields = { 24, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 24, 40, 1386, { .fields = { 24, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 40, 48, 1367, { .fields = { 16, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 56, 56, 1340, { .fields = { 24, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 32 } }, 72, 64, 1323, { .fields = { 8, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 24 } }, 88, 72, 1296, { .fields = { 56, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_mine_secret_passage_80182828[8] = {
@@ -458,7 +458,7 @@ SpriteBatch D_mine_secret_passage_80182828[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_secret_passage_80182868[13] = {
+SpriteSource D_mine_secret_passage_80182868[13] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -48, 1397, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 1397, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, 72, -120, 1398, { .fields = { 40, 0 } }, 128, 128, 128, 0 },

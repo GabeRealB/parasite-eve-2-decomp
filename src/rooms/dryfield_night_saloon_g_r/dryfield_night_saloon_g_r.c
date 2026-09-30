@@ -165,22 +165,22 @@ extern GpGridParams D_dryfield_night_saloon_g_r_80185B50[1];
 extern GpObj3A      D_dryfield_night_saloon_g_r_80188E18[2];
 extern GpObj4C      D_dryfield_night_saloon_g_r_8018831C[16];
 
-extern SpriteBatch D_dryfield_night_saloon_g_r_80185D48[2];
-extern SpriteBatch D_dryfield_night_saloon_g_r_80185EAC[3];
-extern SpriteBatch D_dryfield_night_saloon_g_r_80185FDC[4];
-extern SpriteBatch D_dryfield_night_saloon_g_r_80186574[6];
-extern SpriteBatch D_dryfield_night_saloon_g_r_80186A90[5];
-extern SpriteBatch D_dryfield_night_saloon_g_r_801871D4[5];
-extern SpriteBatch D_dryfield_night_saloon_g_r_801873C8[5];
-extern SpriteBatch D_dryfield_night_saloon_g_r_801873F0[2];
-extern SpriteBatch D_dryfield_night_saloon_g_r_80187504[5];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_80185D58[17];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_80185EC4[14];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_80185FFC[70];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_801865A4[63];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_80186AB8[91];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_801871FC[23];
-extern GpSprtElem  D_dryfield_night_saloon_g_r_80187400[13];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80185D48[2];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80185EAC[3];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80185FDC[4];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80186574[6];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80186A90[5];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_801871D4[5];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_801873C8[5];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_801873F0[2];
+extern SpriteBatch  D_dryfield_night_saloon_g_r_80187504[5];
+extern SpriteSource D_dryfield_night_saloon_g_r_80185D58[17];
+extern SpriteSource D_dryfield_night_saloon_g_r_80185EC4[14];
+extern SpriteSource D_dryfield_night_saloon_g_r_80185FFC[70];
+extern SpriteSource D_dryfield_night_saloon_g_r_801865A4[63];
+extern SpriteSource D_dryfield_night_saloon_g_r_80186AB8[91];
+extern SpriteSource D_dryfield_night_saloon_g_r_801871FC[23];
+extern SpriteSource D_dryfield_night_saloon_g_r_80187400[13];
 
 extern AnimationPlayRequest D_dryfield_night_saloon_g_r_80183968;
 extern AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C;
@@ -1151,7 +1151,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80185D48[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80185D58[17] = {
+SpriteSource D_dryfield_night_saloon_g_r_80185D58[17] = {
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -24, 48, 550, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -8, 88, 550, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 104, 500, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
@@ -1177,7 +1177,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80185EAC[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80185EC4[14] = {
+SpriteSource D_dryfield_night_saloon_g_r_80185EC4[14] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -56, -16, 1200, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -80, 8, 1050, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 56 } }, -56, 16, 975, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
@@ -1201,7 +1201,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80185FDC[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80185FFC[70] = {
+SpriteSource D_dryfield_night_saloon_g_r_80185FFC[70] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -32, -112, 1250, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 16, -112, 1250, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 80, 16 } }, -40, -56, 1250, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
@@ -1283,7 +1283,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80186574[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_801865A4[63] = {
+SpriteSource D_dryfield_night_saloon_g_r_801865A4[63] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -120, 250, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -72, 250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 56 } }, 16, -24, 250, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
@@ -1357,7 +1357,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80186A90[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80186AB8[91] = {
+SpriteSource D_dryfield_night_saloon_g_r_80186AB8[91] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 96, 375, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, 80, 375, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, 72, 375, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
@@ -1459,7 +1459,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_801871D4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_801871FC[23] = {
+SpriteSource D_dryfield_night_saloon_g_r_801871FC[23] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 104, 16, 625, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 72, -8, 625, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, 72, 40, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -1498,7 +1498,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_801873F0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80187400[13] = {
+SpriteSource D_dryfield_night_saloon_g_r_80187400[13] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, 80, 500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, 72, 525, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 88, 500, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
@@ -1522,7 +1522,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80187504[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_8018752C[119] = {
+SpriteSource D_dryfield_night_saloon_g_r_8018752C[119] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 72, 130, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 88, 130, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 72, 130, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
@@ -1651,7 +1651,7 @@ SpriteBatch D_dryfield_night_saloon_g_r_80187E78[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_night_saloon_g_r_80187E98[12] = {
+SpriteSource D_dryfield_night_saloon_g_r_80187E98[12] = {
     { 143, 0x3FC0, { .fields = { 40, 64 } }, -96, 56, 612, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -24, 56, 800, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -24, 8, 800, { .fields = { 48, 208 } }, 128, 128, 128, 0 },

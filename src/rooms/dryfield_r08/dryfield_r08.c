@@ -207,7 +207,7 @@ SpriteBatch D_dryfield_r08_8017FC94[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_r08_8017FCA4[85] = {
+SpriteSource D_dryfield_r08_8017FCA4[85] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 48, 249, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 48, 250, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 64, 243, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
@@ -302,7 +302,7 @@ SpriteBatch D_dryfield_r08_80180348[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_r08_80180368[12] = {
+SpriteSource D_dryfield_r08_80180368[12] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -24, 96, 204, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 24, 234, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 96, 204, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
@@ -323,7 +323,7 @@ SpriteBatch D_dryfield_r08_80180458[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_r08_80180470[14] = {
+SpriteSource D_dryfield_r08_80180470[14] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 16, -72, 199, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -16, -64, 199, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 40 } }, -16, 0, 222, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
@@ -356,7 +356,7 @@ SpriteBatch D_dryfield_r08_80180588[13] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_r08_801805F0[8] = {
+SpriteSource D_dryfield_r08_801805F0[8] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 112, 977, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 96 } }, 24, 24, 1250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 80, 16, 1250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
@@ -373,7 +373,7 @@ SpriteBatch D_dryfield_r08_80180690[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_r08_801806A8[30] = {
+SpriteSource D_dryfield_r08_801806A8[30] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, -112, 314, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 8, -96, 530, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, -72, 510, { .fields = { 104, 120 } }, 128, 128, 128, 0 },

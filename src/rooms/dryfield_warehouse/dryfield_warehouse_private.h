@@ -35,15 +35,15 @@ extern TaskDesc D_dryfield_warehouse_8017F56C[2];
 
 extern SpriteBatch D_dryfield_warehouse_801811A0[2];
 
-extern GpSprtElem D_dryfield_warehouse_801811B0[21];
+extern SpriteSource D_dryfield_warehouse_801811B0[21];
 
 extern SpriteBatch D_dryfield_warehouse_80181354[6];
 
-extern GpSprtElem D_dryfield_warehouse_80181384[25];
+extern SpriteSource D_dryfield_warehouse_80181384[25];
 
 extern SpriteBatch D_dryfield_warehouse_80181578[6];
 
-extern GpSprtElem D_dryfield_warehouse_801815A8[2];
+extern SpriteSource D_dryfield_warehouse_801815A8[2];
 
 extern SpriteBatch D_dryfield_warehouse_801815D0[3];
 

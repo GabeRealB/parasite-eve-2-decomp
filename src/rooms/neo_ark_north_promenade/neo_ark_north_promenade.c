@@ -173,7 +173,7 @@ SpriteBatch D_neo_ark_north_promenade_80182508[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_north_promenade_80182518[36] = {
+SpriteSource D_neo_ark_north_promenade_80182518[36] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -88, 1587, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 16, 1587, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 16, 1600, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
@@ -200,16 +200,16 @@ GpSprtElem D_neo_ark_north_promenade_80182518[36] = {
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -112, -104, 1612, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, -120, 1612, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 24 } }, -160, -120, 1600, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, -160, -24, 1590, { .fields = { 0, 48 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -112, -24, 1602, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 48 } }, -64, -24, 1890, { .fields = { 112, 192 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, -160, -72, 1590, { .fields = { 80, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, -112, -72, 1602, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 48 } }, -64, -72, 1890, { .fields = { 112, 144 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -160, -120, 1590, { .fields = { 96, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -112, -120, 1602, { .fields = { 88, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -64, -120, 1890, { .fields = { 40, 144 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 40, 32 } }, -40, -120, 2000, { .fields = { 40, 104 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, -160, -24, 1590, { .fields = { 0, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -112, -24, 1602, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 48 } }, -64, -24, 1890, { .fields = { 112, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 48, 48 } }, -160, -72, 1590, { .fields = { 80, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 48, 48 } }, -112, -72, 1602, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 48 } }, -64, -72, 1890, { .fields = { 112, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -160, -120, 1590, { .fields = { 96, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -112, -120, 1602, { .fields = { 88, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -64, -120, 1890, { .fields = { 40, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 40, 32 } }, -40, -120, 2000, { .fields = { 40, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_north_promenade_801827E8[5] = {
@@ -220,7 +220,7 @@ SpriteBatch D_neo_ark_north_promenade_801827E8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_north_promenade_80182810[23] = {
+SpriteSource D_neo_ark_north_promenade_80182810[23] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 24, 750, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -104, 1812, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -8, 1813, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
@@ -237,13 +237,13 @@ GpSprtElem D_neo_ark_north_promenade_80182810[23] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -64, -40, 1812, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -112, -72, 1812, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -96, 1812, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -160, -96, 1775, { .fields = { 56, 184 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -136, -88, 1775, { .fields = { 56, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -112, -64, 1775, { .fields = { 32, 136 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -88, -48, 1775, { .fields = { 32, 176 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -64, -32, 1775, { .fields = { 32, 216 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -40, -16, 1775, { .fields = { 56, 144 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -16, 0, 1775, { .fields = { 32, 96 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -160, -96, 1775, { .fields = { 56, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -136, -88, 1775, { .fields = { 56, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -112, -64, 1775, { .fields = { 32, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -88, -48, 1775, { .fields = { 32, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -64, -32, 1775, { .fields = { 32, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -40, -16, 1775, { .fields = { 56, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -16, 0, 1775, { .fields = { 32, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_north_promenade_801829DC[5] = {
@@ -254,7 +254,7 @@ SpriteBatch D_neo_ark_north_promenade_801829DC[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_north_promenade_80182A04[32] = {
+SpriteSource D_neo_ark_north_promenade_80182A04[32] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, -32, 825, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 825, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 72, 825, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -276,17 +276,17 @@ GpSprtElem D_neo_ark_north_promenade_80182A04[32] = {
     { 142, 0x3FC0, { .fields = { 48, 40 } }, -64, -64, 825, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 825, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 24 } }, -112, -96, 825, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 40, 48 } }, 0, 8, 825, { .fields = { 72, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, 0, -8, 825, { .fields = { 104, 240 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 32 } }, -48, 8, 825, { .fields = { 16, 32 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -48, -40, 825, { .fields = { 64, 48 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -96, -40, 825, { .fields = { 64, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 32 } }, -96, -72, 825, { .fields = { 16, 168 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 40, 24 } }, -136, -40, 825, { .fields = { 24, 200 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 40, 32 } }, -136, -72, 825, { .fields = { 24, 64 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -136, -96, 825, { .fields = { 32, 224 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 40 } }, -160, -112, 825, { .fields = { 64, 136 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 32 } }, -160, -72, 825, { .fields = { 48, 0 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 40, 48 } }, 0, 8, 825, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 16 } }, 0, -8, 825, { .fields = { 104, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 32 } }, -48, 8, 825, { .fields = { 16, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -48, -40, 825, { .fields = { 64, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 48 } }, -96, -40, 825, { .fields = { 64, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 32 } }, -96, -72, 825, { .fields = { 16, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 40, 24 } }, -136, -40, 825, { .fields = { 24, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 40, 32 } }, -136, -72, 825, { .fields = { 24, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, -136, -96, 825, { .fields = { 32, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 40 } }, -160, -112, 825, { .fields = { 64, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 32 } }, -160, -72, 825, { .fields = { 48, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_north_promenade_80182C84[4] = {

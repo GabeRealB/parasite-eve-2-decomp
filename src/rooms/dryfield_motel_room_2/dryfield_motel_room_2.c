@@ -108,7 +108,7 @@ SpriteBatch D_dryfield_motel_room_2_8017DF08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_room_2_8017DF18[72] = {
+SpriteSource D_dryfield_motel_room_2_8017DF18[72] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 80, 625, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 112, 640, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, 88, 600, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
@@ -194,7 +194,7 @@ SpriteBatch D_dryfield_motel_room_2_8017E4B8[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_room_2_8017E4F8[84] = {
+SpriteSource D_dryfield_motel_room_2_8017E4F8[84] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -8, 48, 525, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -160, 64, 487, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 80, 80, 450, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
@@ -293,7 +293,7 @@ SpriteBatch D_dryfield_motel_room_2_8017EB88[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_room_2_8017EBD0[47] = {
+SpriteSource D_dryfield_motel_room_2_8017EBD0[47] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -88, 1250, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 80, 950, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -120, 725, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
@@ -350,7 +350,7 @@ SpriteBatch D_dryfield_motel_room_2_8017EF7C[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_room_2_8017EF9C[83] = {
+SpriteSource D_dryfield_motel_room_2_8017EF9C[83] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, -40, 875, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 487, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 487, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
@@ -453,7 +453,7 @@ GpDrawAreaRec D_dryfield_motel_room_2_8017F660[2] = {
     { { 0, 0, 0, 0 }, 0xFFFF },
 };
 
-GpSprtElem D_dryfield_motel_room_2_8017F674[79] = {
+SpriteSource D_dryfield_motel_room_2_8017F674[79] = {
     { 142, 0x3FC0, { .fields = { 24, 32 } }, 96, 80, 907, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -120, 941, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 32 } }, 40, 0, 937, { .fields = { 96, 72 } }, 128, 128, 128, 0 },

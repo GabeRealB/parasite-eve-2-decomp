@@ -137,7 +137,7 @@ SpriteBatch D_shelter_1f_guardroom_8017DC90[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_1f_guardroom_8017DCA0[2] = {
+SpriteSource D_shelter_1f_guardroom_8017DCA0[2] = {
     { 142, 0x3FC0, { .fields = { 72, 160 } }, -72, -120, 2500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 80, 160 } }, 0, -120, 2500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
 };

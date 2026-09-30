@@ -198,44 +198,44 @@ extern GpObj4C        D_mine_cavern_8018D744[18];
 extern GpObj4C        D_mine_cavern_8018DC9C[13];
 extern GpRoomCoordSet D_mine_cavern_8018D13C[1];
 
-extern SpriteBatch D_mine_cavern_80189BC4[2];
-extern SpriteBatch D_mine_cavern_80189FA8[4];
-extern SpriteBatch D_mine_cavern_8018A4C8[7];
-extern SpriteBatch D_mine_cavern_8018A8D4[7];
-extern SpriteBatch D_mine_cavern_8018AD94[8];
-extern SpriteBatch D_mine_cavern_8018B108[3];
-extern SpriteBatch D_mine_cavern_8018B42C[3];
-extern SpriteBatch D_mine_cavern_8018B660[3];
-extern SpriteBatch D_mine_cavern_8018B754[3];
-extern SpriteBatch D_mine_cavern_8018B7A8[3];
-extern SpriteBatch D_mine_cavern_8018B7C0[2];
-extern SpriteBatch D_mine_cavern_8018B7D0[2];
-extern SpriteBatch D_mine_cavern_8018B7E0[2];
-extern SpriteBatch D_mine_cavern_8018B7F0[2];
-extern SpriteBatch D_mine_cavern_8018B800[2];
-extern SpriteBatch D_mine_cavern_8018B810[2];
-extern SpriteBatch D_mine_cavern_8018B820[2];
-extern SpriteBatch D_mine_cavern_8018B830[2];
-extern SpriteBatch D_mine_cavern_8018B840[2];
-extern SpriteBatch D_mine_cavern_8018BC10[5];
-extern SpriteBatch D_mine_cavern_8018C048[4];
-extern SpriteBatch D_mine_cavern_8018C504[7];
-extern SpriteBatch D_mine_cavern_8018C8E8[5];
-extern SpriteBatch D_mine_cavern_8018CCD0[6];
-extern GpSprtElem  D_mine_cavern_80189BD4[49];
-extern GpSprtElem  D_mine_cavern_80189FC8[64];
-extern GpSprtElem  D_mine_cavern_8018A500[49];
-extern GpSprtElem  D_mine_cavern_8018A90C[58];
-extern GpSprtElem  D_mine_cavern_8018ADD4[41];
-extern GpSprtElem  D_mine_cavern_8018B120[39];
-extern GpSprtElem  D_mine_cavern_8018B444[27];
-extern GpSprtElem  D_mine_cavern_8018B678[11];
-extern GpSprtElem  D_mine_cavern_8018B76C[3];
-extern GpSprtElem  D_mine_cavern_8018B850[48];
-extern GpSprtElem  D_mine_cavern_8018BC38[52];
-extern GpSprtElem  D_mine_cavern_8018C068[59];
-extern GpSprtElem  D_mine_cavern_8018C53C[47];
-extern GpSprtElem  D_mine_cavern_8018C910[48];
+extern SpriteBatch  D_mine_cavern_80189BC4[2];
+extern SpriteBatch  D_mine_cavern_80189FA8[4];
+extern SpriteBatch  D_mine_cavern_8018A4C8[7];
+extern SpriteBatch  D_mine_cavern_8018A8D4[7];
+extern SpriteBatch  D_mine_cavern_8018AD94[8];
+extern SpriteBatch  D_mine_cavern_8018B108[3];
+extern SpriteBatch  D_mine_cavern_8018B42C[3];
+extern SpriteBatch  D_mine_cavern_8018B660[3];
+extern SpriteBatch  D_mine_cavern_8018B754[3];
+extern SpriteBatch  D_mine_cavern_8018B7A8[3];
+extern SpriteBatch  D_mine_cavern_8018B7C0[2];
+extern SpriteBatch  D_mine_cavern_8018B7D0[2];
+extern SpriteBatch  D_mine_cavern_8018B7E0[2];
+extern SpriteBatch  D_mine_cavern_8018B7F0[2];
+extern SpriteBatch  D_mine_cavern_8018B800[2];
+extern SpriteBatch  D_mine_cavern_8018B810[2];
+extern SpriteBatch  D_mine_cavern_8018B820[2];
+extern SpriteBatch  D_mine_cavern_8018B830[2];
+extern SpriteBatch  D_mine_cavern_8018B840[2];
+extern SpriteBatch  D_mine_cavern_8018BC10[5];
+extern SpriteBatch  D_mine_cavern_8018C048[4];
+extern SpriteBatch  D_mine_cavern_8018C504[7];
+extern SpriteBatch  D_mine_cavern_8018C8E8[5];
+extern SpriteBatch  D_mine_cavern_8018CCD0[6];
+extern SpriteSource D_mine_cavern_80189BD4[49];
+extern SpriteSource D_mine_cavern_80189FC8[64];
+extern SpriteSource D_mine_cavern_8018A500[49];
+extern SpriteSource D_mine_cavern_8018A90C[58];
+extern SpriteSource D_mine_cavern_8018ADD4[41];
+extern SpriteSource D_mine_cavern_8018B120[39];
+extern SpriteSource D_mine_cavern_8018B444[27];
+extern SpriteSource D_mine_cavern_8018B678[11];
+extern SpriteSource D_mine_cavern_8018B76C[3];
+extern SpriteSource D_mine_cavern_8018B850[48];
+extern SpriteSource D_mine_cavern_8018BC38[52];
+extern SpriteSource D_mine_cavern_8018C068[59];
+extern SpriteSource D_mine_cavern_8018C53C[47];
+extern SpriteSource D_mine_cavern_8018C910[48];
 
 void func_mine_cavern_8017E330(void);
 void func_mine_cavern_8017E358(void);
@@ -1137,7 +1137,7 @@ SpriteBatch D_mine_cavern_80189BC4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_80189BD4[49] = {
+SpriteSource D_mine_cavern_80189BD4[49] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -16, 1376, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -152, -104, 1264, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, -72, 1343, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
@@ -1196,7 +1196,7 @@ SpriteBatch D_mine_cavern_80189FA8[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_80189FC8[64] = {
+SpriteSource D_mine_cavern_80189FC8[64] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 144, -24, 519, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, 32, 591, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 599, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
@@ -1273,7 +1273,7 @@ SpriteBatch D_mine_cavern_8018A4C8[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018A500[49] = {
+SpriteSource D_mine_cavern_8018A500[49] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -24, 2965, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 144, -40, 1045, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 32 } }, 96, -88, 1093, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
@@ -1335,7 +1335,7 @@ SpriteBatch D_mine_cavern_8018A8D4[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018A90C[58] = {
+SpriteSource D_mine_cavern_8018A90C[58] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -72, 2490, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 104, -120, 1149, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -80, 1208, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -1407,7 +1407,7 @@ SpriteBatch D_mine_cavern_8018AD94[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018ADD4[41] = {
+SpriteSource D_mine_cavern_8018ADD4[41] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 0, 2417, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 88, 1195, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -72, 1599, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
@@ -1457,7 +1457,7 @@ SpriteBatch D_mine_cavern_8018B108[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018B120[39] = {
+SpriteSource D_mine_cavern_8018B120[39] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -16, -56, 2855, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, -8, -64, 2755, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, -72, 2761, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
@@ -1505,7 +1505,7 @@ SpriteBatch D_mine_cavern_8018B42C[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018B444[27] = {
+SpriteSource D_mine_cavern_8018B444[27] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 16, 1874, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 40, -32, 1803, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -48, 1732, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
@@ -1541,7 +1541,7 @@ SpriteBatch D_mine_cavern_8018B660[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018B678[11] = {
+SpriteSource D_mine_cavern_8018B678[11] = {
     { 143, 0x3FC0, { .fields = { 40, 120 } }, -160, -120, 276, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 120 } }, -160, 0, 275, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 48 } }, -120, 72, 296, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
@@ -1561,7 +1561,7 @@ SpriteBatch D_mine_cavern_8018B754[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018B76C[3] = {
+SpriteSource D_mine_cavern_8018B76C[3] = {
     { 143, 0x3FC0, { .fields = { 48, 40 } }, -160, 80, 375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, 104, 375, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -72, 112, 375, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
@@ -1618,7 +1618,7 @@ SpriteBatch D_mine_cavern_8018B840[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018B850[48] = {
+SpriteSource D_mine_cavern_8018B850[48] = {
     { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, -120, 250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, -104, 250, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 16 } }, -72, -120, 250, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
@@ -1677,7 +1677,7 @@ SpriteBatch D_mine_cavern_8018BC10[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018BC38[52] = {
+SpriteSource D_mine_cavern_8018BC38[52] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 1006, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, 80, 1067, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 1062, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
@@ -1739,7 +1739,7 @@ SpriteBatch D_mine_cavern_8018C048[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018C068[59] = {
+SpriteSource D_mine_cavern_8018C068[59] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 421, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, -80, 430, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 24 } }, -136, -72, 437, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
@@ -1811,7 +1811,7 @@ SpriteBatch D_mine_cavern_8018C504[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018C53C[47] = {
+SpriteSource D_mine_cavern_8018C53C[47] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 1099, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 88, -104, 1100, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 72 } }, 112, -120, 1125, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
@@ -1869,7 +1869,7 @@ SpriteBatch D_mine_cavern_8018C8E8[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_mine_cavern_8018C910[48] = {
+SpriteSource D_mine_cavern_8018C910[48] = {
     { 143, 0x3FC0, { .fields = { 72, 80 } }, -8, -96, 2250, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 64, 1195, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 80, 1266, { .fields = { 88, 248 } }, 128, 128, 128, 0 },

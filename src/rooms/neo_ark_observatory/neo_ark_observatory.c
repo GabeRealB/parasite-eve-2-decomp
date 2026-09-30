@@ -435,7 +435,7 @@ SpriteBatch D_neo_ark_observatory_801822CC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_801822DC[21] = {
+SpriteSource D_neo_ark_observatory_801822DC[21] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1450, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1450, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1450, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
@@ -465,7 +465,7 @@ SpriteBatch D_neo_ark_observatory_80182480[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80182498[19] = {
+SpriteSource D_neo_ark_observatory_80182498[19] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 16, 1950, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1950, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1950, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
@@ -493,7 +493,7 @@ SpriteBatch D_neo_ark_observatory_80182614[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_8018262C[21] = {
+SpriteSource D_neo_ark_observatory_8018262C[21] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -88, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 56, 1125, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
@@ -523,7 +523,7 @@ SpriteBatch D_neo_ark_observatory_801827D0[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_801827E8[82] = {
+SpriteSource D_neo_ark_observatory_801827E8[82] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -80, 975, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 987, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 1275, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
@@ -618,7 +618,7 @@ SpriteBatch D_neo_ark_observatory_80182E50[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80182E88[83] = {
+SpriteSource D_neo_ark_observatory_80182E88[83] = {
     { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 64, 1550, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 32, 1550, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -8, 1550, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
@@ -693,15 +693,15 @@ GpSprtElem D_neo_ark_observatory_80182E88[83] = {
     { 141, 0x3FC0, { .fields = { 16, 24 } }, 112, 16, 1000, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 128, 16, 1000, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 32 } }, 144, 8, 1000, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1096, { .fields = { 96, 80 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, -160, 48, 796, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
-    { 141, 0x4000, { .fields = { 48, 24 } }, -160, 96, 789, { .fields = { 104, 72 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -112, 48, 960, { .fields = { 104, 48 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -112, 96, 956, { .fields = { 56, 240 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -88, 48, 1106, { .fields = { 96, 48 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 16, 40 } }, -152, 48, 1437, { .fields = { 48, 40 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 24, 40 } }, -136, 48, 1437, { .fields = { 40, 120 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 120, 0 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1096, { .fields = { 96, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 48, 48 } }, -160, 48, 796, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4000, { .fields = { 48, 24 } }, -160, 96, 789, { .fields = { 104, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -112, 48, 960, { .fields = { 104, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 16 } }, -112, 96, 956, { .fields = { 56, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -88, 48, 1106, { .fields = { 96, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 16, 40 } }, -152, 48, 1437, { .fields = { 48, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 24, 40 } }, -136, 48, 1437, { .fields = { 40, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 120, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_observatory_80183504[11] = {
@@ -718,7 +718,7 @@ SpriteBatch D_neo_ark_observatory_80183504[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_8018355C[94] = {
+SpriteSource D_neo_ark_observatory_8018355C[94] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 48, 64, 812, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 88, 112, 875, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 136, 112, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
@@ -788,31 +788,31 @@ GpSprtElem D_neo_ark_observatory_8018355C[94] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 40, 625, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 24 } }, -160, 32, 625, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 24 } }, -128, 32, 625, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 80, 80, 800, { .fields = { 16, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 72, 104, 800, { .fields = { 24, 152 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -136, 112, 800, { .fields = { 96, 16 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -48, 48, 800, { .fields = { 88, 200 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -16, 48, 800, { .fields = { 112, 240 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -16, 64, 800, { .fields = { 64, 80 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -80, 48, 800, { .fields = { 64, 32 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, 16, 48, 800, { .fields = { 64, 112 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 16, 64, 800, { .fields = { 104, 0 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -80, 64, 800, { .fields = { 96, 216 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -48, 64, 800, { .fields = { 96, 128 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 8 } }, -104, 56, 800, { .fields = { 48, 184 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, -112, 64, 800, { .fields = { 112, 152 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 48, 64, 800, { .fields = { 112, 32 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, 48, 88, 800, { .fields = { 72, 48 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 40, 88, 800, { .fields = { 16, 240 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -112, 88, 800, { .fields = { 80, 152 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -136, 64, 800, { .fields = { 0, 216 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, -136, 88, 800, { .fields = { 120, 80 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, -160, 88, 800, { .fields = { 120, 56 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 8 } }, -160, 112, 800, { .fields = { 112, 24 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -152, 80, 800, { .fields = { 24, 248 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, 80, 88, 800, { .fields = { 40, 96 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, 80, 104, 800, { .fields = { 40, 48 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 16, 16 } }, 112, 104, 800, { .fields = { 80, 232 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 80, 80, 800, { .fields = { 16, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 8 } }, 72, 104, 800, { .fields = { 24, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 8, 8 } }, -136, 112, 800, { .fields = { 96, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -48, 48, 800, { .fields = { 88, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -16, 48, 800, { .fields = { 112, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -16, 64, 800, { .fields = { 64, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -80, 48, 800, { .fields = { 64, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, 16, 48, 800, { .fields = { 64, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, 16, 64, 800, { .fields = { 104, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, -80, 64, 800, { .fields = { 96, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, -48, 64, 800, { .fields = { 96, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 8 } }, -104, 56, 800, { .fields = { 48, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, -112, 64, 800, { .fields = { 112, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, 48, 64, 800, { .fields = { 112, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, 48, 88, 800, { .fields = { 72, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 16 } }, 40, 88, 800, { .fields = { 16, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, -112, 88, 800, { .fields = { 80, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 24 } }, -136, 64, 800, { .fields = { 0, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 24 } }, -136, 88, 800, { .fields = { 120, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 24 } }, -160, 88, 800, { .fields = { 120, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 8 } }, -160, 112, 800, { .fields = { 112, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 8 } }, -152, 80, 800, { .fields = { 24, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, 80, 88, 800, { .fields = { 40, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 16 } }, 80, 104, 800, { .fields = { 40, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 16, 16 } }, 112, 104, 800, { .fields = { 80, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_observatory_80183CB4[5] = {
@@ -823,7 +823,7 @@ SpriteBatch D_neo_ark_observatory_80183CB4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80183CDC[69] = {
+SpriteSource D_neo_ark_observatory_80183CDC[69] = {
     { 142, 0x3FC0, { .fields = { 48, 48 } }, 32, 32, 2250, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, 80, 32, 2250, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 32, 2250, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
@@ -883,16 +883,16 @@ GpSprtElem D_neo_ark_observatory_80183CDC[69] = {
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, -64, 2772, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, -72, 2578, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, 16, -56, 2763, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, 112, 48, 650, { .fields = { 80, 0 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 48, 24 } }, 112, 96, 650, { .fields = { 32, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 32, 48 } }, 80, 48, 700, { .fields = { 96, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 80, 96, 700, { .fields = { 48, 208 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 48 } }, 64, 48, 750, { .fields = { 0, 48 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 64, 96, 750, { .fields = { 96, 240 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 56, 48, 800, { .fields = { 64, 192 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 16, 48 } }, 56, 48, 1300, { .fields = { 88, 96 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 24, 48 } }, 72, 48, 1300, { .fields = { 72, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 32, 40 } }, 96, 48, 1350, { .fields = { 80, 128 } }, 128, 128, 128, 2 },
+    { 143, 0x4000, { .fields = { 48, 48 } }, 112, 48, 650, { .fields = { 80, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 48, 24 } }, 112, 96, 650, { .fields = { 32, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 32, 48 } }, 80, 48, 700, { .fields = { 96, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 24 } }, 80, 96, 700, { .fields = { 48, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 48 } }, 64, 48, 750, { .fields = { 0, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 16, 16 } }, 64, 96, 750, { .fields = { 96, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, 56, 48, 800, { .fields = { 64, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 16, 48 } }, 56, 48, 1300, { .fields = { 88, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 24, 48 } }, 72, 48, 1300, { .fields = { 72, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 32, 40 } }, 96, 48, 1350, { .fields = { 80, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_observatory_80184240[9] = {
@@ -907,7 +907,7 @@ SpriteBatch D_neo_ark_observatory_80184240[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80184288[76] = {
+SpriteSource D_neo_ark_observatory_80184288[76] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 1150, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 24, 1150, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, -24, 1150, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
@@ -997,7 +997,7 @@ SpriteBatch D_neo_ark_observatory_80184878[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_801848B8[78] = {
+SpriteSource D_neo_ark_observatory_801848B8[78] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 80, -80, 1450, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 1200, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 1200, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
@@ -1089,7 +1089,7 @@ SpriteBatch D_neo_ark_observatory_80184ED0[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80184F10[23] = {
+SpriteSource D_neo_ark_observatory_80184F10[23] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -80, 1125, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 64, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 16, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -1126,7 +1126,7 @@ SpriteBatch D_neo_ark_observatory_801850F4[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80185104[14] = {
+SpriteSource D_neo_ark_observatory_80185104[14] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 64, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 64, 1000, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 80, 1000, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
@@ -1159,7 +1159,7 @@ SpriteBatch D_neo_ark_observatory_80185244[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80185254[21] = {
+SpriteSource D_neo_ark_observatory_80185254[21] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -88, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 56, 1125, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
@@ -1189,7 +1189,7 @@ SpriteBatch D_neo_ark_observatory_801853F8[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80185410[82] = {
+SpriteSource D_neo_ark_observatory_80185410[82] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -80, 975, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 987, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 1275, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
@@ -1284,7 +1284,7 @@ SpriteBatch D_neo_ark_observatory_80185A78[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_neo_ark_observatory_80185AB0[74] = {
+SpriteSource D_neo_ark_observatory_80185AB0[74] = {
     { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 64, 1550, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 32, 1550, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -8, 1550, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -1350,15 +1350,15 @@ GpSprtElem D_neo_ark_observatory_80185AB0[74] = {
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, -64, 2562, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 32, 8 } }, -88, -72, 2500, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -48, -72, 2575, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1096, { .fields = { 48, 104 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 48, 48 } }, -160, 48, 796, { .fields = { 32, 48 } }, 128, 128, 128, 2 },
-    { 141, 0x4000, { .fields = { 48, 24 } }, -160, 96, 789, { .fields = { 120, 136 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -112, 48, 960, { .fields = { 8, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -112, 96, 956, { .fields = { 8, 240 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -88, 48, 1106, { .fields = { 48, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 16, 40 } }, -152, 48, 1437, { .fields = { 104, 192 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 24, 40 } }, -136, 48, 1437, { .fields = { 112, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 64, 96 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1096, { .fields = { 48, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 48, 48 } }, -160, 48, 796, { .fields = { 32, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4000, { .fields = { 48, 24 } }, -160, 96, 789, { .fields = { 120, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -112, 48, 960, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 16 } }, -112, 96, 956, { .fields = { 8, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 8, 48 } }, -88, 48, 1106, { .fields = { 48, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 16, 40 } }, -152, 48, 1437, { .fields = { 104, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 24, 40 } }, -136, 48, 1437, { .fields = { 112, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 64, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_neo_ark_observatory_80186078[10] = {

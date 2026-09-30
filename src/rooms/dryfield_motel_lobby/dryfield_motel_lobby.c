@@ -184,7 +184,7 @@ SpriteBatch D_dryfield_motel_lobby_8017FCBC[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_lobby_8017FCCC[50] = {
+SpriteSource D_dryfield_motel_lobby_8017FCCC[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, -24, 1089, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 32, 1167, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, -8, 1114, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
@@ -244,7 +244,7 @@ SpriteBatch D_dryfield_motel_lobby_801800B4[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_lobby_801800D4[52] = {
+SpriteSource D_dryfield_motel_lobby_801800D4[52] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -16, 1103, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 0, 986, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 0, 994, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
@@ -305,7 +305,7 @@ SpriteBatch D_dryfield_motel_lobby_801804E4[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_motel_lobby_801804FC[71] = {
+SpriteSource D_dryfield_motel_lobby_801804FC[71] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, -8, 837, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, -8, 818, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 0, 593, { .fields = { 80, 72 } }, 128, 128, 128, 0 },

@@ -280,7 +280,7 @@ SpriteBatch D_dryfield_breezeway_80183724[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_breezeway_80183734[7] = {
+SpriteSource D_dryfield_breezeway_80183734[7] = {
     { 141, 0x3FC0, { .fields = { 8, 40 } }, 32, 16, 1000, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 40, 16, 1000, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 48, 16, 1000, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
@@ -297,7 +297,7 @@ SpriteBatch D_dryfield_breezeway_801837C0[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_breezeway_801837E0[31] = {
+SpriteSource D_dryfield_breezeway_801837E0[31] = {
     { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, -120, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, 0, 750, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 120 } }, -144, -120, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -348,7 +348,7 @@ SpriteBatch D_dryfield_breezeway_80183A7C[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_dryfield_breezeway_80183A8C[38] = {
+SpriteSource D_dryfield_breezeway_80183A8C[38] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -144, -88, 296, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -144, 0, 293, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -128, 0, 259, { .fields = { 64, 176 } }, 128, 128, 128, 0 },

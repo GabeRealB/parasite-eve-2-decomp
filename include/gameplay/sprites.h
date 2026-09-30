@@ -36,38 +36,58 @@ typedef struct {
 } SpriteBatch;
 STATIC_ASSERT_SIZEOF(SpriteBatch, 8);
 
-/// 0x14-byte SPRT source record. `GpSprtRec.field_0` is an array of these.
-/// `Gp_LinkSprtCmd` / `Gp_EmitSprts` index from `SpriteBatch.firstSprite` for
-/// `SpriteBatch.spriteCount` entries. `otz` is the OT depth. `Gp_EmitSprts` copies the
-/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `gGpuPrimCursor`.
-/// `flags` bit 0 skips the RGB copy (shade-tex); the byte is OR'd into
-/// the SPRT code.
-typedef struct _GpSprtElem {
-    /* 0x00 */ u16 tpage;
-    /* 0x02 */ u16 clut;
-    /* 0x04 */ union {
+/// GPU command bits carried by `SpriteSource.codeFlags`.
+///
+/// Zero selects opaque, colour-modulated emission; the bits may be combined.
+/// Raw texture emission ignores RGB and skips copying it into the packet.
+enum {
+    SPRITE_SOURCE_RAW_TEXTURE      = 0x01,
+    SPRITE_SOURCE_SEMI_TRANSPARENT = 0x02,
+};
+
+/// Mutable texture rectangle and sorting depth for a room-view sprite.
+///
+/// Room overlays own arrays referenced by `GpSprtRec.field_0.elements`;
+/// `SpriteBatch` selects ranges in elements, with no sentinel in the source
+/// array itself. The selected overlay and each range must remain valid while
+/// allocating packets or linking them for drawing.
+///
+/// Position is the rectangle's upper-left corner in pixels relative to the
+/// drawing origin (normally the view centre). Depth is an unscaled sorting
+/// value: its OT slot is `((u32)depth << gDisplayState.otDepthShift) >> 4 & 0x3FF`.
+///
+/// Packet allocation snapshots texture, position, size and code flags into both
+/// frame buffers; cached linking reads depth from the source each frame. Cached
+/// packets start with raw texture enabled and do not copy source RGB. Direct
+/// emission copies RGB unless `SPRITE_SOURCE_RAW_TEXTURE` is set.
+/// The SDK-compatible XY and RGB member names support aligned whole-word reads;
+/// an RGB read includes `codeFlags` as its high byte.
+typedef struct {
+    u16 tpage; // Encoded GPU texture page and blend mode
+    u16 clut;  // Encoded GPU colour lookup-table address
+    union {
         struct {
-            s16 w;
-            s16 h;
-        } fields;
-        u32 packed;
-    } size;
-    /* 0x08 */ s16 x0;
-    /* 0x0A */ s16 y0;
-    /* 0x0C */ u16 otz;
-    /* 0x0E */ union {
+            s16 w;  // Rectangle width in pixels, also the sampled texture width
+            s16 h;  // Rectangle height in pixels, also the sampled texture height
+        } fields;   // Individual dimensions in the SDK's signed-halfword representation
+        u32 packed; // Width in the low halfword, height in the high halfword
+    } size;         // Unscaled dimensions copied together into the SPRT packet
+    s16 x0;         // Upper-left X in pixels relative to the drawing origin
+    s16 y0;         // Upper-left Y in pixels relative to the drawing origin
+    u16 depth;      // Unscaled OT sorting depth, quantized and masked when linking
+    union {
         struct {
-            u8 u0;
-            u8 v0;
-        } fields;
-        u16 packed;
-    } uv;
-    /* 0x10 */ u8 r0;
-    /* 0x11 */ u8 g0;
-    /* 0x12 */ u8 b0;
-    /* 0x13 */ u8 flags;
-} GpSprtElem;
-STATIC_ASSERT_SIZEOF(GpSprtElem, 0x14);
+            u8 u0;  // Left texture coordinate in texels within the texture page
+            u8 v0;  // Top texture coordinate in texels within the texture page
+        } fields;   // Individual texture coordinates
+        u16 packed; // U in the low byte, V in the high byte
+    } uv;           // Texture origin copied together into the SPRT packet
+    u8 r0;          // Red modulation (128 neutral), used by colour-modulated direct emission
+    u8 g0;          // Green modulation (128 neutral), used by colour-modulated direct emission
+    u8 b0;          // Blue modulation (128 neutral), used by colour-modulated direct emission
+    u8 codeFlags;   // GPU code bits (0 opaque modulation, bit 0 raw texture, bit 1 semitransparent)
+} SpriteSource;
+STATIC_ASSERT_SIZEOF(SpriteSource, 0x14);
 
 /// 10-byte draw-area record. `GpSprtRec.field_8` points at a list terminated
 /// by depth 0xFFFF. Each rectangle clips the view sprites up to its OT depth.
@@ -82,7 +102,7 @@ STATIC_ASSERT_SIZEOF(GpDrawAreaRec, 0xA);
 /// `Gp_GetViewSprtExtra` returns `field_8`. `Gp_ViewSprtCmdEmpty` reads `field_4`.
 typedef struct _GpSprtRec {
     /* 0x0 */ union {
-        GpSprtElem* elements;
+        SpriteSource* elements;
         // Empty lists retain the command-table address here; no sprite is read.
         SpriteBatch* empty;
     } field_0;

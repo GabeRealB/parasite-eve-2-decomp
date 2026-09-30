@@ -316,16 +316,16 @@ extern GpObj4C                      D_acropolis_security_room_80183DB8[4];
 extern GpObj4C                      D_acropolis_security_room_80183EE8[5];
 extern GpRoomCoordSet               D_acropolis_security_room_801841C8[1];
 
-extern SpriteBatch D_acropolis_security_room_801841E0[2];
-extern SpriteBatch D_acropolis_security_room_80184358[3];
-extern SpriteBatch D_acropolis_security_room_80184370[2];
-extern SpriteBatch D_acropolis_security_room_80184380[2];
-extern SpriteBatch D_acropolis_security_room_80184458[3];
-extern SpriteBatch D_acropolis_security_room_80184498[4];
-extern SpriteBatch D_acropolis_security_room_801844B8[2];
-extern GpSprtElem  D_acropolis_security_room_801841F0[18];
-extern GpSprtElem  D_acropolis_security_room_80184390[10];
-extern GpSprtElem  D_acropolis_security_room_80184470[2];
+extern SpriteBatch  D_acropolis_security_room_801841E0[2];
+extern SpriteBatch  D_acropolis_security_room_80184358[3];
+extern SpriteBatch  D_acropolis_security_room_80184370[2];
+extern SpriteBatch  D_acropolis_security_room_80184380[2];
+extern SpriteBatch  D_acropolis_security_room_80184458[3];
+extern SpriteBatch  D_acropolis_security_room_80184498[4];
+extern SpriteBatch  D_acropolis_security_room_801844B8[2];
+extern SpriteSource D_acropolis_security_room_801841F0[18];
+extern SpriteSource D_acropolis_security_room_80184390[10];
+extern SpriteSource D_acropolis_security_room_80184470[2];
 
 s32  func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
@@ -1569,7 +1569,7 @@ SpriteBatch D_acropolis_security_room_801841E0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_security_room_801841F0[18] = {
+SpriteSource D_acropolis_security_room_801841F0[18] = {
     { 143, 0x3FC0, { .fields = { 40, 96 } }, -160, -112, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, -16, 550, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, -160, 64, 550, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
@@ -1606,7 +1606,7 @@ SpriteBatch D_acropolis_security_room_80184380[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_security_room_80184390[10] = {
+SpriteSource D_acropolis_security_room_80184390[10] = {
     { 143, 0x3FC0, { .fields = { 56, 240 } }, -160, -120, 129, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 240 } }, 104, -120, 129, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 32 } }, -104, -120, 129, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
@@ -1625,7 +1625,7 @@ SpriteBatch D_acropolis_security_room_80184458[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_security_room_80184470[2] = {
+SpriteSource D_acropolis_security_room_80184470[2] = {
     { 143, 0x3FC0, { .fields = { 120, 120 } }, -128, 0, 50, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 112, 120 } }, 8, 0, 50, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
 };
@@ -1661,7 +1661,7 @@ SpriteBatch D_acropolis_security_room_801844C8[16] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_security_room_80184548[84] = {
+SpriteSource D_acropolis_security_room_80184548[84] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -160, 72, 375, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 375, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 375, { .fields = { 96, 80 } }, 128, 128, 128, 0 },

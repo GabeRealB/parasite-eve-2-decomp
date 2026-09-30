@@ -444,7 +444,7 @@ SpriteBatch D_shelter_b2_septic_tank_80183F08[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_septic_tank_80183F18[83] = {
+SpriteSource D_shelter_b2_septic_tank_80183F18[83] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 112, 525, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 104, 535, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 96, 534, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
@@ -539,7 +539,7 @@ SpriteBatch D_shelter_b2_septic_tank_80184594[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_septic_tank_801845C4[127] = {
+SpriteSource D_shelter_b2_septic_tank_801845C4[127] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 1575, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 64, 1575, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 72, 1575, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
@@ -682,7 +682,7 @@ SpriteBatch D_shelter_b2_septic_tank_80184FB0[10] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_septic_tank_80185000[144] = {
+SpriteSource D_shelter_b2_septic_tank_80185000[144] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 48, 3599, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -56, 64, 0, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 88, 3202, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
@@ -843,7 +843,7 @@ SpriteBatch D_shelter_b2_septic_tank_80185B40[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_shelter_b2_septic_tank_80185B98[143] = {
+SpriteSource D_shelter_b2_septic_tank_80185B98[143] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 112, 810, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 136, 112, 887, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 104, 885, { .fields = { 112, 0 } }, 128, 128, 128, 0 },

@@ -147,32 +147,32 @@ extern GpRoomCoordSet D_acropolis_promenade_80183A08[1];
 
 extern AnimationPlayRequest D_acropolis_promenade_80180EBC;
 
-extern SpriteBatch D_acropolis_promenade_80183A20[2];
-extern SpriteBatch D_acropolis_promenade_80183FF8[11];
-extern SpriteBatch D_acropolis_promenade_801841A4[5];
-extern SpriteBatch D_acropolis_promenade_8018462C[9];
-extern SpriteBatch D_acropolis_promenade_80184CF0[9];
-extern SpriteBatch D_acropolis_promenade_80185224[9];
-extern SpriteBatch D_acropolis_promenade_801854EC[8];
-extern SpriteBatch D_acropolis_promenade_801858C4[9];
-extern SpriteBatch D_acropolis_promenade_80185F24[10];
-extern SpriteBatch D_acropolis_promenade_80185F74[2];
-extern SpriteBatch D_acropolis_promenade_80185F84[2];
-extern SpriteBatch D_acropolis_promenade_80185F94[2];
-extern GpSprtElem  D_acropolis_promenade_80183A30[74];
-extern GpSprtElem  D_acropolis_promenade_80184050[17];
-extern GpSprtElem  D_acropolis_promenade_801841CC[56];
-extern GpSprtElem  D_acropolis_promenade_80184674[83];
-extern GpSprtElem  D_acropolis_promenade_80184D38[63];
-extern GpSprtElem  D_acropolis_promenade_8018526C[32];
-extern GpSprtElem  D_acropolis_promenade_8018552C[46];
-extern GpSprtElem  D_acropolis_promenade_8018590C[78];
-s32                func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                func_acropolis_promenade_8017D8D8(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32                func_acropolis_promenade_8017D8E0(Task*, s32, s32, TaskMessageArg);
-s32                func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessageArg);
-void               func_acropolis_promenade_8017D930(void);
-void               func_acropolis_promenade_8017D988(Task*);
+extern SpriteBatch  D_acropolis_promenade_80183A20[2];
+extern SpriteBatch  D_acropolis_promenade_80183FF8[11];
+extern SpriteBatch  D_acropolis_promenade_801841A4[5];
+extern SpriteBatch  D_acropolis_promenade_8018462C[9];
+extern SpriteBatch  D_acropolis_promenade_80184CF0[9];
+extern SpriteBatch  D_acropolis_promenade_80185224[9];
+extern SpriteBatch  D_acropolis_promenade_801854EC[8];
+extern SpriteBatch  D_acropolis_promenade_801858C4[9];
+extern SpriteBatch  D_acropolis_promenade_80185F24[10];
+extern SpriteBatch  D_acropolis_promenade_80185F74[2];
+extern SpriteBatch  D_acropolis_promenade_80185F84[2];
+extern SpriteBatch  D_acropolis_promenade_80185F94[2];
+extern SpriteSource D_acropolis_promenade_80183A30[74];
+extern SpriteSource D_acropolis_promenade_80184050[17];
+extern SpriteSource D_acropolis_promenade_801841CC[56];
+extern SpriteSource D_acropolis_promenade_80184674[83];
+extern SpriteSource D_acropolis_promenade_80184D38[63];
+extern SpriteSource D_acropolis_promenade_8018526C[32];
+extern SpriteSource D_acropolis_promenade_8018552C[46];
+extern SpriteSource D_acropolis_promenade_8018590C[78];
+s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                 func_acropolis_promenade_8017D8D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, TaskMessageArg);
+s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessageArg);
+void                func_acropolis_promenade_8017D930(void);
+void                func_acropolis_promenade_8017D988(Task*);
 
 TmdBone D_acropolis_promenade_8017FE04[1] = {
 #include "assets/acropolis_promenade_model_03890_skeleton.inc"
@@ -822,7 +822,7 @@ SpriteBatch D_acropolis_promenade_80183A20[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_80183A30[74] = {
+SpriteSource D_acropolis_promenade_80183A30[74] = {
     { 141, 0x3FC0, { .fields = { 72, 24 } }, -160, 96, 450, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 56 } }, -160, -32, 450, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 32, 32 } }, -160, 24, 450, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
@@ -879,24 +879,24 @@ GpSprtElem D_acropolis_promenade_80183A30[74] = {
     { 143, 0x3FC0, { .fields = { 56, 128 } }, 104, -40, 1500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, -32, 1750, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 80, -8, 1750, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 48 } }, -160, -120, 950, { .fields = { 16, 0 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 16, 56 } }, -144, -120, 950, { .fields = { 32, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 72 } }, -128, -120, 950, { .fields = { 8, 184 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 64, 88 } }, -104, -120, 950, { .fields = { 88, 0 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 32, 80 } }, -40, -120, 950, { .fields = { 104, 176 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 16, 72 } }, -160, -32, 876, { .fields = { 64, 160 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 16, 80 } }, -144, -24, 876, { .fields = { 96, 88 } }, 128, 128, 128, 2 },
-    { 143, 0x4000, { .fields = { 24, 88 } }, -128, -8, 876, { .fields = { 8, 96 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 64, 72 } }, -104, 8, 926, { .fields = { 32, 88 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 8, 8 } }, -8, -48, 925, { .fields = { 64, 112 } }, 128, 128, 128, 2 },
-    { 141, 0x4040, { .fields = { 16, 32 } }, -160, -120, 500, { .fields = { 104, 32 } }, 128, 128, 128, 2 },
-    { 141, 0x4040, { .fields = { 40, 24 } }, -144, -120, 500, { .fields = { 64, 160 } }, 128, 128, 128, 2 },
-    { 141, 0x4040, { .fields = { 40, 16 } }, -104, -120, 500, { .fields = { 24, 0 } }, 128, 128, 128, 2 },
-    { 141, 0x4040, { .fields = { 32, 40 } }, -64, -120, 750, { .fields = { 120, 48 } }, 128, 128, 128, 2 },
-    { 142, 0x4040, { .fields = { 24, 80 } }, -32, -120, 875, { .fields = { 80, 168 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 32, 104 } }, -160, -8, 463, { .fields = { 96, 128 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 24, 96 } }, -128, -8, 463, { .fields = { 24, 0 } }, 128, 128, 128, 2 },
-    { 143, 0x4040, { .fields = { 8, 64 } }, -104, 8, 463, { .fields = { 56, 192 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 16, 48 } }, -160, -120, 950, { .fields = { 16, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 16, 56 } }, -144, -120, 950, { .fields = { 32, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 72 } }, -128, -120, 950, { .fields = { 8, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 64, 88 } }, -104, -120, 950, { .fields = { 88, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 32, 80 } }, -40, -120, 950, { .fields = { 104, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 16, 72 } }, -160, -32, 876, { .fields = { 64, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 16, 80 } }, -144, -24, 876, { .fields = { 96, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4000, { .fields = { 24, 88 } }, -128, -8, 876, { .fields = { 8, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 64, 72 } }, -104, 8, 926, { .fields = { 32, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 8, 8 } }, -8, -48, 925, { .fields = { 64, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4040, { .fields = { 16, 32 } }, -160, -120, 500, { .fields = { 104, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4040, { .fields = { 40, 24 } }, -144, -120, 500, { .fields = { 64, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4040, { .fields = { 40, 16 } }, -104, -120, 500, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4040, { .fields = { 32, 40 } }, -64, -120, 750, { .fields = { 120, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4040, { .fields = { 24, 80 } }, -32, -120, 875, { .fields = { 80, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 32, 104 } }, -160, -8, 463, { .fields = { 96, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 24, 96 } }, -128, -8, 463, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 143, 0x4040, { .fields = { 8, 64 } }, -104, 8, 463, { .fields = { 56, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_acropolis_promenade_80183FF8[11] = {
@@ -913,7 +913,7 @@ SpriteBatch D_acropolis_promenade_80183FF8[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_80184050[17] = {
+SpriteSource D_acropolis_promenade_80184050[17] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -72, -48, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, -40, 1568, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 120 } }, -160, -120, 1450, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -941,7 +941,7 @@ SpriteBatch D_acropolis_promenade_801841A4[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_801841CC[56] = {
+SpriteSource D_acropolis_promenade_801841CC[56] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 64, 1067, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 136 } }, -160, -112, 587, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 136 } }, -152, -112, 659, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -1012,7 +1012,7 @@ SpriteBatch D_acropolis_promenade_8018462C[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_80184674[83] = {
+SpriteSource D_acropolis_promenade_80184674[83] = {
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -80, -80, 3667, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -56, -80, 3667, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, -80, 3667, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -1110,7 +1110,7 @@ SpriteBatch D_acropolis_promenade_80184CF0[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_80184D38[63] = {
+SpriteSource D_acropolis_promenade_80184D38[63] = {
     { 143, 0x3FC0, { .fields = { 24, 176 } }, -160, -120, 1475, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, -136, -56, 1500, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 96 } }, -120, -48, 1525, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1188,7 +1188,7 @@ SpriteBatch D_acropolis_promenade_80185224[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_8018526C[32] = {
+SpriteSource D_acropolis_promenade_8018526C[32] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -56, 550, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 56, 32 } }, -40, -120, 550, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -56, -112, 550, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
@@ -1216,11 +1216,11 @@ GpSprtElem D_acropolis_promenade_8018526C[32] = {
     { 142, 0x3FC0, { .fields = { 16, 56 } }, 112, 24, 913, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, 128, 24, 925, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 40 } }, 144, 24, 950, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 64, 72 } }, -72, -80, 487, { .fields = { 16, 72 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 80, 64 } }, -8, -80, 487, { .fields = { 0, 144 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 24, 56 } }, 72, -80, 487, { .fields = { 32, 0 } }, 128, 128, 128, 2 },
-    { 141, 0x4000, { .fields = { 88, 40 } }, -80, -120, 487, { .fields = { 56, 208 } }, 128, 128, 128, 2 },
-    { 142, 0x4000, { .fields = { 80, 40 } }, 8, -120, 487, { .fields = { 80, 216 } }, 128, 128, 128, 2 },
+    { 142, 0x4000, { .fields = { 64, 72 } }, -72, -80, 487, { .fields = { 16, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 80, 64 } }, -8, -80, 487, { .fields = { 0, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 24, 56 } }, 72, -80, 487, { .fields = { 32, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 141, 0x4000, { .fields = { 88, 40 } }, -80, -120, 487, { .fields = { 56, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { 142, 0x4000, { .fields = { 80, 40 } }, 8, -120, 487, { .fields = { 80, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
 SpriteBatch D_acropolis_promenade_801854EC[8] = {
@@ -1234,7 +1234,7 @@ SpriteBatch D_acropolis_promenade_801854EC[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_8018552C[46] = {
+SpriteSource D_acropolis_promenade_8018552C[46] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -48, 1125, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, -96, 250, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 224 } }, -152, -104, 625, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -1295,7 +1295,7 @@ SpriteBatch D_acropolis_promenade_801858C4[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_promenade_8018590C[78] = {
+SpriteSource D_acropolis_promenade_8018590C[78] = {
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -152, 80, 600, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 56, 32 } }, -112, 88, 600, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 40 } }, -56, 80, 600, { .fields = { 72, 216 } }, 128, 128, 128, 0 },

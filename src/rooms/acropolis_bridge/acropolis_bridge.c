@@ -946,7 +946,7 @@ SpriteBatch D_acropolis_bridge_8018BC10[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018BC20[104] = {
+SpriteSource D_acropolis_bridge_8018BC20[104] = {
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -128, 16, 1200, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 88 } }, -88, 16, 1200, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 32, 1200, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
@@ -1069,7 +1069,7 @@ SpriteBatch D_acropolis_bridge_8018C440[13] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018C4A8[112] = {
+SpriteSource D_acropolis_bridge_8018C4A8[112] = {
     { 143, 0x3FC0, { .fields = { 72, 112 } }, -160, -96, 1425, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 64, 24 } }, -96, -120, 1400, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 64, 24 } }, -88, -96, 1425, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
@@ -1206,7 +1206,7 @@ SpriteBatch D_acropolis_bridge_8018CD68[19] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018CE00[153] = {
+SpriteSource D_acropolis_bridge_8018CE00[153] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -112, 3000, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 104, 56 } }, -128, -120, 3000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 104, 56 } }, 0, -120, 3000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -1382,7 +1382,7 @@ SpriteBatch D_acropolis_bridge_8018D9F4[17] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018DA7C[112] = {
+SpriteSource D_acropolis_bridge_8018DA7C[112] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, 72, 713, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 72 } }, -160, -40, 700, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 64, 24 } }, -160, 32, 720, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
@@ -1518,7 +1518,7 @@ SpriteBatch D_acropolis_bridge_8018E33C[18] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018E3CC[142] = {
+SpriteSource D_acropolis_bridge_8018E3CC[142] = {
     { 143, 0x3FC0, { .fields = { 48, 88 } }, -160, -112, 1875, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 80 } }, -112, -112, 1875, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 40, 24 } }, -72, -120, 1747, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
@@ -1685,7 +1685,7 @@ SpriteBatch D_acropolis_bridge_8018EEE4[19] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018EF7C[133] = {
+SpriteSource D_acropolis_bridge_8018EF7C[133] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -104, 3000, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 56 } }, -128, -104, 3000, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 56 } }, -80, -104, 3000, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
@@ -1842,7 +1842,7 @@ SpriteBatch D_acropolis_bridge_8018F9E0[18] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018FA70[40] = {
+SpriteSource D_acropolis_bridge_8018FA70[40] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 24 } }, -32, -32, 85, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -40, -32, 85, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
@@ -1930,7 +1930,7 @@ SpriteBatch D_acropolis_bridge_8018FEB8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-GpSprtElem D_acropolis_bridge_8018FEC8[9] = {
+SpriteSource D_acropolis_bridge_8018FEC8[9] = {
     { 143, 0x3FC0, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 56, 750, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
     { 140, 0x3FC0, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
@@ -3193,7 +3193,7 @@ static void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
 
 /// Slides one of three mutually exclusive bridge sprites in view 9 by
 /// `(dx, dy)` and makes it the visible one. Each state owns three consecutive
-/// `GpSprtElem` entries, which move together, and one of the three
+/// `SpriteSource` entries, which move together, and one of the three
 /// `SpriteBatch` slots; `Gp_LinkViewSprts` treats a nonzero `hidden` as "skip
 /// OT-linking", so the selected command gets 0 and the other two get 1. A
 /// state outside 0..2 moves nothing and hides all three.
@@ -3202,42 +3202,42 @@ static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
     GameSession*     g    = gGameSession;
     GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
-    GpSprtElem*      el;
+    SpriteSource*    sources;
     SpriteBatch*     batches;
     s32              mode;
 
     rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     batches = rec[9].field_4;
-    el      = rec[9].field_0.elements;
+    sources = rec[9].field_0.elements;
     mode    = state & 0xFF;
 
     if (mode == 0) {
-        el[0].x0         += dx;
-        el[0].y0         += dy;
-        el[1].x0         += dx;
-        el[1].y0         += dy;
-        el[2].x0         += dx;
-        el[2].y0         += dy;
+        sources[0].x0    += dx;
+        sources[0].y0    += dy;
+        sources[1].x0    += dx;
+        sources[1].y0    += dy;
+        sources[2].x0    += dx;
+        sources[2].y0    += dy;
         batches[1].hidden = 0;
         batches[2].hidden = 1;
         batches[3].hidden = 1;
     } else if (mode == 1) {
-        el[3].x0         += dx;
-        el[3].y0         += dy;
-        el[4].x0         += dx;
-        el[4].y0         += dy;
-        el[5].x0         += dx;
-        el[5].y0         += dy;
+        sources[3].x0    += dx;
+        sources[3].y0    += dy;
+        sources[4].x0    += dx;
+        sources[4].y0    += dy;
+        sources[5].x0    += dx;
+        sources[5].y0    += dy;
         batches[1].hidden = 1;
         batches[2].hidden = 0;
         batches[3].hidden = 1;
     } else if (mode == 2) {
-        el[6].x0         += dx;
-        el[6].y0         += dy;
-        el[7].x0         += dx;
-        el[7].y0         += dy;
-        el[8].x0         += dx;
-        el[8].y0         += dy;
+        sources[6].x0    += dx;
+        sources[6].y0    += dy;
+        sources[7].x0    += dx;
+        sources[7].y0    += dy;
+        sources[8].x0    += dx;
+        sources[8].y0    += dy;
         batches[1].hidden = 1;
         batches[2].hidden = 1;
         batches[3].hidden = 0;
