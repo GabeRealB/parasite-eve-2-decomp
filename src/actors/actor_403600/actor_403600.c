@@ -1255,8 +1255,8 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
                 setlen(poly, 9);
                 poly->code = 0x2D;
             } else {
-                step                     = (fade - 0xC00) >> 3;
-                PRIM_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | PRIM_RGBC(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
+                step                              = (fade - 0xC00) >> 3;
+                GPU_PRIMITIVE_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | PRIM_RGBC(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
                 setlen(poly, 9);
                 poly->code = 0x2C;
             }
@@ -1272,10 +1272,10 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
         tile->w                 = 0x140;
         tile->h                 = 0xF0;
         setlen(tile, 3);
-        PRIM_COLOR_WORD(tile, 0) = PRIM_RGBC(0xC0, 0x60, 0x20, 0);
-        tile->code               = 0x62;
-        draw_mode                = gGpuPrimCursor;
-        gGpuPrimCursor           = draw_mode + 1;
+        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = PRIM_RGBC(0xC0, 0x60, 0x20, 0);
+        tile->code                        = 0x62;
+        draw_mode                         = gGpuPrimCursor;
+        gGpuPrimCursor                    = draw_mode + 1;
         addPrim(gGpuCurrentOt - 1, tile);
         setDrawTPage(draw_mode, 0, 1, 0x20);
         addPrim(gGpuCurrentOt - 1, draw_mode);
@@ -1912,12 +1912,12 @@ block_22:
                                 ((POLY_FT4*)shared)->u0   = 0xA8U;
                                 ((POLY_FT4*)shared)->clut = 0x428C;
                             }
-                            ((POLY_FT4*)shared)->v1                 = 0xC9;
-                            ((POLY_FT4*)shared)->v0                 = 0xC9;
-                            ((POLY_FT4*)shared)->v3                 = 0xFF;
-                            ((POLY_FT4*)shared)->v2                 = 0xFF;
-                            PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
-                            temp_v1_12                              = ((POLY_FT4*)shared)->u0 + 0x37;
+                            ((POLY_FT4*)shared)->v1                          = 0xC9;
+                            ((POLY_FT4*)shared)->v0                          = 0xC9;
+                            ((POLY_FT4*)shared)->v3                          = 0xFF;
+                            ((POLY_FT4*)shared)->v2                          = 0xFF;
+                            GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
+                            temp_v1_12                                       = ((POLY_FT4*)shared)->u0 + 0x37;
                             setlen((POLY_FT4*)shared, 9);
                             ((POLY_FT4*)shared)->code = 0x2E;
                             ((POLY_FT4*)shared)->u3   = temp_v1_12;
@@ -1973,8 +1973,8 @@ block_22:
                         }
                         temp_v1_13 = D_actor_403600_80142120[var_a0];
                         setlen((POLY_FT4*)shared, 9);
-                        PRIM_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
-                        ((POLY_FT4*)shared)->code               = 0x2E;
+                        GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
+                        ((POLY_FT4*)shared)->code                        = 0x2E;
                         ACTOR_403600_LINK_PRIMITIVE((u_long*)(((((u32)scratch->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + (s32)gGpuCurrentOt),
                                                     (POLY_FT4*)shared);
                     }
@@ -2445,9 +2445,9 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        PRIM_COLOR_WORD(poly, 0) = 0;
-                        PRIM_COLOR_WORD(poly, 1) = 0;
-                        PRIM_COLOR_WORD(poly, 2) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -2540,9 +2540,9 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
                                     upper_delta = (upper_calc + light) * 2;
                                 }
                                 if (upper_delta >= 0x81) {
-                                    PRIM_COLOR_WORD(poly, 0) = 0;
-                                    PRIM_COLOR_WORD(poly, 1) = 0;
-                                    PRIM_COLOR_WORD(poly, 2) = 0;
+                                    GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                                    GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                                    GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
                                 } else {
                                     s32 faded;
 
@@ -2657,10 +2657,10 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
                             }
                         }
                         if (upper_delta >= 0x81) {
-                            PRIM_COLOR_WORD(poly, 0) = 0;
-                            PRIM_COLOR_WORD(poly, 1) = 0;
-                            PRIM_COLOR_WORD(poly, 2) = 0;
-                            PRIM_COLOR_WORD(poly, 3) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
                         } else {
                             col.r = -0x80 - upper_delta;
                             col.g = -0x80 - upper_delta;
@@ -2769,10 +2769,10 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
                                         upper_delta = (upper_calc + light) * 2;
                                     }
                                     if (upper_delta >= 0x81) {
-                                        PRIM_COLOR_WORD(poly, 0) = 0;
-                                        PRIM_COLOR_WORD(poly, 1) = 0;
-                                        PRIM_COLOR_WORD(poly, 2) = 0;
-                                        PRIM_COLOR_WORD(poly, 3) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                                        GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
                                     } else {
                                         s32 faded;
 
@@ -2883,9 +2883,9 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        PRIM_COLOR_WORD(poly, 0) = 0;
-                        PRIM_COLOR_WORD(poly, 1) = 0;
-                        PRIM_COLOR_WORD(poly, 2) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -2971,9 +2971,9 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
                         }
                     }
                     if (upper_delta >= 0x81) {
-                        PRIM_COLOR_WORD(poly, 0) = 0;
-                        PRIM_COLOR_WORD(poly, 1) = 0;
-                        PRIM_COLOR_WORD(poly, 2) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                        GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
                     } else {
                         col.r = -0x80 - upper_delta;
                         col.g = -0x80 - upper_delta;
@@ -3075,10 +3075,10 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
                             }
                         }
                         if (upper_delta >= 0x81) {
-                            PRIM_COLOR_WORD(poly, 0) = 0;
-                            PRIM_COLOR_WORD(poly, 1) = 0;
-                            PRIM_COLOR_WORD(poly, 2) = 0;
-                            PRIM_COLOR_WORD(poly, 3) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = 0;
+                            GPU_PRIMITIVE_COLOR_WORD(poly, 3) = 0;
                         } else {
                             col.r = -0x80 - upper_delta;
                             col.g = -0x80 - upper_delta;

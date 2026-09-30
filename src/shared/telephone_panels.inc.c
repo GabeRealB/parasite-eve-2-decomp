@@ -134,12 +134,12 @@ static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32
         y              = arg0->field_22.u;
         gGpuPrimCursor = prim + 1;
         setlen(prim, 8);
-        PRIM_COLOR_WORD(prim, 0) = arg5;
+        GPU_PRIMITIVE_COLOR_WORD(prim, 0) = arg5;
         setcode(prim, 0x38);
-        PRIM_COLOR_WORD(prim, 2) = arg5;
-        PRIM_COLOR_WORD(prim, 3) = arg6;
-        PRIM_COLOR_WORD(prim, 1) = arg6;
-        y                       += arg2;
+        GPU_PRIMITIVE_COLOR_WORD(prim, 2) = arg5;
+        GPU_PRIMITIVE_COLOR_WORD(prim, 3) = arg6;
+        GPU_PRIMITIVE_COLOR_WORD(prim, 1) = arg6;
+        y                                += arg2;
         y++;
         x        = prim->x0 + arg3 - 1;
         prim->y1 = y;

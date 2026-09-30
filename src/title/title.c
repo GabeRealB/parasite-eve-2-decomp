@@ -175,14 +175,14 @@ static void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     DR_TPAGE* dr;
     u8        c;
 
-    c                     = color;
-    p                     = gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
-    p->x0                 = -0x80;
-    p->w                  = 0x100;
-    p->h                  = 0x10;
-    p->clut               = 0x3FC0;
-    PRIM_COLOR_WORD(p, 0) = (c << 16) | (c << 8) | c;
+    c                              = color;
+    p                              = gGpuPrimCursor;
+    gGpuPrimCursor                 = p + 1;
+    p->x0                          = -0x80;
+    p->w                           = 0x100;
+    p->h                           = 0x10;
+    p->clut                        = 0x3FC0;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = (c << 16) | (c << 8) | c;
     setlen(p, 4);
     p->u0 = 0;
     p->v0 = v;

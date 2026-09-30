@@ -311,10 +311,10 @@ static void GameMain_ShowLoading(s32 arg0)
             dr->code[0] = 0xE1000600;
             DrawPrim(dr);
 
-            tile->x0                 = -0xA0;
-            tile->w                  = 0x140;
-            tile->h                  = 0xF0;
-            PRIM_COLOR_WORD(tile, 0) = 0;
+            tile->x0                          = -0xA0;
+            tile->w                           = 0x140;
+            tile->h                           = 0xF0;
+            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = 0;
             setlen(tile, 3);
             setcode(tile, 0x62);
             tile->y0 = -0x78 - gDisplayState.vramYOffset;

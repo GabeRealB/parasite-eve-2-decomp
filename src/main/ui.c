@@ -568,14 +568,14 @@ static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
     }
 
     if (arg1 & 0x10000) {
-        PRIM_COLOR_WORD(p, 1)  = 0x606060;
-        PRIM_COLOR_WORD(p2, 1) = 0x606060;
-        PRIM_COLOR_WORD(p, 0)  = 0x505050;
-        PRIM_COLOR_WORD(p2, 0) = 0x505050;
-        PRIM_COLOR_WORD(p, 3)  = 0x808080;
-        PRIM_COLOR_WORD(p2, 3) = 0x808080;
-        PRIM_COLOR_WORD(p2, 2) = 0x707070;
-        PRIM_COLOR_WORD(p, 2)  = 0x707070;
+        GPU_PRIMITIVE_COLOR_WORD(p, 1)  = 0x606060;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = 0x606060;
+        GPU_PRIMITIVE_COLOR_WORD(p, 0)  = 0x505050;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = 0x505050;
+        GPU_PRIMITIVE_COLOR_WORD(p, 3)  = 0x808080;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = 0x808080;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 2) = 0x707070;
+        GPU_PRIMITIVE_COLOR_WORD(p, 2)  = 0x707070;
     } else if ((arg1 & 0xF) == 4) {
         val = (rsin(gDisplayState.animFrame << 6) + 0x1000) >> 7;
 
@@ -583,34 +583,34 @@ static void Ui_DrawWindowBorder(RECT* rect, s32 arg1, s32 arg2)
         if (t <= 0) {
             t = 1;
         }
-        PRIM_COLOR_WORD(p2, 1) = PRIM_COLOR_WORD(p, 1) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = GPU_PRIMITIVE_COLOR_WORD(p, 1) = _uiGrey(t);
 
         t = 0x80 - val;
         if (t <= 0) {
             t = 1;
         }
-        PRIM_COLOR_WORD(p2, 0) = PRIM_COLOR_WORD(p, 0) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = GPU_PRIMITIVE_COLOR_WORD(p, 0) = _uiGrey(t);
 
         t = 0x40 - val;
         if (t <= 0) {
             t = 1;
         }
-        PRIM_COLOR_WORD(p2, 3) = PRIM_COLOR_WORD(p, 3) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = GPU_PRIMITIVE_COLOR_WORD(p, 3) = _uiGrey(t);
 
         t = 0x30 - val;
         if (t <= 0) {
             t = 1;
         }
-        PRIM_COLOR_WORD(p, 2) = PRIM_COLOR_WORD(p2, 2) = _uiGrey(t);
+        GPU_PRIMITIVE_COLOR_WORD(p, 2) = GPU_PRIMITIVE_COLOR_WORD(p2, 2) = _uiGrey(t);
     } else {
-        PRIM_COLOR_WORD(p, 1)  = 0xA8A8A8;
-        PRIM_COLOR_WORD(p2, 1) = 0xA8A8A8;
-        PRIM_COLOR_WORD(p, 0)  = 0x808080;
-        PRIM_COLOR_WORD(p2, 0) = 0x808080;
-        PRIM_COLOR_WORD(p, 3)  = 0x404040;
-        PRIM_COLOR_WORD(p2, 3) = 0x404040;
-        PRIM_COLOR_WORD(p2, 2) = 0x303030;
-        PRIM_COLOR_WORD(p, 2)  = 0x303030;
+        GPU_PRIMITIVE_COLOR_WORD(p, 1)  = 0xA8A8A8;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 1) = 0xA8A8A8;
+        GPU_PRIMITIVE_COLOR_WORD(p, 0)  = 0x808080;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 0) = 0x808080;
+        GPU_PRIMITIVE_COLOR_WORD(p, 3)  = 0x404040;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 3) = 0x404040;
+        GPU_PRIMITIVE_COLOR_WORD(p2, 2) = 0x303030;
+        GPU_PRIMITIVE_COLOR_WORD(p, 2)  = 0x303030;
     }
 
     p->v0 = p->v1 = 0;
@@ -1411,13 +1411,13 @@ static inline void _uiFillTile(UiPanel* panel, s32 x, s32 y, s32 w, s32 h, u32 c
     s32   top;
 
     if (color != 0 && w >= 2) {
-        p                     = gGpuPrimCursor;
-        gGpuPrimCursor        = p + 1;
-        p->x0                 = panel->field_20.u + x + 1;
-        top                   = panel->field_22.u;
-        p->w                  = w - 1;
-        p->h                  = h - 1;
-        PRIM_COLOR_WORD(p, 0) = color;
+        p                              = gGpuPrimCursor;
+        gGpuPrimCursor                 = p + 1;
+        p->x0                          = panel->field_20.u + x + 1;
+        top                            = panel->field_22.u;
+        p->w                           = w - 1;
+        p->h                           = h - 1;
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
         p->y0 = top + y + 1;
         setcode(p, 0x60);
@@ -1432,31 +1432,31 @@ void Ui_DrawBeveledRect(UiPanel* panel, s32 x, s32 y, s32 width, s32 height, u32
 
     _uiFillTile(panel, x, y, width, height, color);
 
-    l                     = gGpuPrimCursor;
-    l->x2                 = panel->field_20.u + x + 1;
-    t                     = panel->field_20.u + (x + width);
-    l->x1                 = t;
-    l->x0                 = t;
-    gGpuPrimCursor        = l + 1;
-    l->y0                 = panel->field_22.u + y;
-    t                     = panel->field_22.u + (y + height);
-    l->y2                 = t;
-    l->y1                 = t;
-    PRIM_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x58, 0x60, 0x50, 0) : PRIM_RGBC(0x10, 0x18, 0x10, 0);
+    l                              = gGpuPrimCursor;
+    l->x2                          = panel->field_20.u + x + 1;
+    t                              = panel->field_20.u + (x + width);
+    l->x1                          = t;
+    l->x0                          = t;
+    gGpuPrimCursor                 = l + 1;
+    l->y0                          = panel->field_22.u + y;
+    t                              = panel->field_22.u + (y + height);
+    l->y2                          = t;
+    l->y1                          = t;
+    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x58, 0x60, 0x50, 0) : PRIM_RGBC(0x10, 0x18, 0x10, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 1, l);
 
-    l                     = gGpuPrimCursor;
-    t                     = panel->field_20.u + x;
-    l->x1                 = t;
-    l->x2                 = t;
-    l->x0                 = panel->field_20.u + (x + width) - 1;
-    gGpuPrimCursor        = l + 1;
-    t                     = panel->field_22.u + y;
-    l->y1                 = t;
-    l->y0                 = t;
-    l->y2                 = panel->field_22.u + (y + height);
-    PRIM_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x10, 0x18, 0x10, 0) : PRIM_RGBC(0x58, 0x60, 0x50, 0);
+    l                              = gGpuPrimCursor;
+    t                              = panel->field_20.u + x;
+    l->x1                          = t;
+    l->x2                          = t;
+    l->x0                          = panel->field_20.u + (x + width) - 1;
+    gGpuPrimCursor                 = l + 1;
+    t                              = panel->field_22.u + y;
+    l->y1                          = t;
+    l->y0                          = t;
+    l->y2                          = panel->field_22.u + (y + height);
+    GPU_PRIMITIVE_COLOR_WORD(l, 0) = ((inset & 1) == 0) ? PRIM_RGBC(0x10, 0x18, 0x10, 0) : PRIM_RGBC(0x58, 0x60, 0x50, 0);
     setLineF3(l);
     addPrim(gGpuCurrentOt + (s16)panel->field_14.u + 1, l);
 }
@@ -1854,8 +1854,8 @@ static void Ui_DrawTextUnderline(UiPanel* panel, s32 x, s32 y, char* arg3, s32 a
     p->x0 = p->x2 = x;
     textX         = req.x;
     // The original reservation is larger than the flat packet written here.
-    gGpuPrimCursor        = (u8*)p + sizeof(POLY_FT4);
-    PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x02, 0x10, 0x02, 0);
+    gGpuPrimCursor                 = (u8*)p + sizeof(POLY_FT4);
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x02, 0x10, 0x02, 0);
     p->y2 = p->y3 = y + 7;
     setPolyF4(p);
     p->y0 = p->y1 = y;
@@ -2496,13 +2496,13 @@ void Ui_AllocTile(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 ar
     color = arg5;
 
     if ((color != 0) && (arg3 >= 2)) {
-        p                     = gGpuPrimCursor;
-        gGpuPrimCursor        = p + 1;
-        p->x0                 = panel->field_20.u + arg1 + 1;
-        y                     = panel->field_22.u;
-        p->w                  = arg3 - 1;
-        p->h                  = arg4 - 1;
-        PRIM_COLOR_WORD(p, 0) = color;
+        p                              = gGpuPrimCursor;
+        gGpuPrimCursor                 = p + 1;
+        p->x0                          = panel->field_20.u + arg1 + 1;
+        y                              = panel->field_22.u;
+        p->w                           = arg3 - 1;
+        p->h                           = arg4 - 1;
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
@@ -2747,7 +2747,7 @@ void Ui_DrawFlatCaret(UiPanel* panel, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         p->y2 = t;
         p->y1 = t;
     }
-    PRIM_COLOR_WORD(p, 0) = arg3 * 2;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg3 * 2;
     setlen(p, 4);
     setcode(p, 0x20);
     ot = gGpuCurrentOt;

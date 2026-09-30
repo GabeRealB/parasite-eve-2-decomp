@@ -325,19 +325,19 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         setlen(p, 9);
         setcode(p, 0x2D);
     } else {
-        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x40, 0x40, 0x40, 0);
         setlen(p, 9);
         setcode(p, 0x2C);
     }
     addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
     if (flag3 != 0) {
-        q                     = gGpuPrimCursor;
-        q->x0                 = p->x0 - 1;
-        q->y0                 = p->y0 - 1;
-        q->w                  = p->x1 - p->x0 + 2;
-        q->h                  = p->y2 - p->y0 + 2;
-        gGpuPrimCursor        = q + 1;
-        PRIM_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
+        q                              = gGpuPrimCursor;
+        q->x0                          = p->x0 - 1;
+        q->y0                          = p->y0 - 1;
+        q->w                           = p->x1 - p->x0 + 2;
+        q->h                           = p->y2 - p->y0 + 2;
+        gGpuPrimCursor                 = q + 1;
+        GPU_PRIMITIVE_COLOR_WORD(q, 0) = PRIM_RGBC(0xc0, 0xc0, 0xc0, 0);
         setlen(q, 3);
         setcode(q, 0x60);
         addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, q);
@@ -442,13 +442,13 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
             bar = max;
         }
         if (bar > 0) {
-            tile                     = gGpuPrimCursor;
-            gGpuPrimCursor           = tile + 1;
-            tile->x0                 = arg1 + 1;
-            tile->y0                 = arg3 - 1;
-            tile->w                  = bar;
-            tile->h                  = 2;
-            PRIM_COLOR_WORD(tile, 0) = arg6;
+            tile                              = gGpuPrimCursor;
+            gGpuPrimCursor                    = tile + 1;
+            tile->x0                          = arg1 + 1;
+            tile->y0                          = arg3 - 1;
+            tile->w                           = bar;
+            tile->h                           = 2;
+            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = arg6;
             setlen(tile, 3);
             setcode(tile, 0x60);
             addPrim(gGpuCurrentOt + (s16)arg0->field_14.u + 1, tile);
@@ -691,7 +691,7 @@ void Gp_HpMpBarTask(Task* arg0)
         p->h    = 8;
         p->clut = 0x3C02;
         setlen(p, 4);
-        PRIM_COLOR_WORD(p, 0) = color;
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
         setcode(p, 0x64);
         p->y0 = y + 3;
         addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
@@ -905,7 +905,7 @@ void Gp_PeGridPanelTask(Task* arg0)
         p              = gGpuPrimCursor;
         gGpuPrimCursor = p + 1;
         setlen(p, 4);
-        PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+        GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
         setcode(p, 0x64);
         addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
         p->x0   = D_8010E844[iconCol].xOffset + (obj->panel.field_20.u + startX + iconCol * colStep);
@@ -938,7 +938,7 @@ void Gp_PeGridPanelTask(Task* arg0)
                 p->v0          = 0x88;
                 p->clut        = 0x3C02;
                 setlen(p, 4);
-                PRIM_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
+                GPU_PRIMITIVE_COLOR_WORD(p, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
                 setcode(p, 0x64);
                 p->y0 = capY;
                 addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, p);
@@ -1083,7 +1083,7 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     p->v0          = 0x88;
     p->clut        = 0x3C02;
     setlen(p, 4);
-    PRIM_COLOR_WORD(p, 0) = color;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
     setcode(p, 0x64);
     p->y0 = y + arg2 - 7;
     addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);

@@ -1104,7 +1104,7 @@ static void Gp_DrawMapCursor(Task* arg0)
     if (ang == 0x100) {
         ang = 0xFF;
     }
-    PRIM_COLOR_WORD(p, 0) = ((ang & 0xFF) << 0x10) | ((ang & 0xFF) << 8) | (ang & 0xFF);
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((ang & 0xFF) << 0x10) | ((ang & 0xFF) << 8) | (ang & 0xFF);
     setlen(p, 3);
     setcode(p, 0x7E);
     p->clut = GetClut(0, 0x101);
@@ -1434,7 +1434,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
                 if (lum == 0x100) {
                     lum = 0xFF;
                 }
-                PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+                GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             }
             setlen(p, 3);
             setcode(p, 0x7C);
@@ -1605,7 +1605,7 @@ static void func_800D15D0(Task* arg0)
             if (lum == 0x100) {
                 lum = 0xFF;
             }
-            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             setlen(p, 4);
             setcode(p, 0x66);
             p->clut = GetClut(0x50, 0x101);
@@ -1641,7 +1641,7 @@ static void func_800D15D0(Task* arg0)
             if (lum == 0x100) {
                 lum = 0xFF;
             }
-            PRIM_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+            GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
             setlen(p, 4);
             setcode(p, 0x66);
             p->clut = GetClut(0x50, 0x101);
@@ -2624,9 +2624,9 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             Ui_AllocTile(&(arg0)->panel, x, y, (span * prev) / max, 3, 0x1741FU);
             color = 0xD287F;
             Ui_LayoutWithMode1(arg0, x, y, ((span * val) / max), 3, 0x1A50FE);
-            p->u0                 = 0xA0;
-            PRIM_COLOR_WORD(p, 0) = color;
-            p->y0                 = p->y0 - 1;
+            p->u0                          = 0xA0;
+            GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
+            p->y0                          = p->y0 - 1;
         } else {
             if (val < prev) {
                 s32 y;
@@ -2635,14 +2635,14 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
                 Ui_AllocTile(&(arg0)->panel, x, y, (span * val) / max, 3, 0x1741FU);
                 color = 0x1741F;
                 Ui_LayoutWithMode1(arg0, x, y, ((span * prev) / max), 3, 1);
-                p->u0                 = 0x30;
-                PRIM_COLOR_WORD(p, 0) = color;
+                p->u0                          = 0x30;
+                GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
             } else {
                 if (val > 0) {
                     Ui_LayoutWithMode1(arg0, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
                 }
-                p->u0                 = 0x78;
-                PRIM_COLOR_WORD(p, 0) = color;
+                p->u0                          = 0x78;
+                GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
             }
         }
         spriteX = arg0->panel.field_20.u + x;
@@ -2969,11 +2969,11 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                         p4->v2 = p4->y2 - 0x78;
                         p4->v3 = p4->y3 - 0x78;
                         if (mode == 1) {
-                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
                         } else {
-                            PRIM_COLOR_WORD(p4, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p4, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
                         }
                         p4->clut = 0x4000;
                     }
@@ -3060,11 +3060,11 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
                         p3->v1 = p3->y1 - 0x78;
                         p3->v2 = p3->y2 - 0x78;
                         if (mode == 1) {
-                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0x20, 0x20, 0x20, 0);
                         } else if (mode == 2) {
-                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0x40, 0x40, 0xff, 0);
                         } else {
-                            PRIM_COLOR_WORD(p3, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
+                            GPU_PRIMITIVE_COLOR_WORD(p3, 0) = PRIM_RGBC(0xff, 0x40, 0x40, 0);
                         }
                         p3->clut = 0x4000;
                     }

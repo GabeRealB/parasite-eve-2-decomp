@@ -40,9 +40,22 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// offsets even when they use this helper.
 #define GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(byteOffset) (&gGpuCurrentOt[(byteOffset) / sizeof(*gGpuCurrentOt)])
 
-/// Vertex `n`'s colour word: `rn`, `gn`, `bn`, then the primitive's `code` for
-/// vertex 0 and a pad byte for the others. Build a constant with `PRIM_RGBC`.
-#define PRIM_COLOR_WORD(p, n) (*(u32*)&(p)->r##n)
+/// A writable `u32` view of a primitive's packed colour group.
+///
+/// On PlayStation, bits 0..7, 8..15 and 16..23 hold red, green and blue.
+/// Bits 24..31 hold the packet's command byte for vertex 0 and padding for
+/// later Gouraud vertices; compatible sprite source records hold flags there.
+/// Reads and writes include all four bytes. An RGB-only value clears the command
+/// byte at vertex 0, so set the packet code afterwards or include it in the word.
+/// `PRIM_RGBC` packs the four bytes.
+///
+/// `primitive` is evaluated once and must point to a mutable record with a
+/// word-aligned four-byte group starting at the selected `rN` member.
+/// `vertexIndex` is a literal suffix token pasted onto `r`, not a runtime index
+/// or an expanded macro: use only a colour member present in the record
+/// (0 for flat primitives, 0..2/0..3 for Gouraud triangles/quads).
+/// This accessor captures no identifiers and does not allocate or retain storage.
+#define GPU_PRIMITIVE_COLOR_WORD(primitive, vertexIndex) (*(u32*)&((primitive)->r##vertexIndex))
 
 /// Vertex `n`'s position word: `xn` in the low half, `yn` in the high half, the
 /// layout the GTE stores a projected point in.

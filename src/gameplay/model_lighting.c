@@ -1884,7 +1884,7 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 5);
-            PRIM_COLOR_WORD(poly, 0) = color;
+            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
@@ -1904,7 +1904,7 @@ u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 4);
-            PRIM_COLOR_WORD(poly, 0) = color;
+            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x20);
             poly++;
             stream += ws->elemStride;
@@ -2086,13 +2086,13 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         do {
-            PRIM_COLOR_WORD(poly, 0) = stream[2];
-            PRIM_COLOR_WORD(poly, 1) = stream[3];
-            PRIM_COLOR_WORD(poly, 2) = stream[4];
-            color                    = stream[5];
+            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = stream[2];
+            GPU_PRIMITIVE_COLOR_WORD(poly, 1) = stream[3];
+            GPU_PRIMITIVE_COLOR_WORD(poly, 2) = stream[4];
+            color                             = stream[5];
             setlen(poly, 12);
             setcode(poly, 0x3E);
-            PRIM_COLOR_WORD(poly, 3)           = color;
+            GPU_PRIMITIVE_COLOR_WORD(poly, 3)  = color;
             MODEL_LIGHTING_UV0_CLUT_WORD(poly) = stream[6];
             PRIM_UV_TPAGE_WORD(poly)           = stream[7];
             *(u16*)&poly->u2                   = (u16)stream[8];
@@ -2158,7 +2158,7 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 5);
-            PRIM_COLOR_WORD(poly, 0) = color;
+            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
@@ -2178,7 +2178,7 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
         do {
             color = stream[2];
             setlen(poly, 4);
-            PRIM_COLOR_WORD(poly, 0) = color;
+            GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
             setcode(poly, 0x20);
             poly++;
             stream += ws->elemStride;

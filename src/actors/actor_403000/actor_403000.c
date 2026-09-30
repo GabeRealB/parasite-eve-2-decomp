@@ -3915,17 +3915,17 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
                 prim->x1 = scratch->prevSxy.v.vx - scratch->normal.vx;
                 prim->y1 = scratch->prevSxy.v.vy - scratch->normal.vy;
             }
-            prim->u2                 = 4;
-            prim->u0                 = 4;
-            prim->u3                 = 5;
-            prim->u1                 = 5;
-            prim->v1                 = 7;
-            prim->v0                 = 7;
-            prim->v3                 = 8;
-            prim->v2                 = 8;
-            prim->tpage              = 0x3F;
-            prim->clut               = 0x3C51;
-            PRIM_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
+            prim->u2                          = 4;
+            prim->u0                          = 4;
+            prim->u3                          = 5;
+            prim->u1                          = 5;
+            prim->v1                          = 7;
+            prim->v0                          = 7;
+            prim->v3                          = 8;
+            prim->v2                          = 8;
+            prim->tpage                       = 0x3F;
+            prim->clut                        = 0x3C51;
+            GPU_PRIMITIVE_COLOR_WORD(prim, 0) = ((17 - i) * 4) & 0xFF;
             setlen(prim, 9);
             prim->code = 0x2E;
             addPrim(&gGpuCurrentOt[(((u32)(scratch->otz - 10) << gDisplayState.otDepthShift) >> 4) & 0x3FF], prim);

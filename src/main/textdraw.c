@@ -270,9 +270,9 @@ static void Text_DrawGlyphDualSprtA(TextDrawReq* request, FontGlyph* glyph, s32 
     SPRT* p2;
     s32   temp;
 
-    p                     = gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
-    PRIM_COLOR_WORD(p, 0) = arg2;
+    p                              = gGpuPrimCursor;
+    gGpuPrimCursor                 = p + 1;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x66);
 
@@ -301,9 +301,9 @@ static void Text_DrawGlyphDualSprt(TextDrawReq* request, FontGlyph* glyph, s32 a
     SPRT* p2;
     s32   temp;
 
-    p                     = gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
-    PRIM_COLOR_WORD(p, 0) = arg2;
+    p                              = gGpuPrimCursor;
+    gGpuPrimCursor                 = p + 1;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
@@ -333,9 +333,9 @@ static void Text_DrawGlyphDualSprtTpage(TextDrawReq* request, FontGlyph* glyph, 
     DR_TPAGE* dr;
     s32       temp;
 
-    p                     = gGpuPrimCursor;
-    gGpuPrimCursor        = p + 1;
-    PRIM_COLOR_WORD(p, 0) = arg2;
+    p                              = gGpuPrimCursor;
+    gGpuPrimCursor                 = p + 1;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
@@ -945,7 +945,7 @@ static void Text_DrawGlyphImmediate(TextDrawReq* request, FontGlyph* glyph, s32 
 
     p = &D_80071710;
     setlen(p, 4);
-    PRIM_COLOR_WORD(p, 0) = arg2;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
     p->x0   = request->x + (s8)glyph->off_x;
     p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;
@@ -966,7 +966,7 @@ static void Text_DrawGlyphQueued(TextDrawReq* request, FontGlyph* glyph, s32 arg
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
     setlen(p, 4);
-    PRIM_COLOR_WORD(p, 0) = arg2;
+    GPU_PRIMITIVE_COLOR_WORD(p, 0) = arg2;
     setcode(p, 0x64);
     p->x0   = request->x + (s8)glyph->off_x;
     p->y0   = (request->y - glyph->h) + (s8)glyph->off_y;

@@ -112,7 +112,7 @@ static void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
         do {
             sprt = &dest->sprt;
             if ((cur->flags & 1) == 0) {
-                PRIM_COLOR_WORD(&sprt->fields, 0) = PRIM_COLOR_WORD(cur, 0);
+                sprt->packed.color = GPU_PRIMITIVE_COLOR_WORD(cur, 0);
             }
             tpage = elem->tpage;
             setlen(&dest->tpage, 1);
@@ -230,9 +230,9 @@ void Gp_AllocSprtLists(void)
         for (bufIdx = 0; bufIdx < 2; bufIdx++) {
             elem = elems + rec->field_0;
             for (i = 0; i < rec->field_2; i++) {
-                dest                              = buf[bufIdx];
-                sprt                              = &dest->sprt;
-                PRIM_COLOR_WORD(&sprt->fields, 0) = PRIM_RGBC(0, 0x80, 0, 0);
+                dest               = buf[bufIdx];
+                sprt               = &dest->sprt;
+                sprt->packed.color = PRIM_RGBC(0, 0x80, 0, 0);
                 setlen(&dest->tpage, 1);
                 tpage = elem->tpage;
                 setlen(&dest->sprt.fields, 4);
