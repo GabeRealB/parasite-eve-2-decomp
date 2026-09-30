@@ -79,7 +79,7 @@ STATIC_ASSERT_SIZEOF(Actor104400Flags, 0x4);
 /// table walks, `field_412` is the per-state frame counter, and
 /// `field_414` .. `field_426` are the animation request the actor hands to
 /// its player. The three `WorldCollisionBody` nodes are the collision objects
-/// `Actor04400_Fn08A40` hands back to `Gp_UnlinkObj`. `obj_2AC` and
+/// `hopperDropBodies` hands back to `Gp_UnlinkObj`. `obj_2AC` and
 /// `obj_2CC` share `rec_2EC`; `obj_3AC` has its own table at `rec_3CC`.
 typedef struct Actor104400Work {
     /* 0x000 */ MATRIX           matrix_0; // model root coord, copied out on the kill path
@@ -250,7 +250,6 @@ static void Actor04400_Fn06C70(Task* arg0);
 static void Actor04400_Fn06CF0(Task* arg0);
 static void Actor04400_Fn06D90(Task* arg0);
 static void Actor04400_Fn06DFC(Task* arg0);
-static void Actor04400_Fn06EEC(Task* arg0);
 static void Actor04400_Fn06F50(Task* arg0);
 static void Actor04400_Fn07050(Task* arg0);
 static void Actor04400_Fn0710C(Task* arg0);
@@ -266,7 +265,6 @@ static void Actor04400_Fn076D0(Task* arg0);
 static void Actor04400_Fn0781C(Task* arg0);
 static void Actor04400_Fn07878(Task* arg0);
 static void Actor04400_Fn07890(Task* arg0);
-static void Actor04400_Fn078D4(Task* arg0);
 static void Actor04400_Fn07968(Task* arg0);
 static void Actor04400_Fn07984(Task* arg0);
 static void Actor04400_Fn07A38(Task* arg0);
@@ -277,14 +275,12 @@ static void Actor04400_Fn07D78(Task* arg0);
 static void Actor04400_Fn07E00(Task* arg0);
 static void Actor04400_Fn07E74(Task* arg0);
 static void Actor04400_Fn07F04(Task* arg0);
-static void Actor04400_Fn07F6C(Task* arg0);
 static void Actor04400_Fn07FD0(Task* arg0);
 static void Actor04400_Fn08094(Task* arg0);
 static void Actor04400_Fn080E8(Task* arg0);
 static void Actor04400_Fn08160(Task* arg0);
 static void Actor04400_Fn08208(Task* arg0);
 static void Actor04400_Fn0823C(Task* arg0);
-static void Actor04400_Fn08290(Task* arg0);
 static void Actor04400_Fn082E0(Task* arg0);
 static void Actor04400_Fn08358(Task* arg0);
 static void Actor04400_Fn083CC(Task* arg0);
@@ -295,10 +291,8 @@ static void Actor04400_Fn087E0(Task* arg0);
 static void Actor04400_Fn08870(Task* arg0);
 static void Actor04400_Fn08908(Task* arg0);
 static void Actor04400_Fn089C0(Task* arg0);
-static void Actor04400_Fn08A40(Task* arg0);
 static void Actor04400_Fn08A9C(Task* arg0);
 static void Actor04400_Fn08AA4(Task* arg0);
-static void Actor04400_Fn08B3C(Task* arg0);
 static void Actor04400_Fn08C08(Task* arg0);
 static void Actor04400_Fn08C64(Task* arg0);
 static void Actor04400_Fn08DA4(Task* arg0);
@@ -956,7 +950,6 @@ static __inline__ void Actor04400_UpdateRotation(Task* arg0);
 static __inline__ s16  Actor04400_PickStep(s16 step, s16 push);
 static __inline__ void Actor04400_CalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
 static void            Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
-static void            Actor04400_Fn006A8(Task* arg0);
 static void            Actor04400_Fn03390(Task* arg0);
 
 /// Puts the task in `state` with its work block's state machine reset to 0/0.
@@ -1243,7 +1236,7 @@ static const TaskFuncTable3 Actor04400_D0007C = { {
 
 /// Sub-state handlers `Actor04400_Fn068F8` dispatches by `field_422`.
 static const TaskFuncTable5 Actor04400_D00088 = { {
-    Actor04400_Fn06EEC,
+    hopperStartLeap,
     Actor04400_Fn017B0,
     Actor04400_Fn01B70,
     Actor04400_Fn01CA0,
@@ -1342,7 +1335,7 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
     }
 }
 
-static void Actor04400_Fn006A8(Task* arg0)
+void hopperSpawnGibs(Task* arg0)
 {
     GpEffWork* eff;
     GpEffWork* eff2;
@@ -2273,7 +2266,7 @@ static const TaskFuncTable9 Actor04400_D000EC = { {
     Actor04400_Fn0304C,
     Actor04400_Fn07878,
     Actor04400_Fn07890,
-    Actor04400_Fn078D4,
+    hopperBurst,
 } };
 
 /// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model, 0 runs the current state handler
@@ -2490,7 +2483,7 @@ static void Actor04400_Fn03538(Task* arg0)
 
 /// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
-    Actor04400_Fn07F6C,
+    hopperStartHold,
     Actor04400_Fn07FD0,
     Actor04400_Fn08094,
 } };
@@ -2504,7 +2497,7 @@ static const TaskFuncTable3 Actor04400_D0015C = { {
 
 /// Sub-state handlers `Actor04400_Fn07E74` dispatches by `field_422`.
 static const TaskFuncTable3 Actor04400_D00168 = { {
-    Actor04400_Fn08290,
+    hopperStartAlert,
     Actor04400_Fn082E0,
     Actor04400_Fn03B34,
 } };
@@ -2546,7 +2539,7 @@ static const TaskFuncTable5 Actor04400_D001C4 = { {
     Actor04400_Fn08870,
     Actor04400_Fn08908,
     Actor04400_Fn089C0,
-    Actor04400_Fn08A40,
+    hopperDropBodies,
     Actor04400_Fn08A9C,
 } };
 
@@ -2555,7 +2548,7 @@ static const TaskFuncTable7 Actor04400_D001D8 = { {
     Actor04400_Fn08AA4,
     Actor04400_Fn08908,
     Actor04400_Fn089C0,
-    Actor04400_Fn08B3C,
+    hopperBeginShrink,
     Actor04400_Fn08C08,
     Actor04400_Fn08C64,
     Actor04400_Fn08DA4,
@@ -4091,33 +4084,7 @@ static void Actor04400_Fn06DFC(Task* arg0)
     }
 }
 
-/// Seeds the model's root coord.t[1] from
-/// the animation's, then resets the whole animation/state block. The `tmp`
-/// variable is deliberate - reusing one halfword for 8 and then 1 is what the
-/// original did, and it is what puts both constants in the same register.
-static void Actor04400_Fn06EEC(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    s16              tmp;
-
-    work             = (Actor104400Work*)arg0->work;
-    work->field_92   = (u16)arg0->extra.tmd->coords->coord.t[1];
-    work2            = (Actor104400Work*)arg0->work;
-    tmp              = 8;
-    work2->field_426 = tmp;
-    work2->field_418 = tmp;
-    work2->field_41C = 0x10;
-    tmp              = 1;
-    work2->field_414 = tmp;
-    work->field_412  = 0;
-    work->field_428  = 0;
-    work->field_42A  = -0x12C;
-    work->field_440  = tmp;
-    work->field_438  = 0;
-    work->field_432  = 0;
-    work->field_422  = work->field_422 + 1;
-}
+#include "../../shared/hopping_enemy_start_leap.inc.c"
 
 /// Counts `field_412` up, clearing the death flag `field_438` on the way. On
 /// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
@@ -4460,29 +4427,7 @@ static void Actor04400_Fn07890(Task* arg0)
     }
 }
 
-static void Actor04400_Fn078D4(Task* arg0)
-{
-    Actor104400Work* work;
-    Actor104400Work* work2;
-    TmdObject*       model;
-    GpEnemy*         enemy;
-
-    model = arg0->extra.tmd;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    Tmd_FreeBuffers(model);
-    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    Actor04400_Fn006A8(arg0);
-    Gp_ReleaseStateF0Add(arg0, 0);
-    enemy->recs = 0;
-    work        = (Actor104400Work*)arg0->work;
-    Gp_UnlinkObj(&work->obj_2AC);
-    Gp_UnlinkObj(&work->obj_2CC);
-    Gp_UnlinkObj(&work->obj_3AC);
-    work2            = (Actor104400Work*)arg0->work;
-    arg0->state      = 5;
-    work2->field_420 = 0;
-    work2->field_422 = 0;
-}
+#include "../../shared/hopping_enemy_burst.inc.c"
 
 static void Actor04400_Fn07968(Task* arg0)
 {
@@ -4668,19 +4613,7 @@ static void Actor04400_Fn07F04(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-static void Actor04400_Fn07F6C(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-
-    work->field_426 = 4;
-    work->field_41C = 0x10;
-    work->field_418 = 1;
-    work->field_414 = 1;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_446 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-    work->field_412 = 0;
-    work->field_422 = work->field_422 + 1;
-}
+#include "../../shared/hopping_enemy_start_hold.inc.c"
 
 /// Counts `field_412` against the hold `field_446`; once it runs out, enters
 /// state 4 or 1 at random. Before that, a target under 0xDAC away enters
@@ -4816,19 +4749,7 @@ static void Actor04400_Fn0823C(Task* arg0)
     }
 }
 
-/// Requests animation 0xF (kind 1, speed 0x10, `field_426` 8), advances the
-/// sub-state and arms `Gp_StateF0`.
-static void Actor04400_Fn08290(Task* arg0)
-{
-    Actor104400Work* work = (Actor104400Work*)arg0->work;
-
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 0xF;
-    work->field_414 = 1;
-    work->field_422 = work->field_422 + 1;
-    Gp_ArmStateF0(1);
-}
+#include "../../shared/hopping_enemy_start_alert.inc.c"
 
 static void Actor04400_Fn082E0(Task* arg0)
 {
@@ -5105,20 +5026,7 @@ static void Actor04400_Fn089C0(Task* arg0)
     }
 }
 
-static void Actor04400_Fn08A40(Task* arg0)
-{
-    Actor104400Work* work2;
-    Actor104400Work* work;
-
-    work                                      = (Actor104400Work*)arg0->work;
-    ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
-    work2                                     = (Actor104400Work*)arg0->work;
-    Gp_UnlinkObj(&work2->obj_2AC);
-    Gp_UnlinkObj(&work2->obj_2CC);
-    Gp_UnlinkObj(&work2->obj_3AC);
-    work->field_412 = 0;
-    work->field_420 = work->field_420 + 1;
-}
+#include "../../shared/hopping_enemy_drop_bodies.inc.c"
 
 static void Actor04400_Fn08A9C(Task* arg0)
 {
@@ -5140,36 +5048,7 @@ static void Actor04400_Fn08AA4(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// Starts the death squash: drops the enemy's contact records, unlinks the
-/// three collision objects, snapshots the root coordinate into `matrix_0`
-/// with `field_430` at 0x1000, switches the light mode to 1, clears the frame
-/// counter and advances the state.
-///
-/// `work` is declared before `coord` on purpose: sched1 promotes all four
-/// loads to `LAUNCH_PRIORITY` and breaks that tie by descending `INSN_LUID`,
-/// so the order the initialisers are emitted in is the order the loads land.
-static void Actor04400_Fn08B3C(Task* arg0)
-{
-    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    Actor104400Work* work  = (Actor104400Work*)arg0->work;
-    GfxCoord*        coord = arg0->extra.tmd->coords;
-    Actor104400Work* objWork;
-
-    enemy->recs = 0;
-
-    objWork = (Actor104400Work*)arg0->work;
-    Gp_UnlinkObj(&objWork->obj_2AC);
-    Gp_UnlinkObj(&objWork->obj_2CC);
-    Gp_UnlinkObj(&objWork->obj_3AC);
-
-    work->field_430 = 0x1000;
-    work->matrix_0  = coord->coord;
-
-    Gp_SetLightMode(arg0->spawnArg2.pointer, 1);
-
-    work->field_412 = 0;
-    work->field_420++;
-}
+#include "../../shared/hopping_enemy_begin_shrink.inc.c"
 
 /// Waits 0x18 frames on `field_412`, then hides the model by setting bit 1 of
 /// `TmdObject.flags`. Body is identical to `Actor04400_Fn0781C`'s.

@@ -25,4 +25,14 @@ void hopperPinPart(Task* arg0, s16 part, SVECTOR3* pos);
 void hopperBeginDeath(Task* arg0);
 void hopperCreepUntilHit(Task* arg0);
 
+void hopperStartLeap(Task* arg0);
+void hopperStartHold(Task* arg0);
+void hopperStartAlert(Task* arg0);
+void hopperBurst(Task* arg0);
+void hopperDropBodies(Task* arg0);
+void hopperBeginShrink(Task* task);
+
+/* Defined by each package. */
+void hopperSpawnGibs(Task* arg0);
+
 #endif /* SRC_SHARED_HOPPING_ENEMY_H */

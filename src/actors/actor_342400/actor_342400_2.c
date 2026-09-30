@@ -147,7 +147,6 @@ static void func_actor_342400_80169DA4(Task* arg0);
 static void func_actor_342400_80169E24(Task* arg0);
 static void func_actor_342400_80169EC4(Task* arg0);
 static void func_actor_342400_80169F30(Task* arg0);
-static void func_actor_342400_8016A020(Task* arg0);
 static void func_actor_342400_8016A084(Task* arg0);
 static void func_actor_342400_8016A184(Task* arg0);
 static void func_actor_342400_8016A240(Task* arg0);
@@ -163,7 +162,6 @@ static void func_actor_342400_8016A804(Task* arg0);
 static void func_actor_342400_8016A950(Task* arg0);
 static void func_actor_342400_8016A9AC(Task* arg0);
 static void func_actor_342400_8016A9C4(Task* arg0);
-static void func_actor_342400_8016AA08(Task* arg0);
 static void func_actor_342400_8016AA9C(Task* arg0);
 static void func_actor_342400_8016AAB8(Task* arg0);
 static void func_actor_342400_8016AB6C(Task* arg0);
@@ -174,14 +172,12 @@ static void func_actor_342400_8016AEAC(Task* arg0);
 static void func_actor_342400_8016AF34(Task* arg0);
 static void func_actor_342400_8016AFA8(Task* arg0);
 static void func_actor_342400_8016B038(Task* arg0);
-static void func_actor_342400_8016B0A0(Task* arg0);
 static void func_actor_342400_8016B104(Task* arg0);
 static void func_actor_342400_8016B1C8(Task* arg0);
 static void func_actor_342400_8016B21C(Task* arg0);
 static void func_actor_342400_8016B294(Task* arg0);
 static void func_actor_342400_8016B33C(Task* arg0);
 static void func_actor_342400_8016B370(Task* arg0);
-static void func_actor_342400_8016B3C4(Task* arg0);
 static void func_actor_342400_8016B414(Task* arg0);
 static void func_actor_342400_8016B48C(Task* arg0);
 static void func_actor_342400_8016B500(Task* arg0);
@@ -192,10 +188,8 @@ static void func_actor_342400_8016B914(Task* arg0);
 static void func_actor_342400_8016B9A4(Task* arg0);
 static void func_actor_342400_8016BA3C(Task* arg0);
 static void func_actor_342400_8016BAF4(Task* arg0);
-static void func_actor_342400_8016BB74(Task* arg0);
 static void func_actor_342400_8016BBD0(Task* arg0);
 static void func_actor_342400_8016BBD8(Task* arg0);
-static void func_actor_342400_8016BC70(Task* task);
 static void func_actor_342400_8016BD3C(Task* arg0);
 static void func_actor_342400_8016BD98(Task* arg0);
 static void func_actor_342400_8016BED8(Task* arg0);
@@ -259,7 +253,7 @@ static const TaskFuncTable3 D_actor_342400_80161EE0 = { {
 
 /// Sub-state handlers `func_actor_342400_80169A2C` dispatches by `field_422`.
 static const TaskFuncTable5 D_actor_342400_80161EEC = { {
-    func_actor_342400_8016A020,
+    hopperStartLeap,
     func_actor_342400_801648E4,
     func_actor_342400_80164CA4,
     func_actor_342400_80164DD4,
@@ -860,7 +854,6 @@ u16 gHopperWaveEnemyCount = 0;
 extern void* D_800678F0[1];
 
 static void            func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
-static void            func_actor_342400_801637DC(Task* arg0);
 static __inline__ void enter_state(Task* arg0, s32 state);
 static __inline__ void update_color(void* enemy, GfxCoord* coord);
 static __inline__ s16  take_hit(Task* arg0);
@@ -955,7 +948,7 @@ static void func_actor_342400_80163354(Task* task, s16 firstJoint, s16 secondJoi
  * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
  * store cannot alias the `TmdObject` loads and sinks it past them. */
 
-static void func_actor_342400_801637DC(Task* arg0)
+void hopperSpawnGibs(Task* arg0)
 {
     GpEffWork* eff;
     GpEffWork* eff2;
@@ -2009,7 +2002,7 @@ static const TaskFuncTable9 D_actor_342400_80161F50 = { {
     func_actor_342400_80166180,
     func_actor_342400_8016A9AC,
     func_actor_342400_8016A9C4,
-    func_actor_342400_8016AA08,
+    hopperBurst,
 } };
 
 /// Per-frame callback of the main enemy. `Gp_StateF0.field_4` 2 hides the model,
@@ -2279,7 +2272,7 @@ static void func_actor_342400_8016666C(Task* arg0)
 
 /// Sub-state handlers `func_actor_342400_8016AE24` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FB4 = { {
-    func_actor_342400_8016B0A0,
+    hopperStartHold,
     func_actor_342400_8016B104,
     func_actor_342400_8016B1C8,
 } };
@@ -2293,7 +2286,7 @@ static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
 
 /// Sub-state handlers `func_actor_342400_8016AF34` dispatches by `field_422`.
 static const TaskFuncTable3 D_actor_342400_80161FCC = { {
-    func_actor_342400_8016B3C4,
+    hopperStartAlert,
     func_actor_342400_8016B414,
     func_actor_342400_80166C68,
 } };
@@ -2337,7 +2330,7 @@ static const TaskFuncTable5 D_actor_342400_80162028 = { {
     func_actor_342400_8016B9A4,
     func_actor_342400_8016BA3C,
     func_actor_342400_8016BAF4,
-    func_actor_342400_8016BB74,
+    hopperDropBodies,
     func_actor_342400_8016BBD0,
 } };
 
@@ -2347,7 +2340,7 @@ static const TaskFuncTable7 D_actor_342400_8016203C = { {
     func_actor_342400_8016BBD8,
     func_actor_342400_8016BA3C,
     func_actor_342400_8016BAF4,
-    func_actor_342400_8016BC70,
+    hopperBeginShrink,
     func_actor_342400_8016BD3C,
     func_actor_342400_8016BD98,
     func_actor_342400_8016BED8,
@@ -3769,32 +3762,7 @@ static void func_actor_342400_80169F30(Task* arg0)
     }
 }
 
-/// Saves the root Y as the ground height in `field_92`, requests animation 8
-/// at speed 0x10, clears the frame counter and the motion halfwords, sets
-/// `field_440` and advances the sub-state.
-static void func_actor_342400_8016A020(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    s16              tmp;
-
-    work             = (Actor341700Work*)arg0->work;
-    work->field_92   = (u16)arg0->extra.tmd->coords->coord.t[1];
-    work2            = (Actor341700Work*)arg0->work;
-    tmp              = 8;
-    work2->field_426 = tmp;
-    work2->field_418 = tmp;
-    work2->field_41C = 0x10;
-    tmp              = 1;
-    work2->field_414 = tmp;
-    work->field_412  = 0;
-    work->field_428  = 0;
-    work->field_42A  = -0x12C;
-    work->field_440  = tmp;
-    work->field_438  = 0;
-    work->field_432  = 0;
-    work->field_422  = work->field_422 + 1;
-}
+#include "../../shared/hopping_enemy_start_leap.inc.c"
 
 /// Plays sound 4 on the first frame; once the hit flags are set, draws a
 /// 0x5A..0xD9 cooldown into `field_44A` and moves the state machine to
@@ -4126,29 +4094,7 @@ static void func_actor_342400_8016A9C4(Task* arg0)
     }
 }
 
-static void func_actor_342400_8016AA08(Task* arg0)
-{
-    Actor341700Work* work;
-    Actor341700Work* work2;
-    TmdObject*       model;
-    GpEnemy*         enemy;
-
-    model = arg0->extra.tmd;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
-    Tmd_FreeBuffers(model);
-    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    func_actor_342400_801637DC(arg0);
-    Gp_ReleaseStateF0Add(arg0, 0);
-    enemy->recs = 0;
-    work        = (Actor341700Work*)arg0->work;
-    Gp_UnlinkObj(&work->obj_2AC);
-    Gp_UnlinkObj(&work->obj_2CC);
-    Gp_UnlinkObj(&work->obj_3AC);
-    work2            = (Actor341700Work*)arg0->work;
-    arg0->state      = 5;
-    work2->field_420 = 0;
-    work2->field_422 = 0;
-}
+#include "../../shared/hopping_enemy_burst.inc.c"
 
 static void func_actor_342400_8016AA9C(Task* arg0)
 {
@@ -4322,24 +4268,7 @@ static void func_actor_342400_8016B038(Task* arg0)
     sp.funcs[(s16)work->field_422](arg0);
 }
 
-/// Requests animation 1, draws a 0x60..0x9F frame hold into `field_446`,
-/// clears the frame counter and advances the sub-state.
-static void func_actor_342400_8016B0A0(Task* arg0)
-{
-    Actor341700Work* work;
-
-    work            = (Actor341700Work*)arg0->work;
-    work->field_426 = 4;
-    work->field_41C = 0x10;
-    work->field_418 = 1;
-    work->field_414 = 1;
-    /* Rolling the LCG through the global rather than an m2c temporary is what
-     * hoists its `lw` above the field stores; see DECOMPILATION_LEARNINGS.md. */
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_446 = ((Gp_LcgState >> 16) & 0x3F) + 0x60;
-    work->field_412 = 0;
-    work->field_422 = work->field_422 + 1;
-}
+#include "../../shared/hopping_enemy_start_hold.inc.c"
 
 /// Once the hold in `field_446` runs out, picks state 4 or 1 at random.
 /// Before that, a player actor within 0xDAC moves the state machine to
@@ -4481,18 +4410,7 @@ static void func_actor_342400_8016B370(Task* arg0)
     }
 }
 
-/// Requests animation 0xF, advances the sub-state and arms `Gp_StateF0`.
-static void func_actor_342400_8016B3C4(Task* arg0)
-{
-    Actor341700Work* work = (Actor341700Work*)arg0->work;
-
-    work->field_426 = 8;
-    work->field_41C = 0x10;
-    work->field_418 = 0xF;
-    work->field_414 = 1;
-    work->field_422 = work->field_422 + 1;
-    Gp_ArmStateF0(1);
-}
+#include "../../shared/hopping_enemy_start_alert.inc.c"
 
 /// Once the hit flags are set, marks the enemy busy (`field_438`), requests
 /// animation 4 and advances the sub-state.
@@ -4759,22 +4677,7 @@ static void func_actor_342400_8016BAF4(Task* arg0)
     }
 }
 
-/// Detaches the enemy's records and unlinks its three hit bodies, clears the
-/// frame counter and advances the state.
-static void func_actor_342400_8016BB74(Task* arg0)
-{
-    Actor341700Work* work2;
-    Actor341700Work* work;
-
-    work                                      = (Actor341700Work*)arg0->work;
-    ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
-    work2                                     = (Actor341700Work*)arg0->work;
-    Gp_UnlinkObj(&work2->obj_2AC);
-    Gp_UnlinkObj(&work2->obj_2CC);
-    Gp_UnlinkObj(&work2->obj_3AC);
-    work->field_412 = 0;
-    work->field_420 = work->field_420 + 1;
-}
+#include "../../shared/hopping_enemy_drop_bodies.inc.c"
 
 /// Empty state handler.
 static void func_actor_342400_8016BBD0(Task* arg0)
@@ -4796,31 +4699,7 @@ static void func_actor_342400_8016BBD8(Task* arg0)
     work->field_420 = work->field_420 + 1;
 }
 
-/// Starts the death shrink, the same body as `hopperBeginDeath`:
-/// detaches the records, unlinks the three hit bodies, sets the Y scale to
-/// 1.0, saves the root matrix, sets light mode 1 and advances the state.
-static void func_actor_342400_8016BC70(Task* task)
-{
-    GpEnemy*         enemy = (GpEnemy*)task->spawnArg2.pointer;
-    Actor341700Work* work  = (Actor341700Work*)task->work;
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor341700Work* objWork;
-
-    enemy->recs = 0;
-
-    objWork = (Actor341700Work*)task->work;
-    Gp_UnlinkObj(&objWork->obj_2AC);
-    Gp_UnlinkObj(&objWork->obj_2CC);
-    Gp_UnlinkObj(&objWork->obj_3AC);
-
-    work->field_430    = 0x1000;
-    work->savedRootMtx = coord->coord;
-
-    Gp_SetLightMode(task->spawnArg2.pointer, 1);
-
-    work->field_412 = 0;
-    work->field_420++;
-}
+#include "../../shared/hopping_enemy_begin_shrink.inc.c"
 
 /// After 0x18 frames sets model flag 2, clears the frame counter, sets
 /// `field_451` and advances the state.
