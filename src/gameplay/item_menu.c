@@ -1297,33 +1297,33 @@ void Gp_ItemPickupTilt(Task* arg0)
     VECTOR       vec2;
     MATRIX*      mem;
     GpCmdReply*  done;
-    u32          mapId;
+    u32          stageAreaKey;
     s32          room;
     s32          check;
     u16          item;
 
-    extra   = arg0->extra.tmd;
-    obj     = arg0->spawnArg2.pointer;
-    session = gGameSession;
-    mapId   = GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
-    item    = obj->field_A;
-    coord   = extra->coords;
-    rot     = coord + 2;
-    room    = *&session->location.loc.view;
+    extra        = arg0->extra.tmd;
+    obj          = arg0->spawnArg2.pointer;
+    session      = gGameSession;
+    stageAreaKey = GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
+    item         = obj->field_A;
+    coord        = extra->coords;
+    rot          = coord + 2;
+    room         = *&session->location.loc.view;
     if (Gp_StateF0.field_4 == 2) {
         extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    mapId &= 0xFFFF0000;
-    if (mapId == 0x4100000) {
+    stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
+    if (stageAreaKey == GAME_LOCATION_KEY(4, 16, 0, 0)) {
         if ((u32)(room - 8) >= 2) {
             extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
-    } else if (mapId == 0x41F0000) {
+    } else if (stageAreaKey == GAME_LOCATION_KEY(4, 31, 0, 0)) {
         check = 3;
         goto compare_room;
-    } else if (mapId == 0x4140000) {
+    } else if (stageAreaKey == GAME_LOCATION_KEY(4, 20, 0, 0)) {
         check = 0x11;
     compare_room:
         if (room != check) {
@@ -1348,49 +1348,49 @@ void Gp_ItemPickupTilt(Task* arg0)
         if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
             if (arg0->status != 0) {
                 arg0->killCountdown = 0;
-                switch (mapId) {
-                    case 0x1060000: {
+                switch (stageAreaKey) {
+                    case GAME_LOCATION_KEY(1, 6, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x51060009, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
-                    case 0x10C0000: {
+                    case GAME_LOCATION_KEY(1, 12, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x510C0005, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     }
-                    case 0x21B0000: {
+                    case GAME_LOCATION_KEY(2, 27, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x521B000B, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
-                    case 0x31B0000: {
+                    case GAME_LOCATION_KEY(3, 27, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x531B000B, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
-                    case 0x4100000: {
+                    case GAME_LOCATION_KEY(4, 16, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x54100012, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
-                    case 0x41F0000: {
+                    case GAME_LOCATION_KEY(4, 31, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x541F0015, temp,
                                             (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                         break;
                     }
-                    case 0x4270000: {
+                    case GAME_LOCATION_KEY(4, 39, 0, 0): {
                         s32 temp;
                         temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                         SndEvt_EnqueueType6(0x54270008, temp,
@@ -1416,45 +1416,45 @@ void Gp_ItemPickupTilt(Task* arg0)
         }
     } else if (arg0->state >= 3) {
         if (arg0->state == 3) {
-            switch (mapId) {
-                case 0x1060000: {
+            switch (stageAreaKey) {
+                case GAME_LOCATION_KEY(1, 6, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x5106000A, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
-                case 0x10C0000: {
+                case GAME_LOCATION_KEY(1, 12, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x510C0006, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
-                case 0x21B0000:
+                case GAME_LOCATION_KEY(2, 27, 0, 0):
                     break;
-                case 0x31B0000: {
+                case GAME_LOCATION_KEY(3, 27, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x531B000C, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
-                case 0x4100000: {
+                case GAME_LOCATION_KEY(4, 16, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x54100013, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
-                case 0x41F0000: {
+                case GAME_LOCATION_KEY(4, 31, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x541F0016, temp,
                                         (s8)gpGetObjDepth(arg0->extra.tmd->coords));
                     break;
                 }
-                case 0x4270000: {
+                case GAME_LOCATION_KEY(4, 39, 0, 0): {
                     s32 temp;
                     temp = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
                     SndEvt_EnqueueType6(0x54270009, temp,

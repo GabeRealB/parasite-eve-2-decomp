@@ -1542,7 +1542,7 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
     GfxCoord*       coord;
     TmdObject*      obj;
     s32             id;
-    s32             map;
+    s32             stageAreaKey;
     u16             count;
 
     work  = arg1->work;
@@ -1574,8 +1574,8 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
                 arg1->state = 2;
             }
         }
-        map = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-        if (map != 0x3260000 && map != 0x4070000 && map != 0x4010000) {
+        stageAreaKey = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        if (stageAreaKey != GAME_LOCATION_KEY(3, 38, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 7, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 1, 0, 0)) {
             if (coord->coord.t[1] >= 0x65) {
                 coord->coord.t[1] = -0xA;
             }

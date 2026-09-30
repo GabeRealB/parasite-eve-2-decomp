@@ -2718,7 +2718,7 @@ static void func_actor_342400_801673F8(Task* arg0)
     Actor341700Work* w2;
     s32              id;
     s32              pan;
-    u32              map;
+    u32              stageAreaKey;
 
     if ((work->field_44C & 0xF) == 1) {
         work->field_451      = 1;
@@ -2730,8 +2730,8 @@ static void func_actor_342400_801673F8(Task* arg0)
             obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         enemy->node.state.b.flags = 0;
-        map                       = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-        if (map == 0x4270000) {
+        stageAreaKey              = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        if (stageAreaKey == GAME_LOCATION_KEY(4, 39, 0, 0)) {
             // The 7C store follows 7A here; written first, it schedules
             // ahead of the heading load.
             work->field_78    = 0;
@@ -2743,7 +2743,7 @@ static void func_actor_342400_801673F8(Task* arg0)
             id                = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x54270006;
             pan               = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-        } else if (map == 0x4280000) {
+        } else if (stageAreaKey == GAME_LOCATION_KEY(4, 40, 0, 0)) {
             work->field_78    = 0;
             work->field_7A    = (D_shelter_b3_garbage_incinerator_801874C4[(work->field_44C >> 8) & 0xF].heading + 0x800) & 0xFFF;
             work->field_7C    = 0;

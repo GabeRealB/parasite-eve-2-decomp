@@ -1043,7 +1043,7 @@ static void Actor02600_Fn00A94(Task* actor)
     s32              pan0;
     s32              pan1;
     s32              pan2;
-    s32              sessionFlags;
+    s32              locationWord;
     s32              dx;
     s32              dz;
     s32              value;
@@ -1057,7 +1057,7 @@ static void Actor02600_Fn00A94(Task* actor)
     coord                                                                     = actor->extra.tmd->coords;
     work                                                                      = actor->work;
     state                                                                     = work->field_39C;
-    sessionFlags                                                              = GAME_LOCATION_WORD(gGameSession->location.loc);
+    locationWord                                                              = GAME_LOCATION_WORD(gGameSession->location.loc);
     value                                                                     = 0;
     switch (state) {
         case 0:
@@ -1084,7 +1084,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(Actor02600_D08950, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                if ((sessionFlags & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
+                if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
@@ -1108,7 +1108,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(Actor02600_D08950, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                if ((sessionFlags & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
+                if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
                     sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));

@@ -7,11 +7,18 @@
 
 struct Task;
 
-/// Reads the view/room/area/stage prefix as one PS1 little-endian word.
+/// Reads a location's stage, area, room and view as a `u32` comparison value.
 ///
-/// Requires an addressable, word-aligned `GameLocationKey` instance. Evaluates
-/// `key` once; warp and variant are outside this four-byte view.
-#define GAME_LOCATION_WORD(key) (*(u32*)&(key))
+/// The PS1 little-endian representation puts stage in bits 31..24, area in
+/// 23..16, room in 15..8 and view in 7..0, matching `GAME_LOCATION_KEY`.
+/// Warp and variant are excluded. Mask the bytes a comparison should ignore.
+///
+/// `key` must be an addressable `GameLocationKey` whose first four bytes are
+/// initialized and whose address is word-aligned; the key type itself is only
+/// byte-aligned. Evaluates `key` once and exposes a read-only `const u32`
+/// lvalue. The pointer cast deliberately views the four-byte representation
+/// prefix; the six-byte key retains its layout and byte alignment.
+#define GAME_LOCATION_WORD(key) (*(const u32*)&(key))
 
 /// Packs a location prefix or area-layout selector into a `u32` comparison key.
 ///

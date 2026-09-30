@@ -1246,7 +1246,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     ActorsShared801385e0Scale scale;
     s8                        entryId;
     u32                       actorId;
-    u32                       map;
+    u32                       locationWord;
     u16                       hp;
     s32                       i;
     GfxCoord*                 endCoords;
@@ -1260,7 +1260,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         return;
     }
 
-    map = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
+    locationWord = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
     SOFT_BARRIER();
     param1[2] = 0xA;
     param2[0] = 0xB;
@@ -1268,7 +1268,7 @@ static void Actor01100_Fn0097C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;
-    if ((map & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0)) {
+    if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0)) {
         param1[0]       = 2;
         work->field_BB8 = 1;
     } else {
@@ -3680,18 +3680,18 @@ static void Actor01100_Fn06198(Task* task)
     GfxCoord*                 coord;
     GfxCoord*                 soundCoord;
     Task*                     child;
-    u32                       map;
+    u32                       stageAreaKey;
     s32                       flag;
     s32                       id;
     s16                       countdown;
 
-    work       = task->work;
-    map        = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
-    map       &= GAME_LOCATION_STAGE_AREA_MASK;
-    coord      = task->extra.tmd->coords;
-    soundCoord = coord;
-    d4         = &work->rec;
-    flag       = map == GAME_LOCATION_KEY(3, 32, 0, 0);
+    work          = task->work;
+    stageAreaKey  = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc);
+    stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
+    coord         = task->extra.tmd->coords;
+    soundCoord    = coord;
+    d4            = &work->rec;
+    flag          = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     if (Gp_StateF0.field_4 == 0) {
         d4->end1.vx         = -work->vel.vx;
         d4->end1.vy         = -work->vel.vy;
@@ -3741,17 +3741,17 @@ static void Actor01100_Fn0638C(Task* task)
     s32                       soundBase;
     WorldCollisionContact*    rec;
     ActorsShared80137fb8Work* work;
-    s32                       area;
+    s32                       stageAreaKey;
     s32                       sound;
     s32                       pan;
     WorldCollisionBody*       obj;
     GfxCoord*                 coord;
     GpMtxWords*               rotation;
 
-    coord   = task->extra.tmd->coords;
-    area    = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
-    variant = area == 0x03200000;
-    work    = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
+    coord        = task->extra.tmd->coords;
+    stageAreaKey = GAME_LOCATION_WORD(Mc_SaveData[0].state.at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+    variant      = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
+    work         = memCalloc(sizeof(ActorsShared80137fb8Work), 0);
     if (work == NULL) {
         Task_CallExit(task);
         return;

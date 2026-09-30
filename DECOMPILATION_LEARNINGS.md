@@ -35207,16 +35207,16 @@ That extra `sltu` appears when the pivot also has a right child. An empty
 that right child without emitting a body:
 
 ```c
-switch (mapId) {
-    case 0x1060000:
+switch (stageAreaKey) {
+    case GAME_LOCATION_KEY(1, 6, 0, 0):
         /* play start/end sound */
         break;
-    case 0x10C0000:
+    case GAME_LOCATION_KEY(1, 12, 0, 0):
         /* play */
         break;
-    case 0x21B0000:
+    case GAME_LOCATION_KEY(2, 27, 0, 0):
         break; /* no sound on this path; keeps the 10C pivot */
-    case 0x31B0000:
+    case GAME_LOCATION_KEY(3, 27, 0, 0):
         /* play */
         break;
 }
@@ -35229,7 +35229,7 @@ example.
 
 A `(s8)func()` result that must be `sll s0, v0, 24` / `sra s0, s0, 24` in
 the next `jal` delay needs its own block-scope temp (see “Scope a `| k`
-temp”). Reusing the switch index (`mapId = (s8)func()`) emits
+temp”). Reusing the switch index (`stageAreaKey = (s8)func()`) emits
 `sll v0, v0, 24` / `sra s0, v0, 24` instead.
 
 ## Pin the walker to `$a0` and the inner copy to `$a1`

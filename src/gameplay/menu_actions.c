@@ -926,19 +926,19 @@ void func_800CFD78(Task* arg0)
         D_80114DCC = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (D_80114DCC) {
-        case 0x1010000:
+        case GAME_LOCATION_KEY(1, 1, 0, 0):
             func_acropolis_square_8017F41C(arg0);
             break;
-        case 0x1020000:
+        case GAME_LOCATION_KEY(1, 2, 0, 0):
             func_acropolis_east_elevator_hall_8017F2F8(arg0);
             break;
-        case 0x1110000:
+        case GAME_LOCATION_KEY(1, 17, 0, 0):
             func_acropolis_west_elevator_hall_8017F304(arg0);
             break;
-        case 0x21E0000:
+        case GAME_LOCATION_KEY(2, 30, 0, 0):
             func_dryfield_motel_room_6_80181184(arg0);
             break;
-        case 0x31E0000:
+        case GAME_LOCATION_KEY(3, 30, 0, 0):
             func_dryfield_night_motel_room_6_801811A0(arg0);
             break;
         default:

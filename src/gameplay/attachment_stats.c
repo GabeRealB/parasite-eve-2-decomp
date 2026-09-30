@@ -1325,18 +1325,18 @@ void Gp_HudTask(GpIdMapC* arg0)
     Task*         slot;
     Task*         work;
     POLY_FT4*     poly;
-    s32           kind;
+    s32           stageAreaKey;
     s32           bad;
     s32           state;
     s32           sub;
     s32           n;
     s32           b;
 
-    bad   = 0;
-    kind  = GAME_LOCATION_WORD(gGameSession->location.loc);
-    kind &= GAME_LOCATION_STAGE_AREA_MASK;
-    cfg   = &Player_Status;
-    ds    = &gDisplayState;
+    bad           = 0;
+    stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
+    stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
+    cfg           = &Player_Status;
+    ds            = &gDisplayState;
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
         poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
@@ -1523,15 +1523,15 @@ after:
         }
         sub = arg0->field_4;
         if (sub == 0) {
-            s32 k;
+            s32 currentStageAreaKey;
 
             if (bad != 0) {
                 goto tail;
             }
-            k             = GAME_LOCATION_WORD(gGameSession->location.loc);
-            k            &= GAME_LOCATION_STAGE_AREA_MASK;
-            arg0->field_8 = 0;
-            if (k != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+            currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
+            currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
+            arg0->field_8        = 0;
+            if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 Display_InitModeObj(&D_8010CAB0, 0, arg0, 0x100);
             } else {
                 arg0->field_4 = arg0->field_4 + 1;
@@ -1577,7 +1577,7 @@ after:
             } else {
                 GameSession* session;
 
-                if (kind != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                if (stageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                     goto tail;
                 }
                 session = gGameSession;

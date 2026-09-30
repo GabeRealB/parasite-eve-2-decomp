@@ -116,13 +116,13 @@ static void Tmd_InitSourceStream(TmdSource* src)
     u32                    dims;
     _TmdModelStreamHandler handler;
     s32                    flag;
-    u32                    tmp;
+    u32                    locationDifference;
 
     stream = (TmdStreamWord*)src->stream;
     if (src->handlersResolved == TMD_SOURCE_HANDLERS_UNRESOLVED) {
-        tmp  = GAME_LOCATION_WORD(gGameSession->location.loc);
-        tmp  = (tmp & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(2, 16, 0, 0);
-        flag = tmp < 1;
+        locationDifference = GAME_LOCATION_WORD(gGameSession->location.loc);
+        locationDifference = (locationDifference & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(2, 16, 0, 0);
+        flag               = locationDifference < 1;
         goto read_id;
 
         for (;;) {
@@ -349,7 +349,7 @@ void tmdProcessStream(TmdObject* obj)
     _TmdModelStreamHandler handler;
     s32                    flag;
     void*                  buf;
-    u32                    hi;
+    u32                    stageAreaKey;
     TmdStreamWorkspace*    head;
     TmdStreamWorkspace*    tmp;
 
@@ -357,11 +357,11 @@ void tmdProcessStream(TmdObject* obj)
     src                                      = obj->source;
     tmp                                      = SCRATCH_STACK_CURSOR(TmdStreamWorkspace);
     stream                                   = src->stream;
-    hi                                       = GAME_LOCATION_WORD(gGameSession->location.loc);
+    stageAreaKey                             = GAME_LOCATION_WORD(gGameSession->location.loc);
     head                                     = tmp - 1;
-    hi                                      &= GAME_LOCATION_STAGE_AREA_MASK;
+    stageAreaKey                            &= GAME_LOCATION_STAGE_AREA_MASK;
     SCRATCH_STACK_CURSOR(TmdStreamWorkspace) = head;
-    if ((hi == GAME_LOCATION_KEY(2, 15, 0, 0)) || (hi == GAME_LOCATION_KEY(2, 16, 0, 0))) {
+    if ((stageAreaKey == GAME_LOCATION_KEY(2, 15, 0, 0)) || (stageAreaKey == GAME_LOCATION_KEY(2, 16, 0, 0))) {
         flag = 1;
     }
     ws = head;
