@@ -31,10 +31,11 @@
 
 #include "types.h"
 
+#include "../../shared/room_visual_effects.h"
+
 #include "../../shared/room_visual_effects.inc.c"
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
-#include "../../shared/room_visual_effects.h"
 
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;

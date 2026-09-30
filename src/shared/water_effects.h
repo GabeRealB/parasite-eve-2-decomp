@@ -8,6 +8,12 @@
  * ripple and drift tasks are static inline: gameplay's room effect
  * tables name each room's copy, so a room keeps its own entry point, which
  * calls the task.
+ *
+ * waterDriftTaskU16 is a second version of the drift task that passes the
+ * sprite index to its drawers unsigned; waterDrawSpinU16 and waterDrawTileU16
+ * are its drawers. A room whose drift uses other sprites defines those two
+ * itself, with its own prototypes, and defines WATER_OWN_U16_DRAWERS before
+ * including this header.
  */
 
 #ifndef SRC_SHARED_WATER_EFFECTS_H
@@ -19,6 +25,10 @@
 void waterDrawSplash(GfxCoord* arg0, s32 arg1, s32 arg2);
 void waterDrawSpin(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2);
+#ifndef WATER_OWN_U16_DRAWERS
+void waterDrawSpinU16(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
+void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
+#endif
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);
 

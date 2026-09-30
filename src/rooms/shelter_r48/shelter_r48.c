@@ -58,6 +58,12 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#define WATER_OWN_U16_DRAWERS
+#include "../../shared/water_effects.h"
+
+/* The drift task draws with this room's own sprites. */
+void waterDrawSpinU16(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -81,8 +87,6 @@ extern RoomRingShape D_shelter_r48_80182FE8[];
 
 static void func_shelter_r48_8017E1A4(Task* arg0);
 static void func_shelter_r48_8017E214(Task* task);
-static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2);
 static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part);
 static void func_shelter_r48_8018258C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -2290,7 +2294,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     mem   = (GpEffWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        func_shelter_r48_8017FF74(coord, (mem->age / 2) & 0xFFFF, 0x380);
+        waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
         if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -2318,7 +2322,7 @@ void func_shelter_r48_8017E4C4(Task* arg0)
             arg0->spawnArg1.value = 1;
             return;
         case 1:
-            func_shelter_r48_8017FF74(coord, (mem->age / 2) & 0xFFFF, 0x380);
+            waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
             if (!(mem->age & 1)) {
                 Gp_SpawnEff(0x6018B, coord, 0x1001400, NULL);
             }
@@ -2660,139 +2664,18 @@ static void func_shelter_r48_8017F124(GpEffWork* work, GfxCoord* coord, s32 part
     SCRATCH_STACK_RELEASE_BYTES(0x118);
 }
 
-/// Per-frame update of an effect task drawn with `func_shelter_r48_8017FB7C`
-/// (state 1) or `func_shelter_r48_8017FF74` (state 2). State 0 seeds the work
-/// from `spawnArg1`: the two draw parameters (the second one random), the frame
-/// period and, when the spawner left `move` zero, a velocity chosen by bits
-/// 24-27 of `spawnArg1`, normalised and scaled by `step` through the GTE. Later ticks draw, drift
-/// the coordinate by that velocity with `vy` growing by 6 each tick, and advance
-/// the frame every `period` ticks, releasing the task after frame 7. While an
-/// event is running the task only draws, and it is released once the event
-/// state reaches 4.
+#include "../../shared/water_drift_task_u16.inc.c"
+
 void func_shelter_r48_8017F6C0(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (task->state < 2) {
-                func_shelter_r48_8017FB7C(coord, work->index, work->scale, work->angle);
-            } else {
-                func_shelter_r48_8017FF74(coord, (u16)work->index, work->scale);
-            }
-            return;
-        }
-        Gp_ReleaseState1CMem(work, task);
-        return;
-    }
-    Gp_UpdateCoord(coord);
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
-            } else {
-                step = 1;
-            }
-            work->period = step;
-            work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
-            }
-            task->state = state;
-            if (((u16)work->move.vx | (u16)work->move.vy | (u16)work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
-                } else {
-                    level = 0x40;
-                }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
-                        work->step = 0;
-                        break;
-                    case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        break;
-                    case 5:
-                        work->move.vx = work->pos.vx;
-                        work->move.vy = work->pos.vy;
-                        work->move.vz = work->pos.vz;
-                        break;
-                }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
-            } else {
-                work->step = 0x40;
-            }
-            return;
-        case 1:
-            func_shelter_r48_8017FB7C(coord, work->index, work->scale, work->angle);
-            break;
-        case 2:
-            func_shelter_r48_8017FF74(coord, (u16)work->index, work->scale);
-            break;
-        default:
-            return;
-    }
-    if (work->step != 0) {
-        coord->coord.t[0]  += work->move.vx;
-        coord->coord.t[1]  += work->move.vy;
-        coord->coord.t[2]  += work->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
-    }
-    if ((work->age % work->period) == 0) {
-        work->index++;
-        if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
+    waterDriftTaskU16(task);
 }
 
 /// Projects the coordinate's world position and, if it is in front of the
 /// camera, queues a semi-transparent `POLY_FT4` centred on it. `arg1` selects
 /// a 32-texel column of the texture page, `arg3` is the quad's rotation and
 /// `arg2` its size, divided by depth so the quad shrinks with distance.
-static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
+void waterDrawSpinU16(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -2851,7 +2734,7 @@ static void func_shelter_r48_8017FB7C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
     SCRATCH_POP_BYTES_AT(scratch, 0x1C);
 }
 
-static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2)
+void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2)
 {
     GpRingScratch* block;
     POLY_FT4*      prim;

@@ -27,6 +27,12 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define WATER_OWN_U16_DRAWERS
+#include "../../shared/water_effects.h"
+
+/* The drift task draws with this room's own sprites. */
+void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
+void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2);
 
 /// Temporary projection and corner offsets for the room's spinning sprite.
 typedef struct {
@@ -45,8 +51,6 @@ extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
 static void func_shelter_b1_pod_service_gantry_8017DF70(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
-static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1, s16 arg2);
 
 s32 D_shelter_b1_pod_service_gantry_8018250C[3] = {
     0x10000011,
@@ -385,136 +389,11 @@ static void func_shelter_b1_pod_service_gantry_8017E400(GfxCoord* arg0, u16 arg1
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-/// Per-frame driver of a particle effect, a `Gp_State1C` effect task drawn
-/// through `func_shelter_b1_pod_service_gantry_8017ED3C` (state 1) or, when
-/// the spawn argument's top nibble is set,
-/// `func_shelter_b1_pod_service_gantry_8017F160` (state 2). The first tick
-/// takes the size from the argument's low 12 bits, a random spin angle, and
-/// the ticks per animation frame from bits 12-15 (1 when zero). Unless the
-/// work block already carries a velocity, it picks one by the kind in bits
-/// 24-27 (0 none, 1-3 random directions, 5 the block's stored direction),
-/// scaled to the speed in bits 16-23 (0x40 when zero). Every later tick
-/// refreshes the coordinate, draws, moves it by the velocity with 6 added to
-/// the vertical component, and releases the block after animation frame 7.
-/// During an event it only draws, releasing the block once the event state
-/// reaches 4.
+#include "../../shared/water_drift_task_u16.inc.c"
+
 void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
-
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            if (task->state < 2) {
-                func_shelter_b1_pod_service_gantry_8017ED3C(coord, work->index, work->scale, work->angle);
-            } else {
-                func_shelter_b1_pod_service_gantry_8017F160(coord, work->index, work->scale);
-            }
-            return;
-        }
-        Gp_ReleaseState1CMem(work, task);
-        return;
-    }
-    Gp_UpdateCoord(coord);
-    work->age++;
-    switch (task->state) {
-        case 0:
-            work->scale = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            if (task->spawnArg1.value & 0xF000) {
-                step = (task->spawnArg1.value >> 12) & 0xF;
-            } else {
-                step = 1;
-            }
-            work->period = step;
-            work->age    = 0;
-            state        = 1;
-            if (task->spawnArg1.value & 0xF0000000) {
-                state = 2;
-            }
-            task->state = state;
-            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                if (task->spawnArg1.value & 0xFF0000) {
-                    level = (task->spawnArg1.value >> 16) & 0xFF;
-                } else {
-                    level = 0x40;
-                }
-                work->step = level;
-                kind       = task->spawnArg1.signedBytes[3];
-                switch (kind & 0xF) {
-                    case 0:
-                        work->step = 0;
-                        break;
-                    case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        break;
-                    case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        break;
-                    case 5:
-                        work->move.vx = work->pos.vx;
-                        work->move.vy = work->pos.vy;
-                        work->move.vz = work->pos.vz;
-                        break;
-                }
-                vec = &work->move;
-                VectorNormalSS(vec, vec);
-                gte_lddp(work->step);
-                gte_ldsv(vec);
-                gte_gpf12();
-                gte_stsv(vec);
-            } else {
-                work->step = 0x40;
-            }
-            return;
-        case 1:
-            func_shelter_b1_pod_service_gantry_8017ED3C(coord, work->index, work->scale, work->angle);
-            break;
-        case 2:
-            func_shelter_b1_pod_service_gantry_8017F160(coord, work->index, work->scale);
-            break;
-        default:
-            return;
-    }
-    if (work->step != 0) {
-        coord->coord.t[0]  += work->move.vx;
-        coord->coord.t[1]  += work->move.vy;
-        coord->coord.t[2]  += work->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->move.vy      += 6;
-    }
-    if ((work->age % work->period) == 0) {
-        work->index++;
-        if (work->index >= 8) {
-            Gp_ReleaseState1CMem(work, task);
-        }
-    }
+    waterDriftTaskU16(task);
 }
 
 /// Draws a spinning, semi-transparent raw-texture quad around the projected coordinate.
@@ -524,7 +403,7 @@ void func_shelter_b1_pod_service_gantry_8017E880(Task* task)
 /// UV stores retain only their low byte. The projected radius is
 /// `radiusScale * 31 / otz`, with a nonzero depth required. `spinAngle` uses
 /// 0x1000 units per turn. The scratch block lives only during this draw.
-static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
+void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle)
 {
     void**                                          scratch;
     u8*                                             head;
@@ -591,7 +470,7 @@ static void func_shelter_b1_pod_service_gantry_8017ED3C(GfxCoord* coord, u16 tex
 /// non-negative, queues one shade-tex `POLY_FT4` (tpage 0x2B, clut 0x4393)
 /// with a 56-texel UV tile picked by `arg1` and an on-screen radius of
 /// `arg2 * 55 / otz`.
-static void func_shelter_b1_pod_service_gantry_8017F160(GfxCoord* arg0, u16 arg1, s16 arg2)
+void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2)
 {
     void**         scratch;
     u8*            head;

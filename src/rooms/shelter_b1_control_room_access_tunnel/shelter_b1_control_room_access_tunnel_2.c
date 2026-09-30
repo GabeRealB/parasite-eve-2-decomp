@@ -41,8 +41,9 @@
 
 #include "rooms/room.h"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
 #include "../../shared/room_visual_effects.h"
+
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b1_control_room_access_tunnel_80181F00[1] = {
     D_8010CAF8,

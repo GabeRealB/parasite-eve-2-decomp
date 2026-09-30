@@ -121,3 +121,5 @@ func_dryfield_night_water_hole_8017E6D0 = 0x8017E6D0; // type:func
 glowDrawShaft = 0x8017EA6C; // type:func
 waterDrawSplash = 0x8017F3A8; // type:func
 roomDepartureTask = 0x8017D7E8; // type:func
+waterDrawSpinU16 = 0x8017FB98; // type:func
+waterDrawTileU16 = 0x8017FF84; // type:func

@@ -29,10 +29,11 @@
 
 #include "types.h"
 
+#include "../../shared/room_visual_effects.h"
+
 #include "../../shared/room_visual_effects.inc.c"
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
-#include "../../shared/room_visual_effects.h"
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 

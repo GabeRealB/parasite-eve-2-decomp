@@ -81,3 +81,5 @@ func_dryfield_water_hole_8017F118 = 0x8017F118; // type:func
 func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func
 waterDrawSplash = 0x8017EDE4; // type:func
 glowDrawTaperedBeam = 0x8017E410; // type:func
+waterDrawSpinU16 = 0x8017F5D4; // type:func
+waterDrawTileU16 = 0x8017F9C0; // type:func

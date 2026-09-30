@@ -166,8 +166,6 @@ static void func_shelter_b2_main_corridor_8017E2D4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E330(Task* arg0);
 static void func_shelter_b2_main_corridor_8017E390(Task* arg0);
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
-static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80147E48;
 
@@ -2217,9 +2215,9 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (task->state < 2) {
-                func_shelter_b2_main_corridor_8017F860(coord, (u16)work->index, work->scale, work->angle);
+                waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             } else {
-                func_shelter_b2_main_corridor_8017FC4C(coord, (u16)work->index, work->scale);
+                waterDrawTileU16(coord, (u16)work->index, work->scale);
             }
             return;
         }
@@ -2297,10 +2295,10 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
             }
             return;
         case 1:
-            func_shelter_b2_main_corridor_8017F860(coord, (u16)work->index, work->scale, work->angle);
+            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            func_shelter_b2_main_corridor_8017FC4C(coord, (u16)work->index, work->scale);
+            waterDrawTileU16(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
@@ -2320,124 +2318,9 @@ void func_shelter_b2_main_corridor_8017F3AC(Task* task)
     }
 }
 
-/// Draws a spinning sprite at the coordinate's world position. The position is
-/// projected through `GsWSMATRIX`; if the projection is valid, one
-/// semi-transparent, unshaded `POLY_FT4` (tpage 0x2B, clut 0x43D3) is queued
-/// as a square rotated by angle `arg3` about the projected point, with
-/// on-screen half-diagonal `(s16)arg2 * 31 / otz`. `arg1` picks the 32-texel
-/// frame at u = `arg1 * 32`, v 0xE0 to 0xFF.
-static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              ang;
-    s32              ang2;
-    u16              vz;
+#include "../../shared/water_spin_u16.inc.c"
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    TOUCH_REG_USE(arg2, scratch);
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        ang            = (s16)arg3;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D3;
-        u0          = (arg1 & 0xFFFF) << 5;
-        setUV4(prim, u0, 0xE0, u0 + 0x1F, 0xE0, u0, 0xFF, u0 + 0x1F, 0xFF);
-        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang)) >> 12;
-        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = ang + 0x400;
-        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
-
-/// Draws an upright sprite at the coordinate's world position. The position is
-/// projected through `GsWSMATRIX`; if the projection is valid, one
-/// semi-transparent, unshaded `POLY_FT4` (tpage 0x2B, clut 0x43D2) is queued
-/// as an axis-aligned square of half-side `r = (s16)arg2 * 55 / otz`, raised
-/// so the projected point sits three quarters of the way down it. `arg1` picks
-/// one of eight 56-texel frames in a grid four wide, starting at v 0x70.
-static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2)
-{
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    u16            idx;
-    u32            cell;
-    s32            row;
-    u8             u0;
-    u8             u1;
-    u8             v0;
-    u8             v1;
-
-    idx           = arg1;
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D2;
-        cell        = idx;
-        u0          = (cell & 3) * 0x38;
-        row         = ((cell & 7) >> 2) * 0x38;
-        v0          = row + 0x70;
-        v1          = row + 0xA7;
-        u1          = u0 + 0x37;
-        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        block->step = ((s16)arg2 * 55) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->step;
-        prim->x1 = prim->x3 = block->sx + block->step;
-        prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
-        prim->y2 = prim->y3 = block->sy + (block->step >> 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
+#include "../../shared/water_tile_u16.inc.c"
 
 #include "../../shared/glow_draw_beam.inc.c"
 

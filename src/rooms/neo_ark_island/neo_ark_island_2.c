@@ -38,9 +38,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/water_effects.h"
 
-static void func_neo_ark_island_8017F4A4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void func_neo_ark_island_8017F890(GfxCoord* arg0, s32 arg1, s32 arg2);
-
 /// Offsets from the parent coordinate of the two points whose trails
 /// `func_neo_ark_island_80180600` records.
 /// The second of those offsets, which the recording frames read by name.
@@ -147,9 +144,9 @@ void func_neo_ark_island_8017EFE8(Task* task)
     coord = task->extra.coordBody->coord;
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (task->state < 2) {
-            func_neo_ark_island_8017F4A4(coord, (u16)work->index, work->scale, work->angle);
+            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
         } else {
-            func_neo_ark_island_8017F890(coord, (u16)work->index, work->scale);
+            waterDrawTileU16(coord, (u16)work->index, work->scale);
         }
         if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             Gp_ReleaseState1CMem(work, task);
@@ -227,10 +224,10 @@ void func_neo_ark_island_8017EFE8(Task* task)
             }
             return;
         case 1:
-            func_neo_ark_island_8017F4A4(coord, (u16)work->index, work->scale, work->angle);
+            waterDrawSpinU16(coord, (u16)work->index, work->scale, work->angle);
             break;
         case 2:
-            func_neo_ark_island_8017F890(coord, (u16)work->index, work->scale);
+            waterDrawTileU16(coord, (u16)work->index, work->scale);
             break;
         default:
             return;
@@ -250,127 +247,9 @@ void func_neo_ark_island_8017EFE8(Task* task)
     }
 }
 
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent, unshaded
-/// `POLY_FT4` (tpage 0x2B, clut 0x43D3) rotated about the projected centre.
-/// `arg1` selects the 32-texel UV column `(arg1 & 0xFFFF) << 5` at v=0xE0..0xFF.
-/// `arg2` is a signed half-extent; the on-screen radius is
-/// `(s16)arg2 * 31 / otz`. `arg3` is the spin angle, applied at `arg3` and
-/// `arg3 + 0x400` through `rsin`/`rcos`.
-static void func_neo_ark_island_8017F4A4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
-{
-    void**           scratch;
-    u8*              head;
-    GpFxQuadScratch* block;
-    POLY_FT4*        prim;
-    SVECTOR*         vec;
-    s32              u0;
-    s32              ang;
-    s32              ang2;
-    u16              vz;
+#include "../../shared/water_spin_u16.inc.c"
 
-    scratch = SCRATCH_STACK_CURSOR_SLOT;
-    TOUCH_REG_USE(arg2, scratch);
-    head                                      = *scratch;
-    ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
-    block                                     = (GpFxQuadScratch*)(head - 0x1C);
-    block->vec.vy                             = (u16)arg0->workm.t[1];
-    vz                                        = (u16)arg0->workm.t[2];
-    *scratch                                  = block;
-    block->vec.vz                             = vz;
-    vec                                       = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
-    gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
-        prim           = gGpuPrimCursor;
-        ang            = (s16)arg3;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D3;
-        u0          = (arg1 & 0xFFFF) << 5;
-        setUV4(prim, u0, 0xE0, u0 + 0x1F, 0xE0, u0, 0xFF, u0 + 0x1F, 0xFF);
-        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang)) >> 12;
-        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang)) >> 12;
-        prim->x0  = block->sx + (u16)block->dx;
-        prim->x3  = block->sx - (u16)block->dx;
-        prim->y0  = block->sy - (u16)block->dy;
-        prim->y3  = block->sy + (u16)block->dy;
-        ang2      = ang + 0x400;
-        block->dx = ((((s16)arg2 * 31) / block->otz) * rsin(ang2)) >> 12;
-        block->dy = ((((s16)arg2 * 31) / block->otz) * rcos(ang2)) >> 12;
-        prim->x1  = block->sx + (u16)block->dx;
-        prim->x2  = block->sx - (u16)block->dx;
-        prim->y1  = block->sy - (u16)block->dy;
-        prim->y2  = block->sy + (u16)block->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_POP_BYTES_AT(scratch, 0x1C);
-}
-
-/// Projects the coordinate's world position through `GsWSMATRIX` and, when
-/// the GTE flag is non-negative, queues one semi-transparent, unshaded
-/// `POLY_FT4` (tpage 0x2B, clut 0x43D2). `arg1` selects a 56-texel UV tile in
-/// a 4-wide 2-row grid starting at v = 0x70: u = `(arg1 & 3) * 56`, v =
-/// `0x70 + ((arg1 & 7) >> 2) * 56`. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 55 / otz`. The quad is axis-aligned and
-/// 2*radius on a side, shifted up so the projected point sits at
-/// three-quarters height (`y0 = sy - r - r/2`, `y2 = sy + r/2`).
-static void func_neo_ark_island_8017F890(GfxCoord* arg0, s32 arg1, s32 arg2)
-{
-    GpRingScratch* block;
-    POLY_FT4*      prim;
-    u16            idx;
-    u32            cell;
-    s32            row;
-    u8             u0;
-    u8             u1;
-    u8             v0;
-    u8             v1;
-
-    idx           = arg1;
-    block         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
-    block->vec.vx = arg0->workm.t[0];
-    block->vec.vy = arg0->workm.t[1];
-    block->vec.vz = arg0->workm.t[2];
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->vec);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2F);
-        prim->tpage = 0x2B;
-        prim->clut  = 0x43D2;
-        cell        = idx;
-        u0          = (cell & 3) * 0x38;
-        row         = ((cell & 7) >> 2) * 0x38;
-        v0          = row + 0x70;
-        v1          = row + 0xA7;
-        u1          = u0 + 0x37;
-        setUV4(prim, u0, v0, u1, v0, u0, v1, u1, v1);
-        block->step = ((s16)arg2 * 55) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->step;
-        prim->x1 = prim->x3 = block->sx + block->step;
-        prim->y0 = prim->y1 = block->sy - block->step - (block->step >> 1);
-        prim->y2 = prim->y3 = block->sy + (block->step >> 1);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
-}
+#include "../../shared/water_tile_u16.inc.c"
 
 void func_neo_ark_island_8017FB2C(Task* arg0)
 {
