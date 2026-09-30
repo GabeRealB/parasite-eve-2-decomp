@@ -356,7 +356,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     arg0 = arg0 & 0xFF;
     SndEvt_EnqueueTypeF();
     SndEvt_EnqueueType7(0x50000000, 1);
-    SndEvt_EnqueueType7(0x10000000, 1);
+    SndEvt_EnqueueType7(SOUND_SCRIPT_REQUEST_TYPE_1, 1);
     SndEvt_EnqueueType7(0xFF0D, 1);
     SndEvt_EnqueueType7(0x20000000, 1);
     SndEvt_EnqueueType7(0xE0000000, 1);
@@ -628,24 +628,21 @@ void Snd_RegisterTickCallbacks(void)
 
 /// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.
 ///
-/// Callers select that bank by placing `SOUND_BANK_TYPE_1` in the request's
-/// high half, with the rest of the bank id clear.
+/// That nibble equals `SOUND_SCRIPT_REQUEST_TYPE_1` for every type-1 request,
+/// whatever bank number and entry index it carries.
 /// `SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK` keeps the entry index and
 /// instance tag, and the loaded script image's bank id replaces the high
-/// half. Any other request is returned unchanged, including a type-1
-/// request when no slot has a type-1 sample descriptor. The search reads that
-/// descriptor's type; the stamp reads `image->bankId`, so the slot must hold
-/// a completed script image.
+/// half. A request with another top nibble is returned unchanged, as is a
+/// type-1 request when no slot has a type-1 sample descriptor. The search reads
+/// that descriptor's type; the stamp reads `image->bankId`, so the slot must
+/// hold a completed script image.
 static s32 _sndScriptRemapType1Id(s32 requestId)
 {
-    enum {
-        SOUND_SCRIPT_REQUEST_TYPE_1 = 0x10000000,
-        /// Mask keeping a script request's entry index and instance tag.
-        ///
-        /// Bits 0..7 select the script entry and bits 8..15 distinguish instances.
-        /// Type-1 remapping replaces the bank id above these bits.
-        SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK = 0xFFFF
-    };
+    /// Mask keeping a script request's entry index and instance tag.
+    ///
+    /// Bits 0..7 select the script entry and bits 8..15 distinguish instances.
+    /// Type-1 remapping replaces the bank id above these bits.
+    enum { SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK = 0xFFFF };
     s32          soundId;
     SndBankSlot* bankSlot;
 
@@ -1280,7 +1277,7 @@ void SndVoice_KeyOffMatching(void)
             type = p->field_0 & 0xF0000000;
             if (type != 0x60000000) {
                 node = head;
-                if ((type == 0x10000000) || (type == 0x50000000)) {
+                if ((type == SOUND_SCRIPT_REQUEST_TYPE_1) || (type == 0x50000000)) {
                     do {
                         Spu_GetVoiceRef(p->field_40->field_0, &ref);
                         ref.field_4->adsr2  = (ref.field_4->adsr2 & 0xFFE0) | 0xB;
@@ -1295,7 +1292,7 @@ void SndVoice_KeyOffMatching(void)
             }
         } else {
             emptyType = p->field_0 & 0xF0000000;
-            if ((emptyType == 0x50000000) || (emptyType == 0x10000000)) {
+            if ((emptyType == 0x50000000) || (emptyType == SOUND_SCRIPT_REQUEST_TYPE_1)) {
                 p->field_16 = 0;
                 p->field_0  = -1;
             }
@@ -2235,7 +2232,7 @@ static void SndVoice_ClearActive(void)
     mask = 0xF0000000;
     c600 = 0x60000000;
     c500 = 0x50000000;
-    c100 = 0x10000000;
+    c100 = SOUND_SCRIPT_REQUEST_TYPE_1;
     p    = SndScript_Slots;
     do {
         temp = p->field_0 & mask;

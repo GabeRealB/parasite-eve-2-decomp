@@ -357,7 +357,7 @@ extern TaskDesc D_801637C8[];
 
 GpSndMaskRec Gp_SndMaskTable[7] = {
     { 1, 0 },
-    { 4, 0x10000000 },
+    { 4, SOUND_SCRIPT_REQUEST_TYPE_1 },
     { 8, 0x50000000 },
     { 2, 0x20000000 },
     { 16, 0x40000000 },
