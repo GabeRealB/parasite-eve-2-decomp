@@ -55,8 +55,7 @@
 #define D_shelter_b1_storeroom_80184A98 (D_shelter_b1_storeroom_80184998 + 32)
 #define D_shelter_b1_storeroom_80184AB8 (D_shelter_b1_storeroom_80184998 + 36)
 
-static RoomHaloShade RoomFx_HaloShades[];
-static RoomHaloShade RoomFx_DiscShades[];
+RoomHaloShade RoomFx_HaloShades[];
 
 static void func_shelter_b1_storeroom_8017DBC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -129,7 +128,9 @@ SVECTOR D_shelter_b1_storeroom_80184998[49] = {
 }
 #define ROOM_FX_HALO_STORAGE_TYPE  RoomHaloShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
-#include "../../shared/room_visual_effects_data.inc.c"
+#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
@@ -918,12 +919,15 @@ void func_shelter_b1_storeroom_8017F888(Task* arg0)
     RoomFx_OrangeBurstTask(arg0);
 }
 
+#include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
 void func_shelter_b1_storeroom_80180C98(Task* arg0)
 {
     RoomFx_SparkEmitterTask(arg0);
 }
+
+#include "../../shared/room_visual_effects_flash_task.inc.c"
 
 void func_shelter_b1_storeroom_80180DCC(Task* arg0)
 {
@@ -945,6 +949,7 @@ void func_shelter_b1_storeroom_80182118(Task* task)
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
 void func_shelter_b1_storeroom_80182D60(Task* arg0)
 {

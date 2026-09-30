@@ -57,7 +57,7 @@ typedef struct {
     u16           retained;
 } ShelterB1NorthMaintenanceWalkwayHaloStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1NorthMaintenanceWalkwayHaloStorage, 20);
-static ShelterB1NorthMaintenanceWalkwayHaloStorage RoomFx_HaloShades;
+ShelterB1NorthMaintenanceWalkwayHaloStorage RoomFx_HaloShades;
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
@@ -67,14 +67,15 @@ static ShelterB1NorthMaintenanceWalkwayHaloStorage RoomFx_HaloShades;
 
 /// Per-colour channel shifts for the glowing disc, indexed by the spawn
 /// argument.
-static RoomHaloShade RoomFx_DiscShades[];
 
 #include "../../shared/room_visual_effects.h"
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x374F }
 #define ROOM_FX_HALO_STORAGE_TYPE        ShelterB1NorthMaintenanceWalkwayHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_data.inc.c"
+#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
@@ -568,12 +569,15 @@ void func_shelter_b1_north_maintenance_walkway_8017F998(Task* arg0)
     RoomFx_OrangeBurstTask(arg0);
 }
 
+#include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
 void func_shelter_b1_north_maintenance_walkway_80180DA8(Task* arg0)
 {
     RoomFx_SparkEmitterTask(arg0);
 }
+
+#include "../../shared/room_visual_effects_flash_task.inc.c"
 
 void func_shelter_b1_north_maintenance_walkway_80180EDC(Task* arg0)
 {
@@ -595,6 +599,7 @@ void func_shelter_b1_north_maintenance_walkway_80182228(Task* task)
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
 void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0)
 {

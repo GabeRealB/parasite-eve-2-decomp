@@ -107,7 +107,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 
 /// Colour shifts per spawn variant: each channel is the fade level shifted
 /// right by the entry's value.
-static RoomHaloShade RoomFx_HaloShades[];
+RoomHaloShade RoomFx_HaloShades[];
 
 /// The two points the trail is emitted from, relative to the effect's parent:
 /// the first positions the effect's own coordinate, the second is the other
@@ -117,7 +117,6 @@ static RoomHaloShade RoomFx_HaloShades[];
 
 /// Per-variant right shifts applied to the red, green and blue channels of a
 /// disc's brightness.
-static RoomHaloShade RoomFx_DiscShades[];
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
 static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
@@ -244,7 +243,9 @@ SVECTOR D_shelter_b4_upper_sewer_801864F0[14] = {
 }
 #define ROOM_FX_HALO_STORAGE_TYPE  RoomHaloShade
 #define ROOM_FX_HALO_STORAGE_BOUND [3]
-#include "../../shared/room_visual_effects_data.inc.c"
+#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
@@ -1769,12 +1770,15 @@ void func_shelter_b4_upper_sewer_801811F0(Task* arg0)
     RoomFx_OrangeBurstTask(arg0);
 }
 
+#include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
 void func_shelter_b4_upper_sewer_80182600(Task* arg0)
 {
     RoomFx_SparkEmitterTask(arg0);
 }
+
+#include "../../shared/room_visual_effects_flash_task.inc.c"
 
 void func_shelter_b4_upper_sewer_80182734(Task* arg0)
 {
@@ -1796,6 +1800,7 @@ void func_shelter_b4_upper_sewer_80183A80(Task* task)
 }
 
 #include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
 void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
 {
