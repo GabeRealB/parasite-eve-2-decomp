@@ -491,8 +491,8 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 SndEvt_EnqueueType6(3, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
-                    spawned->panel.bounds.unsignedRect.x = arg1->panel.field_20.u + (u16)arg1->panel.field_1C.s + 0x14;
-                    spawned->panel.bounds.unsignedRect.y = (arg1->panel.field_22.u + (u16)arg0->field_1A) - 0x14;
+                    spawned->panel.bounds.unsignedRect.x = arg1->panel.field_20.unsignedValue + arg1->panel.field_1C.unsignedValue + 0x14;
+                    spawned->panel.bounds.unsignedRect.y = (arg1->panel.field_22.unsignedValue + (u16)arg0->field_1A) - 0x14;
                     arg1->panel.field_0.w                = 0;
                 }
             } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
@@ -617,7 +617,7 @@ void Gp_ItemPaneTask(Task* arg0)
     status = obj->panel.field_0.w;
     if (status == 1) {
         if (menu->field_4 == 0) {
-            Ui_SmoothCursor(&(obj)->panel, obj->panel.field_1C.s + 4, (s16)obj->panel.field_18.u + 0xA);
+            Ui_SmoothCursor(&(obj)->panel, obj->panel.field_1C.signedValue + 4, obj->panel.field_18.signedValue + 0xA);
         }
         if (arg0->state == status) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
@@ -697,9 +697,9 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
     s32               qty;
     s32               item;
 
-    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
-    req.otIndex    = arg1->panel.field_14.s + 1;
+    req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.unsignedValue + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.signedValue + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -780,9 +780,9 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
     Task*             owner;
     PlayerStatus*     cfg;
 
-    req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-    req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
-    req.otIndex    = arg1->panel.field_14.s + 1;
+    req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+    req.y          = arg1->panel.field_22.unsignedValue + (u16)arg0->field_1A;
+    req.otIndex    = arg1->panel.field_14.signedValue + 1;
     req.field_8    = arg0->field_1C;
     req.glyphTable = 0;
     req.centerMode = 0;
@@ -972,7 +972,7 @@ void func_800BDF6C(Task* task)
 
     obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
-    width         = ((s16)obj->panel.field_1E.u - obj->panel.field_1C.s) - 0x50;
+    width         = (obj->panel.field_1E.signedValue - obj->panel.field_1C.signedValue) - 0x50;
     Ui_DrawText(&(obj)->panel, (char*)Gp_StrBullet);
     if (task->state == 0) {
         state = (GpAmmoSplitState*)memCalloc(0x18U, 0);
@@ -993,7 +993,7 @@ void func_800BDF6C(Task* task)
         task->state  = task->state + 1;
     }
     state = (GpAmmoSplitState*)task->work;
-    Gp_DrawItemLabel(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, task->spawnArg1.value, 0x606060, 0);
+    Gp_DrawItemLabel(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, task->spawnArg1.value, 0x606060, 0);
     task->status = 0;
     totalQty     = state->srcQty + state->dstQty;
     color        = 0x606060;
@@ -1135,11 +1135,11 @@ void func_800BDF6C(Task* task)
     sourceQty   = state->srcQty;
     usableWidth = width - 2;
     widthM2     = usableWidth;
-    panelY      = (s16)obj->panel.field_18.u;
+    panelY      = obj->panel.field_18.signedValue;
     splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + state->dstQty)) + 1;
     textY       = panelY + 0x20;
-    Text_DrawPrompt(obj, obj->panel.field_1C.s + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
-    Text_DrawPrompt(obj, (s16)obj->panel.field_1E.u - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
+    Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 0x20, textY, Text_ItoaUnsigned(buf, (u32)sourceQty), 0x606060, 1, 2);
+    Text_DrawPrompt(obj, obj->panel.field_1E.signedValue - 6, textY, Text_ItoaUnsigned(buf, (u32)state->dstQty), color, 1,
                     2);
     caretY    = panelY + 0x16;
     negWidth  = -width;
@@ -1151,15 +1151,15 @@ void func_800BDF6C(Task* task)
     line                              = gGpuPrimCursor;
     gGpuPrimCursor                    = line + 1;
     GPU_PRIMITIVE_COLOR_WORD(line, 0) = PRIM_RGBC(0x60, 0x60, 0x60, 0);
-    coord                             = obj->panel.field_20.u + caretX;
+    coord                             = obj->panel.field_20.unsignedValue + caretX;
     line->x1                          = coord;
     line->x0                          = coord;
-    line->y0                          = (obj->panel.field_22.u + textY) - 0xA;
-    coord                             = (obj->panel.field_22.u + textY) - 2;
+    line->y0                          = (obj->panel.field_22.unsignedValue + textY) - 0xA;
+    coord                             = (obj->panel.field_22.unsignedValue + textY) - 2;
     setlen(line, 3);
     setcode(line, 0x40);
     line->y1 = coord;
-    addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, line);
+    addPrim(gGpuCurrentOt + obj->panel.field_14.signedValue + 1, line);
     qty = state->equipped;
     if (qty > 0) {
         equippedWidth = ((s32)(qty * widthM2) / (s32)(state->srcQty + state->dstQty)) + 2;
@@ -1595,9 +1595,9 @@ void Gp_HolderPromptTask(Task* arg0)
     if (val != 0) {
         color = 0x606060;
         one   = 1;
-        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, val, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, val, color, one, 0);
         text = Text_SkipLines(val, one);
-        Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, color, one, 0);
+        Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, text, color, one, 0);
     }
 }
 

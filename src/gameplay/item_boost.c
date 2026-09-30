@@ -366,8 +366,8 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         return;
     }
 
-    x = arg0->panel.field_1C.s + 2;
-    y = (s16)arg0->panel.field_18.u;
+    x = arg0->panel.field_1C.signedValue + 2;
+    y = arg0->panel.field_18.signedValue;
     Ui_DrawText(&(arg0)->panel, Gp_StrNotice2);
     color = 0x606060;
     one   = 1;

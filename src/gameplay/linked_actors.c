@@ -22,32 +22,32 @@
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)          \
-    {                                                         \
-        req.x          = obj.panel.field_20.u + (dx) + xBase; \
-        req.y          = (obj.panel.field_22.u + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.s + 1;            \
-        req.field_8    = (color);                             \
-        req.glyphTable = 5;                                   \
-        req.centerMode = 0;                                   \
-        req.field_E    = 1;                                   \
-        Text_DrawString(&req, (str));                         \
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                      \
+    {                                                                     \
+        req.x          = obj.panel.field_20.unsignedValue + (dx) + xBase; \
+        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
+        req.field_8    = (color);                                         \
+        req.glyphTable = 5;                                               \
+        req.centerMode = 0;                                               \
+        req.field_E    = 1;                                               \
+        Text_DrawString(&req, (str));                                     \
     }
 
 /// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                   \
-    {                                                         \
-        req.field_8    = 0x606060;                            \
-        req.glyphTable = 5;                                   \
-        req.centerMode = 2;                                   \
-        req.field_E    = 0;                                   \
-        req.x          = obj.panel.field_20.u + 0x94;         \
-        req.y          = (obj.panel.field_22.u + 9) + (line); \
-        req.otIndex    = obj.panel.field_14.s + 1;            \
-        Text_DrawString(&req, Text_ItoaSigned(buf, (count))); \
-        if ((count) == 0) {                                   \
-            flag = 1;                                         \
-        }                                                     \
+#define DRAW_PROMPT_COUNT(req, line, count)                               \
+    {                                                                     \
+        req.field_8    = 0x606060;                                        \
+        req.glyphTable = 5;                                               \
+        req.centerMode = 2;                                               \
+        req.field_E    = 0;                                               \
+        req.x          = obj.panel.field_20.unsignedValue + 0x94;         \
+        req.y          = (obj.panel.field_22.unsignedValue + 9) + (line); \
+        req.otIndex    = obj.panel.field_14.signedValue + 1;              \
+        Text_DrawString(&req, Text_ItoaSigned(buf, (count)));             \
+        if ((count) == 0) {                                               \
+            flag = 1;                                                     \
+        }                                                                 \
     }
 
 #include "gameplay/damage.h"
@@ -416,18 +416,18 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color)
     TextDrawReq hpReq;
     TextDrawReq mpReq;
 
-    hpReq.x          = obj->panel.field_20.u + 4 + x;
-    hpReq.y          = obj->panel.field_22.u + 8 + y;
-    hpReq.otIndex    = obj->panel.field_14.s + 1;
+    hpReq.x          = obj->panel.field_20.unsignedValue + 4 + x;
+    hpReq.y          = obj->panel.field_22.unsignedValue + 8 + y;
+    hpReq.otIndex    = obj->panel.field_14.signedValue + 1;
     hpReq.field_8    = color;
     hpReq.glyphTable = 5;
     hpReq.centerMode = 0;
     hpReq.field_E    = 1;
     Text_DrawString(&hpReq, Gp_StrHP);
 
-    mpReq.x          = obj->panel.field_20.u + 0x2E + x;
-    mpReq.y          = obj->panel.field_22.u + 8 + y;
-    mpReq.otIndex    = obj->panel.field_14.s + 1;
+    mpReq.x          = obj->panel.field_20.unsignedValue + 0x2E + x;
+    mpReq.y          = obj->panel.field_22.unsignedValue + 8 + y;
+    mpReq.otIndex    = obj->panel.field_14.signedValue + 1;
     mpReq.field_8    = color;
     mpReq.glyphTable = 5;
     mpReq.centerMode = 0;
@@ -501,10 +501,10 @@ void func_800A57B0(GpIdMapC* arg0)
     {
         UiObject obj;
 
-        obj.panel.field_14.s = -3;
-        obj.panel.field_20.u = 0;
-        obj.panel.field_22.u = 0;
-        obj.panel.field_8    = 0;
+        obj.panel.field_14.signedValue   = -3;
+        obj.panel.field_20.unsignedValue = 0;
+        obj.panel.field_22.unsignedValue = 0;
+        obj.panel.field_8                = 0;
         _gpDrawHudLabels(&obj, x, y, color);
     }
 

@@ -152,9 +152,9 @@ static inline void _textDrawLine(UiObject* obj, s32 x, s32 y, u8* text, s32 arg4
 
     if (obj != NULL) {
         if (obj->panel.field_8 != 5) {
-            req.x          = obj->panel.field_20.u + x;
-            req.y          = (obj->panel.field_22.u + y) - 3;
-            temp           = obj->panel.field_14.s;
+            req.x          = obj->panel.field_20.unsignedValue + x;
+            req.y          = (obj->panel.field_22.unsignedValue + y) - 3;
+            temp           = obj->panel.field_14.signedValue;
             req.field_8    = arg4;
             req.otIndex    = temp + 1;
             req.glyphTable = 4;
@@ -277,16 +277,16 @@ s32 Text_DrawPrompt(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s3
         Text_DrawString(&sp20, arg3);
         return arg1;
     }
-    sp10.x          = object->panel.field_20.u + arg1;
-    sp10.y          = (object->panel.field_22.u + arg2) - 3;
-    temp            = object->panel.field_14.s;
+    sp10.x          = object->panel.field_20.unsignedValue + arg1;
+    sp10.y          = (object->panel.field_22.unsignedValue + arg2) - 3;
+    temp            = object->panel.field_14.signedValue;
     sp10.field_8    = arg4;
     sp10.glyphTable = 4;
     sp10.centerMode = arg6;
     sp10.field_E    = arg5;
     sp10.otIndex    = temp + 1;
     Text_DrawString(&sp10, arg3);
-    return sp10.x - (s16)object->panel.field_20.u;
+    return sp10.x - object->panel.field_20.signedValue;
 }
 
 static void Text_DrawPromptCompat(UiObject* object, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)

@@ -112,9 +112,9 @@ static inline void _gpDrawItemNameUnmarkedInto(UiObject* obj, TextDrawReq* req, 
     s32 temp;
 
     if (obj->panel.field_8 != 5) {
-        req->x          = obj->panel.field_20.u + 0x11 + x;
-        req->y          = obj->panel.field_22.u + (y - 6);
-        req->otIndex    = obj->panel.field_14.s + 1;
+        req->x          = obj->panel.field_20.unsignedValue + 0x11 + x;
+        req->y          = obj->panel.field_22.unsignedValue + (y - 6);
+        req->otIndex    = obj->panel.field_14.signedValue + 1;
         req->field_8    = color;
         req->glyphTable = 0;
         req->centerMode = 0;
@@ -262,7 +262,7 @@ void func_800C5F70(Task* arg0)
                 menu->field_5.u = 6;
             }
             menu->field_A  = 1;
-            menu->field_17 = -(s32)(u8)obj->panel.field_18.u + 7;
+            menu->field_17 = -(u8)obj->panel.field_18.unsignedValue + 7;
             arg0->state    = 3;
         }
         goto hbar_setup;
@@ -275,19 +275,19 @@ void func_800C5F70(Task* arg0)
     hbar_setup:
         if (item >= 0x500) {
             flags |= 0x400;
-            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 0x25);
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, 0x25);
         } else {
-            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, 5);
+            Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, 5);
         }
         if (ready == 1) {
             x       = 2;
             payload = Fs_GetChunkPayload();
-            y       = (s16)obj->panel.field_18.u + 0x1E;
+            y       = obj->panel.field_18.signedValue + 0x1E;
             for (i = 0; i < 5; i++) {
-                req20.x          = obj->panel.field_20.u + x;
-                req20.y          = obj->panel.field_22.u + y;
+                req20.x          = obj->panel.field_20.unsignedValue + x;
+                req20.y          = obj->panel.field_22.unsignedValue + y;
                 y               += 0xF;
-                req20.otIndex    = obj->panel.field_14.s + 1;
+                req20.otIndex    = obj->panel.field_14.signedValue + 1;
                 req20.field_8    = 0x606060;
                 req20.glyphTable = 0;
                 req20.centerMode = 0;
@@ -295,7 +295,7 @@ void func_800C5F70(Task* arg0)
                 Text_DrawString(&req20, Text_SkipLines(payload, i));
             }
             if (item >= 0x500) {
-                Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, 0x34, Text_SkipLines(payload, 5),
+                Text_DrawMultiLine(obj, obj->panel.field_1C.signedValue + 2, 0x34, Text_SkipLines(payload, 5),
                                    0x606060, 3, 0);
             } else {
                 saved                = obj->panel.field_0.w;
@@ -339,7 +339,7 @@ void func_800C5F70(Task* arg0)
                     }
                 }
             }
-            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
+            func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, flags);
             if ((u32)(item - 0x80) < 0x20U) {
                 spriteCount = 1;
                 if ((Gp_GetItemSlot(item)->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) || (item == 0x8F) || (item == 0x93) ||
@@ -350,7 +350,7 @@ void func_800C5F70(Task* arg0)
                 h       = 0xF;
                 spriteW = h;
                 spriteI = 0;
-                x       = obj->panel.field_1C.s + 2;
+                x       = obj->panel.field_1C.signedValue + 2;
                 if (spriteCount != 0) {
                     do {
                         sprt           = gGpuPrimCursor;
@@ -381,15 +381,15 @@ void func_800C5F70(Task* arg0)
                         sprt->w = spriteW;
                         sprt->h = h;
                         setcode(sprt, 0x65);
-                        addPrim(gGpuCurrentOt + obj->panel.field_14.s + 1, sprt);
+                        addPrim(gGpuCurrentOt + obj->panel.field_14.signedValue + 1, sprt);
                         spriteI++;
                     } while (spriteI < spriteCount);
                 }
-                Ui_InsertDrawTPage(obj->panel.field_14.s + 1, 0);
-                x                = obj->panel.field_1C.s + 2;
-                req30.x          = obj->panel.field_20.u + x;
-                req30.y          = obj->panel.field_22.u + 0x40;
-                req30.otIndex    = obj->panel.field_14.s + 1;
+                Ui_InsertDrawTPage(obj->panel.field_14.signedValue + 1, 0);
+                x                = obj->panel.field_1C.signedValue + 2;
+                req30.x          = obj->panel.field_20.unsignedValue + x;
+                req30.y          = obj->panel.field_22.unsignedValue + 0x40;
+                req30.otIndex    = obj->panel.field_14.signedValue + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
@@ -403,28 +403,28 @@ void func_800C5F70(Task* arg0)
                 text      = Gp_StrAddHp;
                 SOFT_TOUCH_REG_USE(text, attr);
                 flags            = (u32)attr->flags;
-                y                = (s16)obj->panel.field_18.u + 0x1E;
-                req30.x          = obj->panel.field_20.u + x;
-                req30.y          = obj->panel.field_22.u + (y - 2);
-                req30.otIndex    = obj->panel.field_14.s + 1;
+                y                = obj->panel.field_18.signedValue + 0x1E;
+                req30.x          = obj->panel.field_20.unsignedValue + x;
+                req30.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                req30.otIndex    = obj->panel.field_14.signedValue + 1;
                 req30.glyphTable = 5;
                 req30.field_8    = 0x606060;
                 req30.centerMode = 0;
                 req30.field_E    = 1;
                 Text_DrawString(&req30, text);
                 if (attr->field_4 == 0) {
-                    req60.x          = obj->panel.field_20.u + 0x78;
-                    req60.y          = obj->panel.field_22.u + y;
-                    req60.otIndex    = obj->panel.field_14.s + 1;
+                    req60.x          = obj->panel.field_20.unsignedValue + 0x78;
+                    req60.y          = obj->panel.field_22.unsignedValue + y;
+                    req60.otIndex    = obj->panel.field_14.signedValue + 1;
                     req60.field_8    = 0x606060;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
                     req60.field_E    = 3;
                     Text_DrawString(&req60, D_8009707C);
                 } else {
-                    req60.x          = obj->panel.field_20.u + 0x7A;
-                    req60.y          = obj->panel.field_22.u + y;
-                    req60.otIndex    = obj->panel.field_14.s + 1;
+                    req60.x          = obj->panel.field_20.unsignedValue + 0x7A;
+                    req60.y          = obj->panel.field_22.unsignedValue + y;
+                    req60.otIndex    = obj->panel.field_14.signedValue + 1;
                     req60.field_8    = altColor;
                     req60.glyphTable = 0;
                     req60.centerMode = 2;
@@ -433,27 +433,27 @@ void func_800C5F70(Task* arg0)
                 }
                 y += 0xF;
 
-                req60.x          = obj->panel.field_20.u + x;
-                req60.y          = obj->panel.field_22.u + (y - 2);
-                req60.otIndex    = obj->panel.field_14.s + 1;
+                req60.x          = obj->panel.field_20.unsignedValue + x;
+                req60.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                req60.otIndex    = obj->panel.field_14.signedValue + 1;
                 req60.glyphTable = 5;
                 req60.field_8    = 0x606060;
                 req60.centerMode = 0;
                 req60.field_E    = 1;
                 Text_DrawString(&req60, Gp_StrAddMp);
                 if (attr->field_6 == 0) {
-                    req70.x          = obj->panel.field_20.u + 0x76 + x;
-                    req70.y          = obj->panel.field_22.u + y;
-                    req70.otIndex    = obj->panel.field_14.s + 1;
+                    req70.x          = obj->panel.field_20.unsignedValue + 0x76 + x;
+                    req70.y          = obj->panel.field_22.unsignedValue + y;
+                    req70.otIndex    = obj->panel.field_14.signedValue + 1;
                     req70.centerMode = 2;
                     req70.field_8    = 0x606060;
                     req70.glyphTable = 0;
                     req70.field_E    = 3;
                     Text_DrawString(&req70, D_8009707C);
                 } else {
-                    req70.x          = obj->panel.field_20.u + 0x78 + x;
-                    req70.y          = obj->panel.field_22.u + y;
-                    req70.otIndex    = obj->panel.field_14.s + 1;
+                    req70.x          = obj->panel.field_20.unsignedValue + 0x78 + x;
+                    req70.y          = obj->panel.field_22.unsignedValue + y;
+                    req70.otIndex    = obj->panel.field_14.signedValue + 1;
                     req70.centerMode = 2;
                     req70.field_8    = altColor;
                     req70.glyphTable = 0;
@@ -462,27 +462,27 @@ void func_800C5F70(Task* arg0)
                 }
                 y += 0xF;
 
-                req70.x          = obj->panel.field_20.u + x;
-                req70.y          = obj->panel.field_22.u + (y - 2);
-                req70.otIndex    = obj->panel.field_14.s + 1;
+                req70.x          = obj->panel.field_20.unsignedValue + x;
+                req70.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                req70.otIndex    = obj->panel.field_14.signedValue + 1;
                 req70.field_8    = 0x606060;
                 req70.glyphTable = 5;
                 req70.centerMode = 0;
                 req70.field_E    = 1;
                 Text_DrawString(&req70, Gp_StrAttachments3);
                 featIndex        = 0;
-                req80.x          = obj->panel.field_20.u + 0x78 + x;
-                req80.y          = obj->panel.field_22.u + y;
-                req80.otIndex    = obj->panel.field_14.s + 1;
+                req80.x          = obj->panel.field_20.unsignedValue + 0x78 + x;
+                req80.y          = obj->panel.field_22.unsignedValue + y;
+                req80.otIndex    = obj->panel.field_14.signedValue + 1;
                 y               += 0xF;
                 req80.centerMode = 2;
                 req80.field_8    = altColor;
                 req80.glyphTable = 0;
                 req80.field_E    = 3;
                 Text_DrawString(&req80, Text_ItoaUnsigned(buf40, Gp_GetModLevel(item)));
-                req90.x          = obj->panel.field_20.u + x;
-                req90.y          = obj->panel.field_22.u + (y - 2);
-                req90.otIndex    = obj->panel.field_14.s + 1;
+                req90.x          = obj->panel.field_20.unsignedValue + x;
+                req90.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                req90.otIndex    = obj->panel.field_14.signedValue + 1;
                 y               += 8;
                 req90.field_8    = 0x606060;
                 req90.glyphTable = 5;
@@ -492,9 +492,9 @@ void func_800C5F70(Task* arg0)
                 names = Gp_FeatNameTbl;
                 do {
                     if (flags & 1) {
-                        reqA0.x          = obj->panel.field_20.u + 8 + x;
-                        reqA0.y          = obj->panel.field_22.u + y;
-                        reqA0.otIndex    = obj->panel.field_14.s + 1;
+                        reqA0.x          = obj->panel.field_20.unsignedValue + 8 + x;
+                        reqA0.y          = obj->panel.field_22.unsignedValue + y;
+                        reqA0.otIndex    = obj->panel.field_14.signedValue + 1;
                         reqA0.field_8    = 0x606060;
                         reqA0.glyphTable = 0;
                         reqA0.centerMode = 0;
@@ -510,10 +510,10 @@ void func_800C5F70(Task* arg0)
                     featIndex++;
                     names++;
                 } while (featIndex < 0xD);
-                x                = obj->panel.field_1C.s + 2;
-                reqB0.x          = obj->panel.field_20.u + x;
-                reqB0.y          = obj->panel.field_22.u + 0x40;
-                reqB0.otIndex    = obj->panel.field_14.s + 1;
+                x                = obj->panel.field_1C.signedValue + 2;
+                reqB0.x          = obj->panel.field_20.unsignedValue + x;
+                reqB0.y          = obj->panel.field_22.unsignedValue + 0x40;
+                reqB0.otIndex    = obj->panel.field_14.signedValue + 1;
                 reqB0.glyphTable = 5;
                 reqB0.field_8    = 0x606060;
                 reqB0.centerMode = 0;
@@ -526,10 +526,10 @@ void func_800C5F70(Task* arg0)
                     desc     = descBase + item;
                     TOUCH_REG(desc);
                     caliber          = desc->field_2 & 0xF;
-                    baseY            = (s16)obj->panel.field_18.u;
-                    reqB0.x          = obj->panel.field_20.u + 2;
-                    reqB0.y          = obj->panel.field_22.u + baseY + 0x1C;
-                    reqB0.otIndex    = obj->panel.field_14.s + 1;
+                    baseY            = obj->panel.field_18.signedValue;
+                    reqB0.x          = obj->panel.field_20.unsignedValue + 2;
+                    reqB0.y          = obj->panel.field_22.unsignedValue + baseY + 0x1C;
+                    reqB0.otIndex    = obj->panel.field_14.signedValue + 1;
                     reqB0.glyphTable = 5;
                     textColor        = 0x606060;
                     reqB0.field_8    = textColor;
@@ -541,17 +541,17 @@ void func_800C5F70(Task* arg0)
                     rec      = recBase + recIndex;
                     Text_ItoaSigned(bufC0, rec->params[0]);
                     y                 = baseY + 0x2D;
-                    req100.x          = obj->panel.field_20.u + 2;
-                    req100.y          = obj->panel.field_22.u + (y - 2);
-                    req100.otIndex    = obj->panel.field_14.s + 1;
+                    req100.x          = obj->panel.field_20.unsignedValue + 2;
+                    req100.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                    req100.otIndex    = obj->panel.field_14.signedValue + 1;
                     req100.glyphTable = 5;
                     req100.field_8    = textColor;
                     req100.centerMode = 0;
                     req100.field_E    = 1;
                     Text_DrawString(&req100, Gp_StrPowerCaps);
-                    req110.x          = obj->panel.field_20.u + 0x4C;
-                    req110.y          = obj->panel.field_22.u + y;
-                    req110.otIndex    = obj->panel.field_14.s + 1;
+                    req110.x          = obj->panel.field_20.unsignedValue + 0x4C;
+                    req110.y          = obj->panel.field_22.unsignedValue + y;
+                    req110.otIndex    = obj->panel.field_14.signedValue + 1;
                     req110.field_8    = textColor;
                     req110.glyphTable = 0;
                     req110.centerMode = 0;
@@ -562,17 +562,17 @@ void func_800C5F70(Task* arg0)
                     Text_Strcat(bufC0, Gp_StrSlash);
                     Text_Strcat(bufC0, bufE0);
                     y                 = baseY + 0x3C;
-                    req120.x          = obj->panel.field_20.u + 2;
-                    req120.y          = obj->panel.field_22.u + (y - 2);
-                    req120.otIndex    = obj->panel.field_14.s + 1;
+                    req120.x          = obj->panel.field_20.unsignedValue + 2;
+                    req120.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                    req120.otIndex    = obj->panel.field_14.signedValue + 1;
                     req120.glyphTable = 5;
                     req120.field_8    = textColor;
                     req120.centerMode = 0;
                     req120.field_E    = 1;
                     Text_DrawString(&req120, Gp_StrCapacity);
-                    req130.x          = obj->panel.field_20.u + 0x4C;
-                    req130.y          = obj->panel.field_22.u + y;
-                    req130.otIndex    = obj->panel.field_14.s + 1;
+                    req130.x          = obj->panel.field_20.unsignedValue + 0x4C;
+                    req130.y          = obj->panel.field_22.unsignedValue + y;
+                    req130.otIndex    = obj->panel.field_14.signedValue + 1;
                     req130.field_8    = textColor;
                     req130.glyphTable = 0;
                     req130.centerMode = 0;
@@ -580,27 +580,27 @@ void func_800C5F70(Task* arg0)
                     Text_DrawString(&req130, bufC0);
                     y = baseY + 0x4B;
                     if (rec->params[2] != 0) {
-                        req140.x          = obj->panel.field_20.u + 2;
-                        req140.y          = obj->panel.field_22.u + (y - 2);
-                        req140.otIndex    = obj->panel.field_14.s + 1;
+                        req140.x          = obj->panel.field_20.unsignedValue + 2;
+                        req140.y          = obj->panel.field_22.unsignedValue + (y - 2);
+                        req140.otIndex    = obj->panel.field_14.signedValue + 1;
                         req140.glyphTable = 5;
                         req140.field_8    = textColor;
                         req140.centerMode = 0;
                         req140.field_E    = 1;
                         Text_DrawString(&req140, Gp_StrSpecial);
-                        req150.x          = obj->panel.field_20.u + 0x4C;
-                        req150.y          = obj->panel.field_22.u + y;
-                        req150.otIndex    = obj->panel.field_14.s + 1;
+                        req150.x          = obj->panel.field_20.unsignedValue + 0x4C;
+                        req150.y          = obj->panel.field_22.unsignedValue + y;
+                        req150.otIndex    = obj->panel.field_14.signedValue + 1;
                         req150.field_8    = 0xD287F;
                         req150.glyphTable = 0;
                         req150.centerMode = 0;
                         req150.field_E    = 3;
                         Text_DrawString(&req150, D_8010E7C0[rec->params[2]]);
                     }
-                    x                 = obj->panel.field_1C.s + 2;
-                    req140.x          = obj->panel.field_20.u + x;
-                    req140.y          = obj->panel.field_22.u + 0x40;
-                    req140.otIndex    = obj->panel.field_14.s + 1;
+                    x                 = obj->panel.field_1C.signedValue + 2;
+                    req140.x          = obj->panel.field_20.unsignedValue + x;
+                    req140.y          = obj->panel.field_22.unsignedValue + 0x40;
+                    req140.otIndex    = obj->panel.field_14.signedValue + 1;
                     req140.glyphTable = 5;
                     req140.field_8    = textColor;
                     req140.centerMode = 0;
@@ -609,9 +609,9 @@ void func_800C5F70(Task* arg0)
                 }
             }
         } else {
-            func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags | 0x100);
+            func_800C7AE8(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 2, flags | 0x100);
         }
-        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, (s16)obj->panel.field_18.u + 0xF, 0x606060, item);
+        _gpDrawItemNameUnmarkedInto(obj, &req30, 2, obj->panel.field_18.signedValue + 0xF, 0x606060, item);
         if ((obj->panel.field_0.w == 1) && (CdCmd_IsIdle() & 0xFFFF)) {
             if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskConfirm | 0x10) != 0) {
                 if (!(arg0->spawnArg1.value & 0x20000)) {
@@ -674,14 +674,14 @@ void Gp_UseKeyItemRow(Task* arg0)
         Ui_DrawText(&(obj)->panel, Gp_StrNotice);
         if (arg0->spawnArg1.value == -1) {
             color = Ui_LookupTable(obj, 1);
-            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrNoUseNow, color, 1, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrNoUseNow, color, 1, 0);
         } else {
             color = Ui_LookupTable(obj, 1);
             one   = 1;
-            Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, Gp_StrUsed, color, one, 0);
+            Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, Gp_StrUsed, color, one, 0);
             text  = Gp_GetItemText(arg0->spawnArg1.value, 0, 0);
-            width = Text_DrawPrompt(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0x1E, text, 0x37A78, one, 0);
-            Text_DrawPrompt(obj, width, (s16)obj->panel.field_18.u + 0x1E, Gp_StrDot, 0x606060, one, 0);
+            width = Text_DrawPrompt(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0x1E, text, 0x37A78, one, 0);
+            Text_DrawPrompt(obj, width, obj->panel.field_18.signedValue + 0x1E, Gp_StrDot, 0x606060, one, 0);
         }
         arg0->killCountdown = arg0->killCountdown - gDisplayState.frameTicks;
         if (obj->panel.field_0.w == 1) {
@@ -769,10 +769,10 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
     y     = arg0->field_1A;
     color = arg0->field_1C;
     if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        baseY          = arg1->panel.field_22.u - 6;
+        req.x          = arg1->panel.field_20.unsignedValue + 0x11 + x;
+        baseY          = arg1->panel.field_22.unsignedValue - 6;
         req.y          = baseY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
+        req.otIndex    = arg1->panel.field_14.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -955,13 +955,13 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         gGpuPrimCursor = p + 1;
         setlen(p, 9);
         setcode(p, 0x2D);
-        x     = arg0->panel.field_20.u + arg1;
+        x     = arg0->panel.field_20.unsignedValue + arg1;
         p->x2 = x;
         p->x0 = x;
         x     = x + vec.vx;
         p->x3 = x;
         p->x1 = x;
-        y     = arg0->panel.field_22.u + arg2;
+        y     = arg0->panel.field_22.unsignedValue + arg2;
         p->y1 = y;
         p->y0 = y;
         y     = y + vec.vy;
@@ -1005,7 +1005,7 @@ void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
                 p->clut  = 0x3F40;
                 break;
         }
-        addPrim(gGpuCurrentOt + arg0->panel.field_14.s + 1, p);
+        addPrim(gGpuCurrentOt + arg0->panel.field_14.signedValue + 1, p);
     }
     Ui_LayoutWithMode0(arg0, (arg1 - 1), (arg2 - 1), ((s16)vec.vx + 1),
                        ((s16)vec.vy + 1), 0x81008);

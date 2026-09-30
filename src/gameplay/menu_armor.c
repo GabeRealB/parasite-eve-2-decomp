@@ -131,9 +131,9 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
     s32         temp;
 
     if (obj->panel.field_8 != 5) {
-        req.x          = obj->panel.field_20.u + 0x11 + x;
-        req.y          = obj->panel.field_22.u + (y - 6);
-        req.otIndex    = obj->panel.field_14.s + 1;
+        req.x          = obj->panel.field_20.unsignedValue + 0x11 + x;
+        req.y          = obj->panel.field_22.unsignedValue + (y - 6);
+        req.otIndex    = obj->panel.field_14.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -209,9 +209,9 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             color = prompt->field_1C;
             if ((u32)(item - 0xA0) < 0x20U) {
                 qty            = rec->qty - Gp_CountEquippedRelated(scan, item);
-                req.x          = obj->panel.field_20.u + 0x84 + x;
-                req.y          = obj->panel.field_22.u + (y - 3);
-                req.otIndex    = obj->panel.field_14.s + 1;
+                req.x          = obj->panel.field_20.unsignedValue + 0x84 + x;
+                req.y          = obj->panel.field_22.unsignedValue + (y - 3);
+                req.otIndex    = obj->panel.field_14.signedValue + 1;
                 req.field_8    = color;
                 req.glyphTable = 5;
                 req.centerMode = 2;
@@ -269,10 +269,10 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             TextDrawReq req;
             s32         off;
 
-            req.x          = obj->panel.field_20.u + prompt->field_18;
-            off            = obj->panel.field_22.u - 6;
+            req.x          = obj->panel.field_20.unsignedValue + prompt->field_18;
+            off            = obj->panel.field_22.unsignedValue - 6;
             req.y          = prompt->field_1A + off;
-            req.otIndex    = obj->panel.field_14.s + 1;
+            req.otIndex    = obj->panel.field_14.signedValue + 1;
             req.field_8    = prompt->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -352,7 +352,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
         Ui_SpawnFromDesc(&D_8010EC3C, 3, val, 0x10, obj);
         arg0->state = arg0->state + 1;
     }
-    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.s, (s16)obj->panel.field_1E.u, (s16)obj->panel.field_18.u + 0x4A);
+    Ui_DrawHBar(&(obj)->panel, obj->panel.field_1C.signedValue, obj->panel.field_1E.signedValue, obj->panel.field_18.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
     rec = Gp_NthEquippableRec(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
     if (rec != NULL) {

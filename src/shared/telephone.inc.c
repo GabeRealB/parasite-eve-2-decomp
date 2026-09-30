@@ -75,10 +75,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -92,10 +92,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -110,10 +110,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -128,10 +128,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -151,10 +151,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -202,10 +202,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             u8*         q;
 
             total          = Mc_SaveData[0].state.field_6CC;
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -241,7 +241,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             q[1] = 0x2E;
             Text_Strcat(p, Telephone_Data_80181A78);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
-            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.s, (s16)arg1->panel.field_1E.u, arg0->field_1A + 3);
+            Ui_DrawHBar(&(arg1)->panel, arg1->panel.field_1C.signedValue, arg1->panel.field_1E.signedValue, arg0->field_1A + 3);
             arg0->field_1A = (u16)arg0->field_1A + 5;
             break;
         }
@@ -249,10 +249,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -267,10 +267,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -283,10 +283,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             TextDrawReq req;
             s32         y;
 
-            req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
-            y              = arg1->panel.field_22.u - 6;
+            req.x          = arg1->panel.field_20.unsignedValue + (u16)arg0->field_18;
+            y              = arg1->panel.field_22.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
-            req.otIndex    = arg1->panel.field_14.s + 1;
+            req.otIndex    = arg1->panel.field_14.signedValue + 1;
             req.field_8    = arg0->field_1C;
             req.glyphTable = 0;
             req.centerMode = 0;
@@ -344,10 +344,10 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     value = work->percents[arg0->field_8];
     color = arg0->field_1C;
     if (arg1->panel.field_8 != 5) {
-        req.x          = arg1->panel.field_20.u + 0x11 + x;
-        textY          = arg1->panel.field_22.u - 6;
+        req.x          = arg1->panel.field_20.unsignedValue + 0x11 + x;
+        textY          = arg1->panel.field_22.unsignedValue - 6;
         req.y          = textY + y;
-        req.otIndex    = arg1->panel.field_14.s + 1;
+        req.otIndex    = arg1->panel.field_14.signedValue + 1;
         req.field_8    = color;
         req.glyphTable = 0;
         req.centerMode = 0;
@@ -387,8 +387,8 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
     }
 
-    base  = (s16)arg1->panel.field_1C.s + 0x80;
-    avail = (s16)arg1->panel.field_1E.u - 0x4A;
+    base  = arg1->panel.field_1C.signedValue + 0x80;
+    avail = arg1->panel.field_1E.signedValue - 0x4A;
     barW  = avail - base;
     barW  = (barW * work->barWidths[arg0->field_8]) >> 12;
     rowY  = arg0->field_1A - 0xC;
@@ -396,10 +396,10 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
     barX  = avail - barW;
     if (barW >= 2) {
         prim                              = gGpuPrimCursor;
-        tx                                = arg1->panel.field_20.u + barX + 1;
+        tx                                = arg1->panel.field_20.unsignedValue + barX + 1;
         prim->x2                          = tx;
         prim->x0                          = tx;
-        ty                                = arg1->panel.field_22.u;
+        ty                                = arg1->panel.field_22.unsignedValue;
         gGpuPrimCursor                    = prim + 1;
         ty                                = ty + rowY;
         ty                               += 1;
@@ -417,7 +417,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
         prim->y2                          = ty;
         prim->x3                          = tx;
         prim->x1                          = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.field_14.s + 1, prim);
+        addPrim(gGpuCurrentOt + arg1->panel.field_14.signedValue + 1, prim);
     }
     one = 1;
     Ui_DrawBeveledRect(&(arg1)->panel, barX, arg0->field_1A - 0xC, barW, 9, 0, one);

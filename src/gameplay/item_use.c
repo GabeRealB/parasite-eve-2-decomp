@@ -491,8 +491,8 @@ void func_800D6334(Task* task)
         Ui_SpawnFromDesc(&D_8010F8B4, 0, 0, 0, panel);
         task->state++;
     }
-    x = (s16)panel->panel.field_1C.s + 4;
-    y = (s16)panel->panel.field_18.u + 0x2B;
+    x = panel->panel.field_1C.signedValue + 4;
+    y = panel->panel.field_18.signedValue + 0x2B;
     if (task->state == 1) {
         selectedSlot = D_8010F884;
         selectedX    = x + selectedSlot * 13;
@@ -512,9 +512,9 @@ void func_800D6334(Task* task)
         selected = firstRec;
         if (selected != NULL) {
             item            = selected->itemId;
-            name.x          = panel->panel.field_20.u + x;
-            name.y          = panel->panel.field_22.u + 10 + y;
-            name.otIndex    = panel->panel.field_14.s + 1;
+            name.x          = panel->panel.field_20.unsignedValue + x;
+            name.y          = panel->panel.field_22.unsignedValue + 10 + y;
+            name.otIndex    = panel->panel.field_14.signedValue + 1;
             name.field_8    = 0x606060;
             name.glyphTable = 0;
             name.centerMode = 0;
@@ -555,13 +555,13 @@ void func_800D6334(Task* task)
             }
         }
     }
-    labelX = (s16)panel->panel.field_1C.s + 2;
-    labelY = (s16)panel->panel.field_18.u;
+    labelX = panel->panel.field_1C.signedValue + 2;
+    labelY = panel->panel.field_18.signedValue;
     Gp_DrawItemLabel(panel, labelX, labelY + 15, armor, 0x606060, 0);
-    Ui_DrawHBar(&(panel)->panel, (s16)panel->panel.field_1C.s, (s16)panel->panel.field_1E.u, (s16)panel->panel.field_18.u + 17);
-    label.x          = panel->panel.field_20.u + labelX;
-    label.y          = panel->panel.field_22.u + labelY + 24;
-    label.otIndex    = panel->panel.field_14.s + 1;
+    Ui_DrawHBar(&(panel)->panel, panel->panel.field_1C.signedValue, panel->panel.field_1E.signedValue, panel->panel.field_18.signedValue + 17);
+    label.x          = panel->panel.field_20.unsignedValue + labelX;
+    label.y          = panel->panel.field_22.unsignedValue + labelY + 24;
+    label.otIndex    = panel->panel.field_14.signedValue + 1;
     label.field_8    = 0x606060;
     label.glyphTable = 5;
     label.centerMode = 0;
@@ -715,8 +715,8 @@ void Gp_DrawWeaponLabel(Task* arg0)
     panel                = arg0->spawnArg2.pointer;
     panel->bounds.rect.y = 0x1C - gDisplayState.vramYOffset;
     Ui_InsetLayout(panel, NULL, NULL, 0);
-    x = (s16)panel->field_1C.u;
-    y = (s16)panel->field_18.u;
+    x = panel->field_1C.signedValue;
+    y = panel->field_18.signedValue;
     Gp_DrawEquipSummary(panel, x + 2, y + 0xF, 1);
     Ui_DrawText(panel, Gp_StrWeapon);
 }

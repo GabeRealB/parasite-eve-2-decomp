@@ -12,12 +12,16 @@
 struct _UiList;
 struct _UiObject;
 
-/// UI layout values are read as both signed coordinates and unsigned words.
-/// Explicit views preserve the original halfword loads without pointer casts.
+/// A UI halfword with signed and unsigned numeric views of the same 16 bits.
+///
+/// The signed view supports negative panel coordinates and ordering-table
+/// indices; the unsigned view supports layout arithmetic and list results.
+/// Select a view before integer promotion; stores retain the low 16 bits.
 typedef union {
-    u16 u;
-    s16 s;
+    u16 unsignedValue; // Numeric view in the range 0..65535
+    s16 signedValue;   // Numeric view in the range -32768..32767
 } UiHalf;
+STATIC_ASSERT_SIZEOF(UiHalf, 2);
 
 typedef union {
     u8 u;

@@ -671,13 +671,13 @@ static UiListItemFunc Telephone_Data_80181C40[1] = {
     Telephone_DrawPlayDataRow,
 };
 
-static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .u = 9 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiListItemFunc Telephone_Data_80181C68[1] = {
     Telephone_DrawUsageRow,
 };
 
-static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiObjectDesc Telephone_Data_80181C90 = { 3, 0xFF70, 64, 288, 40, 56, 0, 0, 192, Telephone_PromptTask, 0 };
 
@@ -692,4 +692,4 @@ static UiListItemFunc Telephone_Data_80181CE4[4] = {
     Telephone_PeDataRow,
 };
 
-static UiList Telephone_Data_80181CF4 = { Telephone_Data_80181CE4, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+static UiList Telephone_Data_80181CF4 = { Telephone_Data_80181CE4, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

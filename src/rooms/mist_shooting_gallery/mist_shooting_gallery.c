@@ -691,7 +691,7 @@ UiListItemFunc D_mist_shooting_gallery_80184F48[1] = {
     func_mist_shooting_gallery_8017DE7C,
 };
 
-UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .u = 1 }, 0, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_80184F70 = { 2, 0xFFF8, 0, 144, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017E090, 0 };
 
@@ -721,7 +721,7 @@ UiListItemFunc D_mist_shooting_gallery_80185038[1] = {
     func_mist_shooting_gallery_8017F98C,
 };
 
-UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .u = 4 }, 1, 15, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_80185060 = { 2, 0xFF70, 0xFFA0, 176, 64, 32, 0, 0, 192, func_mist_shooting_gallery_8017EAE0, 0 };
 
@@ -860,7 +860,7 @@ UiListItemFunc D_mist_shooting_gallery_80185334[1] = {
     func_mist_shooting_gallery_8018055C,
 };
 
-UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_8018535C = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
 
@@ -1160,35 +1160,35 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     total = 0;
     obj   = task->spawnArg2.pointer;
     work  = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
-    xOff  = (s16)obj->panel.field_1C.s + 2;
-    y     = (s16)obj->panel.field_18.u + 0x17;
+    xOff  = obj->panel.field_1C.signedValue + 2;
+    y     = obj->panel.field_18.signedValue + 0x17;
     do {
         kills = (u8)work->pad_0F[i];
         if (kills > 0) {
             points = D_mist_shooting_gallery_80184F98[i].points;
             rows  += 1;
 
-            req1.x          = obj->panel.field_20.u + xOff;
-            req1.y          = obj->panel.field_22.u + y;
-            req1.otIndex    = obj->panel.field_14.s + 1;
+            req1.x          = obj->panel.field_20.unsignedValue + xOff;
+            req1.y          = obj->panel.field_22.unsignedValue + y;
+            req1.otIndex    = obj->panel.field_14.signedValue + 1;
             req1.field_8    = 0x606060;
             req1.glyphTable = 0;
             req1.centerMode = 0;
             req1.field_E    = 3;
             Text_DrawString(&req1, D_mist_shooting_gallery_80184F98[i].name);
 
-            req2.x          = obj->panel.field_20.u + 0x6E + xOff;
-            req2.y          = obj->panel.field_22.u + y;
-            req2.otIndex    = obj->panel.field_14.s + 1;
+            req2.x          = obj->panel.field_20.unsignedValue + 0x6E + xOff;
+            req2.y          = obj->panel.field_22.unsignedValue + y;
+            req2.otIndex    = obj->panel.field_14.signedValue + 1;
             req2.field_8    = 0x606060;
             req2.glyphTable = 0;
             req2.centerMode = 2;
             req2.field_E    = 3;
             Text_DrawString(&req2, Text_ItoaSigned(buf, points));
 
-            req3.x          = obj->panel.field_20.u + 0x91 + xOff;
-            req3.y          = obj->panel.field_22.u + y;
-            req3.otIndex    = obj->panel.field_14.s + 1;
+            req3.x          = obj->panel.field_20.unsignedValue + 0x91 + xOff;
+            req3.y          = obj->panel.field_22.unsignedValue + y;
+            req3.otIndex    = obj->panel.field_14.signedValue + 1;
             req3.field_8    = 0x606060;
             req3.glyphTable = 0;
             req3.centerMode = 2;
@@ -1196,9 +1196,9 @@ void func_mist_shooting_gallery_8017E234(Task* task)
             Text_DrawString(&req3, Text_ItoaSigned(buf, kills));
             subtotal = kills * points;
 
-            req4.x          = obj->panel.field_20.u - 5 - xOff;
-            req4.y          = obj->panel.field_22.u + y;
-            req4.otIndex    = obj->panel.field_14.s + 1;
+            req4.x          = obj->panel.field_20.unsignedValue - 5 - xOff;
+            req4.y          = obj->panel.field_22.unsignedValue + y;
+            req4.otIndex    = obj->panel.field_14.signedValue + 1;
             req4.field_8    = 0x606060;
             req4.glyphTable = 0;
             req4.centerMode = 2;
@@ -1210,61 +1210,61 @@ void func_mist_shooting_gallery_8017E234(Task* task)
         i += 1;
     } while (i < 0xD);
 
-    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, (s16)obj->panel.field_1A.u - 0xE);
+    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, obj->panel.field_1A.signedValue - 0xE);
 
-    req1.x          = obj->panel.field_20.u + 0x78 + xOff;
-    bottom1         = obj->panel.field_22.u - 6;
-    req1.y          = obj->panel.field_1A.u + bottom1;
-    req1.otIndex    = obj->panel.field_14.s + 1;
+    req1.x          = obj->panel.field_20.unsignedValue + 0x78 + xOff;
+    bottom1         = obj->panel.field_22.unsignedValue - 6;
+    req1.y          = obj->panel.field_1A.unsignedValue + bottom1;
+    req1.otIndex    = obj->panel.field_14.signedValue + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 2;
     req1.field_E    = 1;
     Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
-    req2.x          = obj->panel.field_20.u - 5 - xOff;
-    bottom2         = obj->panel.field_22.u - 4;
-    req2.y          = obj->panel.field_1A.u + bottom2;
-    req2.otIndex    = obj->panel.field_14.s + 1;
+    req2.x          = obj->panel.field_20.unsignedValue - 5 - xOff;
+    bottom2         = obj->panel.field_22.unsignedValue - 4;
+    req2.y          = obj->panel.field_1A.unsignedValue + bottom2;
+    req2.otIndex    = obj->panel.field_14.signedValue + 1;
     req2.field_8    = 0x606060;
     req2.glyphTable = 0;
     req2.centerMode = 2;
     req2.field_E    = 3;
     Text_DrawString(&req2, Text_ItoaSigned(buf, total));
 
-    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, (s16)obj->panel.field_18.u + 0xA);
+    Ui_DrawHBar(&(obj)->panel, xOff, -xOff, obj->panel.field_18.signedValue + 0xA);
 
-    y               = (s16)obj->panel.field_18.u + 6;
-    req3.x          = obj->panel.field_20.u + 0x1E + xOff;
-    req3.y          = obj->panel.field_22.u + y;
-    req3.otIndex    = obj->panel.field_14.s + 1;
+    y               = obj->panel.field_18.signedValue + 6;
+    req3.x          = obj->panel.field_20.unsignedValue + 0x1E + xOff;
+    req3.y          = obj->panel.field_22.unsignedValue + y;
+    req3.otIndex    = obj->panel.field_14.signedValue + 1;
     req3.field_8    = 0x606060;
     req3.glyphTable = 5;
     req3.centerMode = 1;
     req3.field_E    = 1;
     Text_DrawString(&req3, "NMC");
 
-    req4.x          = obj->panel.field_20.u + 0x73 + xOff;
-    req4.y          = obj->panel.field_22.u + y;
-    req4.otIndex    = obj->panel.field_14.s + 1;
+    req4.x          = obj->panel.field_20.unsignedValue + 0x73 + xOff;
+    req4.y          = obj->panel.field_22.unsignedValue + y;
+    req4.otIndex    = obj->panel.field_14.signedValue + 1;
     req4.field_8    = 0x606060;
     req4.glyphTable = 5;
     req4.centerMode = 2;
     req4.field_E    = 1;
     Text_DrawString(&req4, "SCORE");
 
-    req5.x          = obj->panel.field_20.u + 0x96 + xOff;
-    req5.y          = obj->panel.field_22.u + y;
-    req5.otIndex    = obj->panel.field_14.s + 1;
+    req5.x          = obj->panel.field_20.unsignedValue + 0x96 + xOff;
+    req5.y          = obj->panel.field_22.unsignedValue + y;
+    req5.otIndex    = obj->panel.field_14.signedValue + 1;
     req5.field_8    = 0x606060;
     req5.glyphTable = 5;
     req5.centerMode = 2;
     req5.field_E    = 1;
     Text_DrawString(&req5, "KILL");
 
-    req6.x          = obj->panel.field_20.u - xOff;
-    req6.y          = obj->panel.field_22.u + y;
-    req6.otIndex    = obj->panel.field_14.s + 1;
+    req6.x          = obj->panel.field_20.unsignedValue - xOff;
+    req6.y          = obj->panel.field_22.unsignedValue + y;
+    req6.otIndex    = obj->panel.field_14.signedValue + 1;
     req6.field_8    = 0x606060;
     req6.glyphTable = 5;
     req6.centerMode = 2;
@@ -1359,22 +1359,22 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     }
 
     color = 0x606060;
-    xOff  = (s16)obj->panel.field_1C.s + 2;
-    top   = (s16)obj->panel.field_18.u;
+    xOff  = obj->panel.field_1C.signedValue + 2;
+    top   = obj->panel.field_18.signedValue;
     y     = top + 0xB;
 
-    req1.x          = obj->panel.field_20.u + xOff;
-    req1.y          = (s16)(obj->panel.field_22.u - 2) + y;
-    req1.otIndex    = obj->panel.field_14.s + 1;
+    req1.x          = obj->panel.field_20.unsignedValue + xOff;
+    req1.y          = (s16)(obj->panel.field_22.unsignedValue - 2) + y;
+    req1.otIndex    = obj->panel.field_14.signedValue + 1;
     req1.field_8    = color;
     req1.glyphTable = 5;
     req1.centerMode = 0;
     req1.field_E    = 1;
     Text_DrawString(&req1, D_mist_shooting_gallery_8017D65C);
 
-    req2.x          = obj->panel.field_20.u - xOff;
-    req2.y          = obj->panel.field_22.u + y;
-    req2.otIndex    = obj->panel.field_14.s + 1;
+    req2.x          = obj->panel.field_20.unsignedValue - xOff;
+    req2.y          = obj->panel.field_22.unsignedValue + y;
+    req2.otIndex    = obj->panel.field_14.signedValue + 1;
     req2.field_8    = color;
     req2.glyphTable = 0;
     req2.centerMode = 2;
@@ -1384,18 +1384,18 @@ void func_mist_shooting_gallery_8017E854(Task* task)
     Ui_DrawHBar(&(obj)->panel, xOff, -xOff, top + 0x1B);
 
     y               = top + 0x25;
-    req3.x          = obj->panel.field_20.u + xOff;
-    req3.y          = (s16)(obj->panel.field_22.u - 2) + y;
-    req3.otIndex    = obj->panel.field_14.s + 1;
+    req3.x          = obj->panel.field_20.unsignedValue + xOff;
+    req3.y          = (s16)(obj->panel.field_22.unsignedValue - 2) + y;
+    req3.otIndex    = obj->panel.field_14.signedValue + 1;
     req3.field_8    = color;
     req3.glyphTable = 5;
     req3.centerMode = 0;
     req3.field_E    = 1;
     Text_DrawString(&req3, "BONUS BP");
 
-    req4.x          = obj->panel.field_20.u - xOff;
-    req4.y          = obj->panel.field_22.u + y;
-    req4.otIndex    = obj->panel.field_14.s + 1;
+    req4.x          = obj->panel.field_20.unsignedValue - xOff;
+    req4.y          = obj->panel.field_22.unsignedValue + y;
+    req4.otIndex    = obj->panel.field_14.signedValue + 1;
     req4.field_8    = 0x37A78;
     req4.glyphTable = 0;
     req4.centerMode = 2;
@@ -1478,17 +1478,17 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
     }
 
     color = 0x606060;
-    top   = (s16)obj->panel.field_18.u;
+    top   = obj->panel.field_18.signedValue;
     y     = top + 0xF;
     val   = Gp_StatRows[Mc_SaveData[0].state.gameMode].base.word;
-    xOff  = (s16)obj->panel.field_1C.s + 6;
+    xOff  = obj->panel.field_1C.signedValue + 6;
     if (val < 100) {
         color = 0xD287F;
     }
 
-    req1.x          = obj->panel.field_20.u + xOff;
-    req1.y          = (s16)(obj->panel.field_22.u - 8) + y;
-    req1.otIndex    = obj->panel.field_14.s + 1;
+    req1.x          = obj->panel.field_20.unsignedValue + xOff;
+    req1.y          = (s16)(obj->panel.field_22.unsignedValue - 8) + y;
+    req1.otIndex    = obj->panel.field_14.signedValue + 1;
     req1.field_8    = 0x606060;
     req1.glyphTable = 5;
     req1.centerMode = 0;
@@ -1503,9 +1503,9 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
         color = 0xD287F;
     }
 
-    req2.x          = obj->panel.field_20.u + xOff;
-    req2.y          = (s16)(obj->panel.field_22.u - 8) + y;
-    req2.otIndex    = obj->panel.field_14.s + 1;
+    req2.x          = obj->panel.field_20.unsignedValue + xOff;
+    req2.y          = (s16)(obj->panel.field_22.unsignedValue - 8) + y;
+    req2.otIndex    = obj->panel.field_14.signedValue + 1;
     req2.field_8    = 0x606060;
     req2.glyphTable = 5;
     req2.centerMode = 0;
@@ -1535,9 +1535,9 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
             break;
     }
 
-    req3.x          = obj->panel.field_20.u + xOff;
-    req3.y          = (s16)(obj->panel.field_22.u - 8) + y;
-    req3.otIndex    = obj->panel.field_14.s + 1;
+    req3.x          = obj->panel.field_20.unsignedValue + xOff;
+    req3.y          = (s16)(obj->panel.field_22.unsignedValue - 8) + y;
+    req3.otIndex    = obj->panel.field_14.signedValue + 1;
     req3.field_8    = 0x606060;
     req3.glyphTable = 5;
     req3.centerMode = 0;
@@ -1567,9 +1567,9 @@ void func_mist_shooting_gallery_8017EC58(Task* task)
             break;
     }
 
-    req4.x          = obj->panel.field_20.u + xOff;
-    req4.y          = (s16)(obj->panel.field_22.u - 8) + y;
-    req4.otIndex    = obj->panel.field_14.s + 1;
+    req4.x          = obj->panel.field_20.unsignedValue + xOff;
+    req4.y          = (s16)(obj->panel.field_22.unsignedValue - 8) + y;
+    req4.otIndex    = obj->panel.field_14.signedValue + 1;
     req4.field_8    = 0x606060;
     req4.glyphTable = 5;
     req4.centerMode = 0;
@@ -1620,14 +1620,14 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     gauges       = D_mist_shooting_gallery_8017D808;
     Ui_DrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
 
-    col               = obj->panel.field_1C.s;
+    col               = obj->panel.field_1C.signedValue;
     obj->field_2E     = 0;
     x                 = col + 0xB;
-    row               = (s16)obj->panel.field_18.u;
-    label0.x          = obj->panel.field_20.u + x;
+    row               = obj->panel.field_18.signedValue;
+    label0.x          = obj->panel.field_20.unsignedValue + x;
     y                 = row + 0xB;
-    label0.y          = (s16)(obj->panel.field_22.u - 6) + y;
-    label0.otIndex    = obj->panel.field_14.s + 1;
+    label0.y          = (s16)(obj->panel.field_22.unsignedValue - 6) + y;
+    label0.otIndex    = obj->panel.field_14.signedValue + 1;
     rating            = &missionLevels.entries[Mc_SaveData[0].state.gameMode];
     label0.field_8    = 0x606060;
     label0.glyphTable = 5;
@@ -1635,9 +1635,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label0.field_E    = 1;
     Text_DrawString(&label0, D_mist_shooting_gallery_8017D828);
 
-    value0.x          = obj->panel.field_20.u + 0x41;
-    value0.y          = (s16)(obj->panel.field_22.u - 3) + y;
-    value0.otIndex    = obj->panel.field_14.s + 1;
+    value0.x          = obj->panel.field_20.unsignedValue + 0x41;
+    value0.y          = (s16)(obj->panel.field_22.unsignedValue - 3) + y;
+    value0.otIndex    = obj->panel.field_14.signedValue + 1;
     value0.field_8    = 0x606060;
     value0.glyphTable = 0;
     value0.centerMode = 2;
@@ -1647,9 +1647,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Ui_DrawHBar(&(obj)->panel, col + 6, -x + 5, row + 0xD);
 
     y                 = row + 0x1E;
-    label1.x          = obj->panel.field_20.u + x;
-    label1.y          = (s16)(obj->panel.field_22.u - 6) + y;
-    label1.otIndex    = obj->panel.field_14.s + 1;
+    label1.x          = obj->panel.field_20.unsignedValue + x;
+    label1.y          = (s16)(obj->panel.field_22.unsignedValue - 6) + y;
+    label1.otIndex    = obj->panel.field_14.signedValue + 1;
     rating            = &conditions.entries[Mc_SaveData[0].state.gameMode];
     label1.field_8    = 0x606060;
     label1.glyphTable = 5;
@@ -1657,9 +1657,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label1.field_E    = 1;
     Text_DrawString(&label1, D_mist_shooting_gallery_8017D838);
 
-    value1.x          = obj->panel.field_20.u + 0x41;
-    value1.y          = (s16)(obj->panel.field_22.u - 3) + y;
-    value1.otIndex    = obj->panel.field_14.s + 1;
+    value1.x          = obj->panel.field_20.unsignedValue + 0x41;
+    value1.y          = (s16)(obj->panel.field_22.unsignedValue - 3) + y;
+    value1.otIndex    = obj->panel.field_14.signedValue + 1;
     value1.field_8    = 0x606060;
     value1.glyphTable = 0;
     value1.centerMode = 2;
@@ -1668,9 +1668,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
     y                 = row + 0x2D;
-    label2.x          = obj->panel.field_20.u + x;
-    label2.y          = (s16)(obj->panel.field_22.u - 6) + y;
-    label2.otIndex    = obj->panel.field_14.s + 1;
+    label2.x          = obj->panel.field_20.unsignedValue + x;
+    label2.y          = (s16)(obj->panel.field_22.unsignedValue - 6) + y;
+    label2.otIndex    = obj->panel.field_14.signedValue + 1;
     rating            = &enemyLevels.entries[Mc_SaveData[0].state.gameMode];
     label2.field_8    = 0x606060;
     label2.glyphTable = 5;
@@ -1678,9 +1678,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label2.field_E    = 1;
     Text_DrawString(&label2, D_mist_shooting_gallery_8017D844);
 
-    value2.x          = obj->panel.field_20.u + 0x41;
-    value2.y          = (s16)(obj->panel.field_22.u - 3) + y;
-    value2.otIndex    = obj->panel.field_14.s + 1;
+    value2.x          = obj->panel.field_20.unsignedValue + 0x41;
+    value2.y          = (s16)(obj->panel.field_22.unsignedValue - 3) + y;
+    value2.otIndex    = obj->panel.field_14.signedValue + 1;
     value2.field_8    = 0x606060;
     value2.glyphTable = 0;
     value2.centerMode = 2;
@@ -1689,9 +1689,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     Text_DrawPrompt(obj, 0x46, y, gauges.bars[rating->gauge], 0x606060, 3, 0);
 
     y                 = row + 0x3C;
-    label3.x          = obj->panel.field_20.u + x;
-    label3.y          = (s16)(obj->panel.field_22.u - 6) + y;
-    label3.otIndex    = obj->panel.field_14.s + 1;
+    label3.x          = obj->panel.field_20.unsignedValue + x;
+    label3.y          = (s16)(obj->panel.field_22.unsignedValue - 6) + y;
+    label3.otIndex    = obj->panel.field_14.signedValue + 1;
     rating            = &supplyLevels.entries[Mc_SaveData[0].state.gameMode];
     label3.field_8    = 0x606060;
     label3.glyphTable = 5;
@@ -1699,9 +1699,9 @@ void func_mist_shooting_gallery_8017F128(Task* task)
     label3.field_E    = 1;
     Text_DrawString(&label3, D_mist_shooting_gallery_8017D850);
 
-    value3.x          = obj->panel.field_20.u + 0x41;
-    value3.y          = (s16)(obj->panel.field_22.u - 3) + y;
-    value3.otIndex    = obj->panel.field_14.s + 1;
+    value3.x          = obj->panel.field_20.unsignedValue + 0x41;
+    value3.y          = (s16)(obj->panel.field_22.unsignedValue - 3) + y;
+    value3.otIndex    = obj->panel.field_14.signedValue + 1;
     value3.field_8    = 0x606060;
     value3.glyphTable = 0;
     value3.centerMode = 2;
@@ -1847,7 +1847,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
         obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
         task->state                      = task->state + 1;
     }
-    Text_DrawMultiLine(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 0xF, texts.text[Mc_SaveData[0].state.gameMode], 0x606060, 1, 0);
+    Text_DrawMultiLine(obj, obj->panel.field_1C.signedValue + 2, obj->panel.field_18.signedValue + 0xF, texts.text[Mc_SaveData[0].state.gameMode], 0x606060, 1, 0);
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {
@@ -2214,9 +2214,9 @@ void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
     }
 
     course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.u;
-    menu.req.otIndex    = obj->panel.field_14.s + 1;
+    menu.req.x          = obj->panel.field_20.unsignedValue + (u16)prompt->field_18;
+    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.unsignedValue;
+    menu.req.otIndex    = obj->panel.field_14.signedValue + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;

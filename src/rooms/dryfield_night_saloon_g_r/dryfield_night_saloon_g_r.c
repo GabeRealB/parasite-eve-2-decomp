@@ -1017,7 +1017,7 @@ UiListItemFunc D_dryfield_night_saloon_g_r_80185024[1] = {
     func_dryfield_night_saloon_g_r_8017E0C0,
 };
 
-UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .u = 0 }, 0 };
+UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 UiObjectDesc D_dryfield_night_saloon_g_r_8018504C = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_dryfield_night_saloon_g_r_8017E28C, 0 };
 
@@ -2229,9 +2229,9 @@ void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
     }
 
     course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.field_20.u + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.u;
-    menu.req.otIndex    = obj->panel.field_14.s + 1;
+    menu.req.x          = obj->panel.field_20.unsignedValue + (u16)prompt->field_18;
+    menu.req.y          = (prompt->field_1A - 3) + obj->panel.field_22.unsignedValue;
+    menu.req.otIndex    = obj->panel.field_14.signedValue + 1;
     menu.req.field_8    = prompt->field_1C;
     menu.req.glyphTable = 4;
     menu.req.field_E    = 1;
