@@ -3,23 +3,32 @@
 
 #include "common.h"
 
-/// One checksummed bank with 504 packed four-bit flag slots. Gameplay also
-/// views some slots as wider state fields. The memory-card system stores the
-/// current bank followed by its backup, 0x100 bytes each.
+/// Number of four-bit positions in a saved game-flag payload.
+enum { GAME_FLAG_NIBBLE_COUNT = 504 };
+
+/// Checksummed save bank of packed game flags and a play-time mark.
+///
+/// Each 0x100-byte bank has a four-byte checksum header and 252 payload bytes.
+/// Nibble indices 0..503 select the high nibble for even indices and the low
+/// nibble for odd indices. The minute mark shares nibble positions 104..107;
+/// these views refer to the same storage. Whole-byte accesses update both
+/// nibbles together. The memory-card system stores the live bank followed by
+/// its backup and computes their checksums when saving.
 typedef struct {
-    u16 checksum;
-    u16 checksumComplement;
+    u16 checksum;                                   // Low 16 bits of the sum of all payload bytes interpreted as s8
+    u16 checksumComplement;                         // Ones' complement of checksum; verification compares only checksum
     union {
-        u8 values[0xFC];
+        u8 packedFlags[GAME_FLAG_NIBBLE_COUNT / 2]; // Two four-bit values per byte
         struct {
-            u8  unknown_04[0x34];
-            u16 playTimeMark; // Saved play time when collected flag 0x119 was set
-            u8  unknown_3A[0xC6];
-        } state;
-    } data;
+            u8  flagBytesBeforeTimeMark[0x34];      // Packed nibble positions 0..103
+            u16 playTimeMark;                       // Captured play time in minutes (0..59999), refreshed for collected-bit timing
+            u8  flagBytesAfterTimeMark[0xC6];       // Packed nibble positions 108..503
+        } state;                                    // Wider gameplay interpretation of the packed payload
+    } payload;                                      // Saved bytes covered by the checksum
 } GameFlagNibbleBank;
 STATIC_ASSERT_SIZEOF(GameFlagNibbleBank, 0x100);
-STATIC_ASSERT(OFFSET_OF(GameFlagNibbleBank, data.state.playTimeMark) == 0x38, game_flag_play_time_offset);
+STATIC_ASSERT(OFFSET_OF(GameFlagNibbleBank, payload) == 4, game_flag_payload_offset);
+STATIC_ASSERT(OFFSET_OF(GameFlagNibbleBank, payload.state.playTimeMark) == 0x38, game_flag_play_time_offset);
 
 /// Common saved stage header. Area IDs 1..64 select visitedAreas; each
 /// entryStates word holds sixteen two-bit placement/item states (IDs 0..63).

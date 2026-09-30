@@ -370,12 +370,12 @@ void Gp_MsgAllyWeapon(s32 arg0)
 
 void func_800E3FAC(s32 arg0, s32 arg1)
 {
-    GameFlag_NibbleBanks[0].data.values[arg0 / 2] = arg1;
+    GameFlag_NibbleBanks[0].payload.packedFlags[arg0 / 2] = arg1;
 }
 
 s32 func_800E3FCC(s32 arg0)
 {
-    return GameFlag_NibbleBanks[0].data.values[arg0 / 2];
+    return GameFlag_NibbleBanks[0].payload.packedFlags[arg0 / 2];
 }
 
 /// Location-message fallback of `D_8010FAD4`, the table installed on pointer
@@ -408,7 +408,7 @@ void Gp_ClearAllFlagNibbles(void)
 {
     s32 i;
 
-    for (i = 0; i < 0x1F8; i++) {
+    for (i = 0; i < GAME_FLAG_NIBBLE_COUNT; i++) {
         GameFlag_SetNibble(i, 0);
     }
 }

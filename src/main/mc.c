@@ -645,7 +645,7 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
     { (McChecksumBlock*)GameFlag_ShelterBanks, 0xE4, 4 },
     { (McChecksumBlock*)GameFlag_NeoArkBanks, 0xA4, 3 },
-    { (McChecksumBlock*)GameFlag_NibbleBanks, 0x100, 4 },
+    { (McChecksumBlock*)GameFlag_NibbleBanks, sizeof(GameFlag_NibbleBanks[0]), 4 },
 };
 
 static UiListItemFunc Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };

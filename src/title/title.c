@@ -379,7 +379,7 @@ void Title_RestoreDemoCard(void)
     memcpy(GameFlag_NeoArkBanks, src, 0xA4);
     src += 0xA4;
 
-    memcpy(&GameFlag_NibbleBanks[bank], src, 0x100);
+    memcpy(&GameFlag_NibbleBanks[bank], src, sizeof(GameFlag_NibbleBanks[bank]));
 
     Mc_SaveData[0].state.demoScene = saveField23;
     Mc_SaveData[0].state.vibration = saveField21;
