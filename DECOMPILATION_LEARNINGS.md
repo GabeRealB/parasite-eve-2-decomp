@@ -146141,3 +146141,38 @@ carries. Out-of-line helpers stay plain `static`, so they must be in a fragment
 the overlay includes whole; task bodies the overlay's entry points wrap can be
 `static inline`, so an unused variant costs nothing and several may share a
 fragment.
+
+
+## One fragment, several copies in one package: define the library name around the include (src/shared/paced_walk*, scripted_walk*, 2026-09-30)
+
+**Problem.** Some packages carry a shared body more than once: `actor_460200`
+has three copies of the NPC walker (one per NPC), `actor_143900` two, the
+hopping enemy names its creep state twice in one state table, and
+`dryfield_gas_station` has a fade task in two units. One fragment defines one
+name, and an externally linked fragment included in two units of one package
+collides at link time.
+
+**Fix.** Include the fragment again with the library names defined to the
+copy's own, only for the names that fragment uses:
+
+```c
+#define pacedWalkTickAnim func_actor_460200_80133B3C
+#include "../../shared/paced_walk_tick_anim.inc.c"
+#undef pacedWalkTickAnim
+```
+
+An update body that calls the helpers gets the helpers' names defined too, so
+each copy calls its own instance; package data works the same way (define the
+shared data name, or the library's access macro, to the copy's object). A copy
+the file already declared `static` keeps internal linkage, since a later
+definition without a storage class inherits it. Where every copy is private to
+its unit, as the Bezier helpers are in `actor_503500`'s `_3.c` and `_4.c`, make
+the fragments `static` and declare them `static` in the header instead. A map
+overlay whose copy other rooms call under a public name uses the same define
+to give the fragment that name.
+
+A call through an old-style declaration can pass an argument the prototype
+would reject (`actor_223600` calls its motion driver with a stray second
+argument). Keep it by casting at that one call site,
+`((void (*)())animDriverTick)(task, hp);` - it still compiles to a direct
+`jal` and matches.
