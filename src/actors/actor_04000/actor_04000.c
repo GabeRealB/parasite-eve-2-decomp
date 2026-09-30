@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -195,7 +195,7 @@ DamageAttack Actor04000_D07078[3] = {
     { 30, 0 },
 };
 
-GpPairSrcE Actor04000_D07084 = { Actor04000_D07078, 1, 8, 28, 4, 100, 100, 100, 0, 0 };
+EnemyParams Actor04000_D07084 = { Actor04000_D07078, 1, 8, 28, 4, 100, 100, 100, 0 };
 
 GpScriptCmd Actor04000_D07094[3] = {
     { 1, 257 },
@@ -1134,7 +1134,7 @@ Task* Actor04000_D0C710[2];
 
 Task* Actor04000_D0C718[8];
 
-extern GpPairSrcE Actor04000_D07084;
+extern EnemyParams Actor04000_D07084;
 
 extern AnimationSet* Actor04000_D0C4C4[19];
 

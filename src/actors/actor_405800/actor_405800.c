@@ -29,7 +29,7 @@
 #include "gameplay/model_lighting.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -226,7 +226,7 @@ STATIC_ASSERT_SIZEOF(Actor405800Work, 0x89C);
 extern void* D_800678F0[1];
 
 extern TaskDesc      D_actor_405800_801514B4[];
-extern GpPairSrcE    D_actor_405800_801418FC;
+extern EnemyParams   D_actor_405800_801418FC;
 extern AnimationSet* D_actor_405800_801513F8[6];
 extern AnimationSet* D_actor_405800_80151410[35];
 // Message-table callbacks use the argument views required by this TU.
@@ -641,7 +641,7 @@ DamageAttack D_actor_405800_801418F0[3] = {
     { 12, 2 },
 };
 
-GpPairSrcE D_actor_405800_801418FC = { D_actor_405800_801418F0, 1000, 600, 300, 15, 100, 8, 0, 0, 0 };
+EnemyParams D_actor_405800_801418FC = { D_actor_405800_801418F0, 1000, 600, 300, 15, 100, 8, 0, 0 };
 
 AnimationPackedPose D_actor_405800_8014190C[26] = {
 #include "assets/actor_405800_animation_107B4_bank1.inc"

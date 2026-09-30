@@ -24,7 +24,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -57,9 +57,9 @@
 /// Placement descriptor for this actor.
 extern DamageAttack Actor05600_D161BC[5];
 
-/// Pair source the approach cycle parks at `GpEnemy::param`; its `hpMax`
+/// Enemy parameters the approach cycle parks at `GpEnemy::param`; its `hpMax`
 /// becomes the enemy's `field_40`.
-extern GpPairSrcE Actor05600_D161D0[];
+extern EnemyParams Actor05600_D161D0[];
 
 /// Per-stage tables of streaming cue ids, indexed by `GameSession::location.loc.stage`
 /// and then `GameSession::location.loc.area`.
@@ -777,8 +777,8 @@ DamageAttack Actor05600_D161BC[5] = {
     { 30, 7 },
 };
 
-GpPairSrcE Actor05600_D161D0[1] = {
-    { Actor05600_D161BC, 425, 125, 100, 5, 50, 6, 0, 0, 0 },
+EnemyParams Actor05600_D161D0[1] = {
+    { Actor05600_D161BC, 425, 125, 100, 5, 50, 6, 0, 0 },
 };
 
 s16 Actor05600_D161E0[46] = {

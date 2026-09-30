@@ -130023,7 +130023,7 @@ for `abs` before modelling the allocator.
 ## A `u16` field divided by a power of two is shortened to an unsigned `srl`; route it through an `s32` local to get the signed bias (func_actor_102300_80131EA4, 2026-09-18)
 
 The low-HP threshold in the actor hit tick is
-`enemy->hp < enemy->param->hpMax / 4`, where `GpPairSrcE.hpMax` is
+`enemy->hp < enemy->param->hpMax / 4`, where `EnemyParams.hpMax` is
 `u16`. The target divides it *signed*, keeping the bias even though the `lhu`
 makes the `bgez` unconditionally true:
 
@@ -134634,8 +134634,8 @@ Do not loosen the prototypes to make it fit. Put the type in a header of its
 own, carrying nothing but that type, and include it from both sides: the module
 header includes it so nothing else changes, and each family header includes it
 instead of the module header. A header holding one type and no declarations has
-no prototypes to collide with. `include/gameplay/pairsrc.h` is the worked
-example, and says the same thing in its own comment.
+no prototypes to collide with. `include/gameplay/enemy_params.h` is the worked
+example: the header carries the record and no function prototypes.
 
 A forward declaration is the other way out - give the type a tag, declare
 `struct Tag;` in the family header and make the member a `struct Tag*` - and it

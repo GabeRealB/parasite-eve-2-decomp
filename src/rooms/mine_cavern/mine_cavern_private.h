@@ -10,7 +10,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/task_types.h"
 
@@ -64,7 +64,7 @@ extern u8 D_mine_cavern_8018E3BC[4][8];
 
 extern s16 D_mine_cavern_8018E3DC;
 
-extern GpPairSrcE D_mine_cavern_8018EAE4;
+extern EnemyParams D_mine_cavern_8018EAE4;
 
 extern u8 D_mine_cavern_8018EAF4[36];
 

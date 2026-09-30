@@ -24,7 +24,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -323,7 +323,7 @@ static s32  Actor01600_Fn06C1C(Task* actor);
 static s32  Actor01600_Fn06C94(Task* actor, s32 angle, s32 distance);
 static s32  Actor01600_Fn06D74(Task* actor, s32 angle, s32 distance);
 
-extern GpPairSrcE    Actor01600_D09F0C;
+extern EnemyParams   Actor01600_D09F0C;
 extern AnimationSet* Actor01600_D127EC[31];
 // Typed callback views for the task message dispatcher.
 typedef struct {
@@ -546,7 +546,7 @@ DamageAttack Actor01600_D09F04[2] = {
     { 14, 7 },
 };
 
-GpPairSrcE Actor01600_D09F0C = { Actor01600_D09F04, 85, 10, 62, 2, 100, 20, 100, 0, 0 };
+EnemyParams Actor01600_D09F0C = { Actor01600_D09F04, 85, 10, 62, 2, 100, 20, 100, 0 };
 
 SVECTOR Actor01600_D09F1C[4] = {
     { 5632, 0, 3040, 0 },

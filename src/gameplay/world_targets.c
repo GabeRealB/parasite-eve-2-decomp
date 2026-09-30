@@ -24,7 +24,7 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "lighting_work.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/scene.h"
 #include "gameplay/world_collision.h"
 #include "world_coords.h"
@@ -947,9 +947,9 @@ void Gp_IncStateF0Ref(s32 arg0)
 
 void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
 {
-    GpStateF0*  p;
-    GpStateF0*  q;
-    GpPairSrcE* rec;
+    GpStateF0*   p;
+    GpStateF0*   q;
+    EnemyParams* params;
 
     p = &Gp_StateF0;
     if (p->field_6 != 0) {
@@ -963,12 +963,12 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
-        rec = ((GpEnemy*)arg0->spawnArg2.pointer)->param;
-        if (rec != NULL) {
+        params = ((GpEnemy*)arg0->spawnArg2.pointer)->param;
+        if (params != NULL) {
             q            = &Gp_StateF0;
-            q->field_8  += rec->exp;
-            q->field_C  += rec->bp;
-            q->field_10 += rec->mp;
+            q->field_8  += params->exp;
+            q->field_C  += params->bp;
+            q->field_10 += params->mp;
         }
     }
 }

@@ -19,7 +19,7 @@ s32 D_mine_cavern_8018EB50;
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
@@ -154,7 +154,7 @@ DamageAttack D_mine_cavern_8018EAE0[1] = {
     { 18, 0 },
 };
 
-GpPairSrcE D_mine_cavern_8018EAE4 = { D_mine_cavern_8018EAE0, 30, 0, 0, 0, 0, 0, 0, 0, 0 };
+EnemyParams D_mine_cavern_8018EAE4 = { D_mine_cavern_8018EAE0, 30, 0, 0, 0, 0, 0, 0, 0 };
 
 u8 D_mine_cavern_8018EAF4[36] = {
     0,

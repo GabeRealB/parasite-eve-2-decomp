@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
@@ -81,10 +81,10 @@ typedef struct ActorShared8014df20Work {
 } ActorShared8014df20Work;
 STATIC_ASSERT_SIZEOF(ActorShared8014df20Work, 0x2B0);
 
-extern GpPairSrcE D_actor_207200_8014DBBC;
-extern u8         D_actor_207200_8014E7B0[];
-extern SVECTOR    D_actor_207200_8014E7BC;
-extern SVECTOR    D_actor_207200_8014E7C4;
+extern EnemyParams D_actor_207200_8014DBBC;
+extern u8          D_actor_207200_8014E7B0[];
+extern SVECTOR     D_actor_207200_8014E7BC;
+extern SVECTOR     D_actor_207200_8014E7C4;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -104,7 +104,7 @@ void             func_actor_207200_8014AC9C(Task*);
 
 DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 
-GpPairSrcE D_actor_207200_8014DBBC = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99, 0 };
+EnemyParams D_actor_207200_8014DBBC = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone D_actor_207200_8014DBCC[3] = {
 #include "assets/actor_207200_model_046A8_skeleton.inc"

@@ -19,7 +19,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -150,7 +150,7 @@ extern TmdSource Actor03800_D0492C;
 extern s16           Actor03800_D05F90[];
 extern s16           Actor03800_D05FA8[];
 extern DamageAttack  Actor03800_D05F40[1];
-extern GpPairSrcE    Actor03800_D05F44;
+extern EnemyParams   Actor03800_D05F44;
 extern AnimationSet* Actor03800_D05F60[12];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
@@ -638,7 +638,7 @@ DamageAttack Actor03800_D05F40[1] = {
     { 6, 7 },
 };
 
-GpPairSrcE Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0, 0 };
+EnemyParams Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0 };
 
 TaskDesc Actor03800_D05F54 = { TASK_BODY_TMD, 96, Actor03800_Fn0315C, { .model = &Actor03800_D043A0 } };
 

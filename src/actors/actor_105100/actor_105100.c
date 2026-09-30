@@ -25,7 +25,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -258,10 +258,10 @@ extern s16 D_actor_105100_801414C8[];
 
 /// The spawn's pair tables. `Gp_PackPair` packs the `DamageAttack` at 0x80141380
 /// into the work's third list node (`Actor105100Work::obj4E4.key`), and the
-/// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
-/// `GpEnemy::param` -- its `hpMax` seeds the enemy's HP.
+/// `EnemyParams` at 0x80141398 is the parameter record the context points at
+/// with `GpEnemy::param`. Its `hpMax` seeds the enemy's hit points.
 extern DamageAttack D_actor_105100_80141380[6];
-extern GpPairSrcE   D_actor_105100_80141398;
+extern EnemyParams  D_actor_105100_80141398;
 
 /// The animation data `func_800B3F84` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
@@ -648,7 +648,7 @@ DamageAttack D_actor_105100_80141380[6] = {
     { 40, 6 },
 };
 
-GpPairSrcE D_actor_105100_80141398 = { D_actor_105100_80141380, 4000, 1000, 500, 100, 200, 5, 100, 4, 0 };
+EnemyParams D_actor_105100_80141398 = { D_actor_105100_80141380, 4000, 1000, 500, 100, 200, 5, 100, 4 };
 
 u16 D_actor_105100_801413A8[16] = {
     1,
@@ -845,7 +845,7 @@ static inline void _actor105100AnimUpdate(Task* task);
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
 /// the task, points the model object at the block's two `MATRIX`es (0x45C the
 /// light matrix, 0x43C the colour one) and fills the context's coordinate,
-/// pair source and HP (`field_40`, seeded from the record's `hpMax`).
+/// enemy parameters and hit points (`field_40`, seeded from the record's `hpMax`).
 ///
 /// The block's 0x14-prefix then becomes the `AnimationContext`: `func_800B3F84` loads
 /// the animation data into it over the nineteen `AnimationSlot`s, and slots 1..18

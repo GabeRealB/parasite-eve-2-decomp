@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -57,7 +57,7 @@ typedef struct Actor05400Pose {
 } Actor05400Pose;
 STATIC_ASSERT_SIZEOF(Actor05400Pose, 0x10);
 
-extern GpPairSrcE         D_actor_105400_8013CE40;
+extern EnemyParams        D_actor_105400_8013CE40;
 extern Actor05300SpawnPos D_actor_105400_80133A20[2];
 extern Actor05300Clip     D_actor_105400_8013CE84[];
 extern Actor05300SndRow   D_actor_105400_8013CE64[];
@@ -77,7 +77,7 @@ STATIC_ASSERT_SIZEOF(Actor105400MsgEntry, 8);
 
 extern Actor105400MsgEntry D_actor_105400_80133A00[];
 extern Actor05400Pose      D_actor_105400_80133A30;
-extern GpPairSrcE          D_actor_105400_8013CE30;
+extern EnemyParams         D_actor_105400_8013CE30;
 extern u32                 D_actor_105400_8013CE60;
 extern AnimationSet*       D_actor_105400_8013CEB8[];
 extern TaskDesc            D_actor_105400_8013CEA0[2];
@@ -232,9 +232,9 @@ AnimationSet D_actor_105400_8013CE08 = {
     { NULL, D_actor_105400_8013CA48, NULL, NULL, D_actor_105400_8013CAA8, NULL, NULL, NULL },
 };
 
-GpPairSrcE D_actor_105400_8013CE30 = { NULL, 250, 200, 100, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_105400_8013CE30 = { NULL, 250, 200, 100, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_105400_8013CE40 = { NULL, 250, 0, 0, 0, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_105400_8013CE40 = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
 
 s32 D_actor_105400_8013CE50[3] = {
     0x55110003,

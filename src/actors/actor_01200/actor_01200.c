@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -116,7 +116,7 @@ typedef struct Actor01200StateTable {
     /* 0x00 */ GpEnemyTaskFunc fn[10];
 } Actor01200StateTable;
 
-extern GpPairSrcE    Actor01200_D04034;
+extern EnemyParams   Actor01200_D04034;
 extern GpScriptCmd   Actor01200_D04044[3];
 extern GpScriptRec   Actor01200_D04050[3];
 extern AnimationSet* Actor01200_D06F98[19]; // animation bank handed to `func_800B3F84`
@@ -151,7 +151,7 @@ DamageAttack Actor01200_D04030[1] = {
     { 24, 7 },
 };
 
-GpPairSrcE Actor01200_D04034 = { Actor01200_D04030, 1, 6, 20, 3, 100, 0, 100, 0, 0 };
+EnemyParams Actor01200_D04034 = { Actor01200_D04030, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 GpScriptCmd Actor01200_D04044[3] = {
     { 1, 257 },

@@ -23,7 +23,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -540,8 +540,8 @@ static void func_actor_403000_8013D850(Task* arg0);
 /// (`GpEnemy::hp`), the animation state `field_0` is set to 0x13.
 static void func_actor_403000_8013D910(Task* arg0);
 
-extern GpPairSrcE    D_actor_403000_8013DA00;
-extern GpPairSrcE    D_actor_403000_8013DA10;
+extern EnemyParams   D_actor_403000_8013DA00;
+extern EnemyParams   D_actor_403000_8013DA10;
 extern AnimationSet* D_actor_403000_80158B50[46];
 extern AnimationSet* D_actor_403000_80158C08[8];
 extern AnimationSet* D_actor_403000_80158C28[8];
@@ -644,9 +644,9 @@ DamageAttack D_actor_403000_8013D9F0[4] = {
     { 18, 0 },
 };
 
-GpPairSrcE D_actor_403000_8013DA00 = { D_actor_403000_8013D9E0, 500, 300, 200, 10, 100, 6, 100, 0, 0 };
+EnemyParams D_actor_403000_8013DA00 = { D_actor_403000_8013D9E0, 500, 300, 200, 10, 100, 6, 100, 0 };
 
-GpPairSrcE D_actor_403000_8013DA10 = { D_actor_403000_8013D9F0, 2500, 500, 300, 30, 100, 3, 100, 20, 0 };
+EnemyParams D_actor_403000_8013DA10 = { D_actor_403000_8013D9F0, 2500, 500, 300, 30, 100, 3, 100, 20 };
 
 TmdBone D_actor_403000_8013DA20[24] = {
 #include "assets/actor_403000_model_13504_skeleton.inc"

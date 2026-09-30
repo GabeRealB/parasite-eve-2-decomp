@@ -24,7 +24,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -481,9 +481,9 @@ DamageAttack D_actor_110600_80138F0C[2] = {
     { 18, 0 },
 };
 
-GpPairSrcE D_actor_110600_80138F14 = { D_actor_110600_80138F04, 350, 300, 200, 30, 100, 4, 100, 0, 0 };
+EnemyParams D_actor_110600_80138F14 = { D_actor_110600_80138F04, 350, 300, 200, 30, 100, 4, 100, 0 };
 
-GpPairSrcE D_actor_110600_80138F24 = { D_actor_110600_80138F0C, 30, 42, 82, 4, 250, 0, 100, 0, 0 };
+EnemyParams D_actor_110600_80138F24 = { D_actor_110600_80138F0C, 30, 42, 82, 4, 250, 0, 100, 0 };
 
 u16 D_actor_110600_80138F34[18] = {
     20,
@@ -1139,7 +1139,7 @@ extern SVECTOR D_actor_110600_80148690;
 /// stride is the row's own length, so the load is a signed byte.
 extern s8 D_actor_110600_80147D20[][0x2D];
 
-extern GpPairSrcE D_actor_110600_80138F14;
+extern EnemyParams D_actor_110600_80138F14;
 
 extern AnimationSet* D_actor_110600_8014850C[];
 

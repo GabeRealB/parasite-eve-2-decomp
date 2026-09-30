@@ -24,7 +24,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room.h"
@@ -843,8 +843,8 @@ DamageAttack Actor05700_D170F4[5] = {
     { 30, 7 },
 };
 
-GpPairSrcE Actor05700_D17108[1] = {
-    { Actor05700_D170F4, 482, 250, 400, 8, 0, 6, 0, 0, 0 },
+EnemyParams Actor05700_D17108[1] = {
+    { Actor05700_D170F4, 482, 250, 400, 8, 0, 6, 0, 0 },
 };
 
 s16 Actor05700_D17118[46] = {
@@ -1289,7 +1289,7 @@ extern TaskDesc Actor05700_D173D8[];
 extern u16* Actor05700_D173B0[];
 
 /// Enemy parameter record the spawn hands to its `GpEnemy`.
-extern GpPairSrcE Actor05700_D17108[];
+extern EnemyParams Actor05700_D17108[];
 
 /// Per-state handlers of the approach cycle, indexed by `field_6A6`.
 extern TaskFunc Actor05700_D17484[];

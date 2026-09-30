@@ -26,7 +26,7 @@
 #include "gameplay/model_lighting.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -118,7 +118,7 @@ extern s32 D_actor_402200_80138470;
 extern s32 D_actor_402200_80138474;
 
 /// The spawn's tables: the task's next handler record, the `DamageAttack`
-/// `Gp_PackPair` packs into the third collision object, the `GpPairSrcE` whose
+/// `Gp_PackPair` packs into the third collision object, the `EnemyParams` whose
 /// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
 // Message-table callbacks use the argument views required by this TU.
@@ -132,7 +132,7 @@ STATIC_ASSERT_SIZEOF(Actor402200MessageEntry, 8);
 
 extern Actor402200MessageEntry D_actor_402200_8013839C[2];
 extern DamageAttack            D_actor_402200_80153BEC[4];
-extern GpPairSrcE              D_actor_402200_80153BFC;
+extern EnemyParams             D_actor_402200_80153BFC;
 extern Actor402200Spot         D_actor_402200_80153C78[];
 extern Actor402200Region*      D_actor_402200_80153FA8[];
 extern s16*                    D_actor_402200_80154144[];
@@ -867,7 +867,7 @@ AnimationSet D_actor_402200_80153BC4 = {
 
 DamageAttack D_actor_402200_80153BEC[4] = { { 10, 3 }, { 36, 3 }, { 50, 3 }, { 999, 0 } };
 
-GpPairSrcE D_actor_402200_80153BFC = { D_actor_402200_80153BEC, 600, 300, 1000, 6, 100, 20, 0, 0, 0 };
+EnemyParams D_actor_402200_80153BFC = { D_actor_402200_80153BEC, 600, 300, 1000, 6, 100, 20, 0, 0 };
 
 s16 D_actor_402200_80153C0C[6] = {
     6,

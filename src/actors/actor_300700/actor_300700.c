@@ -23,7 +23,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
@@ -50,7 +50,7 @@
 
 extern DamageAttack D_actor_300700_80165B64;
 
-extern GpPairSrcE D_actor_300700_80165B68;
+extern EnemyParams D_actor_300700_80165B68;
 
 extern u16 D_actor_300700_80165B78[8];
 
@@ -172,7 +172,7 @@ AnimationSet D_actor_300700_80165B3C = {
 
 DamageAttack D_actor_300700_80165B64 = { 5, 1 };
 
-GpPairSrcE D_actor_300700_80165B68 = { &D_actor_300700_80165B64, 1, 2, 18, 1, 100, 0, 100, 99, 0 };
+EnemyParams D_actor_300700_80165B68 = { &D_actor_300700_80165B64, 1, 2, 18, 1, 100, 0, 100, 99 };
 
 u16 D_actor_300700_80165B78[8] = {
     2,

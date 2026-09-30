@@ -24,7 +24,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -368,7 +368,7 @@ typedef struct Actor421600ParamRow {
 STATIC_ASSERT_SIZEOF(Actor421600ParamRow, 0x8);
 
 extern Actor421600ParamRow D_actor_421600_8013EF48[];
-extern GpPairSrcE          D_actor_421600_8013EF38;
+extern EnemyParams         D_actor_421600_8013EF38;
 extern u8                  D_actor_421600_80151028[];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -514,7 +514,7 @@ DamageAttack D_actor_421600_8013EF24[5] = {
     { 0xFFFF, 0 },
 };
 
-GpPairSrcE D_actor_421600_8013EF38 = { D_actor_421600_8013EF24, 200, 75, 50, 4, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_421600_8013EF38 = { D_actor_421600_8013EF24, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 Actor421600ParamRow D_actor_421600_8013EF48[4] = {
     { 60, 36, 10, 150 },

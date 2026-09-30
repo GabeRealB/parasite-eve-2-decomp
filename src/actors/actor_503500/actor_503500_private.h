@@ -15,7 +15,7 @@
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/coord.h"
 #include "main/gfx.h"
@@ -388,7 +388,7 @@ extern DamageAttack* D_actor_503500_8016E7D4[2];
 
 extern DamageAttack* D_actor_503500_8016E7DC[1];
 
-extern GpPairSrcE D_actor_503500_8016E7EC[17];
+extern EnemyParams D_actor_503500_8016E7EC[17];
 
 extern s8 D_actor_503500_8016E8FC[20];
 

@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -48,7 +48,7 @@
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
 
-extern GpPairSrcE         D_actor_105300_8013D3A0;
+extern EnemyParams        D_actor_105300_8013D3A0;
 extern Actor05300SpawnPos D_actor_105300_80133A20[2];
 extern Actor05300Clip     D_actor_105300_8013D3E0[];
 extern Actor05300SndRow   D_actor_105300_8013D3C4[];
@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(Actor105300MsgEntry, 8);
 
 extern Actor105300MsgEntry D_actor_105300_80133A00[];
 extern SVECTOR             D_actor_105300_80133A30[2];
-extern GpPairSrcE          D_actor_105300_8013D390;
+extern EnemyParams         D_actor_105300_8013D390;
 extern u32                 D_actor_105300_8013D3C0;
 extern AnimationSet*       D_actor_105300_8013D414[];
 extern TaskDesc            D_actor_105300_8013D3FC[2];
@@ -226,9 +226,9 @@ AnimationSet D_actor_105300_8013D368 = {
     { NULL, D_actor_105300_8013CEB4, NULL, NULL, D_actor_105300_8013CEE4, NULL, NULL, NULL },
 };
 
-GpPairSrcE D_actor_105300_8013D390 = { NULL, 500, 400, 200, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_105300_8013D390 = { NULL, 500, 400, 200, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_105300_8013D3A0 = { NULL, 250, 0, 0, 0, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_105300_8013D3A0 = { NULL, 250, 0, 0, 0, 100, 0, 0, 0 };
 
 s32 D_actor_105300_8013D3B0[3] = {
     0x55100003,

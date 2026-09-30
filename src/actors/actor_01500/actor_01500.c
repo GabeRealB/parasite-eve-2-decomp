@@ -18,7 +18,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -120,7 +120,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// Pair packed into the third collision object's `key` at spawn.
 extern DamageAttack Actor01500_D09FB4;
 /// The enemy's parameter record; `hpMax` seeds the hit points.
-extern GpPairSrcE Actor01500_D09FB8;
+extern EnemyParams Actor01500_D09FB8;
 /// Animation bank handed to `func_800B3F84`.
 extern AnimationSet* Actor01500_D0A014[15];
 
@@ -645,7 +645,7 @@ AnimationSet Actor01500_D09F8C = {
 
 DamageAttack Actor01500_D09FB4 = { 8, 7 };
 
-GpPairSrcE Actor01500_D09FB8 = { &Actor01500_D09FB4, 50, 12, 36, 2, 100, 1, 100, 0, 0 };
+EnemyParams Actor01500_D09FB8 = { &Actor01500_D09FB4, 50, 12, 36, 2, 100, 1, 100, 0 };
 
 u16 Actor01500_D09FC8[16] = {
     30,

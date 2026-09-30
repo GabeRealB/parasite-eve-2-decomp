@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -270,7 +270,7 @@ DamageAttack D_actor_356100_8016A96C[6] = {
     { 40, 0 },
 };
 
-GpPairSrcE D_actor_356100_8016A984 = { D_actor_356100_8016A96C, 420, 115, 200, 5, 100, 10, 100, 10, 0 };
+EnemyParams D_actor_356100_8016A984 = { D_actor_356100_8016A96C, 420, 115, 200, 5, 100, 10, 100, 10 };
 
 Actor356100TintRow D_actor_356100_8016A994[3] = {
     { 0, 900, 3, 0 },
@@ -828,7 +828,7 @@ extern u8 D_actor_356100_801730B8[];
 
 /// Enemy descriptor `func_actor_356100_8016382C` publishes in the enemy's
 /// `field_50` slot and takes `field_40` off. Same role as `Actor01900_D0AC54`.
-extern GpPairSrcE D_actor_356100_8016A984;
+extern EnemyParams D_actor_356100_8016A984;
 
 /// The three rows `func_actor_356100_8016382C` picks its re-entry pair from on
 /// the spawn sub-type. Same role as `Actor01900_D0AC64`.

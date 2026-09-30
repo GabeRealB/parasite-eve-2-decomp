@@ -21,7 +21,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
@@ -53,7 +53,7 @@ typedef struct NeoArkForestZoneSpawnPos {
 } NeoArkForestZoneSpawnPos;
 
 /// Enemy parameters shared by the spawn-slot controllers.
-extern GpPairSrcE   D_neo_ark_forest_zone_80182D1C;
+extern EnemyParams  D_neo_ark_forest_zone_80182D1C;
 extern DamageAttack D_neo_ark_forest_zone_80182D04[6];
 
 /// How many spawns each session slot arms, indexed by
@@ -496,7 +496,7 @@ DamageAttack D_neo_ark_forest_zone_80182D04[6] = {
     { 40, 0 },
 };
 
-GpPairSrcE D_neo_ark_forest_zone_80182D1C = { D_neo_ark_forest_zone_80182D04, 420, 115, 200, 5, 100, 10, 100, 10, 0 };
+EnemyParams D_neo_ark_forest_zone_80182D1C = { D_neo_ark_forest_zone_80182D04, 420, 115, 200, 5, 100, 10, 100, 10 };
 
 // Retained numeric records following the enemy parameters.
 u16 D_neo_ark_forest_zone_80182D2C[3][4] = {

@@ -26,7 +26,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -294,7 +294,7 @@ STATIC_ASSERT_SIZEOF(Actor00100StateTable, 0x9C);
 
 extern Actor00100PoseSrc Actor00100_D0BDB4;
 
-extern GpPairSrcE Actor00100_D0BDA4;
+extern EnemyParams Actor00100_D0BDA4;
 
 extern AnimationSet* Actor00100_D1B944[26];
 
@@ -659,7 +659,7 @@ DamageAttack Actor00100_D0BD90[5] = {
     { 0xFFFF, 0 },
 };
 
-GpPairSrcE Actor00100_D0BDA4 = { Actor00100_D0BD90, 200, 75, 50, 4, 100, 10, 100, 0, 0 };
+EnemyParams Actor00100_D0BDA4 = { Actor00100_D0BD90, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 Actor00100PoseSrc Actor00100_D0BDB4 = { { { 60, 36, 10, 150 }, { 40, 26, 10, 120 }, { 20, 18, 10, 120 }, { 60, 60, 10, 150 } } };
 

@@ -28,7 +28,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -134,8 +134,8 @@ extern u16 D_actor_521100_8015F614[];
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-extern GpPairSrcE D_actor_521100_8015F560;
-extern TaskDesc   D_actor_521100_8015F6E4[];
+extern EnemyParams D_actor_521100_8015F560;
+extern TaskDesc    D_actor_521100_8015F6E4[];
 
 static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2);
 static void func_actor_521100_80132958(Task* arg0);
@@ -1430,7 +1430,7 @@ DamageAttack D_actor_521100_8015F550[4] = {
     { 10, 0 },
 };
 
-GpPairSrcE D_actor_521100_8015F560 = { D_actor_521100_8015F550, 1100, 800, 300, 50, 0, 0, 0, 0, 0 };
+EnemyParams D_actor_521100_8015F560 = { D_actor_521100_8015F550, 1100, 800, 300, 50, 0, 0, 0, 0 };
 
 s16 D_actor_521100_8015F570[6] = {
     6,

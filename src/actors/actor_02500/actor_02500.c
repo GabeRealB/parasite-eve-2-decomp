@@ -18,7 +18,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -128,7 +128,7 @@ typedef struct Actor02500OffsetPair {
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-extern GpPairSrcE           Actor02500_D05B38;
+extern EnemyParams          Actor02500_D05B38;
 extern DamageAttack         Actor02500_D05B30[];
 extern s16                  Actor02500_D05B48[];
 extern s16                  Actor02500_D05B58[];
@@ -491,7 +491,7 @@ DamageAttack Actor02500_D05B30[2] = {
     { 1, 3 },
 };
 
-GpPairSrcE Actor02500_D05B38 = { Actor02500_D05B30, 68, 20, 8, 1, 0, 20, 0, 0, 0 };
+EnemyParams Actor02500_D05B38 = { Actor02500_D05B30, 68, 20, 8, 1, 0, 20, 0, 0 };
 
 s16 Actor02500_D05B48[8] = {
     16,

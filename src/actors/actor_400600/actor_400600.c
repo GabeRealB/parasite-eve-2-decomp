@@ -25,7 +25,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -234,7 +234,7 @@ extern ActorZone D_actor_400600_80151B40[];
 extern void* D_800678F0[1];
 
 extern DamageAttack D_actor_400600_80144EA8[2];
-extern GpPairSrcE   D_actor_400600_80144EB0;      // the enemy's parameter record
+extern EnemyParams  D_actor_400600_80144EB0;      // the enemy's parameter record
 
 extern AnimationSet* D_actor_400600_80151A54[35]; // animation bank handed to func_800B3F84
 // Message-table callbacks use the argument views required by this TU.
@@ -768,7 +768,7 @@ DamageAttack D_actor_400600_80144EA8[2] = {
     { 10, 7 },
 };
 
-GpPairSrcE D_actor_400600_80144EB0 = { D_actor_400600_80144EA8, 180, 106, 36, 5, 100, 10, 100, 10, 0 };
+EnemyParams D_actor_400600_80144EB0 = { D_actor_400600_80144EA8, 180, 106, 36, 5, 100, 10, 100, 10 };
 
 AnimationPackedPose D_actor_400600_80144EC0[14] = {
 #include "assets/actor_400600_animation_136D4_bank1.inc"

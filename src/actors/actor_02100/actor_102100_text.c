@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -233,7 +233,7 @@ extern SVECTOR Actor02100_D03874[32];
 extern u32     Actor02100_D03974[243];
 
 extern DamageAttack             Actor02100_D03D64[5];
-extern GpPairSrcE               Actor02100_D03D78;
+extern EnemyParams              Actor02100_D03D78;
 extern Actor02100Fn01FF0Timing  Actor02100_D03D88[];
 extern Actor02100Fn02924Widths  Actor02100_D03DD8[];
 extern s16                      Actor02100_D03E00[];
@@ -294,7 +294,7 @@ DamageAttack Actor02100_D03D64[5] = {
     { 15, 7 },
 };
 
-GpPairSrcE Actor02100_D03D78 = { Actor02100_D03D64, 70, 15, 0, 0, 100, 0, 0, 0, 0 };
+EnemyParams Actor02100_D03D78 = { Actor02100_D03D64, 70, 15, 0, 0, 100, 0, 0, 0 };
 
 Actor02100Fn01FF0Timing Actor02100_D03D88[5] = {
     { .shorts = { 30, 90, 48, 0, 0, 255, 0, 0 } },

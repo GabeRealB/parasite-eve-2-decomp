@@ -21,7 +21,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -226,11 +226,11 @@ extern s16 Actor00700_D07598[];
 /// into the fourth collision node's key, the context's parameter source (whose
 /// `hpMax` seeds the health), and the second argument of `func_800B3F84`.
 extern struct DamageAttack Actor00700_D06DDC;
-extern GpPairSrcE          Actor00700_D06DE0;
+extern EnemyParams         Actor00700_D06DE0;
 extern AnimationSet*       Actor00700_D06E6C[11];
 
 /// The same three for the second body, used by `Actor00700_Fn01FE0`.
-extern GpPairSrcE          Actor00700_D07588;
+extern EnemyParams         Actor00700_D07588;
 extern struct DamageAttack Actor00700_D07584;
 extern AnimationSet*       Actor00700_D075B4[2];
 
@@ -520,7 +520,7 @@ AnimationSet Actor00700_D06DB4 = {
 
 struct DamageAttack Actor00700_D06DDC = { 6, 3 };
 
-GpPairSrcE Actor00700_D06DE0 = { &Actor00700_D06DDC, 18, 4, 22, 1, 100, 20, 100, 0, 0 };
+EnemyParams Actor00700_D06DE0 = { &Actor00700_D06DDC, 18, 4, 22, 1, 100, 20, 100, 0 };
 
 s16 Actor00700_D06DF0[8] = {
     2,
@@ -680,7 +680,7 @@ AnimationSet Actor00700_D0755C = {
 
 DamageAttack Actor00700_D07584 = { 5, 1 };
 
-GpPairSrcE Actor00700_D07588 = { &Actor00700_D07584, 1, 2, 18, 1, 100, 0, 100, 99, 0 };
+EnemyParams Actor00700_D07588 = { &Actor00700_D07584, 1, 2, 18, 1, 100, 0, 100, 99 };
 
 s16 Actor00700_D07598[8] = {
     2,

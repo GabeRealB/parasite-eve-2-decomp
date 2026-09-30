@@ -14,7 +14,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
@@ -135,9 +135,9 @@ STATIC_ASSERT_SIZEOF(Actor510900MessageEntry, 8);
 /// `TaskDesc` table the state hands `Gp_SpawnEnemyFromTable` (entry 4).
 extern TaskDesc D_actor_510900_80167A18[];
 
-/// The pair source the context's `field_50` points at; its `hpMax` seeds the
-/// enemy's HP.
-extern GpPairSrcE D_actor_510900_80167980;
+/// The enemy parameters the context's `field_50` points at; its `hpMax` seeds
+/// the enemy's hit points.
+extern EnemyParams D_actor_510900_80167980;
 
 /// The animation data `func_800B3F84` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.

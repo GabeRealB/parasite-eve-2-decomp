@@ -21,7 +21,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -149,10 +149,10 @@ STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-/// The first enemy's pair table, packed into its third body's key, and the
-/// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
+/// The first enemy's attack row, packed into its third body's key, and the
+/// enemy parameters whose `attacks` name it; `hpMax` seeds the enemy's HP.
 extern DamageAttack Actor04600_D0415C;
-extern GpPairSrcE   Actor04600_D04160;
+extern EnemyParams  Actor04600_D04160;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
@@ -181,7 +181,7 @@ extern SVECTOR Actor04600_D058A0;
 extern SVECTOR Actor04600_D058A8;
 
 /// The second enemy's record; `hpMax` seeds its HP.
-extern GpPairSrcE Actor04600_D058B4;
+extern EnemyParams Actor04600_D058B4;
 
 /// The animation data `func_800B3F84` seeds the second enemy's slots from.
 extern AnimationSet* Actor04600_D064A8[3];
@@ -232,7 +232,7 @@ void                Actor04600_Fn03B80(Task*);
 
 DamageAttack Actor04600_D0415C = { 30, 7 };
 
-GpPairSrcE Actor04600_D04160 = { &Actor04600_D0415C, 70, 6, 12, 3, 100, 20, 100, 0, 0 };
+EnemyParams Actor04600_D04160 = { &Actor04600_D0415C, 70, 6, 12, 3, 100, 20, 100, 0 };
 
 u32 Actor04600_D04170[3] = {
     0x1010001,
@@ -366,7 +366,7 @@ SVECTOR Actor04600_D058A8 = { 0, -300, 0, 0 };
 
 DamageAttack Actor04600_D058B0[1] = { 0 };
 
-GpPairSrcE Actor04600_D058B4 = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99, 0 };
+EnemyParams Actor04600_D058B4 = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99 };
 
 TmdBone Actor04600_D058C4[3] = {
 #include "assets/actor_104600_model_061C0_skeleton.inc"

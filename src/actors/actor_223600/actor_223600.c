@@ -17,7 +17,7 @@
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
@@ -118,8 +118,8 @@ STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
 /// and the 0x100 / 1 argument pair.
 extern EffectSpawnArg D_actor_223600_80150B5C;
 
-/// Pair source the spawn handler installs at `GpEnemy::param`.
-extern GpPairSrcE D_actor_223600_8014CFCC;
+/// Enemy parameters the spawn handler installs at `GpEnemy::param`.
+extern EnemyParams D_actor_223600_8014CFCC;
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern AnimationSet* D_actor_223600_801509C0[26];
@@ -170,7 +170,7 @@ DamageAttack D_actor_223600_8014CFC8[1] = {
     { 24, 7 },
 };
 
-GpPairSrcE D_actor_223600_8014CFCC = { D_actor_223600_8014CFC8, 1, 6, 20, 3, 100, 0, 100, 0, 0 };
+EnemyParams D_actor_223600_8014CFCC = { D_actor_223600_8014CFC8, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 GpScriptCmd D_actor_223600_8014CFDC[3] = {
     { 1, 257 },

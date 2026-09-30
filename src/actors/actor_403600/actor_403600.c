@@ -24,7 +24,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
 #include "gameplay/loading.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/sprites.h"
@@ -173,9 +173,9 @@ DamageAttack D_actor_403600_801420F4[3] = {
     { 32, 10 },
 };
 
-GpPairSrcE D_actor_403600_80142100[2] = {
-    { D_actor_403600_801420D4, 6000, 5000, 0x2710, 100, 100, 7, 100, 4, 0 },
-    { D_actor_403600_801420E8, 350, 300, 1000, 0, 100, 0, 0, 0, 0 },
+EnemyParams D_actor_403600_80142100[2] = {
+    { D_actor_403600_801420D4, 6000, 5000, 0x2710, 100, 100, 7, 100, 4 },
+    { D_actor_403600_801420E8, 350, 300, 1000, 0, 100, 0, 0, 0 },
 };
 
 s32 D_actor_403600_80142120[32] = {
@@ -308,9 +308,9 @@ DamageAttack D_actor_403600_80150EB4[5] = {
     { 32, 10 },
 };
 
-GpPairSrcE D_actor_403600_80150EC8 = { &D_actor_403600_80150E9C, 6000, 5000, 0x2710, 100, 100, 7, 100, 4, 0 };
+EnemyParams D_actor_403600_80150EC8 = { &D_actor_403600_80150E9C, 6000, 5000, 0x2710, 100, 100, 7, 100, 4 };
 
-GpPairSrcE D_actor_403600_80150ED8 = { &D_actor_403600_80150EB0, 350, 300, 1000, 0, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_403600_80150ED8 = { &D_actor_403600_80150EB0, 350, 300, 1000, 0, 100, 0, 0, 0 };
 
 AnimationPackedPose D_actor_403600_80150EE8[16] = {
 #include "assets/actor_403600_animation_1FEB0_bank1.inc"

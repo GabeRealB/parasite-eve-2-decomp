@@ -9,7 +9,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
@@ -277,7 +277,7 @@ DamageAttack D_actor_342400_80170584[1] = {
     { 22, 0 },
 };
 
-GpPairSrcE D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static void func_actor_342400_80162084(Task* arg0);
 static void func_actor_342400_801621D8(Task* arg0);

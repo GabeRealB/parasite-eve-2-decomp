@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -16,7 +16,7 @@ extern TmdSource D_actor_342400_8016D780;
 
 extern TmdSource D_actor_342400_80170560;
 
-extern GpPairSrcE D_actor_342400_80170588;
+extern EnemyParams D_actor_342400_80170588;
 
 extern TaskDesc D_actor_342400_80173A54[2];
 

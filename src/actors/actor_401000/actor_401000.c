@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -283,7 +283,7 @@ extern AnimationSet* D_actor_401000_80154E48[46];
 
 /// Parameter pair `func_actor_401000_80133274` installs as `GpEnemy::param`
 /// and reads `hpMax` out of as the actor's initial `field_40`.
-extern GpPairSrcE D_actor_401000_8013E09C;
+extern EnemyParams D_actor_401000_8013E09C;
 
 /// Three combat-parameter records `func_actor_401000_80133274` picks between
 /// with `Task::spawnArg1 & 0xF`.
@@ -415,7 +415,7 @@ DamageAttack D_actor_401000_8013E094[2] = {
     { 18, 0 },
 };
 
-GpPairSrcE D_actor_401000_8013E09C = { D_actor_401000_8013E094, 180, 42, 82, 4, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_401000_8013E09C = { D_actor_401000_8013E094, 180, 42, 82, 4, 100, 10, 100, 0 };
 
 ActorSpawnParamRow D_actor_401000_8013E0AC[3] = {
     { 20, 900, 12, 2000, { 0, 0, 0, 0 } },

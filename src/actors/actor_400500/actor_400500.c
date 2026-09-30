@@ -27,7 +27,7 @@
 #include "gameplay/model_lighting.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -234,7 +234,7 @@ extern TmdSource D_actor_400500_8014393C;
 extern TmdSource D_actor_400500_80143F40;
 extern TmdSource D_actor_400500_80144624;
 
-extern GpPairSrcE D_actor_400500_80153C90;
+extern EnemyParams D_actor_400500_80153C90;
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -1347,7 +1347,7 @@ DamageAttack D_actor_400500_80153C84[3] = {
     { 8, 7 },
 };
 
-GpPairSrcE D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 15, 100, 8, 100, 10, 0 };
+EnemyParams D_actor_400500_80153C90 = { D_actor_400500_80153C84, 450, 500, 200, 15, 100, 8, 100, 10 };
 
 Actor400500MessageEntry D_actor_400500_80153CA0[2] = {
     { 2011, { .call0 = func_actor_400500_8013DAE4 } },

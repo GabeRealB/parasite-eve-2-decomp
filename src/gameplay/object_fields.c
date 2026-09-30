@@ -8,7 +8,7 @@
 #include "gameplay/enemy.h"
 #include "item_menu.h"
 #include "item_pickup.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/weapon_data.h"
 
 #include "gameplay/damage.h"
@@ -119,7 +119,7 @@ void Gp_SetObjFlag4(GpEnemy* arg0, s32 arg1, s32 arg2)
     s32 limit;
     s32 rand;
 
-    val         = arg0->param->flag4Chance;
+    val         = arg0->param->damageOverTimeChance;
     limit       = (val << 12) / 100;
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
@@ -164,7 +164,7 @@ s32 Gp_ObjFlag4Expired(GpEnemy* arg0)
     s32 ret;
 
     ret = 0;
-    val = arg0->param->flag4Ticks;
+    val = arg0->param->damageOverTimeTicks;
     if (!(arg0->reactionFlags & 4)) {
         return 1;
     }
@@ -207,7 +207,7 @@ s32 Gp_TickObjFlag2(GpEnemy* arg0)
     s32 scale;
 
     ret = 0;
-    val = arg0->param->flag2Ticks;
+    val = arg0->param->buildupSteps;
     if (val == 0) {
         return ret;
     }

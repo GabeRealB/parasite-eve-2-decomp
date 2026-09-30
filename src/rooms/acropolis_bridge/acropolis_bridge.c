@@ -36,7 +36,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -173,7 +173,7 @@ extern DR_MOVE* D_acropolis_bridge_801917AC;
 
 extern AcropolisBridgeQuadCorner D_acropolis_bridge_8018990C[4];
 
-extern GpPairSrcE D_acropolis_bridge_80190C5C;
+extern EnemyParams D_acropolis_bridge_80190C5C;
 
 static void func_acropolis_bridge_8017DC68(Task* arg0);
 
@@ -2116,7 +2116,7 @@ DamageAttack D_acropolis_bridge_80190C54[2] = {
     { 0, 0 },
 };
 
-GpPairSrcE D_acropolis_bridge_80190C5C = { D_acropolis_bridge_80190C54, 80, 6, 36, 1, 100, 0, 100, 0, 0 };
+EnemyParams D_acropolis_bridge_80190C5C = { D_acropolis_bridge_80190C54, 80, 6, 36, 1, 100, 0, 100, 0 };
 
 TmdBone D_acropolis_bridge_80190C6C[4] = {
 #include "assets/acropolis_bridge_model_13BDC_skeleton.inc"

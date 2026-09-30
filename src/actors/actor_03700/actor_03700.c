@@ -19,7 +19,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -131,9 +131,9 @@ typedef struct Actor103700Rise {
 extern Actor103700Rise Actor03700_D07FF4[];
 extern Actor103700Rise Actor03700_D0802C[];
 
-/// The enemy's pair source; the spawn stores it in `GpEnemy::param` and
-/// seeds HP from its `hpMax`, which retail addresses as its own label.
-extern GpPairSrcE Actor03700_D07F0C;
+/// The enemy's parameters. The spawn stores them in `GpEnemy::param` and
+/// seeds hit points from `hpMax`, which retail addresses as its own label.
+extern EnemyParams Actor03700_D07F0C;
 
 /// Animation data `func_800B3F84` loads, and the task's `field_24` table.
 extern AnimationSet* Actor03700_D080E4[6];
@@ -452,7 +452,7 @@ AnimationSet Actor03700_D07EE0 = {
 
 DamageAttack Actor03700_D07F08 = { 3, 7 };
 
-GpPairSrcE Actor03700_D07F0C = { &Actor03700_D07F08, 1, 5, 18, 1, 100, 0, 100, 99, 0 };
+EnemyParams Actor03700_D07F0C = { &Actor03700_D07F08, 1, 5, 18, 1, 100, 0, 100, 99 };
 
 s16 Actor03700_D07F1C[16] = {
     30,

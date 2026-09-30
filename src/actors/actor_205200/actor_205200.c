@@ -17,7 +17,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -110,9 +110,9 @@ STATIC_ASSERT_SIZEOF(Actor205200MessageEntry, 8);
 extern Actor205200MessageEntry D_actor_205200_8014CA78[2];
 extern TaskDesc                D_actor_205200_8014CA44[];
 
-extern GpPairSrcE D_actor_205200_8014C9BC;
-extern SVECTOR*   D_actor_205200_8014CA24[];
-extern u16*       D_actor_205200_8014CA34[];
+extern EnemyParams D_actor_205200_8014C9BC;
+extern SVECTOR*    D_actor_205200_8014CA24[];
+extern u16*        D_actor_205200_8014CA34[];
 
 static void func_actor_205200_8014AB98(Task* arg0);
 static void func_actor_205200_8014ACD4(Task* arg0);
@@ -125,7 +125,7 @@ void func_actor_205200_8014B978(Task*);
 
 s32 func_actor_205200_8014B94C(Task*, s32, ActorCommand* request);
 
-GpPairSrcE D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_205200_8014C9BC = { NULL, 200, 150, 0, 0, 100, 0, 0, 0 };
 
 u16 D_actor_205200_8014C9CC[4] = {
     0,

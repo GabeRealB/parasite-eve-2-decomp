@@ -23,7 +23,7 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -141,8 +141,8 @@ typedef struct Actor02400ScaleScratch {
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
 extern DamageAttack Actor02400_BodyPairs[4];
-extern GpPairSrcE   Actor02400_Params0;
-extern GpPairSrcE   Actor02400_Params1;
+extern EnemyParams  Actor02400_Params0;
+extern EnemyParams  Actor02400_Params1;
 /// Frames the grown body waits before it spawns, indexed by `variant`.
 extern s16      Actor02400_D045D4[];
 extern s16      Actor02400_D045D8[];
@@ -207,9 +207,9 @@ DamageAttack Actor02400_BodyPairs[4] = {
     { 38, 6 },
 };
 
-GpPairSrcE Actor02400_Params0 = { Actor02400_BodyPairs, 80, 12, 86, 8, 0, 0, 100, 99, 0 };
+EnemyParams Actor02400_Params0 = { Actor02400_BodyPairs, 80, 12, 86, 8, 0, 0, 100, 99 };
 
-GpPairSrcE Actor02400_Params1 = { Actor02400_BodyPairs, 280, 16, 420, 30, 0, 0, 100, 99, 0 };
+EnemyParams Actor02400_Params1 = { Actor02400_BodyPairs, 280, 16, 420, 30, 0, 0, 100, 99 };
 
 s16 Actor02400_D045D4[2] = {
     90,

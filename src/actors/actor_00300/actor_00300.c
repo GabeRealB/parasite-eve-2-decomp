@@ -29,7 +29,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -215,7 +215,7 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2);
 static void Actor00300_Fn05194(GpEnemy* arg0, Task* arg1);
 static void Actor00300_Fn05278(GpEnemy* arg0, Task* arg1);
 
-extern GpPairSrcE           Actor00300_D15FE8;
+extern EnemyParams          Actor00300_D15FE8;
 extern Actor00300AreaConfig Actor00300_D16020[15];
 extern SVECTOR*             Actor00300_D16278[15][2];
 extern TaskDesc             Actor00300_D162F0[];
@@ -968,7 +968,7 @@ DamageAttack Actor00300_D15FD8[4] = {
     { 35, 1 },
 };
 
-GpPairSrcE Actor00300_D15FE8 = { Actor00300_D15FD8, 400, 105, 158, 8, 100, 10, 100, 7, 0 };
+EnemyParams Actor00300_D15FE8 = { Actor00300_D15FD8, 400, 105, 158, 8, 100, 10, 100, 7 };
 
 s16 Actor00300_D15FF8[4] = {
     0,

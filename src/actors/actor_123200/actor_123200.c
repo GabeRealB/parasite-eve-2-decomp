@@ -17,7 +17,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
@@ -104,8 +104,8 @@ typedef struct Actor123200Work {
 } Actor123200Work;
 STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
 
-/// Pair source the spawn handler installs at `GpEnemy::param`.
-extern GpPairSrcE D_actor_123200_80134208;
+/// Enemy parameters the spawn handler installs at `GpEnemy::param`.
+extern EnemyParams D_actor_123200_80134208;
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
 extern u8 D_actor_123200_80137154[];
@@ -152,7 +152,7 @@ DamageAttack D_actor_123200_80134204[1] = {
     { 24, 7 },
 };
 
-GpPairSrcE D_actor_123200_80134208 = { D_actor_123200_80134204, 1, 6, 20, 3, 100, 0, 100, 0, 0 };
+EnemyParams D_actor_123200_80134208 = { D_actor_123200_80134204, 1, 6, 20, 3, 100, 0, 100, 0 };
 
 TmdBone D_actor_123200_80134218[6] = {
 #include "assets/actor_123200_model_03CD0_skeleton.inc"

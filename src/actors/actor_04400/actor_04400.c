@@ -24,7 +24,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -162,7 +162,7 @@ STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
 extern u8            Actor04400_D10814[];   // per animation id (1-based): the value to put in `field_44F`
 extern u8            Actor04400_D10828[];   // per animation id (1-based): the animation to follow it
-extern GpPairSrcE    Actor04400_D0D318;     // the main enemy's `GpEnemy::param` record
+extern EnemyParams   Actor04400_D0D318;     // the main enemy's `GpEnemy::param` record
 extern AnimationSet* Actor04400_D10778[21]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
@@ -462,7 +462,7 @@ DamageAttack Actor04400_D0D314[1] = {
     { 22, 0 },
 };
 
-GpPairSrcE Actor04400_D0D318 = { Actor04400_D0D314, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
+EnemyParams Actor04400_D0D318 = { Actor04400_D0D314, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 AnimationPackedPose Actor04400_D0D328[6] = {
 #include "assets/actor_104400_animation_0D554_bank1.inc"

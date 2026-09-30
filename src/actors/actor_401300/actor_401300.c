@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -244,7 +244,7 @@ extern SVECTOR D_actor_401300_80158A08[2];
 /// record (`GpEnemy::param`), the three per-variant `field_CA0..CA4`
 /// triples selected by `spawnArg1 & 0xF`, the animation bank passed to
 /// `Gp_AnimInitCtxSlots`, the 0x3FF message seed, and the task's `field_24`.
-extern GpPairSrcE    D_actor_401300_80141FA0;
+extern EnemyParams   D_actor_401300_80141FA0;
 extern SVECTOR       D_actor_401300_80141FB0[3];
 extern AnimationSet* D_actor_401300_80158838[46];
 /// The animation block the 0x3FF payload in `field_CAC` hands the player.
@@ -349,7 +349,7 @@ DamageAttack D_actor_401300_80141F88[6] = {
     { 40, 0 },
 };
 
-GpPairSrcE D_actor_401300_80141FA0 = {
+EnemyParams D_actor_401300_80141FA0 = {
     D_actor_401300_80141F88,
     420,
     115,
@@ -359,7 +359,6 @@ GpPairSrcE D_actor_401300_80141FA0 = {
     10,
     100,
     10,
-    0,
 };
 
 SVECTOR D_actor_401300_80141FB0[3] = {

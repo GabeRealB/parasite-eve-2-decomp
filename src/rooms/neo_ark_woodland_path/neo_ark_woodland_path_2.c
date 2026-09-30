@@ -20,7 +20,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
@@ -81,7 +81,7 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 /// code names both, and the two are different code - an index keeps this
 /// symbol in a register and takes the offset as the load's displacement, while
 /// naming `D_...8494C` addresses it directly.
-extern GpPairSrcE   D_neo_ark_woodland_path_80184948;
+extern EnemyParams  D_neo_ark_woodland_path_80184948;
 extern DamageAttack D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
@@ -192,7 +192,7 @@ DamageAttack D_neo_ark_woodland_path_80184930[6] = {
     { 40, 0 },
 };
 
-GpPairSrcE D_neo_ark_woodland_path_80184948 = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10, 0 };
+EnemyParams D_neo_ark_woodland_path_80184948 = { D_neo_ark_woodland_path_80184930, 420, 115, 200, 5, 100, 10, 100, 10 };
 
 // Retained numeric records following the enemy parameters.
 u16 D_neo_ark_woodland_path_80184958[3][4] = {

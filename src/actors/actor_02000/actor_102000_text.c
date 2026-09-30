@@ -18,7 +18,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -152,7 +152,7 @@ extern TaskDesc Actor02000_D15FD0[];
 
 extern u16* Actor02000_D15FB8[];
 
-extern GpPairSrcE Actor02000_D15D10;
+extern EnemyParams Actor02000_D15D10;
 
 static void Actor02000_Fn00078(Task*);
 
@@ -1074,7 +1074,7 @@ DamageAttack Actor02000_D15CFC[5] = {
     { 5, 0 },
 };
 
-GpPairSrcE Actor02000_D15D10 = { Actor02000_D15CFC, 425, 125, 100, 5, 50, 6, 0, 0, 0 };
+EnemyParams Actor02000_D15D10 = { Actor02000_D15CFC, 425, 125, 100, 5, 50, 6, 0, 0 };
 
 s16 Actor02000_D15D20[46] = {
     0,

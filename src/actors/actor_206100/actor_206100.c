@@ -27,7 +27,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -125,10 +125,10 @@ typedef struct {
 /// `power` is 0x1A and `reaction` is 5.
 extern DamageAttack D_actor_206100_80155194;
 
-/// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::param`, whose
-/// `pairTable` is `D_actor_206100_80155194` above and whose `hpMax` is the
-/// actor's max HP (2000), seeded into `field_40` / `field_42` at spawn.
-extern GpPairSrcE D_actor_206100_80155198;
+/// Enemy parameters `func_actor_206100_8014AF74` parks in `GpEnemy::param`.
+/// `attacks` is `D_actor_206100_80155194` above and `hpMax` is the actor's
+/// maximum hit points (2000), seeded into `field_40` / `field_42` at spawn.
+extern EnemyParams D_actor_206100_80155198;
 
 /// Animation bank handed to `func_800B3F84` by `func_actor_206100_8014AF74`.
 extern AnimationSet* D_actor_206100_80158B24[];
@@ -955,7 +955,7 @@ AreaPlacement D_actor_206100_80155134[6] = {
 
 DamageAttack D_actor_206100_80155194 = { 26, 5 };
 
-GpPairSrcE D_actor_206100_80155198 = { &D_actor_206100_80155194, 2000, 400, 1000, 15, 200, 3, 100, 5, 0 };
+EnemyParams D_actor_206100_80155198 = { &D_actor_206100_80155194, 2000, 400, 1000, 15, 200, 3, 100, 5 };
 
 AnimationPackedPose D_actor_206100_801551A8[8] = {
 #include "assets/actor_206100_animation_0B8F8_bank1.inc"

@@ -24,7 +24,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -56,7 +56,7 @@
 extern ActorSpriteUv Actor02600_D08A78[];
 extern s16           Actor02600_D08A98[];
 
-extern GpPairSrcE    Actor02600_D08968;
+extern EnemyParams   Actor02600_D08968;
 extern SVECTOR       Actor02600_D089B0[];
 extern s16           Actor02600_D089D0[];
 extern SVECTOR       Actor02600_D089E8[];
@@ -537,7 +537,7 @@ DamageAttack Actor02600_D08950[6] = {
     { 10, 0 },
 };
 
-GpPairSrcE Actor02600_D08968 = { Actor02600_D08950, 160, 16, 68, 1, 100, 10, 100, 5, 0 };
+EnemyParams Actor02600_D08968 = { Actor02600_D08950, 160, 16, 68, 1, 100, 10, 100, 5 };
 
 u16 Actor02600_D08978[8] = {
     25,

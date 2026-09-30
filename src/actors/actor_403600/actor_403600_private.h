@@ -13,7 +13,7 @@
 #include "gameplay/collision.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
@@ -163,9 +163,9 @@ extern u16 D_actor_403600_80150EAC;
 
 extern DamageAttack D_actor_403600_80150EB0;
 
-extern GpPairSrcE D_actor_403600_80150EC8;
+extern EnemyParams D_actor_403600_80150EC8;
 
-extern GpPairSrcE D_actor_403600_80150ED8;
+extern EnemyParams D_actor_403600_80150ED8;
 
 extern AnimationSet D_actor_403600_80151CD0;
 

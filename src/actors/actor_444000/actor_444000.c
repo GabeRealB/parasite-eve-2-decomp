@@ -31,7 +31,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
@@ -219,10 +219,10 @@ extern SVECTOR D_actor_444000_80161870;
 
 /// Pair descriptors the host and its escorts publish as `GpEnemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
-extern GpPairSrcE D_actor_444000_80144A28;
-extern GpPairSrcE D_actor_444000_80144A38;
-extern GpPairSrcE D_actor_444000_80144A48;
-extern GpPairSrcE D_actor_444000_80144A58;
+extern EnemyParams D_actor_444000_80144A28;
+extern EnemyParams D_actor_444000_80144A38;
+extern EnemyParams D_actor_444000_80144A48;
+extern EnemyParams D_actor_444000_80144A58;
 
 extern s16         D_actor_444000_80144A68;
 extern s32         D_actor_444000_80144A6C;
@@ -603,15 +603,15 @@ DamageAttack D_actor_444000_80144A00[6] = {
     { 35, 0 },
 };
 
-GpPairSrcE D_actor_444000_80144A18 = { D_actor_444000_80144A00, 3000, 500, 200, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_444000_80144A18 = { D_actor_444000_80144A00, 3000, 500, 200, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_444000_80144A28 = { D_actor_444000_80144A00, 3000, 700, 200, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_444000_80144A28 = { D_actor_444000_80144A00, 3000, 700, 200, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_444000_80144A38 = { D_actor_444000_80144A00, 120, 0, 0, 0, 50, 0, 0, 0, 0 };
+EnemyParams D_actor_444000_80144A38 = { D_actor_444000_80144A00, 120, 0, 0, 0, 50, 0, 0, 0 };
 
-GpPairSrcE D_actor_444000_80144A48 = { D_actor_444000_80144A00, 120, 0, 0, 0, 50, 0, 0, 0, 0 };
+EnemyParams D_actor_444000_80144A48 = { D_actor_444000_80144A00, 120, 0, 0, 0, 50, 0, 0, 0 };
 
-GpPairSrcE D_actor_444000_80144A58 = { D_actor_444000_80144A00, 200, 0, 0, 0, 10, 0, 0, 0, 0 };
+EnemyParams D_actor_444000_80144A58 = { D_actor_444000_80144A00, 200, 0, 0, 0, 10, 0, 0, 0 };
 
 s16 D_actor_444000_80144A68 = 0;
 

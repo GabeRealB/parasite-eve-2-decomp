@@ -19,7 +19,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -91,7 +91,7 @@ typedef struct Actor311500Work {
 } Actor311500Work;
 STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
 
-extern GpPairSrcE    D_actor_311500_801692C0;
+extern EnemyParams   D_actor_311500_801692C0;
 extern AnimationSet* D_actor_311500_801692F4[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -195,7 +195,7 @@ DamageAttack D_actor_311500_801692B8[2] = {
     { 18, 0 },
 };
 
-GpPairSrcE D_actor_311500_801692C0 = { D_actor_311500_801692B8, 30, 42, 82, 4, 250, 0, 100, 0, 0 };
+EnemyParams D_actor_311500_801692C0 = { D_actor_311500_801692B8, 30, 42, 82, 4, 250, 0, 100, 0 };
 
 u16 D_actor_311500_801692D0[18] = {
     20,

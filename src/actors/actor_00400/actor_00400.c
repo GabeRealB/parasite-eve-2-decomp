@@ -26,7 +26,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -387,7 +387,7 @@ static void Actor00400_Fn09E70(Task* arg0);
 static void Actor00400_Fn09F18(Task* arg0);
 static void Actor00400_Fn09FDC(Task* arg0);
 
-extern GpPairSrcE Actor00400_D0FDC8;
+extern EnemyParams Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
 /// `key`.
 extern DamageAttack          Actor00400_D0FDC0[2];
@@ -674,7 +674,7 @@ DamageAttack Actor00400_D0FDC0[2] = {
     { 24, 5 },
 };
 
-GpPairSrcE Actor00400_D0FDC8 = { Actor00400_D0FDC0, 240, 70, 88, 3, 100, 10, 100, 0, 0 };
+EnemyParams Actor00400_D0FDC8 = { Actor00400_D0FDC0, 240, 70, 88, 3, 100, 10, 100, 0 };
 
 AnimationPackedPose Actor00400_D0FDD8[8] = {
 #include "assets/actor_100400_animation_10348_bank1.inc"

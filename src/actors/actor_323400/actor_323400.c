@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
@@ -93,8 +93,8 @@ STATIC_ASSERT_SIZEOF(Actor323400Storage1228, 96);
 
 extern Actor323400Storage1228 D_actor_323400_80171228;
 
-/// Enemy pair source `GpEnemy::param` is pointed at by the spawn handler.
-extern GpPairSrcE D_actor_323400_80164D5C;
+/// Enemy parameters the spawn handler stores in `GpEnemy::param`.
+extern EnemyParams D_actor_323400_80164D5C;
 
 static void func_actor_323400_80163FC8(GpEnemy* enemy, Task* task);
 static void func_actor_323400_801641C4(GpEnemy* enemy, Task* task);
@@ -138,7 +138,7 @@ DamageAttack D_actor_323400_80164D48[5] = {
     { 0xFFFF, 0 },
 };
 
-GpPairSrcE D_actor_323400_80164D5C = { D_actor_323400_80164D48, 200, 75, 50, 4, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_323400_80164D5C = { D_actor_323400_80164D48, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 s16 D_actor_323400_80164D6C[16] = {
     60,

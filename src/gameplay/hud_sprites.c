@@ -26,7 +26,7 @@
 #include "linked_actors.h"
 #include "gameplay/loading.h"
 #include "loading.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/scene.h"

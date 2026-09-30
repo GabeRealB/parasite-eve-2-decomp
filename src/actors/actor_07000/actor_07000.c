@@ -20,7 +20,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -364,7 +364,7 @@ void                Actor07000_Fn067B4(Task*);
 
 DamageAttack Actor07000_D06924 = { 30, 7 };
 
-GpPairSrcE Actor07000_D06928 = { &Actor07000_D06924, 70, 6, 12, 3, 100, 20, 100, 0, 0 };
+EnemyParams Actor07000_D06928 = { &Actor07000_D06924, 70, 6, 12, 3, 100, 20, 100, 0 };
 
 u32 Actor07000_D06938[3] = {
     0x1010001,
@@ -501,7 +501,7 @@ DamageAttack Actor07000_D08078[2] = {
     { 12, 3 },
 };
 
-GpPairSrcE Actor07000_D08080 = { Actor07000_D08078, 120, 12, 36, 1, 250, 20, 100, 0, 0 };
+EnemyParams Actor07000_D08080 = { Actor07000_D08078, 120, 12, 36, 1, 250, 20, 100, 0 };
 
 TmdBone Actor07000_D08090[7] = {
 #include "assets/actor_107000_model_0A6C8_skeleton.inc"
@@ -989,12 +989,12 @@ typedef struct Actor107000Spawn2Work {
 } Actor107000Spawn2Work;
 STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 
-/// Node 3's pair table, packed by `Gp_PackPair` into `obj1B4`, and the enemy
-/// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
+/// Node 3's attack row, packed by `Gp_PackPair` into `obj1B4`, and the enemy
+/// parameters whose `attacks` point at it; its `hpMax` seeds the enemy's
 /// `field_40`.
 extern DamageAttack Actor07000_D06924;
 
-extern GpPairSrcE Actor07000_D06928;
+extern EnemyParams Actor07000_D06928;
 
 extern u32 Actor07000_D06938[];
 
@@ -1014,8 +1014,8 @@ extern SVECTOR Actor07000_D08070;
 /// into their keys.
 extern DamageAttack Actor07000_D08078[2];
 
-/// Enemy record of the second form; its `hpMax` seeds the enemy's HP.
-extern GpPairSrcE Actor07000_D08080;
+/// Enemy parameters of the second form; its `hpMax` seeds the enemy's HP.
+extern EnemyParams Actor07000_D08080;
 
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].arg.model`, one per
 /// random variant the roll selects.

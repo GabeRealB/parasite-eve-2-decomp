@@ -27,7 +27,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
@@ -169,10 +169,10 @@ extern GpScriptRec D_actor_403200_80141C88[2];
 
 /// Pair descriptors the host and its escorts publish as `GpEnemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
-extern GpPairSrcE D_actor_403200_80141C00;
-extern GpPairSrcE D_actor_403200_80141C20;
-extern GpPairSrcE D_actor_403200_80141C30;
-extern GpPairSrcE D_actor_403200_80141C40;
+extern EnemyParams D_actor_403200_80141C00;
+extern EnemyParams D_actor_403200_80141C20;
+extern EnemyParams D_actor_403200_80141C30;
+extern EnemyParams D_actor_403200_80141C40;
 
 /// Per-animation reset argument, a `[?][0x2D]` table indexed by the id that
 /// was playing before the switch and the id being switched to.
@@ -393,15 +393,15 @@ DamageAttack D_actor_403200_80141BE8[6] = {
     { 35, 0 },
 };
 
-GpPairSrcE D_actor_403200_80141C00 = { D_actor_403200_80141BE8, 3000, 500, 200, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C00 = { D_actor_403200_80141BE8, 3000, 500, 200, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_403200_80141C10 = { D_actor_403200_80141BE8, 3000, 700, 200, 100, 100, 0, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C10 = { D_actor_403200_80141BE8, 3000, 700, 200, 100, 100, 0, 0, 0 };
 
-GpPairSrcE D_actor_403200_80141C20 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C20 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0 };
 
-GpPairSrcE D_actor_403200_80141C30 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C30 = { D_actor_403200_80141BE8, 120, 0, 0, 0, 50, 0, 0, 0 };
 
-GpPairSrcE D_actor_403200_80141C40 = { D_actor_403200_80141BE8, 200, 0, 0, 0, 10, 0, 0, 0, 0 };
+EnemyParams D_actor_403200_80141C40 = { D_actor_403200_80141BE8, 200, 0, 0, 0, 10, 0, 0, 0 };
 
 s16 D_actor_403200_80141C50 = 0;
 

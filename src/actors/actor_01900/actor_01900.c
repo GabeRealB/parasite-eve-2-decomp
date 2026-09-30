@@ -21,7 +21,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -174,7 +174,7 @@ typedef struct Actor01900StateTable {
 } Actor01900StateTable;
 STATIC_ASSERT_SIZEOF(Actor01900StateTable, 0x80);
 
-extern GpPairSrcE         Actor01900_D0AC54;
+extern EnemyParams        Actor01900_D0AC54;
 extern ActorSpawnParamRow Actor01900_D0AC64[];
 extern AnimationSet*      Actor01900_D17174[46];
 // Typed callback views for the task message dispatcher.
@@ -234,7 +234,7 @@ DamageAttack Actor01900_D0AC4C[2] = {
     { 22, 0 },
 };
 
-GpPairSrcE Actor01900_D0AC54 = { Actor01900_D0AC4C, 160, 42, 48, 4, 100, 10, 100, 0, 0 };
+EnemyParams Actor01900_D0AC54 = { Actor01900_D0AC4C, 160, 42, 48, 4, 100, 10, 100, 0 };
 
 ActorSpawnParamRow Actor01900_D0AC64[3] = {
     { 15, 400, 8, 2000, { 0, 0, 0, 0 } },

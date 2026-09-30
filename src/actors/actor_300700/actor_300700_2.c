@@ -19,7 +19,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -328,7 +328,7 @@ AnimationSet D_actor_300700_80169300 = {
 
 DamageAttack D_actor_300700_80169328 = { 6, 3 };
 
-GpPairSrcE D_actor_300700_8016932C = { &D_actor_300700_80169328, 18, 4, 22, 1, 100, 20, 100, 0, 0 };
+EnemyParams D_actor_300700_8016932C = { &D_actor_300700_80169328, 18, 4, 22, 1, 100, 20, 100, 0 };
 
 s16 D_actor_300700_8016933C[8] = {
     2,

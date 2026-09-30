@@ -22,7 +22,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -268,8 +268,8 @@ typedef struct ActorsShared80138efcStateTable {
    loop.c produces for a scalar offset but strength-reduces away for an array
    index. */
 
-extern GpPairSrcE    Actor01100_D074E8;
-extern GpPairSrcE    Actor01100_D07510;
+extern EnemyParams   Actor01100_D074E8;
+extern EnemyParams   Actor01100_D07510;
 extern AnimationSet* Actor01100_D15604[23];
 
 /// Word whose low bits `Actor01100_Fn02960` (bits 0-3) and
@@ -387,11 +387,11 @@ DamageAttack Actor01100_D074D0[6] = {
     { 10, 3 },
 };
 
-GpPairSrcE Actor01100_D074E8 = { Actor01100_D074D0, 280, 152, 102, 5, 200, 10, 100, 20, 0 };
+EnemyParams Actor01100_D074E8 = { Actor01100_D074D0, 280, 152, 102, 5, 200, 10, 100, 20 };
 
 DamageAttack Actor01100_D074F8[6] = { { 0, 0 }, { 10, 0 }, { 10, 0 }, { 30, 7 }, { 30, 7 }, { 15, 1 } };
 
-GpPairSrcE Actor01100_D07510 = { Actor01100_D074F8, 450, 204, 152, 6, 200, 5, 100, 10, 0 };
+EnemyParams Actor01100_D07510 = { Actor01100_D074F8, 450, 204, 152, 6, 200, 5, 100, 10 };
 
 TmdBone Actor01100_D07520[21] = {
 #include "assets/actor_101100_model_0CB28_skeleton.inc"

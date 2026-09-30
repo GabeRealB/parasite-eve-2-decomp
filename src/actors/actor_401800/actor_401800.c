@@ -21,7 +21,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -308,7 +308,7 @@ extern AnimationSet* D_actor_401800_80155938[46];
 /// Enemy description record the init body copies `hpMax` out of into
 /// `GpEnemy.hp` and points `GpEnemy.param` at. Same role
 /// `D_actor_401300_80141FA0` plays for actor 401300.
-extern GpPairSrcE D_actor_401800_8013E6F0;
+extern EnemyParams D_actor_401800_8013E6F0;
 
 /// The three `ActorSpawnParamRow` variants the init body picks from by the
 /// spawn argument's low nibble: `[0]` when it is 2, `[2]` when it is 1, `[1]`
@@ -442,7 +442,7 @@ DamageAttack D_actor_401800_8013E6E8[2] = {
     { 18, 7 },
 };
 
-GpPairSrcE D_actor_401800_8013E6F0 = { D_actor_401800_8013E6E8, 180, 34, 34, 3, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_401800_8013E6F0 = { D_actor_401800_8013E6E8, 180, 34, 34, 3, 100, 10, 100, 0 };
 
 ActorSpawnParamRow D_actor_401800_8013E700[3] = {
     { 40, 400, 7, 2000, { 0, 0, 0, 0 } },

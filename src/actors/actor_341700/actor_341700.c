@@ -26,7 +26,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -61,7 +61,7 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-extern GpPairSrcE    D_actor_341700_8017188C;     // the main enemy's `GpEnemy::param` record
+extern EnemyParams   D_actor_341700_8017188C;     // the main enemy's `GpEnemy::param` record
 extern AnimationSet* D_actor_341700_80174CEC[21]; // animation bank handed to `func_800B3F84`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -420,7 +420,7 @@ DamageAttack D_actor_341700_80171888[1] = {
     { 22, 0 },
 };
 
-GpPairSrcE D_actor_341700_8017188C = { D_actor_341700_80171888, 110, 20, 40, 1, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_341700_8017188C = { D_actor_341700_80171888, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 AnimationPackedPose D_actor_341700_8017189C[6] = {
 #include "assets/actor_341700_animation_0FCA8_bank1.inc"

@@ -7,7 +7,7 @@
 #include "common.h"
 
 #include "gameplay/areaplace.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/world_targets_types.h"
 
 #include "main/coord.h"
@@ -59,11 +59,11 @@ typedef struct GpEnemy {
     u8                     field_4D;      // Role unproven: cleared beside `reactionFlags` on spawn, nothing reads it back
     u8                     colorMode;     // Colour remap the body is drawn with: current mode in bits 0-1, previous in bits 2-3, bit 7 a pending hit flash
     u8                     colorBlend;    // Frames a colour remap change is blended over, in sixteenths; 0 switches at once
-    GpPairSrcE*            param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
+    EnemyParams*           param;         // Parameter record the enemy's kind is defined by, shared with every enemy of that kind, `NULL` where the kind has none
     WorldCollisionContact* recs;          // The enemy's own contact records; its collision bodies point at the table and the Parasite Energy targeting claims entries in it
-    u8                     flag2Steps;    // Flag-2 reaction: steps it has built up, each 0x1F frames long, up to the limit `param->flag2Ticks` and its grade allow
+    u8                     flag2Steps;    // Flag-2 reaction: steps it has built up, each 0x1F frames long, up to the limit `param->buildupSteps` and its grade allow
     u8                     flag4Delay;    // Flag-4 reaction: frames left until its next damage tick, reseeded at random on each tick
-    u8                     flag4Ticks;    // Flag-4 reaction: damage ticks dealt so far, measured against `param->flag4Ticks`
+    u8                     flag4Ticks;    // Flag-4 reaction: damage ticks dealt so far, measured against `param->damageOverTimeTicks`
     u8                     flag2Timer;    // Flag-2 reaction: frames into the current step; once the limit is reached, a random countdown to the reaction ending
     u8                     flag4Grade;    // Flag-4 reaction: 0-9 row of the scale tables its length and damage are taken from; 0 for an attack without one
     u8                     flag2Grade;    // Flag-2 reaction: 0-9 row of the scale table its length is taken from; 0 for an attack without one

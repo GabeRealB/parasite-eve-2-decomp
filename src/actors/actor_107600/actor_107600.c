@@ -15,7 +15,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/lighting_work.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
@@ -217,9 +217,9 @@ extern TaskDesc D_actor_107600_80134F94[];
  * 16-entry HP table it indexes with the spawn variant. Both are trailing-blob
  * data, after the collision tables. */
 /* Pair-source record the spawn state hangs off `GpEnemy.param`. */
-extern GpPairSrcE D_actor_107600_80134F84;
-extern GpPairSrcE D_actor_107600_80135720;
-extern u16        D_actor_107600_80135750[];
+extern EnemyParams D_actor_107600_80134F84;
+extern EnemyParams D_actor_107600_80135720;
+extern u16         D_actor_107600_80135750[];
 
 /* Remaining-enemy count, and the gallery controller task the room overlay
  * publishes (its `Task::work` is the `MistShootingGalleryWork`). */
@@ -252,7 +252,7 @@ void func_actor_107600_801348A0(Task*);
 
 DamageAttack D_actor_107600_80134F80[1] = { 0 };
 
-GpPairSrcE D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
+EnemyParams D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0 };
 
 TaskDesc D_actor_107600_80134F94[19] = {
     { TASK_BODY_TMD, 96, func_actor_107600_801328CC, { .value = -0x7FE77FCC } },
@@ -756,7 +756,7 @@ Actor107600Waypoint* D_actor_107600_80135624[62] = {
 
 DamageAttack D_actor_107600_8013571C[1] = { 0 };
 
-GpPairSrcE D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
+EnemyParams D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0 };
 
 Actor107600Pair D_actor_107600_80135730[8] = {
     { 0, 0xFEE0 },

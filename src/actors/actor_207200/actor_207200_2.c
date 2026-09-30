@@ -20,7 +20,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -48,7 +48,7 @@
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-extern GpPairSrcE    D_actor_207200_8014E7D4;
+extern EnemyParams   D_actor_207200_8014E7D4;
 extern AnimationSet* D_actor_207200_80153ED4[13];
 /// `field_492` value for frames 20..39 of helper stage 1, indexed by frame - 20.
 extern s16 D_actor_207200_80153F20[];
@@ -162,7 +162,7 @@ static const GpEnemyTaskFuncTable3 D_actor_207200_80149E30 = {
 
 void func_actor_207200_8014D280(Task*);
 
-GpPairSrcE D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0, 0 };
+EnemyParams D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0 };
 
 TmdBone D_actor_207200_8014E7E4[7] = {
 #include "assets/actor_207200_model_06BE4_skeleton.inc"

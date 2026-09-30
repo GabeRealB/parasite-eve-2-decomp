@@ -18,7 +18,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 
 /// Rolls a status/effect chance for `arg0` against the player. Returns 0 for
 /// ids with bit 0x8000 set, when no slot 3 is active, or when
-/// `GpPairSrcE.critChance` scaled by 1/100 is zero. Otherwise the enemy's world
+/// `EnemyParams.critChance` scaled by 1/100 is zero. Otherwise the enemy's world
 /// distance to the player picks a `D_80113864` class, that class selects a
 /// percentage from `D_80113858` (when `GpRec10.field_4` is 6) or from the
 /// `D_80113568` row for `(arg1 >> 8) & 0x3F`, and column 6 (or 7 with bit

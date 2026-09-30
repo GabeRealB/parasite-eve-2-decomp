@@ -22,7 +22,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -2741,7 +2741,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     work->obj240.pos.vx           = D_actor_503500_8016F3F4[idx].vx;
     work->obj240.pos.vy           = D_actor_503500_8016F3F4[idx].vy;
     work->obj240.pos.vz           = D_actor_503500_8016F3F4[idx].vz;
-    work->obj240.key              = Gp_PackPair(enemy->param->pairTable, 0);
+    work->obj240.key              = Gp_PackPair(enemy->param->attacks, 0);
     work->obj240.radius           = 0x1F4;
     work->obj240.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj240);

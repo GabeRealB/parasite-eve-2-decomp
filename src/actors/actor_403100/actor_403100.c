@@ -28,7 +28,7 @@
 #include "gameplay/message.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
@@ -109,7 +109,7 @@ typedef union Actor403100Flags {
 } Actor403100Flags;
 STATIC_ASSERT_SIZEOF(Actor403100Flags, 0x4);
 
-extern GpPairSrcE D_actor_403100_8014762C;
+extern EnemyParams D_actor_403100_8014762C;
 
 typedef struct Actor403100Entry {
     /* 0x00 */ s16                   active;
@@ -444,7 +444,7 @@ DamageAttack D_actor_403100_80147614[6] = {
     { 15, 0 },
 };
 
-GpPairSrcE D_actor_403100_8014762C = { D_actor_403100_80147614, 4650, 2000, 1000, 100, 200, 20, 100, 5, 0 };
+EnemyParams D_actor_403100_8014762C = { D_actor_403100_80147614, 4650, 2000, 1000, 100, 200, 20, 100, 5 };
 
 AnimationPackedPose D_actor_403100_8014763C[4] = {
 #include "assets/actor_403100_animation_15BB0_bank1.inc"

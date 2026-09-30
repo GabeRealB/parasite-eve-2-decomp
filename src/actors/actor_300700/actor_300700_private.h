@@ -11,7 +11,7 @@
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
@@ -97,7 +97,7 @@ extern TmdSource D_actor_300700_80167400;
 
 extern DamageAttack D_actor_300700_80169328;
 
-extern GpPairSrcE D_actor_300700_8016932C;
+extern EnemyParams D_actor_300700_8016932C;
 
 extern u32 D_actor_300700_801693B8;
 

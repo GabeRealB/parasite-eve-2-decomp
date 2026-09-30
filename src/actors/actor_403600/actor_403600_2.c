@@ -32,7 +32,7 @@
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
@@ -787,7 +787,7 @@ static void func_actor_403600_8013955C(Task* arg0)
             temp_s0->reactionFlags &= 0xFD;
             temp_s1->field_730      = 3;
             temp_s1->field_736      = 0xE;
-            temp_s1->field_790      = D_actor_403600_80150EC8.flag2Ticks * 0x1E;
+            temp_s1->field_790      = D_actor_403600_80150EC8.buildupSteps * 0x1E;
         }
         if (temp_s0->reactionFlags & 0xC) {
             if (temp_s1->field_73E != 0x28) {
@@ -2803,10 +2803,10 @@ static void func_actor_403600_8013D15C(Task* arg0)
                     work->field_7AE = 0;
                     Gp_SetObjFlag2(arg0->spawnArg2.pointer, work->field_528[i].key.value, 0);
                     if (((u16)work->field_736 - 0x10 < 2U) && ((u16)work->field_73A - 6 < 0x18U)) {
-                        work->field_790 = D_actor_403600_80150EC8.flag2Ticks;
+                        work->field_790 = D_actor_403600_80150EC8.buildupSteps;
                     }
                     if ((work->field_736 == 1) && (work->field_73A < 30)) {
-                        work->field_790 = D_actor_403600_80150EC8.flag2Ticks;
+                        work->field_790 = D_actor_403600_80150EC8.buildupSteps;
                     }
                 }
                 break;
@@ -2822,7 +2822,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
                         work->field_7AE = 0;
                         if (work->field_73A < 30) {
                             work->field_730 = 4;
-                            work->field_790 = D_actor_403600_80150EC8.flag2Ticks * 10;
+                            work->field_790 = D_actor_403600_80150EC8.buildupSteps * 10;
                         }
                     }
                 }

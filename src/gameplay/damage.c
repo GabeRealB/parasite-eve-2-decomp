@@ -16,7 +16,7 @@
 #include "item_menu.h"
 #include "item_pickup.h"
 #include "items.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/weapon_data.h"
 #include "weapon_data.h"
 #include "gameplay/world_state.h"
@@ -409,7 +409,7 @@ static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
             arg0->flag2Grade = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
-            val         = arg0->param->flag4Chance;
+            val         = arg0->param->damageOverTimeChance;
             limit       = (val << 12) / 100;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
@@ -436,7 +436,7 @@ s32 Gp_PackObjPair(GpEnemy* arg0, s32 arg1)
     if (arg0->param == NULL) {
         return 0;
     }
-    pairs = arg0->param->pairTable;
+    pairs = arg0->param->attacks;
     ret   = pairs[arg1].power & DAMAGE_ATTACK_POWER_MASK;
     ret  |= (pairs[arg1].reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
     ret  |= DAMAGE_ATTACK_CATEGORY;

@@ -20,7 +20,7 @@
 #include "gameplay/geometry.h"
 #include "gameplay/object_fields.h"
 #include "gameplay/pad_script.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/player_state.h"
 #include "gameplay/room_effects.h"
@@ -63,8 +63,8 @@ STATIC_ASSERT_SIZEOF(Actor02300Storage7918, 8);
 
 extern Actor02300Storage7918 Actor02300_D15AF8;
 
-/// The `GpPairSrcE` the enemy parks in its own `field_50` slot.
-extern GpPairSrcE Actor02300_D159D8;
+/// The `EnemyParams` the enemy parks in its own `field_50` slot.
+extern EnemyParams Actor02300_D159D8;
 /// Per-room voice-stream sector tables, indexed by `GameSession::location.loc.stage` then
 /// `field_6`; a NULL row means this room has no cue.
 extern u16* Actor02300_D15C80[];
@@ -802,7 +802,7 @@ DamageAttack Actor02300_D159C4[5] = {
     { 5, 0 },
 };
 
-GpPairSrcE Actor02300_D159D8 = { Actor02300_D159C4, 482, 250, 400, 8, 0, 6, 0, 0, 0 };
+EnemyParams Actor02300_D159D8 = { Actor02300_D159C4, 482, 250, 400, 8, 0, 6, 0, 0 };
 
 s16 Actor02300_D159E8[46] = {
     0,

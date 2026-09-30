@@ -16,7 +16,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
-#include "gameplay/pairsrc.h"
+#include "gameplay/enemy_params.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
@@ -73,8 +73,8 @@ STATIC_ASSERT_SIZEOF(Actor323000MessageEntry, 8);
 
 extern Actor323000MessageEntry D_actor_323000_801739D0[7];
 
-/// Enemy pair source `GpEnemy::param` is pointed at by the spawn handler.
-extern GpPairSrcE D_actor_323000_80164D54;
+/// Enemy parameters the spawn handler stores in `GpEnemy::param`.
+extern EnemyParams D_actor_323000_80164D54;
 
 /// Whole-unit part of the last movement step `func_actor_323000_80162A2C`
 /// applied, rounded away from zero when the step had a fraction.
@@ -137,7 +137,7 @@ DamageAttack D_actor_323000_80164D40[5] = {
     { 0xFFFF, 0 },
 };
 
-GpPairSrcE D_actor_323000_80164D54 = { D_actor_323000_80164D40, 200, 75, 50, 4, 100, 10, 100, 0, 0 };
+EnemyParams D_actor_323000_80164D54 = { D_actor_323000_80164D40, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 s16 D_actor_323000_80164D64[16] = {
     60,
