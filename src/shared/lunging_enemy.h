@@ -36,4 +36,14 @@ void lungerDecayHitTilt(Task* arg0);
 void lungerPlayAnimCues(Task* arg0);
 void lungerDeadState(GpEnemy* arg0, Task* arg1);
 
+void lungerHitTick(Task* arg0);
+void lungerKnockdownState(Task* arg0);
+void lungerLungeStrikeState(Task* arg0);
+void lungerAimLaserSight(Task* arg0);
+void lungerDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);
+void lungerBulletSpawn(GpEnemy* arg0, Task* arg1);
+void lungerBulletFly(GpEnemy* arg0, Task* arg1);
+void lungerGunTick(GpEnemy* enemy, Task* task);
+void lungerBulletDestroy(GpEnemy* arg0, Task* arg1);
+
 #endif /* SRC_SHARED_LUNGING_ENEMY_H */
