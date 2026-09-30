@@ -114,7 +114,7 @@ extern GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16];
 GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_helicopter_landing_pad_8017E3F0 },
     { 5105, func_acropolis_helicopter_landing_pad_8017E49C },
-    { 5103, func_acropolis_helicopter_landing_pad_8017E4A4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_helicopter_landing_pad_8017E4A4 },
     { 5104, func_acropolis_helicopter_landing_pad_8017E570 },
     { 0x7FFFFFFF, NULL },
 };

@@ -56,13 +56,13 @@ static s16 func_neo_ark_shrine_8017E254(void);
 s32  func_neo_ark_shrine_8017D6A4(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_shrine_8017D740(Task*, s32, s32, GpMessageArg);
-s32  func_neo_ark_shrine_8017D7F0(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_neo_ark_shrine_8017D7F0(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void func_neo_ark_shrine_8017D84C(Task*);
 
 GpMsgEntry D_neo_ark_shrine_80181E34[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
     { 5105, func_neo_ark_shrine_8017D6A4 },
-    { 5103, func_neo_ark_shrine_8017D7F0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_shrine_8017D7F0 },
     { 5104, func_neo_ark_shrine_8017D740 },
     { 0x7FFFFFFF, NULL },
 };
@@ -305,9 +305,9 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, GpMessageArg ar
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         if (GameFlag_GetNibble(0xDF) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {

@@ -140,7 +140,7 @@ GpEvsCmd D_dryfield_water_tank_8017F21C[11] = {
 GpMsgEntry D_dryfield_water_tank_8017F324[5] = {
     { 5102, func_dryfield_water_tank_8017D7C4 },
     { 5105, func_dryfield_water_tank_8017D7BC },
-    { 5103, func_dryfield_water_tank_8017D7EC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tank_8017D7EC },
     { 5104, func_dryfield_water_tank_8017D910 },
     { 0x7FFFFFFF, NULL },
 };

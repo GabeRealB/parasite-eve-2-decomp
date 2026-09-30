@@ -106,7 +106,7 @@ void func_dryfield_junk_yard_8017D848(Task*);
 s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, GpMessageArg);
 s32  func_dryfield_junk_yard_8017DA44(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, GpMessageArg);
 
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest D_dryfield_junk_yard_8017DD74;
@@ -132,7 +132,7 @@ GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { 5105, func_dryfield_junk_yard_8017DA44 },
     { 5104, func_dryfield_junk_yard_8017D994 },
-    { 5103, func_dryfield_junk_yard_8017DB78 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_junk_yard_8017DB78 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -1684,21 +1684,21 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 }
 
 /// Handler for message 0x13EF in the room's message table. When the record's
-/// `field_2` is 1 and nibble 0x38 is clear, it latches the nibble to 1 and
+/// `actionId` is 1 and nibble 0x38 is clear, it latches the nibble to 1 and
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
 /// starts a `func_800E8634` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, GpMsg13EF* msg, GpMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionRequest* msg, GpMessageArg arg3)
 {
     Task* player;
 
-    if (msg->field_2 == 1) {
+    if (msg->actionId == 1) {
         if (GameFlag_GetNibble(0x38) == 0) {
             GameFlag_SetNibble(0x38, 1);
             Task_SpawnFromTable(D_dryfield_junk_yard_8017DD48, 0, 0, 0);
         }
     }
-    if (msg->field_2 == 2) {
+    if (msg->actionId == 2) {
         player = gameGetPtrSlot(0xA);
         if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
             (GameFlag_GetNibble(0x38) == 1)) {

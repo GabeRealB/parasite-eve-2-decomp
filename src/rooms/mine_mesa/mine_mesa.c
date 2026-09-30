@@ -293,7 +293,7 @@ void                            func_mine_mesa_80181894(Task*);
 s32  func_mine_mesa_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_mine_mesa_8017DA7C(Task*, s32, s32, GpMessageArg);
-s32  func_mine_mesa_8017DABC(Task*, s32, GpMsg13EF*, s32);
+s32  func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
 s32  func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 void func_mine_mesa_8017D670(Task*);
 
@@ -302,7 +302,7 @@ TaskDesc D_mine_mesa_801818F8 = { 0, 32, func_mine_mesa_8017D670, { .model = NUL
 GpMsgEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
     { 5105, func_mine_mesa_8017D8F0 },
-    { 5103, func_mine_mesa_8017DABC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_mesa_8017DABC },
     { 5104, func_mine_mesa_8017DA7C },
     { 5108, func_mine_mesa_8017DBC4 },
     { 0x7FFFFFFF, NULL },
@@ -2721,9 +2721,9 @@ s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
     return 0;
 }
 
-s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_mine_mesa_8017DABC(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    switch (msg->field_2) {
+    switch (msg->actionId) {
         case 1:
             if (GameFlag_GetNibble(0x71) == 0) {
                 if (gameGetPtrSlot(0xA) != NULL) {

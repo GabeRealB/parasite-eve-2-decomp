@@ -1093,18 +1093,18 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, GpMess
     return 0;
 }
 
-/// Slot-3 msg `0x3EF` handler. On kind 0, once the room session flag
+/// `DIRECTION_MESSAGE_ROOM_ACTION` handler. On action 0, once the room session flag
 /// `D_acropolis_helicopter_landing_pad_80184E0C` is up and the phase is
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1 and swaps the visible `GpObj4A` from element
-/// 4 to element 0. Kind 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg13EF* msg, GpMessageArg arg3)
+/// 4 to element 0. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, GpMessageArg arg3)
 {
-    u8       kind;
+    u8       actionId;
     GpObj4A* obj;
     GpObj4A* obj2;
 
-    if ((msg->field_2 == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
+    if ((msg->actionId == 0) && (D_acropolis_helicopter_landing_pad_80184D9C == 0) && (D_acropolis_helicopter_landing_pad_80184E0C != 0)) {
         gGameSession->flowFlags = 0x82;
         gStageSceneMusicEntry   = 1;
         func_800E8634(D_acropolis_helicopter_landing_pad_80183A34, 0, D_acropolis_helicopter_landing_pad_80183FA4);
@@ -1114,9 +1114,9 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, GpMsg1
         obj->field_4A                              |= 0x40;
         obj2->field_4A                             &= 0xBF;
     }
-    kind = msg->field_2;
-    if (kind == 1) {
-        D_acropolis_helicopter_landing_pad_80187F84 = kind;
+    actionId = msg->actionId;
+    if (actionId == 1) {
+        D_acropolis_helicopter_landing_pad_80187F84 = actionId;
     }
     return 0;
 }

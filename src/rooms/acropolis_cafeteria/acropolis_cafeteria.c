@@ -102,7 +102,7 @@ extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, GpMessageArg, GpMessageArg);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
-s32                 func_acropolis_cafeteria_8017E154(Task*, s32, GpMsg13EF*, s32);
+s32                 func_acropolis_cafeteria_8017E154(Task*, s32, DirectionActionRequest* request, s32);
 s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
 void                func_acropolis_cafeteria_8017D8F8(Task*);
 void                func_acropolis_cafeteria_8017DD1C(Task*);
@@ -114,7 +114,7 @@ void                func_acropolis_cafeteria_8017E310(void);
 
 GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
-    { 5103, func_acropolis_cafeteria_8017E154 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_cafeteria_8017E154 },
     { 5104, func_acropolis_cafeteria_8017E0DC },
     { 5105, func_acropolis_cafeteria_8017E0D4 },
     { 5106, func_acropolis_cafeteria_8017E22C },
@@ -2791,18 +2791,18 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     }
     return 0;
 }
-/// Handler for slot-7 msg `0x13EF`: the directed action selected by `field_2`.
-s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+/// Handler for slot-7 msg `0x13EF`: the directed action selected by `actionId`.
+s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if (arg2->field_2 == 0) {
+    if (request->actionId == 0) {
         if (D_acropolis_cafeteria_80184164 >= 2 || GameFlag_GetNibble(0) >= 2) {
             Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 1, 0, 0);
             return 0;
         }
     }
-    if (arg2->field_2 == 2) {
+    if (request->actionId == 2) {
         Gp_RunCapCmd1(9);
-    } else if (arg2->field_2 == 3) {
+    } else if (request->actionId == 3) {
         if (D_acropolis_cafeteria_80184164 == 0 && GameFlag_GetNibble(0) == 1) {
             D_acropolis_cafeteria_80184164 = 1;
             Task_SpawnFromTable(D_acropolis_cafeteria_80182AD8, 0, 0, 0);

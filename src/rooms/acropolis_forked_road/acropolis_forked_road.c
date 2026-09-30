@@ -48,13 +48,13 @@ static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
 s32 func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_acropolis_forked_road_8017D850(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, GpMessageArg);
-s32 func_acropolis_forked_road_8017D8A8(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_acropolis_forked_road_8017D8A8(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 
 GpMsgEntry D_acropolis_forked_road_80180F14[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
     { 5105, func_acropolis_forked_road_8017D850 },
     { 5104, func_acropolis_forked_road_8017D858 },
-    { 5103, func_acropolis_forked_road_8017D8A8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_forked_road_8017D8A8 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -160,11 +160,11 @@ s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
     u8 temp;
 
-    if (arg2->field_2 == 1 && (GameFlag_GetNibble(9) & 2)) {
+    if (request->actionId == 1 && (GameFlag_GetNibble(9) & 2)) {
         temp = gGameSession->at4.loc.variant;
         if (((temp == 4) || (temp == 8)) && (GameFlag_GetNibble(0xCC) == 0)) {
             func_800E8614(D_acropolis_forked_road_801820B8, 1);

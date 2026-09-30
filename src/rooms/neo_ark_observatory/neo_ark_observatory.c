@@ -158,7 +158,7 @@ extern GpRoomCoordSet D_neo_ark_observatory_80186844[1];
 extern GpRoomCoordSet D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
-s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, GpMsg13EF*, s32);
+s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, DirectionActionRequest* request, s32);
 s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, GpMessageArg, GpMessageArg);
 s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, GpMessageArg);
@@ -207,7 +207,7 @@ TaskDesc D_neo_ark_observatory_801811AC = { 0, 192, func_neo_ark_observatory_801
 GpMsgEntry D_neo_ark_observatory_801811B8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },
     { 5105, func_neo_ark_observatory_8017FBE0 },
-    { 5103, func_neo_ark_observatory_8017F6F8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_observatory_8017F6F8 },
     { 5104, func_neo_ark_observatory_8017FCA0 },
     { 0x7FFFFFFF, NULL },
 };
@@ -1757,13 +1757,13 @@ static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, _MapMa
     desc->room = rec.pad_2[1];
 }
 
-s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32 arg3)
+s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionRequest* request, s32 arg3)
 {
     RoomDeparture     desc;
     _MapMarkerResolve resolve;
     s32               temp;
 
-    if (arg2->field_2 == 0xA) {
+    if (request->actionId == 0xA) {
         if (GameFlag_GetNibble(0xD1) == 2) {
             GameFlag_SetNibble(0x4C, 8);
         }
@@ -1788,7 +1788,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             }
         }
         desc.stage    = 4;
-        desc.area     = arg2->field_3;
+        desc.area     = request->argument;
         desc.room     = 1;
         desc.warp     = 4;
         desc.sndEvent = 0x55070005;
@@ -1799,7 +1799,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
         D_neo_ark_observatory_80187A30 = desc;
         Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
     }
-    if (arg2->field_2 == 1 && GameFlag_GetNibble(0xD7) == 0) {
+    if (request->actionId == 1 && GameFlag_GetNibble(0xD7) == 0) {
         GameFlag_SetNibble(0xD7, 1);
         if (GameFlag_GetNibble(0x83) != 0) {
             func_800E3FAC(0xA2, 0x2C);
@@ -1810,7 +1810,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             func_800E8634(&D_80137EE4, 0, &D_80138694);
         }
     }
-    if (arg2->field_2 == 2) {
+    if (request->actionId == 2) {
         if (GameFlag_GetNibble(0xE1) == 0) {
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
@@ -1819,10 +1819,10 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, GpMsg13EF* arg2, s32
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
-    if (arg2->field_2 == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->at4.loc.view == 2) {
+    if (request->actionId == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->at4.loc.view == 2) {
         func_80132220();
     }
-    if (arg2->field_2 == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
+    if (request->actionId == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
         GameFlag_SetNibble(0x16E, 1);
         func_800E8634(D_neo_ark_observatory_801811E0.data.commands, 0, D_neo_ark_observatory_801812C0);
     }

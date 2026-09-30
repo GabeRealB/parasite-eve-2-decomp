@@ -586,16 +586,16 @@ static void Gp_ClearDirCursor(void)
 
 static void Gp_PostMsg13EF(void)
 {
-    GpMsg13EF sp;
-    void*     slot;
+    DirectionActionRequest request;
+    void*                  slot;
 
     if (gGameSession->eventState == 0) {
         if (Gp_CapBusy() == 0) {
-            sp.field_0 = Gp_DirFlags;
-            sp.field_2 = Gp_DirByte;
-            sp.field_3 = Gp_DirNibble;
-            slot       = gameGetPtrSlot(7);
-            Gp_DispatchMsgPtr(slot, 0x13EF, &sp, 0);
+            request.control  = Gp_DirFlags;
+            request.actionId = Gp_DirByte;
+            request.argument = Gp_DirNibble;
+            slot             = gameGetPtrSlot(7);
+            Gp_DispatchMsgPtr(slot, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
         }
     }
     Gp_DirNibble    = 0;

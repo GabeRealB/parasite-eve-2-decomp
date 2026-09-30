@@ -1044,9 +1044,9 @@ s32 func_dryfield_factory_8017DEA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
+    if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
         GameFlag_SetNibble(0x2C, 1);
         func_800E3FAC(0xA2, 0xA);

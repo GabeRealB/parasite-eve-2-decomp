@@ -276,12 +276,12 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, GpM
 }
 
 /// Handler for message 0x13EF in the room's message table. When the record's
-/// `field_2` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
+/// `actionId` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
 /// sends the player-weapon message and passes
 /// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if ((arg2->field_2 == 1) && (gGameSession->at4.loc.variant == 3) && (GameFlag_GetNibble(0x79) == 0)) {
+    if ((request->actionId == 1) && (gGameSession->at4.loc.variant == 3) && (GameFlag_GetNibble(0x79) == 0)) {
         GameFlag_SetNibble(0x79, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614(D_dryfield_night_parking_lot_8017ECB4, 1);

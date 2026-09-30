@@ -30,7 +30,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*);
         s32 (*call2)(Task*, s32, s32, s32);
         s32 (*call3)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call4)(s32, s32, s32);
@@ -137,7 +137,7 @@ s32 func_mine_cavern_8017DAA0(Task*, s32, s32, s32);
 
 s32 func_mine_cavern_8017DC50(void);
 
-s32 func_mine_cavern_8017DC58(Task*, s32, GpMsg13EF*);
+s32 func_mine_cavern_8017DC58(Task*, s32, DirectionActionRequest* request);
 
 s32 func_mine_cavern_8017DC9C(void);
 

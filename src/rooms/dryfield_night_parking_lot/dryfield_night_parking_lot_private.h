@@ -26,7 +26,7 @@ s32 func_dryfield_night_parking_lot_8017DB04(Task*, s32, GpMessageArg, GpMessage
 
 s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, GpMessageArg);
 
-s32 func_dryfield_night_parking_lot_8017DB34(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_dryfield_night_parking_lot_8017DB34(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 
 void func_dryfield_night_parking_lot_8017DBA4(s32);
 

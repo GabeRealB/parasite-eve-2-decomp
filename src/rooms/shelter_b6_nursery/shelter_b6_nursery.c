@@ -168,7 +168,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*, s32);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*, s32);
         s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(Task*, s32, s32, s32);
     } handler;
@@ -244,12 +244,12 @@ TaskDesc D_shelter_b6_nursery_80185000 = { 0, 32, func_shelter_b6_nursery_8017FB
 s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
 s32 func_shelter_b6_nursery_8017FDCC(void);
 s32 func_shelter_b6_nursery_8017FDD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b6_nursery_8017FE3C(Task*, s32, GpMsg13EF*, s32);
+s32 func_shelter_b6_nursery_8017FE3C(Task*, s32, DirectionActionRequest* msg, s32);
 
 ShelterB6NurseryMessageEntry D_shelter_b6_nursery_8018500C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b6_nursery_8017FDD4 } },
     { 5105, { .call0 = func_shelter_b6_nursery_8017FDCC } },
-    { 5103, { .call1 = func_shelter_b6_nursery_8017FE3C } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b6_nursery_8017FE3C } },
     { 5104, { .call3 = func_shelter_b6_nursery_8017FA54 } },
     { 2147483647, { .call0 = NULL } },
 };
@@ -1229,15 +1229,15 @@ s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, R
     return 0;
 }
 
-s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    if (msg->field_2 == 1) {
+    if (msg->actionId == 1) {
         func_80131E2C();
     }
-    if (msg->field_2 == 2) {
+    if (msg->actionId == 2) {
         func_80132000();
     }
-    if (msg->field_2 == 3 && GameFlag_GetNibble(0xC8) != 0) {
+    if (msg->actionId == 3 && GameFlag_GetNibble(0xC8) != 0) {
         func_800E8634(&D_8013AF8C, 0, &D_8013BA84);
     }
     return 0;

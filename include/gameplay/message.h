@@ -67,22 +67,22 @@ struct AnimationPlayRequest;
 struct ActorCommand;
 struct AnimationSet;
 
-struct _GpMsg13EF;
+struct DirectionActionRequest;
 
 /// One payload word in the PS1 message ABI. A message id determines whether
 /// the recipient interprets the word as an integer or as an object address.
 typedef union GpMessageArg {
-    s32                          value;
-    const void*                  pointer;
-    void*                        storage;
-    u8*                          bytes;
-    VECTOR*                      vector;
-    ActorTransform*              transform;
-    struct AnimationPlayRequest* animation;
-    struct ActorCommand*         command;
-    RoomEventMsg*                location;
-    struct _GpMsg13EF*           direction;
-    RoomEventMsg*                roomEvent;
+    s32                            value;
+    const void*                    pointer;
+    void*                          storage;
+    u8*                            bytes;
+    VECTOR*                        vector;
+    ActorTransform*                transform;
+    struct AnimationPlayRequest*   animation;
+    struct ActorCommand*           command;
+    RoomEventMsg*                  location;
+    struct DirectionActionRequest* direction;
+    RoomEventMsg*                  roomEvent;
 } GpMessageArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
 

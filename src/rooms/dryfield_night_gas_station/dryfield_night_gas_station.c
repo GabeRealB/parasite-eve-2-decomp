@@ -158,7 +158,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*);
         s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
@@ -300,7 +300,7 @@ s32 func_dryfield_night_gas_station_8017F544(s32, s32, RoomEventMsg*, RoomEventM
 s32 func_dryfield_night_gas_station_8017F6B8(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
-s32 func_dryfield_night_gas_station_8017F990(Task*, s32, GpMsg13EF*);
+s32 func_dryfield_night_gas_station_8017F990(Task*, s32, DirectionActionRequest* msg);
 s32 func_dryfield_night_gas_station_8017F9E8(void);
 
 void func_dryfield_night_gas_station_8017FA6C(Task*);
@@ -310,7 +310,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task*);
 DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_gas_station_8017F544 } },
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
-    { 5103, { .call1 = func_dryfield_night_gas_station_8017F990 } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
     { 5106, { .call3 = func_dryfield_night_gas_station_8017F6B8 } },
     { 5108, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
@@ -2733,12 +2733,12 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
 }
 
 /// Handler for slot-7 msg `0x13EF` in `D_dryfield_night_gas_station_80184034`:
-/// the directed action selected by `field_2` 0xE runs the room's cutscene script
+/// the directed action selected by `actionId` 0xE runs the room's cutscene script
 /// blob at `D_dryfield_night_gas_station_8018920C`, but only once nibble 0x63 has
 /// reached 2 and pointer slot 0xA is live.
-s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, GpMsg13EF* msg)
+s32 func_dryfield_night_gas_station_8017F990(Task* task, s32 msgId, DirectionActionRequest* msg)
 {
-    if ((msg->field_2 == 0xE) && (gameGetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
+    if ((msg->actionId == 0xE) && (gameGetPtrSlot(0xA) != NULL) && (GameFlag_GetNibble(0x63) >= 2)) {
         func_800E8614(D_dryfield_night_gas_station_8018920C, 0);
     }
     return 0;

@@ -134,7 +134,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*, s32);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*, s32);
         s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
@@ -174,7 +174,7 @@ static void func_shelter_b1_sterilization_room_801812A0(Task* task);
 
 static void func_shelter_b1_sterilization_room_80181308(s32 tpage, s16 arg1);
 
-s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b1_sterilization_room_8017FC78(Task*, s32, DirectionActionRequest* msg, s32);
 s32  func_shelter_b1_sterilization_room_8017FF80(s32, s32, s32);
 s32  func_shelter_b1_sterilization_room_801803E4(void);
 s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEventMsg*);
@@ -237,7 +237,7 @@ TaskDesc D_shelter_b1_sterilization_room_80184E1C[3] = {
 ShelterB1SterilizationRoomMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_shelter_b1_sterilization_room_801803EC } },
     { 5105, { .call0 = func_shelter_b1_sterilization_room_801803E4 } },
-    { 5103, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_shelter_b1_sterilization_room_8017FC78 } },
     { 5104, { .call3 = func_shelter_b1_sterilization_room_8017FF80 } },
     { 5106, { .call3 = func_shelter_b1_sterilization_room_80180430 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -747,13 +747,13 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     task->state++;
 }
 
-s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
     s32 cmd;
     s32 mask;
     s32 flags;
 
-    switch (msg->field_2) {
+    switch (msg->actionId) {
         case 1:
             if (GameFlag_GetNibble(0x76) == 0) {
                 if (GameFlag_GetNibble(0x84) != 0) {
@@ -776,7 +776,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
             break;
         case 5:
         case 8:
-            switch (msg->field_2) {
+            switch (msg->actionId) {
                 case 5:
                     cmd  = 5;
                     mask = 2;
@@ -796,7 +796,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
                     Gp_RunCapCmd1(cmd);
                     GameFlag_SetNibble(0xF2, flags | mask);
                 }
-                Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->field_2 - 3, 0);
+                Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
             } else {
                 Gp_RunCapCmd1(0xA);
             }
@@ -806,7 +806,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
         case 7:
         case 10:
             if (GameFlag_GetNibble(0x76) == 0 || GameFlag_GetNibble(0x77) == 1) {
-                Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 4, msg->field_2 - 3, 0);
+                Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 4, msg->actionId - 3, 0);
             } else {
                 Gp_RunCapCmd1(0xA);
             }
@@ -820,7 +820,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
                         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 2, 0);
                         GameFlag_SetNibble(0x150, 1);
                     }
-                    Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->field_2 - 3, 0);
+                    Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
                 }
             }
             break;
@@ -838,7 +838,7 @@ s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, GpMsg13EF
                 }
                 GameFlag_SetNibble(0x151, 2);
             }
-            Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->field_2 - 3, 0);
+            Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - 3, 0);
             break;
     }
     return 0;

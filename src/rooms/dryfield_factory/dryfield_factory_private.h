@@ -48,7 +48,7 @@ s32 func_dryfield_factory_8017DDA8(Task*, s32, s32, GpMessageArg);
 
 s32 func_dryfield_factory_8017DEA8(Task*, s32, s32, s32);
 
-s32 func_dryfield_factory_8017DF14(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_dryfield_factory_8017DF14(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 
 void func_dryfield_factory_8017FC18(Task*);
 

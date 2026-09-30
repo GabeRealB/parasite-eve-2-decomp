@@ -237,7 +237,7 @@ void                        func_dryfield_night_saloon_g_r_8017E0A8(u8);
 s32  func_dryfield_night_saloon_g_r_8017DCA4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
-s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void func_dryfield_night_saloon_g_r_8017DA04(Task*);
 void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
@@ -246,7 +246,7 @@ TaskDesc D_dryfield_night_saloon_g_r_8017F90C = { 0, 32, func_dryfield_night_sal
 GpMsgEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_saloon_g_r_8017DCA4 },
     { 5105, func_dryfield_night_saloon_g_r_8017DD7C },
-    { 5103, func_dryfield_night_saloon_g_r_8017DE68 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_saloon_g_r_8017DE68 },
     { 5104, func_dryfield_night_saloon_g_r_8017DD84 },
     { 0x7FFFFFFF, NULL },
 };
@@ -2126,28 +2126,28 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
     return 0;
 }
 
-/// Handler for this room's script entry 0x13EF, whose `GpMsg13EF` payload
-/// arrives as `arg2`. `field_2 == 7` plays the room's first-visit cutscene
+/// Handler for this room's script entry 0x13EF, whose `DirectionActionRequest` payload
+/// arrives as `request`. `actionId == 7` plays the room's first-visit cutscene
 /// once (nibble 0x59). Then, in session phase 2 with nibble 0xB0 still clear,
-/// `field_2 == 1` unlinks the room's 4A object and queues sound 0x5312000C,
-/// while the room's own phase (`field_2 == 2`) announces the visit to the
+/// `actionId == 1` unlinks the room's 4A object and queues sound 0x5312000C,
+/// while action 2 announces the visit to the
 /// slot-4 task with message 0x7DA carrying the session's two id bytes and a
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
     ActorCommand msg;
     u8           temp_s0;
 
-    if (arg2->field_2 == 7 && GameFlag_GetNibble(0x59) == 0) {
+    if (request->actionId == 7 && GameFlag_GetNibble(0x59) == 0) {
         func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
         GameFlag_SetNibble(0x59, 1);
     }
     temp_s0 = gGameSession->at4.loc.variant;
     if (temp_s0 == 2 && GameFlag_GetNibble(0xB0) == 0) {
-        if (arg2->field_2 == 1) {
+        if (request->actionId == 1) {
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
             SndEvt_EnqueueType6(0x5312000C, 0, 0);
-        } else if (arg2->field_2 == temp_s0) {
+        } else if (request->actionId == temp_s0) {
             msg.context.loc.stage = gGameSession->at4.loc.stage;
             msg.context.loc.area  = gGameSession->at4.loc.area;
             msg.command           = 1;

@@ -268,7 +268,7 @@ extern const char D_mist_shooting_gallery_8017DAC8[20];
 s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, GpMessageArg);
-s32               func_mist_shooting_gallery_8018008C(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32               func_mist_shooting_gallery_8018008C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void              func_mist_shooting_gallery_8017E234(Task*);
 void              func_mist_shooting_gallery_8017E854(Task*);
 void              func_mist_shooting_gallery_8017EAE0(Task*);
@@ -738,7 +738,7 @@ TaskDesc D_mist_shooting_gallery_801850DC = { 0, 192, func_mist_shooting_gallery
 GpMsgEntry D_mist_shooting_gallery_801850E8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
     { 5105, func_mist_shooting_gallery_8017FEB0 },
-    { 5103, func_mist_shooting_gallery_8018008C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
     { 5104, func_mist_shooting_gallery_80180000 },
     { 0x7FFFFFFF, NULL },
 };
@@ -2016,20 +2016,20 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if ((arg2->field_2 == 1) && (D_8014D038 == 0)) {
+    if ((request->actionId == 1) && (D_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);
         Task_SpawnFromTable(&D_8014E13C, 1, 1, 0);
         D_80114D08 = 0xA;
     }
-    if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0xED) == 0)) {
+    if ((request->actionId == 2) && (GameFlag_GetNibble(0xED) == 0)) {
         func_8014AF0C();
     }
-    if (arg2->field_2 == 3) {
+    if (request->actionId == 3) {
         func_8014AB6C();
     }
-    if ((arg2->field_2 == 4) && (GameFlag_GetNibble(0x106) == 0)) {
+    if ((request->actionId == 4) && (GameFlag_GetNibble(0x106) == 0)) {
         func_800E3FAC(0xA2, 0x3B);
         GameFlag_SetNibble(0x106, 1);
         func_800E8634(&D_80153274, 0, &D_80153D6C);

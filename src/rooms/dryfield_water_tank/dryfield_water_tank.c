@@ -1022,16 +1022,16 @@ s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         if (GameFlag_GetNibble(0x36) == 0) {
             GameFlag_SetNibble(0x36, 1);
             Task_SpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
             GameFlag_SetNibble(0x56, 1);
         }
     }
-    if ((arg2->field_2 == 2) && (GameFlag_GetNibble(0x33) == 0)) {
+    if ((request->actionId == 2) && (GameFlag_GetNibble(0x33) == 0)) {
         GameFlag_SetNibble(0x33, 1);
         func_800E3FAC(0xA2, 0xE);
         GameFlag_SetNibble(3, 0);
@@ -1040,10 +1040,10 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, GpMsg13EF* arg2, Gp
         Gp_MsgPlayerWeapon(0);
         func_800E8634(D_dryfield_water_tank_80184E0C, 0, D_dryfield_water_tank_801859DC);
     }
-    if (arg2->field_2 == 3) {
+    if (request->actionId == 3) {
         func_800E8614(D_dryfield_water_tank_8017F114, 0);
     }
-    if (arg2->field_2 == 4) {
+    if (request->actionId == 4) {
         func_800E8614(D_dryfield_water_tank_8017F21C, 0);
     }
     return 1;

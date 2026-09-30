@@ -114,7 +114,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*);
         s32 (*call2)(s32, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
@@ -154,13 +154,13 @@ TaskDesc D_dryfield_night_motel_lobby_801827A8[3] = {
 s32 func_dryfield_night_motel_lobby_8017FB00(void);
 s32 func_dryfield_night_motel_lobby_8017FB08(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_motel_lobby_8017FB7C(s32, s32, s32);
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, GpMsg13EF*);
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task*, s32, DirectionActionRequest* request);
 s32 func_dryfield_night_motel_lobby_8017FCDC(s32, s32, s32);
 
 DryfieldNightMotelLobbyMessageEntry D_dryfield_night_motel_lobby_801827CC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_motel_lobby_8017FB08 } },
     { 5105, { .call0 = func_dryfield_night_motel_lobby_8017FB00 } },
-    { 5103, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_motel_lobby_8017FC6C } },
     { 5104, { .call3 = func_dryfield_night_motel_lobby_8017FB7C } },
     { 5106, { .call3 = func_dryfield_night_motel_lobby_8017FCDC } },
     { 2147483647, { .call0 = NULL } },
@@ -445,9 +445,9 @@ s32 func_dryfield_night_motel_lobby_8017FB7C(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_dryfield_night_motel_lobby_8017FC6C(Task* task, s32 msgId, DirectionActionRequest* request)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         if (GameFlag_GetNibble(0x74) == 0) {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);

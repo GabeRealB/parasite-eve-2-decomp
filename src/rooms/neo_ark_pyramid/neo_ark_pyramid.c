@@ -81,7 +81,7 @@ void func_neo_ark_pyramid_8017D600(Task*);
 s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_pyramid_8017DA44(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 
 extern GpGridParams   D_neo_ark_pyramid_801802C4[1];
 extern GpObj3A        D_neo_ark_pyramid_80181790[3];
@@ -92,7 +92,7 @@ extern GpRoomCoordSet D_neo_ark_pyramid_80181298[1];
 GpMsgEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
     { 5105, func_neo_ark_pyramid_8017D9F0 },
-    { 5103, func_neo_ark_pyramid_8017DA44 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
     { 5104, func_neo_ark_pyramid_8017DA3C },
     { 0x7FFFFFFF, NULL },
 };
@@ -642,12 +642,12 @@ s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 }
 
 /// Handler for message 0x13EF in the room's message table. When the message's
-/// `field_2` is 1 it resets the quad's angle; once the quad has turned four
+/// `actionId` is 1 it resets the quad's angle; once the quad has turned four
 /// times it spawns capture event 3, otherwise it has the player lower the
 /// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         func_neo_ark_pyramid_8017DAC0(0);
         if (GameFlag_GetNibble(0xEC) == 4) {
             Gp_SpawnIfCapIdle(3, 1);

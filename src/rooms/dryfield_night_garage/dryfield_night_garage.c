@@ -184,7 +184,7 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xF0"
 #include "../../shared/shop.h"
 
-s32 func_dryfield_night_garage_801800C8(Task*, s32, GpMsg13EF*, s32);
+s32 func_dryfield_night_garage_801800C8(Task*, s32, DirectionActionRequest* msg, s32);
 s32 func_dryfield_night_garage_80180300(Task*, s32, s32, GpMessageArg);
 s32 func_dryfield_night_garage_80180358(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -199,7 +199,7 @@ TaskDesc D_dryfield_night_garage_80181C2C = { 0, 192, Shop_SessionTask, { .model
 GpMsgEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_garage_80180360 },
     { 5105, func_dryfield_night_garage_80180358 },
-    { 5103, func_dryfield_night_garage_801800C8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
     { 5104, func_dryfield_night_garage_801803A4 },
     { 5106, func_dryfield_night_garage_80180300 },
     { 0x7FFFFFFF, NULL },
@@ -398,12 +398,12 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
     GpObj4A* base;
     GpObj4A* obj;
 
-    if (msg->field_2 == 6) {
+    if (msg->actionId == 6) {
         if (gGameSession->at4.loc.variant == 2) {
             if (GameFlag_GetNibble(0x6C) == 0) {
                 if (Gp_HasCollectedBit(0x113) == 0) {
@@ -437,14 +437,14 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, GpMsg13EF* msg, s
             }
         }
     }
-    if (msg->field_2 == 1) {
+    if (msg->actionId == 1) {
         if (GameFlag_GetNibble(0x97) != 0) {
             Gp_StartCapSlot(0x14, 1, 0);
         } else {
             Gp_SpawnIfCapIdle(0x36, 0);
         }
     }
-    if (msg->field_2 == 2 && gGameSession->at4.loc.variant == 3 && gameGetPtrSlot(0xA) != NULL) {
+    if (msg->actionId == 2 && gGameSession->at4.loc.variant == 3 && gameGetPtrSlot(0xA) != NULL) {
         Task_SpawnFromTable(D_8013B11C, 1, 0, 0);
     }
     return 0;

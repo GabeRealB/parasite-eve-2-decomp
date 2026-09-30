@@ -114,7 +114,7 @@ extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
 s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
-s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, GpMsg13EF*, s32);
+s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, DirectionActionRequest* request, s32);
 s32                         func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
 void                        func_acropolis_east_elevator_hall_8017F450(void);
 
@@ -318,7 +318,7 @@ GpMsgEntry D_acropolis_east_elevator_hall_801862F4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_east_elevator_hall_8017F348 },
     { 5104, func_acropolis_east_elevator_hall_8017F420 },
     { 5105, func_acropolis_east_elevator_hall_8017F370 },
-    { 5103, func_acropolis_east_elevator_hall_8017F378 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_east_elevator_hall_8017F378 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -678,9 +678,9 @@ s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, GpMessageA
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if (arg2->field_2 == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
+    if (request->actionId == 0 && GameFlag_GetNibble(0) == 0 && D_acropolis_east_elevator_hall_8018631C == 0) {
         func_800E8634(D_acropolis_east_elevator_hall_80185D54, 0, D_acropolis_east_elevator_hall_801860B4);
         D_acropolis_east_elevator_hall_8018631C = 1;
         GameFlag_SetNibble(0, 1);

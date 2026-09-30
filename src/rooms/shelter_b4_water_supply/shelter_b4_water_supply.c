@@ -153,7 +153,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task*);
 s32  func_shelter_b4_water_supply_8017D970(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, DirectionActionRequest* request, s32);
 s32  func_shelter_b4_water_supply_8017DAE4(Task*, s32, s32, s32);
 void func_shelter_b4_water_supply_8017DC28(Task*);
 void func_shelter_b4_water_supply_8017ED28(Task*);
@@ -165,7 +165,7 @@ TaskDesc D_shelter_b4_water_supply_801825E4 = { 0, 32, func_shelter_b4_water_sup
 GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
     { 5105, func_shelter_b4_water_supply_8017D970 },
-    { 5103, func_shelter_b4_water_supply_8017DA30 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_water_supply_8017DA30 },
     { 5104, func_shelter_b4_water_supply_8017DA28 },
     { 5106, func_shelter_b4_water_supply_8017DAE4 },
     { 0x7FFFFFFF, NULL },
@@ -943,12 +943,12 @@ s32 func_shelter_b4_water_supply_8017DA28(Task* task, s32 msgId, GpMessageArg ar
 }
 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b4_water_supply_801825F0`:
-/// the directed action on the water-supply valve (`field_2` 0xA / `field_3`
+/// the directed action on the water-supply valve (`actionId` 0xA / `argument`
 /// 0x20).
-s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if (arg2->field_2 == 0xA) {
-        if (arg2->field_3 == 0x20) {
+    if (request->actionId == 0xA) {
+        if (request->argument == 0x20) {
             if (GameFlag_GetNibble(0xB8) != 0) {
                 if (GameFlag_GetNibble(0x139) != 0) {
                     func_shelter_b4_water_supply_8017DB18();

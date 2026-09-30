@@ -92,7 +92,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task*, s32, RoomEventMsg*, Ro
 
 s32 func_acropolis_helicopter_landing_pad_8017E49C(Task*, s32, GpMessageArg, GpMessageArg);
 
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task*, s32, DirectionActionRequest* msg, GpMessageArg);
 
 s32 func_acropolis_helicopter_landing_pad_8017E570(Task*, s32, s32, GpMessageArg);
 

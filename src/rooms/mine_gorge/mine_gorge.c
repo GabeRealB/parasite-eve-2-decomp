@@ -50,7 +50,7 @@ static void func_mine_gorge_8017D998(Task* task);
 s32 func_mine_gorge_8017D5F8(Task*, s32, s32, GpMessageArg);
 s32 func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_gorge_8017D77C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_gorge_8017D784(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_mine_gorge_8017D784(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 s32 func_mine_gorge_8017D7F4(Task*, s32, s32, GpMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
@@ -88,7 +88,7 @@ AnimationSet D_mine_gorge_8017E258 = {
 GpMsgEntry D_mine_gorge_8017E280[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_gorge_8017D6E8 },
     { 5105, func_mine_gorge_8017D5F8 },
-    { 5103, func_mine_gorge_8017D784 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_gorge_8017D784 },
     { 5104, func_mine_gorge_8017D77C },
     { 5106, func_mine_gorge_8017D7F4 },
     { 0x7FFFFFFF, NULL },
@@ -235,14 +235,14 @@ s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, GpMessageArg arg2, GpMessage
 }
 
 /// Cutscene gate on the `0x13EF` direction message: when the payload's
-/// direction byte is 1, flag nibble `0xC5` is still clear and the session is in
+/// action ID is 1, flag nibble `0xC5` is still clear and the session is in
 /// place 1, raises the nibble and starts the script blob at
 /// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    u8 temp_s0 = arg2->field_2;
+    u8 actionId = request->actionId;
 
-    if (temp_s0 == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.variant == temp_s0) {
+    if (actionId == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.variant == actionId) {
         GameFlag_SetNibble(0xC5, 1);
         func_800E8614(D_mine_gorge_8017E610, 0);
     }

@@ -180,7 +180,7 @@ extern u32     D_mine_forked_tunnel_80180900[104];
 s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, GpMessageArg);
-s32 func_mine_forked_tunnel_8017E19C(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32 func_mine_forked_tunnel_8017E19C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -847,7 +847,7 @@ GpGridParams D_mine_forked_tunnel_80181C5C = { NULL, D_mine_forked_tunnel_80181B
 GpMsgEntry D_mine_forked_tunnel_80181C80[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
     { 5105, func_mine_forked_tunnel_8017E0E8 },
-    { 5103, func_mine_forked_tunnel_8017E19C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_forked_tunnel_8017E19C },
     { 5104, func_mine_forked_tunnel_8017E134 },
     { 0x7FFFFFFF, NULL },
 };
@@ -1865,9 +1865,9 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 
 /// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x75) == 0)) {
+    if ((request->actionId == 1) && (GameFlag_GetNibble(0x75) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);
     }
     return 0;

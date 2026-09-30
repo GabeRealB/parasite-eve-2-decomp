@@ -204,7 +204,7 @@ void func_acropolis_square_80182048(Task*);
 
 s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
-s32  func_acropolis_square_801820D8(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_acropolis_square_801820D8(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 s32  func_acropolis_square_80182108(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_acropolis_square_80182110(Task*, s32, s32, GpMessageArg);
 void func_acropolis_square_80181AEC(Task*);
@@ -243,7 +243,7 @@ TaskDesc D_acropolis_square_801837A0[3] = {
 
 GpMsgEntry D_acropolis_square_801837C4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
-    { 5103, func_acropolis_square_801820D8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_square_801820D8 },
     { 5105, func_acropolis_square_80182108 },
     { 5104, func_acropolis_square_801819BC },
     { 5106, func_acropolis_square_80182110 },
@@ -1641,9 +1641,9 @@ void func_acropolis_square_80182048(Task* task)
     }
 }
 
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_acropolis_square_801820D8(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 0) {
+    if (request->actionId == 0) {
         Gp_SpawnIfCapIdle(5, 0);
     }
     return 0;

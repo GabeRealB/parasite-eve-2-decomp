@@ -143,7 +143,7 @@ void func_mist_parking_80182628(Task*);
 s32  func_mist_parking_801823F8(s32, s32, s32);
 s32  func_mist_parking_801826B8(void);
 s32  func_mist_parking_801826C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_mist_parking_801826E8(Task*, s32, GpMsg13EF*);
+s32  func_mist_parking_801826E8(Task*, s32, DirectionActionRequest* request);
 void func_mist_parking_80182750(s32);
 void func_mist_parking_801827A0(s32);
 
@@ -188,7 +188,7 @@ typedef struct {
     s32 id;
     union {
         s32 (*call0)(void);
-        s32 (*call1)(Task*, s32, GpMsg13EF*);
+        s32 (*call1)(Task*, s32, DirectionActionRequest*);
         s32 (*call2)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32 (*call3)(s32, s32, s32);
     } handler;
@@ -197,7 +197,7 @@ STATIC_ASSERT_SIZEOF(MistParkingMessageEntry, 8);
 
 MistParkingMessageEntry D_mist_parking_80186BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_mist_parking_801826C0 } },
-    { 5103, { .call1 = func_mist_parking_801826E8 } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_mist_parking_801826E8 } },
     { 5105, { .call0 = func_mist_parking_801826B8 } },
     { 5104, { .call3 = func_mist_parking_801823F8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1266,12 +1266,12 @@ s32 func_mist_parking_801826C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEve
     return 1;
 }
 
-s32 func_mist_parking_801826E8(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         func_800E8614(D_mist_parking_80186C5C, 1);
     }
-    if (arg2->field_2 == 2) {
+    if (request->actionId == 2) {
         func_800E8614(D_mist_parking_80186DC4, 1);
         GameFlag_SetNibble(0xED, 1);
     }

@@ -185,7 +185,7 @@ typedef struct {
     union {
         s32  (*call0)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
         s32  (*call1)(Task*, s32, s32, s32);
-        void (*call2)(Task*, s32, GpMsg13EF*);
+        void (*call2)(Task*, s32, DirectionActionRequest*);
     } handler;
 } AcropolisSecurityRoomMsgEntry;
 STATIC_ASSERT_SIZEOF(AcropolisSecurityRoomMsgEntry, 8);
@@ -330,11 +330,11 @@ extern GpSprtElem  D_acropolis_security_room_80184470[2];
 s32  func_acropolis_security_room_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_security_room_8017D6D4(Task*, s32, s32, s32);
 s32  func_acropolis_security_room_8017D708(Task*, s32, s32, s32);
-void func_acropolis_security_room_8017D740(Task*, s32, GpMsg13EF*);
+void func_acropolis_security_room_8017D740(Task*, s32, DirectionActionRequest* request);
 
 AcropolisSecurityRoomMsgEntry D_acropolis_security_room_801825DC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call0 = func_acropolis_security_room_8017D6AC } },
-    { 5103, { .call2 = func_acropolis_security_room_8017D740 } },
+    { DIRECTION_MESSAGE_ROOM_ACTION, { .call2 = func_acropolis_security_room_8017D740 } },
     { 5104, { .call1 = func_acropolis_security_room_8017D708 } },
     { 5105, { .call1 = func_acropolis_security_room_8017D6D4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1933,9 +1933,9 @@ s32 func_acropolis_security_room_8017D708(Task* arg0, s32 arg1, s32 arg2, s32 ar
     return 0;
 }
 
-void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, GpMsg13EF* arg2)
+void func_acropolis_security_room_8017D740(Task* arg0, s32 arg1, DirectionActionRequest* request)
 {
-    if (arg2->field_2 == 0) {
+    if (request->actionId == 0) {
         Task_SpawnFromTable(D_acropolis_security_room_80182618, 0, 0, 0);
     }
 }

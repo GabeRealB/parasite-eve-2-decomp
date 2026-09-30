@@ -326,9 +326,9 @@ s32 func_mine_cavern_8017DC50(void)
     return 0;
 }
 
-s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, GpMsg13EF* arg2)
+s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request)
 {
-    if ((arg2->field_2 == 6) && (GameFlag_GetNibble(0xC4) == 1)) {
+    if ((request->actionId == 6) && (GameFlag_GetNibble(0xC4) == 1)) {
         Gp_RunCapCmd1(6);
     }
     return 0;

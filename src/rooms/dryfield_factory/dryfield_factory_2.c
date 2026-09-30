@@ -110,7 +110,7 @@ GpMsgEntry D_dryfield_factory_801826D4[6] = {
     { 5105, func_dryfield_factory_8017DDA0 },
     { 5104, func_dryfield_factory_8017DDA8 },
     { 5106, func_dryfield_factory_8017DEA8 },
-    { 5103, func_dryfield_factory_8017DF14 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_factory_8017DF14 },
     { 0x7FFFFFFF, NULL },
 };
 

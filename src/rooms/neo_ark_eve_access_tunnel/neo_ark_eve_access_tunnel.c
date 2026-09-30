@@ -758,15 +758,16 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, GpMe
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 0xA) {
+    if (request->actionId == 0xA) {
         if (GameFlag_GetNibble(0xF8) != 0) {
             Gp_RunCapCmd1(5);
             Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
         } else {
             Gp_MsgPlayerWeapon(0);
-            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)(arg2->field_3), 0);
+            // Widen the action byte to the task argument's ABI word.
+            Task_SpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)request->argument, 0);
         }
         return 0;
     }

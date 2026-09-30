@@ -214,7 +214,7 @@ static void func_shelter_b2_laboratory_801820F4(s16 arg0);
 s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, GpMessageArg);
 s32  func_shelter_b2_laboratory_801800F4(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_laboratory_801801D0(Task*, s32, GpMsg13EF*, s32);
+s32  func_shelter_b2_laboratory_801801D0(Task*, s32, DirectionActionRequest* request, s32);
 s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, GpMessageArg);
 void func_shelter_b2_laboratory_8017F4D8(Task*);
 void func_shelter_b2_laboratory_8017FBA8(Task*);
@@ -272,7 +272,7 @@ TaskDesc D_shelter_b2_laboratory_80182A2C = { 0, 32, func_shelter_b2_laboratory_
 GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
     { 5105, func_shelter_b2_laboratory_801800F4 },
-    { 5103, func_shelter_b2_laboratory_801801D0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
     { 5104, func_shelter_b2_laboratory_8017FD18 },
     { 5106, func_shelter_b2_laboratory_8018025C },
     { 0x7FFFFFFF, NULL },
@@ -1514,11 +1514,11 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
-/// directed action on the laboratory console (`field_2` 1). Runs the scripted
+/// directed action on the laboratory console (`actionId` 1). Runs the scripted
 /// scene once, then replays cap script `6` on later visits.
-s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         if (GameFlag_GetNibble(0x13D) != 0) {
             if (GameFlag_GetNibble(0xD0) < 2) {
                 Task_SpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);

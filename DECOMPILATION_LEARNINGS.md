@@ -43315,8 +43315,8 @@ SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop 
 
 `&&`-ing equality tests on two consecutive byte fields lets GCC 2.8.1 fold the
 pair into one halfword load and one compare against the packed constant. The
-target for `func_shelter_b4_water_supply_8017DA30` tests `field_2` and
-`field_3` of a `GpMsg13EF*` separately:
+target for `func_shelter_b4_water_supply_8017DA30` tests `actionId` and
+`argument` of a `DirectionActionRequest*` separately:
 
 ```
 lbu   v1, 2(a2)
@@ -43328,13 +43328,13 @@ nop
 bne   v1, v0, done
 ```
 
-`if (m->field_2 == 0xA && m->field_3 == 0x20)` instead emits
+`if (m->actionId == 0xA && m->argument == 0x20)` instead emits
 `lhu v1, 2(a2); li v0, 0x200a; bne` (86.5%, `branch`=3 `delete`=5). Writing the
 same condition as nested `if`s blocks the fold and matches:
 
 ```c
-if (arg2->field_2 == 0xA) {
-    if (arg2->field_3 == 0x20) {
+if (request->actionId == 0xA) {
+    if (request->argument == 0x20) {
         /* body */
     }
 }
@@ -89780,14 +89780,14 @@ indexed by global message ids whose payloads are unrelated to each other:
 integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
 `addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `Gp_PostMsg13EF`
-- and that function posts `(s32)&sp` where `sp` is a 4-byte `GpMsg13EF`
-(`field_2 = Gp_DirByte`). So the third parameter is `GpMsg13EF*` and the fourth
+- and that function posts `(s32)&request` where `request` is a 4-byte `DirectionActionRequest`
+(`actionId = Gp_DirByte`). So the third parameter is `DirectionActionRequest*` and the fourth
 `s32 arg3`:
 
 ```c
-s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, GpMsg13EF* msg, s32 arg3)
+s32 func_dryfield_main_street_8017E05C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
-    if ((msg->field_2 == 1) && (GameFlag_GetNibble(0x5F) == 0)) { ... }
+    if ((msg->actionId == 1) && (GameFlag_GetNibble(0x5F) == 0)) { ... }
 ```
 
 This contradicts the type given for the same id in the breezeway entry below,
@@ -90070,7 +90070,7 @@ Inputs: `base_1.i`
 `4d71dc02ceed9021e65b63bc3c318cbd4aa1f3dd1b78e19367f2f46545152be1` (100.000%),
 `base_4.i`
 `8dcb085c7ff8844efc81548252a5bb489d023688c9ac7713960c28d0fa999547` (100.000%,
-typed `GpMsg13EF*` form), target
+typed `DirectionActionRequest*` form), target
 `8c6abc7e385f4c6eec866e9bc6fbad76ec691362761f1ee34970c665515336a9`.
 
 ## The same handler as a `switch` instead of an if/else chain is what hands the second delay slot to the fall-through (func_neo_ark_eve_access_tunnel_8017DC6C, 2026-09-16)

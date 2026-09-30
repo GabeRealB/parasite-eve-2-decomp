@@ -286,7 +286,7 @@ extern SVECTOR        D_dryfield_dilapidated_house_80189CA0[40];
 s32                   func_dryfield_dilapidated_house_8017E56C(Task*, s32, GpMessageArg, GpMessageArg);
 s32                   func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_dryfield_dilapidated_house_8017E684(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_dilapidated_house_8017E68C(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32                   func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void                  func_dryfield_dilapidated_house_8017D64C(Task*);
 void                  func_dryfield_dilapidated_house_8017DE88(Task*);
 void                  func_dryfield_dilapidated_house_8017E144(Task*);
@@ -324,7 +324,7 @@ RECT D_dryfield_dilapidated_house_80183E84 = { 0, 0, 16, 240 };
 GpMsgEntry D_dryfield_dilapidated_house_80183E8C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
     { 5105, func_dryfield_dilapidated_house_8017E56C },
-    { 5103, func_dryfield_dilapidated_house_8017E68C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_dilapidated_house_8017E68C },
     { 5104, func_dryfield_dilapidated_house_8017E684 },
     { 0x7FFFFFFF, NULL },
 };
@@ -2196,13 +2196,13 @@ s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, GpMessageArg
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    u8 temp_v1;
+    u8 actionId;
 
-    temp_v1 = arg2->field_2;
-    if ((temp_v1 == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
-        D_dryfield_dilapidated_house_80183EFC = (s32)temp_v1;
+    actionId = request->actionId;
+    if ((actionId == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
+        D_dryfield_dilapidated_house_80183EFC = actionId;
         func_800E8634(D_dryfield_dilapidated_house_80184408, 0, D_dryfield_dilapidated_house_80184C60);
     }
     return 0;

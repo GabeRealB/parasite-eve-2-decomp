@@ -102,7 +102,7 @@ extern GpRoomCoordSet D_shelter_1f_parking_garage_801815E0[1];
 s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void func_shelter_1f_parking_garage_8017D7E8(Task*);
 void func_shelter_1f_parking_garage_8017D958(Task*);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
@@ -114,7 +114,7 @@ TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, func_shelter_1f_parking
 GpMsgEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_parking_garage_8017DCF4 },
     { 5105, func_shelter_1f_parking_garage_8017DCEC },
-    { 5103, func_shelter_1f_parking_garage_8017DE4C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_parking_garage_8017DE4C },
     { 5104, func_shelter_1f_parking_garage_8017DE44 },
     { 0x7FFFFFFF, NULL },
 };
@@ -698,9 +698,9 @@ s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, GpMessageArg 
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if (arg2->field_2 == 0xA) {
+    if (request->actionId == 0xA) {
         Gp_MsgPlayerWeapon(0);
         Gp_RunCapCmd1(2);
         Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BE0, 0, 0, 0);

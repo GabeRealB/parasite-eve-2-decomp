@@ -96,7 +96,7 @@ s32  func_dryfield_night_factory_80180574(Task*, s32, RoomEventMsg*, RoomEventMs
 s32  func_dryfield_night_factory_8018080C(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_night_factory_80180814(Task*, s32, s32, GpMessageArg);
 s32  func_dryfield_night_factory_80180914(Task*, s32, s32, s32);
-s32  func_dryfield_night_factory_80180980(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32  func_dryfield_night_factory_80180980(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 void func_dryfield_night_factory_801802C8(Task*);
 void func_dryfield_night_factory_8018076C(Task*);
 void func_dryfield_night_factory_8018169C(Task*);
@@ -267,7 +267,7 @@ GpMsgEntry D_dryfield_night_factory_80186E64[6] = {
     { 5105, func_dryfield_night_factory_8018080C },
     { 5104, func_dryfield_night_factory_80180814 },
     { 5106, func_dryfield_night_factory_80180914 },
-    { 5103, func_dryfield_night_factory_80180980 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_factory_80180980 },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -1166,11 +1166,11 @@ s32 func_dryfield_night_factory_80180914(Task* task, s32 msgId, s32 arg2, s32 ar
     return 0;
 }
 
-/// Message handler: the first message with `field_2` 1 while game flag 0x2C is
+/// Message handler: the first message with `actionId` 1 while game flag 0x2C is
 /// clear starts cap 0xB, sets the flag and plays sound 0x5217000A.
-s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
+    if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);
         GameFlag_SetNibble(0x2C, 1);
         func_800E3FAC(0xA2, 0xA);

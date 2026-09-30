@@ -6,14 +6,23 @@
 #include "gameplay/view.h"
 #include "gameplay/message.h"
 
-/// 4-byte stack payload for slot-7 msg `0x13EF`. `Gp_PostMsg13EF` copies
-/// `Gp_DirFlags` / `Gp_DirByte` / `Gp_DirNibble` into the three fields.
-typedef struct _GpMsg13EF {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
-} GpMsg13EF;
-STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
+/// Requests a room-specific action from the current trigger.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows this four-byte, two-byte-aligned
+/// record until synchronous dispatch returns. Action IDs belong to the room's
+/// handler, with zero a valid ID. The argument is a full byte whose meaning
+/// depends on that action, such as a destination area or a task's spawn argument.
+typedef struct DirectionActionRequest {
+    u16 control;  // Trigger control: low byte 5 selects room dispatch; upper bits are preserved
+    u8  actionId; // Room-specific action ID
+    u8  argument; // Action-specific byte, interpreted by the selected room handler
+} DirectionActionRequest;
+STATIC_ASSERT_SIZEOF(DirectionActionRequest, 4);
+
+/// Delivers a borrowed `DirectionActionRequest` with a zero second payload word.
+enum {
+    DIRECTION_MESSAGE_ROOM_ACTION = 0x13EF,
+};
 
 /// 0x38-byte record in tables pointed to by `Gp_WarpTables`. Indexed
 /// 1-based by `GameLocationKey.stage` / `area`, then

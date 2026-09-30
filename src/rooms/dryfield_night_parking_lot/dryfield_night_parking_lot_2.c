@@ -91,7 +91,7 @@ TaskDesc D_dryfield_night_parking_lot_8017EC54 = { 0, 32, func_dryfield_night_pa
 GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { 5102, func_dryfield_night_parking_lot_8017D8D0 },
     { 5105, func_dryfield_night_parking_lot_8017DB04 },
-    { 5103, func_dryfield_night_parking_lot_8017DB34 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_parking_lot_8017DB34 },
     { 5104, func_dryfield_night_parking_lot_8017DB0C },
     { 5106, func_dryfield_night_parking_lot_8017DAB4 },
     { 0x7FFFFFFF, NULL },

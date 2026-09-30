@@ -186,7 +186,7 @@ extern GpRoomCoordSet D_mine_refuge_80182760[1];
 s32                   func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
 s32                   func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                   func_mine_refuge_8017FC2C(Task*, s32, s32, GpMessageArg);
-s32                   func_mine_refuge_8017FCD0(Task*, s32, GpMsg13EF*, GpMessageArg);
+s32                   func_mine_refuge_8017FCD0(Task*, s32, DirectionActionRequest* request, GpMessageArg);
 s32                   func_mine_refuge_8017FD48(Task*, s32, s32, s32);
 void                  func_mine_refuge_8017FA08(Task*);
 void                  func_mine_refuge_8017FDBC(Task*);
@@ -205,7 +205,7 @@ TaskDesc D_mine_refuge_80181860[3] = {
 GpMsgEntry D_mine_refuge_80181884[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_refuge_8017FBE8 },
     { 5105, func_mine_refuge_8017FBB4 },
-    { 5103, func_mine_refuge_8017FCD0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_refuge_8017FCD0 },
     { 5104, func_mine_refuge_8017FC2C },
     { 5106, func_mine_refuge_8017FD48 },
     { 0x7FFFFFFF, NULL },
@@ -867,12 +867,12 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3
     return 0;
 }
 
-s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, GpMsg13EF* arg2, GpMessageArg arg3)
+s32 func_mine_refuge_8017FCD0(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
 {
-    u8 temp_s0 = arg2->field_2;
+    u8 actionId = request->actionId;
 
-    if (temp_s0 == 1) {
-        if (GameFlag_GetNibble(0xBB) != temp_s0) {
+    if (actionId == 1) {
+        if (GameFlag_GetNibble(0xBB) != actionId) {
             GameFlag_SetNibble(0xC4, 0);
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 0, 0, 0);

@@ -166,7 +166,7 @@ static void func_shelter_b1_armory_80180784(Task* task);
 s32 func_shelter_b1_armory_80180468(Task*, s32, s32, GpMessageArg);
 s32 func_shelter_b1_armory_801805A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b1_armory_80180698(Task*, s32, s32, GpMessageArg);
-s32 func_shelter_b1_armory_801806F8(Task*, s32, GpMsg13EF*, s32);
+s32 func_shelter_b1_armory_801806F8(Task*, s32, DirectionActionRequest* request, s32);
 
 void func_shelter_b1_armory_801800A4(Task*);
 void func_shelter_b1_armory_80180214(Task*);
@@ -188,7 +188,7 @@ TaskDesc D_shelter_b1_armory_801824E8[2] = {
 GpMsgEntry D_shelter_b1_armory_80182500[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_armory_801805A8 },
     { 5105, func_shelter_b1_armory_80180468 },
-    { 5103, func_shelter_b1_armory_801806F8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_armory_801806F8 },
     { 5104, func_shelter_b1_armory_80180698 },
     { 0x7FFFFFFF, NULL },
 };
@@ -472,11 +472,11 @@ s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, GpMessageArg
     return 0;
 }
 
-/// Handler for slot-7 msg `0x13EF`: the directed action (`field_2` 1) that
+/// Handler for slot-7 msg `0x13EF`: the directed action (`actionId` 1) that
 /// spawns the armory script.
-s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, GpMsg13EF* arg2, s32 arg3)
+s32 func_shelter_b1_armory_801806F8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
 {
-    if (arg2->field_2 == 1) {
+    if (request->actionId == 1) {
         Gp_MsgPlayerWeapon(0);
         Task_SpawnFromTable(D_shelter_b1_armory_801824E8, 1, 0, 0);
     }
