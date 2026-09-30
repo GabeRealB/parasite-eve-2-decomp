@@ -96,6 +96,46 @@ typedef struct {
 } StreamSlot;
 STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 
+/// Payload destinations indexed by a scene-image header's `bufferKind`.
+enum {
+    STREAM_SCENE_BUFFER_DECODE   = 0,
+    STREAM_SCENE_BUFFER_ACTOR_0  = 1,
+    STREAM_SCENE_BUFFER_ACTOR_1  = 2,
+    STREAM_SCENE_BUFFER_ACTOR_2  = 3,
+    STREAM_SCENE_BUFFER_EXTERNAL = 4,
+};
+
+/// A serialized scene-image header cached with its loaded payload for view decoding.
+///
+/// The header occupies the first 60 bytes of the first sector. All offsets are
+/// byte offsets from the payload immediately following it, in the buffer selected
+/// by `bufferKind`. Actor-buffer payloads follow any reserved VLC and timing data.
+/// The two three-element offset arrays have parallel relocation flags; a zero
+/// offset omits that strip list or image chunk. The image offset may be zero.
+///
+/// A nonempty `sectorCount` includes the header sector and must be at most 32768
+/// for the loader's signed remaining-sector counter. Offsets and transfers must
+/// fit the payload and the selected buffer's separately supplied capacity.
+/// Cached headers and payload pointers remain valid until that buffer is reused
+/// or the scene stream is reset. A zero `forceReload` permits reuse while a
+/// reusable payload is present; other values require a fresh transfer.
+typedef struct {
+    s32  imageDataOffset;        // VLC image data within the payload, in bytes
+    s32  stripListOffsets[3];    // Image-strip work-list byte offsets (0 absent)
+    s32  imageChunkOffsets[3];   // Compressed image-chunk byte offsets (0 absent)
+    s32  timingDataOffset;       // Timing-table byte offset within the payload
+    s32  nextDecodeBufferBytes;  // Next decode allocation size in bytes, used by buffer kind 0
+    s16  relocateStripLists[3];  // Nonzero shifts strip X by -512 words and the first strip's Y by +128 rows
+    s16  relocateImageChunks[3]; // Nonzero shifts chunk Y by +1 row, with another -3 for source Y=245..255
+    u16  sectorCount;            // Total 2048-byte sectors including the header sector (0 no payload)
+    s16  viewId;                 // View selector matched against the current view byte (0..255)
+    s16  bufferKind;             // Payload destination (0 decode allocation, 1/2/3 actor buffers 0/1/2, 4 external)
+    s16  forceReload;            // Cache policy (0 allow reuse, nonzero always read the payload)
+    u16  timingDataBytes;        // Bytes copied from the payload into the stream's timing buffer
+    byte unknown_3A[2];          // Copied with the header; role unproven
+} StreamSceneImageHeader;
+STATIC_ASSERT_SIZEOF(StreamSceneImageHeader, 0x3C);
+
 /// ISO root scan: LBA of the first `.STR` (stream) file, plus a sibling word.
 typedef struct {
     s32 sector;

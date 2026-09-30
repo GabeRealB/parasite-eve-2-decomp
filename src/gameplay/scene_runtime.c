@@ -370,31 +370,32 @@ static const GpEnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
 
 s32 func_800AF590(s32 unused0, s32 unused1)
 {
-    CdCmd58Entry header;
-    CdCmdQueue*  p;
+    StreamSceneImageHeader header;
+    CdCmdQueue*            p;
 
     p = &CdCmd_Queue;
     switch (D_80114D14[0]) {
         case 0:
-            CdGetSector(&header, 0xF);
+            // Read the serialized header before choosing or reusing its payload buffer.
+            CdGetSector(&header, sizeof(header) / sizeof(u_long));
             D_80114D1A = 1;
-            D_80114D1C = (s16)header.field_36;
+            D_80114D1C = header.forceReload;
             if ((D_80114D1C == 0) && ((s16)p->field_246 != 0)) {
                 D_80114D1A = 0;
             }
-            if (header.sectorCount != 0) {
+            if ((s16)header.sectorCount != 0) {
                 p->field_218        = 1;
-                (*(D_80114D14 + 1)) = header.field_34;
+                (*(D_80114D14 + 1)) = header.bufferKind;
                 if (D_80114D1A != 0) {
-                    Mem_CopyUnaligned(&header, &p->field_58[(*(D_80114D14 + 1))], 0x3C);
+                    Mem_CopyUnaligned(&header, &p->field_58[(*(D_80114D14 + 1))], sizeof(header));
                 }
                 switch ((*(D_80114D14 + 1))) {
-                    case 0:
+                    case STREAM_SCENE_BUFFER_DECODE:
                         D_80114D10               = p->decodeBuffer;
                         p->nextDecodeBufferBytes = header.nextDecodeBufferBytes;
                     default:
                         break;
-                    case 1:
+                    case STREAM_SCENE_BUFFER_ACTOR_0:
                         D_80114D10 = (u8*)Fs_ActorLoadBase0;
                         if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
@@ -403,7 +404,7 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                             D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
-                    case 2:
+                    case STREAM_SCENE_BUFFER_ACTOR_1:
                         D_80114D10 = (u8*)Fs_ActorLoadBase1;
                         if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
@@ -412,7 +413,7 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                             D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
-                    case 3:
+                    case STREAM_SCENE_BUFFER_ACTOR_2:
                         D_80114D10 = (u8*)Fs_ActorLoadBase2;
                         if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
                             D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
@@ -421,24 +422,24 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                             D_80114D10 += p->field_190->data.scene.timingBufferBytes;
                         }
                         break;
-                    case 4:
+                    case STREAM_SCENE_BUFFER_EXTERNAL:
                         D_80114D10 = p->field_198;
                         break;
                 }
                 if (D_80114D1A != 0) {
-                    CdGetSector(D_80114D10, 0x1F1);
+                    CdGetSector(D_80114D10, SECTOR_SIZE - sizeof(header) / sizeof(u_long));
                 }
-                D_80114D10   += 0x7C4;
+                D_80114D10   += SECTOR_SIZE * sizeof(u_long) - sizeof(header);
                 D_80114D14[0] = 1U;
-                D_80114D18    = (u16)header.sectorCount - 1;
+                D_80114D18    = header.sectorCount - 1;
             }
             break;
         case 1:
             if (D_80114D18 > 0) {
                 if (D_80114D1A != 0) {
-                    CdGetSector(D_80114D10, 0x200);
+                    CdGetSector(D_80114D10, SECTOR_SIZE);
                 }
-                D_80114D10 += 0x800;
+                D_80114D10 += SECTOR_SIZE * sizeof(u_long);
                 D_80114D18  = (u16)D_80114D18 - 1;
             }
             if (D_80114D18 == 0) {
@@ -489,7 +490,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
         return -1;
     }
 
-    Mem_Set(p->field_58, 0, 0x12C);
+    Mem_Set(p->field_58, 0, sizeof(p->field_58));
     p->field_190      = slot;
     p->field_216      = 1;
     decodeBufferBytes = slot->source.decodeBufferBytes;

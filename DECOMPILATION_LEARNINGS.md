@@ -22901,7 +22901,7 @@ off  = base + off;          /* addu v0, v1, v0 */
 if (*(s16*)(off + 0x24) != 0) { … }
 ```
 
-(`Mdec_ProcessDecode` field_24 / field_2A walks.)
+(`Mdec_ProcessDecode` relocateStripLists / relocateImageChunks walks.)
 
 ## `u8` store of `-3`: need `li v0, -3` not `0xfd`
 

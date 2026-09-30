@@ -67,27 +67,6 @@ typedef struct {
 } CdCmdEntry;
 STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 
-/// Per-slot decode entry at `CdCmdQueue.field_58` (5 entries, stride 0x3C).
-/// Used by `Mdec_ResolveStreamBuffer` to map a stream id to a base buffer + byte offset.
-/// Also the 0x3C-byte on-disc sector header read by the gameplay scene loader.
-/// Holds up to 3 work-list / image-chunk offsets used by `Mdec_ProcessDecode`.
-typedef struct _CdCmd58Entry {
-    /* 0x00 */ s32  field_0;               // byte offset added to the resolved base buffer
-    /* 0x04 */ s32  field_4[3];            // FsWorkEntry offsets (Fs_CopyWorkEntries path)
-    /* 0x10 */ s32  field_10[3];           // FsImageChunk offsets (Fs_LoadImageChunk path)
-    /* 0x1C */ s32  field_1C;              // memcpy source offset for Mem_CopyUnaligned
-    /* 0x20 */ s32  nextDecodeBufferBytes; // Next allocation size, supplied by slot-zero sectors
-    /* 0x24 */ s16  field_24[3];           // non-zero → Fs_ChunkMode=2 / D5B498_8006C233=-8
-    /* 0x2A */ s16  field_2A[3];           // non-zero → Fs_ChunkMode=2 / D5B498_8006C234=-3
-    /* 0x30 */ s16  sectorCount;           // Payload sectors after this header
-    /* 0x32 */ s16  field_32;              // stream id matched against GameSession.at4.loc.view
-    /* 0x34 */ s16  field_34;              // buffer-select kind (0..4) for the switch in Mdec_ResolveStreamBuffer
-    /* 0x36 */ s16  field_36;              // Zero permits skipping a cached payload
-    /* 0x38 */ u16  field_38;              // memcpy byte count for Mem_CopyUnaligned
-    /* 0x3A */ byte pad_3A[0x2];
-} CdCmd58Entry;
-STATIC_ASSERT_SIZEOF(CdCmd58Entry, 0x3C);
-
 /// Layout of the decoded room image consumed by the display uploader.
 enum {
     FILE_SYSTEM_IMAGE_CONTIGUOUS = 0,
@@ -96,13 +75,14 @@ enum {
 
 /// Global CD / asset load command queue (`CdCmd_Queue`).
 typedef struct _CdCmdQueue {
+    // clang-format off
     CdCmdEntry   entries[8];
     CdCmdEntry   field_40;
     s32          field_48; // last CD position from CdPosToInt
     s8           field_4c;
     byte         unknown_4d[0x3];
     CdCmdEntry   field_50;              // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
-    CdCmd58Entry field_58[5];           // 0x58..0x183 — stream decode slot table
+    StreamSceneImageHeader field_58[5];           // 0x58..0x183 — stream decode slot table
     void*        decodeBuffer;          // 0x184 — aux buffer (malloc of decodeBufferBytes)
     s32          decodeBufferBytes;     // 0x188 — size for decodeBuffer malloc
     u16*         field_18C;             // 0x18C — VLC / DCT table buffer
@@ -182,6 +162,7 @@ typedef struct _CdCmdQueue {
     u16          field_24E; // 0x24E
     byte         unknown_250[0x2];
     s16          busy;      // 0x252 — non-zero while a blocking load is active
+    // clang-format on
 } CdCmdQueue;
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 

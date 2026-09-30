@@ -78,7 +78,7 @@ static void* D_8007A360;
 
 static u8* Mdec_DecodeBase;
 
-static CdCmd58Entry* Stage_CdEntry;
+static StreamSceneImageHeader* Stage_CdEntry;
 
 static PadRemapState Pad_DefaultRemapState;
 
@@ -866,10 +866,10 @@ void Mdec_ResolveStreamBuffer(u8* arg0)
 {
     u16         i;
     u16         found;
-    s16         type;
+    s16         bufferKind;
     s16         neg;
     s32         key;
-    s32         offset;
+    s32         imageDataOffset;
     CdCmdQueue* p;
     void*       base;
 
@@ -878,11 +878,11 @@ void Mdec_ResolveStreamBuffer(u8* arg0)
     found = 0;
     key   = *arg0;
 loop:
-    if (key == p->field_58[i].field_32) {
+    if (key == p->field_58[i].viewId) {
         goto matched;
     }
     i++;
-    if (i < 5) {
+    if (i < ARRAY_SIZE(p->field_58)) {
         goto loop;
     }
 done:
@@ -903,12 +903,12 @@ matched:
 
 success:
     Stage_CdEntry = &p->field_58[i];
-    type          = Stage_CdEntry->field_34;
-    switch (type) {
-        case 0:
+    bufferKind    = Stage_CdEntry->bufferKind;
+    switch (bufferKind) {
+        case STREAM_SCENE_BUFFER_DECODE:
             base = p->decodeBuffer;
             goto store_base;
-        case 1:
+        case STREAM_SCENE_BUFFER_ACTOR_0:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
             if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
@@ -918,7 +918,7 @@ success:
             }
             gGameSession->field_7C = 0;
             break;
-        case 2:
+        case STREAM_SCENE_BUFFER_ACTOR_1:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1;
             if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
@@ -928,7 +928,7 @@ success:
             }
             gGameSession->field_7E = 0;
             break;
-        case 3:
+        case STREAM_SCENE_BUFFER_ACTOR_2:
             Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2;
             if (p->field_190->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
                 Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
@@ -938,18 +938,18 @@ success:
             }
             gGameSession->field_80 = 0;
             break;
-        case 4:
+        case STREAM_SCENE_BUFFER_EXTERNAL:
             base = p->field_198;
         store_base:
             Mdec_DecodeBase = base;
             break;
     }
-    offset       = Stage_CdEntry->field_0;
-    D_8007A35C   = 0;
-    p->field_200 = 1;
-    p->field_1FE = 0;
-    p->field_202 = 0;
-    D_8007A360   = Mdec_DecodeBase + offset;
+    imageDataOffset = Stage_CdEntry->imageDataOffset;
+    D_8007A35C      = 0;
+    p->field_200    = 1;
+    p->field_1FE    = 0;
+    p->field_202    = 0;
+    D_8007A360      = Mdec_DecodeBase + imageDataOffset;
 }
 
 static __inline__ void mdecFinishDecode(void)
@@ -969,6 +969,10 @@ static __inline__ void mdecFinishDecode(void)
 /// field_202 state machine: start DCT, apply work-lists / image chunks, complete.
 static void Mdec_ProcessDecode(void)
 {
+    enum {
+        STREAM_SCENE_STRIP_X_SHIFT_PAGES = -8,
+        STREAM_SCENE_CHUNK_Y_SHIFT_ROWS  = -3,
+    };
     CdCmdQueue* p;
     u16         i;
     s32         r;
@@ -980,7 +984,7 @@ static void Mdec_ProcessDecode(void)
             if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
-                if (Stage_CdEntry->field_34 == 0) {
+                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
                 mdecFinishDecode();
@@ -1008,51 +1012,53 @@ static void Mdec_ProcessDecode(void)
             /* fallthrough */
         case 1:
             if (p->field_1EC == 0) {
-                for (i = 0; i < 3; i++) {
-                    if (Stage_CdEntry->field_4[i] != 0) {
-                        if (Stage_CdEntry->field_24[i] != 0) {
+                // Upload the payload's optional strip lists and image chunks.
+                for (i = 0; i < ARRAY_SIZE(Stage_CdEntry->stripListOffsets); i++) {
+                    if (Stage_CdEntry->stripListOffsets[i] != 0) {
+                        if (Stage_CdEntry->relocateStripLists[i] != 0) {
                             Fs_ChunkMode    = 2;
-                            D5B498_8006C233 = -8;
+                            D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
-                        Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->field_4[i]));
+                        Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
                         while (Fs_LoadImageStrip(1) != 1) {
                             r = Fs_LoadImageStrip(1);
                             if (r == 1) {
                                 break;
                             }
                             if (r == 0x7F) {
-                                Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->field_4[i]));
+                                Fs_CopyWorkEntries((FsWorkEntry*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
                             }
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C233 = 0;
                     }
                 }
-                for (i = 0; i < 3; i++) {
-                    if (Stage_CdEntry->field_10[i] != 0) {
-                        if (Stage_CdEntry->field_2A[i] != 0) {
+                for (i = 0; i < ARRAY_SIZE(Stage_CdEntry->imageChunkOffsets); i++) {
+                    if (Stage_CdEntry->imageChunkOffsets[i] != 0) {
+                        if (Stage_CdEntry->relocateImageChunks[i] != 0) {
                             Fs_ChunkMode    = 2;
-                            D5B498_8006C234 = -3;
+                            D5B498_8006C234 = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
                         }
-                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->field_10[i]), 1)) {
+                        while (Fs_LoadImageChunk((FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[i]), 1)) {
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C234 = 0;
                     }
                 }
                 p->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;
-                if (Stage_CdEntry->field_34 == 0) {
+                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
+                // Refresh timing data before releasing the completed decode operation.
                 if (p->field_190->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                    Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->field_1C], p->field_1A4,
-                                      Stage_CdEntry->field_38);
+                    Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], p->field_1A4,
+                                      Stage_CdEntry->timingDataBytes);
                 }
                 mdecFinishDecode();
             } else if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
-                if (Stage_CdEntry->field_34 == 0) {
+                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     p->decodeBufferBytes = p->nextDecodeBufferBytes;
                 }
                 mdecFinishDecode();
