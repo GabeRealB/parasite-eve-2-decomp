@@ -11,12 +11,14 @@
 #include "main/coord.h"
 #include "main/ui_types.h"
 
-/// Repeated room allocation containing fade work and the following zero word.
-/// Only `fade` has established accesses. `retained` preserves the original
-/// bytes; an unused field and padding at a TU boundary remain possible.
-typedef struct RoomFadeStorage {
-    ScreenFade fade;
-    u32        retained;
+/// Per-room screen-fade record and the word that follows it.
+///
+/// Callers pass `fade` to the resident full-screen fade. The following word
+/// is zero in every room that carries this allocation, and nothing reads or
+/// writes it. Its role is unproven.
+typedef struct {
+    ScreenFade fade;    // Record passed to the resident full-screen fade
+    u32        field_4; // Role unproven; zero, with no reads or writes
 } RoomFadeStorage;
 STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);
 

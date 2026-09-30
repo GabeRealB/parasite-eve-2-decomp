@@ -20,7 +20,7 @@
  *   TaskDesc          gRoomEventTaskDesc  the event task the gate spawns
  *   RoomEventMsg      gRoomEventStagedMsg the staged task's latched message
  *   RoomLatchedEvent  gRoomEventLatched   the latched event (staged task)
- *   RoomFadeStorage   gRoomEventFade      the staged task's fade
+ *   RoomFadeStorage   gRoomEventFade      the staged task's fade record (`fade`)
  *   RoomDeparture     gRoomDeparture      the departure the handler staged
  *
  * Some rooms keep the flag, the request, the latched event, the departure or
