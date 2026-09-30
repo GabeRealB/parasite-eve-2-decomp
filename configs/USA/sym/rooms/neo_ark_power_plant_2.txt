@@ -57,7 +57,7 @@ D_8013D3FC = 0x8013D3FC; // absolute:True
 D_801491F8 = 0x801491F8; // absolute:True
 D_8014DC30 = 0x8014DC30; // absolute:True
 D_801540E0 = 0x801540E0; // absolute:True
-D_neo_ark_power_plant_2_80180680 = 0x80180680; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80180680; // size:0x10 defined:True
 D_neo_ark_power_plant_2_8017FDF0 = 0x8017FDF0; // size:0x24 defined:True
 D_neo_ark_power_plant_2_8017FE14 = 0x8017FE14; // size:0x70 defined:True
 D_neo_ark_power_plant_2_8017FE84 = 0x8017FE84; // size:0x160 defined:True
@@ -93,3 +93,7 @@ func_neo_ark_power_plant_2_8017E858 = 0x8017E858; // type:func
 func_neo_ark_power_plant_2_8017F140 = 0x8017F140; // type:func
 
 func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func
+RoomFx_DrawFlashRing = 0x8017E098; // type:func
+RoomFx_DrawFlashDisc = 0x8017E4C4; // type:func
+RoomFx_DrawTwinTrail = 0x8017ED48; // type:func
+RoomFx_DrawBurstStar = 0x8017F3C8; // type:func
