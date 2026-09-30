@@ -7,7 +7,6 @@
 #include "common.h"
 
 struct SndBank;
-struct SndNote;
 
 /// Per-frame audio callback; return -1 to remove the registration.
 typedef s32 (*AudioTickPoll)(s32* arg);
@@ -204,41 +203,45 @@ STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 /// A sound-bank program's layer count and shared volume and pan controls.
 ///
 /// Records are indexed by program number, below the bank's `groupCount`.
-/// Each describes a consecutive run of `SndNote` layers; their counts must sum
+/// Each describes a consecutive run of `SndBankLayer` layers; their counts must sum
 /// to the bank's `noteCount`. The bank owns this table until it is released.
 typedef struct {
-    u8 layerCount; // Number of consecutive `SndNote` layers in this program
+    u8 layerCount; // Number of consecutive `SndBankLayer` layers in this program
     u8 field_1;    // Serialized byte with no individual reader; role unproven
     u8 volume;     // Unsigned Q7 gain; layer volume is multiplied by this / 128
     u8 pan;        // Added to layer pan with 64 removed; 64 leaves layer pan unchanged
 } SndBankGroup;
 STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
 
-typedef struct SndNote SndNote;
-
-/// One layer of a sound-bank group: the key range it answers to, the sample it
-/// plays and the parameters a voice is started with.
+/// A sound-bank sample layer and its default voice controls.
 ///
-/// A group's layers are contiguous in the bank, so `Snd_GetNote` returns the
-/// first of them and a caller walks the rest, each layer's key range deciding
-/// which of them a played key selects.
-struct SndNote {
-    u8  reverb;   // Reverb send (0 off, 1 on)
-    u8  pan;      // Pan (0x40 = centre)
-    u8  field_2;  // Role unproven
-    u8  volume;   // Volume scale (0-127), multiplied by the group's
-    u8  rootKey;  // Key the sample plays at its recorded pitch
-    u8  rootFine; // Fine-tune of the root pitch (1/128 semitone)
-    u16 priority; // Voice-allocation priority (0 prefers the second voice range)
-    u8  keyMin;   // Lowest key that selects this layer
-    u8  keyMax;   // Highest key that selects this layer
-    u8  bendDown; // Downward pitch-bend range (semitones)
-    u8  bendUp;   // Upward pitch-bend range (semitones)
-    u16 adsr1;    // SPU ADSR register 1 (attack, decay, sustain level)
-    u16 adsr2;    // SPU ADSR register 2 (sustain rate, release)
-    u32 waveAddr; // Waveform address in SPU RAM
-};
-STATIC_ASSERT_SIZEOF(SndNote, 0x14);
+/// A bank owns `noteCount` consecutive records, partitioned into the runs
+/// described by its groups. Layer pointers remain valid until that bank is
+/// released or reloaded. A layer index is below its group's `layerCount`.
+/// MIDI selects every layer whose inclusive key range
+/// contains the played key; scripts select a layer directly and use `keyMin`
+/// as the base key for their Q7 pitch offset. Scripts may override the layer's
+/// volume, pan and ADSR, and choose reverb independently.
+///
+/// The serialized sample offset is rebased once after upload, so playback
+/// requires the completed load's absolute SPU byte address in `waveAddr`.
+typedef struct {
+    u8  reverb;   // MIDI reverb send (1 enabled, every other value disabled)
+    u8  pan;      // Stereo pan (0 left, 64 centre, 127 right)
+    u8  field_2;  // Serialized byte with no individual reader; role unproven
+    u8  volume;   // Gain (0 silent, 127 full); MIDI combines group gain / 128
+    u8  rootKey;  // MIDI key giving recorded sample pitch when fineTune is zero
+    u8  fineTune; // Added playback tuning, in 1/128 semitone steps (0..127)
+    u16 priority; // Higher values can steal lower-priority voices; 0 tries range 2 first
+    u8  keyMin;   // Inclusive lowest MIDI key; also the script pitch's base key
+    u8  keyMax;   // Inclusive highest MIDI key (keyMin <= keyMax <= 127)
+    u8  bendDown; // Downward MIDI pitch-bend range, in semitones
+    u8  bendUp;   // Upward MIDI pitch-bend range, in semitones
+    u16 adsr1;    // Packed SPU attack/decay/sustain-level register
+    u16 adsr2;    // Packed SPU sustain/release register
+    u32 waveAddr; // Sample byte offset before rebasing, absolute SPU byte address after
+} SndBankLayer;
+STATIC_ASSERT_SIZEOF(SndBankLayer, 0x14);
 
 /// One entry of `Snd_Banks`: the tables a bank image's programs play their notes
 /// from, plus what the loader recorded about the image they came out of.
@@ -252,7 +255,7 @@ STATIC_ASSERT_SIZEOF(SndNote, 0x14);
 /// rebases it once the image has been placed.
 struct SndBank {
     SndBankGroup* groups;     // Group table, one group per program
-    SndNote*      notes;      // Note layers of every group, one group after another
+    SndBankLayer* notes;      // Note layers of every group, one group after another
     u16           bankId;     // Bank id; 0xFFFF marks a free slot
     u8            field_A;    // Role unproven
     u8            groupCount; // Groups in `groups`, and the length of the index table

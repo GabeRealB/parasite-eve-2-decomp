@@ -901,8 +901,9 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
   | 0x800 | program: the `hONE` header, its entry-offset table, then each entry's script (`oneC` + `oneV` … + `endC`) |
   | `align16(0x800+align4(prog_size))` | SPU-ADPCM sample pool |
 
-- Each `SndNote.waveAddr` is a byte offset into the sample pool (16-byte ADPCM
-  frames, ~22050 Hz mono).
+- Each serialized `SndBankLayer.waveAddr` is a byte offset into the sample pool
+  (16-byte ADPCM frames, ~22050 Hz mono). The game rebases it to an absolute SPU
+  byte address after uploading that pool.
 - Extract: `raw/spk/*.spk` → `spk/{stem}/meta.json` + `sample_XX.wav`.
 - Pack always uses `raw/spk/` (no WAV→SPK encoder).
 

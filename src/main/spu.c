@@ -713,7 +713,7 @@ u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return lo;
 }
 
-SndNote* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
+SndBankLayer* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
 {
     if (bank != NULL) {
         return &bank->notes[bank->groupIndex[group] + layer];

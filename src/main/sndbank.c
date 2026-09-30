@@ -428,7 +428,7 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         bank = &Snd_Banks[slot];
         Snd_FreeBank(bank);
 
-        size = (payload->noteCount * 5 + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * 4 + payload->groupCount * 2;
+        size = (payload->noteCount * (s32)(sizeof(*bank->notes) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * 4 + payload->groupCount * 2;
 
         switch (payload->bankId & 0xF000) {
             case 0x2000:
@@ -457,8 +457,8 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
     heap             = bank->heapBlock;
     bank->groups     = bank->heapBlock;
     heap            += payload->groupCount * (s32)sizeof(*bank->groups);
-    bank->notes      = (SndNote*)heap;
-    bank->groupIndex = (u16*)(heap + payload->noteCount * 0x14);
+    bank->notes      = (SndBankLayer*)heap;
+    bank->groupIndex = (u16*)(heap + payload->noteCount * (s32)sizeof(*bank->notes));
     return bank;
 }
 

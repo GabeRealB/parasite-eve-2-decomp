@@ -11,6 +11,13 @@
 #include "main/sound_types.h"
 #include "sound_types.h"
 
+// Layer bend ranges produce Q8 semitone offsets; both signs use the positive
+// endpoint of the signed MIDI wheel range (-8192..8191) as the denominator.
+enum {
+    MIDI_PITCH_FRACTION_BITS = 8,
+    MIDI_PITCH_BEND_MAX      = 8191
+};
+
 /// Per-channel controls, indexed by the low nibble of the MIDI status byte.
 typedef struct {
     u8  noteEventsDisabled; // Nonzero suppresses note-on and note-off events
@@ -99,7 +106,7 @@ typedef struct _MidiSong {
     /* 0x3C */ s32               waveBytes;
     /* 0x40 */ SndBank*          bank;
     /* 0x44 */ SndBankGroup*     groups;
-    /* 0x48 */ SndNote*          notes;
+    /* 0x48 */ SndBankLayer*     notes;
     /* 0x4C */ MidiTrack         entries[18];
     /* 0x484 */ MidiChannelTable channels;
     /* 0x504 */ MidiNoteSlot     voiceSlots[0x12];
@@ -1353,7 +1360,8 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 {
     enum {
         SOUND_BANK_VOLUME_FRACTION_BITS = 7,
-        SOUND_BANK_PAN_CENTER           = 64
+        SOUND_BANK_PAN_CENTER           = 64,
+        SOUND_BANK_PAN_MAX              = 127
     };
     s16           priorities[2];
     SpuVoiceRef   ref;
@@ -1371,7 +1379,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     s32           product;
     s32           scale;
     SndBankGroup* group;
-    SndNote*      note;
+    SndBankLayer* bankLayer;
     MidiNoteSlot* slot;
     SpuVoiceAttr* attr;
 
@@ -1383,13 +1391,13 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
         if (song->channels.entries[channel].noteEventsDisabled != 0) {
             return arg1 + 3;
         }
-        program = song->channels.entries[channel].program;
-        group   = &song->groups[program];
-        key     = arg1[1];
-        note    = Snd_GetNote(song->bank, program, 0);
-        for (layer = 0; layer < group->layerCount; layer++, note++) {
-            priority = note->priority;
-            if (key >= note->keyMin && note->keyMax >= key) {
+        program   = song->channels.entries[channel].program;
+        group     = &song->groups[program];
+        key       = arg1[1];
+        bankLayer = Snd_GetNote(song->bank, program, 0);
+        for (layer = 0; layer < group->layerCount; layer++, bankLayer++) {
+            priority = bankLayer->priority;
+            if (key >= bankLayer->keyMin && bankLayer->keyMax >= key) {
                 if (priority == 0) {
                     priorities[0] = 2;
                     priorities[1] = 0;
@@ -1407,21 +1415,21 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                     slot->channel     = channel;
                     slot->velocity    = velocity;
                     slot->key         = key;
-                    slot->volumeScale = (group->volume * note->volume) >> SOUND_BANK_VOLUME_FRACTION_BITS;
-                    pan               = group->pan + note->pan - SOUND_BANK_PAN_CENTER;
-                    if (pan < 0x80) {
+                    slot->volumeScale = (group->volume * bankLayer->volume) >> SOUND_BANK_VOLUME_FRACTION_BITS;
+                    pan               = group->pan + bankLayer->pan - SOUND_BANK_PAN_CENTER;
+                    if (pan <= SOUND_BANK_PAN_MAX) {
                         if (pan >= 0) {
                             slot->pan = pan;
                         } else {
                             slot->pan = 0;
                         }
                     } else {
-                        slot->pan = 0x7F;
+                        slot->pan = SOUND_BANK_PAN_MAX;
                     }
                     slot->program = program;
                     slot->layer   = layer;
-                    reverb        = note->reverb;
-                    if (reverb == 1) {
+                    reverb        = bankLayer->reverb;
+                    if (reverb == SPU_ON) {
                         Spu_EnableReverbVoice(slot->voice);
                         slot->reverb = reverb;
                     } else {
@@ -1431,19 +1439,19 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
                     bend = song->channels.entries[channel].pitchBend;
                     if (bend != 0) {
                         if (bend > 0) {
-                            scale = note->bendUp;
+                            scale = bankLayer->bendUp;
                         } else {
-                            scale = note->bendDown;
+                            scale = bankLayer->bendDown;
                         }
-                        product         = (scale << 8) * bend;
-                        slot->pitchBend = product / 8191;
+                        product         = (scale << MIDI_PITCH_FRACTION_BITS) * bend;
+                        slot->pitchBend = product / MIDI_PITCH_BEND_MAX;
                     }
                     attr        = ref.field_4;
-                    attr->addr  = note->waveAddr;
-                    attr->adsr1 = note->adsr1;
-                    attr->adsr2 = note->adsr2;
-                    attr->pitch = Spu_CalcVolume(key, slot->pitchBend, note->rootKey, note->rootFine);
-                    attr->mask  = 0x60090;
+                    attr->addr  = bankLayer->waveAddr;
+                    attr->adsr1 = bankLayer->adsr1;
+                    attr->adsr2 = bankLayer->adsr2;
+                    attr->pitch = Spu_CalcVolume(key, slot->pitchBend, bankLayer->rootKey, bankLayer->fineTune);
+                    attr->mask  = SPU_VOICE_WDSA | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2 | SPU_VOICE_PITCH;
                     Spu_KeyOn(slot->voice);
                 }
             }
@@ -1676,7 +1684,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
     s32           i;
     s16           pitchBend;
     MidiNoteSlot* slot;
-    SndNote*      note;
+    SndBankLayer* bankLayer;
     s32           scale;
     s16           pitch;
     SpuVoiceAttr* attr;
@@ -1689,19 +1697,19 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
         slot = &song->voiceSlots[i];
         if (slot->channel == channel) {
             Spu_GetVoiceRef(slot->voice, &sp10);
-            note = Snd_GetNote(song->bank, slot->program, slot->layer);
+            bankLayer = Snd_GetNote(song->bank, slot->program, slot->layer);
             if (pitchBend >= 0) {
-                scale   = note->bendUp;
-                scale <<= 8;
+                scale   = bankLayer->bendUp;
+                scale <<= MIDI_PITCH_FRACTION_BITS;
             } else {
-                scale   = note->bendDown;
-                scale <<= 8;
+                scale   = bankLayer->bendDown;
+                scale <<= MIDI_PITCH_FRACTION_BITS;
             }
             scale          *= pitchBend;
-            pitch           = scale / 8191;
+            pitch           = scale / MIDI_PITCH_BEND_MAX;
             slot->pitchBend = pitch;
             attr            = sp10.field_4;
-            attr->pitch     = Spu_CalcVolume((u16)slot->key, pitch, note->rootKey, note->rootFine);
+            attr->pitch     = Spu_CalcVolume((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
             attr->mask     |= SPU_VOICE_PITCH;
         }
         i += 1;
@@ -1764,7 +1772,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 src = arg0 + 5;
                 dst = tmp->heapBlock;
             }
-            count = (state->payload.header.noteCount * 5) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
+            count = (state->payload.header.noteCount * (s32)(sizeof(*state->bank->notes) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
             i     = 0;
             if (count != 0) {
                 do {
@@ -1892,13 +1900,13 @@ s32 SndLoad_ProcessSector(u32* arg0)
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load)
 {
-    SndBank*     bank;
-    SndBankSlot* obj;
-    u16          id;
-    s8           slot;
-    s32          i;
-    u32          spuAddr;
-    SndNote*     note;
+    SndBank*      bank;
+    SndBankSlot*  obj;
+    u16           id;
+    s8            slot;
+    s32           i;
+    u32           spuAddr;
+    SndBankLayer* bankLayer;
 
     bank = load->bank;
     if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
@@ -1923,10 +1931,10 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     obj->spuAddr = bank->spuAddr;
     i            = load->payload.header.noteCount;
     spuAddr      = bank->spuAddr;
-    note         = bank->notes;
+    bankLayer    = bank->notes;
     for (i--; i != -1; i--) {
-        note->waveAddr += spuAddr;
-        note++;
+        bankLayer->waveAddr += spuAddr;
+        bankLayer++;
     }
     Snd_BuildGroupIndex(obj->bank);
     D_800689E4        = 0xFF;
@@ -1941,12 +1949,12 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
 /// offsets into its waveform data into absolute SPU RAM addresses.
 static inline void _sndBankRebaseNotes(SndBank* bank, s32 count)
 {
-    u32      base = bank->spuAddr;
-    SndNote* note = bank->notes;
+    u32           base      = bank->spuAddr;
+    SndBankLayer* bankLayer = bank->notes;
 
     while (--count != -1) {
-        note->waveAddr += base;
-        note++;
+        bankLayer->waveAddr += base;
+        bankLayer++;
     }
 }
 
@@ -2081,14 +2089,14 @@ s32 SndLoad_FeedSectorOrError(void* arg0)
 
 s32 SndBank_FinalizeLoad(SndLoadState* load)
 {
-    SndBank*  bank;
-    MidiSong* state;
-    u16       index;
-    s32       i;
-    SndNote*  note;
-    s32       base;
-    void*     temp;
-    s32       end;
+    SndBank*      bank;
+    MidiSong*     state;
+    u16           index;
+    s32           i;
+    SndBankLayer* bankLayer;
+    s32           base;
+    void*         temp;
+    s32           end;
 
     bank = load->bank;
     if (D_800689E8 == 0) {
@@ -2111,14 +2119,14 @@ success:
     state->waveBytes     = load->payload.header.waveBytes;
     i                    = load->payload.header.noteCount;
     base                 = ((volatile SndBank*)bank)->spuAddr;
-    note                 = ((volatile SndBank*)bank)->notes;
+    bankLayer            = ((volatile SndBank*)bank)->notes;
     i                    = i - 1;
     if (i != -1) {
         end = -1;
         do {
-            i              -= 1;
-            note->waveAddr += base;
-            note++;
+            i                   -= 1;
+            bankLayer->waveAddr += base;
+            bankLayer++;
         } while (i != end);
     }
     Snd_BuildGroupIndex(state->bank);

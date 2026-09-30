@@ -15507,7 +15507,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`SndVoice_SetupEnvelope` is the pure example (SndVoiceFx init from SndNote bytes).
+`SndVoice_SetupEnvelope` is the pure example (SndVoiceFx init from SndBankLayer bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -17269,10 +17269,10 @@ reads only:
 
 ```c
 base = ((volatile SndBank*)bank)->spuAddr;
-ptr  = (s32*)((volatile SndBank*)bank)->notes;
+bankLayer = ((volatile SndBank*)bank)->notes;
 ```
 
-Plain `base = bank->spuAddr; ptr = bank->notes;` is free to swap the loads
+Plain `base = bank->spuAddr; bankLayer = bank->notes;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
 of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup).
@@ -65719,8 +65719,8 @@ arguments were stale argument-register values, not parameters.
 
 ## Midi_Event1: shift the selected bend range after the branch
 
-When two arms select `scale = note->bendUp << 8` /
-`scale = note->bendDown << 8`, GCC 2.8.1 allocates the short-lived scale before
+When two arms select `scale = bankLayer->bendUp << 8` /
+`scale = bankLayer->bendDown << 8`, GCC 2.8.1 allocates the short-lived scale before
 the bend value: the scale takes `$v0`, bend takes `$v1`. The scratch was
 99.778% with `regs=11` and every other penalty zero. Selecting the unshifted
 byte in each arm, then computing `product = (scale << 8) * bend` at the join,

@@ -97,8 +97,8 @@ typedef struct _SndOneV {
     /* 0x07 */ u8  field_7;  // note index for Snd_GetNote
     /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
     /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
-    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndNote::pan)
-    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::volume)
+    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndBankLayer::pan)
+    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndBankLayer::volume)
     /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
     /* 0x0F */ u8  pad_F;
     /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
@@ -306,7 +306,7 @@ static s32 SndScript_TickVoices(SndScript* script);
 
 static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* arg3, s16* arg4);
 
-static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note);
+static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer);
 
 static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2);
 
@@ -1283,12 +1283,18 @@ static inline u8 _sndScriptUseReverb(SndOneV* oneV)
 
 static s32 SndScript_Exec(SndScript* script)
 {
+    enum {
+        SOUND_BANK_VOLUME_MAX        = 127,
+        SOUND_BANK_PAN_CENTER        = 64,
+        SOUND_BANK_PAN_MAX           = 127,
+        SOUND_BANK_KEY_FRACTION_BITS = 7
+    };
     SpuVoiceRef   voiceRef;
     s16           volume[2];
     SndScriptCmd* cmd;
     SndOneV*      oneV;
     SndVoice*     voice;
-    SndNote*      note;
+    SndBankLayer* bankLayer;
     SpuVoiceAttr* attr;
     SndBankSlot*  bankSlot;
     SndBank*      bank;
@@ -1298,7 +1304,7 @@ static s32 SndScript_Exec(SndScript* script)
     s32           wait;
     s32           index;
     s32           masterVolume;
-    u8            noteVolume;
+    u8            layerVolume;
     s32           panSum;
     s16           pan;
     s16           voicePan;
@@ -1380,41 +1386,42 @@ static s32 SndScript_Exec(SndScript* script)
                 bank = bankSlot->bank;
             setup_voice:
                 Spu_GetVoiceRef(voice->field_0, &voiceRef);
-                note         = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
+                bankLayer    = Snd_GetNote(bank, (u8)oneV->field_6, oneV->field_7);
                 attr         = voiceRef.field_4;
                 masterVolume = D_80082748;
-                attr->addr   = note->waveAddr;
+                attr->addr   = bankLayer->waveAddr;
                 if ((D_80082749 != 0) && (script->field_4C->flags & 2)) {
                     masterVolume = D_80082749;
                 }
-                noteVolume = (u8)oneV->field_D;
+                layerVolume = (u8)oneV->field_D;
                 if (oneV->field_D < 0) {
-                    noteVolume = note->volume;
+                    layerVolume = bankLayer->volume;
                 }
-                voice->field_A = noteVolume;
-                voice->field_2 = (s8)((masterVolume * script->field_4C->volume * voice->field_A) / 16129);
+                voice->field_A = layerVolume;
+                voice->field_2 = (s8)((masterVolume * script->field_4C->volume * voice->field_A) / (SOUND_BANK_VOLUME_MAX * SOUND_BANK_VOLUME_MAX));
                 pan            = script->field_4C->pan;
                 panSum         = oneV->field_C;
                 if (panSum < 0) {
-                    panSum = note->pan;
+                    panSum = bankLayer->pan;
                 }
-                panSum  += (s16)(pan - 0x40);
+                panSum  += (s16)(pan - SOUND_BANK_PAN_CENTER);
                 voicePan = panSum;
-                if (voicePan < 0x80) {
+                if (voicePan <= SOUND_BANK_PAN_MAX) {
                     if (voicePan >= 0) {
                         voice->field_3 = panSum;
                     } else {
                         voice->field_3 = 0;
                     }
                 } else {
-                    voice->field_3 = 0x7F;
+                    voice->field_3 = SOUND_BANK_PAN_MAX;
                 }
                 if (SndScript_FindOneA((u8*)script->field_44->image, oneV->field_12, attr) == -1) {
-                    attr->adsr1 = note->adsr1;
-                    attr->adsr2 = note->adsr2;
+                    attr->adsr1 = bankLayer->adsr1;
+                    attr->adsr2 = bankLayer->adsr2;
                 }
-                pitchValue = pitch = oneV->field_14 + (note->keyMin << 7);
-                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> 7, (pitchValue & 0x7F) * 2, note->rootKey, note->rootFine);
+                // Script pitch is a Q7 offset from the layer's minimum key.
+                pitchValue = pitch = oneV->field_14 + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
+                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (pitchValue & 0x7F) * 2, bankLayer->rootKey, bankLayer->fineTune);
                 if (_sndScriptUseReverb(oneV) == 0) {
                     Spu_DisableReverbVoice(voice->field_0);
                     voice->field_1 = 1;
@@ -1435,7 +1442,7 @@ static s32 SndScript_Exec(SndScript* script)
                 SndVoice_Attach(script, voice);
                 envelopeOffset = oneV->field_16;
                 if (envelopeOffset != -1) {
-                    SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, note);
+                    SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
                     result = 1;
                 } else {
                     voice->field_10.field_0 = 0;
@@ -2110,7 +2117,7 @@ static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* voice, LinInterp* a
     }
 }
 
-static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndNote* note)
+static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer)
 {
     SndVoiceFx* p;
     u8*         base;
@@ -2136,8 +2143,8 @@ static void SndVoice_SetupEnvelope(SndVoice* voice, s16 envelopeOffset, u32 pitc
         p->field_1              = 0;
         p->field_2              = 0;
         p->field_4              = pitch & 0xFFFF;
-        p->field_8              = note->rootKey;
-        temp                    = note->rootFine;
+        p->field_8              = bankLayer->rootKey;
+        temp                    = bankLayer->fineTune;
         p->field_C              = 0;
         p->field_14             = 0;
         p->field_18             = 0;
