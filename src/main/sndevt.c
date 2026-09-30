@@ -28,6 +28,11 @@ enum {
 
 // Reservation states stored in each deferred command slot.
 enum {
+    /// Marks a deferred sound-event pool slot as available for reservation.
+    ///
+    /// Stored in `SndEvt::allocated`; zeroing the pool makes every slot available.
+    /// Releasing a processed event restores this state without clearing its
+    /// command or arguments. Availability does not depend on the command value.
     SOUND_EVENT_SLOT_FREE      = 0,
     SOUND_EVENT_SLOT_ALLOCATED = 1
 };
