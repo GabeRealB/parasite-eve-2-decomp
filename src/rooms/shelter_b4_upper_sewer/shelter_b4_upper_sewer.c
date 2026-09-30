@@ -868,9 +868,9 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             Gp_StateF0.field_4 = 1;
             Gp_TriggerPeIfArmed();
-            D_shelter_b4_upper_sewer_80188D1C.fade.field_0 = 0;
-            D_shelter_b4_upper_sewer_80188D1C.fade.field_1 = 0;
-            D_shelter_b4_upper_sewer_80188D1C.fade.field_2 = 0x1E;
+            D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
+            D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
+            D_shelter_b4_upper_sewer_80188D1C.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b4_upper_sewer_80188D1C.fade);
             arg0->killCountdown = 0x1E;
             arg0->state++;

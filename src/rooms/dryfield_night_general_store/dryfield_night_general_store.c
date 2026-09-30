@@ -151,7 +151,7 @@ s32 func_dryfield_night_general_store_8017D904(Task* arg0, s32 arg1, RoomEventMs
 /// `Gp_StateF0.field_4` / `D_80115690`.
 ///
 /// State 4 checks the CAP event key: 0xB spawns helper task 0x31 with a
-/// zeroed record whose `field_2` is 8 and moves on; any other key ends the
+/// `ScreenFade` whose `rampFrames` is 8 and moves on; any other key ends the
 /// cutscene - `Gp_StateF0.field_4` cleared, stage sound 0x5203000E, the saved stage
 /// byte written to `Mc_SaveData[0].state.location.loc.view` and the weapon messages re-enabled. State 5
 /// queues sound event 0x80000000, points the save's location at area 0x26
@@ -180,9 +180,9 @@ void func_dryfield_night_general_store_8017DAF0(Task* arg0)
             return;
         case 4:
             if (Gp_GetCapEventKey() == 0xB) {
-                D_dryfield_night_general_store_801858B8.field_0 = 0;
-                D_dryfield_night_general_store_801858B8.field_1 = 0;
-                D_dryfield_night_general_store_801858B8.field_2 = 8;
+                D_dryfield_night_general_store_801858B8.blend      = SCREEN_FADE_SUBTRACT;
+                D_dryfield_night_general_store_801858B8.phase      = SCREEN_FADE_RUNNING;
+                D_dryfield_night_general_store_801858B8.rampFrames = 8;
                 Task_Spawn(1, 0x31, 0, &D_dryfield_night_general_store_801858B8);
                 arg0->state += 1;
                 return;

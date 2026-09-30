@@ -68,7 +68,7 @@ extern u8 D_dryfield_general_store_8018570A;
 
 /// The 4-byte record `func_dryfield_general_store_8017DAC0` hands the helper
 /// task 0x31 when the script's CAP event key asks for it.
-extern GpFadeWork D_dryfield_general_store_801856FC;
+extern ScreenFade D_dryfield_general_store_801856FC;
 
 extern GpMsgEntry D_dryfield_general_store_8017E188[];
 extern s32        D_dryfield_general_store_8017E1B8;
@@ -1548,7 +1548,7 @@ GpRoomParamRec* D_dryfield_general_store_801856D8[8] = {
 
 u8 D_dryfield_general_store_801856F8 = 0;
 
-GpFadeWork D_dryfield_general_store_801856FC = { 0 };
+ScreenFade D_dryfield_general_store_801856FC = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
@@ -1653,8 +1653,8 @@ s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg* in,
 /// `D_80115690` with it.
 ///
 /// State 4 is the exit test. CAP event key 0xB means the script asked for the
-/// helper task 0x31, which it spawns with a zeroed `GpFadeWork` record whose
-/// `field_2` selects variant 8; any other key cuts the cutscene short instead -
+/// helper task 0x31, which it spawns with a `ScreenFade` whose `rampFrames`
+/// is 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
 /// `Mc_SaveData[0].state.location.loc.view` and the player's weapon messages re-enabled.
 ///
@@ -1687,9 +1687,9 @@ void func_dryfield_general_store_8017DAC0(Task* arg0)
             return;
         case 4:
             if (Gp_GetCapEventKey() == 0xB) {
-                D_dryfield_general_store_801856FC.field_0 = 0;
-                D_dryfield_general_store_801856FC.field_1 = 0;
-                D_dryfield_general_store_801856FC.field_2 = 8;
+                D_dryfield_general_store_801856FC.blend      = SCREEN_FADE_SUBTRACT;
+                D_dryfield_general_store_801856FC.phase      = SCREEN_FADE_RUNNING;
+                D_dryfield_general_store_801856FC.rampFrames = 8;
                 Task_Spawn(1, 0x31, 0, &D_dryfield_general_store_801856FC);
                 arg0->state += 1;
                 return;

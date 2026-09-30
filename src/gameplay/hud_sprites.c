@@ -149,7 +149,7 @@ u16 D_80114BB0[16];
 
 RECT D_80114BD0;
 
-GpFadeWork D_80114BD8;
+ScreenFade D_80114BD8;
 
 /// Resolve a camera-record cursor within its loaded room resource.
 /// The address word uses the PS1 representation; the returned record is typed.
@@ -756,7 +756,7 @@ static void Gp_StartPadReplay(void)
 void Gp_PlayClockState2(Task* arg0)
 {
     GameSession* session;
-    GpFadeWork*  p;
+    ScreenFade*  fade;
 
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
@@ -765,11 +765,11 @@ void Gp_PlayClockState2(Task* arg0)
         session             = gGameSession;
         Gp_StateC08.field_3 = 0;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-            p          = &D_80114BD8;
-            p->field_0 = 0;
-            p->field_1 = 0;
-            p->field_2 = session->deathFadeFrames;
-            Task_SpawnPtr(1, 0x31, 0, p);
+            fade             = &D_80114BD8;
+            fade->blend      = SCREEN_FADE_SUBTRACT;
+            fade->phase      = SCREEN_FADE_RUNNING;
+            fade->rampFrames = session->deathFadeFrames;
+            Task_SpawnPtr(1, 0x31, 0, fade);
         }
         arg0->spawnArg1.value = 0;
         arg0->state++;

@@ -73,8 +73,8 @@ extern TaskDesc         D_shelter_1f_bulwark_80180354;
 extern TaskDesc         D_shelter_1f_bulwark_80180360[];
 extern SVECTOR          D_shelter_1f_bulwark_80180378[];
 extern SVECTOR          D_shelter_1f_bulwark_80180398[];
-extern GpFadeWork       gRoomEventFade;
-extern GpFadeWork       D_shelter_1f_bulwark_80180EC0;
+extern ScreenFade       gRoomEventFade;
+extern ScreenFade       D_shelter_1f_bulwark_80180EC0;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -292,9 +292,9 @@ GpRoomParamRec* D_shelter_1f_bulwark_80180E9C[8] = {
     D_shelter_1f_bulwark_80180E8C,
 };
 
-GpFadeWork gRoomEventFade = { 0 };
+ScreenFade gRoomEventFade = { 0 };
 
-GpFadeWork D_shelter_1f_bulwark_80180EC0 = { 0 };
+ScreenFade D_shelter_1f_bulwark_80180EC0 = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -391,9 +391,9 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             Gp_TriggerPeIfArmed();
             goto advance;
         case 2:
-            D_shelter_1f_bulwark_80180EC0.field_0 = 0;
-            D_shelter_1f_bulwark_80180EC0.field_1 = 0;
-            D_shelter_1f_bulwark_80180EC0.field_2 = 0x1E;
+            D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
+            D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
+            D_shelter_1f_bulwark_80180EC0.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_1f_bulwark_80180EC0);
             arg0->killCountdown = 0;
             SndEvt_EnqueueType6(0x55030003, 0, 0);

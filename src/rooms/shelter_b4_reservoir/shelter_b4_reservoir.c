@@ -157,7 +157,7 @@ extern SVECTOR                  D_shelter_b4_reservoir_80185094;
 extern SVECTOR                  D_shelter_b4_reservoir_8018509C[];
 extern SVECTOR                  D_shelter_b4_reservoir_801850AC[];
 extern GpAreaApplyRec           D_shelter_b4_reservoir_801874A0[];
-extern GpFadeWork               D_shelter_b4_reservoir_80187500;
+extern ScreenFade               D_shelter_b4_reservoir_80187500;
 extern RoomEventMsg             D_shelter_b4_reservoir_80187508;
 extern s32                      D_shelter_b4_reservoir_80187510;
 extern u8*                      D_shelter_b4_reservoir_80187630;
@@ -967,7 +967,7 @@ GpAreaApplyRec D_shelter_b4_reservoir_801874A0[24] = {
     { 255, 0, 0, 0 },
 };
 
-GpFadeWork D_shelter_b4_reservoir_80187500 = { 0 };
+ScreenFade D_shelter_b4_reservoir_80187500 = { 0 };
 
 OverlayWaveCtx* gScreenWaveCtx = NULL;
 
@@ -1075,9 +1075,9 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             Gp_StateF0.field_4 = 1;
             Gp_TriggerPeIfArmed();
-            D_shelter_b4_reservoir_80187500.field_0 = 0;
-            D_shelter_b4_reservoir_80187500.field_1 = 0;
-            D_shelter_b4_reservoir_80187500.field_2 = 0x1E;
+            D_shelter_b4_reservoir_80187500.blend      = SCREEN_FADE_SUBTRACT;
+            D_shelter_b4_reservoir_80187500.phase      = SCREEN_FADE_RUNNING;
+            D_shelter_b4_reservoir_80187500.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b4_reservoir_80187500);
             arg0->killCountdown = 0x1E;
             arg0->state++;

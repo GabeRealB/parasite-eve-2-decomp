@@ -317,7 +317,7 @@ extern ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8
 extern TaskDesc                               D_shelter_b1_underground_parking_80187200;
 extern TaskDesc                               D_shelter_b1_underground_parking_80187260[];
 extern TaskDesc                               D_shelter_b1_underground_parking_8018726C[];
-extern GpFadeWork                             D_shelter_b1_underground_parking_8018D750;
+extern ScreenFade                             D_shelter_b1_underground_parking_8018D750;
 
 /// The room's ambience table, one entry per area.
 extern RoomAmbienceEntry D_shelter_b1_underground_parking_8018761C[];
@@ -1645,7 +1645,7 @@ static GpItemMap* Shop_Data_8018762C = NULL;
 
 Task* D_shelter_b1_underground_parking_8018D74C = NULL;
 
-GpFadeWork D_shelter_b1_underground_parking_8018D750 = { 0 };
+ScreenFade D_shelter_b1_underground_parking_8018D750 = { 0 };
 
 Task* D_shelter_b1_underground_parking_8018D754 = NULL;
 
@@ -2175,9 +2175,9 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
             break;
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
-                D_shelter_b1_underground_parking_8018D750.field_0 = 0;
-                D_shelter_b1_underground_parking_8018D750.field_1 = 0;
-                D_shelter_b1_underground_parking_8018D750.field_2 = 0x1E;
+                D_shelter_b1_underground_parking_8018D750.blend      = SCREEN_FADE_SUBTRACT;
+                D_shelter_b1_underground_parking_8018D750.phase      = SCREEN_FADE_RUNNING;
+                D_shelter_b1_underground_parking_8018D750.rampFrames = 0x1E;
                 Task_Spawn(1, 0x31, 0, &D_shelter_b1_underground_parking_8018D750);
                 task->killCountdown = 0x1E;
                 task->state++;

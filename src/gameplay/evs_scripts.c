@@ -107,9 +107,9 @@ u8 D_801156CE;
 
 GpEvsAddress D_801156D0;
 
-GpFadeWork D_801156D4;
+ScreenFade D_801156D4;
 
-GpFadeWork D_801156D8;
+ScreenFade D_801156D8;
 
 GpVolFade D_801156DC;
 
@@ -422,7 +422,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
-                    if (D_801156D8.field_1 != 2) {
+                    if (D_801156D8.phase != SCREEN_FADE_DONE) {
                         taskKill(st2->fadeTask);
                     }
                     st2->fadeTask = NULL;
@@ -433,18 +433,18 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (st->msgTask != NULL) {
                     break;
                 }
-                D_801156D4.field_0 = (u8)st->pc->arg0.value;
-                D_801156D4.field_1 = 0;
+                D_801156D4.blend = (u8)st->pc->arg0.value;
+                D_801156D4.phase = SCREEN_FADE_RUNNING;
                 if (st->pc->arg1.value == 0) {
-                    D_801156D4.field_2 = 7;
+                    D_801156D4.rampFrames = 7;
                 } else {
-                    D_801156D4.field_2 = (u16)st->pc->arg1.value;
+                    D_801156D4.rampFrames = (u16)st->pc->arg1.value;
                 }
                 st->msgTask = Task_SpawnPtr(1, 0x31, 0, &D_801156D4);
                 break;
 
             case 25:
-                D_801156D4.field_1 = 1;
+                D_801156D4.phase = SCREEN_FADE_RETURN;
                 break;
 
             case 26:
@@ -506,30 +506,30 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case 35:
-                if (st->fadeTask != NULL && D_801156D8.field_1 != 2) {
+                if (st->fadeTask != NULL && D_801156D8.phase != SCREEN_FADE_DONE) {
                     break;
                 }
-                D_801156D8.field_0 = (u8)st->pc->arg0.value;
-                D_801156D8.field_1 = 0;
+                D_801156D8.blend = (u8)st->pc->arg0.value;
+                D_801156D8.phase = SCREEN_FADE_RUNNING;
                 if (st->pc->arg1.value == 0) {
-                    D_801156D8.field_2 = 7;
+                    D_801156D8.rampFrames = 7;
                 } else {
-                    D_801156D8.field_2 = (u16)st->pc->arg1.value;
+                    D_801156D8.rampFrames = (u16)st->pc->arg1.value;
                 }
                 st->fadeTask = Task_SpawnPtr(1, 0x31, st->pc->arg2.value, &D_801156D8);
                 break;
 
             case 36:
-                D_801156D8.field_1 = 1;
+                D_801156D8.phase = SCREEN_FADE_RETURN;
                 if (st->pc->arg0.value != 0) {
-                    D_801156D8.field_2 = (u16)st->pc->arg0.value;
+                    D_801156D8.rampFrames = (u16)st->pc->arg0.value;
                 }
                 break;
 
             case 37:
                 st2 = (GpEvsState*)arg0->work;
                 if (st2->fadeTask != NULL) {
-                    if (D_801156D8.field_1 != 2) {
+                    if (D_801156D8.phase != SCREEN_FADE_DONE) {
                         taskKill(st2->fadeTask);
                     }
                     st2->fadeTask = NULL;

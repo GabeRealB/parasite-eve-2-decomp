@@ -1649,9 +1649,9 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_dryfield_night_main_street_80188BC8.value.fade != 0) {
-                    D_dryfield_night_main_street_80188BA4.fade.field_0 = 0;
-                    D_dryfield_night_main_street_80188BA4.fade.field_1 = 0;
-                    D_dryfield_night_main_street_80188BA4.fade.field_2 = 0x1E;
+                    D_dryfield_night_main_street_80188BA4.fade.blend      = SCREEN_FADE_SUBTRACT;
+                    D_dryfield_night_main_street_80188BA4.fade.phase      = SCREEN_FADE_RUNNING;
+                    D_dryfield_night_main_street_80188BA4.fade.rampFrames = 0x1E;
                     Task_Spawn(1, 0x31, 0, &D_dryfield_night_main_street_80188BA4.fade);
                 }
                 arg0->state++;

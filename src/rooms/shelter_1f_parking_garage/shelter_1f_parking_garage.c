@@ -71,8 +71,8 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
 
-extern GpFadeWork   gRoomEventFade;
-extern GpFadeWork   D_shelter_1f_parking_garage_80181978;
+extern ScreenFade   gRoomEventFade;
+extern ScreenFade   D_shelter_1f_parking_garage_80181978;
 extern RoomEventMsg gRoomEventStagedMsg;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -353,9 +353,9 @@ GpRoomParamRec* D_shelter_1f_parking_garage_80181954[8] = {
     D_shelter_1f_parking_garage_80181944,
 };
 
-GpFadeWork gRoomEventFade = { 0 };
+ScreenFade gRoomEventFade = { 0 };
 
-GpFadeWork D_shelter_1f_parking_garage_80181978 = { 0 };
+ScreenFade D_shelter_1f_parking_garage_80181978 = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -571,9 +571,9 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
             break;
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
-                D_shelter_1f_parking_garage_80181978.field_0 = 0;
-                D_shelter_1f_parking_garage_80181978.field_1 = 0;
-                D_shelter_1f_parking_garage_80181978.field_2 = 0x1E;
+                D_shelter_1f_parking_garage_80181978.blend      = SCREEN_FADE_SUBTRACT;
+                D_shelter_1f_parking_garage_80181978.phase      = SCREEN_FADE_RUNNING;
+                D_shelter_1f_parking_garage_80181978.rampFrames = 0x1E;
                 Task_Spawn(1, 0x31, 0, &D_shelter_1f_parking_garage_80181978);
                 task->killCountdown = 0x1E;
                 task->state++;

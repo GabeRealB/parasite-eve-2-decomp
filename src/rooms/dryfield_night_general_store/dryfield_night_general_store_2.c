@@ -1438,7 +1438,7 @@ GpRoomParamRec* D_dryfield_night_general_store_80185894[8] = {
 
 u8 D_dryfield_night_general_store_801858B4 = 0;
 
-GpFadeWork D_dryfield_night_general_store_801858B8 = { 0 };
+ScreenFade D_dryfield_night_general_store_801858B8 = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 

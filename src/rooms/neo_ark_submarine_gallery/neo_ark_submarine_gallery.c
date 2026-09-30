@@ -120,9 +120,9 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             arg0->state++;
             break;
         case 3:
-            D_neo_ark_submarine_gallery_8018591C.fade.field_0 = 0;
-            D_neo_ark_submarine_gallery_8018591C.fade.field_1 = 0;
-            D_neo_ark_submarine_gallery_8018591C.fade.field_2 = 0x1E;
+            D_neo_ark_submarine_gallery_8018591C.fade.blend      = SCREEN_FADE_SUBTRACT;
+            D_neo_ark_submarine_gallery_8018591C.fade.phase      = SCREEN_FADE_RUNNING;
+            D_neo_ark_submarine_gallery_8018591C.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_neo_ark_submarine_gallery_8018591C.fade);
             SndEvt_EnqueueType6(0x551E0001, 0, 0);
             arg0->state++;

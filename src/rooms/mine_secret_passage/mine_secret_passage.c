@@ -88,9 +88,9 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             Gp_TriggerPeIfArmed();
             goto advance;
         case 4:
-            D_mine_secret_passage_80183440.fade.field_0 = 0;
-            D_mine_secret_passage_80183440.fade.field_1 = 0;
-            D_mine_secret_passage_80183440.fade.field_2 = 0x1E;
+            D_mine_secret_passage_80183440.fade.blend      = SCREEN_FADE_SUBTRACT;
+            D_mine_secret_passage_80183440.fade.phase      = SCREEN_FADE_RUNNING;
+            D_mine_secret_passage_80183440.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_mine_secret_passage_80183440.fade);
             SndEvt_EnqueueType6(0x54080003, 0, 0);
             goto advance;

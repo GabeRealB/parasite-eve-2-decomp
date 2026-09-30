@@ -1708,15 +1708,17 @@ static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Full-screen fade quad. Ramps a 0x140x0xF0 `TILE` from black to
-/// `field_2`-scaled white over `field_2` frames, holds until the owner
-/// raises `field_1`, then ramps back down and kills the task. Sorted into
-/// `gGpuCurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
-/// of the current ordering table, backing up 0xA entries when the current
-/// OT is not one of the two `Gpu_OrderingTables` roots.
+/// Full-screen fade quad. Ramps a 0x140 by 0xF0 semi-transparent `TILE` from
+/// grey 0 to 255 over `rampFrames`, holds that coverage while `phase` stays
+/// running, then ramps the grey back to 0 once the owner requests the return.
+/// Zero `blend` subtracts the grey toward black; any other value adds it
+/// toward white. Sorted into `gGpuCurrentOt[Task::spawnArg1]`, or
+/// (`spawnArg1 == 0`) into the head of the current ordering table, backing up
+/// 0xA entries when the current OT is not one of the two `Gpu_OrderingTables`
+/// roots.
 void Gp_FadeWorkTask(Task* t)
 {
-    GpFadeWork* work;
+    ScreenFade* work;
     TILE*       tile;
     DR_TPAGE*   dr;
     s32         color;
@@ -1727,16 +1729,16 @@ void Gp_FadeWorkTask(Task* t)
 
     if (t->state == 0) {
         t->killCountdown = 0;
-        if (work->field_2 <= 0) {
-            work->field_2 = 0x20;
+        if (work->rampFrames <= 0) {
+            work->rampFrames = SCREEN_FADE_DEFAULT_FRAMES;
         }
         t->state = t->state + 1;
     }
-    if ((t->state == 2) && (work->field_1 == 1)) {
-        t->killCountdown = work->field_2;
+    if ((t->state == 2) && (work->phase == SCREEN_FADE_RETURN)) {
+        t->killCountdown = work->rampFrames;
     }
 
-    color          = (t->killCountdown * 0xFF0) / work->field_2;
+    color          = (t->killCountdown * 0xFF0) / work->rampFrames;
     tile           = gGpuPrimCursor;
     y              = -0x78;
     tile->y0       = y;
@@ -1755,7 +1757,7 @@ void Gp_FadeWorkTask(Task* t)
     tile->y0 = y - yoff;
 
     gGpuPrimCursor = dr + 1;
-    if (work->field_0 == 0) {
+    if (work->blend == SCREEN_FADE_SUBTRACT) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
     } else {
@@ -1785,19 +1787,19 @@ void Gp_FadeWorkTask(Task* t)
     switch (t->state) {
         case 1:
             t->killCountdown = t->killCountdown + 1;
-            if (t->killCountdown == work->field_2) {
+            if (t->killCountdown == work->rampFrames) {
                 t->state = t->state + 1;
             }
             break;
         case 2:
-            if (work->field_1 == 1) {
+            if (work->phase == SCREEN_FADE_RETURN) {
                 t->state = 3;
             }
             break;
         case 3:
             t->killCountdown = t->killCountdown - 1;
             if (t->killCountdown <= 0) {
-                work->field_1 = 2;
+                work->phase = SCREEN_FADE_DONE;
                 taskKill(t);
             }
             break;

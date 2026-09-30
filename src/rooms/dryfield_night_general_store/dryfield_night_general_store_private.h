@@ -10,7 +10,7 @@
 
 extern u8 D_dryfield_night_general_store_801858B4;
 
-extern GpFadeWork D_dryfield_night_general_store_801858B8;
+extern ScreenFade D_dryfield_night_general_store_801858B8;
 
 extern RoomEventMsg gRoomEventMsg;
 

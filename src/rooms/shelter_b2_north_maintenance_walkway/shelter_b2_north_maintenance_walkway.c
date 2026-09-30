@@ -737,9 +737,9 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (D_shelter_b2_north_maintenance_walkway_801863C4.value.fade != 0) {
-                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.field_0 = 0;
-                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.field_1 = 0;
-                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.field_2 = 0x1E;
+                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.blend      = SCREEN_FADE_SUBTRACT;
+                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.phase      = SCREEN_FADE_RUNNING;
+                    D_shelter_b2_north_maintenance_walkway_801863A0.fade.rampFrames = 0x1E;
                     Task_Spawn(1, 0x31, 0, &D_shelter_b2_north_maintenance_walkway_801863A0.fade);
                 }
                 arg0->state++;

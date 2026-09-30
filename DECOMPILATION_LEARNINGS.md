@@ -37414,8 +37414,8 @@ gets hoisted out of both arms into a spare temp:
 
 ```c
 setlen(dr, 1);                    /* wrong: sb runs before the lbu test */
-if (work->field_0 == 0) { dr->code[0] = 0xE1000240; }
-else                    { dr->code[0] = 0xE1000220; }
+if (work->blend == 0) { dr->code[0] = 0xE1000240; }
+else                  { dr->code[0] = 0xE1000220; }
 ```
 
 The target instead has the branch first and `sb len` / `sw code` after the join.
@@ -37424,8 +37424,8 @@ two-insn tail back out, and the differing `ori` stays in each arm with the
 shared `lui` in the branch delay slot:
 
 ```c
-if (work->field_0 == 0) { setlen(dr, 1); dr->code[0] = 0xE1000240; }
-else                    { setlen(dr, 1); dr->code[0] = 0xE1000220; }
+if (work->blend == 0) { setlen(dr, 1); dr->code[0] = 0xE1000240; }
+else                  { setlen(dr, 1); dr->code[0] = 0xE1000220; }
 ```
 
 ```
@@ -41762,7 +41762,7 @@ time.
 ## Check a rename target is free before renaming into it
 
 Two different functions can plausibly earn the same descriptive name.
-`func_800B2200` (a `GpFadeWork` TILE task in 1BC) and the already-named
+`func_800B2200` (a `ScreenFade` TILE task in 1BC) and the already-named
 `Gp_FadeTileTask` at `0x800BF738` in 4CC are both "the fade tile task"; so are
 `func_800DA2A0` and the existing `Gp_FindLockNodeAt`. Renaming into a taken
 name puts two addresses behind one symbol in `sym.gameplay.txt`.

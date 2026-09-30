@@ -178,9 +178,9 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             Gp_TriggerPeIfArmed();
             goto advance;
         case 4:
-            D_shelter_b1_elevator_hall_801849F0.fade.field_0 = 0;
-            D_shelter_b1_elevator_hall_801849F0.fade.field_1 = 0;
-            D_shelter_b1_elevator_hall_801849F0.fade.field_2 = 0x1E;
+            D_shelter_b1_elevator_hall_801849F0.fade.blend      = SCREEN_FADE_SUBTRACT;
+            D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
+            D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = 0x1E;
             Task_Spawn(1, 0x31, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
             SndEvt_EnqueueType6(0x54090007, 0, 0);
             goto advance;

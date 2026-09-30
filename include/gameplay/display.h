@@ -6,18 +6,38 @@
 #include "main/coord.h"
 #include "main/tmd_types.h"
 
-/// The spawn argument and work record of `Gp_FadeWorkTask` (task 0x31), which
-/// fades the screen out through a semi-transparent full-screen quad. `field_0`
-/// selects the semi-transparency rate of the trailing `DR_TPAGE`; `field_1` is
-/// the handshake flag the owner sets to 1 to start the fade-out and the task
-/// sets to 2 once it is done; `field_2` is the fade length in frames
-/// (defaulted to 0x20), which also divides the ramp.
-typedef struct GpFadeWork {
-    u8  field_0;
-    u8  field_1;
-    s16 field_2;
-} GpFadeWork;
-STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
+/// `ScreenFade::blend`. Zero darkens the frame toward black. Any other value
+/// brightens it toward white.
+enum { SCREEN_FADE_SUBTRACT = 0 };
+
+/// `ScreenFade::phase`, the handshake between the fade's owner and its task.
+///
+/// Running covers the ramp up and the hold. Return asks for the ramp back
+/// down. Done means that ramp reached zero and the task exited.
+enum {
+    SCREEN_FADE_RUNNING = 0,
+    SCREEN_FADE_RETURN  = 1,
+    SCREEN_FADE_DONE    = 2
+};
+
+/// Frame count stored when `ScreenFade::rampFrames` is non-positive at start.
+enum { SCREEN_FADE_DEFAULT_FRAMES = 32 };
+
+/// Control record of the resident full-screen fade (task bank 1, type 0x31).
+///
+/// The owner keeps the record for the task's whole life and passes its address
+/// in `Task::spawnArg2`. The task ramps a semi-transparent full-screen quad up
+/// from black, holds it, and ramps it back down once `phase` requests the
+/// return. `blend` chooses whether the quad darkens the frame toward black or
+/// brightens it toward white. Both ramps take `rampFrames` frames, and the
+/// owner may store a new length before requesting the return. A non-positive
+/// length is replaced with 32 when the task starts.
+typedef struct {
+    u8  blend;      // 0 subtract toward black, nonzero add toward white
+    u8  phase;      // Handshake (0 running, 1 return requested, 2 finished)
+    s16 rampFrames; // Frames in one ramp; <=0 at task start selects 32
+} ScreenFade;
+STATIC_ASSERT_SIZEOF(ScreenFade, 4);
 
 /// A task-owned coordinate body refreshed by the model draw passes.
 ///

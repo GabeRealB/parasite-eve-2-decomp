@@ -15,7 +15,7 @@
 /// Only `fade` has established accesses. `retained` preserves the original
 /// bytes; an unused field and padding at a TU boundary remain possible.
 typedef struct RoomFadeStorage {
-    GpFadeWork fade;
+    ScreenFade fade;
     u32        retained;
 } RoomFadeStorage;
 STATIC_ASSERT_SIZEOF(RoomFadeStorage, 8);

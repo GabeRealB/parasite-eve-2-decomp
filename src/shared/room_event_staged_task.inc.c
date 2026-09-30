@@ -18,9 +18,9 @@ void roomEventStagedTask(Task* arg0)
         case 1:
             if (Gp_CapBusy() == 0) {
                 if (ROOM_EVENT_LATCHED.fade != 0) {
-                    ROOM_EVENT_FADE.field_0 = 0;
-                    ROOM_EVENT_FADE.field_1 = 0;
-                    ROOM_EVENT_FADE.field_2 = 0x1E;
+                    ROOM_EVENT_FADE.blend      = SCREEN_FADE_SUBTRACT;
+                    ROOM_EVENT_FADE.phase      = SCREEN_FADE_RUNNING;
+                    ROOM_EVENT_FADE.rampFrames = 0x1E;
                     Task_Spawn(1, 0x31, 0, &ROOM_EVENT_FADE);
                 }
                 arg0->state++;
