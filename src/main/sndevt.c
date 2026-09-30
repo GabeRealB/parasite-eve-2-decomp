@@ -142,11 +142,12 @@ typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 /// resetting the queue, including recovery from an invalid command, opens it.
 static bool _gSndEvtProcessEnabled;
 
-/// Oldest event still waiting to be processed, or `NULL` while the queue is
-/// empty.
+/// First pool slot awaiting deferred audio dispatch, or `NULL` when empty.
 ///
-/// Events are appended at the other end, so processing takes them in the order
-/// they were queued.
+/// Queued slots belong to `_gSndEvtPool` and remain reserved until their handlers
+/// return. Processing saves the next link before releasing the slot for reuse,
+/// then advances the head; appends at the tail preserve FIFO order. Reset or an
+/// invalid command discards the queue and clears both endpoints.
 static SndEvt* _gSndEvtHead;
 
 /// Last event in the pending queue, or `NULL` when the queue is empty.
