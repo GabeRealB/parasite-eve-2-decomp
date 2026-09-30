@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
 /// Frame handler for the scene's `Gp_StateF0.field_4` mode. Mode 1 only refreshes the
@@ -56,11 +58,11 @@ void stalkerDeadState(Enemy* arg0, Task* arg1)
             break;
         case 1:
             if (!(work->field_6C4 & 3)) {
-                sc->vx      = 0;
-                sc->vz      = 0;
-                random      = Gp_LcgState * 5 + 0x71357911;
-                sc->vy      = -((random >> 16) & 0x1FF);
-                Gp_LcgState = random;
+                sc->vx          = 0;
+                sc->vz          = 0;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                sc->vy          = -((random >> 16) & 0x1FF);
+                gRandomLcgState = random;
                 Gp_SpawnEff(0x600E0, &arg1->extra.tmd->coords[3], 0x400, sc);
             }
             break;

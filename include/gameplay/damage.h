@@ -26,7 +26,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// (`ENEMY_REACTION_BUILDUP` in `Enemy.reactionFlags`) doubles the chance,
 /// `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
 /// and `arg2` multiplies it when non-zero. The result is compared against a
-/// 12-bit `Gp_LcgState` draw.
+/// 12-bit `gRandomLcgState` draw.
 s32 Gp_RollEnemyChance(struct Enemy* arg0, u32 arg1, s32 arg2);
 
 s32 Gp_PackObjPair(struct Enemy* arg0, s32 arg1);

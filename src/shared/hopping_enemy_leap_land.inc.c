@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Plays sound 4 on the first frame; once the hit flags are set, draws a
@@ -19,8 +21,8 @@ void hopperLeapLand(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
     if (hopperAnimEnded(arg0) != 0) {
-        rand             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState      = rand;
+        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rand;
         work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
         work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 3;

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
 /// Spawn task of the overlay's spawn table (`blazeFadeTask`'s
@@ -24,9 +26,9 @@ void blazeBodyFireTask(Task* arg0)
     Task* slot;
     s32   idx;
 
-    slot        = gameGetPtrSlot(3);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    idx         = Gp_LcgState >> 16;
+    slot            = gameGetPtrSlot(3);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    idx             = gRandomLcgState >> 16;
 
     switch (arg0->state) {
         case 0:

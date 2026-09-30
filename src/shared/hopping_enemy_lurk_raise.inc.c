@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Once the hit flags are set, requests animation 0xE, clears the frame and
@@ -21,10 +23,10 @@ void hopperLurkRaise(Task* arg0)
         work2->field_41C = 0x10;
         work2->field_418 = 0xE;
         work2->field_414 = 1;
-        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_412  = 0;
         work->field_42C  = 0;
-        work->field_446  = ((Gp_LcgState >> 16) & 0x3F) + 0xB0;
+        work->field_446  = ((gRandomLcgState >> 16) & 0x3F) + 0xB0;
         work->field_422++;
     }
 }

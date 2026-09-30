@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Teardown state of the enemy (entry 2 of the package's task-state table).
@@ -75,11 +77,11 @@ void lungerDeadState(Enemy* arg0, Task* arg1)
             break;
         case 1:
             if (!(work->field_698 & 3)) {
-                scratch->vx = 0;
-                scratch->vz = 0;
-                random      = (Gp_LcgState * 5) + 0x71357911;
-                scratch->vy = -((random >> 0x10) & 0x1FF);
-                Gp_LcgState = random;
+                scratch->vx     = 0;
+                scratch->vz     = 0;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                scratch->vy     = -((random >> 0x10) & 0x1FF);
+                gRandomLcgState = random;
                 Gp_SpawnEff(0x600E0, &arg1->extra.tmd->coords[3], 0x400, scratch);
             }
             break;

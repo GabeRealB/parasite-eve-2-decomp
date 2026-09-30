@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
 /// Draws a glow at the coordinate: two camera-facing textured squares, an
@@ -31,7 +33,7 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
     light                                         = &slot->light;
     light->inner                                  = 0x300;
     light->outer                                  = 0x3000;
-    random                                        = (Gp_LcgState * 5) + 0x71357911;
+    random                                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
     intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
     light->head.color.r                           = intensity;
     shifted                                       = intensity << 0x10;
@@ -41,7 +43,7 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[1]     = coord->coord.t[1];
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_LcgState                                   = random;
+    gRandomLcgState                               = random;
     block                                         = SCRATCH_STACK_RESERVE_BLOCK(GpRingScratch);
     block->vec.vx                                 = coord->workm.t[0];
     block->vec.vy                                 = coord->workm.t[1];

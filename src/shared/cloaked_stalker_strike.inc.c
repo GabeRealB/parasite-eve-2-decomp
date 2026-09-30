@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
 /// Runs the actor's approach-and-strike sequence. State 0 aims the display
@@ -31,7 +33,7 @@ void stalkerStrikeSeq(Task* arg0)
     switch (work->field_6CE) {
         case 0:
             work->field_6C0 = 4;
-            work->field_6E4 = gStalkerApproachRoll[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+            work->field_6E4 = gStalkerApproachRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             sc->in.vx       = 0;
             sc->in.vy       = (work->field_6E6 + 0x800) & 0xFFF;
             sc->in.vz       = 0;
@@ -40,11 +42,11 @@ void stalkerStrikeSeq(Task* arg0)
             coord->coord.t[1] = work->field_6A8;
             coord->coord.t[2] = work->field_6AC;
             if (work->field_6E4 == 1 && work->field_6E8 == 0) {
-                random          = Gp_LcgState * 5 + 0x71357911;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 delay           = ((random >> 16) & 0xF) + 0xF;
                 work->field_6CE = 1;
                 work->field_6DA = 4;
-                Gp_LcgState     = random;
+                gRandomLcgState = random;
                 work->field_6D4 = delay;
                 part            = delay * 2 / 3;
                 work->field_6DC = part;
@@ -52,7 +54,7 @@ void stalkerStrikeSeq(Task* arg0)
             } else {
                 work->field_6E4 = 0;
                 if (work->field_6E8 == 0) {
-                    timer           = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
+                    timer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 0x1E;
                     work->field_6CE = 3;
                     work->field_6D4 = timer;
                     part            = timer * 2 / 3;
@@ -85,8 +87,8 @@ void stalkerStrikeSeq(Task* arg0)
             work->field_6D4 = timer;
             if (timer <= 0 || work->field_6E8 != 0) {
                 work->field_6CE = 2;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = ((Gp_LcgState >> 16) & 0xF) + 0x3C;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6D4 = ((gRandomLcgState >> 16) & 0xF) + 0x3C;
             }
             break;
         case 2:
@@ -119,8 +121,8 @@ void stalkerStrikeSeq(Task* arg0)
             work->field_6D4 = timer;
             if (timer <= 0) {
                 work->field_6CE = 4;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6D4 = (Gp_LcgState >> 16) & 0xF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6D4 = (gRandomLcgState >> 16) & 0xF;
             } else if (work->field_70A > 0) {
                 work->field_6CC = 4;
                 work->field_6CE = 0;

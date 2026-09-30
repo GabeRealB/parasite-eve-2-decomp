@@ -2,7 +2,7 @@
   "function": "func_actor_101500_80132FD0",
   "prediction_source": "base_1.c",
   "result": "100%, all penalties zero; unscoped full build passed; body shared across three overlays",
-  "transformation": "Move case-2 field_380 = 15 after field_34C = 0x400F0002, keeping Gp_LcgState store before both.",
+  "transformation": "Move case-2 field_380 = 15 after field_34C = 0x400F0002, keeping gRandomLcgState store before both.",
   "traces": {
     "baseline": {
       "manifest": {

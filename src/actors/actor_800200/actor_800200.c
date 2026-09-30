@@ -28,7 +28,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -2367,16 +2367,16 @@ static void func_actor_800200_801649D8(Task* arg0)
                 if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                     idleAnim         = 4;
                     actor->field_958 = 6;
-                    random           = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState      = random;
+                    random           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = random;
                     random           = ((random >> 0x10) & 0x1F) + 0x14;
                     actor->field_934 = random;
                     Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);
                 } else {
                     idleAnim         = 2;
                     actor->field_958 = 5;
-                    random           = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState      = random;
+                    random           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = random;
                     random           = ((random >> 0x10) & 0x7F) + 0x3C;
                     actor->field_934 = random;
                     Gp_AnimPlayChildSlotsEx(arg0, idleAnim, 0, 3);

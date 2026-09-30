@@ -44,7 +44,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -70,7 +70,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/main_street.h"
 
-#define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define DRYFIELD_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 

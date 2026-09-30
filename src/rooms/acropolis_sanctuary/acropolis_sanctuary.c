@@ -45,7 +45,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -2102,35 +2102,35 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         if (mem->age == 0) {
             mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_8;
             if (mem->scale != 0) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vx  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vy  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vz  = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vx     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A;
             } else {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = ((u32)Gp_LcgState >> 16) & 7;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 4 - (((u32)Gp_LcgState >> 16) & 7);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vx  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vy  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vz  = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->angle   = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A +
-                             (((u32)Gp_LcgState >> 16) & 7);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = (gRandomLcgState >> 16) & 7;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 4 - ((gRandomLcgState >> 16) & 7);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vx     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vy     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vz     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].field_A +
+                             ((gRandomLcgState >> 16) & 7);
             }
         }
         prim->tpage = 0x8C;
@@ -2164,10 +2164,10 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         mem->move.vy        = mem->move.vy + 3;
         if (mem->scale == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                n           = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                n               = ((gRandomLcgState >> 16) & 3) + 1;
                 for (i = 0; i < n; i++) {
                     Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | 0x1000, NULL);
                 }
@@ -2177,10 +2177,10 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
     }
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
         if (quad != 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             // The size class is dead once it has been tested, so the shard
             // count reuses its local -- keeping the two apart costs `$s5`.
-            quad = ((u32)Gp_LcgState >> 16) & 3;
+            quad = (gRandomLcgState >> 16) & 3;
             if (quad != 0) {
                 quad = quad + 1;
                 for (i = 0; i < quad; i++) {
@@ -2266,26 +2266,26 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
         mem->angle            = size;
         arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFFF;
         if (mem->scale != 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = ((u32)Gp_LcgState >> 16) & 0xF;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = (gRandomLcgState >> 16) & 0xF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
         } else {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = -((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
         }
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vx     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
     corner = D_acropolis_sanctuary_80182710->corner;
@@ -2341,8 +2341,8 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     mem->move.vy        = mem->move.vy + 3;
     if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        n           = ((u32)Gp_LcgState >> 16) & 1;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        n               = (gRandomLcgState >> 16) & 1;
         if (mem->angle >= 0x401 && n != 0) {
             n = n + 1;
             for (i = 0; i < n; i++) {
@@ -2355,8 +2355,8 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
             mem->index         = mem->index + 1;
         }
     } else if (mem->angle >= 0x401) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((u16)(((u32)Gp_LcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((u16)((gRandomLcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
             for (i = 0; i < 2; i++) {
                 flags = (mem->angle << 15) | 0x1000;
                 Gp_SpawnEff(0x6007A, coord, arg0->spawnArg1.value | flags, NULL);

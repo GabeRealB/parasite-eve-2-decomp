@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the library; see lunging_enemy.h. Inline helpers the fragments use. */
 
 /// Every third frame while `field_6C4` is clear, kicks a dust effect off the
@@ -16,7 +18,7 @@ static __inline__ void lungerSpawnDust(Task* actor)
         work->field_6B0 = 0;
         head[-1].vx     = 0;
         rot->vz         = 0;
-        rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
+        rot->vy         = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF);
         Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x100, rot);
     }
     SCRATCH_STACK_RELEASE_BYTES(8);

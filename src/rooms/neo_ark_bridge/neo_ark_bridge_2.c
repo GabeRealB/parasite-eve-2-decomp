@@ -33,7 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -735,19 +735,19 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
             if (view < 7) {
                 if (view >= 5) {
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        rnd         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rnd;
+                        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rnd;
                         if (((rnd >> 16) & 3) == 0) {
-                            rndSpawn    = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rndSpawn;
+                            rndSpawn        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rndSpawn;
                             Gp_SpawnEff(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F60);
                         }
-                        rnd         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rnd;
+                        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rnd;
                         if (((rnd >> 16) & 3) == 0) {
-                            rndSpawn2   = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rndSpawn2;
+                            rndSpawn2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rndSpawn2;
                             Gp_SpawnEff(0x60070, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F68);
                         }

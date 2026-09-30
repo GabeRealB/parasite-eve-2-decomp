@@ -37,7 +37,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -956,8 +956,8 @@ static void Actor02600_Fn00754(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 index           = ((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_39E = gSpiderIdleDelay[index] + ((random >> 0x10) & 0xF);
             }
             break;
@@ -1128,7 +1128,7 @@ static void Actor02600_Fn00A94(Task* actor)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                work->field_39E        = gSpiderIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E        = gSpiderIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->extra.tmd->coords + 4;
                 work->field_2E4.radius = 0xC8;
                 work->field_2E4.pos.vy = 0;
@@ -1178,9 +1178,9 @@ static void Actor02600_Fn00FA0(Task* arg0)
             if (timer <= 0) {
                 work->field_39C = 1;
                 work->field_392 = 2;
-                random          = (Gp_LcgState * 5) + 0x71357911;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_39E = Actor02600_D08988[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0x3FF);
-                Gp_LcgState     = random;
+                gRandomLcgState = random;
                 return;
             }
             return;
@@ -1198,9 +1198,9 @@ static void Actor02600_Fn00FA0(Task* arg0)
             if (timer2 <= 0) {
                 work->field_39C = 0;
                 work->field_392 = state;
-                random2         = (Gp_LcgState * 5) + 0x71357911;
+                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random2 >> 0x10) & 0xF);
-                Gp_LcgState     = random2;
+                gRandomLcgState = random2;
                 return;
             }
             if ((s16)work->field_396 == 0xC) {

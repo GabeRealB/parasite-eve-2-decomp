@@ -44,7 +44,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -602,7 +602,7 @@ static void func_actor_206100_8014D14C(Task* task);
 /// the sub-state it splats 0x20 effect particles around the actor's root
 /// coordinate -- the same `Gp_SpawnEff` id 0x01202148 ring
 /// `func_actor_206100_8014D574` fires, at a radius of 0x1000 and a constant
-/// y of -0x3E8 -- and from frame 0x1F it draws from `Gp_LcgState`: a one-in-four
+/// y of -0x3E8 -- and from frame 0x1F it draws from `gRandomLcgState`: a one-in-four
 /// `(state >> 16) & 3 == 0` hands state 2 (the teleport
 /// `func_actor_206100_8014CB68`) to the actor at sub-state 0, and every other
 /// draw restarts the counter and advances the sub-state.
@@ -2734,7 +2734,7 @@ static void func_actor_206100_8014D6F4(Task* task)
 /// the store because the whole ring shares the height, the same local
 /// `func_actor_206100_8014D574` hoists.
 ///
-/// From frame 0x1F on it draws from `Gp_LcgState`: the one-in-four that lands
+/// From frame 0x1F on it draws from `gRandomLcgState`: the one-in-four that lands
 /// on `(state >> 16) & 3 == 0` hands state 2 to the teleport
 /// `func_actor_206100_8014CB68` at sub-state 0 -- so the actor leaves the
 /// scene it is exploding in -- and the rest restart the counter and advance
@@ -2765,8 +2765,8 @@ static void func_actor_206100_8014D8E8(Task* task)
         } while (i < 0x20);
     }
     if ((s16)work->field_51E >= 0x1F) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (((Gp_LcgState >> 0x10) & 3) == 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 0x10) & 3) == 0) {
             set_state(task, 2);
             return;
         }

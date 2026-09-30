@@ -41,7 +41,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -711,10 +711,10 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
         rgb[2] = shade >> 1;
         Gp_DrawRing(coord, 0x200, rgb);
         Gp_DrawRing(coord, 0x400, rgb);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (((Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }

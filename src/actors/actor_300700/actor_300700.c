@@ -34,7 +34,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -374,8 +374,8 @@ default_body:
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     func_actor_300700_801633B8(arg1);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if (((u32)Gp_LcgState >> 16 & 0x7F) == 0) {
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((gRandomLcgState >> 16 & 0x7F) == 0) {
         s32 temp;
         s32 id;
 
@@ -465,7 +465,7 @@ static void func_actor_300700_801622B4(Task* arg0)
 }
 
 /// Sweeps the actor's spare rotation on the scratchpad: every 16th frame rolls
-/// `Gp_LcgState` to pick a direction, then `field_2D8` ramps between `-0x100`
+/// `gRandomLcgState` to pick a direction, then `field_2D8` ramps between `-0x100`
 /// and `0x100` and flips the `field_2D6` sign each time it wraps. The ramped
 /// value scaled by that sign is the pitch written into the scratch vector,
 /// which is handed to `RotMatrix` twice - once against `coord[2]`, once with
@@ -484,8 +484,8 @@ static void func_actor_300700_8016252C(Task* arg0)
     work = arg0->work;
     if (++work->field_2E0 >= 16) {
         work->field_2E0 = 0;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        work->field_2D4 = !(((u32)Gp_LcgState >> 16) & 1);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_2D4 = !((gRandomLcgState >> 16) & 1);
     }
     switch (work->field_2D4) {
         case 0:
@@ -541,8 +541,8 @@ static void func_actor_300700_801626C0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     switch (work->field_2E6) {
         case 0:
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            random          = (u32)Gp_LcgState >> 16;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            random          = gRandomLcgState >> 16;
             amount          = random & 0x1F;
             cur             = work->field_2DC;
             work->field_2DC = !(random & 0x20) ? cur - amount : cur + amount;
@@ -573,8 +573,8 @@ static void func_actor_300700_801626C0(Task* arg0)
             }
             break;
     }
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    random2         = (u32)Gp_LcgState >> 16;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    random2         = gRandomLcgState >> 16;
     amount2         = random2 & 0x3F;
     cur3            = work->field_2DA;
     work->field_2DA = !(random2 & 0x40) ? cur3 - amount2 : cur3 + amount2;
@@ -612,7 +612,7 @@ static void func_actor_300700_801628C8(Task* arg0)
     work->field_2C4 = coord->coord.t[2];
     switch (work->field_2E6) {
         case 0:
-            random = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            random = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             amount = random & 0x1F;
             if (!(random & 0x20)) {
                 amount = -amount;
@@ -624,7 +624,7 @@ static void func_actor_300700_801628C8(Task* arg0)
             } else {
                 coord->coord.t[0] -= (s16)delta;
             }
-            amountB = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F;
+            amountB = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F;
             if (work->field_2D4 != 0) {
                 amountB = -amountB;
             }
@@ -635,7 +635,7 @@ static void func_actor_300700_801628C8(Task* arg0)
             } else {
                 coord->coord.t[1] -= (s16)delta;
             }
-            random3 = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            random3 = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             amount  = random3 & 0x1F;
             if (!(random3 & 0x20)) {
                 amount = -amount;
@@ -649,11 +649,11 @@ static void func_actor_300700_801628C8(Task* arg0)
             break;
         case 1:
             speed = D_actor_300700_80165B78[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
-                    (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
+                    (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
             base               = Player_Status.coordMtx->t[1] - 0x4B0;
-            random2            = (u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+            random2            = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             y                  = coord->coord.t[1];
             if (y >= base + 400) {
                 coord->coord.t[1] = y - (random2 & 0xF);
@@ -702,11 +702,11 @@ static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1)
             switch (work->field_2DE) {
                 case 0:
                     Gp_StateF0.field_18    = 1;
-                    seed                   = Gp_LcgState * 5 + 0x71357911;
+                    seed                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     rnd                    = seed >> 16;
                     angle                  = rnd & 0xFF;
                     arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                    Gp_LcgState            = seed;
+                    gRandomLcgState        = seed;
                     work->field_2E2        = 0x1000;
                     work->field_22C.matrix = coord->coord;
                     if (!(rnd & 0x100)) {
@@ -790,7 +790,7 @@ static void func_actor_300700_80162EFC(Task* arg0)
     if (work->field_2E0 == 1) {
         sc->v[0].vx = 0;
         sc->v[0].vy = 0;
-        sc->v[0].vz = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+        sc->v[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
         RotMatrix(&sc->v[0], &work->field_22C.quad.rotation);
     }
     size        = 0x7800 / sc->otz;

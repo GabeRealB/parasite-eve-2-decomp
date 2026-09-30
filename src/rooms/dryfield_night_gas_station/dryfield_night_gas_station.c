@@ -49,7 +49,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -3388,20 +3388,20 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
         work->active = 1;
         if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
             for (i = 19; i < 21; i++) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->kind   = (Gp_LcgState >> 16) % 3;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vx = D_dryfield_night_gas_station_80189C8C[i].vx - ((Gp_LcgState >> 16) & 0x1FF) + 0x100;
-                work->pos.vy = D_dryfield_night_gas_station_80189C8C[i].vy;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vz = D_dryfield_night_gas_station_80189C8C[i].vz - ((Gp_LcgState >> 16) & 0x1FF) + 0x100;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->kind      = (gRandomLcgState >> 16) % 3;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->pos.vx    = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                work->pos.vy    = D_dryfield_night_gas_station_80189C8C[i].vy;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->pos.vz    = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
                 if (work->kind == 0) {
                     Gp_SpawnEff(0x60080, coord, 0x10300, &work->pos);
                 } else if (work->kind == 1) {
                     Gp_SpawnEff(0x6008D, coord, 0x300, &work->pos);
                 } else {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
                         Gp_SpawnEff(0x60070, coord, 0xC0013500, &work->pos);
                     }
                 }
@@ -3409,13 +3409,13 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
         }
     } else if (work->active != 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         for (i = 19; i < 21; i++) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vx = D_dryfield_night_gas_station_80189C8C[i].vx - ((Gp_LcgState >> 16) & 0x1FF) + 0x100;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                work->pos.vy = D_dryfield_night_gas_station_80189C8C[i].vy;
-                work->pos.vz = D_dryfield_night_gas_station_80189C8C[i].vz - ((Gp_LcgState >> 16) & 0x1FF) + 0x100;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->pos.vx    = D_dryfield_night_gas_station_80189C8C[i].vx - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->pos.vy    = D_dryfield_night_gas_station_80189C8C[i].vy;
+                work->pos.vz    = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
                 Gp_SpawnEff(0x60070, coord, 0xC0013500, &work->pos);
             }
         }

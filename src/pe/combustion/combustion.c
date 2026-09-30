@@ -22,7 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -153,7 +153,7 @@ void func_combustion_8012EF34(Task* arg0)
 /// One flame of the combustion burn. State 0 re-bases the effect coordinate on
 /// the `EffectWork.parent` parent with an identity rotation and the work
 /// block's `pos` offset, seeds the phase `age` from
-/// `Gp_LcgState`, the radius `scale` from `spawnArg1` and the intensity
+/// `gRandomLcgState`, the radius `scale` from `spawnArg1` and the intensity
 /// `index` from `Gp_StateC08.field_0 % 10 - 1`, then splits: `spawnArg1`
 /// past the `D_combustion_80130980` row's `field_4` runs the wide state 2,
 /// anything smaller the narrow state 1. Both states redraw every frame -
@@ -195,12 +195,12 @@ void func_combustion_8012F2BC(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
 
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->age    = ((u32)rng >> 16) & 0xF;
-            mem->scale  = arg0->spawnArg1.value * 32 + 512;
-            mem->index  = Gp_StateC08.field_0 % 10 - 1;
-            last        = D_combustion_80130980[mem->index].field_4;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->age        = ((u32)rng >> 16) & 0xF;
+            mem->scale      = arg0->spawnArg1.value * 32 + 512;
+            mem->index      = Gp_StateC08.field_0 % 10 - 1;
+            last            = D_combustion_80130980[mem->index].field_4;
+            gRandomLcgState = rng;
             if (last < arg0->spawnArg1.value) {
                 arg0->state = 2;
                 return;
@@ -218,12 +218,12 @@ void func_combustion_8012F2BC(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            spawnRng1   = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = spawnRng1;
+            spawnRng1       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = spawnRng1;
             if ((((u32)spawnRng1 >> 16) & 3) == 0) {
-                spawnRng1b  = spawnRng1 * 5 + 0x71357911;
-                Gp_LcgState = spawnRng1b;
-                spawned     = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng1b >> 16) & 1, 0);
+                spawnRng1b      = spawnRng1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = spawnRng1b;
+                spawned         = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng1b >> 16) & 1, 0);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -240,12 +240,12 @@ void func_combustion_8012F2BC(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            spawnRng2   = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = spawnRng2;
+            spawnRng2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = spawnRng2;
             if ((((u32)spawnRng2 >> 16) & 3) == 0) {
-                spawnRng2b  = spawnRng2 * 5 + 0x71357911;
-                Gp_LcgState = spawnRng2b;
-                spawned     = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng2b >> 16) & 1, 0);
+                spawnRng2b      = spawnRng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = spawnRng2b;
+                spawned         = Gp_SpawnEff(0x600A9, coord, ((u32)spawnRng2b >> 16) & 1, 0);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }
@@ -326,7 +326,7 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
 
 /// One trailing ember shed by a `func_combustion_8012F2BC` flame. State 0 rolls
 /// the kind from `Gp_StateC08.field_0 % 10 - 1` into `step`, two
-/// `Gp_LcgState` draws into the spin `scale` and the per-frame rise
+/// `gRandomLcgState` draws into the spin `scale` and the per-frame rise
 /// `move.vy` (`-(rand & 0xFF) - kind * 64`, so bigger embers climb faster),
 /// sizes the sprite as `kind * 0x100 + 0x300` in `angle`, and enters
 /// `spawnArg1 + 1` - or one state later on a coin flip when `kind >= 2`. Every
@@ -357,23 +357,23 @@ void func_combustion_8012F888(Task* arg0)
     switch (state) {
         case 0:
             kind       = (Gp_StateC08.field_0 % 10U) - 1;
-            rng        = Gp_LcgState * 5 + 0x71357911;
-            rng2       = rng * 5 + 0x71357911;
+            rng        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rng2       = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             mem->scale = ((u32)rng2 >> 16) & 0xFFF;
             hi         = ((u32)rng >> 16) & 0xFF;
             mem->step  = kind;
             /* The global store between the `field_2A` store and its reload keeps
              * GCC from forwarding `kind` into the `lh`. */
-            Gp_LcgState  = rng;
-            tmp          = mem->step;
-            mem->move.vy = -hi - (tmp << 6);
-            Gp_LcgState  = rng2;
-            arg0->state  = arg0->spawnArg1.value + 1;
-            tmp2         = mem->step;
-            mem->angle   = (tmp2 << 8) + 0x300;
+            gRandomLcgState = rng;
+            tmp             = mem->step;
+            mem->move.vy    = -hi - (tmp << 6);
+            gRandomLcgState = rng2;
+            arg0->state     = arg0->spawnArg1.value + 1;
+            tmp2            = mem->step;
+            mem->angle      = (tmp2 << 8) + 0x300;
             if (mem->step >= 2) {
-                Gp_LcgState  = rng2 * 5 + 0x71357911;
-                arg0->state += ((u32)Gp_LcgState >> 16) & 1;
+                gRandomLcgState = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                arg0->state    += (gRandomLcgState >> 16) & 1;
             }
             /* fallthrough */
         case 1:

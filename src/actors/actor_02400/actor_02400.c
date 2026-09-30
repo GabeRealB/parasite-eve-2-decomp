@@ -37,7 +37,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -368,8 +368,8 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     work->field_12A              = 0x600;
     work->field_12C              = 0x600;
     work->field_100              = coord->coord;
-    Gp_LcgState                  = Gp_LcgState * 5 + 0x71357911;
-    work->field_140              = (Gp_LcgState >> 16) & 0xF;
+    gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_140              = (gRandomLcgState >> 16) & 0xF;
     work->obj40.key              = 0x30018;
     work->obj40.coord            = coord;
     work->obj40.context.contacts = work->rec60;
@@ -549,8 +549,8 @@ move_done:
                         } else {
                             damage = Actor02400_Params1.hpMax;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        damage     += (s16)(((Gp_LcgState >> 16) & 0x7F) + 200);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        damage         += (s16)(((gRandomLcgState >> 16) & 0x7F) + 200);
                         Gp_SpawnEff(0x6009C, coord, 2, NULL);
                         break;
                 }
@@ -637,9 +637,9 @@ static void Actor02400_Fn01420(Task* task)
     coord                                                                     = task->extra.tmd->coords;
     flag                                                                      = 0;
     if (--work->field_140 < 0) {
-        random          = (Gp_LcgState * 5) + 0x71357911;
+        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_140 = (random >> 0x10) & 0xF;
-        Gp_LcgState     = random;
+        gRandomLcgState = random;
         if (Gp_StateF0.prefix.bytes.field_2 & 2) {
             flag = 1;
         }
@@ -704,8 +704,8 @@ static void Actor02400_Fn01590(Task* task)
             work->field_140--;
             if (work->field_140 < 0) {
                 work->field_13E = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_140 = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_140 = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             }
             break;
         case 1:
@@ -715,8 +715,8 @@ static void Actor02400_Fn01590(Task* task)
             limit = 0x600;
             if (work->field_140 < 0) {
                 work->field_13E = 0;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_140 = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_140 = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
             }
             break;
         case 2:
@@ -737,8 +737,8 @@ static void Actor02400_Fn01590(Task* task)
             work->field_12C += (u16)work->field_140 + 0x80;
             if (work->field_12A > 0x1C00) {
                 work->field_13E = 0;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_140 = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_140 = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
             }
             break;
     }
@@ -784,8 +784,8 @@ static void Actor02400_Fn01590(Task* task)
         work->field_12C = 0x1000;
         scratch->rot.vy = 0;
         scratch->rot.vz = 0;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        scratch->rot.vx = ((Gp_LcgState >> 16) & 0xFF) + 0x100;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        scratch->rot.vx = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
         RotMatrix(&scratch->rot, &task->extra.tmd->coords[2].coord);
         sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180002;
         pan   = (s8)Gp_GetObjPan(coord);
@@ -838,8 +838,8 @@ static void Actor02400_Fn01A10(Task* task)
                 } else {
                     work->field_13C    = state;
                     work->field_13E    = 0;
-                    Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                    work->field_140    = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                    gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_140    = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
                     work->objC0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
@@ -961,8 +961,8 @@ static void Actor02400_Fn01B90(Task* task)
             if (flags == 7) {
                 work->field_13C    = 1;
                 work->field_13E    = 0;
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                work->field_140    = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_140    = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
                 work->objC0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
@@ -998,8 +998,8 @@ static void Actor02400_Fn01F74(Task* task)
     if (work->field_140 > 0x168) {
         work->field_13C    = 1;
         work->field_13E    = 0;
-        Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-        work->field_140    = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_140    = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
         work->objC0.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
@@ -1496,10 +1496,10 @@ static void Actor02400_Fn02F94(Task* task)
     counter           = work->field_140 + 1;
     work->field_140   = counter;
     if ((s16)counter >= 0x10) {
-        state             = (Gp_LcgState * 5) + 0x71357911;
+        state             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_13C   = 1;
         work->field_13E   = 0;
-        Gp_LcgState       = state;
+        gRandomLcgState   = state;
         work->field_140   = (u16)(((state >> 0x10) & 0x1F) + 0x1E);
         work->objC0.flags = work->objC0.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
     }

@@ -22,7 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/sound.h"
@@ -272,14 +272,14 @@ void func_inferno_8012F530(Task* arg0)
             mem->scale = 0x80;
             i          = 0;
             do {
-                p           = &map->field_0[0][i];
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rng;
-                p[0]        = (u32)rng >> 16;
+                p               = &map->field_0[0][i];
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
+                p[0]            = (u32)rng >> 16;
                 i++;
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rng;
-                p[6]        = (u32)rng >> 16;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
+                p[6]            = (u32)rng >> 16;
             } while (i < 6);
             arg0->state = arg0->spawnArg1.value + 1;
             gte_lddp(0x80);

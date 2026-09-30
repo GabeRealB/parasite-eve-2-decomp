@@ -37,7 +37,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/gfxgte.h"
@@ -1455,9 +1455,9 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->field_524 = 0;
     work->field_544 = 0;
     work->field_538 = 0x10;
-    random          = (Gp_LcgState * 5) + 0x71357911;
+    random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
     work->field_536 = (s16)(((random >> 0x10) & 0x1F) + 1);
-    Gp_LcgState     = (s32)random;
+    gRandomLcgState = random;
     Gfx_MatrixCol2(&actor->extra.tmd->coords->coord, &sp18);
     work->field_4FC = ratan2((s32)sp18.vx, (s32)sp18.vz);
     Actor01600_Fn05400(actor);
@@ -1795,8 +1795,8 @@ mode_end:
                         }
                     } else {
                         work->field_522 = 1;
-                        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                        work->field_4CC = ((Gp_LcgState >> 11) & 0x60) + 0x100;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->field_4CC = ((gRandomLcgState >> 11) & 0x60) + 0x100;
                     }
                     if (work->field_4FE != 0 && work->field_528 != 0) {
                         work->field_3EA &= 0x7FFF;
@@ -1945,7 +1945,7 @@ static void Actor01600_Fn0131C(Task* arg0, s32 damage)
 ///
 /// Whatever the state, animations 1/9/0x10/0x13/0x15/0x16/0x1B..0x1E are
 /// silent; the rest count `field_542` down and, on expiry, play one of three
-/// growls (`0x4010_0006..8`) picked by a `Gp_LcgState` draw modulo 5 - two of
+/// growls (`0x4010_0006..8`) picked by a `gRandomLcgState` draw modulo 5 - two of
 /// the five outcomes stay quiet - panned and attenuated for the actor's
 /// coordinate, then rearm the counter at 0x14.
 static void Actor01600_Fn01420(Task* arg0)
@@ -2006,8 +2006,8 @@ static void Actor01600_Fn01420(Task* arg0)
                 if (work->field_50A >= 0x2C && work->field_522 == 0 &&
                     ((u16)work->field_50A & 2)) {
                     work->field_522 = 1;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_4CC = (((u32)Gp_LcgState >> 11) & 0x60) + 0x20;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_4CC = ((gRandomLcgState >> 11) & 0x60) + 0x20;
                 }
             } else if (work->field_506 == 0x16) {
                 if (work->field_50A >= 0x32) {
@@ -2041,8 +2041,8 @@ tail:
     if (count != 0) {
         return;
     }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    sel         = ((u32)Gp_LcgState >> 16) % 5;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    sel             = (gRandomLcgState >> 16) % 5;
     switch (sel) {
         case 0:
             id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40100006;
@@ -3222,10 +3222,10 @@ static void Actor01600_Fn03A60(Task* arg0)
             }
             break;
         case 1:
-            randomState = (Gp_LcgState * 5) + 0x71357911;
-            random      = randomState >> 0x10;
-            randomTurn  = (random & 0x3FF) + 0x400;
-            Gp_LcgState = (s32)randomState;
+            randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            random          = randomState >> 0x10;
+            randomTurn      = (random & 0x3FF) + 0x400;
+            gRandomLcgState = randomState;
             if (random & 0x400) {
                 randomTurn = -randomTurn;
             }
@@ -3233,9 +3233,9 @@ static void Actor01600_Fn03A60(Task* arg0)
             work->field_510 = 2;
             break;
         case 2:
-            randomState2 = (Gp_LcgState * 5) + 0x71357911;
-            randomStep   = (randomState2 >> 0x10) & 0x17;
-            Gp_LcgState  = (s32)randomState2;
+            randomState2    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomStep      = (randomState2 >> 0x10) & 0x17;
+            gRandomLcgState = randomState2;
             if (work->field_512 <= 0) {
                 randomStep = -randomStep;
             }
@@ -4244,12 +4244,12 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
         case 1:
             work->field_54A = 1;
             if (variant == 2) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_50A = 0;
                 work->field_508 = 0;
                 work->field_506 = 3;
                 work->field_546 = 9;
-                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+                work->field_524 = (gRandomLcgState >> 16) % 20;
             }
             if (variant == 4) {
                 work->field_506 = 0x11;
@@ -4275,12 +4275,12 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                 work->field_508 = 0;
             }
             if (variant == 2) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_50A = 0;
                 work->field_508 = 0;
                 work->field_506 = 3;
                 work->field_546 = 9;
-                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+                work->field_524 = (gRandomLcgState >> 16) % 20;
             }
             if (variant == 3) {
                 obj = arg0->extra.tmd;
@@ -4304,12 +4304,12 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request)
                 work->field_508 = 0;
             }
             if (variant == 2) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_50A = 0;
                 work->field_508 = 0;
                 work->field_506 = 3;
                 work->field_546 = 9;
-                work->field_524 = ((u32)Gp_LcgState >> 16) % 20;
+                work->field_524 = (gRandomLcgState >> 16) % 20;
             }
             break;
         case 4:
@@ -4560,9 +4560,9 @@ static void Actor01600_Fn0646C(Task* arg0)
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x300, &Actor01600_D12868);
         return;
     }
-    randomState = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState = randomState;
-    choice      = ((u32)randomState >> 0x10) & 3;
+    randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = randomState;
+    choice          = ((u32)randomState >> 0x10) & 3;
     switch (choice) {
         case 0:
         case 1:
@@ -4842,12 +4842,12 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
             if ((u8)handled) {
                 return 1;
             } else {
-                scaledState     = Gp_LcgState * 5;
-                state           = scaledState + 0x71357911;
+                scaledState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER;
+                state           = scaledState + RANDOM_LCG_INCREMENT;
                 work->field_4FA = 0;
                 work->field_508 = 0;
                 work->field_52A = 0;
-                Gp_LcgState     = (s32)state;
+                gRandomLcgState = state;
                 if ((u32)(((state >> 16) % 100) & 0xFFFF) < 0x14U) {
                     work->field_516 = 6;
                     work->field_506 = 0x1A;

@@ -73,7 +73,7 @@ typedef struct Actor510900Work {
     /// The `AnimationRecord::flags` cue bits latched on the previous frame. The step
     /// handler plays a sound on the frame one of them has just dropped.
     /* 0x59A */ u16 field_59A;
-    /// Rolled from `Gp_LcgState` when state 1 expires.
+    /// Rolled from `gRandomLcgState` when state 1 expires.
     /* 0x59C */ s16 field_59C;
     /* 0x59E */ s16 field_59E;
     /// Yaw the head coordinate is rebuilt from each frame: the actor's facing

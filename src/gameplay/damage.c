@@ -22,7 +22,7 @@
 #include "gameplay/world_state.h"
 #include "gameplay/world_targets.h"
 
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mc.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -183,10 +183,10 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             }
         }
 
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        rand        = (u32)Gp_LcgState >> 16;
-        pct         = (u16)(rand % 20) + 100;
-        base        = base * pct / 100;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        rand            = gRandomLcgState >> 16;
+        pct             = (u16)(rand % 20) + 100;
+        base            = base * pct / 100;
 
         col = arg1 / 1000;
         if (col < 0x10) {
@@ -236,10 +236,10 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             }
         }
 
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        rnd         = (u32)Gp_LcgState >> 16;
-        pc          = (u16)(rnd % 10) + 100;
-        dmg         = dmg * pc / 100;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        rnd             = gRandomLcgState >> 16;
+        pc              = (u16)(rnd % 10) + 100;
+        dmg             = dmg * pc / 100;
 
         if (func_800B9D80(0x20000) != 0) {
             dmg = dmg * 150 / 100;
@@ -376,8 +376,8 @@ s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
         chance *= arg2;
     }
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    rand            = gRandomLcgState >> 16 & 0xFFF;
     SCRATCH_STACK_RELEASE_BYTES(0x20);
     return rand < chance;
 }
@@ -409,15 +409,15 @@ static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1)
             arg0->buildupGrade = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
-            val         = arg0->param->damageOverTimeChance;
-            limit       = (val << 12) / 100;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
+            val             = arg0->param->damageOverTimeChance;
+            limit           = (val << 12) / 100;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rand            = gRandomLcgState >> 16 & 0xFFF;
             if (rand < limit) {
                 arg0->damageOverTimePulse = 0;
                 arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
-                Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-                arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+                gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
                 if ((arg1 & 0x8000) == 0) {
                     arg0->damageOverTimeGrade = 0;
                     return;

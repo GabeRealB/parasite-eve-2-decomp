@@ -31,7 +31,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -182,13 +182,13 @@ typedef struct Actor356100Work {
     /// `field_982` (at 0x18 and 0x12); same slot as `Actor01900Work.field_C26`.
     /* 0xB4E */ s16 field_B4E;
     /// Side `func_actor_356100_80165B30`'s turn settles on: the zero it draws
-    /// once from `Gp_LcgState` at entry, then -1 / 1 for the two clip directions
+    /// once from `gRandomLcgState` at entry, then -1 / 1 for the two clip directions
     /// it alternates each time it re-enters with the same clip.
     /* 0xB50 */ s16 field_B50;
     /// Uniform GTE scale `func_actor_356100_80165B30` applies to the normalised
     /// direction: 0xDE whole while `field_97A` is clear, halved when it is set.
     /* 0xB52 */ u16 field_B52;
-    /// Random reload `func_actor_356100_8016A668` adds a 4-bit `Gp_LcgState`
+    /// Random reload `func_actor_356100_8016A668` adds a 4-bit `gRandomLcgState`
     /// draw to when the work block's `field_4` flag is set.
     /* 0xB54 */ u16 field_B54;
     /// Second half of the pair: the re-entry delay `func_actor_356100_8016382C`
@@ -939,7 +939,7 @@ static void func_actor_356100_801668FC(Task* actor);
 static void func_actor_356100_8016A550(Task* arg0);
 
 /// Tick that decrements `field_6` and reloads it from `field_B54` plus a
-/// 4-bit `Gp_LcgState` draw.
+/// 4-bit `gRandomLcgState` draw.
 static void func_actor_356100_8016A668(Task* arg0);
 
 /// Tick that runs the `field_978` clip and halves `field_982` once the actor
@@ -1804,7 +1804,7 @@ static void func_actor_356100_801653F4(Task* arg0)
 /// Turn-and-close tick: going live writes the 0x978..0x982 animation slots with
 /// `field_9BC` forced to 0xC0 and the enemy's link node cleared, takes the
 /// player offset into the aim scratch and turns the root onto it with
-/// `ratan2`, then settles `field_B50` on the 12-bit side the `Gp_LcgState`
+/// `ratan2`, then settles `field_B50` on the 12-bit side the `gRandomLcgState`
 /// draw picks and leans the yaw by `field_B56` either way, before rebuilding
 /// its Y rotation at the fixed 0xDE GPF scale and bumping `field_B66`. Each
 /// frame then re-runs the animation and, while the clip sits in 0xC..0x15,
@@ -1837,8 +1837,8 @@ static void func_actor_356100_80165B30(Task* arg0)
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
         aim->angle = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_B50 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_B50 = 1;
             } else {
                 work->field_B50 = -1;
@@ -2291,7 +2291,7 @@ static void func_actor_356100_80167358(Task* arg0)
 /// live clears the model's `field_C`, reallocates its buffers, clears the
 /// enemy's link node, saves the `field_AF8` colour matrix into `field_B18` and
 /// starts clip 0xE at speed 1 with `field_9BC` forced to 0x180. Each frame then
-/// bumps `field_6` until it passes 0x960, after which a 4-bit `Gp_LcgState`
+/// bumps `field_6` until it passes 0x960, after which a 4-bit `gRandomLcgState`
 /// draw thins the tick to one frame in 16. A tick that runs drops to state 6
 /// while the player is still within 3000 of the actor, then flips the clip
 /// between 0xE and 0xF on a 50/50 draw gated by bits 2 and 1 of `field_68`.
@@ -2320,8 +2320,8 @@ static void func_actor_356100_80167584(Task* arg0)
         work->field_982               = work->field_984;
     }
     if (work->field_6 > 0x960) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 0xF)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 0xF)) {
             return;
         }
     } else {
@@ -2335,8 +2335,8 @@ static void func_actor_356100_80167584(Task* arg0)
     }
     func_actor_356100_80163508(arg0);
     if (work->field_97E == 0xE && (work->field_68 & 2)) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             work->field_97E = 0xF;
             work->field_978 = 1;
             func_actor_356100_80163508(arg0);
@@ -3336,8 +3336,8 @@ static void func_actor_356100_8016A668(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->field_6 = work->field_B54 + (((u32)Gp_LcgState >> 16) & 0xF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_6   = work->field_B54 + ((gRandomLcgState >> 16) & 0xF);
     }
     if ((s16)--work->field_6 < 0) {
         switch (work->field_97E) {

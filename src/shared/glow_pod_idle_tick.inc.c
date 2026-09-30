@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the glow pod library; see glow_pod.h. */
 
 /// Idle tick of the second enemy. A 0x10000-class hit on either of its two
@@ -40,8 +42,8 @@ void glowPodIdleTick(Task* arg0)
             }
             work->field_290 = 0;
             work->field_2A6 = 0;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_2A8 = ((Gp_LcgState >> 16) & 0x1F) + 0x12;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_2A8 = ((gRandomLcgState >> 16) & 0x1F) + 0x12;
         }
     }
     if (work->field_2AA != 0) {
@@ -80,13 +82,13 @@ void glowPodIdleTick(Task* arg0)
                 }
                 work->field_290 = 0;
                 work->field_2A6 = 0;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_2A8 = ((Gp_LcgState >> 16) & 0x1F) + 0x12;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_2A8 = ((gRandomLcgState >> 16) & 0x1F) + 0x12;
             } else if (*(s32*)&work->field_2A4 == 0) {
                 work->field_290 = 0;
                 work->field_2A6 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_2A8 = ((Gp_LcgState >> 16) & 0x3F) + 0x64;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_2A8 = ((gRandomLcgState >> 16) & 0x3F) + 0x64;
             }
         }
     } else if (mode == 2) {

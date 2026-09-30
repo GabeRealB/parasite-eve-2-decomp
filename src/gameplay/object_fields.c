@@ -12,7 +12,7 @@
 #include "gameplay/weapon_data.h"
 
 #include "gameplay/damage.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 
@@ -119,15 +119,15 @@ void Gp_SetObjFlag4(Enemy* arg0, s32 arg1, s32 arg2)
     s32 limit;
     s32 rand;
 
-    val         = arg0->param->damageOverTimeChance;
-    limit       = (val << 12) / 100;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
+    val             = arg0->param->damageOverTimeChance;
+    limit           = (val << 12) / 100;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    rand            = gRandomLcgState >> 16 & 0xFFF;
     if (rand < limit) {
         arg0->damageOverTimePulse = 0;
         arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
-        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-        arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+        gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
         if ((arg1 & 0x8000) == 0) {
             arg0->damageOverTimeGrade = 0;
             return;
@@ -146,8 +146,8 @@ s32 Gp_TickObjFlag4(Enemy* arg0)
     arg0->damageOverTimeDelay--;
     if (arg0->damageOverTimeDelay == 0) {
         arg0->damageOverTimePulse++;
-        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-        arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+        gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        arg0->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
         val                       = arg0->param->hpMax;
         scale                     = D_80113D38[arg0->damageOverTimeGrade];
         ret                       = (val * scale) / 100;
@@ -218,8 +218,8 @@ s32 Gp_TickObjFlag2(Enemy* arg0)
         if (arg0->buildupTimer >= ENEMY_BUILDUP_STEP_FRAMES) {
             arg0->buildupStep++;
             if (arg0->buildupStep >= limit) {
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                arg0->buildupTimer = (u32)Gp_LcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
+                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                arg0->buildupTimer = gRandomLcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
             } else {
                 arg0->buildupTimer = 0;
             }

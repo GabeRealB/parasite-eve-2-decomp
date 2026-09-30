@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the glow pod library; see glow_pod.h. */
 
 /// Spawn handler of the second enemy, entry 0 of `Actor04600_D0003C`. It
@@ -58,9 +60,9 @@ void glowPodSpawnState(Enemy* arg0, Task* arg1)
     work->field_2A4              = 0x12;
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    seed                         = Gp_LcgState * 5 + 0x71357911;
+    seed                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_2A8              = ((seed >> 16) & 0x3F) + 0x64;
-    Gp_LcgState                  = seed;
+    gRandomLcgState              = seed;
     Gp_SetLightMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     work->field_11C.ends[0].vz     = 0x1388;
     work->field_11C.end0Radius     = 0xFA0;

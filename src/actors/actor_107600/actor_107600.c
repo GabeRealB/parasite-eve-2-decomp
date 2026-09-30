@@ -28,7 +28,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -1684,26 +1684,26 @@ static void func_actor_107600_801339A4(Task* arg0)
             }
             pan = (s8)Gp_GetObjPan(obj);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(obj));
-            work->field_52 = (obj->parent)->param.rot.vy;
-            work->field_54 = (obj->parent)->param.rot.vz;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            x              = (Gp_LcgState >> 16) & 0x7F;
-            work->field_58 = x;
-            if (!((Gp_LcgState >> 16) & 1)) {
+            work->field_52  = (obj->parent)->param.rot.vy;
+            work->field_54  = (obj->parent)->param.rot.vz;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            x               = (gRandomLcgState >> 16) & 0x7F;
+            work->field_58  = x;
+            if (!((gRandomLcgState >> 16) & 1)) {
                 x = -x;
             }
-            work->field_58 = x;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            y              = (Gp_LcgState >> 16) & 0x7F;
-            work->field_5A = y;
-            if (!((Gp_LcgState >> 16) & 1)) {
+            work->field_58  = x;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            y               = (gRandomLcgState >> 16) & 0x7F;
+            work->field_5A  = y;
+            if (!((gRandomLcgState >> 16) & 1)) {
                 y = -y;
             }
-            work->field_5A = y;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            z              = (Gp_LcgState >> 16) & 0x7F;
-            work->field_5C = z;
-            if (!((Gp_LcgState >> 16) & 1)) {
+            work->field_5A  = y;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            z               = (gRandomLcgState >> 16) & 0x7F;
+            work->field_5C  = z;
+            if (!((gRandomLcgState >> 16) & 1)) {
                 z = -z;
             }
             work->field_5C = z;
@@ -2201,7 +2201,7 @@ static s32 func_actor_107600_80134BAC(Task* arg0)
 
 /// First entry of the `D_actor_107600_80131E84` state table. Variants
 /// (0 and 1) start the state at 1, kick the +0x50 rotation trio off at 0x400,
-/// roll `Gp_LcgState` into `field_16A` beside the 10 percent scale pair
+/// roll `gRandomLcgState` into `field_16A` beside the 10 percent scale pair
 /// `func_actor_107600_80134EF4` divides the model root's rotation by, rebuild
 /// that rotation through `func_actor_107600_80134A50`, and put the spawned
 /// object's light into mode 2 with its blend timer cleared. Variant 2 only
@@ -2216,8 +2216,8 @@ static void func_actor_107600_80134C54(Task* arg0)
         case 1:
             work->field_158 = 1;
             work->field_50  = 0x400;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_16A = (Gp_LcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_16A = (gRandomLcgState >> 16) & 7;
             work->field_168 = 10;
             work->field_169 = 10;
             func_actor_107600_80134A50(arg0);

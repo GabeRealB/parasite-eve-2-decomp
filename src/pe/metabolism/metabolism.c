@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -119,9 +119,9 @@ void func_metabolism_8012EF34(Task* arg0)
                 s32 rng;
 
                 for (i = 0; i < D_metabolism_8012FB54[mem->index].field_0; i++) {
-                    rng                      = Gp_LcgState * 5 + 0x71357911;
+                    rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_metabolism_8012FB78[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
-                    Gp_LcgState              = rng;
+                    gRandomLcgState          = rng;
                 }
             }
             Gp_StateC08.field_6 |= 8;
@@ -142,11 +142,11 @@ void func_metabolism_8012EF34(Task* arg0)
                 s32 rng2;
 
                 for (i = 0; i < 3; i++) {
-                    rng         = Gp_LcgState * 5 + 0x71357911;
-                    rng2        = rng * 5 + 0x71357911;
-                    Gp_LcgState = rng;
-                    mem->step   = ((u32)rng >> 16) & 0xFFF;
-                    Gp_LcgState = rng2;
+                    rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    rng2            = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = rng;
+                    mem->step       = ((u32)rng >> 16) & 0xFFF;
+                    gRandomLcgState = rng2;
                     gfxRotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
                     gte_SetRotMatrix(&coord->coord);
                     gte_ldv0(&mem->move);
@@ -236,12 +236,12 @@ void func_metabolism_8012F5A0(Task* arg0)
             mem->angle   = arg0->spawnArg1.value & 0xFFF;
             kind         = Gp_StateC08.field_0 % 10U;
             if (kind - 1 < 2 ||
-                (Gp_LcgState = Gp_LcgState * 5 + 0x71357911,
-                 roll        = ((u32)Gp_LcgState >> 16) % 3U, roll != 0)) {
-                arg0->state = 1;
-                mem->period = 0x1000;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->scale  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+                (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT,
+                 roll            = (gRandomLcgState >> 16) % 3U, roll != 0)) {
+                arg0->state     = 1;
+                mem->period     = 0x1000;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
             } else {
                 arg0->state = 2;
                 mem->scale  = 0xC0;

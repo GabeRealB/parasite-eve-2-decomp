@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/task.h"
@@ -217,8 +217,8 @@ void func_gunblade_8011DAA4(Task* task)
                 Gp_SpawnEff(0x600C1, coord, 0x202AA, NULL);
                 Gp_SpawnEff(0x600C1, coord, 0x20555, NULL);
                 for (i = 0; i < 4; i++) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x6007C, coord, (((u32)Gp_LcgState >> 16) & 0x3F) | 0x100, NULL);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x6007C, coord, ((gRandomLcgState >> 16) & 0x3F) | 0x100, NULL);
                 }
                 task->state = 1;
                 work->scale = work->period = 0xE0;

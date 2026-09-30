@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the fireball library; see fireball.h. */
 
 /// Unless an event is running, draws from the gameplay LCG and on one call in
@@ -10,10 +12,10 @@ void fireballSpawnEmber(GfxCoord* arg0, s32 arg1)
     s32     ang;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            ang         = ((u32)Gp_LcgState >> 16) & 0xF80;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            ang             = (gRandomLcgState >> 16) & 0xF80;
             memset(&sp18, 0, sizeof(sp18));
             sp18.vx = (u32)(rcos(ang) * 5) >> 5;
             sp18.vz = (u32)(rsin(ang) * 5) >> 5;

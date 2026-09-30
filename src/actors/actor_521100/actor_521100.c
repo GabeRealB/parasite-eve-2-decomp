@@ -39,7 +39,7 @@
 
 #include "main/coord.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -1891,10 +1891,10 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         }
         switch (hitType) {
             case 0:
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                r           = rng >> 0x10;
-                angle       = (r & 0x7F) + 0x40;
-                Gp_LcgState = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = rng >> 0x10;
+                angle           = (r & 0x7F) + 0x40;
+                gRandomLcgState = rng;
                 if (!(r & 1)) {
                     angle = -angle;
                 }
@@ -1914,9 +1914,9 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 if ((work->field_69E == 0) && (work->field_6AC <= 0)) {
                     work->field_69E = 5;
                     work->field_6A0 = 0;
-                    rng2            = Gp_LcgState * 5 + 0x71357911;
+                    rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->field_6AC = ((rng2 >> 0x10) & 0xFF) + 0x96;
-                    Gp_LcgState     = rng2;
+                    gRandomLcgState = rng2;
                     sound           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0006;
                     pan             = (s8)Gp_GetObjPan(coord);
                     depth           = (s8)gpGetObjDepth(coord);
@@ -1946,8 +1946,8 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 } else {
                     damage >>= 1;
                 }
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((Gp_LcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if ((gRandomLcgState >> 16) & 1) {
                     sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0004;
                 } else {
                     sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0005;
@@ -2036,8 +2036,8 @@ static void func_actor_521100_80132958(Task* arg0)
                     work->field_6A0 = 1;
                     work->field_686 = 0x12;
                     tbl             = D_actor_521100_8015F614;
-                    rng             = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState     = rng;
+                    rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = rng;
                     work->field_68E = tbl[(rng >> 16) & 0xF];
                 } else if (func_actor_521100_80132C70(arg0) == 0) {
                     func_actor_521100_80135680(arg0);
@@ -2066,16 +2066,16 @@ static void func_actor_521100_80132958(Task* arg0)
                     work->field_69C = 0x78;
                     work->field_69A = 0;
                     tbl1            = D_actor_521100_8015F5F4;
-                    rng1            = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState     = rng1;
+                    rng1            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = rng1;
                     timer           = tbl1[(rng1 >> 16) & 0xF];
                     work->field_68E = timer;
                     if (timer == 0) {
                         func_actor_521100_80135680(arg0);
                         if (work->field_69E == 0) {
                             tbl2            = D_actor_521100_8015F614;
-                            rng2            = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState     = rng2;
+                            rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rng2;
                             work->field_68E = tbl2[(rng2 >> 16) & 0xF];
                         }
                     } else {
@@ -2182,27 +2182,27 @@ static void func_actor_521100_80132DE8(Task* arg0)
             if (((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->field_6AA < 0x8FC) {
                     if (work->field_6B8 == work->field_6B6) {
-                        pairNear    = D_actor_521100_8015F59C;
-                        rngPN       = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rngPN;
-                        next        = ((Actor521100StateChoice*)((u8*)pairNear + (work->field_6B6 * 4 + ((rngPN >> 16) & 1) * 2)))->state;
+                        pairNear        = D_actor_521100_8015F59C;
+                        rngPN           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rngPN;
+                        next            = ((Actor521100StateChoice*)((u8*)pairNear + (work->field_6B6 * 4 + ((rngPN >> 16) & 1) * 2)))->state;
                     } else {
-                        flatNear    = D_actor_521100_8015F57C;
-                        rngFN       = Gp_LcgState * 5 + 0x71357911;
-                        next        = flatNear[(rngFN >> 16) & 0xF];
-                        Gp_LcgState = rngFN;
+                        flatNear        = D_actor_521100_8015F57C;
+                        rngFN           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        next            = flatNear[(rngFN >> 16) & 0xF];
+                        gRandomLcgState = rngFN;
                     }
                 } else {
                     if (work->field_6B8 == work->field_6B6) {
-                        pairFar     = D_actor_521100_8015F5C8;
-                        rngPF       = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rngPF;
-                        next        = ((Actor521100StateChoice*)((u8*)pairFar + (work->field_6B6 * 4 + ((rngPF >> 16) & 1) * 2)))->state;
+                        pairFar         = D_actor_521100_8015F5C8;
+                        rngPF           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rngPF;
+                        next            = ((Actor521100StateChoice*)((u8*)pairFar + (work->field_6B6 * 4 + ((rngPF >> 16) & 1) * 2)))->state;
                     } else {
-                        flatFar     = D_actor_521100_8015F5A8;
-                        rngFF       = Gp_LcgState * 5 + 0x71357911;
-                        next        = flatFar[(rngFF >> 16) & 0xF];
-                        Gp_LcgState = rngFF;
+                        flatFar         = D_actor_521100_8015F5A8;
+                        rngFF           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        next            = flatFar[(rngFF >> 16) & 0xF];
+                        gRandomLcgState = rngFF;
                     }
                 }
             } else {
@@ -2327,11 +2327,11 @@ static void func_actor_521100_80133104(Task* arg0)
     if ((s16)work->field_68A >= ((s16)clipId + 0x7A)) {
         work->field_686 = 1;
         tbl             = D_actor_521100_8015F5F4;
-        rng             = (Gp_LcgState * 5) + 0x71357911;
+        rng             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_69E = 0;
         work->field_6A0 = 0;
         part            = tbl[(rng >> 16) & 0xF];
-        Gp_LcgState     = rng;
+        gRandomLcgState = rng;
         work->field_6AE = 0;
         work->field_68E = part;
     }
@@ -2435,8 +2435,8 @@ static void func_actor_521100_8013334C(Task* arg0)
         work->field_69E = 0;
         work->field_6A0 = 0;
         tbl             = D_actor_521100_8015F5F4;
-        rng             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState     = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         work->field_68E = tbl[(rng >> 16) & 0xF];
         work->field_6AE = 0;
     }
@@ -2481,8 +2481,8 @@ static void func_actor_521100_801335B4(Task* arg0)
                 u16* tbl        = D_actor_521100_8015F5D4;
                 work->field_686 = 4;
                 work->field_6A2 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF];
                 snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0007;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
@@ -2500,8 +2500,8 @@ static void func_actor_521100_801335B4(Task* arg0)
                 work->field_6A0 = 0;
                 work->field_6A2 = 0;
                 work->field_686 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF];
             } else {
                 work->field_6A2  = 2;
                 work->field_686  = 8;
@@ -2557,8 +2557,8 @@ static void func_actor_521100_801335B4(Task* arg0)
                 work->field_69E = 0;
                 work->field_6A0 = 0;
                 work->field_686 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF];
             }
             work->field_6AE = 0;
             break;
@@ -2796,8 +2796,8 @@ static void func_actor_521100_801339B0(Task* arg0)
                 work->field_686 = 1;
                 work->field_69E = 0;
                 work->field_6A0 = 0;
-                rng             = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_68E = tbl[(rng >> 16) & 0xF];
             }
             break;
@@ -2906,8 +2906,8 @@ static void func_actor_521100_80134658(Task* arg0)
                 }
                 work->field_686 = 1;
                 tbl             = D_actor_521100_8015F634;
-                rng             = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_68E = tbl[(rng >> 16) & 0xF];
             }
             return;
@@ -3315,9 +3315,9 @@ static void func_actor_521100_80135230(Task* arg0)
         work->field_68E = 0U;
         func_800FDB18(3, &arg0->extra.tmd->coords[3], NULL, &work->eff);
         if (work->field_68C == 1) {
-            tbl         = D_actor_521100_8015F8BC;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            part        = tbl[(Gp_LcgState >> 16) & 7];
+            tbl             = D_actor_521100_8015F8BC;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            part            = tbl[(gRandomLcgState >> 16) & 7];
             func_800FDB18(3, &arg0->extra.tmd->coords[part], NULL, &work->eff);
         }
     }
@@ -3542,8 +3542,8 @@ static void func_actor_521100_8013570C(Task* arg0)
                 }
                 work->field_686 = 1;
                 tbl             = D_actor_521100_8015F634;
-                rng             = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_68E = tbl[(rng >> 16) & 0xF];
             }
             return;
@@ -3583,8 +3583,8 @@ static void func_actor_521100_801357F0(Task* arg0)
                 }
                 work->field_686 = 1;
                 tbl             = D_actor_521100_8015F5F4;
-                rng             = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_68E = tbl[(rng >> 16) & 0xF];
             }
             return;

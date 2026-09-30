@@ -22,7 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -258,12 +258,12 @@ void func_shelter_b2_pod_bottom_8017D760(Task* task)
 
     if (task->state == 0) {
         for (i = 0; i < 16; i++) {
-            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-            D_shelter_b2_pod_bottom_80188790[0][i] = (Gp_LcgState >> 16) & 0xFF;
-            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-            D_shelter_b2_pod_bottom_80188790[1][i] = (Gp_LcgState >> 16) & 0xFF;
-            Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-            D_shelter_b2_pod_bottom_80188790[2][i] = (Gp_LcgState >> 16) & 0xFF;
+            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[0][i] = (gRandomLcgState >> 16) & 0xFF;
+            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[1][i] = (gRandomLcgState >> 16) & 0xFF;
+            gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_shelter_b2_pod_bottom_80188790[2][i] = (gRandomLcgState >> 16) & 0xFF;
         }
         task->state                          = 1;
         gRoomEffectState->groundTraceEnabled = false;
@@ -705,8 +705,8 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 work->angle         = 0x80;
                 work->step          = 0xC0 / task->spawnArg1.value;
                 task->state         = 1;
-                Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                work->index         = (Gp_LcgState >> 16) % 18;
+                gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->index         = (gRandomLcgState >> 16) % 18;
             case 1:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
@@ -734,8 +734,8 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                     work->period = 0x300;
                     work->step   = 0;
                 }
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                work->index = (Gp_LcgState >> 16) % 18;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->index     = (gRandomLcgState >> 16) % 18;
                 return;
             case 2:
                 if (work->scale < 0x11) {
@@ -747,9 +747,9 @@ void func_shelter_b2_pod_bottom_8017F448(Task* task)
                 Gp_DrawRing(coord, work->angle, rgb);
                 Gp_DrawRing(coord, (s16)((u16)work->angle * 2), rgb);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    work->scale -= 0x10;
-                    work->index  = (Gp_LcgState >> 16) % 18;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->scale    -= 0x10;
+                    work->index     = (gRandomLcgState >> 16) % 18;
                 }
                 return;
             default:
@@ -906,8 +906,8 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                 work->step          = 0xC0 / task->spawnArg1.value;
                 task->state         = 1;
                 for (i = 0; i < 8; i++) {
-                    Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
-                    D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);
+                    gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    D_shelter_b2_pod_bottom_801887F0[i] = (i << 9) + ((gRandomLcgState >> 16) & 0x1FF);
                 }
             case 1:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -936,8 +936,8 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                     work->period = 0x300;
                     work->step   = 0;
                 }
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                work->index = (Gp_LcgState >> 16) % 18;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->index     = (gRandomLcgState >> 16) % 18;
                 return;
             case 2:
                 if (work->scale < 0x11) {
@@ -952,9 +952,9 @@ void func_shelter_b2_pod_bottom_8018016C(Task* task)
                     func_shelter_b2_pod_bottom_801805A0(coord, (s16)((u16)work->angle * 2), D_shelter_b2_pod_bottom_801887F0[i], rgb);
                 }
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    work->scale -= 0x10;
-                    work->index  = (Gp_LcgState >> 16) % 18;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->scale    -= 0x10;
+                    work->index     = (gRandomLcgState >> 16) % 18;
                 }
                 return;
             default:
@@ -1042,19 +1042,19 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
             Gp_ReleaseState1CMem(work, task);
             return;
         }
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((Gp_LcgState >> 16) % 6) << 12));
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
     work->age++;
     if (task->state == 0) {
-        work->move.vx = 0;
-        work->move.vz = 0;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->move.vy = ((Gp_LcgState >> 16) & 0x3F) + 0x10;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->scale   = (Gp_LcgState >> 16) & 0xFFF;
-        work->angle   = task->spawnArg1.value & 0xFFF;
+        work->move.vx   = 0;
+        work->move.vz   = 0;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->scale     = (gRandomLcgState >> 16) & 0xFFF;
+        work->angle     = task->spawnArg1.value & 0xFFF;
         if (task->spawnArg1.value & 0x10000) {
             work->move.vy = -work->move.vy;
         }
@@ -1066,8 +1066,8 @@ void func_shelter_b2_pod_bottom_80180898(Task* task)
         work->index++;
     }
     if (work->index < 8) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((Gp_LcgState >> 16) % 6) << 12));
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        Gp_DrawFxQuad(coord, work->index, work->angle, work->scale | (((gRandomLcgState >> 16) % 6) << 12));
         return;
     }
     Gp_ReleaseState1CMem(work, task);
@@ -1168,8 +1168,8 @@ void func_shelter_b2_pod_bottom_80180F10(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            rnd         = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rnd;
+            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rnd;
             func_shelter_b2_pod_bottom_8018101C(coord, 0x100, (rnd >> 16) & 0x777, 0x10);
             return;
         }
@@ -1329,12 +1329,12 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0)
     u32       rnd;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
+        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
+        coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
         Gp_SpawnEff(0x600E0, coord, 0x10300, 0);
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
+        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         if ((rnd >> 16) & 1) {
             Gp_SpawnEff(0x600E1, coord, 0x10300, 0);
         }
@@ -1347,12 +1347,12 @@ void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
     u32       rnd;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
-        coord       = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
+        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
+        coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
         Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rnd;
+        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         if (!((rnd >> 16) & 1)) {
             Gp_SpawnEff(0x600F4, coord, 0x8600, 0);
         }

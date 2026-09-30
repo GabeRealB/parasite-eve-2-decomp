@@ -14,7 +14,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -76,21 +76,21 @@ void Gp_EffAttachTask37(Task* arg0)
             } else {
                 temp = 0x200;
             }
-            mem->angle   = temp;
-            mem->period  = 0x800;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = 0x400 - (((u32)Gp_LcgState >> 16) % 0xC00);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+            mem->angle      = temp;
+            mem->period     = 0x800;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = 0x400 - ((gRandomLcgState >> 16) % 0xC00);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
             VectorNormalSS(&mem->move, &mem->move);
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vx         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vy         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            mem->pos.vz         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vx         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vy         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             arg0->state = 1;
@@ -167,13 +167,13 @@ void Gp_EffAttachTask37(Task* arg0)
             if (!(mem->age & 3)) {
                 func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
             }
-            mem->move.vy += 0x10000 / mem->scale;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            if (!(((u32)Gp_LcgState >> 16) & 3)) {
+            mem->move.vy   += 0x10000 / mem->scale;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (!((gRandomLcgState >> 16) & 3)) {
                 Gp_SpawnEff(0x60042, coord, mem->angle + 0x11000, 0);
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (!(((u32)Gp_LcgState >> 16) & 7)) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (!((gRandomLcgState >> 16) & 7)) {
                 Gp_SpawnEff(0x60055, coord, mem->angle + 0x11000, 0);
             }
             if (mem->age >= 0x33) {

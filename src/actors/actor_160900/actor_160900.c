@@ -31,7 +31,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1569,10 +1569,10 @@ static void func_actor_160900_80133758(SVECTOR* pts)
     if (!(gDisplayState.animFrame & 7) && pts->pad != -1) {
         flags = 0x81203400;
         do {
-            seed        = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = seed;
-            x           = pts->vx + (((seed >> 16) & 1) ? ((Gp_LcgState = seed * 5 + 0x71357911) >> 16) & 7
-                                                        : -(((Gp_LcgState = seed * 5 + 0x71357911) >> 16) & 7)) *
+            seed            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = seed;
+            x               = pts->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7
+                                                            : -(((gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
                               100;
             pos.vx = x;
             pos.vy = pts->vy;

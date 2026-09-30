@@ -47,7 +47,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -3346,17 +3346,17 @@ void func_acropolis_security_room_80181108(Task* arg0)
     Gp_UpdateCoord(coord);
 
     if (mem->age == 0) {
-        mem->scale   = 0x20;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        mem->scale      = 0x20;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->period     = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->step       = 0x80 - ((gRandomLcgState >> 16) & 0xF0);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
     }
 
     for (i = 0; i < 4; i++) {
@@ -3423,8 +3423,8 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
         tx = mem->move.vx;
         if (tx == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx   += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
         } else {
             if (tx > 0) {
                 tx--;
@@ -3436,9 +3436,9 @@ void func_acropolis_security_room_80181108(Task* arg0)
 
         tz = mem->move.vz;
         if (tz == 0) {
-            mem->move.vz += mem->step % 32;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+            mem->move.vz   += mem->step % 32;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz   += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
         } else {
             if (tz > 0) {
                 tz--;
@@ -3448,10 +3448,10 @@ void func_acropolis_security_room_80181108(Task* arg0)
             mem->move.vz = tz;
         }
 
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 16;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->period    += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 16;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->step      += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
         if (coord->coord.t[1] >= -0x1A3) {
             mem->index = 1;
         }
@@ -3493,11 +3493,11 @@ void func_acropolis_security_room_801817A4(Task* task)
     gte_stsxy(&scratch->x);
     gte_stszotz(&scratch->otz);
     if (scratch->otz >= 0x11) {
-        red           = (task->spawnArg1.value >> 1) & 1;
-        green         = task->spawnArg1.value & 1;
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        lum           = ((Gp_LcgState >> 16) & 0x70) + 0x40;
-        scratch->step = 0xC00 / scratch->otz;
+        red             = (task->spawnArg1.value >> 1) & 1;
+        green           = task->spawnArg1.value & 1;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        lum             = ((gRandomLcgState >> 16) & 0x70) + 0x40;
+        scratch->step   = 0xC00 / scratch->otz;
         for (i = 0; i < 2; i++) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;

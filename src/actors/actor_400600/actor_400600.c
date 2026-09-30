@@ -38,7 +38,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -2279,8 +2279,8 @@ static void func_actor_400600_80133434(Task* arg0)
     work->field_90  = coord->coord.t[0];
     work->field_92  = coord->coord.t[1];
     work->field_94  = coord->coord.t[2];
-    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState     = rnd;
+    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rnd;
     work->field_716 = rnd >> 0x10;
     work->field_73E = work->field_92;
     switch ((u8)arg0->spawnArg1.value >> 4) {
@@ -2402,8 +2402,8 @@ static void func_actor_400600_80133B88(Task* arg0)
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         func_actor_400600_80138B5C(arg0, 0);
         Gp_ArmStateF0(1);
-        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = rnd;
+        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rnd;
         work->field_758  = ((rnd >> 0x10) & 0x3F) + 0x1E;
         work2            = (Actor400600Work*)arg0->work;
         work2->field_71C = 2;
@@ -2945,8 +2945,8 @@ static void func_actor_400600_80135450(Task* arg0)
         work->field_718++;
     }
     if ((func_actor_400600_801370F4(arg0) << 0x10) == 0 && (func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        rnd                     = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState             = rnd;
+        rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState         = rnd;
         work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
         work2                   = (Actor400600Work*)arg0->work;
         work2->field_71C        = 2;
@@ -2988,8 +2988,8 @@ static void func_actor_400600_80135578(Task* arg0)
             return;
         }
         work->field_730  = 0;
-        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = rnd;
+        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rnd;
         work->field_750  = ((rnd >> 0x10) & 0x7F) + 0x1E;
         work3            = (Actor400600Work*)arg0->work;
         work3->field_71C = 5;
@@ -4191,10 +4191,10 @@ static s32 func_actor_400600_80137C34(Task* arg0)
     s32              dist;
     s16              y;
 
-    work        = (Actor400600Work*)arg0->work;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    coord       = arg0->extra.tmd->coords;
-    rnd         = (u32)Gp_LcgState >> 0x10;
+    work            = (Actor400600Work*)arg0->work;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    coord           = arg0->extra.tmd->coords;
+    rnd             = gRandomLcgState >> 0x10;
     switch (work->field_76D) {
         case 0:
             if (work->field_732 != 0) {
@@ -4244,9 +4244,9 @@ static s32 func_actor_400600_80137C34(Task* arg0)
                     return 1;
                 }
             } else {
-                rnd1                                      = ((u32)Gp_LcgState * 5) + 0x71357911;
-                rnd2                                      = (rnd1 * 5) + 0x71357911;
-                Gp_LcgState                               = rnd2;
+                rnd1                                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                rnd2                                      = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState                           = rnd2;
                 ((Actor400600Work*)arg0->work)->field_732 = 0x3C + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
                 return 0;
             }
@@ -4510,9 +4510,9 @@ static void func_actor_400600_80138AF0(Task* arg0, s32 arg1)
     u32 rnd1;
     u32 rnd2;
 
-    rnd1                                      = ((u32)Gp_LcgState * 5) + 0x71357911;
-    rnd2                                      = (rnd1 * 5) + 0x71357911;
-    Gp_LcgState                               = rnd2;
+    rnd1                                      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    rnd2                                      = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState                           = rnd2;
     ((Actor400600Work*)arg0->work)->field_732 = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
 }
 
@@ -5734,8 +5734,8 @@ static void func_actor_400600_8013B740(Task* arg0)
 
     min = 0x10;
     if (work->field_728 > 0xBB8 && work->field_76B == 0) {
-        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState = rnd;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         if ((rnd >> 0x10) & 1) {
             min  = 0x18;
             step = 0x24;
@@ -6076,8 +6076,8 @@ static void func_actor_400600_8013C074(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if (((func_actor_400600_801370F4(arg0) << 0x10) == 0) && ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0)) {
-        rnd                     = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState             = rnd;
+        rnd                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState         = rnd;
         work->field_710.h.timer = ((rnd >> 0x10) & 0x1F) + 0xD2;
         work2                   = (Actor400600Work*)arg0->work;
         work2->field_71C        = 2;
@@ -6168,12 +6168,12 @@ static void func_actor_400600_8013C2D4(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if ((func_actor_400600_801370F4(arg0) << 0x10) != 0) {
-        rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState     = rnd;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         work->field_750 = ((rnd >> 0x10) & 0x7F) + 0x1E;
     } else if ((func_actor_400600_8013A0B0(arg0) << 0x10) != 0) {
-        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = rnd;
+        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rnd;
         work->field_750  = ((rnd >> 0x10) & 0x7F) + 0x1E;
         work2            = (Actor400600Work*)arg0->work;
         work2->field_71C = 0xA;
@@ -6280,8 +6280,8 @@ static void func_actor_400600_8013C598(Task* arg0)
     work->field_726 = 0x10;
     work->field_746 = 1;
     work->field_742 = 1;
-    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState     = rnd;
+    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rnd;
     work->field_756 = ((rnd >> 0x10) & 0x3F) + 0x5A;
     work->field_71E = work->field_71E + 1;
 }
@@ -6298,8 +6298,8 @@ static void func_actor_400600_8013C5F8(Task* arg0)
         count           = work->field_756 - 1;
         work->field_756 = count;
         if ((count << 0x10) == 0) {
-            rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState     = rnd;
+            rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rnd;
             work->field_758 = ((rnd >> 0x10) & 0x3F) + 0x1E;
             func_actor_400600_80138B5C(arg0, 0);
             work2            = (Actor400600Work*)arg0->work;
@@ -6397,8 +6397,8 @@ static void func_actor_400600_8013C940(Task* arg0)
 
     work = (Actor400600Work*)arg0->work;
     if (Gp_StateF0.field_24 == 1) {
-        rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState     = rnd;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         work->field_718 = ((rnd >> 0x10) & 7) + 0x14;
         work->field_71C = work->field_71C + 1;
     } else if (Gp_StateF0.field_24 == 2) {

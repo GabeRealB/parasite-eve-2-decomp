@@ -31,7 +31,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -344,13 +344,13 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             coord.coord.t[2]   = root->coord.t[2];
             coord.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&coord);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((s32)((Gp_LcgState >> 16) & 0x1FF) < obj->chance) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
                 Gp_SpawnEff(D_8011574C, &coord, 0x40, 0);
             }
-            obj->chance -= 0x20;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            if ((s32)((Gp_LcgState >> 16) & 0x1FF) < obj->chance) {
+            obj->chance    -= 0x20;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((s32)((gRandomLcgState >> 16) & 0x1FF) < obj->chance) {
                 Gp_SpawnEff(D_80115738, &coord, 0x1202180, 0);
             }
             D_neo_ark_woodland_path_80181684[i].vx = part->workm.t[0];

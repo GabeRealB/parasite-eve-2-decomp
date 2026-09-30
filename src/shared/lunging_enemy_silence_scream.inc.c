@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Four-step burst sequence driven by `field_6A8`: 0 spawns the effect and cue
@@ -72,11 +74,11 @@ void lungerSilenceScreamState(Task* arg0)
             break;
         case 3:
             if (!(work->field_698 & 3)) {
-                scratch->vx = 0;
-                scratch->vz = 0;
-                random      = Gp_LcgState * 5 + 0x71357911;
-                scratch->vy = -((random >> 16) & 0x1FF);
-                Gp_LcgState = random;
+                scratch->vx     = 0;
+                scratch->vz     = 0;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                scratch->vy     = -((random >> 16) & 0x1FF);
+                gRandomLcgState = random;
                 Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, scratch);
             }
             if (--work->field_6AE <= 0) {

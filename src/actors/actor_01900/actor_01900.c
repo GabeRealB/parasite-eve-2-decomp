@@ -32,7 +32,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1370,8 +1370,8 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
     absAng = (yaw >= 0) ? yaw : -yaw;
     work   = arg0->work;
     if (absAng < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *dir = Actor01900_D1722C[0];
                 break;
@@ -1389,8 +1389,8 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
                 break;
         }
     } else if (absAng > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *dir = Actor01900_D1722C[5];
                 break;
@@ -1402,15 +1402,15 @@ static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id)
                 break;
         }
     } else if (yaw > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *dir = Actor01900_D1722C[8];
         } else {
             *dir = Actor01900_D1722C[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *dir = Actor01900_D1722C[10];
         } else {
             *dir = Actor01900_D1722C[11];
@@ -2090,8 +2090,8 @@ static void Actor01900_Fn042BC(Task* arg0)
         s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = s->turn;
         if (work->field_C28 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C28 = -1;
             } else {
                 work->field_C28 = 1;
@@ -2350,8 +2350,8 @@ static void Actor01900_Fn05B4C(Task* arg0)
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C28 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C28 = 1;
             } else {
                 work->field_C28 = -1;
@@ -2634,9 +2634,9 @@ static void Actor01900_Fn06B4C(Task* arg0)
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
         (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sound       = 0x51090009;
-        if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sound           = 0x51090009;
+        if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
             sound = 0x51090008;
         }
         switch ((u8)Gp_GetViewIndex()) {
@@ -3724,9 +3724,9 @@ static void Actor01900_Fn0AB1C(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        rng           = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng;
-        work->field_6 = ((rng >> 16) & 0xF) + work->field_C2C;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        work->field_6   = ((rng >> 16) & 0xF) + work->field_C2C;
     }
     timer         = work->field_6 - 1;
     work->field_6 = timer;

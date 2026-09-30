@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Behaviour state 7. On entry it starts animation 0xE and stops the forward
@@ -25,8 +27,8 @@ void spiderStunState(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = 0xB;
                 work->field_3D2 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_39E = (s16)((random >> 0x10) & 0xF);
             }
             return;

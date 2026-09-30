@@ -39,7 +39,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -68,7 +68,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/main_street.h"
 
-#define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 #define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
 #define D_dryfield_night_main_street_801821C8 (D_dryfield_night_main_street_801821A8[4])
 #define D_dryfield_night_main_street_801821D8 (D_dryfield_night_main_street_801821A8[6])

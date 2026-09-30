@@ -72,7 +72,7 @@ GpuOtBuf Gpu_OtBuffers[2];
 
 GfxCoord gGfxViewCoord;
 
-u32 Gp_LcgState;
+u32 gRandomLcgState;
 
 static volatile s32 D_80070F64;
 
@@ -89,6 +89,7 @@ static u8 D_800710C8[0x50];
 #include "display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
+#include "main/random.h"
 #include "main/wipsys.h"
 
 static u32 D_8005EC64;

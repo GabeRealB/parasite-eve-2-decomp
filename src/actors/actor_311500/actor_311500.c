@@ -29,7 +29,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -383,8 +383,8 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 
     switch (work->field_4C0) {
         case 0:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            rng         = (u32)Gp_LcgState >> 16;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rng             = gRandomLcgState >> 16;
             if (work->field_4C8 >= 2) {
                 work->field_4C0 = (u16)work->field_4C0 + 1;
             } else if (rng & 1) {

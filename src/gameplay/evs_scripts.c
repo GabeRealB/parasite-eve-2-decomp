@@ -21,7 +21,7 @@
 
 #include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -772,7 +772,7 @@ void func_800E8888(Task* arg0)
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
-/// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
+/// Each frame an LCG (`gRandomLcgState`) scales the remaining count into
 /// `displaySetShakeY`, flipping sign on `spawnArg1` parity.
 void Gp_ShakeTask(Task* arg0)
 {
@@ -794,10 +794,10 @@ void Gp_ShakeTask(Task* arg0)
                 displaySetShakeY(0);
                 taskKill(arg0);
             } else {
-                val         = lo - ABS(arg0->spawnArg1.value);
-                scaled      = val * (packed >> 8);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                val         = (scaled * (s32)(Gp_LcgState >> 16)) / lo >> 16;
+                val             = lo - ABS(arg0->spawnArg1.value);
+                scaled          = val * (packed >> 8);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                val             = (scaled * (s32)(gRandomLcgState >> 16)) / lo >> 16;
                 if (arg0->spawnArg1.value & 1) {
                     val = ABS(val);
                 } else {

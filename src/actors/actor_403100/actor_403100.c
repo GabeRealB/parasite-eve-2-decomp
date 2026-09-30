@@ -42,7 +42,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -3569,8 +3569,8 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             coord                             = &D_actor_403100_80155814[i].coord;
             D_actor_403100_80155814[i].active = 1;
             D_actor_403100_80155814[i].age    = 0;
-            random                            = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState                       = random;
+            random                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                   = random;
             D_actor_403100_80155814[i].frame  = (s16)((random >> 0x10) & 0xF);
             coordLocalToWorld(joint, arg1);
             identity = &matrix;
@@ -5574,13 +5574,13 @@ static void func_actor_403100_80137310(Task* task)
     phase      = D_actor_403100_80155808->field_628;
     if (phase != 2 && phase != 6) {
         if ((Player_Status.hp < halfHealth) || (D_actor_403100_80155808->field_65C != 0)) {
-            random1                            = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState                        = random1;
+            random1                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                    = random1;
             D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[1][(random1 >> 16) & 15];
             D_actor_403100_80155808->field_5FA = 0;
         } else {
-            random2                            = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState                        = random2;
+            random2                            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                    = random2;
             D_actor_403100_80155808->field_5F8 = D_actor_403100_801557B0.value[0][(random2 >> 16) & 15];
             D_actor_403100_80155808->field_5FA = 0;
         }
@@ -5633,9 +5633,9 @@ static void func_actor_403100_801375B8(Task* task)
     u32 random2;
     u32 random1;
 
-    random1                             = (Gp_LcgState * 5) + 0x71357911;
-    random2                             = (random1 * 5) + 0x71357911;
-    Gp_LcgState                         = random2;
+    random1                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    random2                             = (random1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState                     = random2;
     D_actor_403100_80155808->pad_65E[0] = ((random1 >> 0x10) & 1) + (((random2 >> 0x10) & 1) + 1);
     D_actor_403100_80155808->field_62C  = 0x20;
     angle                               = (u16)D_actor_403100_80155808->field_B2;
@@ -5805,8 +5805,8 @@ static void func_actor_403100_80137CA8(Task* task)
     if (Actor403100_TestFlags104()) {
         if ((u8)D_actor_403100_80155808->pad_66A[4] != 0) {
             D_actor_403100_80155808->field_5EC = 0;
-            random                             = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState                        = random;
+            random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                    = random;
             if (!((random >> 0x10) & 3)) {
                 D_actor_403100_80155808->field_5FC  = 0x14;
                 D_actor_403100_80155808->field_5E2  = 0x1C;
@@ -6173,8 +6173,8 @@ static void func_actor_403100_80138C18(Task* task)
     D_actor_403100_80155808->field_604 = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
     D_actor_403100_80155808->field_608 = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
     if (Actor403100_TestFlags104()) {
-        random      = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState = random;
+        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = random;
         if ((random >> 0x10) & 1) {
             func_actor_403100_8013D2A0(1);
         }
@@ -6342,8 +6342,8 @@ static void func_actor_403100_8013922C(Task* arg0)
     if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
         request = (u8)D_actor_403100_80155808->field_65F;
         if ((request == 1) && ((u8)D_actor_403100_80155808->field_664.b.field_667 == request)) {
-            random                             = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState                        = random;
+            random                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                    = random;
             D_actor_403100_80155808->field_638 = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 0, 0);
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x400, 0, 0);
@@ -7622,9 +7622,9 @@ static void func_actor_403100_8013C214(Task* arg0)
                 }
                 if ((u8)D_actor_403100_80155808->pad_670[0] == 0) {
                     Gp_SpawnPadLerp(0xA, 0xC0U, 0x20U);
-                    random      = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState = random;
-                    randomSound = (random >> 0x10) & 3;
+                    random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random;
+                    randomSound     = (random >> 0x10) & 3;
                     if (randomSound == 0) {
                         soundCoords = playerTask->extra.tmd->coords + 1;
                         sound2      = (((u16)((Enemy*)(playerTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
@@ -7818,8 +7818,8 @@ static void func_actor_403100_8013CBE0(Task* task)
                 goto play_sound;
             }
             if (request == 2) {
-                random      = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 if ((random >> 16) & 1) {
                     soundId  = 0x401F0000;
                     soundId |= 2;
@@ -7998,7 +7998,7 @@ static void func_actor_403100_8013D11C(Task* arg0)
     slot->framesLeft                              = 8;
     light                                         = &slot->light;
     light->inner                                  = 0x300;
-    random                                        = Gp_LcgState * 5 + 0x71357911;
+    random                                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     light->outer                                  = 0x3000;
     value                                         = ((random >> 16) & 0x700) + 0x800;
     light->head.color.r                           = value;
@@ -8008,7 +8008,7 @@ static void func_actor_403100_8013D11C(Task* arg0)
     light->head.transform.lighting.local.t[0]     = coords->coord.t[0];
     light->head.transform.lighting.local.t[1]     = coords->coord.t[1];
     light->head.transform.lighting.local.t[2]     = coords->coord.t[2];
-    Gp_LcgState                                   = random;
+    gRandomLcgState                               = random;
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)

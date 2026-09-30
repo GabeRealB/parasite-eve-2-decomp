@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Entry 0xC of the `field_6A6` table. State 0 picks the animation from
@@ -29,8 +31,8 @@ void lungerDownedShiftState(Task* arg0)
                 work->field_694 = 0x19;
                 work->field_6A6 = 0xB;
                 work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6AE = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
         case 2:
@@ -38,8 +40,8 @@ void lungerDownedShiftState(Task* arg0)
                 work->field_694 = 0x1D;
                 work->field_6A6 = 0xB;
                 work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6AE = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
     }

@@ -39,7 +39,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -829,8 +829,8 @@ void func_acropolis_fire_escape_80180154(Task* task)
         block->otz -= 0x20;
         if (block->otz > 0x10) {
             if (!(gDisplayState.animFrame & 0x1F)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                work->index = (Gp_LcgState >> 16) & 3;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->index     = (gRandomLcgState >> 16) & 3;
             }
             level = work->scale;
             if (work->scale < 0x11) {
@@ -838,13 +838,13 @@ void func_acropolis_fire_escape_80180154(Task* task)
             }
             switch (work->index) {
                 case 0:
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    work->scale = (Gp_LcgState >> 16) & 0x30;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->scale     = (gRandomLcgState >> 16) & 0x30;
                     break;
                 case 1:
                     if (gDisplayState.animFrame & 1) {
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        level       = (Gp_LcgState >> 16) & 0x30;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        level           = (gRandomLcgState >> 16) & 0x30;
                     }
                     work->scale = level;
                     break;
@@ -852,8 +852,8 @@ void func_acropolis_fire_escape_80180154(Task* task)
                     work->scale = 0x30;
                     break;
                 case 3:
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    work->scale = (Gp_LcgState >> 16) & 0x10;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->scale     = (gRandomLcgState >> 16) & 0x10;
                     break;
             }
             if (play && work->scale >= 0x20) {

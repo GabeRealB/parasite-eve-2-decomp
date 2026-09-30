@@ -31,7 +31,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -1825,8 +1825,8 @@ static void Actor04000_Fn026FC(Enemy* arg0, Task* arg1)
     }
     animDriverTick(arg1);
     if ((work->field_58 & 2) && work->field_17C >= 0x19) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 0x10) & 7)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 0x10) & 7)) {
             work->field_0 = 3;
         }
     }
@@ -2173,8 +2173,8 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 1)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 1)) {
             sc->pad = 2;
             sc->vx  = 80;
             sc->vy  = -180;
@@ -2186,8 +2186,8 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
             sc->vz  = 300;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 1)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 1)) {
             sc->pad = 1;
             sc->vx  = 0;
             sc->vy  = 0;
@@ -2199,8 +2199,8 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
             sc->vz  = -50;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 1)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 1)) {
             sc->pad = 5;
             sc->vx  = 100;
             sc->vy  = 0;
@@ -2212,8 +2212,8 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
             sc->vz  = 100;
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 1)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 1)) {
             sc->pad = 4;
             sc->vx  = -100;
             sc->vy  = 0;
@@ -2388,8 +2388,8 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
     animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->field_58 & 2) && work->field_17C > 0x14) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 0x10) & 7)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 0x10) & 7)) {
             work->field_0 = 1;
         }
     }

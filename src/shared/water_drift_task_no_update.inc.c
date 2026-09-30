@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the water effects library; see water_effects.h. */
 
 /// waterDriftTaskU16 without the per-frame Gp_UpdateCoord. The first frame
@@ -32,9 +34,9 @@ void waterDriftTaskNoUpdate(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale     = task->spawnArg1.halves.low & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
             if (task->spawnArg1.value & 0xF000) {
                 step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
@@ -60,28 +62,28 @@ void waterDriftTaskNoUpdate(Task* task)
                         work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
                     case 5:
                         work->move.vx = work->pos.vx;

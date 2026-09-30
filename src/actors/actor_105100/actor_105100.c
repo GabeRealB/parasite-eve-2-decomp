@@ -38,7 +38,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1268,11 +1268,11 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
             return;
         case 1: {
             u16* tbl = D_actor_105100_801413A8;
-            u32  rnd = (Gp_LcgState * 5) + 0x71357911;
+            u32  rnd = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
 
             pose            = (s16)tbl[(rnd >> 16) & 0xF];
             count           = (u16)work->field_5B2;
-            Gp_LcgState     = rnd;
+            gRandomLcgState = rnd;
             work->field_598 = 0;
             count           = count + 1;
             work->field_5B2 = count;
@@ -1286,9 +1286,9 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
             return;
         case 3: {
             u16* tbl = D_actor_105100_801413A8;
-            u32  rnd = (Gp_LcgState * 5) + 0x71357911;
+            u32  rnd = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
 
-            Gp_LcgState     = rnd;
+            gRandomLcgState = rnd;
             work->field_596 = (s16)tbl[(rnd >> 16) & 0xF];
             work->field_598 = 0;
             break;
@@ -1337,8 +1337,8 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
             work->field_5AE = 0;
             work->field_598 = 1;
             work->field_5AC = 1;
-            rnd             = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState     = rnd;
+            rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rnd;
             work->field_59A = ((rnd >> 16) & 0x1F) + 0x9E;
             return;
         case 1:
@@ -1349,8 +1349,8 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
                     Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 1, 0,
                                            (Enemy*)arg0->spawnArg2.pointer);
                     work->field_5AE += 1;
-                    spawnRnd         = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState      = spawnRnd;
+                    spawnRnd         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = spawnRnd;
                     work->field_59C  = ((spawnRnd >> 16) & 0xF) + 0xF;
                 }
             }
@@ -1377,8 +1377,8 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
                 work->field_596 = 0;
                 work->field_598 = 0;
                 work->field_5AC = 0;
-                resetRnd        = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = resetRnd;
+                resetRnd        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = resetRnd;
                 work->field_59A = (resetRnd >> 16) & 0x3F;
                 SndEvt_EnqueueType7(work->field_580, 1);
                 work->field_580 = 0;
@@ -1431,9 +1431,9 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
             work->field_58E = 3;
             work->field_598 = 1;
             tbl             = D_actor_105100_801413C8;
-            rnd             = (Gp_LcgState * 5) + 0x71357911;
+            rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             kind            = tbl[(rnd >> 16) & 0xF];
-            Gp_LcgState     = rnd;
+            gRandomLcgState = rnd;
             work->field_5AE = 0;
             work->field_5AC = 3;
             work->field_5B0 = kind;
@@ -1496,8 +1496,8 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
                 work->field_58E = 1;
                 work->field_596 = 0;
                 work->field_598 = 0;
-                rnd             = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = rnd;
+                rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 eff             = work->field_55C;
                 work->field_59A = (rnd >> 16) & 0x3F;
                 if (eff != NULL) {
@@ -1591,8 +1591,8 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
                 work->field_58E = 1;
                 work->field_596 = 0;
                 work->field_598 = 0;
-                rnd             = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = rnd;
+                rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 work->field_59A = (rnd >> 16) & 0x3F;
             }
             break;
@@ -1921,10 +1921,10 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     coord->coord      = parentCoord->coord;
     coord->coord.t[0] = parentCoord->coord.t[0] + D_actor_105100_801414E0[(s16)parentWork->field_5AE].vx;
     offsetY           = D_actor_105100_801414E0[(s16)parentWork->field_5AE].vy;
-    seed              = Gp_LcgState;
+    seed              = gRandomLcgState;
     transY            = &coord->coord.t[1];
     *transY           = parentCoord->coord.t[1] + offsetY;
-    rollX             = (Gp_LcgState = seed * 5 + 0x71357911) >> 16;
+    rollX             = (gRandomLcgState = seed * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
     index             = (s16)parentWork->field_5AE;
     temp              = &D_actor_105100_801414E0[index];
     coord->coord.t[2] = parentCoord->coord.t[2] + (amountX = ((SVECTOR*)temp)->vz);
@@ -1933,13 +1933,13 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     posX              = coord->coord.t[0];
     coord->coord.t[0] = !signX ? posX - amountX : posX + amountX;
 
-    rollY             = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+    rollY             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
     amountY           = rollY & 0x7F;
     signY             = rollY & 0x80;
     posY              = coord->coord.t[1];
     coord->coord.t[1] = !signY ? posY - amountY : posY + amountY;
 
-    rollZ             = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+    rollZ             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
     amountZ           = rollZ & 0x7F;
     signZ             = rollZ & 0x80;
     posZ              = coord->coord.t[2];
@@ -1979,12 +1979,12 @@ static void func_actor_105100_801347D4(Enemy* arg0, Task* arg1)
     Gp_LinkObj(3, &work->obj38);
     work->obj38.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     Gp_InitRec18Table(&work->rec20, 1, 0);
-    work->field_7E = 0x190;
-    rollA          = (Gp_LcgState * 5) + 0x71357911;
-    rollB          = (rollA * 5) + 0x71357911;
-    Gp_LcgState    = rollB;
-    work->field_78 = ((rollA >> 16) & 0xF) + ((rollB >> 16) & 7);
-    arg1->state    = 1;
+    work->field_7E  = 0x190;
+    rollA           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    rollB           = (rollA * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rollB;
+    work->field_78  = ((rollA >> 16) & 0xF) + ((rollB >> 16) & 7);
+    arg1->state     = 1;
 }
 
 /// The projectile task's state handlers, indexed by `Task::state`: setup,
@@ -2045,10 +2045,10 @@ body:
     scratch = SCRATCH_STACK_CURSOR(Actor105100ProjScratch);
     switch (work->field_7A) {
         case 0:
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            hi          = rng >> 16;
-            val         = hi & 0x3F;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            hi              = rng >> 16;
+            val             = hi & 0x3F;
+            gRandomLcgState = rng;
             if (!(hi & 0x40)) {
                 val = -val;
             }
@@ -2057,10 +2057,10 @@ body:
                 work->field_70.vx += val;
                 coord->coord.t[0] += scratch->rot.vx;
             }
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            hi          = rng >> 16;
-            val         = hi & 0x3F;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            hi              = rng >> 16;
+            val             = hi & 0x3F;
+            gRandomLcgState = rng;
             if (!(hi & 0x40)) {
                 val = -val;
             }
@@ -2069,10 +2069,10 @@ body:
                 work->field_70.vy += val;
                 coord->coord.t[1] += scratch->rot.vy;
             }
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            hi          = rng >> 16;
-            val         = hi & 0x3F;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            hi              = rng >> 16;
+            val             = hi & 0x3F;
+            gRandomLcgState = rng;
             if (!(hi & 0x40)) {
                 val = -val;
             }

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the burster library; see burster.h. */
 
 /// Kills the first enemy: its HP is cleared and a random draw (or a non-zero
@@ -14,13 +16,13 @@ void bursterKill(Task* arg0, u8 arg1)
     GfxCoord*        coord;
     s32              soundId;
 
-    obj         = arg0->extra.tmd;
-    enemy       = arg0->spawnArg2.pointer;
-    work        = (Actor104600Work*)arg0->work;
-    coord       = obj->coords;
-    enemy->hp   = 0;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if (((Gp_LcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
+    obj             = arg0->extra.tmd;
+    enemy           = arg0->spawnArg2.pointer;
+    work            = (Actor104600Work*)arg0->work;
+    coord           = obj->coords;
+    enemy->hp       = 0;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if (((gRandomLcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
         if (work->field_2D6 != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000B;
             SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));

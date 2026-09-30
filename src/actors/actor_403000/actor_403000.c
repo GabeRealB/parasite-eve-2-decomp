@@ -37,7 +37,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -534,7 +534,7 @@ static void func_actor_403000_8013D5F8(Task* arg0);
 static void func_actor_403000_8013D850(Task* arg0);
 
 /// Per-frame countdown: on the frame `field_4` is set, reload the `field_6`
-/// tick from a fresh `Gp_LcgState` draw masked to 0xA..0x19, then decrement
+/// tick from a fresh `gRandomLcgState` draw masked to 0xA..0x19, then decrement
 /// it. When the tick underflows and the enemy still has HP left
 /// (`Enemy::hp`), the animation state `field_0` is set to 0x13.
 static void func_actor_403000_8013D910(Task* arg0);
@@ -3723,10 +3723,10 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
     gte_stflg(&flag);
     gte_stszotz(&otz);
     if (flag >= 0) {
-        x           = sxy;
-        y           = sxy >> 16;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        radius      = (s32)(((Gp_LcgState >> 16) & 0xF) + 0x1E) * 0x160 / (otz * 4);
+        x               = sxy;
+        y               = sxy >> 16;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        radius          = (s32)(((gRandomLcgState >> 16) & 0xF) + 0x1E) * 0x160 / (otz * 4);
         for (i = 0; i < 8; i++) {
             prim = gGpuPrimCursor;
             // Preserve the textured-triangle-sized reservation for this gouraud packet.
@@ -4690,7 +4690,7 @@ static void func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2)
     mag     = (arg1 >= 0) ? arg1 : -arg1;
     work    = arg0->work;
     if (mag < 0x200) {
-        switch ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) {
+        switch ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) {
             case 0:
                 scratch[0] = D_actor_403000_80158C48[0];
                 scratch[1] = D_actor_403000_80158C48[3];
@@ -4712,7 +4712,7 @@ static void func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        switch ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 2) {
+        switch ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 2) {
             case 0:
                 scratch[0] = D_actor_403000_80158C48[5];
                 scratch[1] = D_actor_403000_80158C48[6];
@@ -4864,8 +4864,8 @@ static void func_actor_403000_80134F44(Task* arg0)
             }
         }
         if ((s16)func_actor_403000_80134E00(arg0) != 0) {
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_FDA = ((Gp_LcgState >> 16) & 0x1F) + 0xA0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_FDA = ((gRandomLcgState >> 16) & 0x1F) + 0xA0;
             if (work->field_0 != 0x10 && work->field_0 != 0x12 && !(work->field_0 == 0x13 && (s16)work->field_6 >= 0x13)) {
                 if (work->field_0 != 0xF && !(work->field_0 == 0xC && arg0->extra.tmd->coords->coord.t[1] < player->extra.tmd->coords->coord.t[1]) && work->field_0 != 0xD && work->field_FC0 != 1) {
                     work->field_0 = 0x11;
@@ -5080,9 +5080,9 @@ static void func_actor_403000_80135F08(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
     if (work->field_60.word & 0x102) {
-        seed          = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState   = seed;
-        work->field_6 = (seed >> 0x10) & 0x1F;
+        seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = seed;
+        work->field_6   = (seed >> 0x10) & 0x1F;
     }
     if ((s16)work->field_6 > 0) {
         work->field_6--;
@@ -6670,7 +6670,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         if ((s8)work->field_FD6 == 1) {
             work->field_0 = 0xF;
         } else {
-            r = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            r = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
             if (arg0->extra.tmd->texturePageOffset == 2) {
                 if (r <= 0) {
                     work->field_0 = 3;
@@ -7879,9 +7879,9 @@ static void func_actor_403000_8013D910(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        rng           = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng;
-        work->field_6 = ((rng >> 16) & 0xF) + 0xA;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        work->field_6   = ((rng >> 16) & 0xF) + 0xA;
     }
     timer         = work->field_6 - 1;
     work->field_6 = timer;

@@ -37,7 +37,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -1417,29 +1417,29 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (GameFlag_GetNibble(0x5D) == 0) {
         if (gGameSession->location.loc.view == 2) {
-            limit        = (player->coord.t[0] - 5856) >> 7;
-            eff->move.vx = 12000;
-            eff->move.vy = -3000;
-            eff->move.vz = 3000;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)((Gp_LcgState >> 16) % 100) < limit) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003C, coord, (s32)(Gp_LcgState >> 16) % limit + 0x40, &eff->move);
+            limit           = (player->coord.t[0] - 5856) >> 7;
+            eff->move.vx    = 12000;
+            eff->move.vy    = -3000;
+            eff->move.vz    = 3000;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 100) < limit) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003C, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
             }
             if (eff->step == 0) {
                 SndEvt_EnqueueType6(0x5216000A, 0, 0);
                 eff->step = 1;
             }
         } else if (gGameSession->location.loc.view == 3) {
-            eff->scale   = 0x10;
-            eff->move.vx = player->coord.t[0] + 0x100;
-            eff->move.vy = -3000;
-            eff->move.vz = 3000;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0x7F) + 0x40, &eff->move);
+            eff->scale      = 0x10;
+            eff->move.vx    = player->coord.t[0] + 0x100;
+            eff->move.vy    = -3000;
+            eff->move.vz    = 3000;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x6003C, coord, ((gRandomLcgState >> 16) & 0x7F) + 0x40, &eff->move);
             if (eff->step < 2) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if (!((Gp_LcgState >> 16) & 3)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (!((gRandomLcgState >> 16) & 3)) {
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(0x5216000B, pan, (s8)gpGetObjDepth(coord));
                     eff->step = 2;
@@ -1453,16 +1453,16 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
         }
         if (eff->scale != 0) {
             eff->scale--;
-            eff->move.vx = 16000;
-            eff->move.vy = -3000;
-            eff->move.vz = 2750;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->move);
-            eff->move.vx = 17000;
-            eff->move.vy = -3000;
-            eff->move.vz = 4000;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x6003C, coord, ((Gp_LcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            eff->move.vx    = 16000;
+            eff->move.vy    = -3000;
+            eff->move.vz    = 2750;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x6003C, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            eff->move.vx    = 17000;
+            eff->move.vy    = -3000;
+            eff->move.vz    = 4000;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x6003C, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
         }
     }
 }
@@ -1736,21 +1736,21 @@ void func_dryfield_breezeway_80181264(Task* task)
             m->m[2][2]           = 0x1000;
             work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
             work->scale          = 0x50;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy         = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->index          = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->period         = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy         = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index          = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period         = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vx   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
                 gte_SetRotMatrix(&work->parent->coord);
                 gte_ldv0(&work->move);
                 gte_rtv0();

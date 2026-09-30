@@ -23,7 +23,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -139,11 +139,11 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         }
                         Gp_UpdateCoord(coord);
                         if ((work->age & 0xF) == 0) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            work->angle = (Gp_LcgState >> 16) & 0xFFF;
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
                         }
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        work->period = ((Gp_LcgState >> 16) & 0xFF) + 0xC0;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->period    = ((gRandomLcgState >> 16) & 0xFF) + 0xC0;
                         if ((work->age & 1) == 0) {
                             func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
                                                       work->angle);
@@ -151,8 +151,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         base->framesLeft   = 4;
                         slot->inner        = 0x80;
                         slot->outer        = 0x400;
-                        Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                        slot->head.color.b = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+                        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x400;
                         slot->head.color.r = (u16)slot->head.color.b >> 1;
                         slot->head.color.g = (u16)slot->head.color.b >> 1;
                         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
@@ -171,28 +171,28 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         Gp_UpdateCoord(coord);
                         if (work->index == 0) {
                             for (i = 0; i < 8; i++) {
-                                Gp_LcgState                    = Gp_LcgState * 5 + 0x71357911;
-                                D_m4a1_hammer_8012D630[i]      = (i << 9) + ((Gp_LcgState >> 16) & 0x1FF);
-                                Gp_LcgState                    = Gp_LcgState * 5 + 0x71357911;
-                                D_m4a1_hammer_8012D630[i + 8]  = ((Gp_LcgState >> 16) & 0x7FF) + 0x200;
-                                Gp_LcgState                    = Gp_LcgState * 5 + 0x71357911;
-                                D_m4a1_hammer_8012D630[i + 16] = (Gp_LcgState >> 16) & 0x3FF;
+                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[i]      = (i << 9) + ((gRandomLcgState >> 16) & 0x1FF);
+                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[i + 8]  = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
+                                gRandomLcgState                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[i + 16] = (gRandomLcgState >> 16) & 0x3FF;
                             }
                         }
                         if ((work->age & 0xF) == 0) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            work->angle = (Gp_LcgState >> 16) & 0xFFF;
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
                         }
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        work->period = ((Gp_LcgState >> 16) & 0x3FF) + 0x400;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->period    = ((gRandomLcgState >> 16) & 0x3FF) + 0x400;
                         if ((work->age & 1) == 0) {
                             func_m4a1_hammer_8011DE60(coord, work->age >> 1, work->period, work->angle);
                             for (i = 0; i < 8; i++) {
                                 j                          = i + 8;
-                                Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
-                                D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
-                                Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
-                                D_m4a1_hammer_8012D630[j] += (Gp_LcgState >> 16) & 0xFF;
+                                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+                                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                                D_m4a1_hammer_8012D630[j] += (gRandomLcgState >> 16) & 0xFF;
                                 work->pos.vx =
                                     (D_m4a1_hammer_8012D630[i + 16] * rsin(D_m4a1_hammer_8012D630[i])) >> 12;
                                 work->pos.vz =
@@ -211,8 +211,8 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                         base->framesLeft   = 4;
                         slot->inner        = 0x400;
                         slot->outer        = 0x4000;
-                        Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                        slot->head.color.b = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+                        gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x800;
                         slot->head.color.r = (u16)slot->head.color.b >> 1;
                         slot->head.color.g = slot->head.color.b >> 1;
                         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
@@ -317,9 +317,9 @@ void func_m4a1_hammer_8011DD08(Task* arg0)
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
             }
-            mem->scale  = 0x80;
-            Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-            mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
+            mem->scale      = 0x80;
+            gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
             /* fallthrough */
         case 1:
             if (mem->age & 1) {

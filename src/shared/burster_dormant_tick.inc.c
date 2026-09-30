@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the burster library; see burster.h. */
 
 /// Dormant arm of the first enemy's reaction dispatch. A 0x10000-class contact
@@ -33,8 +35,8 @@ void bursterDormantTick(Task* arg0)
         countdown       = work->field_2D0 - 1;
         work->field_2D0 = countdown;
         if ((countdown << 16) <= 0) {
-            rng             = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState     = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
             work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
             if (work->field_2D6 != 0) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;

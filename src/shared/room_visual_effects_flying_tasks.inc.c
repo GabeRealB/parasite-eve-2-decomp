@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
 /// A glowing disc attached to its parent at the work block's position. In
@@ -45,9 +47,9 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
         case 1:
             Gp_UpdateCoord(coord);
             if (!(mem->age & 3)) {
-                Task* player = gameGetPtrSlot(3);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                spawned      = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[(((u32)Gp_LcgState >> 16) & 0xF) + 3], coord, NULL);
+                Task* player    = gameGetPtrSlot(3);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                spawned         = Gp_SpawnEff(D_80115730, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->task);
                 }

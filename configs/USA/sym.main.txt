@@ -2840,7 +2840,7 @@ Display_TaskStates                  = 0x80013E98; // size:0x18
 // Gameplay naming pass 9 (main-exe play-time snapshot)
 
 // Gameplay naming pass 15 (main-exe LCG used by overlay)
-Gp_LcgState                  = 0x80070F60;
+gRandomLcgState                  = 0x80070F60;
 
 // Globals naming pass 1
 gGpuPrimCursor              = 0x80071190;

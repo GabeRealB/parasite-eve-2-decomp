@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the power plant pod library; see power_plant_pod.h. */
 
 /// Idle schedule of the enemy, one of the steps the tick handler
@@ -31,8 +33,8 @@ void podPulse(Task* arg0)
                 scale = gPodIdlePulse[(s16)work->field_328].field_2;
                 if (gPodIdlePulse[(s16)work->field_328].field_0 != 0) {
                     work->field_328 = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_32A = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
                     sndId           = gPodPulseSoundId |
                             ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(coord);
@@ -49,8 +51,8 @@ void podPulse(Task* arg0)
             if (gPodHitPulse[(s16)work->field_328].field_0 != 0) {
                 work->field_328 = 0;
                 work->field_32C = 2;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_32A = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             } else {
                 work->field_328 = work->field_328 + 1;
             }

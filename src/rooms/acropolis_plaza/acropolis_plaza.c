@@ -44,7 +44,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -4397,8 +4397,8 @@ void func_acropolis_plaza_801802C0(Task* task)
     entry->framesLeft = 0;
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
             if (task->spawnArg1.value < 5) {
                 work->depth = ABS(work->yaw - 0x800) > 0x200 ? 0x800 : 0x200;
                 red         = brightness >> 1;
@@ -4520,8 +4520,8 @@ void func_acropolis_plaza_801802C0(Task* task)
             }
         }
     }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
     if (task->spawnArg1.value < 5) {
         work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
@@ -4696,8 +4696,8 @@ void func_acropolis_plaza_801811D0(Task* task)
             }
         }
     }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    brightness  = ((Gp_LcgState >> 16) & 0x7F) | 0x80;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    brightness      = ((gRandomLcgState >> 16) & 0x7F) | 0x80;
     if (task->spawnArg1.value < 9) {
         work->depth = ABS(work->yaw - 0x800) > 0x300 ? 0x800 : 0x200;
         pulse       = brightness << 16;
@@ -4783,13 +4783,13 @@ void func_acropolis_plaza_80182054(Task* task)
     if (blk->otz >= 0x11) {
         if (__builtin_abs(blk->sx) < 0xC0 && __builtin_abs(blk->sy) < 0x98) {
             if (task->spawnArg1.value < 0x10) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                brightness  = (((Gp_LcgState >> 16) & 0x3F) + 0x80) << 16;
-                shade0      = brightness >> 17;
-                red         = shade0;
-                green       = shade0;
-                blue        = (u32)brightness >> 18;
-                blk->half   = 0xC000 / blk->otz;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                brightness      = (((gRandomLcgState >> 16) & 0x3F) + 0x80) << 16;
+                shade0          = brightness >> 17;
+                red             = shade0;
+                green           = shade0;
+                blue            = (u32)brightness >> 18;
+                blk->half       = 0xC000 / blk->otz;
             } else {
                 pulse = gDisplayState.animFrame * 6;
                 if (pulse & 0x80) {

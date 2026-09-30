@@ -26,7 +26,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -144,7 +144,7 @@ extern SVECTOR D_actor_121300_8013CDC8[];
 /// 0x5C work block of the debris task `func_actor_121300_8013293C`, allocated
 /// into `Task::work`.  The two matrices are published as the model's light
 /// and colour matrices (`TmdObject::lightMtx` / `colorMtx`); the rest is a
-/// per-frame spin and velocity, all rolled from `Gp_LcgState` on spawn, and a
+/// per-frame spin and velocity, all rolled from `gRandomLcgState` on spawn, and a
 /// short random delay before the model's buffers are allocated.
 typedef struct Actor121300DebrisWork {
     /* 0x00 */ MATRIX lightMtx; // TmdObject::lightMtx
@@ -1908,57 +1908,57 @@ void func_actor_121300_8013293C(Task* arg0)
             obj->lightMtx = &work->lightMtx;
             obj->colorMtx = &work->colorMtx;
 
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = ((Gp_LcgState >> 16) + 10) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = ((gRandomLcgState >> 16) + 10) & 7;
             } else {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = -10 - ((Gp_LcgState >> 16) & 7);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = -10 - ((gRandomLcgState >> 16) & 7);
             }
-            work->velX  = r;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->velY  = ((Gp_LcgState >> 16) & 3) + 3;
+            work->velX      = r;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->velY      = ((gRandomLcgState >> 16) & 3) + 3;
 
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = ((Gp_LcgState >> 16) + 10) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = ((gRandomLcgState >> 16) + 10) & 7;
             } else {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = -10 - ((Gp_LcgState >> 16) & 7);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = -10 - ((gRandomLcgState >> 16) & 7);
             }
             work->velZ = r;
 
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = (Gp_LcgState >> 16) & 0x7F;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = (gRandomLcgState >> 16) & 0x7F;
             } else {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = -((Gp_LcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = -((gRandomLcgState >> 16) & 0x7F);
             }
-            work->spinX = r;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = (Gp_LcgState >> 16) & 0x7F;
+            work->spinX     = r;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = (gRandomLcgState >> 16) & 0x7F;
             } else {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = -((Gp_LcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = -((gRandomLcgState >> 16) & 0x7F);
             }
-            work->spinY = r;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = (Gp_LcgState >> 16) & 0x7F;
+            work->spinY     = r;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = (gRandomLcgState >> 16) & 0x7F;
             } else {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                r           = -((Gp_LcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                r               = -((gRandomLcgState >> 16) & 0x7F);
             }
-            work->spinZ = r;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->delay = (Gp_LcgState >> 16) & 3;
+            work->spinZ     = r;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->delay     = (gRandomLcgState >> 16) & 3;
             arg0->state++;
             break;
         case 1:
@@ -2161,10 +2161,10 @@ static void func_actor_121300_8013343C(Task* arg0, s16 arg1)
         if (pts->vx != 0) {
             flags = 0x81202400;
             do {
-                seed        = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState = seed;
-                vx          = x + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
-                                                      : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) *
+                seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = seed;
+                vx              = x + (((seed >> 16) & 1) ? ((gRandomLcgState = (seed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7
+                                                          : -(((gRandomLcgState = (seed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
                              10;
                 pos.vx = vx;
                 pos.vy = pts->vy;
@@ -2200,12 +2200,12 @@ static void func_actor_121300_80133580(Task* arg0, s16 arg1)
     }
     if (!(D_actor_121300_8013CC00 & 3)) {
         for (i = 0; i < 6 - work->field_4A8; i++) {
-            flags       = 0x81202400;
-            tbl         = D_actor_121300_8013CDC8;
-            seed        = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState = seed;
-            vx          = tbl[i].vx + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
-                                                          : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) *
+            flags           = 0x81202400;
+            tbl             = D_actor_121300_8013CDC8;
+            seed            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = seed;
+            vx              = tbl[i].vx + (((seed >> 16) & 1) ? ((gRandomLcgState = (seed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7
+                                                              : -(((gRandomLcgState = (seed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7)) *
                                  10;
             pos.vx = vx;
             pos.vy = tbl[i].vy;

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Once the hold in `field_446` runs out, picks state 4 or 1 at random.
@@ -9,8 +11,8 @@ void hopperLurkWait(Task* arg0)
     s16              dist;
 
     if (work->field_446 < (s16)work->field_412++) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             Actor341700Work* w = (Actor341700Work*)arg0->work;
 
             w->field_420 = 4;

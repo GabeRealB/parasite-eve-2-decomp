@@ -29,7 +29,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -496,8 +496,8 @@ static void func_actor_205200_8014BF28(Task* arg0)
             }
         tick:
             if (--work->field_592 <= 0) {
-                work->field_592 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F) + 0xF;
-                if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 7)) {
+                work->field_592 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0xF;
+                if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 7)) {
                     work->field_586 = 4;
                     work->field_57E = 5;
                 }

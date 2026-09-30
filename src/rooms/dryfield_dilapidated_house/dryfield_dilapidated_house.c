@@ -51,7 +51,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -160,7 +160,7 @@ STATIC_ASSERT_SIZEOF(DdhAngleStep, 0x40);
 /// `Gfx_RotMatrixZ` + `Gp_UpdateCoord` + draw call per frame. `field_22` is the
 /// per-frame tick the task rolls back while `gRoomEffectState->effectControl` is not running;
 /// `field_20` and `field_28` are a third ramp value the two `80182744` states
-/// seed from one `Gp_LcgState` draw and hand to the same draw routine.
+/// seed from one `gRandomLcgState` draw and hand to the same draw routine.
 typedef struct DdhEffWork {
     /* 0x00 */ byte pad_00[0x20];
     /* 0x20 */ u16  field_20;
@@ -3481,7 +3481,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
 /// handler: state 0 seeds the work block (0xC0 / 0x500 scale and angle, a
-/// 12-bit `Gp_LcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
+/// 12-bit `gRandomLcgState` draw as the third ramp value, a `Gp_SpawnEff` and a
 /// fade quad), maps the task's own coordinate onto
 /// `Gp_RoomCoords[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
@@ -3520,11 +3520,11 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
                 }
                 return;
             }
-            work->field_24 = 0xC0;
-            work->field_26 = 0x500;
-            work->field_20 = 0;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_28 = (Gp_LcgState >> 16) & 0xFFF;
+            work->field_24  = 0xC0;
+            work->field_26  = 0x500;
+            work->field_20  = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_28  = (gRandomLcgState >> 16) & 0xFFF;
             Gp_SpawnEff(0x60274, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
@@ -3533,8 +3533,8 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             Gp_RoomCoords[0].framesLeft                 = 4;
             tail->inner                                 = 0x200;
             tail->outer                                 = 0x2000;
-            Gp_LcgState                                 = Gp_LcgState * 5 + 0x71357911;
-            size                                        = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+            gRandomLcgState                             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            size                                        = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             tail->head.color.r                          = size;
             tail->head.color.g                          = size >> 1;
             tail->head.color.b                          = size >> 2;

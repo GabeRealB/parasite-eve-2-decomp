@@ -35,7 +35,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -1152,15 +1152,15 @@ static void func_actor_503500_8013C558(Task* arg0)
         case 1:
             if (++work->field_EA <= 2000) {
                 if (func_actor_503500_801360BC(arg0->spawnArg1.value, 5) != 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x60055, coord, 0x01001900,
-                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x60055, coord, 0x01001700,
-                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x6018C, coord, 0x01404600,
-                                &D_actor_503500_8016F1B8[(u16)((Gp_LcgState >> 16) % 18)]);
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
                 }
             }
             vec.vx = 0x1000;
@@ -2106,9 +2106,9 @@ static void func_actor_503500_8013E740(Task* arg0)
                 Gp_SpawnEff(0x60055, coord, 0x01001C00,
                             &D_actor_503500_8016F31C[(s16)(work->field_EA % 9)]);
                 if (work->field_EA & 1) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x6018C, coord, 0x04404600,
-                                &D_actor_503500_8016F31C[(u16)((Gp_LcgState >> 16) % 9)]);
+                                &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % 9)]);
                 }
             }
             if (work->field_EA == 8) {

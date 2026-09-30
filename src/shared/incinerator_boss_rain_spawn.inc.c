@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the incinerator boss library; see incinerator_boss.h. */
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F1C`:
@@ -52,8 +54,8 @@ void incinBossRainSpawn(Enemy* enemy, Task* task)
     incinGapToCamera(task->extra.tmd->coords, &vec);
 
     if ((u16)task->spawnArg1.value == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        rnd         = ((u32)Gp_LcgState >> 16) & 3;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        rnd             = (gRandomLcgState >> 16) & 3;
         switch (rnd) {
             case 0:
             case 1:
@@ -90,12 +92,12 @@ void incinBossRainSpawn(Enemy* enemy, Task* task)
                                                      [(u16)task->spawnArg1.value]]
             .vz;
     work->target.vy = 0;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->target.vz = gIncinBossRainPoints[gIncinBossRainPointIndex[gIncinBossRainGroup]
                                                                    [(u16)task->spawnArg1.value]]
                           .vx -
                       0x189C;
-    work->target.vz = (((u32)Gp_LcgState >> 16) & 0x7F) + work->target.vz;
+    work->target.vz = ((gRandomLcgState >> 16) & 0x7F) + work->target.vz;
 
     if ((u16)task->spawnArg1.value == 4) {
         work->target.vx = player->extra.tmd->coords->coord.t[0];
@@ -104,8 +106,8 @@ void incinBossRainSpawn(Enemy* enemy, Task* task)
     }
 
     work->timer     = 0;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_1AE = ((u32)Gp_LcgState >> 16) & 8;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_1AE = (gRandomLcgState >> 16) & 8;
 
     vec.vx = gIncinBossRainLaunchOffsets[(u16)task->spawnArg1.value].vx;
     vec.vy = gIncinBossRainLaunchOffsets[(u16)task->spawnArg1.value].vy;

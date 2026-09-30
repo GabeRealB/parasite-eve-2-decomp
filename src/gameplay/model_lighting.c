@@ -49,6 +49,7 @@
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
+#include "main/random.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -2580,7 +2581,7 @@ void Gp_InitPlayClock(Task* task)
         srand(1);
         ds->animFrame            = 0;
         gDisplayState.frameCount = 0;
-        Gp_LcgState              = 0;
+        gRandomLcgState          = 0;
         ds->gameTick             = 0;
         ds->loopCount            = 0;
         ds->vsyncCount           = 0;
@@ -2683,8 +2684,8 @@ void Gp_TickPlayClock(Task* task)
         Gp_PulseState1C80();
         session = gGameSession;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-            Gp_LcgState           = Gp_LcgState * 5 + 0x71357911;
-            session->deathVariant = ((u32)Gp_LcgState >> 16 & 1) + 1;
+            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
             SndEvt_EnqueueType7(0x20000000, 8);
             SndBank_SetEnableFlags(0, 0x20000000);
             CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, 3);
@@ -2704,8 +2705,8 @@ void Gp_TickPlayClock(Task* task)
             companion = p->state.companionType;
             if (companion == 1) {
                 gGameSession->restartMode  = companion;
-                Gp_LcgState                = Gp_LcgState * 5 + 0x71357911;
-                gGameSession->deathVariant = ((u32)Gp_LcgState >> 16 & 1) + 1;
+                gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gGameSession->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
                 SndEvt_EnqueueType7(0x20000000, 8);
                 SndBank_SetEnableFlags(0, 0x20000000);
                 CdCmd_EnqueueLoadFile(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, 3);

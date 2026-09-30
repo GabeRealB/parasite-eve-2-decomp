@@ -39,7 +39,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1220,10 +1220,10 @@ void func_acropolis_helicopter_landing_pad_8017E81C(Task* arg0)
                 displaySetShakeY(0);
                 taskKill(arg0);
             } else {
-                val         = lo - ABS(arg0->spawnArg1.value);
-                scaled      = val * (packed >> 8);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                val         = (scaled * (s32)(Gp_LcgState >> 16)) / lo >> 16;
+                val             = lo - ABS(arg0->spawnArg1.value);
+                scaled          = val * (packed >> 8);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                val             = (scaled * (s32)(gRandomLcgState >> 16)) / lo >> 16;
                 if (arg0->spawnArg1.value & 1) {
                     val = ABS(val);
                 } else {

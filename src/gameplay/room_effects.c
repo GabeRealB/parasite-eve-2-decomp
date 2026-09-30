@@ -34,6 +34,7 @@
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -2139,11 +2140,11 @@ void func_800EC47C(Task* arg0)
             current = mem->scale;
             target  = mem->angle;
             if (current == target) {
-                count       = mem->period + 1;
-                random      = Gp_LcgState * 5 + 0x71357911;
-                mem->period = count;
-                Gp_LcgState = random;
-                mem->angle  = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
+                count           = mem->period + 1;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->period     = count;
+                gRandomLcgState = random;
+                mem->angle      = ((count & 1) << (((random >> 16) & 1) + 4)) + 0x10;
             } else {
                 if (current < target) {
                     mem->scale = current + 8;

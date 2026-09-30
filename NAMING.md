@@ -294,6 +294,7 @@ in a row identify different responsibilities in the same source group.
 | `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
 | `gameFlag` | Packed game flags | `gameflag.c` | `include/main/gameflag.h`, `include/main/gameflag_types.h` |
 | `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
+| `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `include/main/random.h` |
 
 `Wip*` and `Wip_*` are provisional spellings, not a subsystem to perpetuate.
 Establish the owner of each remaining item. The historical `wipsyscfg.c` filename

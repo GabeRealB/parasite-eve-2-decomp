@@ -23,7 +23,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -148,9 +148,9 @@ void func_lifedrain_8012EF48(Task* arg0)
                 do {
                     s32 rng;
 
-                    rng                     = Gp_LcgState * 5 + 0x71357911;
+                    rng                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
-                    Gp_LcgState             = rng;
+                    gRandomLcgState         = rng;
                 } while (++i < D_lifedrain_80130AB4[mem->index].unk0);
             }
             i = 0;
@@ -254,10 +254,10 @@ void func_lifedrain_8012EF48(Task* arg0)
                     }
                 }
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->step   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 0);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->step       = (gRandomLcgState >> 16) & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 0);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();
@@ -348,15 +348,15 @@ void func_lifedrain_8012F9A8(Task* arg0)
     state    = arg0->state;
     switch (state) {
         case 0:
-            mem->move.vy = 4;
-            mem->move.vx = 0;
-            mem->move.vz = 0;
-            arg0->state  = 1;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            spawn        = (u16)arg0->spawnArg1.value;
-            mem->period  = 0x1000;
-            mem->angle   = spawn & 0xFFF;
+            mem->move.vy    = 4;
+            mem->move.vx    = 0;
+            mem->move.vz    = 0;
+            arg0->state     = 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+            spawn           = (u16)arg0->spawnArg1.value;
+            mem->period     = 0x1000;
+            mem->angle      = spawn & 0xFFF;
             return;
         case 1:
             step                = mem->move.vy;
@@ -418,12 +418,12 @@ void func_lifedrain_8012FAF8(Task* arg0)
             case 0:
                 Task_Reparent(D_lifedrain_80130B0C, arg0);
                 D_lifedrain_80130B0C->spawnArg1.value += arg0->spawnArg1.value;
-                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx                           = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy                           = 0xFFE0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState                            = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz                           = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx                           = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy                           = 0xFFE0 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz                           = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
                 arg0->state                            = 1;
                 mem->scale                             = (Gp_StateC08.field_0 % 10) - 1;
                 val                                    = D_lifedrain_80130AB4[mem->step].unk6;
@@ -439,8 +439,8 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 if (mem->age & 1) {
                     mem->index = mem->index + 1;
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             Task_Reparent(arg0, spawned->task);
@@ -486,8 +486,8 @@ void func_lifedrain_8012FAF8(Task* arg0)
                 if (mem->age & 1) {
                     mem->index = (mem->index + 1) & 3;
                     func_lifedrain_801301AC(coord, mem->index, mem->period);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 3) == 0) {
                         spawned = Gp_SpawnEff(0x600AD, coord, (s32)(mem->angle), NULL);
                         if (spawned != NULL) {
                             Task_Reparent(arg0, spawned->task);

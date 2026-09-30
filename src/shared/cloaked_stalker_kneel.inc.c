@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
 /// Runs the actor's branch sequence. State 0 puts the slot set on animation
@@ -48,8 +50,8 @@ void stalkerKneelSeq(Task* arg0)
                 work->field_6C0 = 0x10;
                 work->field_6CE = 3;
                 work->field_6F2 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_6D4 = (random >> 16) & 0x3F;
             }
             if (work->field_714 == 1) {
@@ -65,8 +67,8 @@ void stalkerKneelSeq(Task* arg0)
                 work->field_6C0 = 0x14;
                 work->field_6CE = 3;
                 work->field_6F2 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_6D4 = (random >> 16) & 0x3F;
             }
             if (work->field_714 == 1) {
@@ -96,8 +98,8 @@ void stalkerKneelSeq(Task* arg0)
                 }
                 work->field_6C0 = anim;
                 work->field_6CE = 3;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_6D4 = (random >> 16) & 0x3F;
             }
             break;

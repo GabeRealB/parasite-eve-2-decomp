@@ -22,7 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -153,8 +153,8 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 mem->period = 0x80;
                 mem->step   = 0xF0;
                 for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0 * 2; i++) {
-                    Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
-                    D_apobiosis_80130B80[i] = (i << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
+                    gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    D_apobiosis_80130B80[i] = (i << 10) + ((gRandomLcgState >> 16) & 0x3FF);
                 }
                 Gp_SpawnPadLerp(0xA, 0xFF, 8);
                 /* fallthrough */
@@ -176,11 +176,11 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     func_apobiosis_8012F9D0(coord, 0x80, mem->scale, rgb);
                 }
                 for (i = 0; i < D_apobiosis_80130B5C[mem->index].field_0; i++) {
-                    Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
-                    D_apobiosis_80130B80[i] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+                    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    D_apobiosis_80130B80[i] -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
                     n                        = i + D_apobiosis_80130B5C[mem->index].field_4;
-                    Gp_LcgState              = Gp_LcgState * 5 + 0x71357911;
-                    D_apobiosis_80130B80[n] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+                    gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    D_apobiosis_80130B80[n] -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
                     mem->pos.vx              = mem->scale * rsin(D_apobiosis_80130B80[i]) >> 12;
                     mem->pos.vy              = mem->scale * rcos(D_apobiosis_80130B80[i]) >> 12;
                     mem->pos.vz =
@@ -205,17 +205,17 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 if (mem->step >= 0x41) {
                     mem->step = mem->step - 0x10;
                 }
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->scale   = ((u32)Gp_LcgState >> 16) & 0x3FF;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
-                    mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->scale      = (gRandomLcgState >> 16) & 0x3FF;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                    mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
+                    mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
                     Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    mem->step   = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x60;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->step       = ((gRandomLcgState >> 16) & 0x7F) + 0x60;
                 }
                 if (mem->age == 0x14) {
                     mem->step   = 0xF0;
@@ -227,12 +227,12 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 if (mem->step >= 0x21) {
                     mem->step = mem->step - 0xC;
                 }
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = ((u32)Gp_LcgState >> 16) & 0x7FF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
-                mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = (gRandomLcgState >> 16) & 0x7FF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
+                mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
                 Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
                 if (mem->age == 0x1E) {
                     if (mem->index <= 0) {
@@ -251,12 +251,12 @@ void func_apobiosis_8012EF4C(Task* arg0)
                     mem->step = mem->step - 8;
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                    mem->move.vx = mem->scale * rsin(mem->angle) >> 12;
-                    mem->move.vz = mem->scale * rcos(mem->angle) >> 12;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                    mem->move.vx    = mem->scale * rsin(mem->angle) >> 12;
+                    mem->move.vz    = mem->scale * rcos(mem->angle) >> 12;
                     Gp_SpawnEff(0x600F7, coord, 0, &mem->move);
                 }
                 if (mem->age == 0x28) {
@@ -290,7 +290,7 @@ static void func_apobiosis_8012F808(s16 bright)
     prim           = gGpuPrimCursor;
     gGpuPrimCursor = prim + 1;
     setPolyF4(prim);
-    if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 && (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) == 0) {
+    if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 && (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
         setRGB0(prim, bright, bright, bright >> 1);
     } else {
         setRGB0(prim, bright >> 1, bright >> 1, bright);
@@ -399,22 +399,22 @@ void func_apobiosis_8012FE10(Task* arg0)
                     Gp_UpdateCoord(coord);
                     arg0->state = 1;
                 } else {
-                    mem->move.vy = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                    arg0->state  = 2;
+                    mem->move.vy    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                    arg0->state     = 2;
                 }
-                mem->pos.vy = -0x1000;
-                mem->scale  = 0x80;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vx = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vz = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                mem->step   = Gp_StateC08.field_0 % 10 - 1;
+                mem->pos.vy     = -0x1000;
+                mem->scale      = 0x80;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vx     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vz     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                mem->step       = Gp_StateC08.field_0 % 10 - 1;
                 return;
             case 1:
                 Gp_UpdateCoord(coord);
@@ -499,8 +499,8 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
         setShadeTex(prim, 1);
         prim->tpage = 0x2A;
         if ((u16)(Gp_StateC08.field_0 % 10) - 1 == 2) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 3) == 0) {
                 prim->clut = 0x42C9;
             } else {
                 prim->clut = 0x4293;
@@ -579,7 +579,7 @@ static void func_apobiosis_80130630(GfxCoord* arg0, SVECTOR* arg1, s16 arg2, s16
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
             if ((u16)(Gp_StateC08.field_0 % 10U) - 1 == 2 &&
-                (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) == 0) {
+                (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) == 0) {
                 prim->clut = 0x42C8;
             } else {
                 prim->clut = 0x4287;

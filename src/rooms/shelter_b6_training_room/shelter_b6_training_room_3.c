@@ -28,7 +28,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -394,7 +394,7 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
         D_shelter_b6_training_room_80185C98 = 0;
         for (j = 0; j < 3; j++) {
             for (i = 0; i < 6; i++) {
-                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][i] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
+                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][i] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             }
         }
         task->state = 1;
@@ -1142,10 +1142,10 @@ void func_shelter_b6_training_room_80181930(Task* task)
         rgb[2]                              = shade >> 1;
         Gp_DrawRing(coord, 0x200, rgb);
         Gp_DrawRing(coord, 0x400, rgb);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (((Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((Gp_LcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x600E0, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }
@@ -1172,15 +1172,15 @@ void func_shelter_b6_training_room_80181A3C(Task* task)
             rot->m20_m21        = 0;
             rot->m22            = 0x1000;
             coord->coord.t[0]   = mem->pos.vx;
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            first               = Gp_LcgState;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            first               = gRandomLcgState;
             coord->coord.t[1]   = mem->pos.vy;
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             coord->coord.t[2]   = mem->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             mem->scale          = ((first >> 16) & 0x1FF) + 0x100;
-            mem->angle          = (Gp_LcgState >> 16) & 0xFFF;
-            mem->period         = ((Gp_LcgState >> 16) & 0xF) + 6;
+            mem->angle          = (gRandomLcgState >> 16) & 0xFFF;
+            mem->period         = ((gRandomLcgState >> 16) & 0xF) + 6;
             task->state         = 1;
         }
         func_shelter_b6_training_room_80181BAC(coord, mem->age, mem->scale, mem->angle);
@@ -1386,12 +1386,12 @@ void func_shelter_b6_training_room_801825C0(Task* task)
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
         if (task->state == 0) {
-            mem->move.vx = 0;
-            mem->move.vy = 8;
-            mem->move.vz = 0;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((Gp_LcgState >> 16) & 0xFFF) | 0x1000;
-            task->state  = 1;
+            mem->move.vx    = 0;
+            mem->move.vy    = 8;
+            mem->move.vz    = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((gRandomLcgState >> 16) & 0xFFF) | 0x1000;
+            task->state     = 1;
         }
         coord->coord.t[1]  += mem->move.vy;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1430,8 +1430,8 @@ void func_shelter_b6_training_room_801826E0(Task* task)
             if (mem->age & 1) {
                 mem->index = (mem->index + 1) & 3;
                 func_800EB6E8(coord, mem->index, 0x300, 0x80);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if (((Gp_LcgState >> 16) & 3) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
                     Gp_SpawnEff(0x601AD, coord, 0, NULL);
                 }
             }
@@ -1452,11 +1452,11 @@ void func_shelter_b6_training_room_80182804(Task* task)
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         mem->age++;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->scale  += ((Gp_LcgState >> 16) & 0x1FF) + 0x200;
-        mem->move.vx = D_shelter_b6_training_room_80184334[24].vx + ((rcos(mem->scale) * 1000) >> 12);
-        mem->move.vy = D_shelter_b6_training_room_80184334[24].vy - mem->age * 200;
-        mem->move.vz = D_shelter_b6_training_room_80184334[24].vz + ((rsin(mem->scale) * 1000) >> 12);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->scale     += ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
+        mem->move.vx    = D_shelter_b6_training_room_80184334[24].vx + ((rcos(mem->scale) * 1000) >> 12);
+        mem->move.vy    = D_shelter_b6_training_room_80184334[24].vy - mem->age * 200;
+        mem->move.vz    = D_shelter_b6_training_room_80184334[24].vz + ((rsin(mem->scale) * 1000) >> 12);
         Gp_SpawnEff(0x601AE, NULL, 0, &mem->move);
     }
 }
@@ -1464,10 +1464,10 @@ void func_shelter_b6_training_room_80182804(Task* task)
 void func_shelter_b6_training_room_8018294C(Task* task)
 {
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (((Gp_LcgState >> 16) & 7) == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x601AB, task->extra.tmd->coords + ((u16)((Gp_LcgState >> 16) % 18) + 1), 0, NULL);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 7) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x601AB, task->extra.tmd->coords + ((u16)((gRandomLcgState >> 16) % 18) + 1), 0, NULL);
         }
     }
 }

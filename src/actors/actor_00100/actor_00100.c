@@ -40,7 +40,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1777,33 +1777,33 @@ s32 Actor00100_Fn00E58(Task* arg0, s32 arg1, ActorCommand* request)
                     view = Gp_GetViewIndex() & 0xFF;
                     switch (view) {
                         case 2:
-                            value2      = (Gp_LcgState * 5) + 0x71357911;
-                            Gp_LcgState = value2;
-                            rnd         = ((value2 >> 0x10) % 3) + 1;
+                            value2          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = value2;
+                            rnd             = ((value2 >> 0x10) % 3) + 1;
                             break;
                         case 4:
-                            value4      = (Gp_LcgState * 5) + 0x71357911;
-                            Gp_LcgState = value4;
-                            rnd         = 1;
+                            value4          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = value4;
+                            rnd             = 1;
                             if (((value4 >> 0x10) & 1) == 0) {
                                 rnd = 3;
                             }
                             break;
                         case 5:
-                            value5      = (Gp_LcgState * 5) + 0x71357911;
-                            rnd         = (value5 >> 0x10) & 1;
-                            Gp_LcgState = value5;
+                            value5          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            rnd             = (value5 >> 0x10) & 1;
+                            gRandomLcgState = value5;
                             break;
                         case 3:
                         case 8:
-                            value38     = (Gp_LcgState * 5) + 0x71357911;
-                            rnd         = ((value38 >> 0x10) & 1) | 2;
-                            Gp_LcgState = value38;
+                            value38         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            rnd             = ((value38 >> 0x10) & 1) | 2;
+                            gRandomLcgState = value38;
                             break;
                         default:
-                            valueDefault = (Gp_LcgState * 5) + 0x71357911;
-                            rnd          = (valueDefault >> 0x10) & 3;
-                            Gp_LcgState  = valueDefault;
+                            valueDefault    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                            rnd             = (valueDefault >> 0x10) & 3;
+                            gRandomLcgState = valueDefault;
                     }
                     row                                 = &table.rows[rnd];
                     arg0->extra.tmd->coords->coord.t[0] = row->vx;
@@ -2830,8 +2830,8 @@ static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = (Actor00100DamageWork*)((Actor00100Work*)arg0->work);
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = Actor00100_D1B9F4[0];
                 break;
@@ -2849,8 +2849,8 @@ static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = Actor00100_D1B9F4[5];
                 break;
@@ -2862,15 +2862,15 @@ static void Actor00100_Fn03340(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = Actor00100_D1B9F4[8];
         } else {
             *sc = Actor00100_D1B9F4[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = Actor00100_D1B9F4[10];
         } else {
             *sc = Actor00100_D1B9F4[11];
@@ -5754,9 +5754,9 @@ static void Actor00100_Fn0B8D8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        random        = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState   = random;
-        work->field_6 = work->field_C20 + ((random >> 0x10) & 0xF);
+        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = random;
+        work->field_6   = work->field_C20 + ((random >> 0x10) & 0xF);
     }
     Actor00100_Fn02788(arg0);
     timer         = work->field_6 - 1;

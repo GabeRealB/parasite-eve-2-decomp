@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -89,7 +89,7 @@ static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
 static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 
 /// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
-/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `Gp_LcgState` draw;
+/// Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit `gRandomLcgState` draw;
 /// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
@@ -149,11 +149,11 @@ void func_antibody_8012EF34(Task* arg0)
                         s32  lo;
                         s32  rng;
 
-                        dst         = D_antibody_80130C0C;
-                        lo          = i * (0x1000 / D_antibody_80130BD4[mem->index].field_0);
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
-                        Gp_LcgState = rng;
+                        dst             = D_antibody_80130C0C;
+                        lo              = i * (0x1000 / D_antibody_80130BD4[mem->index].field_0);
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        dst[i]          = lo + (((u32)rng >> 16) & 0x1FF);
+                        gRandomLcgState = rng;
                     } while (++i < D_antibody_80130BD4[mem->index].field_0);
                 }
                 {
@@ -208,10 +208,10 @@ void func_antibody_8012EF34(Task* arg0)
                     if ((mem->age % D_antibody_80130BD4[mem->index].field_C) == 1) {
                         i = 0;
                         do {
-                            rng         = Gp_LcgState * 5 + 0x71357911;
-                            ang         = i + (((u32)rng >> 16) & 0x3FF);
-                            Gp_LcgState = rng;
-                            mem->angle  = ang;
+                            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            ang             = i + (((u32)rng >> 16) & 0x3FF);
+                            gRandomLcgState = rng;
+                            mem->angle      = ang;
                             mem->move.vx =
                                 (D_antibody_80130BD4[mem->index].field_A * rsin(ang)) >> 12;
                             mem->move.vz = (D_antibody_80130BD4[mem->index].field_A *
@@ -289,7 +289,7 @@ release:
 /// (a sixteenth) into `move` as the per-frame step, and seeds
 /// the intensity `index` from the combo counter, the draw parameter
 /// `scale` from that row's `field_6` and the phase `angle` from
-/// `Gp_LcgState`. State 1 walks the coordinate back down that step every frame
+/// `gRandomLcgState`. State 1 walks the coordinate back down that step every frame
 /// and draws with `func_antibody_8012FBB0`; past tick 0x10 it parks a `-0x80`
 /// Y drift in `move.vy` and moves to state 2, and one frame in sixteen it
 /// jumps straight to state 3 instead. State 2 applies that Y drift and keeps
@@ -338,25 +338,25 @@ void func_antibody_8012F734(Task* arg0)
             gte_gpf12();
             gte_stsv(&mem->move);
 
-            arg0->state = 1;
-            rng0        = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng0;
-            idx         = Gp_StateC08.field_0 % 10 - 1;
-            mem->index  = idx;
-            mem->scale  = D_antibody_80130BD4[idx].field_6;
-            mem->angle  = ((u32)rng0 >> 16) & 0xFFF;
+            arg0->state     = 1;
+            rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng0;
+            idx             = Gp_StateC08.field_0 % 10 - 1;
+            mem->index      = idx;
+            mem->scale      = D_antibody_80130BD4[idx].field_6;
+            mem->angle      = ((u32)rng0 >> 16) & 0xFFF;
             /* fallthrough */
         case 1:
-            rng1a       = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng1a;
+            rng1a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng1a;
             if ((((u32)rng1a >> 16) & 7) == 0) {
-                rng1b       = rng1a * 5 + 0x71357911;
-                Gp_LcgState = rng1b;
+                rng1b           = rng1a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng1b;
                 mem->scale =
                     D_antibody_80130BD4[mem->index].field_8 + (((u32)rng1b >> 16) & 0x1FF);
-                rng1c       = rng1b * 5 + 0x71357911;
-                Gp_LcgState = rng1c;
-                mem->angle  = ((u32)rng1c >> 16) & 0xFFF;
+                rng1c           = rng1b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng1c;
+                mem->angle      = ((u32)rng1c >> 16) & 0xFFF;
             }
             coord->coord.t[0]  -= mem->move.vx;
             coord->coord.t[1]  -= mem->move.vy;
@@ -369,23 +369,23 @@ void func_antibody_8012F734(Task* arg0)
                 arg0->state  = 2;
                 return;
             }
-            rng1d       = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng1d;
+            rng1d           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng1d;
             if ((((u32)rng1d >> 16) & 0xF) == 0) {
                 arg0->state = 3;
             }
             return;
         case 2:
-            rng2a       = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng2a;
+            rng2a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng2a;
             if ((((u32)rng2a >> 16) & 7) == 0) {
-                rng2b       = rng2a * 5 + 0x71357911;
-                Gp_LcgState = rng2b;
+                rng2b           = rng2a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng2b;
                 mem->scale =
                     D_antibody_80130BD4[mem->index].field_8 + (((u32)rng2b >> 16) & 0x1FF);
-                rng2c       = rng2b * 5 + 0x71357911;
-                Gp_LcgState = rng2c;
-                mem->angle  = ((u32)rng2c >> 16) & 0xFFF;
+                rng2c           = rng2b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng2c;
+                mem->angle      = ((u32)rng2c >> 16) & 0xFFF;
             }
             coord->coord.t[1]  += mem->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -393,16 +393,16 @@ void func_antibody_8012F734(Task* arg0)
             func_antibody_8012FBB0(coord, mem->age, mem->scale, mem->angle);
             goto check;
         case 3:
-            rng3a       = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng3a;
+            rng3a           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng3a;
             if ((((u32)rng3a >> 16) & 7) == 0) {
-                rng3b       = rng3a * 5 + 0x71357911;
-                Gp_LcgState = rng3b;
-                mem->scale  = (s16)D_antibody_80130BD4[mem->index].field_8 * 2 +
+                rng3b           = rng3a * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng3b;
+                mem->scale      = (s16)D_antibody_80130BD4[mem->index].field_8 * 2 +
                              (((u32)rng3b >> 16) & 0x1FF);
-                rng3c       = rng3b * 5 + 0x71357911;
-                Gp_LcgState = rng3c;
-                mem->angle  = ((u32)rng3c >> 16) & 0xFFF;
+                rng3c           = rng3b * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng3c;
+                mem->angle      = ((u32)rng3c >> 16) & 0xFFF;
             }
             Gp_UpdateCoord(coord);
             func_antibody_8012FFEC(coord, mem->age, mem->scale, mem->angle);

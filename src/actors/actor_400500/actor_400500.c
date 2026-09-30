@@ -41,7 +41,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -3555,8 +3555,8 @@ static void func_actor_400500_8013662C(Task* arg0)
                             work->field_A08 = 2;
                         }
                     } else if (work->field_9E0 < -0xF9F) {
-                        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-                        Gp_LcgState = rnd;
+                        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rnd;
                         if (((rnd >> 0x10) & 0x1F) == 0) {
                             if (!(work->field_A1E & 1)) {
                                 work2 = (Actor400500Work*)arg0->work;
@@ -3691,8 +3691,8 @@ static void func_actor_400500_801369A4(Task* arg0)
                         work->field_A08 = 4;
                     }
                 } else if (work->field_9E0 >= 0xFA0) {
-                    rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState = rnd;
+                    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = rnd;
                     if (((rnd >> 0x10) & 0x1F) == 0) {
                         if (!(work->field_A1E & 1)) {
                             work2 = (Actor400500Work*)arg0->work;
@@ -4740,8 +4740,8 @@ static void func_actor_400500_80138DC4(Task* arg0)
             work->field_A47 = 0;
         }
         ((Actor400500Work*)hit)->field_A32 = 0x3C;
-        rnd                                = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState                        = rnd;
+        rnd                                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState                    = rnd;
         if (!((rnd >> 0x10) & 3)) {
             work2            = (Actor400500Work*)arg0->work;
             work2->field_A06 = 0;
@@ -5489,8 +5489,8 @@ static void func_actor_400500_8013A0B8(Task* arg0)
                 flag = 0;
             }
             if (flag == 0) {
-                rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState = rnd;
+                rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 if (((rnd >> 0x10) & 1) == 0) {
                     nextWork            = (Actor400500Work*)arg0->work;
                     nextWork->field_A06 = 0;

@@ -29,7 +29,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -637,24 +637,24 @@ case0:
     if ((s16)timer < 0x1E) {
         goto tail;
     }
-    rng0        = Gp_LcgState * 5 + 0x71357911;
-    Gp_LcgState = rng0;
+    rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rng0;
     if ((s32)(((u32)rng0 >> 16) & 0xF) <
         D_actor_300700_8016933C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37E = 7;
-        next            = D_actor_300700_8016934C[((u32)(rng1 = rng0 * 5 + 0x71357911) >> 16) & 0xF];
-        Gp_LcgState     = rng1;
+        next            = D_actor_300700_8016934C[((u32)(rng1 = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        gRandomLcgState = rng1;
         work->field_37C = one;
         work->field_38C = next;
         goto tail;
     }
-    rng2        = rng0 * 5 + 0x71357911;
-    Gp_LcgState = rng2;
+    rng2            = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rng2;
     if ((s32)(((u32)rng2 >> 16) & 0xF) <
         D_actor_300700_8016936C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37E = 2;
-        next            = D_actor_300700_8016937C[((u32)(rng3 = rng2 * 5 + 0x71357911) >> 16) & 0xF];
-        Gp_LcgState     = rng3;
+        next            = D_actor_300700_8016937C[((u32)(rng3 = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        gRandomLcgState = rng3;
         work->field_37C = 2;
         work->field_38C = next;
         goto tail;
@@ -686,12 +686,12 @@ tail:
         goto post;
     }
     work->field_386 = 0x19;
-    rng4            = Gp_LcgState * 5 + 0x71357911;
-    rng5            = rng4 * 5 + 0x71357911;
+    rng4            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    rng5            = rng4 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     ang             = ((u32)rng5 >> 16) & 0x3FF;
-    Gp_LcgState     = rng4;
+    gRandomLcgState = rng4;
     work->field_38E = ((u32)rng4 >> 16) & 0x1F;
-    Gp_LcgState     = rng5;
+    gRandomLcgState = rng5;
     if ((((u32)rng5 >> 16) & 0x400) == 0) {
         ang = -ang;
     }
@@ -702,10 +702,10 @@ post:
         work->field_394 = 0;
         work->field_37C = 0;
         work->field_37E = 2;
-        rng6            = Gp_LcgState * 5 + 0x71357911;
+        rng6            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_38C = (((u32)rng6 >> 16) & 0x1F) + 0x3C;
         snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
-        Gp_LcgState     = rng6;
+        gRandomLcgState = rng6;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     }
@@ -821,8 +821,8 @@ case2:
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((s32)((gRandomLcgState >> 16) & 0xF) < D_actor_300700_8016939C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37C = 0;
         work->field_37E = state;
         goto pop;
@@ -837,7 +837,7 @@ pop:
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Three-state launcher. State 0 arms the timer from `Gp_LcgState` and stores
+/// Three-state launcher. State 0 arms the timer from `gRandomLcgState` and stores
 /// the direction from the player to the model's root coordinate into
 /// `field_370` with `VectorNormalS`; state 1 pushes the coordinate along that
 /// normal while `field_382` is below `0xF`, runs the `field_38C` countdown and
@@ -867,9 +867,9 @@ static void func_actor_300700_801643D0(Task* arg0)
             work->field_386 = 0;
             work->field_396 = one;
             work->field_37C = one;
-            rng             = Gp_LcgState * 5 + 0x71357911;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->field_38C = (((u32)rng >> 16) & 0x1F) + 0xF;
-            Gp_LcgState     = rng;
+            gRandomLcgState = rng;
             posX            = coord->coord.t[0];
             vec.vx          = Player_Status.coordMtx->t[0] - posX;
             vec.vy          = Player_Status.coordMtx->t[1] - coord->coord.t[1];
@@ -936,8 +936,8 @@ static void func_actor_300700_801645F8(Task* arg0)
                 work->field_37E = 6;
             } else {
                 work->field_37C = 2;
-                rng             = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_38C = ((u32)rng >> 0x10) & 0xF;
             }
             work->field_396 = 1;
@@ -946,8 +946,8 @@ static void func_actor_300700_801645F8(Task* arg0)
         case 1:
             if ((s16)work->field_382 >= 0x1D) {
                 work->field_37C = 2;
-                rng2            = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = rng2;
+                rng2            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng2;
                 work->field_38C = ((u32)rng2 >> 0x10) & 0xF;
                 return;
             }
@@ -1309,9 +1309,9 @@ static void func_actor_300700_80165000(Task* arg0)
     timer           = work->field_392 - 1;
     work->field_392 = timer;
     if ((s16)timer <= 0) {
-        random          = (Gp_LcgState * 5) + 0x71357911;
+        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
-        Gp_LcgState     = (s32)random;
+        gRandomLcgState = random;
         snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));

@@ -16,7 +16,7 @@ extern SVECTOR D_m4a1_hammer_8012D668;
 
 /// Jitter table for the eight sparks the charged hammer throws: `[0..7]` are
 /// the spin angles, `[8..15]` the heights and `[16..23]` the radii. Reseeded
-/// from `Gp_LcgState` on the first charge frame and walked every other frame.
+/// from `gRandomLcgState` on the first charge frame and walked every other frame.
 extern s16 D_m4a1_hammer_8012D630[24];
 
 #endif // SRC_WEAPONS_M4A1_HAMMER_M4A1_HAMMER_PRIVATE_H

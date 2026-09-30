@@ -36,7 +36,7 @@
 
 #include "main/coord.h"
 #include "main/display.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -128,7 +128,7 @@ typedef struct Actor110600Work {
     /* 0x002 */ s16 field_2;
     /* 0x004 */ s16 field_4;
     /// The `field_5C`-style tick `func_actor_110600_80138A70` counts down once
-    /// the actor is live, and reseeds from `Gp_LcgState` when `field_4` is set.
+    /// the actor is live, and reseeds from `gRandomLcgState` when `field_4` is set.
     /* 0x006 */ u16  field_6;
     /* 0x008 */ s16  field_8;
     /* 0x00A */ byte pad_A[0x2];
@@ -2271,8 +2271,8 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     sc  = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag = (arg1 >= 0) ? arg1 : -arg1;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = D_actor_110600_801485C4[0];
                 break;
@@ -2290,8 +2290,8 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = D_actor_110600_801485C4[5];
                 break;
@@ -2303,15 +2303,15 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_110600_801485C4[8];
         } else {
             *sc = D_actor_110600_801485C4[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_110600_801485C4[10];
         } else {
             *sc = D_actor_110600_801485C4[11];
@@ -2485,7 +2485,7 @@ static void func_actor_110600_80136210(Task* arg0)
 /// re-arm `walker` for a fresh patrol (`field_5C` cleared,
 /// `field_5E` reloaded from `walker.field_5E`, `field_60` = 8) with `walker.state` /
 /// `walker.field_5A` / `field_8A4` / `field_8A2` cleared. Every tick after that steps
-/// the walker and the model, then retimes: at 0x18 a draw of `Gp_LcgState`
+/// the walker and the model, then retimes: at 0x18 a draw of `gRandomLcgState`
 /// whose seventh bit is clear drops it to 0xE, and at 0xE the `field_5C` bit 0
 /// the walker sets on arrival — or on hitting something — puts it back to 0x18.
 /// Both retimes re-enter state 1 (`field_88C`) and tick once more.
@@ -2523,8 +2523,8 @@ static void func_actor_110600_80136888(Task* arg0)
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x18) {
         if (work->field_5C & 2) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
             if (!((rng >> 16) & 7)) {
                 work->field_892 = 0xE;
                 work->field_88C = 1;
@@ -2929,8 +2929,8 @@ static void func_actor_110600_801372CC(Task* arg0)
         work->field_8A2               = 0;
         work->field_8A4               = 0;
         if ((work->field_BDC.raw & 0xFFFFFF) == 0x60401) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
             if ((rng >> 16) & 1) {
                 vec.vx                             = -0xE;
                 vec.vy                             = 0;
@@ -2986,7 +2986,7 @@ static void func_actor_110600_801372CC(Task* arg0)
 /// `field_950.flags`, tags the enemy's link node with 1 and parks the timer at
 /// `field_896` = 0x20 with `field_88C` re-armed, `walker.field_5A` / `field_8A4` /
 /// `field_8A2` cleared. Every tick after that steps the shared handler and, at
-/// 0x16, rolls `Gp_LcgState` and turns the model's root coordinate by the yaw
+/// 0x16, rolls `gRandomLcgState` and turns the model's root coordinate by the yaw
 /// the roll's low nibble picks — 0x32 while it is under 0xA, -0x78 past it —
 /// clearing the coordinate's `composeStamp`. Once `field_894` has run up to 0x1F the
 /// stage drops the timer to 0x10, re-arms `field_88C` and steps to 0x21, where
@@ -3013,8 +3013,8 @@ static void func_actor_110600_80137684(Task* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (work->field_892 == 0x16) {
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         if (((rng >> 16) & 0xF) < 0xA) {
             gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
         } else {
@@ -3700,9 +3700,9 @@ static void func_actor_110600_80138A70(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        rng           = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng;
-        work->field_6 = (rng >> 16) & 0x1F;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        work->field_6   = (rng >> 16) & 0x1F;
     }
     timer         = work->field_6 - 1;
     work->field_6 = timer;

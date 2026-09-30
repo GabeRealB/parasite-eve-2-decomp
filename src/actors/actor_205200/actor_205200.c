@@ -33,7 +33,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -625,13 +625,13 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                     break;
             }
             part->field_72 = 1;
-            part->field_74 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F) + 0x1E;
-            part->field_76 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F) + 0x1E;
+            part->field_74 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F) + 0x1E;
+            part->field_76 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F) + 0x1E;
             break;
         case 1:
             if ((s16)--part->field_74 <= 0) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                part->field_74 = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                part->field_74  = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
                 func_800FDB18(7, coord, NULL, &part->field_68);
                 Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
@@ -651,8 +651,8 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 SndEvt_EnqueueType6(snd, pan, (s16)vol >> 8);
             }
             if ((s16)--part->field_76 <= 0) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                part->field_76 = ((Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                part->field_76  = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
                 Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0xF2001400, NULL);
             }

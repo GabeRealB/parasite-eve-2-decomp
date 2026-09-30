@@ -37,7 +37,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -121,7 +121,7 @@ typedef struct Actor104400Work {
     /* 0x404 */ byte                  pad_404[0x8];
     /* 0x40C */ s16                   field_40C; // heading Actor04400_Fn017B0 moves the root along
     /* 0x40E */ s16                   field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
-    /* 0x410 */ s16                   field_410; // random 0..0x7FF drawn from `Gp_LcgState`
+    /* 0x410 */ s16                   field_410; // random 0..0x7FF drawn from `gRandomLcgState`
     /* 0x412 */ u16                   field_412; // per-state frame counter
     /* 0x414 */ s16                   field_414; // animation request kind
     /* 0x416 */ s16                   field_416; // animation id last applied to the slots
@@ -1588,8 +1588,8 @@ static void Actor04400_Fn01418(Task* arg0)
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
     pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_410 = (Gp_LcgState >> 0x10) & 0x7FF;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_410 = (gRandomLcgState >> 0x10) & 0x7FF;
     if (work->field_43A < 1000) {
         work->field_41C = 0x10;
         work->field_436 = 0x10;
@@ -1792,7 +1792,7 @@ static void Actor04400_Fn01B70(Task* arg0)
     }
     if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
         work->field_438  = 0;
-        rand             = Gp_LcgState * 5 + 0x71357911;
+        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
         work->field_7A  += 0x800;
         work2            = (Actor104400Work*)arg0->work;
@@ -1800,7 +1800,7 @@ static void Actor04400_Fn01B70(Task* arg0)
         work2->field_418 = 0xD;
         work2->field_414 = 2;
         work3            = (Actor104400Work*)arg0->work;
-        Gp_LcgState      = rand;
+        gRandomLcgState  = rand;
         arg0->state      = 1;
         work3->field_420 = 0;
         work3->field_422 = 0;
@@ -4048,7 +4048,7 @@ static void Actor04400_Fn06DFC(Task* arg0)
 /// frame 1 it plays the enemy's hit sound at the model's pan and depth, with
 /// the id's high half taken from `Enemy::placeKey`. Then, when
 /// `Actor04400_Fn06618` accepts the frame, draws `field_44A` as 0x5A..0xD9 from
-/// `Gp_LcgState` and enters state 3.
+/// `gRandomLcgState` and enters state 3.
 static void Actor04400_Fn06F50(Task* arg0)
 {
     Actor104400Work* work;
@@ -4065,8 +4065,8 @@ static void Actor04400_Fn06F50(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
     if ((Actor04400_Fn06618(arg0) << 0x10) != 0) {
-        rand             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState      = rand;
+        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rand;
         work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
         work2            = (Actor104400Work*)arg0->work;
         work2->field_420 = 3;
@@ -4582,8 +4582,8 @@ static void Actor04400_Fn07FD0(Task* arg0)
     s16              dist;
 
     if (work->field_446 < (s16)work->field_412++) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             Actor104400Work* w = (Actor104400Work*)arg0->work;
 
             w->field_420 = 4;
@@ -4667,10 +4667,10 @@ static void Actor04400_Fn08160(Task* arg0)
         work2->field_41C = 0x10;
         work2->field_418 = 0xE;
         work2->field_414 = 1;
-        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_412  = 0;
         work->field_42C  = 0;
-        work->field_446  = (s16)((((u32)Gp_LcgState >> 16) & 0x3F) + 0xB0);
+        work->field_446  = (s16)(((gRandomLcgState >> 16) & 0x3F) + 0xB0);
         work->field_422++;
     }
 }

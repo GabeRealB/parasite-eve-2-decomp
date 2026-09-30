@@ -46,7 +46,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -70,7 +70,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
 
-#define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 extern SVECTOR D_shelter_b4_reservoir_80185024[14];
 
@@ -1852,12 +1852,12 @@ void func_shelter_b4_reservoir_801813F0(Task* task)
                 f2a = 0x40;
             }
 
-            work->step    = f2a;
-            work->move.vy = 0;
-            work->move.vz = 0;
-            rng           = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState   = rng;
-            work->move.vx = -((rng >> 16) & 0x3F) - 0x40;
+            work->step      = f2a;
+            work->move.vy   = 0;
+            work->move.vz   = 0;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
+            work->move.vx   = -((rng >> 16) & 0x3F) - 0x40;
             VectorNormalSS(&work->move, &work->move);
 
             gte_lddp(work->step);

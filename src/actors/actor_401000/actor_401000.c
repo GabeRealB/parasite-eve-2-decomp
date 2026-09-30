@@ -31,7 +31,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -203,7 +203,7 @@ typedef struct Actor401000Work {
     /// at +0xC26.
     /* 0xC06 */ s16 field_C06;
     /// Turn direction `func_actor_401000_801374D4` toggles as it enters: 0 (the
-    /// unseeded state) draws a sign from `Gp_LcgState`, and each entry flips it
+    /// unseeded state) draws a sign from `gRandomLcgState`, and each entry flips it
     /// to the other side. Selects the `field_89E` clip and the `field_C12` sign.
     /// The same slot `Actor401300Work` keeps at +0xC9C.
     /* 0xC08 */ s16 field_C08;
@@ -221,7 +221,7 @@ typedef struct Actor401000Work {
     /* 0xC0C */ s16  field_C0C;
     /* 0xC0E */ byte pad_C0E[2];
     /// Frame-length bias `func_actor_401000_8013DF6C` reseeds the `field_6`
-    /// countdown from, plus a 0-15 `Gp_LcgState` draw. The 401300 sibling keeps
+    /// countdown from, plus a 0-15 `gRandomLcgState` draw. The 401300 sibling keeps
     /// the same bias at +0xCA0, and the countdown `Actor01900` runs off +0xC10
     /// is the same slot.
     /* 0xC10 */ u16 field_C10;
@@ -1724,7 +1724,7 @@ static void func_actor_401000_80133274(Enemy* enemy, Task* actor)
 }
 
 /// Spawn the effect a hit record `arg2` names at one of twelve model offsets
-/// picked by the signed damage `arg1`: the `Gp_LcgState` draw's low bits
+/// picked by the signed damage `arg1`: the `gRandomLcgState` draw's low bits
 /// bucket `|arg1|` into below 0x200 / above 0x600 / positive / non-positive,
 /// each selecting from its own run of `D_actor_401000_80154F30`. The chosen
 /// offset goes into the work block's `field_8C0` and the `field_8B8` argument
@@ -1743,8 +1743,8 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = D_actor_401000_80154F30[0];
                 break;
@@ -1762,8 +1762,8 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = D_actor_401000_80154F30[5];
                 break;
@@ -1775,15 +1775,15 @@ static void func_actor_401000_80133940(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401000_80154F30[8];
         } else {
             *sc = D_actor_401000_80154F30[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401000_80154F30[10];
         } else {
             *sc = D_actor_401000_80154F30[11];
@@ -2805,7 +2805,7 @@ static void func_actor_401000_80136E20(Task* arg0)
 /// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
 /// aim scratch off the scratch stack, and while the live-actor flag is up reset
 /// the display nodes and rebuild the actor's facing. The turn direction
-/// (`field_C08`) is drawn from `Gp_LcgState` on the first entry, and each entry
+/// (`field_C08`) is drawn from `gRandomLcgState` on the first entry, and each entry
 /// swings the facing toward the player by `field_C12` plus a 0x171 bias until
 /// `field_C26` has been counted once. The forward direction `field_BF0` comes
 /// out of the turn angle through `gfxRotMatrixY`, and the `field_C0A` draw
@@ -2845,8 +2845,8 @@ static void func_actor_401000_801374D4(Task* arg0)
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C08 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C08 = 1;
             } else {
                 work->field_C08 = -1;
@@ -3322,7 +3322,7 @@ static void func_actor_401000_80138D08(Task* arg0)
 /// `func_actor_401000_8013922C`. The live-actor arm allocates the model
 /// buffers, restores the saved pose matrix `field_BA8` over the live
 /// `field_BC8`, and restarts the 0xE / 0x898 animation slots; the body is then
-/// gated on the `field_6` countdown and a 0-15 `Gp_LcgState` draw. The XZ
+/// gated on the `field_6` countdown and a 0-15 `gRandomLcgState` draw. The XZ
 /// offset to `Player_Status.coordMtx` is probed against `field_C16`, and an armed
 /// `Gp_StateF0` bit 0x50000, each dropping the actor to state 6. The tail runs
 /// `blendRigDrive` and swaps `field_89E` between 0xE and 0xF on
@@ -3356,8 +3356,8 @@ static void func_actor_401000_80138F50(Task* arg0)
         work->field_8A2               = work->field_8A4;
     }
     if (work->field_6 > 0x960) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 0xF)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 0xF)) {
             return;
         }
     } else {
@@ -3377,8 +3377,8 @@ static void func_actor_401000_80138F50(Task* arg0)
     }
     blendRigDrive(arg0);
     if (work->field_89E == 0xE && (work->flags_68.half & 2)) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             work->field_89E = 0xF;
             work->field_898 = 1;
             blendRigDrive(arg0);
@@ -4020,7 +4020,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
 /// `field_6` and `field_8` then count up under the `detectSightBlocked`
 /// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
-/// 0x5B frames, while the settled arm draws a turn direction from `Gp_LcgState`
+/// 0x5B frames, while the settled arm draws a turn direction from `gRandomLcgState`
 /// and flips it every 0xF1 frames. The tail takes one forward step off the
 /// 0x12C probe, or re-arms the clip on the `flags_68` bit. `field_C1B` counts
 /// down once per entry.
@@ -4096,8 +4096,8 @@ static void func_actor_401000_8013C46C(Task* arg0)
         s->turn         = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = s->turn;
         if (work->field_C08 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C08 = -1;
             } else {
                 work->field_C08 = 1;
@@ -4687,7 +4687,7 @@ static void func_actor_401000_8013DEC8(Task* arg0)
 }
 
 /// Idle state: on entry the `field_6` countdown is seeded from `field_C10` plus
-/// a 0-15 draw from `Gp_LcgState`. When it runs out, clips 0xB/0x17 move the
+/// a 0-15 draw from `gRandomLcgState`. When it runs out, clips 0xB/0x17 move the
 /// actor to state 0xF and clips 0xC/0x18/0x19 to state 0x10; a spent enemy HP
 /// moves it to state 0x15 whatever else happened.
 static void func_actor_401000_8013DF6C(Task* arg0)
@@ -4698,8 +4698,8 @@ static void func_actor_401000_8013DF6C(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->field_6 = work->field_C10 + ((Gp_LcgState >> 16) & 0xF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_6   = work->field_C10 + ((gRandomLcgState >> 16) & 0xF);
     }
     if (--work->field_6 < 0) {
         switch (work->field_89E) {

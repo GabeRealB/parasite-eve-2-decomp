@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/sound.h"
@@ -61,7 +61,7 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
 /// texture.
 static s16 D_energyshot_80130108[16];
 /// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
-/// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
+/// from `gRandomLcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
 /// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_energyshot_80130128[16];
 
@@ -70,7 +70,7 @@ static s16 D_energyshot_80130128[16];
 /// `gRoomEffectState->peEffectControl >= 4`) releases the work block.
 ///
 /// State 0 parents the coordinate, seeds 16 texture-frame offsets and 16 wedge
-/// yaws from `Gp_LcgState`, and plays the combo-indexed cue. State 1 grows
+/// yaws from `gRandomLcgState`, and plays the combo-indexed cue. State 1 grows
 /// brightness / radius, draws three rings plus `field_0` wedges and the beam,
 /// and parents a `0x600F4` spark; once brightness exceeds the row cap it
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
@@ -120,11 +120,11 @@ void func_energyshot_8012EF34(Task* arg0)
                     do {
                         s32 rng;
 
-                        i          += 1;
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        *frames     = ((u32)rng >> 16) & 0xFF;
-                        frames     += 1;
-                        Gp_LcgState = rng;
+                        i              += 1;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        *frames         = ((u32)rng >> 16) & 0xFF;
+                        frames         += 1;
+                        gRandomLcgState = rng;
                     } while (i < 0x10);
                 }
                 i = 0;
@@ -140,10 +140,10 @@ void func_energyshot_8012EF34(Task* arg0)
                             s32 rng;
 
                             lo                       = i * (0x1000 / D_energyshot_801300E4[(s16)level].field_0);
-                            rng                      = Gp_LcgState * 5 + 0x71357911;
+                            rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             D_energyshot_80130128[i] = lo + (((u32)rng >> 16) & 0x1FF);
                             i                       += 1;
-                            Gp_LcgState              = rng;
+                            gRandomLcgState          = rng;
                             count                    = D_energyshot_801300E4[mem->index].field_0;
                             level                    = mem->index;
                         } while (i < count);
@@ -202,12 +202,12 @@ void func_energyshot_8012EF34(Task* arg0)
                 func_energyshot_8012FA50(
                     coord, (s16)(mem->scale * 6),
                     (u16)D_energyshot_801300E4[mem->index].field_6 - 0x100, rgb);
-                rng          = Gp_LcgState * 5 + 0x71357911;
-                ang          = ((u32)rng >> 16) & 0xFFF;
-                Gp_LcgState  = rng;
-                mem->angle   = ang;
-                mem->move.vx = (u32)(rsin(ang) * mem->scale * 3) >> 11;
-                mem->move.vz = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                ang             = ((u32)rng >> 16) & 0xFFF;
+                gRandomLcgState = rng;
+                mem->angle      = ang;
+                mem->move.vx    = (u32)(rsin(ang) * mem->scale * 3) >> 11;
+                mem->move.vz    = (u32)(rcos(mem->angle) * mem->scale * 3) >> 11;
                 Gp_SpawnEff(0x600F4, coord,
                             D_energyshot_801300E4[mem->index].field_6 | 0x8000,
                             &mem->move);
@@ -378,13 +378,13 @@ void func_energyshot_8012FFB8(Task* arg0)
     coord    = arg0->extra.coordBody->coord;
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        mem->move.vx = 0;
-        mem->move.vz = 0;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vy = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-        arg0->state  = 1;
+        mem->move.vx    = 0;
+        mem->move.vz    = 0;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vy    = 0xFFF0 - ((gRandomLcgState >> 16) & 0x3F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+        arg0->state     = 1;
     }
 
     y                   = coord->coord.t[1] + mem->move.vy;

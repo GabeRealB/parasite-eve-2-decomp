@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the incinerator boss library; see incinerator_boss.h. */
 
 /// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
@@ -24,10 +26,10 @@ void incinBossRainRise(Enemy* enemy, Task* task)
         task->state++;
         task->extra.tmd->coords->coord.t[0] = work->target.vx;
         task->extra.tmd->coords->coord.t[2] = work->target.vz;
-        Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
+        gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         task->extra.tmd->coords->coord.t[1] = -0x4E20;
         work->timer                         = 0;
-        work->field_1AE                     = ((u32)Gp_LcgState >> 16) & 0x1F;
+        work->field_1AE                     = (gRandomLcgState >> 16) & 0x1F;
         work->obj.flags                    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 

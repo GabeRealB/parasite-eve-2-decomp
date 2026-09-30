@@ -77,7 +77,7 @@ typedef struct _GBytes18 {
 #include "gameplay/damage.h"
 #include "main/display.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -736,7 +736,7 @@ static void Gp_StartPadReplay(void)
     DisplayState* ds;
 
     srand(1);
-    Gp_LcgState              = 0;
+    gRandomLcgState          = 0;
     ds                       = &gDisplayState;
     ds->animFrame            = 0;
     gDisplayState.frameCount = 0;

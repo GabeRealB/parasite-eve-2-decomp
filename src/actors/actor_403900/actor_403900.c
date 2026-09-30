@@ -40,7 +40,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -59,7 +59,7 @@
 extern Actor402200FrameStep D_actor_403900_801383DC[];
 
 /// Per-roll wait lengths the wait state of `stalkerIdleSeq`
-/// scales by `16 - field_70C`, indexed by a 4-bit `Gp_LcgState` draw.
+/// scales by `16 - field_70C`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 D_actor_403900_80153C3C[];
 
 /// Per-roll state offsets the wait state adds to 2 when `field_6E8` is set.
@@ -1426,13 +1426,13 @@ void stalkerIdleSeq(Task* arg0)
             work->field_6EC = 0;
             work->field_6EE = 0;
             if (work->field_6E8 != 0) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6CE = D_actor_403900_80153C5C[(Gp_LcgState >> 16) & 0xF] + 2;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6CE = D_actor_403900_80153C5C[(gRandomLcgState >> 16) & 0xF] + 2;
                 work->field_6EE = 1;
                 stalkerPlaceTarget(arg0);
                 work->field_6E4 = 0;
             } else if (work->field_6E4 == 0) {
-                work->field_6D4 = (D_actor_403900_80153C3C[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF] * (0x10 - work->field_70C)) / 16;
+                work->field_6D4 = (D_actor_403900_80153C3C[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (0x10 - work->field_70C)) / 16;
                 work->field_6CE = 1;
             } else {
                 work->field_6D4 = 0;
@@ -1454,8 +1454,8 @@ void stalkerIdleSeq(Task* arg0)
                 break;
             }
             if (work->field_70E == 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((s32)((Gp_LcgState >> 16) & 0xF) < work->field_710 + 10) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if ((s32)((gRandomLcgState >> 16) & 0xF) < work->field_710 + 10) {
                     work->field_6CE = 4;
                     work->field_710 = 0;
                 } else {
@@ -1463,8 +1463,8 @@ void stalkerIdleSeq(Task* arg0)
                     work->field_710++;
                 }
             } else if (work->field_70E == 2) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((s32)((Gp_LcgState >> 16) & 0xF) < work->field_710 + 8) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if ((s32)((gRandomLcgState >> 16) & 0xF) < work->field_710 + 8) {
                     work->field_6CE = 3;
                     work->field_710 = 0;
                 } else {
@@ -1472,8 +1472,8 @@ void stalkerIdleSeq(Task* arg0)
                     work->field_710++;
                 }
             } else {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6CE = ((Gp_LcgState >> 16) & 0xF) < 8 ? 3 : 4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6CE = ((gRandomLcgState >> 16) & 0xF) < 8 ? 3 : 4;
                 work->field_710 = 0;
             }
             stalkerPlaceTarget(arg0);
@@ -1654,9 +1654,9 @@ void stalkerGrabSeq(Task* arg0)
                         } else {
                             chance = work->field_6F6 * (0x32 - (Player_Status.hp * 100) / Player_Status.hpMax) / 2;
                             if (chance > 0) {
-                                chance      = (chance * 0xFFF) / 100;
-                                Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                                if ((s32)((Gp_LcgState >> 16) & 0xFFF) < chance) {
+                                chance          = (chance * 0xFFF) / 100;
+                                gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                                if ((s32)((gRandomLcgState >> 16) & 0xFFF) < chance) {
                                     flag = 1;
                                 }
                             }
@@ -1964,7 +1964,7 @@ void stalkerBoxApproachSeq(Task* arg0)
 }
 
 /// Cue body of the enemy's attack: state 0 arms animation `field_6C0`, sets
-/// the cue state and rolls the countdown `field_6D4` from `Gp_LcgState`,
+/// the cue state and rolls the countdown `field_6D4` from `gRandomLcgState`,
 /// raising the hit descriptor `field_494`/`field_49A` while no flinch is
 /// already running. State 1 ticks the countdown down and, on the frame it
 /// runs out, arms the `field_6DA`/`field_6DC`/`field_6DE`/`field_6E0` timers,
@@ -1987,8 +1987,8 @@ void stalkerRecoverSeq(Task* arg0)
         case 0:
             work->field_6C0 = 0xB;
             work->field_6CE = 1;
-            random          = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState     = random;
+            random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
             work->field_6D4 = (u16)(((random >> 16) & 0x1F) + 0x2D);
             if (work->field_6C6 == 0) {
                 work->field_49A |= 0x8000;

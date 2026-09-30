@@ -1,8 +1,10 @@
+#include "main/random.h"
+
 /* Part of the incinerator boss library; see incinerator_boss.h. */
 
 /// Spawn the hit effect for attack `id` on `coord`. The effect kind comes from
 /// the attack's param 1; its rotation from param 0: kinds 2, 4, 6 and 7 use one
-/// fixed rotation, every other kind draws one of three off `Gp_LcgState`. The
+/// fixed rotation, every other kind draws one of three off `gRandomLcgState`. The
 /// rotation and the effect argument live in a block borrowed from the
 /// scratchpad stack for the duration of the call.
 void incinBossHitEffect(GfxCoord* coord, s32 id)
@@ -30,8 +32,8 @@ void incinBossHitEffect(GfxCoord* coord, s32 id)
         case 8:
         case 9:
         default:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            switch ((u16)(((u32)Gp_LcgState >> 16) % 3U)) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            switch ((u16)((gRandomLcgState >> 16) % 3U)) {
                 case 0:
                     sc->rot.vy = 0;
                     sc->rot.vx = 0;

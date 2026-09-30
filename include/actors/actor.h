@@ -1130,7 +1130,7 @@ typedef struct Actor402200Work {
     /// `func_actor_402200_80135630` / `func_actor_402200_80135A24` between 0xD
     /// and the set at `field_6C0`.
     s16 field_6D2;
-    /// Countdown `func_actor_402200_801347F4` rolls from the `Gp_LcgState` LCG
+    /// Countdown `func_actor_402200_801347F4` rolls from the `gRandomLcgState` LCG
     /// (0x4B..0x6A) when it reseeds the animation, and ticks down a frame at a
     /// time until it runs out and the cue fires.
     u16 field_6D4;

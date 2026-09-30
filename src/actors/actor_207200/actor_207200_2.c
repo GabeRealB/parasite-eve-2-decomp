@@ -30,7 +30,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -756,12 +756,12 @@ static void func_actor_207200_8014B628(Task* arg0)
             work->field_4A2 = 1;
         }
         if (work->field_4A2 != 0 || Gp_StateF0.prefix.bytes.field_3 != 0) {
-            rnd               = Gp_LcgState * 5 + 0x71357911;
+            rnd               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             hi                = rnd >> 16;
             work->field_49A   = 0;
             work->field_492   = 0;
             work->field_486   = 1;
-            Gp_LcgState       = rnd;
+            gRandomLcgState   = rnd;
             work->obj1.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->field_4AA   = hi % 90;
             Gp_ArmStateF0(1);
@@ -776,8 +776,8 @@ static void func_actor_207200_8014B628(Task* arg0)
                 work->field_490 = 0;
                 work->field_48E = 0;
                 if (work->field_4A6 == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((u16)((Gp_LcgState >> 16) % 100) < 30) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if ((u16)((gRandomLcgState >> 16) % 100) < 30) {
                         work->field_48C = 9;
                     }
                 }
@@ -948,8 +948,8 @@ static void func_actor_207200_8014B87C(Task* arg0)
                     work->field_486 = 0;
                     work->field_48C = 1;
                 } else {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((u16)((Gp_LcgState >> 16) % 100) < 40) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if ((u16)((gRandomLcgState >> 16) % 100) < 40) {
                         work->field_49A = 6;
                         work->field_48C = 10;
                     } else {
@@ -1173,8 +1173,8 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 case 5:
                 case 6:
                     Gp_SpawnEff(0x6009C, arg0->extra.tmd->coords, 2, NULL);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800DA6E8(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((Gp_LcgState >> 16) % 100), 0);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    func_800DA6E8(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
                     func_actor_207200_8014D128(arg0);
                     work->field_4A8 = 1;
                     arg0->state++;
@@ -1457,8 +1457,8 @@ static void func_actor_207200_8014D128(Task* arg0)
     EffectWork* effect;
     s32         r;
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    r           = (Gp_LcgState >> 16) & 3;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    r               = (gRandomLcgState >> 16) & 3;
     switch (r) {
         case 0:
         case 1:

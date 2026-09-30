@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -73,9 +73,9 @@ void flareEffectTask(Task* arg0)
         if (tick == 8) {
             state->field_6 |= 8;
         }
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        spawned     = Gp_SpawnEff(0x6019E, coord, (((u32)rng >> 16) & 0x1FF) + 0x680, 0);
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        spawned         = Gp_SpawnEff(0x6019E, coord, (((u32)rng >> 16) & 0x1FF) + 0x680, 0);
         if (spawned != NULL) {
             Task_Reparent(arg0, spawned->task);
         }
@@ -119,15 +119,15 @@ void flareSparkTask(Task* arg0)
         dstm->m22           = srcm->m22;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        rng          = Gp_LcgState * 5 + 0x71357911;
-        mem->period  = arg0->spawnArg1.value & 0xFFF;
-        mem->scale   = (rng >> 16) & 0xFFF;
-        Gp_LcgState  = rng;
-        mem->angle   = mem->period >> 5;
-        mem->move.vx = (rsin(mem->scale) * mem->angle) >> 12;
-        temp_lo      = rcos(mem->scale) * mem->angle;
-        mem->move.vz = 0x100;
-        mem->move.vy = temp_lo >> 12;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->period     = arg0->spawnArg1.value & 0xFFF;
+        mem->scale      = (rng >> 16) & 0xFFF;
+        gRandomLcgState = rng;
+        mem->angle      = mem->period >> 5;
+        mem->move.vx    = (rsin(mem->scale) * mem->angle) >> 12;
+        temp_lo         = rcos(mem->scale) * mem->angle;
+        mem->move.vz    = 0x100;
+        mem->move.vy    = temp_lo >> 12;
         gte_SetRotMatrix((MATRIX*)srcm);
         gte_ldv0(&mem->move);
         gte_rtv0();

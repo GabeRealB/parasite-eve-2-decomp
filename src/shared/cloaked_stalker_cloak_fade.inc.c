@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
 /// Runs the actor's fade sequence off `field_6DA`. States 1 / 3 fade the
@@ -172,8 +174,8 @@ void stalkerCloakFade(Task* arg0)
             break;
         case 7:
             work->field_6DA = 8;
-            work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-            t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+            work->field_6E0 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
+            t               = work->field_6E0 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
             work->field_6DC = t;
             work->field_6DE = t;
             break;
@@ -196,8 +198,8 @@ void stalkerCloakFade(Task* arg0)
             work->field_6E0 = t;
             if (t <= 0) {
                 work->field_6DA = 9;
-                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+                work->field_6E0 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
+                t               = work->field_6E0 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
                 work->field_6DC = t;
                 work->field_6DE = t;
             }
@@ -206,8 +208,8 @@ void stalkerCloakFade(Task* arg0)
             }
             if (work->field_6C4 & 1) {
                 sc->vx = 0;
-                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
-                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
+                sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
+                sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
                 Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;
@@ -230,15 +232,15 @@ void stalkerCloakFade(Task* arg0)
             work->field_6E0 = t;
             if (t <= 0) {
                 work->field_6DA = 8;
-                work->field_6E0 = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 2;
-                t               = work->field_6E0 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
+                work->field_6E0 = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
+                t               = work->field_6E0 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
                 work->field_6DC = t;
                 work->field_6DE = t;
             }
             if (work->field_6C4 & 1) {
                 sc->vx = 0;
-                sc->vy = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF);
-                sc->vz = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF;
+                sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
+                sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
                 Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;

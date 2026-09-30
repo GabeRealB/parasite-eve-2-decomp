@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
@@ -208,9 +210,9 @@ void lungerHitTick(Task* arg0)
                             work->field_6A6 = 2;
                             work->field_6A8 = 0;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        rng         = Gp_LcgState >> 16;
-                        tilt        = (rng & 0x7F) + 0x40;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        rng             = gRandomLcgState >> 16;
+                        tilt            = (rng & 0x7F) + 0x40;
                         if (!(rng & 1)) {
                             tilt = -tilt;
                         }

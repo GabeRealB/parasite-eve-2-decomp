@@ -33,7 +33,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -2382,8 +2382,8 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = D_actor_401300_80158928[0];
                 break;
@@ -2401,8 +2401,8 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = D_actor_401300_80158928[5];
                 break;
@@ -2414,15 +2414,15 @@ static void func_actor_401300_80134BA4(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401300_80158928[8];
         } else {
             *sc = D_actor_401300_80158928[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401300_80158928[10];
         } else {
             *sc = D_actor_401300_80158928[11];
@@ -2820,8 +2820,8 @@ static void func_actor_401300_80135FC4(Task* arg0)
     }
     if (++work->field_6 == 0) {
         work->field_89C = 2;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        r               = (Gp_LcgState >> 16) % 3;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        r               = (gRandomLcgState >> 16) % 3;
         switch (r) {
             case 0:
                 work->field_8A6 = 0x20;
@@ -2852,8 +2852,8 @@ static void func_actor_401300_80135FC4(Task* arg0)
         func_actor_401300_80133A3C(arg0);
     }
     if (work->field_6 >= 7) {
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->field_6 = -((Gp_LcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_6   = -((gRandomLcgState >> 16) & 0xFF);
     }
     if (enemy->hp <= 0) {
         work->field_0 = 0x11;
@@ -3010,15 +3010,15 @@ static void func_actor_401300_801365F8(Task* arg0)
             if (dist > 4000) {
                 work->field_0 = 0x21;
             } else if (dist > 2000) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if (((Gp_LcgState >> 16) & 0xF) < 5) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 0xF) < 5) {
                     work->field_0 = 0x21;
                 } else {
                     work->field_0 = 0x22;
                 }
             } else if (dist < 1000) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if (((Gp_LcgState >> 16) & 0xF) < 7) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 0xF) < 7) {
                     work->field_0 = 0x1F;
                 } else {
                     work->field_0 = 0x20;
@@ -3307,8 +3307,8 @@ static void func_actor_401300_80137D78(Task* arg0)
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C9C == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C9C = 1;
             } else {
                 work->field_C9C = -1;
@@ -3760,8 +3760,8 @@ static void func_actor_401300_80139520(Task* arg0)
         work->field_8A6               = work->field_8A8;
     }
     if (work->field_6 > 0x960) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (!((Gp_LcgState >> 16) & 0xF)) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (!((gRandomLcgState >> 16) & 0xF)) {
             return;
         }
     } else {
@@ -3781,8 +3781,8 @@ static void func_actor_401300_80139520(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_8A2 == 0xE && (work->field_6C & 2)) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             work->field_8A2 = 0xF;
             work->field_89C = 1;
             func_actor_401300_80133A3C(arg0);
@@ -6047,8 +6047,8 @@ static void func_actor_401300_80141DF4(Task* arg0)
     if (work->field_4 != 0) {
         work->field_8B6 = 0x20;
         work->field_8BA = 8;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        work->field_6   = work->field_CA0 + ((Gp_LcgState >> 16) & 0xF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_6   = work->field_CA0 + ((gRandomLcgState >> 16) & 0xF);
     }
     func_actor_401300_80133A3C(arg0);
     if (--work->field_6 < 0) {

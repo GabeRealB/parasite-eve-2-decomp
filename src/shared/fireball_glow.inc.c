@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the fireball library; see fireball.h. */
 
 /// Lights `Gp_RoomCoords[2]` at `coord` with a randomly flickering
@@ -29,8 +31,8 @@ void fireballDrawGlow(GfxCoord* coord, s16 size)
     light                                         = &slot->light;
     light->inner                                  = 0x300;
     light->outer                                  = 0x3000;
-    random                                        = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState                                   = random;
+    random                                        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState                               = random;
     intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
     light->head.color.r                           = intensity;
     light->head.color.g                           = intensity >> 1;

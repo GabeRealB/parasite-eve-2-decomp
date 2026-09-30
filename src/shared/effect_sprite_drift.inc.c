@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the effect sprite library; see effect_sprite.h. */
 
 /// Per-frame handler for one animated sprite effect, drawn by
@@ -7,7 +9,7 @@
 /// animation cell (1 when zero), bits 28..30 are kept as the drawer's clut
 /// selector, and the sign bit picks the second drawer. When the work block
 /// arrives without a velocity, bits 24..27 choose how one is rolled from
-/// `Gp_LcgState` (0 leaves it still) and it is scaled to a speed from bits
+/// `gRandomLcgState` (0 leaves it still) and it is scaled to a speed from bits
 /// 16..23 (0x40 when zero). Each later frame draws the current cell, moves the
 /// coordinate by the velocity and bends its Y component, then frees the effect
 /// after the drawer's last cell (12 or 10). While the player is in an event it
@@ -36,9 +38,9 @@ void effectSpriteDriftTask(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1.value & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale     = task->spawnArg1.value & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
             if (task->spawnArg1.value & 0xF000) {
                 step = (task->spawnArg1.value >> 12) & 7;
             } else {
@@ -61,28 +63,28 @@ void effectSpriteDriftTask(Task* task)
                         work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
                     case 5:
                         work->move.vx = work->pos.vx;
@@ -90,11 +92,11 @@ void effectSpriteDriftTask(Task* task)
                         work->move.vz = work->pos.vz;
                         break;
                     case 6:
-                        work->move.vy = 0;
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        work->move.vy   = 0;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                 }
                 vec = &work->move;

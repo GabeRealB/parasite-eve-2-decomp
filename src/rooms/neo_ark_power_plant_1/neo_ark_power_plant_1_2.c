@@ -33,7 +33,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -818,8 +818,8 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
         case 6:
             if (GameFlag_GetNibble(0x148) != 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(0xDE) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 7) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
                     }
                 }
@@ -848,8 +848,8 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
         case 7:
             if (GameFlag_GetNibble(0x148) != 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(0xDE) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 7) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 7) == 0) {
                         Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
                     }
                 }

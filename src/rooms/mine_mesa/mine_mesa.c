@@ -49,7 +49,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -75,7 +75,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-#define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define MINE_MESA_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 extern GpGridParams D_mine_mesa_801864A4;
 

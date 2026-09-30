@@ -53,7 +53,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/gfxgte.h"
@@ -81,7 +81,7 @@
 #include "../../shared/effect_sprite.h"
 #include "../../shared/actor_messages.h"
 
-#define DUMPING_HOLE_RAND() ((s32)((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16))
+#define DUMPING_HOLE_RAND() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
 
 /// Spawns one debris task and gives it a work block seeded with `seed`.
 #define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                              \
@@ -2105,13 +2105,13 @@ void func_shelter_b3_dumping_hole_8017DCFC(Task* arg0)
             if (entity->field_42 != 2) {
                 return;
             }
-            W->field_1C = 5;
-            W->field_14 = 0;
-            W->field_18 = 0;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            W->field_16 = 0xFFF6 - ((Gp_LcgState >> 16) & 7);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            W->field_20 = (Gp_LcgState >> 16) & 7;
+            W->field_1C     = 5;
+            W->field_14     = 0;
+            W->field_18     = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            W->field_16     = 0xFFF6 - ((gRandomLcgState >> 16) & 7);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            W->field_20     = (gRandomLcgState >> 16) & 7;
             arg0->state++;
             return;
         case 2:
@@ -2189,13 +2189,13 @@ void func_shelter_b3_dumping_hole_8017DF90(Task* arg0)
             coord->coord.t[0] = vec.vx + W->field_C;
             coord->coord.t[1] = vec.vy + W->field_E;
             coord->coord.t[2] = vec.vz + W->field_10;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            W->field_16       = 0xFFF6 - ((Gp_LcgState >> 16) & 7);
+            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            W->field_16       = 0xFFF6 - ((gRandomLcgState >> 16) & 7);
             W->field_14       = 0;
             W->field_18       = 0;
             W->field_1C       = 0;
-            Gp_LcgState       = Gp_LcgState * 5 + 0x71357911;
-            W->field_20       = ((Gp_LcgState >> 16) & 7) + 0x14;
+            gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            W->field_20       = ((gRandomLcgState >> 16) & 7) + 0x14;
             arg0->state++;
             return;
         case 1:
@@ -2290,40 +2290,40 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             }
             work = (DumpingHoleAnimWork*)arg0->work;
             Mem_Set(work, 0, 0x24);
-            work->field_16 = -0xA;
-            work->field_14 = 0;
-            work->field_18 = 0;
-            work->field_8  = 0x1000;
-            work->field_14 = 0;
-            roll1          = Gp_LcgState * 5 + 0x71357911;
-            work->field_16 = 0xFFF1 - ((roll1 >> 16) & 7);
-            sa1            = arg0->spawnArg1.value;
-            Gp_LcgState    = roll1;
+            work->field_16  = -0xA;
+            work->field_14  = 0;
+            work->field_18  = 0;
+            work->field_8   = 0x1000;
+            work->field_14  = 0;
+            roll1           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_16  = 0xFFF1 - ((roll1 >> 16) & 7);
+            sa1             = arg0->spawnArg1.value;
+            gRandomLcgState = roll1;
             if (sa1 == 0) {
-                roll2       = roll1 * 5 + 0x71357911;
-                base18      = work->field_18;
-                Gp_LcgState = roll2;
+                roll2           = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                base18          = work->field_18;
+                gRandomLcgState = roll2;
                 if ((roll2 >> 16) & 1) {
-                    Gp_LcgState = roll2 * 5 + 0x71357911;
-                    var0        = base18 + ((Gp_LcgState >> 16) & 1);
+                    gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    var0            = base18 + ((gRandomLcgState >> 16) & 1);
                 } else {
-                    Gp_LcgState = roll2 * 5 + 0x71357911;
-                    var0        = base18 - ((Gp_LcgState >> 16) & 1);
+                    gRandomLcgState = roll2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    var0            = base18 - ((gRandomLcgState >> 16) & 1);
                 }
                 work->field_18 = var0;
             } else {
                 if (sa1 < 0) {
-                    Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1.value - ((Gp_LcgState >> 16) & 1));
+                    gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    delta           = (u16)work->field_18 + ((u16)arg0->spawnArg1.value - ((gRandomLcgState >> 16) & 1));
                 } else {
-                    Gp_LcgState = roll1 * 5 + 0x71357911;
-                    delta       = (u16)work->field_18 + ((u16)arg0->spawnArg1.value + ((Gp_LcgState >> 16) & 1));
+                    gRandomLcgState = roll1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    delta           = (u16)work->field_18 + ((u16)arg0->spawnArg1.value + ((gRandomLcgState >> 16) & 1));
                 }
                 work->field_18 = delta;
             }
-            work->field_1C = 0;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->field_20 = (Gp_LcgState >> 16) & 7;
+            work->field_1C  = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_20  = (gRandomLcgState >> 16) & 7;
             arg0->state++;
             return;
         case 1:
@@ -4231,9 +4231,9 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            work->scale     = task->spawnArg1.halves.low & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
             if (task->spawnArg1.value & 0xF000) {
                 step = (task->spawnArg1.value >> 12) & 0xF;
             } else {
@@ -4259,28 +4259,28 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
                         work->step = 0;
                         break;
                     case 1:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0xFFC0 - ((gRandomLcgState >> 16) & 0x7F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 2:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                         break;
                     case 3:
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         break;
                     case 5:
                         work->move.vx = work->pos.vx;

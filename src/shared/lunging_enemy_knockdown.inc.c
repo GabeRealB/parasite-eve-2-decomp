@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the lunging enemy library; see lunging_enemy.h. */
 
 /// Entry 0xB of `Actor05600_D16540`: state 0 picks the pose from `field_6AA`
@@ -61,9 +63,9 @@ void lungerKnockdownState(Task* arg0)
             if (work->field_698 >= 0x42) {
                 work->field_694 = 0x19;
                 work->field_6D4 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random;
+                gRandomLcgState = random;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -85,9 +87,9 @@ void lungerKnockdownState(Task* arg0)
             if (work->field_698 >= 0x31) {
                 work->field_694 = 0x1D;
                 work->field_6D4 = 0;
-                random2         = (Gp_LcgState * 5) + 0x71357911;
+                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random2;
+                gRandomLcgState = random2;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -123,8 +125,8 @@ void lungerKnockdownState(Task* arg0)
                 }
                 work->field_694 = nextAnim2;
                 work->field_6A8 = 3;
-                random3         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random3;
+                random3         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random3;
                 work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
             }
             break;

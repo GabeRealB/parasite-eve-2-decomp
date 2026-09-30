@@ -38,7 +38,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
@@ -1963,15 +1963,15 @@ void func_acropolis_patio_8017E100(Task* task)
         task->state++;
         for (i = 0; i < 3; i++) {
             for (j = 0; j < 3; j++) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vy  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz  = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                work->move.vx += D_acropolis_patio_80182DDC[i].vx;
-                work->move.vy += D_acropolis_patio_80182DDC[i].vy;
-                work->move.vz += D_acropolis_patio_80182DDC[i].vz;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vx   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vy   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+                work->move.vx  += D_acropolis_patio_80182DDC[i].vx;
+                work->move.vy  += D_acropolis_patio_80182DDC[i].vy;
+                work->move.vz  += D_acropolis_patio_80182DDC[i].vz;
                 Gp_SpawnEff(0x6008F, objCoord, i, &work->move);
             }
         }
@@ -2108,17 +2108,17 @@ void func_acropolis_patio_8017E730(Task* task)
         sc = (RoomMoteScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
             task->state++;
         }
         if (work->index != 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 3) == 0) {
                 anchors       = D_acropolis_patio_80182DDC;
                 dir           = &work->move;
                 work->move.vx = (u16)anchors[task->spawnArg1.value].vx -
@@ -2133,25 +2133,25 @@ void func_acropolis_patio_8017E730(Task* task)
                 gte_gpf12();
                 gte_stsv(dir);
             }
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz -= (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 0x78) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz  -= ((gRandomLcgState >> 16) & 0xF) - 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 0x78) == 0) {
                 work->index = 0;
             }
         } else {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 0x3C) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 0x3C) == 0) {
                 work->index = 1;
             }
         }
@@ -2172,12 +2172,12 @@ void func_acropolis_patio_8017E730(Task* task)
         gte_stsxy(&prim->x0);
         gte_stszotz(&sc->otz);
         if (sc->otz >= 0x11) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            level       = (u32)Gp_LcgState >> 16;
-            level      %= 0xC0;
-            prim->r0    = level;
-            prim->g0    = level;
-            prim->b0    = level;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            level           = gRandomLcgState >> 16;
+            level          %= 0xC0;
+            prim->r0        = level;
+            prim->g0        = level;
+            prim->b0        = level;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
             Gp_AddTpageShift((P_TAG*)prim, 0, sc->otz);

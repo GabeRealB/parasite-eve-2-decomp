@@ -47,7 +47,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/gfxgte.h"
@@ -793,15 +793,15 @@ static void func_actor_403600_8013955C(Task* arg0)
             if (temp_s1->field_73E != 0x28) {
                 temp_ret = Gp_TickObjFlag4(temp_s0);
                 if (temp_ret != 0) {
-                    temp_v1_2   = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState = temp_v1_2;
+                    temp_v1_2       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = temp_v1_2;
                     if ((temp_v1_2 >> 0x10) & 1) {
-                        temp_v0            = (temp_v1_2 * 5) + 0x71357911;
-                        Gp_LcgState        = temp_v0;
+                        temp_v0            = (temp_v1_2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState    = temp_v0;
                         temp_s1->field_700 = ((temp_v0 >> 0xB) & 0x60) + 0x80;
                     } else {
-                        temp_v0_2          = (temp_v1_2 * 5) + 0x71357911;
-                        Gp_LcgState        = temp_v0_2;
+                        temp_v0_2          = (temp_v1_2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState    = temp_v0_2;
                         temp_s1->field_700 = -(((temp_v0_2 >> 0xB) & 0x60) + 0x80);
                     }
                     func_actor_403600_8013DAF4(arg0, temp_ret / 5);
@@ -1804,12 +1804,12 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 0:
                     temp_a2 = temp_s3->field_73A;
-                    var_a1  = 0x71350000;
+                    var_a1  = RANDOM_LCG_INCREMENT & ~0xFFFF;
                     if (temp_a2 == 1) {
-                        var_a1      = 0x71357911;
-                        temp_v0_14  = (Gp_LcgState * 5) + 0x71357911;
-                        Gp_LcgState = temp_v0_14;
-                        temp_v1_3   = (temp_v0_14 >> 0x10) & 0xF;
+                        var_a1          = RANDOM_LCG_INCREMENT;
+                        temp_v0_14      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = temp_v0_14;
+                        temp_v1_3       = (temp_v0_14 >> 0x10) & 0xF;
                         if (temp_v1_3 < 2) {
                             temp_s3->field_75A = 0;
                         } else if (temp_v1_3 < 5) {
@@ -2708,8 +2708,8 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
 /// Steps the shared LCG and returns the upper half of the new state.
 static inline u32 _actor403600Rand(void)
 {
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    return Gp_LcgState >> 16;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    return gRandomLcgState >> 16;
 }
 
 static void func_actor_403600_8013D15C(Task* arg0)
@@ -3455,19 +3455,19 @@ static void func_actor_403600_8013EA04(Task* arg0)
     var_a2             = 0;
     temp_s2->field_772 = 0;
     if (temp_s2->field_4B4 != 0) {
-        var_v0      = (Gp_LcgState * 5) + 0x71357911;
-        var_a2      = 3;
-        Gp_LcgState = var_v0;
+        var_v0          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        var_a2          = 3;
+        gRandomLcgState = var_v0;
         if ((var_v0 >> 0x10) & 1) {
             var_a2 = 2;
         }
     } else {
         temp_v1 = Player_Status.coordMtx->t[1];
         if (temp_v1 >= -0x7D0) {
-            temp_a0            = (Gp_LcgState * 5) + 0x71357911;
+            temp_a0            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             temp_s2->field_772 = 2;
             temp_v1_2          = (temp_a0 >> 0x10) & 0xF;
-            Gp_LcgState        = temp_a0;
+            gRandomLcgState    = temp_a0;
             if (temp_v1_2 < 3) {
                 var_a2 = 2;
             } else if (temp_v1_2 < 6) {
@@ -3475,9 +3475,9 @@ static void func_actor_403600_8013EA04(Task* arg0)
             } else if (temp_v1_2 < 0xB) {
                 var_a2 = 5;
             } else {
-                temp_v0     = (temp_a0 * 5) + 0x71357911;
-                Gp_LcgState = temp_v0;
-                var_a2      = 4;
+                temp_v0         = (temp_a0 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = temp_v0;
+                var_a2          = 4;
                 if ((temp_v0 >> 0x10) & 1) {
                     var_a2 = 6;
                 }
@@ -3485,13 +3485,13 @@ static void func_actor_403600_8013EA04(Task* arg0)
         } else if (temp_v1 >= -0x1004) {
             if (((u32)(Player_Status.coordMtx->t[0] - 0xFA0) < 0x1F41U) &&
                 ((u32)(Player_Status.coordMtx->t[2] - 0xBB8) < 0x1F41U)) {
-                temp_a1            = (Gp_LcgState * 5) + 0x71357911;
+                temp_a1            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 temp_s2->field_772 = 1;
                 temp_threshold     = temp_t0->hp;
                 temp_v1_3          = temp_a1 >> 0x10;
                 temp_v1_3         &= 0xF;
                 temp_work_limit    = temp_s2->field_798;
-                Gp_LcgState        = temp_a1;
+                gRandomLcgState    = temp_a1;
                 if (temp_work_limit < temp_threshold) {
                     var_a2 = 1;
                     if (temp_v1_3 & 1) {
@@ -3503,19 +3503,19 @@ static void func_actor_403600_8013EA04(Task* arg0)
                     } else if (temp_v1_3 < 6) {
                         var_a2 = 3;
                     } else {
-                        temp_v0_2   = (temp_a1 * 5) + 0x71357911;
-                        Gp_LcgState = temp_v0_2;
-                        var_a2      = 1;
+                        temp_v0_2       = (temp_a1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = temp_v0_2;
+                        var_a2          = 1;
                         if ((temp_v0_2 >> 0x10) & 1) {
                             var_a2 = 2;
                         }
                     }
                 }
             } else {
-                temp_a0_2          = (Gp_LcgState * 5) + 0x71357911;
+                temp_a0_2          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 temp_s2->field_772 = 3;
                 temp_v1_4          = (temp_a0_2 >> 0x10) & 0xF;
-                Gp_LcgState        = temp_a0_2;
+                gRandomLcgState    = temp_a0_2;
                 if (temp_v1_4 < 2) {
                     var_a2 = 3;
                 } else if (temp_v1_4 < 5) {
@@ -3523,9 +3523,9 @@ static void func_actor_403600_8013EA04(Task* arg0)
                 } else if (temp_v1_4 < 8) {
                     var_a2 = 4;
                 } else {
-                    var_v0      = (temp_a0_2 * 5) + 0x71357911;
-                    Gp_LcgState = var_v0;
-                    var_a2      = 5;
+                    var_v0          = (temp_a0_2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = var_v0;
+                    var_a2          = 5;
                     if ((var_v0 >> 0x10) & 1) {
                         var_a2 = 2;
                     }
@@ -3622,13 +3622,13 @@ static void func_actor_403600_8013EA04(Task* arg0)
             func_actor_403600_8013CCEC(arg0, 1);
             return;
         case 4:
-            temp_a0_3          = Gp_LcgState * 5;
-            temp_a0_4          = temp_a0_3 + 0x71357911;
+            temp_a0_3          = gRandomLcgState * RANDOM_LCG_MULTIPLIER;
+            temp_a0_4          = temp_a0_3 + RANDOM_LCG_INCREMENT;
             temp_s2->field_746 = 0;
             temp_s2->field_736 = 2;
             temp_s2->field_73E = 0x32;
             temp_lo_2          = (s16)((u16)temp_s2->field_7B0 + 1);
-            Gp_LcgState        = temp_a0_4;
+            gRandomLcgState    = temp_a0_4;
             temp_s2->field_7B0 = temp_lo_2;
             temp_s2->field_734 = (s16)(((temp_a0_4 >> 0x10) % 0x14) + 0x28);
             return;
@@ -3834,10 +3834,10 @@ static void func_actor_403600_8013F608(Task* arg0)
             if ((s16)temp_v0_4 >= 0x400) {
                 work->field_76A = 0x400;
             }
-            temp_v0_5   = (Gp_LcgState * 5) + 0x71357911;
-            temp_t0     = temp_v0_5 >> 0x10;
-            temp_arg2   = work->field_76A;
-            Gp_LcgState = temp_v0_5;
+            temp_v0_5       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            temp_t0         = temp_v0_5 >> 0x10;
+            temp_arg2       = work->field_76A;
+            gRandomLcgState = temp_v0_5;
             Gp_SpawnEff(0x60080,
                         &(*gPlayerActorTasks)->extra.tmd->coords[(temp_t0 % 19) & 0xFFFF],
                         temp_arg2, NULL);
@@ -3992,8 +3992,8 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     rot.vy = (s16)angle;
     rot.vz = 0;
     RotMatrix(&rot, &work->field_4B8.coord);
-    randomProduct   = Gp_LcgState * 5;
-    randomState     = randomProduct + 0x71357911;
+    randomProduct   = gRandomLcgState * RANDOM_LCG_MULTIPLIER;
+    randomState     = randomProduct + RANDOM_LCG_INCREMENT;
     work->field_748 = (s16)angle;
     work->field_756 = 0;
     work->field_742 = 0;
@@ -4002,7 +4002,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     work->field_74C = 0xA;
     work->field_750 = 0x14;
     work->field_754 = (s16)(((randomState >> 0x10) % 0x32) + 0xBB8);
-    Gp_LcgState     = randomState;
+    gRandomLcgState = randomState;
     if (task->spawnArg1.value != 0) {
         Gp_AssignNodeSlot0(&enemy->node);
     }

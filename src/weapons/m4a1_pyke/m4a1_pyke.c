@@ -28,7 +28,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -149,8 +149,8 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     base->framesLeft = 4;
                     slot->inner      = 0x80;
                     slot->outer      = 0x400;
-                    ang              = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState      = ang;
+                    ang              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = ang;
                     // Green halves the unsigned red halfword; blue quarters its signed value.
                     slot->head.color.r = ((ang >> 16) & 0x700) + 0x400;
                     slot->head.color.g = (u16)slot->head.color.r >> 1;
@@ -175,8 +175,8 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     base->framesLeft   = 4;
                     slot->inner        = 0x400;
                     slot->outer        = 0x4000;
-                    ang                = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState        = ang;
+                    ang                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState    = ang;
                     slot->head.color.r = ((ang >> 16) & 0x700) + 0x800;
                     slot->head.color.g = (u16)slot->head.color.r >> 1;
                     slot->head.color.b = slot->head.color.r >> 2;
@@ -257,17 +257,17 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             /* The three halfwords are the SVECTOR `gte_rtv0` rotates in
                place, so `field_14` has to be cleared after the random pitch is
                written to `field_12`, not alongside `field_10`. */
-            work->move.vx = 0;
-            ang0          = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState   = ang0;
-            work->move.vy = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
-            work->move.vz = 0;
+            work->move.vx   = 0;
+            ang0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = ang0;
+            work->move.vy   = (u16)task->spawnArg1.value - ((ang0 >> 16) & 0x3F);
+            work->move.vz   = 0;
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&work->move);
             gte_rtv0();
             gte_stsv(&work->move);
             work->scale                = (u16)task->spawnArg1.value + 0x180;
-            ang1                       = Gp_LcgState * 5 + 0x71357911;
+            ang1                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->angle                = (ang1 >> 16) & 0xFFF;
             task->state                = 1;
             task->work                 = beam;
@@ -275,7 +275,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             beam->obj.context.contacts = beam->rec;
             beam->obj.key              = 0x21C1E;
             beam->obj.radius           = work->scale >> 1;
-            Gp_LcgState                = ang1;
+            gRandomLcgState            = ang1;
             beam->obj.flags            = WORLD_COLLISION_BODY_SPHERE;
             Gp_LinkObj(1, &beam->obj);
             beam->rec[0].flags = 2;
@@ -298,8 +298,8 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             pykeFlameDrawBlob(MATRIX_TRANS(&coord->workm),
                               (work->age >> 1) + 1, work->scale,
                               work->angle);
-            ang2        = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = ang2;
+            ang2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = ang2;
             if ((u16)((ang2 >> 16) % 3) == 0 && gRoomEffectState->groundTraceEnabled != 0 &&
                 Gp_TraceGroundCoord(coord, &ground) == 1) {
                 func_m4a1_pyke_8011E168(MATRIX_TRANS(&ground.workm),
@@ -312,12 +312,12 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             }
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);
-                task->state   = 2;
-                work->move.vx = (u32)rcos(work->angle) >> 8;
-                work->move.vy = (u32)rsin(work->angle) >> 8;
-                ang3          = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState   = ang3;
-                work->move.vz = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
+                task->state     = 2;
+                work->move.vx   = (u32)rcos(work->angle) >> 8;
+                work->move.vy   = (u32)rsin(work->angle) >> 8;
+                ang3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = ang3;
+                work->move.vz   = (u32)rsin((ang3 >> 16) & 0xFFF) >> 8;
                 return;
             }
             if (work->age >= 0x15) {

@@ -32,7 +32,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -158,7 +158,7 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// (the lower offset is the light matrix, as in every actor).
 ///
 /// `field_26C` is the task the spawn argument named, handed to `Task_Reparent`;
-/// `field_270` / `field_274` / `field_278` are the three `Gp_LcgState` draws
+/// `field_270` / `field_274` / `field_278` are the three `gRandomLcgState` draws
 /// `func_actor_560800_801376E0` takes at spawn; `field_280` is the slot count it
 /// seeds from the spawner's `spawnArg1`, which `func_actor_560800_80137820` then
 /// walks 1..count with `Gp_AnimResetSlot`. `field_27C` / `field_27E` and the
@@ -286,7 +286,7 @@ extern s32 D_actor_560800_8017579C;
 extern s32 D_actor_560800_801757A0;
 extern s32 D_actor_560800_801757A4;
 
-/// Seed `func_actor_560800_80135D54` loads into `Gp_LcgState` before it hands
+/// Seed `func_actor_560800_80135D54` loads into `gRandomLcgState` before it hands
 /// control back to gameplay.
 extern u32 D_actor_560800_801757A8;
 
@@ -5737,7 +5737,7 @@ void func_actor_560800_80135D54(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Gp_LcgState = D_actor_560800_801757A8;
+                gRandomLcgState = D_actor_560800_801757A8;
                 Gp_PulseState1C();
                 val    = Player_Status.weapon;
                 msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
@@ -6375,7 +6375,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
 /// `Actor560800ModelWork`, hangs it off `Task::work`, points the object's light
 /// and colour matrices into it, makes the named task this one's parent and hands
 /// the part to `func_800B3F84` with the overlay's animation bank. The three
-/// `Gp_LcgState` draws taken along the way seed the handlers' random headings,
+/// `gRandomLcgState` draws taken along the way seed the handlers' random headings,
 /// and the slot count comes from the spawner's `spawnArg1`.
 static void func_actor_560800_801376E0(Task* arg0)
 {
@@ -6401,12 +6401,12 @@ static void func_actor_560800_801376E0(Task* arg0)
     obj->lightMtx   = &work->light;
     obj->colorMtx   = &work->color;
     Task_Reparent(work->field_26C, arg0);
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_270 = Gp_LcgState >> 16;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_274 = Gp_LcgState >> 16;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_278 = (Gp_LcgState >> 16) & 0x3FF;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_270 = gRandomLcgState >> 16;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_274 = gRandomLcgState >> 16;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_278 = (gRandomLcgState >> 16) & 0x3FF;
     func_800B3F84(&work->anim, D_actor_560800_801752F0, obj, work->poseBuf,
                   work->slots);
     work->field_280 = arg0->spawnArg1.value;
@@ -6840,7 +6840,7 @@ void func_actor_560800_801384EC(Task* task, s32 msgId, ActorCommand* msg)
 
 /// Handler of the parts task. State 0 allocates its `Actor560800PartsWork`,
 /// roots the model at `gGfxViewCoord`, reparents the spawner's task, spawns the
-/// eight part tasks and swaps `Gp_LcgState` out for a zero seed; state 2 grows
+/// eight part tasks and swaps `gRandomLcgState` out for a zero seed; state 2 grows
 /// each part's `field_256` up to its `D_actor_560800_80175314` limit; state 3
 /// bursts effects on the first remaining part, puts it into state 4 and drops
 /// it. Every frame the world position follows part 9 of the controller model
@@ -6883,8 +6883,8 @@ void func_actor_560800_801386D4(Task* task)
                         Task_SpawnFromTable(D_actor_560800_8017575C, 1, (i & 0xFFFF) + 1, task);
                     i++;
                 } while ((u32)(i & 0xFFFF) < 8U);
-                D_actor_560800_801757A8 = Gp_LcgState;
-                Gp_LcgState             = 0;
+                D_actor_560800_801757A8 = gRandomLcgState;
+                gRandomLcgState         = 0;
             }
             task->state++;
             break;

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Behaviour state 4: plays the spray sound at frame 0x28 and spawns a puff
@@ -29,8 +31,8 @@ void spiderSprayState(Task* arg0)
         work->field_39A = 3;
         work->field_39C = 0;
         work->field_392 = 1;
-        random          = (Gp_LcgState * 5) + 0x71357911;
+        random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
-        Gp_LcgState     = random;
+        gRandomLcgState = random;
     }
 }

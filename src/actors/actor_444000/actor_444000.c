@@ -45,7 +45,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -283,7 +283,7 @@ extern TaskDesc D_80172604;
 extern AnimationSet* gIncinBossCaughtAnimSets[];
 
 /// Which of the three drop-point groups the falling enemies use this round,
-/// rerolled off `Gp_LcgState` whenever a spawn arrives with `spawnArg1` 0.
+/// rerolled off `gRandomLcgState` whenever a spawn arrives with `spawnArg1` 0.
 extern u8 gIncinBossRainGroup;
 /// Per-`spawnArg1` offset from the host model to the point the enemy is stood
 /// up at when it is spawned.
@@ -4833,8 +4833,8 @@ hit:
             case 6:
                 state = work->field_0;
                 if (state != 3 && state != 9) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    roll        = ((u32)Gp_LcgState >> 16) % 6;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    roll            = (gRandomLcgState >> 16) % 6;
                     if (roll == 0) {
                         work->field_0 = 8;
                         work->field_2 = -1;
@@ -6660,7 +6660,7 @@ static void func_actor_444000_8014105C(Task* arg0)
 /// fight advances to state 9, the last two only while the boss still has HP in
 /// hand. Failing all of those, `field_F1A` picks 0xF and pattern 6 picks 7, and
 /// otherwise the distance from the player to a point just in front of the host
-/// picks between 3, 7 and 0xB on a coin flip off `Gp_LcgState`.
+/// picks between 3, 7 and 0xB on a coin flip off `gRandomLcgState`.
 ///
 /// `coord` and `facing` are the same coordinate read twice on purpose: the
 /// stores into `vec` cut the first read's value, and the second read has to
@@ -6777,15 +6777,15 @@ static void func_actor_444000_801411C8(Task* arg0)
                            sc->delta.vz * sc->delta.vz);
     if (sc->dist < 0x2329) {
         if (sc->dist >= 0xED9) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (((u32)Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_0 = 7;
             } else {
                 work->field_0 = 3;
             }
         } else {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (((u32)Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_0 = 3;
             } else {
                 work->field_0 = 0xB;
@@ -6936,15 +6936,15 @@ static void func_actor_444000_80141618(Task* task)
             case 0:
             case 1:
                 if (sc->i == 0) {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 3;
                     } else {
                         D_actor_444000_80161888.value.command = 4;
                     }
                 } else {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 5;
                     } else {
                         D_actor_444000_80161888.value.command = 6;
@@ -6954,15 +6954,15 @@ static void func_actor_444000_80141618(Task* task)
             case 2:
             case 3:
                 if (sc->i == 0) {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 0xd;
                     } else {
                         D_actor_444000_80161888.value.command = 8;
                     }
                 } else {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 7;
                     } else {
                         D_actor_444000_80161888.value.command = 0xe;
@@ -6972,15 +6972,15 @@ static void func_actor_444000_80141618(Task* task)
             case 4:
             case 5:
                 if (sc->i == 0) {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 9;
                     } else {
                         D_actor_444000_80161888.value.command = 0xf;
                     }
                 } else {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_444000_80161888.value.command = 9;
                     } else {
                         D_actor_444000_80161888.value.command = 0xf;
@@ -6989,9 +6989,9 @@ static void func_actor_444000_80141618(Task* task)
                 break;
         }
         D_actor_444000_80161888.value.command <<= 8;
-        rnd                                     = (Gp_LcgState * 5) + 0x71357911;
+        rnd                                     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         D_actor_444000_80161888.value.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-        Gp_LcgState                             = rnd;
+        gRandomLcgState                         = rnd;
         Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_444000_80161888.value, 0);
     }
 out:

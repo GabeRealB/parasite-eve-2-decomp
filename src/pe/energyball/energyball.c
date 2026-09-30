@@ -25,7 +25,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -83,7 +83,7 @@ static EnergyBallStep D_energyball_80131194[] = {
     { 0x0500, 0x0050 },
 };
 
-/// Sixteen 8-bit draws from `Gp_LcgState`, refilled once per cast by
+/// Sixteen 8-bit draws from `gRandomLcgState`, refilled once per cast by
 /// `func_energyball_8012EF48` and consumed by the GTE pass in
 /// `func_energyball_80130B54` as the per-vertex jitter of the ball's surface.
 static s16 D_energyball_801311A0[16];
@@ -117,9 +117,9 @@ void func_energyball_8012EF48(Task* arg0)
                 SndEvt_EnqueueType6(D_energyball_8013117C[mem->index], 0, 0);
             }
             for (i = 0; i < 0x10; i++) {
-                rng                      = Gp_LcgState * 5 + 0x71357911;
+                rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 D_energyball_801311A0[i] = ((u32)rng >> 16) & 0xFF;
-                Gp_LcgState              = rng;
+                gRandomLcgState          = rng;
             }
             for (i = 0; i < mem->index + 1; i++) {
                 if (D_80115724 + i >= 3) {
@@ -209,18 +209,18 @@ void func_energyball_8012F180(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            arg0->work   = work;
-            mem->index   = (Gp_StateC08.field_0 % 10) - 1;
-            mem->move.vx = 0;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = -(u16)D_energyball_80131194[mem->index].field_2;
-            mem->move.vz = 0;
-            mem->angle   = 0;
-            mem->period  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            D_80115724  += 1;
-            mem->scale   = 0xC0;
-            mem->step    = 0x20;
-            arg0->state  = 1;
+            arg0->work      = work;
+            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
+            mem->move.vx    = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = -(u16)D_energyball_80131194[mem->index].field_2;
+            mem->move.vz    = 0;
+            mem->angle      = 0;
+            mem->period     = (gRandomLcgState >> 16) & 0xFFF;
+            D_80115724     += 1;
+            mem->scale      = 0xC0;
+            mem->step       = 0x20;
+            arg0->state     = 1;
             /* fallthrough */
         case 1:
             if (mem->angle < D_energyball_80131194[mem->index].field_0) {
@@ -245,12 +245,12 @@ void func_energyball_8012F180(Task* arg0)
                 work->rec.flags  = 2;
                 work->obj.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 arg0->state      = 2;
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz     = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz     = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
                 VectorNormalSS(dir, dir);
                 gte_lddp(mem->step);
                 gte_ldsv(dir);
@@ -263,8 +263,8 @@ void func_energyball_8012F180(Task* arg0)
             slot->framesLeft   = 2;
             tail->inner        = 0x100;
             tail->outer        = 0x1000;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            r                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            r                  = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             tail->head.color.g = r;
             tail->head.color.r = (u16)tail->head.color.g >> 1;
             tail->head.color.b = tail->head.color.g >> 1;
@@ -330,8 +330,8 @@ void func_energyball_8012F180(Task* arg0)
             slot->framesLeft   = 2;
             tail->inner        = 0x100;
             tail->outer        = 0x1000;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            r                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            r                  = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             tail->head.color.g = r;
             tail->head.color.r = (u16)tail->head.color.g >> 1;
             tail->head.color.b = tail->head.color.g >> 1;

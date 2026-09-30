@@ -38,7 +38,7 @@
 #include "main/coord.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -185,15 +185,15 @@ typedef struct Actor510900ChildWork {
 STATIC_ASSERT_SIZEOF(Actor510900ChildWork, 0x7C);
 
 /// Table the state 1 handler below picks `field_59C` from; a 4-bit
-/// `Gp_LcgState` draw indexes at least sixteen `u16` entries.
+/// `gRandomLcgState` draw indexes at least sixteen `u16` entries.
 extern u16 D_actor_510900_801679F0[];
 
 /// Table the 0x14-animation state picks `field_59C` from, indexed by a 4-bit
-/// `Gp_LcgState` draw the same way `D_actor_510900_801679F0` is.
+/// `gRandomLcgState` draw the same way `D_actor_510900_801679F0` is.
 extern u16 D_actor_510900_801679D0[];
 
 /// Per-cycle threshold the patrol walk in `func_actor_510900_80136B70` compares
-/// a 4-bit `Gp_LcgState` draw against, indexed by the `field_59C` cycle counter;
+/// a 4-bit `gRandomLcgState` draw against, indexed by the `field_59C` cycle counter;
 /// a draw above the entry ends the walk.
 extern s16 D_actor_510900_80167A10[];
 
@@ -292,7 +292,7 @@ static void func_actor_510900_8013C430(Task* arg0);
 /// The script block pair `Gp_SpawnScript18` is handed at blend 0x58; both live
 /// in the room overlay, not here.
 
-/// `field_59C` reload tables, indexed by four bits of `Gp_LcgState`.
+/// `field_59C` reload tables, indexed by four bits of `gRandomLcgState`.
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
 
@@ -843,8 +843,8 @@ static void func_actor_510900_80135744(Task* arg0)
                         break;
                     case 1:
                         if (work->field_5B8 == 0) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            if ((Gp_LcgState >> 16) & 1) {
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            if ((gRandomLcgState >> 16) & 1) {
                                 reaction = 1;
                             }
                         }
@@ -873,8 +873,8 @@ static void func_actor_510900_80135744(Task* arg0)
                     }
                 }
                 if (reaction != 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if (!((Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780004;
                     } else {
                         sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780005;
@@ -897,10 +897,10 @@ static void func_actor_510900_80135744(Task* arg0)
                         s32 r2;
                         s32 v2;
 
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        r           = rng >> 16;
-                        v           = (r & 0x7F) + 0x40;
-                        Gp_LcgState = rng;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        r               = rng >> 16;
+                        v               = (r & 0x7F) + 0x40;
+                        gRandomLcgState = rng;
                         if (!(r & 1)) {
                             v = -v;
                         }
@@ -1101,7 +1101,7 @@ static void func_actor_510900_80135E90(Task* arg0)
 /// `func_actor_510900_8013691C` hands over, picks 1 or 5 from that range;
 /// 2, 3 and 6 drain `field_59C` by 0x1D a frame (3 also spawns an effect every
 /// 0x28 frames through `field_59E`). Each reload of `field_59C` is a 4-bit
-/// `Gp_LcgState` draw from `D_actor_510900_80167990` or `D_actor_510900_801679B0`.
+/// `gRandomLcgState` draw from `D_actor_510900_80167990` or `D_actor_510900_801679B0`.
 static void func_actor_510900_80136184(Task* arg0)
 {
     Actor510900Work* work;
@@ -1154,7 +1154,7 @@ static void func_actor_510900_80136184(Task* arg0)
                     work->field_586 = 4;
                     work->field_59E = 0x1D;
                 }
-                work->field_59C = D_actor_510900_80167990[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_59C = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
         case 2:
@@ -1163,7 +1163,7 @@ static void func_actor_510900_80136184(Task* arg0)
             if (work->field_59C <= 0 || work->field_5A6 > 0xB478U) {
                 work->field_586 = 1;
                 work->field_590 = 0;
-                work->field_59C = D_actor_510900_801679B0[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_59C = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             if (work->field_5AE >= 0x7D0 && work->field_5AC < 0x3E8 && work->field_5A6 <= 0xAE9CU &&
                 work->field_5A6 > 0xB477U) {
@@ -1195,7 +1195,7 @@ static void func_actor_510900_80136184(Task* arg0)
             if (work->field_59C <= 0 || work->field_5A6 > 0xB478U) {
                 work->field_586 = 1;
                 work->field_590 = 0;
-                work->field_59C = D_actor_510900_801679B0[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_59C = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             if (work->field_5AE >= 0x7D0 && work->field_5AC < 0x3E8 && work->field_5A6 <= 0xAE9CU &&
                 work->field_5A6 > 0xB477U) {
@@ -1227,7 +1227,7 @@ static void func_actor_510900_80136184(Task* arg0)
             if (work->field_58A >= 0xF) {
                 work->field_590 = 6;
                 work->field_586 = 0x16;
-                work->field_59C = D_actor_510900_80167990[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                work->field_59C = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
         case 6:
@@ -1248,7 +1248,7 @@ static void func_actor_510900_80136184(Task* arg0)
                     work->field_5A6 > 0xB477U) {
                     work->field_59C = 0;
                 } else {
-                    work->field_59C = D_actor_510900_801679B0[((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
+                    work->field_59C = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                 }
             }
             break;
@@ -1347,8 +1347,8 @@ static s32 func_actor_510900_8013691C(Task* arg0)
             goto done;
         }
         if (dist < 0x12C0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 0x10) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 0x10) & 1) {
                 work->field_58E = 3;
                 work->field_590 = 0;
                 work->field_586 = 0xE;
@@ -1373,8 +1373,8 @@ static s32 func_actor_510900_8013691C(Task* arg0)
             work->field_590 = 0;
             work->field_586 = 0xA;
         } else {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (((Gp_LcgState >> 0x10) & 0xF) < 0xAU) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 0x10) & 0xF) < 0xAU) {
                 work->field_58E = 4;
                 work->field_590 = 0;
                 work->field_586 = 0x1B;
@@ -1396,7 +1396,7 @@ done:
 /// mutes it while `field_5B2` is latched and queues the footfall cue; sub-state
 /// 1 also arms `field_5C0` when a grab candidate is pending and pushes both
 /// body objects into their flagged pose at blend 9. At the end of a cycle a
-/// 4-bit `Gp_LcgState` draw against `D_actor_510900_80167A10[field_59C]`
+/// 4-bit `gRandomLcgState` draw against `D_actor_510900_80167A10[field_59C]`
 /// decides whether to walk another cycle - bumping `field_59C`, which sub-state
 /// 2 caps at three - or to leave for state 1 with a fresh `field_59C` from
 /// `D_actor_510900_801679D0`. A latched `field_5B2` instead sends sub-state 3,
@@ -1448,14 +1448,14 @@ static void func_actor_510900_80136B70(Task* arg0)
                     work->obj4E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if (D_actor_510900_80167A10[work->field_59C] < (s32)((Gp_LcgState >> 0x10) & 0xF)) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (D_actor_510900_80167A10[work->field_59C] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
                         u16* tbl            = D_actor_510900_801679D0;
                         work->field_58E     = 1;
                         work->field_586     = 1;
                         work->field_590     = 0;
-                        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                        work->field_59C     = tbl[(Gp_LcgState >> 0x10) & 0xF];
+                        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->field_59C     = tbl[(gRandomLcgState >> 0x10) & 0xF];
                         work->obj4E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
@@ -1485,14 +1485,14 @@ static void func_actor_510900_80136B70(Task* arg0)
                     work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     if ((D_actor_510900_80167A10[work->field_59C] <
-                         (s32)(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
+                         (s32)(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF)) ||
                         (work->field_59C >= 3)) {
                         u16* tbl            = D_actor_510900_801679D0;
                         work->field_58E     = 1;
                         work->field_590     = 0;
                         work->field_586     = 1;
-                        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                        work->field_59C     = tbl[(Gp_LcgState >> 0x10) & 0xF];
+                        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->field_59C     = tbl[(gRandomLcgState >> 0x10) & 0xF];
                         work->obj4E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
@@ -1514,8 +1514,8 @@ static void func_actor_510900_80136B70(Task* arg0)
                 work->field_58E = 1;
                 work->field_590 = 0;
                 work->field_586 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_59C = tbl[(gRandomLcgState >> 0x10) & 0xF];
             }
             break;
     }
@@ -1604,8 +1604,8 @@ static void func_actor_510900_80137008(Task* arg0)
                     work->field_58E = 1;
                     work->field_586 = 1;
                     work->field_590 = 0;
-                    work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
-                    Gp_LcgState     = rng;
+                    work->field_59C = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    gRandomLcgState = rng;
                 }
                 work->obj4E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1619,7 +1619,7 @@ static void func_actor_510900_80137008(Task* arg0)
 /// page and CLUT row from the current area record, indexed by the enemy's own
 /// bank nibble, and a sound is queued from the actor's attach coordinate. Past
 /// blend 0x46 the handler leaves for either state 5 (animation 0xB) or, on a
-/// failed `Gp_LcgState` roll, state 1 with a fresh `field_59C`.
+/// failed `gRandomLcgState` roll, state 1 with a fresh `field_59C`.
 static void func_actor_510900_801373B8(Task* arg0)
 {
     Actor510900Work* work;
@@ -1671,8 +1671,8 @@ static void func_actor_510900_801373B8(Task* arg0)
             /* Reading the global back is what keeps the store ahead of the
                shift: written as a local, the store sinks into the branch
                delay slot and the draw lands in a different register. */
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (((Gp_LcgState >> 0x10) & 0xF) < 0xCU) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 0x10) & 0xF) < 0xCU) {
                 roll = 1;
             }
         }
@@ -1680,8 +1680,8 @@ static void func_actor_510900_801373B8(Task* arg0)
             work->field_58E = 1;
             work->field_586 = 1;
             work->field_590 = 0;
-            work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
-            Gp_LcgState     = rng;
+            work->field_59C = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+            gRandomLcgState = rng;
             return;
         }
         work->field_58E = 5;
@@ -1696,7 +1696,7 @@ static void func_actor_510900_801373B8(Task* arg0)
 /// Sub-state 1 pushes both body objects into their flagged pose while
 /// `field_5AC` is short; otherwise it bleeds `field_59C` down by 0x84 a frame
 /// and, once that runs out (or `field_5AE` drops below 0x384), returns to
-/// state 1 with a fresh `Gp_LcgState` draw. Sub-state 2 queues the landing
+/// state 1 with a fresh `gRandomLcgState` draw. Sub-state 2 queues the landing
 /// sound at blend 0xE and leaves for state 8 past 0x3B.
 static void func_actor_510900_801375D8(Task* arg0)
 {
@@ -1738,8 +1738,8 @@ static void func_actor_510900_801375D8(Task* arg0)
                     work->field_58E     = 1;
                     work->field_590     = 0;
                     work->field_586     = 1;
-                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                    val                 = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    val                 = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
                     work->obj4E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->obj504.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->field_59C     = val;
@@ -1880,8 +1880,8 @@ static void func_actor_510900_80137868(Task* arg0)
                 work->field_58E = 1;
                 work->field_586 = 1;
                 work->field_590 = 0;
-                work->field_59C = D_actor_510900_801679D0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
-                Gp_LcgState     = rng;
+                work->field_59C = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                gRandomLcgState = rng;
             }
             break;
         case 3:
@@ -1971,8 +1971,8 @@ static void func_actor_510900_80137E20(Task* arg0)
                     work->field_586 = 1;
                     work->field_590 = 0;
                     work->field_59C =
-                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-                    Gp_LcgState = rng;
+                        D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    gRandomLcgState = rng;
                 }
             }
             break;
@@ -2008,11 +2008,11 @@ static void func_actor_510900_80137FBC(Task* arg0)
             break;
         case 1:
             if (work->field_58A & 1) {
-                rot         = head - 1;
-                rot->vx     = 0;
-                rot->vz     = 0;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                rot->vy     = ((Gp_LcgState >> 0x10) & 0x2FF) - 0x680;
+                rot             = head - 1;
+                rot->vx         = 0;
+                rot->vz         = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                rot->vy         = ((gRandomLcgState >> 0x10) & 0x2FF) - 0x680;
                 Gp_SpawnEff(0x600E0, coord, 0x100, rot);
             }
             work->field_59C++;
@@ -2044,8 +2044,8 @@ static void func_actor_510900_80137FBC(Task* arg0)
                     work->field_586 = 1;
                     work->field_590 = 0;
                     work->field_59C =
-                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
-                    Gp_LcgState = rng;
+                        D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    gRandomLcgState = rng;
                 }
             }
             break;
@@ -2081,11 +2081,11 @@ static void func_actor_510900_80138250(Task* arg0)
             break;
         case 1:
             if (work->field_58A & 1) {
-                rot         = head - 1;
-                rot->vx     = 0;
-                rot->vz     = 0;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                rot->vy     = ((Gp_LcgState >> 0x10) & 0x2FF) - 0x680;
+                rot             = head - 1;
+                rot->vx         = 0;
+                rot->vz         = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                rot->vy         = ((gRandomLcgState >> 0x10) & 0x2FF) - 0x680;
                 Gp_SpawnEff(0x600E0, coord, 0x100, rot);
             }
             work->field_59C++;
@@ -2114,8 +2114,8 @@ static void func_actor_510900_80138250(Task* arg0)
                     work->field_586 = 1;
                     work->field_590 = 0;
                     work->field_59C =
-                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF];
-                    Gp_LcgState = rng;
+                        D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    gRandomLcgState = rng;
                 }
             }
             break;
@@ -2138,8 +2138,8 @@ static void func_actor_510900_801384C4(Task* arg0)
         work->field_58E                       = 1;
         work->field_586                       = 1;
         work->field_590                       = 0;
-        work->field_59C                       = D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-        Gp_LcgState                           = rng;
+        work->field_59C                       = D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        gRandomLcgState                       = rng;
         return;
     }
     if (work->field_594 != 0) {
@@ -3528,8 +3528,8 @@ case2:
 body:
     func_actor_510900_8013B0D8(arg1);
     GameFlag_SetNibble(0xD, D_actor_510900_80167CEC[work->field_74][parent->field_5C2]);
-    random      = Gp_LcgState * 5 + 0x71357911;
-    Gp_LcgState = random;
+    random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = random;
     if ((u16)((random >> 16) % 3) == 0) {
         Gp_SpawnEff(0x6005A, arg1->extra.tmd->coords, 0, NULL);
     }
@@ -3899,8 +3899,8 @@ static void func_actor_510900_8013B988(Task* arg0)
                 work->field_590 = 0;
                 work->field_586 = state;
                 work->field_59C =
-                    D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-                Gp_LcgState = rng;
+                    D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                gRandomLcgState = rng;
             }
             break;
     }
@@ -3933,8 +3933,8 @@ static void func_actor_510900_8013BA58(Task* arg0)
                     work->field_590 = 0;
                     work->field_586 = state;
                     work->field_59C =
-                        D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-                    Gp_LcgState = rng;
+                        D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    gRandomLcgState = rng;
                 }
             }
             break;

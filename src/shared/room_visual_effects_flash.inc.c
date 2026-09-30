@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
 /// Queues a gouraud star around the projected world position of `arg0`,
@@ -151,12 +153,12 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
             Gp_ReleaseState1CMem(mem, arg0);
             return;
         }
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        ang          = mem->scale + ((((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200);
-        mem->scale   = ang;
-        mem->move.vx = (u32)(rcos(ang) * 3) >> 4;
-        mem->move.vy = -mem->age * 128;
-        mem->move.vz = (u32)(rsin(mem->scale) * 3) >> 4;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        ang             = mem->scale + (((gRandomLcgState >> 16) & 0x1FF) + 0x200);
+        mem->scale      = ang;
+        mem->move.vx    = (u32)(rcos(ang) * 3) >> 4;
+        mem->move.vy    = -mem->age * 128;
+        mem->move.vz    = (u32)(rsin(mem->scale) * 3) >> 4;
         Gp_SpawnEff(D_80115728, coord, 0x30080201, &mem->move);
     }
 }

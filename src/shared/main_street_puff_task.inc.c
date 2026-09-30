@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the Dryfield main street library; see main_street.h. */
 
 /// Effect 0x601B2: on its first frame takes size, frame period and speed from
@@ -15,9 +17,9 @@ void mainStreetPuffTask(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1.value & 0xFFF;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        work->angle = (Gp_LcgState >> 16) & 0xFFF;
+        work->scale     = task->spawnArg1.value & 0xFFF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->angle     = (gRandomLcgState >> 16) & 0xFFF;
 
         if (task->spawnArg1.value & 0xF000) {
             work->period = (task->spawnArg1.value >> 12) & 0x7;
@@ -34,15 +36,15 @@ void mainStreetPuffTask(Task* task)
             f2a = 0x40;
         }
 
-        work->step    = f2a;
-        work->move.vy = 0;
-        rng2          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng2;
-        work->move.vx = -(((u32)rng2 >> 16) & 0x7F);
-        rng3          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng3;
-        vz            = 0x80 - (((u32)rng3 >> 16) & 0xFF);
-        work->move.vz = vz;
+        work->step      = f2a;
+        work->move.vy   = 0;
+        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng2;
+        work->move.vx   = -(((u32)rng2 >> 16) & 0x7F);
+        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng3;
+        vz              = 0x80 - (((u32)rng3 >> 16) & 0xFF);
+        work->move.vz   = vz;
         VectorNormalSS(&work->move, &work->move);
 
         gte_lddp(work->step);

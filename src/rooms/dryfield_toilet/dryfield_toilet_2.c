@@ -37,7 +37,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -2530,12 +2530,12 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
             mem->scale          = 0x30;
             mem->angle          = arg0->spawnArg1.value;
             if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vx = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vy = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->pos.vz = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vx     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vy     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->pos.vz     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
             }
             VectorNormalSS(&mem->pos, &mem->move);
         }
@@ -2590,11 +2590,11 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     gte_stszotz(&block->otz);
     if ((head - 1)->otz >= 0x11) {
         if (arg0->state == 0) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = arg0->spawnArg1.value & 0xFFF;
-            mem->angle  = ((u32)rng >> 16) & 0xFFF;
-            temp        = arg0->spawnArg1.value & 0xF000;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = arg0->spawnArg1.value & 0xFFF;
+            mem->angle      = ((u32)rng >> 16) & 0xFFF;
+            temp            = arg0->spawnArg1.value & 0xF000;
+            gRandomLcgState = rng;
             if (temp != 0) {
                 temp = temp >> 12;
             } else {
@@ -2602,12 +2602,12 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
             }
             mem->period = temp;
             if (arg0->spawnArg1.value & 0x100000) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = (((u32)Gp_LcgState >> 16) & 0x1F) - 0x10;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = ((gRandomLcgState >> 16) & 0x1F) - 0x10;
             }
             if (arg0->spawnArg1.value & 0x01000000) {
                 gte_lddp(mem->scale << 2);

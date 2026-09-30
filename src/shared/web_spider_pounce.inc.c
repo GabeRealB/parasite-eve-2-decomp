@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Behaviour state 5, the pounce: during the leap it arms the bite collision (a
@@ -76,9 +78,9 @@ void spiderPounceState(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                random          = (Gp_LcgState * 5) + 0x71357911;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
-                Gp_LcgState     = random;
+                gRandomLcgState = random;
             }
             break;
         case 1:
@@ -117,7 +119,7 @@ void spiderPounceState(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->field_3AA = 1;
                 if (work->field_3C8 == 2) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;

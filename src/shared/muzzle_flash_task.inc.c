@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the muzzle flash library; see muzzle_flash.h. */
 
 /// Per-frame muzzle-flash task. Frame 0 claims room-coord slot 0
@@ -49,15 +51,15 @@ static inline void muzzleFlashTask(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
 
-            work->period = 0xC0;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->scale  = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0x600;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->state  = 1;
+            work->period    = 0xC0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = ((gRandomLcgState >> 16) & 0x3FF) + 0x600;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = (gRandomLcgState >> 16) & 0xFFF;
+            task->state     = 1;
             for (i = 0; i < 4; i++) {
-                Gp_LcgState           = Gp_LcgState * 5 + 0x71357911;
-                gMuzzleFlashAngles[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
+                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gMuzzleFlashAngles[i] = ((i & 3) << 10) + ((gRandomLcgState >> 16) & 0x3FF);
             }
             break;
         case 1:

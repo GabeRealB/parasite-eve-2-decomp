@@ -30,7 +30,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -444,7 +444,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
 /// `spawnArg1` and steps to 2. State 2 runs on every fourth frame, and builds
 /// the effect's offset vector out of five LCG rolls: two per signed component
 /// (the value from one roll, its sign from the next) plus a third that is
-/// always negative. Only the three rolls whose value goes into `Gp_LcgState`
+/// always negative. Only the three rolls whose value goes into `gRandomLcgState`
 /// are stored, so the two temporary rolls are separate variables -- one `rng`
 /// would be a single long-lived pseudo and take a register the constant needs.
 ///
@@ -492,19 +492,19 @@ void func_actor_342100_80162AB0(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            vx          = ((u32)rng >> 16) & 0x3F;
-            Gp_LcgState = rng * 5 + 0x71357911;
-            if (((u32)Gp_LcgState >> 16) & 1) {
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            vx              = ((u32)rng >> 16) & 0x3F;
+            gRandomLcgState = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 vx = -vx;
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            vec.vx      = vx;
-            vec.vy      = -(((u32)Gp_LcgState >> 16) & 0x3F);
-            rng2        = Gp_LcgState * 5 + 0x71357911;
-            vz          = ((u32)rng2 >> 16) & 0x3F;
-            Gp_LcgState = rng2 * 5 + 0x71357911;
-            if (((u32)Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            vec.vx          = vx;
+            vec.vy          = -((gRandomLcgState >> 16) & 0x3F);
+            rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            vz              = ((u32)rng2 >> 16) & 0x3F;
+            gRandomLcgState = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 vz = -vz;
             }
             vec.vz = vz;
@@ -558,8 +558,8 @@ void func_actor_342100_80162C88(void)
             break;
     }
     while (pos->vx != 0) {
-        rng               = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState       = rng;
+        rng               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState   = rng;
         task              = Task_SpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
         coord             = task->extra.tmd->coords;
         rot               = (GpMtxWords*)&coord->coord;

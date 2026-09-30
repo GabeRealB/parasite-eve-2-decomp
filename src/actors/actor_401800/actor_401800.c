@@ -32,7 +32,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -193,7 +193,7 @@ typedef struct Actor401800Work {
     /* 0xC04 */ s16  field_C04;
     /* 0xC06 */ byte pad_C06[2];
     /// Per-variant reload the LCG spreads over the idle step countdown: the
-    /// high half of a fresh `Gp_LcgState` draw masked to 3 bits (`& 7`) is
+    /// high half of a fresh `gRandomLcgState` draw masked to 3 bits (`& 7`) is
     /// added to it and stored into `field_6`. Same slot `Actor401300Work`
     /// keeps as `field_CA0`, whose counterpart loads it with `& 0xF`.
     /* 0xC08 */ u16 field_C08;
@@ -1707,8 +1707,8 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = (Actor401800Work*)arg0->work;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = D_actor_401800_80155A20[0];
                 break;
@@ -1726,8 +1726,8 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag > 0x600) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = D_actor_401800_80155A20[5];
                 break;
@@ -1739,15 +1739,15 @@ static void func_actor_401800_801348A8(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401800_80155A20[8];
         } else {
             *sc = D_actor_401800_80155A20[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = D_actor_401800_80155A20[10];
         } else {
             *sc = D_actor_401800_80155A20[11];
@@ -2663,7 +2663,7 @@ static void func_actor_401800_80137714(Task* arg0)
 }
 
 /// Live-actor swing. On the live flag it resets the model buffers, takes the
-/// swing side `field_C00` from `Gp_LcgState`, offsets the player bearing in
+/// swing side `field_C00` from `gRandomLcgState`, offsets the player bearing in
 /// `field_BE8` by +-0x171 on the first frame and stores the 0x15 / 0x14 state
 /// the walk body runs. The `field_BE8` yaw is then rebuilt into a direction and
 /// GPF-scaled by `field_C02` into the offset added to the root coordinate while
@@ -2704,8 +2704,8 @@ static void func_actor_401800_80137DDC(Task* arg0)
         actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
         aim->turn = ratan2(head[-1].delta.vx, aim->delta.vz);
         if (work->field_C00 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C00 = 1;
             } else {
                 work->field_C00 = -1;
@@ -3379,8 +3379,8 @@ static void func_actor_401800_80139D60(Task* arg0)
     }
     step = (u16)work->field_6;
     if (work->field_6 >= 0x961) {
-        lcg         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = lcg;
+        lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = lcg;
         if (!((lcg >> 16) & 0xF)) {
             return;
         }
@@ -3401,8 +3401,8 @@ static void func_actor_401800_80139D60(Task* arg0)
     blendRigDrive(arg0);
     if (work->field_89E == 0xE) {
         if (work->field_68 & 2) {
-            lcg         = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = lcg;
+            lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = lcg;
             if ((lcg >> 16) & 1) {
                 work->field_89E = 0xF;
                 work->field_898 = 1;
@@ -4078,8 +4078,8 @@ static void func_actor_401800_8013CD98(Task* arg0)
                                             ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->field_8AE = s->turn;
         if (work->field_C00 == 0) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 work->field_C00 = -1;
             } else {
                 work->field_C00 = 1;
@@ -4575,7 +4575,7 @@ static void func_actor_401800_8013E4F0(Task* arg0)
     }
 }
 
-/// Idle-step handler: with the live flag set a fresh `Gp_LcgState` draw is
+/// Idle-step handler: with the live flag set a fresh `gRandomLcgState` draw is
 /// spread over the step countdown as 0..7 extra steps, and once the countdown
 /// underflows the animation state at `field_89E` picks the actor's next
 /// `field_0` (0xF for states 11/23, 0x10 for 12/24/25); a target with no HP
@@ -4589,8 +4589,8 @@ static void func_actor_401800_8013E5A4(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-        work->field_6 = work->field_C08 + ((Gp_LcgState >> 16) & 7);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_6   = work->field_C08 + ((gRandomLcgState >> 16) & 7);
     }
     if (--work->field_6 < 0) {
         switch (work->field_89E) {

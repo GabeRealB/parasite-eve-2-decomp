@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the falling leaves library; see falling_leaves.h. */
 
 /// One falling leaf. The first tick seeds a size of 0x20, random tumble rates
@@ -21,18 +23,18 @@ static inline void leafFallTask(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            work->scale   = 0x20;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period  = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step    = 0x80 - (((u32)Gp_LcgState >> 16) & 0xF0);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            task->state   = 1;
+            work->scale     = 0x20;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->step      = 0x80 - ((gRandomLcgState >> 16) & 0xF0);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            task->state     = 1;
             /* fallthrough */
         case 1:
             coord->coord.t[0] += work->move.vx;
@@ -52,8 +54,8 @@ static inline void leafFallTask(Task* task)
 
             vx = work->move.vx;
             if (vx == 0) {
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vx  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
             } else {
                 if (vx > 0) {
                     vx = vx - 1;
@@ -65,9 +67,9 @@ static inline void leafFallTask(Task* task)
 
             vz = work->move.vz;
             if (vz == 0) {
-                work->move.vz += work->step % 32;
-                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz += (2 - (u16)(((u32)Gp_LcgState >> 16) % 5U)) * 8;
+                work->move.vz  += work->step % 32;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz  += (2 - (u16)((gRandomLcgState >> 16) % 5U)) * 8;
             } else {
                 if (vz > 0) {
                     vz = vz - 1;
@@ -77,10 +79,10 @@ static inline void leafFallTask(Task* task)
                 work->move.vz = vz;
             }
 
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 0x10;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->step   += (1 - (u16)(((u32)Gp_LcgState >> 16) % 3U)) * 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period   += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 0x10;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->step     += (1 - (u16)((gRandomLcgState >> 16) % 3U)) * 8;
 
             if (coord->coord.t[1] > 0) {
                 task->state = 2;

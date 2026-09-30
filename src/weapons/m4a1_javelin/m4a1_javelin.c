@@ -28,7 +28,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -184,8 +184,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             t                  = slot->head.color.r >> 1;
             slot->head.color.r = t;
             slot->head.color.g = t >> 2;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            slot->head.color.b = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x400;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->scale == 0xC0) {
@@ -217,8 +217,8 @@ void func_m4a1_javelin_8011D1E4(Task* task)
             base->framesLeft   = 4;
             slot->inner        = 0x400;
             slot->outer        = 0x4000;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            rnd                = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd                = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             slot->head.color.b = rnd;
             slot->head.color.r = rnd >> 1;
             slot->head.color.g = rnd >> 1;
@@ -764,10 +764,10 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 
     mem->age++;
     if (arg0->state == 0) {
-        mem->scale  = 0x200;
-        Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-        mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
-        arg0->state = 1;
+        mem->scale      = 0x200;
+        gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+        arg0->state     = 1;
     }
     func_m4a1_javelin_8011F0AC((M4a1JavelinVecLo*)&coord->workm.t, mem->age - 1, mem->scale, mem->angle);
     if (mem->age == 8) {

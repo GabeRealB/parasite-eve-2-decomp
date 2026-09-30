@@ -44,7 +44,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -902,8 +902,8 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
         case 6:
             if (GameFlag_GetNibble(0x147) != 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && GameFlag_GetNibble(0xDF) == 0) {
-                    rnd         = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState = rnd;
+                    rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = rnd;
                     if (((rnd >> 16) & 7) == 0) {
                         Gp_SpawnEff(0x600E0, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
                     }
@@ -919,8 +919,8 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
             work->inner                                    = 0x400;
             work->outer                                    = 0x4000;
             light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            rnd                                            = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState                                    = rnd;
+            rnd                                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                                = rnd;
             intensity                                      = ((rnd >> 16) & 0x700) + 0x800;
             work->head.color.b                             = intensity;
             work->head.color.r                             = intensity >> 1;

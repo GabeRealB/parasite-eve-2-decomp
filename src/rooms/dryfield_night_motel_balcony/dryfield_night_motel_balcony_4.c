@@ -34,7 +34,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -2948,11 +2948,11 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
                 Gp_SpawnEff(0x60095, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
                 Gp_SpawnEff(0x60095, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
                 for (i = 0; i < 3; i++) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0xFF) | 0x80010100,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x80010100,
                                 &D_dryfield_night_motel_balcony_80182D28);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0x7F) | 0x80000080,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
                                 &D_dryfield_night_motel_balcony_80182D28);
                 }
             }
@@ -2969,16 +2969,16 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
                 n = cnt - 0x46;
                 if ((s16)(cnt % 6) == 0) {
                     memset(&ofs, 0, sizeof(ofs));
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    ofs.vx      = -((s32)(Gp_LcgState >> 16) % (n * 10));
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    ofs.vy      = (s32)(Gp_LcgState >> 16) % (n * 10);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    ofs.vz      = (s32)(Gp_LcgState >> 16) % (n * 10);
-                    pos         = ofs;
-                    pos.vx     += D_dryfield_night_motel_balcony_80182D30.vx;
-                    pos.vy     += D_dryfield_night_motel_balcony_80182D30.vy;
-                    pos.vz     += D_dryfield_night_motel_balcony_80182D30.vz;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    ofs.vx          = -((s32)(gRandomLcgState >> 16) % (n * 10));
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    ofs.vy          = (s32)(gRandomLcgState >> 16) % (n * 10);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    ofs.vz          = (s32)(gRandomLcgState >> 16) % (n * 10);
+                    pos             = ofs;
+                    pos.vx         += D_dryfield_night_motel_balcony_80182D30.vx;
+                    pos.vy         += D_dryfield_night_motel_balcony_80182D30.vy;
+                    pos.vz         += D_dryfield_night_motel_balcony_80182D30.vz;
                     Gp_SpawnEff(0x6007E, coord, n * 0x28 + 0x40000600, &pos);
                 }
                 work->scale = 0;
@@ -3002,8 +3002,8 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         case 29:
             if (++work->scale == 0x41) {
                 for (i = 0; i < 3; i++) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x6003D, coord, ((Gp_LcgState >> 16) & 0x7F) | 0x80000080,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
                                 &D_dryfield_night_motel_balcony_80182D18);
                 }
             }
@@ -3118,31 +3118,31 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
             m->m[2][2]           = 0x1000;
             work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
             work->scale          = 0xA0;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy         = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->index          = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->period         = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy         = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index          = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period         = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value < 0) {
-                    half          = 0x40;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vx = half - (((u32)Gp_LcgState >> 16) & 0x7F);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vy = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x20;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vz = half - (((u32)Gp_LcgState >> 16) & 0x7F);
+                    half            = 0x40;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0x7F);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vy   = ((gRandomLcgState >> 16) & 0xFF) + 0x20;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0x7F);
                 } else {
-                    half          = 0x80;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vx = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vy = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vz = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                    half            = 0x80;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vy   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
                 }
                 gte_SetRotMatrix(&work->parent->coord);
                 gte_ldv0(&work->move);
@@ -3317,30 +3317,30 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
             break;
         case 1:
             for (i = 0; i < 8; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x100, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
             }
             task->state = 2;
             break;
         case 2:
             for (i = 0; i < 4; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x10100, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x10100, NULL);
                 Gp_SpawnEff(0x60095, coord, 0x400, NULL);
             }
             task->state = 10;
             break;
         case 3:
             for (i = 0; i < 6; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80, NULL);
             }
             task->state = 4;
             break;
         case 4:
             for (i = 0; i < 3; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x10080, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x10080, NULL);
                 Gp_SpawnEff(0x60095, coord, 0x400, NULL);
             }
             task->state = 10;
@@ -3353,12 +3353,12 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
             break;
         case 6:
             for (i = 0; i < 4; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80000080, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080, NULL);
             }
             for (i = 0; i < 2; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0x7F) | 0x80010080, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80010080, NULL);
             }
             task->state = 10;
             break;
@@ -3370,8 +3370,8 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
             break;
         case 8:
             for (i = 0; i < 8; i++) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x6003D, coord, (((u32)Gp_LcgState >> 16) & 0xFF) | 0x100, NULL);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x6003D, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
             }
             task->state = 10;
             break;
@@ -3412,19 +3412,19 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     work->age = age + 1;
     switch (task->state) {
         case 0:
-            rot           = (GpMtxWords*)&coord->coord;
-            rot->m00_m01  = 0x1000;
-            rot->m02_m10  = 0;
-            rot->m11_m12  = 0x1000;
-            rot->m20_m21  = 0;
-            rot->m22      = 0x1000;
-            work->pos.vx  = task->spawnArg1.halves.low & 0xFFF;
-            work->scale   = 0xA0;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->index   = ((u32)Gp_LcgState >> 16) & 7;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = ((u32)Gp_LcgState >> 16) & 0xFF;
-            task->state   = 1;
+            rot             = (GpMtxWords*)&coord->coord;
+            rot->m00_m01    = 0x1000;
+            rot->m02_m10    = 0;
+            rot->m11_m12    = 0x1000;
+            rot->m20_m21    = 0;
+            rot->m22        = 0x1000;
+            work->pos.vx    = task->spawnArg1.halves.low & 0xFFF;
+            work->scale     = 0xA0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index     = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = (gRandomLcgState >> 16) & 0xFF;
+            task->state     = 1;
             break;
         case 1:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
@@ -3567,70 +3567,70 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
         goto release;
     }
     if (gGameSession->location.loc.view == 0x27) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            lo            = ((u32)Gp_LcgState >> 16) & 0x1FF;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            arg           = ((((u32)Gp_LcgState >> 16) % 3) << 16) + 0x80000100;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            lo              = (gRandomLcgState >> 16) & 0x1FF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            arg             = (((gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
             Gp_SpawnEff(0x6003D, coord, lo + arg, &work->move);
         }
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x60093, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x100, &work->move);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x60093, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x100, &work->move);
         }
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((u16)(((u32)Gp_LcgState >> 16) % 7U) == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-            work->move.vy = 0;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0xA0000400, &work->move);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((u16)((gRandomLcgState >> 16) % 7U) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+            work->move.vy   = 0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x60095, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0xA0000400, &work->move);
         }
     } else {
         work->age++;
         if (work->age < 150) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (work->age < (u16)(((u32)Gp_LcgState >> 16) % 150U)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vy = ((u32)Gp_LcgState >> 16) & 0x7FF;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x80000400,
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (work->age < (u16)((gRandomLcgState >> 16) % 150U)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vy   = (gRandomLcgState >> 16) & 0x7FF;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60095, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x80000400,
                                 &work->move);
                 }
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (work->age < (u16)(((u32)Gp_LcgState >> 16) % 120U)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    work->move.vy = 0xC00;
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60095, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x20010400,
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (work->age < (u16)((gRandomLcgState >> 16) % 120U)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    work->move.vy   = 0xC00;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60095, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x20010400,
                                 &work->move);
                 }
             }
@@ -3683,35 +3683,35 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
             m->m[2][2]           = 0x1000;
             work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
             work->scale          = half;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vy         = (((u32)Gp_LcgState >> 16) & 3) + 1;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->pos.vz         = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy         = ((gRandomLcgState >> 16) & 3) + 1;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
             work->index          = 0;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 if (task->spawnArg1.value & 0x40000000) {
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vx = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vy = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                    work->move.vz = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    work->scale   = 0x40;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vy   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
+                    work->scale     = 0x40;
                 } else {
                     if (task->spawnArg1.value < 0) {
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = -(((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                     } else {
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vx = half - (((u32)Gp_LcgState >> 16) & 0xFF);
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vy = ((u32)Gp_LcgState >> 16) & 0xF;
-                        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                        work->move.vz = half - (((u32)Gp_LcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vx   = half - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vy   = (gRandomLcgState >> 16) & 0xF;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->move.vz   = half - ((gRandomLcgState >> 16) & 0xFF);
                     }
                     if (task->spawnArg1.value & 0x20000000) {
                         work->scale = 0x40;
@@ -3861,7 +3861,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 
     switch (task->state) {
         case 0:
-            seed                 = Gp_LcgState * 5 + 0x71357911;
+            seed                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             m                    = &coord->coord;
             MATRIX_PAIR(m, 0, 0) = 0x1000;
             MATRIX_PAIR(m, 0, 2) = 0;
@@ -3869,17 +3869,17 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
             MATRIX_PAIR(m, 2, 0) = 0;
             m->m[2][2]           = 0x1000;
             work->pos.vx         = task->spawnArg1.value & 0xFFF;
-            Gp_LcgState          = seed;
-            work->index          = ((u32)Gp_LcgState >> 16) % 10;
-            Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-            work->angle          = ((u32)Gp_LcgState >> 16) % 10 + 5;
+            gRandomLcgState      = seed;
+            work->index          = (gRandomLcgState >> 16) % 10;
+            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle          = (gRandomLcgState >> 16) % 10 + 5;
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vx   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vy   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                 if (task->spawnArg1.value < 0) {
                     work->scale = 8;
                 } else if (task->spawnArg1.value & 0x40000000) {
@@ -4029,28 +4029,28 @@ void func_dryfield_night_motel_balcony_8018257C(void)
     coord = task->firstChild->extra.tmd->coords + 3;
 
     for (i = 0; i < 8; i++) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vx       = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vy       = 0xFE80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vz       = 0x680 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_SpawnEff(0x6007E, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x300, &sv);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vx           = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vy           = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        Gp_SpawnEff(0x6007E, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x300, &sv);
     }
 
     for (i = 0; i < 6; i++) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vx       = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vy       = 0xFE80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        sv.vz       = 0x680 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vx           = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vy           = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
         Gp_SpawnEff(0x60070, coord, 0xC0033800, &sv);
     }
 }
 
-/// Rolls the room LCG (`Gp_LcgState`) once and, on a draw whose upper half is
+/// Draws once from the shared LCG (`gRandomLcgState`) and, on a draw whose upper half is
 /// a multiple of three, rolls it again and spawns effect 0x6007E at part 3 of
 /// the model owned by the slot-4 task's child, carrying the second draw's low
 /// nine bits in the upper half of the spawn argument.
@@ -4058,12 +4058,12 @@ void func_dryfield_night_motel_balcony_80182730(void)
 {
     Task* task;
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
-        task        = gameGetPtrSlot(4);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
+        task            = gameGetPtrSlot(4);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         Gp_SpawnEff(0x6007E, task->firstChild->extra.tmd->coords + 3,
-                    (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x80000100,
+                    ((gRandomLcgState >> 16) & 0x1FF) + 0x80000100,
                     &D_dryfield_night_motel_balcony_80182D20);
     }
 }

@@ -37,7 +37,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -243,7 +243,7 @@ typedef struct Actor421600Work {
     /* 0xEA0 */ byte pad_EA0[2];
     /* 0xEA2 */ u16  field_EA2;
     /// Halfword the idle tick `func_actor_421600_8013A404` reseeds `field_6`
-    /// from, adding the low nibble of an `Gp_LcgState` draw while `field_4` is
+    /// from, adding the low nibble of an `gRandomLcgState` draw while `field_4` is
     /// set.
     /* 0xEA4 */ u16 field_EA4;
     /* 0xEA6 */ u16 field_EA6;
@@ -3323,8 +3323,8 @@ static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
     mag  = (arg1 >= 0) ? arg1 : -arg1;
     work = arg0->work;
     if (mag < 0x200) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 3) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
                 *sc = Actor421600HitOffsets[0];
                 break;
@@ -3342,8 +3342,8 @@ static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (mag >= 0x601) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        switch ((s32)(Gp_LcgState >> 16) & 2) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
                 *sc = Actor421600HitOffsets[5];
                 break;
@@ -3355,15 +3355,15 @@ static void func_actor_421600_801350BC(Task* arg0, s16 arg1, s32 arg2)
                 break;
         }
     } else if (arg1 > 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = Actor421600HitOffsets[8];
         } else {
             *sc = Actor421600HitOffsets[9];
         }
     } else {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if ((Gp_LcgState >> 16) & 1) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if ((gRandomLcgState >> 16) & 1) {
             *sc = Actor421600HitOffsets[10];
         } else {
             *sc = Actor421600HitOffsets[11];
@@ -5414,8 +5414,8 @@ static void func_actor_421600_8013A404(Task* arg0)
 
     temp_s0 = arg0->work;
     if (temp_s0->field_4 != 0) {
-        temp_v0          = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = temp_v0;
+        temp_v0          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = temp_v0;
         temp_s0->field_6 = temp_s0->field_EA4 + ((temp_v0 >> 0x10) & 0xF);
     }
     temp_s0->field_6 -= 1;

@@ -41,7 +41,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -995,32 +995,32 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
             if (arg0->spawnArg1.value != 0) {
-                mem->move.vx = 0;
-                mem->move.vy = -0x18;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x300;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->period  = ((u32)Gp_LcgState >> 16) & 0x3F;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 2;
+                mem->move.vx    = 0;
+                mem->move.vy    = -0x18;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = ((gRandomLcgState >> 16) & 0xFF) + 0x300;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->period     = (gRandomLcgState >> 16) & 0x3F;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->step       = ((gRandomLcgState >> 16) & 3) + 2;
             } else {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x100;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 1;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 7) - 4;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = ~(((u32)Gp_LcgState >> 16) & 0xF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = (((u32)Gp_LcgState >> 16) & 7) - 4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->period     = ((gRandomLcgState >> 16) & 3) + 1;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->step       = ((gRandomLcgState >> 16) & 3) + 1;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 7) - 4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = ~((gRandomLcgState >> 16) & 0xF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = ((gRandomLcgState >> 16) & 7) - 4;
             }
             arg0->state++;
         }
@@ -1043,17 +1043,17 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
             gGpuPrimCursor = prim + 1;
             setPolyFT4(prim);
             if (arg0->spawnArg1.value == 1) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    tmp             = (gRandomLcgState >> 16) & 0xFF;
                     setRGB0(prim, tmp >> 1, tmp, 0xFF);
                 } else {
                     prim->code |= 1;
                 }
                 if (mem->age < mem->step * 6 - 2) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 }
@@ -1144,13 +1144,13 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            n           = ((u32)Gp_LcgState >> 16) & 3;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            n               = (gRandomLcgState >> 16) & 3;
             for (i = 0; i < n; i++) {
                 func_acropolis_helicopter_landing_pad_80180664(coord);
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 3) == 0) {
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     func_acropolis_helicopter_landing_pad_80180A64(coord);
                 }
@@ -1162,15 +1162,15 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
             slot->outer        = 0x1900;
             slot->head.color.r = 0x800;
             slot->head.color.g = 0x800;
-            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-            slot->head.color.b = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b = ((gRandomLcgState >> 16) & 0x700) + 0x900;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.transform.coord.coord);
             base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         case 1:
             if ((gDisplayState.animFrame & 7) == 0) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 3) == 0) {
                     mem->scale = 1;
                 }
             }
@@ -1224,30 +1224,30 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     u16               lvl;
 
     Gp_UpdateCoord(coord);
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    *scratch    = head - 0x20;
-    blk         = (AhlpSparkScratch*)(head - 0x20);
-    vec         = &blk->a;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vy   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0xC0;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+    scratch         = SCRATCH_STACK_CURSOR_SLOT;
+    head            = *scratch;
+    *scratch        = head - 0x20;
+    blk             = (AhlpSparkScratch*)(head - 0x20);
+    vec             = &blk->a;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vy       = ((gRandomLcgState >> 16) & 0x7F) - 0xC0;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
     gte_rtv0();
     gte_stsv(vec);
-    blk->a.vx   = (u16)blk->a.vx + (u16)coord->workm.t[0];
-    blk->a.vy   = (u16)blk->a.vy + (u16)coord->workm.t[1];
-    blk->a.vz   = (u16)blk->a.vz + (u16)coord->workm.t[2];
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vx   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0x40;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vy   = (((u32)Gp_LcgState >> 16) % 0xFF) - 0x80;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vz   = (((u32)Gp_LcgState >> 16) & 0x7F) - 0x40;
+    blk->a.vx       = (u16)blk->a.vx + (u16)coord->workm.t[0];
+    blk->a.vy       = (u16)blk->a.vy + (u16)coord->workm.t[1];
+    blk->a.vz       = (u16)blk->a.vz + (u16)coord->workm.t[2];
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vx       = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vy       = ((gRandomLcgState >> 16) % 0xFF) - 0x80;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vz       = ((gRandomLcgState >> 16) & 0x7F) - 0x40;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
@@ -1262,9 +1262,9 @@ static void func_acropolis_helicopter_landing_pad_80180664(GfxCoord* coord)
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtps();
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
-    lvl         = tmp;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    tmp             = (gRandomLcgState >> 16) & 0xFF;
+    lvl             = tmp;
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x1);
     gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
     if (blk->flag >= 0) {
@@ -1298,30 +1298,30 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     u16               lvl;
 
     Gp_UpdateCoord(coord);
-    scratch     = SCRATCH_STACK_CURSOR_SLOT;
-    head        = *scratch;
-    *scratch    = head - 0x20;
-    blk         = (AhlpSparkScratch*)(head - 0x20);
-    vec         = &blk->a;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vy   = ((u32)Gp_LcgState >> 16) & 0x7F;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->a.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+    scratch         = SCRATCH_STACK_CURSOR_SLOT;
+    head            = *scratch;
+    *scratch        = head - 0x20;
+    blk             = (AhlpSparkScratch*)(head - 0x20);
+    vec             = &blk->a;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vy       = (gRandomLcgState >> 16) & 0x7F;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->a.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(vec);
     gte_rtv0();
     gte_stsv(vec);
-    blk->a.vx   = (u16)blk->a.vx + (u16)coord->workm.t[0];
-    blk->a.vy   = (u16)blk->a.vy + (u16)coord->workm.t[1];
-    blk->a.vz   = (u16)blk->a.vz + (u16)coord->workm.t[2];
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vy   = ((u32)Gp_LcgState >> 16) & 0xFF;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    blk->b.vz   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+    blk->a.vx       = (u16)blk->a.vx + (u16)coord->workm.t[0];
+    blk->a.vy       = (u16)blk->a.vy + (u16)coord->workm.t[1];
+    blk->a.vz       = (u16)blk->a.vz + (u16)coord->workm.t[2];
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vx       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vy       = (gRandomLcgState >> 16) & 0xFF;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    blk->b.vz       = ((gRandomLcgState >> 16) & 0x3F) - 0x20;
     gte_SetRotMatrix(&coord->workm);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtv0();
@@ -1336,9 +1336,9 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x0);
     gte_ldv0(&((AhlpSparkScratch*)(head - 0x20))->b);
     gte_rtps();
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    tmp         = ((u32)Gp_LcgState >> 16) & 0xFF;
-    lvl         = tmp;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    tmp             = (gRandomLcgState >> 16) & 0xFF;
+    lvl             = tmp;
     gte_stsxy(&((AhlpSparkScratch*)(head - 0x20))->x1);
     gte_stflg(&((AhlpSparkScratch*)(head - 0x20))->flag);
     if (blk->flag >= 0) {
@@ -1390,8 +1390,8 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
             slot->outer                                   = 0x1C20;
             slot->head.color.r                            = 0x800;
             slot->head.color.g                            = 0x800;
-            Gp_LcgState                                   = Gp_LcgState * 5 + 0x71357911;
-            slot->head.color.b                            = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            gRandomLcgState                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            slot->head.color.b                            = ((gRandomLcgState >> 16) & 0x700) + 0x900;
             slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
             slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
             slot->head.transform.coord.coord.t[2]         = coord->coord.t[2];
@@ -1403,8 +1403,8 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
             break;
         case 2:
             if (gDisplayState.animFrame & 0x40) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 0xF) == 0) {
                     Gp_SpawnEff(0x6005A, coord, 2, NULL);
                 }
             }
@@ -1454,18 +1454,18 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
     {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->angle   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->step    = (((u32)Gp_LcgState >> 16) & 3) + 1;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = -(((u32)Gp_LcgState >> 16) & 0x1F) - 0x40;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = (((u32)Gp_LcgState >> 16) & 0xF) - 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->step       = ((gRandomLcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = -((gRandomLcgState >> 16) & 0x1F) - 0x40;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = ((gRandomLcgState >> 16) & 0xF) - 8;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = ((gRandomLcgState >> 16) & 0xF) - 8;
             arg0->state++;
         }
         scratch     = SCRATCH_STACK_CURSOR_SLOT;
@@ -1493,23 +1493,23 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                 setRGB0(prim, lvl, lvl, lvl);
             } else {
                 if (arg0->spawnArg1.value != 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        tmp         = (u32)Gp_LcgState >> 16;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 3) == 0) {
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        tmp             = gRandomLcgState >> 16;
                         setRGB0(prim, tmp >> 1, tmp, 0xFF);
                     } else {
                         prim->code |= 1;
                     }
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         Gp_SpawnEff(0x600E0, coord, 0x100, NULL);
                     }
                 } else {
                     prim->code = 0x2D;
                 }
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                if ((((u32)Gp_LcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     Gp_SpawnEff(0x6005A, coord, 2 - arg0->spawnArg1.value, NULL);
                 }
             }

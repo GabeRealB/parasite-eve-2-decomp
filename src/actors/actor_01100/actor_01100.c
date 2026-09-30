@@ -36,7 +36,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/gfxgte.h"
@@ -2121,8 +2121,8 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, ActorsShared80138efcWor
                         i++;
                     } while (i < 2);
                     work->field_BA6 = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    if (((Gp_LcgState >> 0x10) & 0xF) < 0xC) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 0x10) & 0xF) < 0xC) {
                         work->state = 4;
                     } else {
                         work->state = 0;
@@ -2371,7 +2371,7 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, ActorsShared80138efcWor
 }
 
 /// Spin-about handler: on the frame the latch at 0xBA8 is still clear it draws
-/// a nibble from `Gp_LcgState` and arms one of the six spin rates - the
+/// a nibble from `gRandomLcgState` and arms one of the six spin rates - the
 /// 0x200 / 0x400 / 0x600 triple, negative on odd draws - into the countdown at
 /// 0xB8C, then acts its motion 4. Every later frame turns the model's yaw at
 /// 0x46 by 0x10 towards that countdown, rebuilds the Y rotation over the pose
@@ -2386,9 +2386,9 @@ static void Actor01100_Fn0389C(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
     pose = task->extra.tmd->coords;
     if (work->field_BA8 == 0) {
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        idx         = (rng >> 0x10) & 0xF;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        idx             = (rng >> 0x10) & 0xF;
         if (idx < 3) {
             work->field_B8C = 0x200;
         } else if (idx < 6) {
@@ -2505,8 +2505,8 @@ static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, ActorsShared80138efcWor
     if (work->field_BA8 == 0) {
         work->field_BA4 = 1;
         work->field_B90 = _actor01100BearingToPlayer(task->extra.tmd->coords);
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        work->field_B8C = ((Gp_LcgState >> 0x10) & 0x1F) + 2;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_B8C = ((gRandomLcgState >> 0x10) & 0x1F) + 2;
         work->field_BA8++;
     }
 
@@ -2575,8 +2575,8 @@ static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, ActorsShared80138efcWor
 
         if ((u16)(work->field_B90 + 0x7F) < 0xFF) {
             if (task->spawnArg1.value != 0) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                t           = (u16)((Gp_LcgState >> 0x10) % 3);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                t               = (u16)((gRandomLcgState >> 0x10) % 3);
                 if (t <= 0) {
                     work->state = 0xC;
                 } else if (t < 2) {
@@ -2634,9 +2634,9 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, ActorsShared80138efcWor
     yaw->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if (work->field_B90 > -0x80 && work->field_B90 < 0x80) {
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
-        work->state = ((rng >> 0x10) & 4) ? 0xC : 0xD;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        work->state     = ((rng >> 0x10) & 4) ? 0xC : 0xD;
         Gp_ArmStateF0(1);
         work->field_BA8 = 0;
         return;
@@ -2792,8 +2792,8 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, ActorsShared80138efcWor
             work->field_BAA = (u8)work->field_BAA + 1;
             return;
         }
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         if (!((rng >> 0x10) & 3)) {
             work->state = 0xE;
         } else {
@@ -2939,8 +2939,8 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, ActorsShared80138efcWor
             work->field_BAA = (u8)work->field_BAA + 1;
             return;
         }
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         if (!((rng >> 0x10) & 3)) {
             work->state = 0xE;
         } else {
@@ -3086,7 +3086,7 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// squared distance to actor slot 3. No spawn argument and a target inside
 /// 0xA62B0F, or any target inside 0x1DE83F, consumes one `rand` in the first
 /// of those cases and stages state 0xF. Otherwise motion 9 is armed, a nibble
-/// of `Gp_LcgState` picks a 1/2/3 countdown at 0xB8C (under 5, under 0xC,
+/// of `gRandomLcgState` picks a 1/2/3 countdown at 0xB8C (under 5, under 0xC,
 /// else), the frame at 0xBAD is armed to -1 and the latch is stepped. The
 /// empty asm before the 3 is not a single set, so that arm stays a fallthrough
 /// `li`.
@@ -3136,8 +3136,8 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, ActorsShared80138efcWor
             work->field_BA8 = 0;
             return;
         }
-        rng             = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState     = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         work->field_BA4 = 9;
         n               = (rng >> 16) & 0xF;
         if (n < 5) {
@@ -3430,7 +3430,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, ActorsShared80138efcWor
 /// is built 8 bytes into the scratchpad pool below its published head, with X
 /// and Z from `rsin` / `rcos` of the spawn argument and Y a 9-bit draw hung below
 /// 0xE000, rotated through the actor's current `coord` and then scaled by
-/// `((Gp_LcgState >> 16) & 0x1F) + 0x28` of 0x1000, which the work block keeps.
+/// `((gRandomLcgState >> 16) & 0x1F) + 0x28` of 0x1000, which the work block keeps.
 /// The coordinate is reset to the identity first - a 0x1000 diagonal, the
 /// off-diagonal pairs written as zeroed words - then the velocity's X and Z are
 /// added to its translation and a 7-bit draw to the Y, and `composeStamp` is cleared.
@@ -3472,16 +3472,16 @@ static void Actor01100_Fn05E68(Task* task)
     angle               = task->spawnArg1.value;
     task->killCountdown = 0x5A;
 
-    vec         = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    vec->vy     = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);
-    vec->vx     = rsin(angle);
-    vec->vz     = rcos(angle);
+    vec             = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    vec->vy         = 0xE000 - ((gRandomLcgState >> 16) & 0x1FF);
+    vec->vx         = rsin(angle);
+    vec->vz         = rcos(angle);
 
     gfxRotateSv(&coord->coord, vec);
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x28);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x28);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(&work->vel);
@@ -3489,8 +3489,8 @@ static void Actor01100_Fn05E68(Task* task)
     gfxSetRotIdentity(&coord->coord);
 
     coord->coord.t[0]  += work->vel.vx;
-    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-    coord->coord.t[1]  += (Gp_LcgState >> 16) & 0x7F;
+    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    coord->coord.t[1]  += (gRandomLcgState >> 16) & 0x7F;
     coord->coord.t[2]  += work->vel.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
@@ -3937,8 +3937,8 @@ static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, ActorsShared80138efcWor
                     i++;
                 } while (i < 2);
                 work->field_BA6 = 0;
-                Gp_LcgState     = (Gp_LcgState * 5) + 0x71357911;
-                if (((Gp_LcgState >> 0x10) & 0xF) < 0xC) {
+                gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                if (((gRandomLcgState >> 0x10) & 0xF) < 0xC) {
                     work->state = 4;
                 } else {
                     work->state = 0;
@@ -4008,8 +4008,8 @@ static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     u16 timer;
 
     if (work->field_BA8 == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        t           = (Gp_LcgState >> 0x10) & 0xF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        t               = (gRandomLcgState >> 0x10) & 0xF;
         if (t < 4) {
             work->field_B8C = 2;
         } else if (t < 8) {
@@ -4025,8 +4025,8 @@ static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     timer           = (u16)work->field_B8C - 1;
     work->field_B8C = timer;
     if (((u32)timer << 0x10) == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        t2          = (Gp_LcgState >> 0x10) & 0xF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        t2              = (gRandomLcgState >> 0x10) & 0xF;
         if (t2 < 3) {
             work->state = 1;
         } else if (t2 < 6) {

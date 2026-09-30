@@ -2791,12 +2791,12 @@ statement; no pin, no asm barrier:
 
 - the `field_DE &= 0x7FFF` store had to precede `field_140 = ++counter`
   (target reads `lhu v1,0xDE` / `andi` / `sh v1,0xDE` before the `0x140` pair);
-- the whole LCG update `state = (Gp_LcgState * 5) + 0x71357911;` had to precede
-  the two flag stores `field_13C = 1; field_13E = 0;`, with `Gp_LcgState = state;`
+- the whole LCG update `state = (gRandomLcgState * 5) + 0x71357911;` had to precede
+  the two flag stores `field_13C = 1; field_13E = 0;`, with `gRandomLcgState = state;`
   left last. Target materialises `lui`/`ori` first, then `lui`/`lw` of
-  `Gp_LcgState`, then `li`/`sh`/`sh`, then `sll`/`addu`/`addu`/`sw`.
+  `gRandomLcgState`, then `li`/`sh`/`sh`, then `sll`/`addu`/`addu`/`sw`.
 
-The tempting alternative is refuted: giving the `Gp_LcgState` load its own temp
+The tempting alternative is refuted: giving the `gRandomLcgState` load its own temp
 live across the two stores spills (`stack=8 regs=22 insert=1 delete=1`, 95.0%).
 A single statement keeps the load in one register; splitting it does not.
 
@@ -5650,24 +5650,24 @@ with no extra insn, so `tick` takes `$a0` and the restore keeps `$a1`.
 
 ## Split each LCG roll; divide the stored `s16` not the `andi` temp
 
-Three `Gp_LcgState = Gp_LcgState * 5 + 0x71357911` rolls in one case, written
+Three `gRandomLcgState = gRandomLcgState * 5 + 0x71357911` rolls in one case, written
 as one `rng` local, become one allocno. GCC then keeps the last result in
-`$a2` and parks `sw Gp_LcgState` in the following `beqz` delay (`insert` /
+`$a2` and parks `sw gRandomLcgState` in the following `beqz` delay (`insert` /
 `delete` = 1 with every other penalty already 0). The first roll also loads
 into `$v1`, so the `*5` dest cannot reuse the divide-magic `$v1`.
 
 Split the rolls so each live range can pick `$v0` / `$v1` on its own:
 
 ```c
-rng1 = Gp_LcgState * 5 + 0x71357911;
+rng1 = gRandomLcgState * 5 + 0x71357911;
 mem->field_24 = ((u32)rng1 >> 16) & 0xFFF;
-Gp_LcgState   = rng1;
+gRandomLcgState   = rng1;
 /* rsin / rcos */
-rng2 = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState   = rng2;
+rng2 = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState   = rng2;
 /* rsin((rng2 >> 16) & 0xFFF) */
-rng3 = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState   = rng3;
+rng3 = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState   = rng3;
 if ((s32)(((u32)rng3 >> 16) & 3) < combo)
 ```
 
@@ -5690,16 +5690,16 @@ mem->field_26 = mem->field_28 / 20;
 
 ## Roll the LCG through the global, not an m2c temp, to hoist its `lw`
 
-m2c writes a single roll as `temp = Gp_LcgState * 5 + K; Gp_LcgState = temp;`
+m2c writes a single roll as `temp = gRandomLcgState * 5 + K; gRandomLcgState = temp;`
 and then uses `temp`. That form makes the load one allocno feeding the whole
-tail, and sched1 sinks `lw %lo(Gp_LcgState)` *below* the unrelated field stores
+tail, and sched1 sinks `lw %lo(gRandomLcgState)` *below* the unrelated field stores
 that precede it (`reorder` = 4, every other penalty 0). Writing the roll
 straight through the global and re-reading it,
 
 ```c
 work->field_414 = 1;
-Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-work->field_446 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+gRandomLcgState     = gRandomLcgState * 5 + 0x71357911;
+work->field_446 = (((u32)gRandomLcgState >> 16) & 0x3F) + 0x60;
 ```
 
 splits it into a load and a separate CSE'd use, and the load hoists to the top
@@ -5712,29 +5712,29 @@ locals; with a single roll the local is what hurts.
 example.
 
 Roll through the global for *chained* rolls too, when the target keeps **both**
-`sw Gp_LcgState` stores. When roll2 derives from roll1's register (the target
+`sw gRandomLcgState` stores. When roll2 derives from roll1's register (the target
 computes `roll2 = roll1*5+K` with no reload, then stores both at the block end),
 the natural two-locals form drops a store:
 
 ```c
-rng2 = Gp_LcgState * 5 + 0x71357911;   /* roll1 */
+rng2 = gRandomLcgState * 5 + 0x71357911;   /* roll1 */
 ...field16 from rng2...
 rng3 = rng2 * 5 + 0x71357911;          /* roll2 from the local, no reload */
 ...field20 from rng3...
-Gp_LcgState = rng2;
-Gp_LcgState = rng3;   /* the two stores end up adjacent -> GCC DSEs the first */
+gRandomLcgState = rng2;
+gRandomLcgState = rng3;   /* the two stores end up adjacent -> GCC DSEs the first */
 ```
 
 GCC generally does not dead-store-eliminate stores to a global, but two writes
 that schedule **adjacent** with no intervening memory read of that global are
-the case it does catch, so only one `sw Gp_LcgState` survives (`insert`/`delete`
+the case it does catch, so only one `sw gRandomLcgState` survives (`insert`/`delete`
 = 1). Roll through the global instead and read it back between the writes:
 
 ```c
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;          /* store roll1 */
-W->field_16 = 0xFFF6 - ((Gp_LcgState >> 16) & 7);    /* CSE'd to roll1 reg */
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;          /* roll2 = roll1 reg *5+K, no reload; store */
-W->field_20 = (Gp_LcgState >> 16) & 7;               /* CSE'd to roll2 reg */
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;          /* store roll1 */
+W->field_16 = 0xFFF6 - ((gRandomLcgState >> 16) & 7);    /* CSE'd to roll1 reg */
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;          /* roll2 = roll1 reg *5+K, no reload; store */
+W->field_20 = (gRandomLcgState >> 16) & 7;               /* CSE'd to roll2 reg */
 ```
 
 The intervening field-store reads keep the two `sw` non-adjacent, so both
@@ -5785,11 +5785,11 @@ order.
 
 `fill_simple_delay_slots` takes the first *independent* insn after a load.
 A `lh` of a just-stored field (`rsin_arg = mem->field_24`) followed by
-`Gp_LcgState = rng` wants
+`gRandomLcgState = rng` wants
 
 ```
 lh    a0, 0x24(s1)
-sw    a1, %lo(Gp_LcgState)(a2)
+sw    a1, %lo(gRandomLcgState)(a2)
 andi  v1, v1, 0xFFF
 ```
 
@@ -5813,7 +5813,7 @@ do {
     rsin_arg      = mem->field_24;
     SCHED_BARRIER();
 } while (0);
-Gp_LcgState = rng;
+gRandomLcgState = rng;
 ang         = ang & 0xFFF;
 ```
 
@@ -6439,7 +6439,7 @@ is the example.
 
 ## Don't name a later load from the same base as an earlier arg
 
-`seed = q->savedRandSeed` then later `rng = q->savedLcgState; Gp_LcgState = rng;
+`seed = q->savedRandSeed` then later `rng = q->savedLcgState; gRandomLcgState = rng;
 srand(seed)` hoists the `savedLcgState` load next to the seed load (`lw a0,
 0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `sceneEnded = 1`
 for that load so it sits just before the zero stores. Write the use
@@ -6450,7 +6450,7 @@ seed = q->savedRandSeed;
 q->imageLoadStatus = 0xFF;
 q->sceneEnded = 1;
 q->scenePayloadAvailable = 0;
-Gp_LcgState   = q->savedLcgState;
+gRandomLcgState   = q->savedLcgState;
 srand(seed);
 ```
 
@@ -29570,7 +29570,7 @@ shape stuck at 83.3%.
 ## Reuse the `$v1` temp for `(lo - abs)` so the LCG load can overwrite it
 
 A packed-arg fade/shake that does `abs`, `lo - abs`, `packed >> 8`,
-then `Gp_LcgState = Gp_LcgState * 5 + 0x71357911` wants
+then `gRandomLcgState = gRandomLcgState * 5 + 0x71357911` wants
 
 ```
 subu  v1, a2, v0
@@ -29587,7 +29587,7 @@ mult  t0, v1
 
 A fresh `scaled = lo - tmp` takes `$a1`/`$t0` and pushes the rng load
 into `$v0`. Assign the subtract into the same `$v1` local that later
-holds `(u32)Gp_LcgState >> 16`:
+holds `(u32)gRandomLcgState >> 16`:
 
 ```c
 register s32 tmp asm("v0");
@@ -29597,14 +29597,14 @@ tmp    = ABS(arg0->spawnArg1);
 hi     = lo - tmp;
 tmp    = packed >> 8; /* sra v0, a0, 8 — not in-place on packed */
 scaled = hi * tmp;
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-hi     = (u32)Gp_LcgState >> 16;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+hi     = (u32)gRandomLcgState >> 16;
 hi     = scaled * hi;
 ```
 
 `tmp = packed >> 8` is required: `(lo - tmp) * (packed >> 8)` hoists
 `sra a0, a0, 8` into the `lo < spawnArg1` delay slot (killing the
-`lui %hi(Gp_LcgState)` hoist) and emits `subu v0` / `mult v0, a0`.
+`lui %hi(gRandomLcgState)` hoist) and emits `subu v0` / `mult v0, a0`.
 
 Take `val = hi >> 16` before the sign flip. Passing pinned `hi` to
 `displaySetShakeY` (s8) becomes `sll v1, v1, 24; sra a0, v1, 24`.
@@ -32231,22 +32231,22 @@ register PlayerStatus* cfg asm("t4");
 
 `Gp_CountAmmoRows` is the example.
 
-## Assign the LCG back onto `Gp_LcgState`; split `t[1] +=` so `composeStamp = 0` fills the load delay
+## Assign the LCG back onto `gRandomLcgState`; split `t[1] +=` so `composeStamp = 0` fills the load delay
 
-Two in-block `Gp_LcgState * 5 + 0x71357911` steps that both feed field
+Two in-block `gRandomLcgState * 5 + 0x71357911` steps that both feed field
 stores want the result written back to the global, not kept in temps:
 
 ```c
-Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-mem->field_12 = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
+mem->field_12 = 0xFFF0 - (((u32)gRandomLcgState >> 16) & 0x3F);
+gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
+mem->field_24 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
-The first LCG stays in `$a0`, the constant in `$a2`, `&Gp_LcgState` in
+The first LCG stays in `$a0`, the constant in `$a2`, `&gRandomLcgState` in
 `$a1`, and both `sw`s are delayed until after `field_24`. Temps
 (`rng` / `rng2`) put the first result in `$t1` and DSE the first store.
-The same `Gp_LcgState = Gp_LcgState * 5 + C` form at a later
+The same `gRandomLcgState = gRandomLcgState * 5 + C` form at a later
 `Gp_DrawFxQuad` call site lands the LCG in `$v0` so `$a3` can hold the
 constant, then the `>> 16 & 0x1000` bit.
 
@@ -32904,7 +32904,7 @@ one                  = ONE;
 coord->parent           = parent;
 ```
 
-A two-step `Gp_LcgState * 5 + 0x71357911` that *adds* a spawn-arg nibble
+A two-step `gRandomLcgState * 5 + 0x71357911` that *adds* a spawn-arg nibble
 onto the first roll needs that addend in `$a0` before the multiply, so
 the first LCG lands in `$v1` and the second in `$a0` (both `sw`s delayed
 until after `field_26`). Inlining `(u16)index->spawnArg1 & 0xFFF` into
@@ -32914,10 +32914,10 @@ Extract it first:
 ```c
 temp          = (u16)arg0->spawnArg1 & 0xFFF;
 mem->field_2A = 0;
-Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-mem->field_24 = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
-Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
+mem->field_24 = temp + (((u32)gRandomLcgState >> 16) & 0xFF);
+gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
+mem->field_26 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
 `Gp_EffSprTaskE2` is the example.
@@ -35547,7 +35547,7 @@ match; prefer `index + bestIdx` otherwise.
 
 ## Non-volatile block-scoped `+r` pin so `(s16)x >> 1` is `sll 16; sra 17`
 
-`mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF; mem->field_14 =
+`mem->field_24 = ((u32)gRandomLcgState >> 16) & 0x1FF; mem->field_14 =
 -(mem->field_24 >> 1)` lets combine see the `andi 0x1FF` range and emit
 `srl 1`. The target is `sll 16; sra 17` (`(s16)x >> 1` of an unknown
 32-bit value). A `volatile` `+r` pin after the store also works, but is
@@ -35558,8 +35558,8 @@ A **non-volatile** pin on a **block-scoped** copy is not a barrier, so
 call setup can still sit above the LCG, while the range is forgotten:
 
 ```c
-Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
-mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF;
+gRandomLcgState    = gRandomLcgState * 5 + 0x71357911;
+mem->field_24 = ((u32)gRandomLcgState >> 16) & 0x1FF;
 {
     s32 sh;
     sh = mem->field_24;
@@ -35570,9 +35570,9 @@ Gp_SpawnEff(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
 ```
 
 Reuse of a function-level `temp` for the pin shuffles the LCG into `v1`
-and delays `sw Gp_LcgState`. `Gp_EffCtlTask6B` is the example.
+and delays `sw gRandomLcgState`. `Gp_EffCtlTask6B` is the example.
 
-Write `Gp_LcgState = Gp_LcgState * 5 + K` (no extra `rng` local) so the
+Write `gRandomLcgState = gRandomLcgState * 5 + K` (no extra `rng` local) so the
 LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 ## Embedded point light so colour fields are `s5+0x50`, not `base+0x54`
@@ -35614,7 +35614,7 @@ Copy into an s32 first so the load stays 32-bit; a later `arg0->spawnArg1
 
 ```c
 temp          = arg0->spawnArg1;
-mem->field_28 = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
+mem->field_28 = -(temp << 4) - (((u32)gRandomLcgState >> 16) & 0x7F);
 mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
 ```
 
@@ -37017,25 +37017,25 @@ whether the divisor lands in `$s1` or `$s2`.
 
 ## Interleave stores to keep redundant global writes alive
 
-A chain of `Gp_LcgState = Gp_LcgState * 5 + K;` steps whose intermediate
+A chain of `gRandomLcgState = gRandomLcgState * 5 + K;` steps whose intermediate
 results are only read back immediately loses all but the last store — GCC
 deletes the dead writes:
 
 ```c
-/* Wrong: only the final sw Gp_LcgState survives */
-Gp_LcgState = Gp_LcgState * 5 + K;  r0 = ...;
-Gp_LcgState = Gp_LcgState * 5 + K;  r1 = ...;
+/* Wrong: only the final sw gRandomLcgState survives */
+gRandomLcgState = gRandomLcgState * 5 + K;  r0 = ...;
+gRandomLcgState = gRandomLcgState * 5 + K;  r1 = ...;
 ```
 
-The target keeps all four `sw %lo(Gp_LcgState)`. Storing each result through
+The target keeps all four `sw %lo(gRandomLcgState)`. Storing each result through
 the work pointer between the updates makes them non-dead (the compiler cannot
 prove `mem->field_10` does not alias the global), and the scheduler then still
 groups the four `sw`s together the way the target does:
 
 ```c
-Gp_LcgState   = Gp_LcgState * 5 + K;
-mem->field_10 = (s32)((u32)Gp_LcgState >> 16) % range - half;
-Gp_LcgState   = Gp_LcgState * 5 + K;
+gRandomLcgState   = gRandomLcgState * 5 + K;
+mem->field_10 = (s32)((u32)gRandomLcgState >> 16) % range - half;
+gRandomLcgState   = gRandomLcgState * 5 + K;
 mem->field_12 = ...;
 ```
 
@@ -37704,12 +37704,12 @@ in place, which is what the target usually shows:
 
 ```c
 /* 99.6%: srl and remainder share `rnd`, so subu needs a fresh dest register */
-rnd  = (u32)Gp_LcgState >> 16;
+rnd  = (u32)gRandomLcgState >> 16;
 rnd  = rnd % (drift + range) + 0x20;
 w->field_10.vx = rnd - drift;          /* subu v0, t3, t4 */
 
 /* 100%: `col` is its own pseudo, updated in place */
-rnd  = (u32)Gp_LcgState >> 16;
+rnd  = (u32)gRandomLcgState >> 16;
 col  = rnd % (drift + range) + 0x20;
 col -= drift;                          /* addiu t2,t2,0x20; subu t2,t2,t4 */
 w->field_10.vx = col;
@@ -37965,7 +37965,7 @@ the block computes a spread from `mem->field_24` *and* advances the global LCG:
 ```c
 span        = mem->field_24 >> 1;
 half        = (u32)span >> 1;          /* u32 -> LCG chain scheduled first */
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 ```
 
 The target interleaves the `lhu`/`sll`/`sra`/`srl` of the spread *into* the
@@ -37993,13 +37993,13 @@ block, even though it CSEs the reads into one `lw` and chains the arithmetic in
 registers.
 
 ```c
-/* Only the last `sw Gp_LcgState` survives */
-Gp_LcgState = Gp_LcgState * 5 + K;
-x = ((u32)Gp_LcgState >> 16) % n;
-Gp_LcgState = Gp_LcgState * 5 + K;
-y = ((u32)Gp_LcgState >> 16) % n;
-Gp_LcgState = Gp_LcgState * 5 + K;
-z = ((u32)Gp_LcgState >> 16) % n;
+/* Only the last `sw gRandomLcgState` survives */
+gRandomLcgState = gRandomLcgState * 5 + K;
+x = ((u32)gRandomLcgState >> 16) % n;
+gRandomLcgState = gRandomLcgState * 5 + K;
+y = ((u32)gRandomLcgState >> 16) % n;
+gRandomLcgState = gRandomLcgState * 5 + K;
+z = ((u32)gRandomLcgState >> 16) % n;
 ```
 
 Any intervening store to memory invalidates the dead-store list, so writing the
@@ -38007,12 +38007,12 @@ result out between the draws keeps all three `sw`s (the scheduler still groups
 them at the end of the block, which is what the target looks like):
 
 ```c
-Gp_LcgState   = Gp_LcgState * 5 + K;
-mem->field_10 = ((u32)Gp_LcgState >> 16) % n - half;
-Gp_LcgState   = Gp_LcgState * 5 + K;
-mem->field_12 = ((u32)Gp_LcgState >> 16) % n;
-Gp_LcgState   = Gp_LcgState * 5 + K;
-mem->field_14 = ((u32)Gp_LcgState >> 16) % n - half;
+gRandomLcgState   = gRandomLcgState * 5 + K;
+mem->field_10 = ((u32)gRandomLcgState >> 16) % n - half;
+gRandomLcgState   = gRandomLcgState * 5 + K;
+mem->field_12 = ((u32)gRandomLcgState >> 16) % n;
+gRandomLcgState   = gRandomLcgState * 5 + K;
+mem->field_14 = ((u32)gRandomLcgState >> 16) % n - half;
 ```
 
 ## Write the call out per branch instead of collecting args in locals
@@ -39819,7 +39819,7 @@ semantics, decides which independent instruction fills the pre-call slot.
 
 ## Narrow a small-constant local to `s16` to stop CSE turning `* 5` into `sllv`
 
-An LCG chain such as `Gp_LcgState = Gp_LcgState * 5 + 0x71357911;` expands to
+An LCG chain such as `gRandomLcgState = gRandomLcgState * 5 + 0x71357911;` expands to
 `sll x,2 / addu / addu`. If an `s32` local holding a small constant is live
 across it (`s32 step = 2;` for a later `mem->field_24 = step;`), CSE finds the
 constant `2` already in a register and rewrites every `sll …,0x2` as
@@ -39834,9 +39834,9 @@ shift count:
 ```c
 s16 step;                /* s32 step; → four spurious sllv */
 
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;  /* sll a0,v0,0x2 … */
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;  /* sll a0,v0,0x2 … */
 step = 2;
-if ((((u32)Gp_LcgState >> 16) & 3) != 0) {
+if ((((u32)gRandomLcgState >> 16) & 3) != 0) {
     step = 1;
 }
 mem->field_24 = step;
@@ -40054,33 +40054,33 @@ once and took the function to 100%. When several sibling `TextDrawReq` blocks
 all miss by the same shuffle, copy the field order from a matched neighbour
 before touching anything else.
 
-## Chain three LCG draws through `Gp_LcgState` itself, never through temporaries
+## Chain three LCG draws through `gRandomLcgState` itself, never through temporaries
 
 `Gp_EffTileTaskA4` seeds `mem->field_10/12/14` from three consecutive
-`Gp_LcgState * 5 + 0x71357911` steps. Both obvious spellings fail:
+`gRandomLcgState * 5 + 0x71357911` steps. Both obvious spellings fail:
 
 ```c
-rng1 = Gp_LcgState * 5 + 0x71357911;   /* separate temps */
+rng1 = gRandomLcgState * 5 + 0x71357911;   /* separate temps */
 mem->field_10 = 0x20 - (((u32)rng1 >> 16) & 0x3F);
 rng2 = rng1 * 5 + 0x71357911;
 ...
-Gp_LcgState = rng1; Gp_LcgState = rng2; Gp_LcgState = rng3;
+gRandomLcgState = rng1; gRandomLcgState = rng2; gRandomLcgState = rng3;
 ```
 
 Grouping the three writes at the end lets GCC 2.8.1 delete the first two as
 redundant stores (only one `sw` survives), and interleaving
-`Gp_LcgState = rngN;` after each draw instead makes the scheduler hoist the
+`gRandomLcgState = rngN;` after each draw instead makes the scheduler hoist the
 whole nine-instruction multiply chain to the top of the block. The target
 interleaves draw / use / draw / use and parks all three `sw`s together late.
 Re-reading the global every time reproduces it exactly:
 
 ```c
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_10 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_12 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_14 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_10 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_12 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_14 = 0x20 - (((u32)gRandomLcgState >> 16) & 0x3F);
 ```
 
 CSE still folds each read back to the register just stored, so there is one
@@ -40381,7 +40381,7 @@ block                   = (GpEffFt4Scratch*)head;
 
 ## Split an unsigned `%` across two statements to tie the remainder to the dividend
 
-`rnd = ((u32)Gp_LcgState >> 16) % 40;` in one arm of an if/else allocates the
+`rnd = ((u32)gRandomLcgState >> 16) % 40;` in one arm of an if/else allocates the
 remainder to a *new* pseudo (`subu v1,a0,v0`), because the value has to survive
 the join. The target reuses the dividend register (`subu a0,a0,v0`). Writing
 the shift and the modulo as two statements on the same variable makes GCC 2.8.1
@@ -40391,8 +40391,8 @@ tie them:
 u32 rnd;
 
 if (flag & 1) {
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    rnd         = (u32)Gp_LcgState >> 16;
+    gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+    rnd         = (u32)gRandomLcgState >> 16;
     rnd         = rnd % 40;   /* subu a0,a0,v0 */
 } else {
     rnd = 0;                  /* move a0,zero  */
@@ -40413,7 +40413,7 @@ itself a shift, CSE1 folds the two together and then has to re-materialise the
 unshifted value for the remainder:
 
 ```c
-work->field_24 = ((u32)Gp_LcgState >> 16) % 90 + 0x1E;
+work->field_24 = ((u32)gRandomLcgState >> 16) % 90 + 0x1E;
 ```
 
 ```
@@ -40436,7 +40436,7 @@ drops the `andi` because `nonzero_bits` already proves the high half is zero:
 ```c
 u16 rnd;
 
-rnd            = (u32)Gp_LcgState >> 16;
+rnd            = (u32)gRandomLcgState >> 16;
 work->field_24 = (u32)rnd % 90 + 0x1E;   /* srl; srl, no re-materialised srl */
 ```
 
@@ -40562,22 +40562,22 @@ order. Moving `prim->r0 = r; prim->r1 = r;` up to directly after `setcode()`
 (before the `g`/`b` stores) reproduced the reload placement in both loops and
 took the function from 98.9% to 99.4%.
 
-## `x = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;` is one statement, not two
+## `x = gRandomLcgState = gRandomLcgState * 5 + 0x71357911;` is one statement, not two
 
-Writing the LCG step as `rng = Gp_LcgState * 5 + 0x71357911; ... Gp_LcgState = rng;`
+Writing the LCG step as `rng = gRandomLcgState * 5 + 0x71357911; ... gRandomLcgState = rng;`
 gives the store a separate live range and costs a callee-saved register in the
 loop: the whole `s0`/`s1` assignment shifts and the `0x71357911` constant stops
 being partially hoisted out of the loop. Folding it into a single chained
-assignment where the value is consumed (`rng = Gp_LcgState = Gp_LcgState * 5 +
+assignment where the value is consumed (`rng = gRandomLcgState = gRandomLcgState * 5 +
 0x71357911;`) restored the target's allocation and the `lui $a0, 0x7135` in the
 loop-back delay slot — worth 1.5% on `Gp_DrawEffShard`.
 
 ### Straight-line form: no reordering of a split step can recover it
 
 `func_mine_cavern_80181CAC` fills a light record in one block and folds
-`((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF` into one field's
+`((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16) & 0x7FF` into one field's
 value. A previous session tried ~35 statement orders, all with a split
-`rng = …; Gp_LcgState = rng;`, and plateaued at 75%. A hill-climb over every
+`rng = …; gRandomLcgState = rng;`, and plateaued at 75%. A hill-climb over every
 single-statement move from that seed found nothing better. The inline form in
 the order the sibling helipad room fills the same record
 (`state, 58, 5C, 50, 52, 54, x, y, z, field_0`) matched at once.
@@ -41223,26 +41223,26 @@ into the earlier `mark_outside` block, so the layout matches the target while
 the extra in-loop reference is what the allocator saw. This took the score from
 94.4% to 99.5%.
 
-## A run of LCG draws: assign `Gp_LcgState` directly, don't route through a temp
+## A run of LCG draws: assign `gRandomLcgState` directly, don't route through a temp
 
 `Gp_EffSprTask7C` seeds four `EffectWork` fields from four consecutive LCG steps.
-Written with a temp per step (`rng = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState = rng; mem->field_X = ((u32)rng >> 16) & M;`) GCC 2.8.1 hoists all
+Written with a temp per step (`rng = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState = rng; mem->field_X = ((u32)rng >> 16) & M;`) GCC 2.8.1 hoists all
 four `sll`/`addu`/`addu` multiply chains to the front of the block and defers
 every `andi`/`subu`/`sh`, because the temps form one dependency chain with
 nothing anchoring the extractions. Reading and writing the global directly
 
 ```c
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_2A = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_2A = 0x100 - (((u32)gRandomLcgState >> 16) & 0x1F0);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_10 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
 ```
 
 keeps each extraction next to its draw (the value still stays in registers —
-`Gp_LcgState`'s address is never taken, so it is loaded once). That single
+`gRandomLcgState`'s address is never taken, so it is loaded once). That single
 change was worth 7.3% on `Gp_EffSprTask7C`. Note this is the opposite fix from
-the chained `x = Gp_LcgState = ...` entry above, which applies when a *single*
+the chained `x = gRandomLcgState = ...` entry above, which applies when a *single*
 draw's value has to survive into a loop-carried live range.
 
 ## `(u8)x` folds to `andi 0xF0` when GCC knows the low nibble
@@ -41378,7 +41378,7 @@ the `if` body; the arm the target jumps to belongs in the `else`.
 
 ## Block-scope a temp that appears in two cross-jumped copies
 
-`u16 rnd = ((u32)Gp_LcgState >> 16) % 3;` appeared in two `case` blocks of
+`u16 rnd = ((u32)gRandomLcgState >> 16) % 3;` appeared in two `case` blocks of
 `Gp_EffSprTask30` that cross-jumping later merges. Declared once at function
 scope it becomes a *global* allocno (assigned in `.greg`) and lands in `$v0`,
 giving `subu v0, a1, v0`; the target reuses the dividend's register,
@@ -41387,7 +41387,7 @@ local allocno coloured next to its uses and the register falls out right.
 Inlining the expression into the `if` works too:
 
 ```c
-if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+if ((u16)(((u32)gRandomLcgState >> 16) % 3) == 0) {
 ```
 
 Same idea as the existing "split a reused local" advice, but the trigger here
@@ -45327,7 +45327,7 @@ one — GCC subtracts the low bound when there is no `case 0`.
 Rebuilding `target.o` for a multi-label parent (see "A vacuum `L`-label is a
 basic block, not a function") concatenates splat's per-fragment `.s` files, and
 splat can only pair a `lui`/`lw` when both halves sit in the **same** fragment.
-`Actor02500_Fn00078` hoists the `lui` for `Gp_LcgState` into two `j` delay slots
+`Actor02500_Fn00078` hoists the `lui` for `gRandomLcgState` into two `j` delay slots
 and one join block, so three fragments carry the raw form:
 
 ```
@@ -45335,13 +45335,13 @@ and one join block, so three fragments carry the raw form:
 /* 258 */  lw   $v0, 0xF60($a2)           # start of Actor02500_L00258.s
 ```
 
-The compiler emits `lui $a2, %hi(Gp_LcgState)` / `lw $v0, %lo(Gp_LcgState)($a2)`
+The compiler emits `lui $a2, %hi(gRandomLcgState)` / `lw $v0, %lo(gRandomLcgState)($a2)`
 with real HI16/LO16 relocations, so the normalized diff reports three or four
 differences that vanish at link time. Rewrite the raw halves in the hand-built
 `target.s` to `%hi(sym)` / `%lo(sym)($reg)` before the first score; otherwise a
 100% match reads as ~98% and you chase register noise that is not there.
 
-`Gp_LcgState` was the giveaway: the address is `0x80070F60`, and every unpaired
+`gRandomLcgState` was the giveaway: the address is `0x80070F60`, and every unpaired
 `lui` in the span held exactly its high half.
 
 ## Split a per-call-block temp so `local-alloc` takes `$s0` and the pointers slide up
@@ -45647,8 +45647,8 @@ pointer-based struct *stores*, it is `M2C_FIELD` that prevents the match.
 then rolls the shared LCG. The target lifts the whole load above both stores:
 
 ```
-lui     $a0, %hi(Gp_LcgState)
-lw      $v1, %lo(Gp_LcgState)($a0)
+lui     $a0, %hi(gRandomLcgState)
+lw      $v1, %lo(gRandomLcgState)($a0)
 li      $v0, 0xb
 sh      $v0, 0x6C0($s1)
 li      $v0, 1
@@ -46631,7 +46631,7 @@ turn            = 0;                                   /* dead store */
 
 `SOFT_USE_REG(turn)` in the same place also fixes the canonicalisation, but it
 is a real use, so `turn`'s hard register stays busy and the next load cannot
-reuse it - in `Actor03800_Fn012B4` that cost the `lw $a0, %lo(Gp_LcgState)($t0)`
+reuse it - in `Actor03800_Fn012B4` that cost the `lw $a0, %lo(gRandomLcgState)($t0)`
 its register and added a `nop` (99.7% vs 100%). Prefer the dead store.
 
 Related: writing the `if` as `if (c) y = x + K; else y = x;` does not help. The
@@ -52607,7 +52607,7 @@ The aliasing rule from "Struct-typing a body changes GCC 2.8.1's aliasing"
 (an in-struct MEM with a varying address never conflicts with a non-struct
 MEM) applies to the *loads* as much as the stores, and it decides where the
 scheduler may put a `+=` on a scratch-block field relative to a chain of
-`Gp_LcgState = Gp_LcgState * 5 + K;` stores.
+`gRandomLcgState = gRandomLcgState * 5 + K;` stores.
 
 `func_acropolis_helicopter_landing_pad_80180A64` adds the coord translation to
 a rotated `SVECTOR` and then rolls three more LCG draws into a second vector.
@@ -52616,13 +52616,13 @@ The target interleaves them:
 ```asm
 lhu   v0,-0x20(t7)        ; a.vx
 lhu   v1,0x38(s0)         ; t[0]
-lw    a0,%lo(Gp_LcgState)(a3)
+lw    a0,%lo(gRandomLcgState)(a3)
 ...
-sw    v0,%lo(Gp_LcgState)(a3)
-sw    v1,%lo(Gp_LcgState)(a3)
+sw    v0,%lo(gRandomLcgState)(a3)
+sw    v1,%lo(gRandomLcgState)(a3)
 lhu   a1,2(t3)            ; a.vy, after two LCG stores
 ...
-sw    a0,%lo(Gp_LcgState)(a3)
+sw    a0,%lo(gRandomLcgState)(a3)
 lhu   v0,4(t3)            ; a.vz, after the third
 ```
 
@@ -52637,8 +52637,8 @@ Cast the *value* instead of the address:
 blk->a.vx = (u16)blk->a.vx + (u16)coord->workm.t[0];
 blk->a.vy = (u16)blk->a.vy + (u16)coord->workm.t[1];
 blk->a.vz = (u16)blk->a.vz + (u16)coord->workm.t[2];
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-blk->b.vx   = (((u32)Gp_LcgState >> 16) & 0x3F) - 0x20;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+blk->b.vx   = (((u32)gRandomLcgState >> 16) & 0x3F) - 0x20;
 ...
 ```
 
@@ -52676,7 +52676,7 @@ Declare the copy `u16` (or `s16`) and shift the original:
 ```c
 u32 tmp;
 u16 lvl;
-tmp = ((u32)Gp_LcgState >> 16) & 0xFF;
+tmp = ((u32)gRandomLcgState >> 16) & 0xFF;
 lvl = tmp;
 ...
 setRGB0(prim, tmp >> 1, lvl, 0xFF);
@@ -53535,8 +53535,8 @@ count back into the *same* C local as the dead value is what pins it:
 
 ```c
 if (quad != 0) {
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    quad = ((u32)Gp_LcgState >> 16) & 3;   /* size class is dead here */
+    gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+    quad = ((u32)gRandomLcgState >> 16) & 3;   /* size class is dead here */
     if (quad != 0) { ... }
 }
 ```
@@ -55631,7 +55631,7 @@ what the target does. 94.2% → 97.4% on this function.
 sll  v0, v1, 2
 addu v0, v0, v1
 addu v0, v0, t0
-sw   v0, %lo(Gp_LcgState)(a3)   <- target stores here
+sw   v0, %lo(gRandomLcgState)(a3)   <- target stores here
 srl  v0, v0, 0x10
 ```
 
@@ -55639,8 +55639,8 @@ Writing the result into a local first put the `sw` two instructions later,
 after the `srl` and `andi`, which also cost the value a second register:
 
 ```c
-ang            = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState    = ang;
+ang            = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState    = ang;
 ang            = ((ang >> 16) & 0x700) + 0x400;   /* store sinks */
 slot->field_50 = ang;
 slot->field_52 = ang >> 1;
@@ -55773,12 +55773,12 @@ the pin, not source order, is what reprioritises the ready list.
 
 ## One local per RNG draw, not one local reused for all of them
 
-**Problem.** `func_m4a1_pyke_8011D7D4` draws from `Gp_LcgState` four times, in
+**Problem.** `func_m4a1_pyke_8011D7D4` draws from `gRandomLcgState` four times, in
 four different basic blocks. Written the obvious way — one `u32 ang` declared
 at the top and assigned at each site — the function stalls at 95.5% with
-`regs=39`, and every one of the four `sw $v0, %lo(Gp_LcgState)($a2)` stores
+`regs=39`, and every one of the four `sw $v0, %lo(gRandomLcgState)($a2)` stores
 sinks several instructions past the `addu` that produced the value, exactly the
-symptom the "Assign the LCG back onto `Gp_LcgState`" entry above describes.
+symptom the "Assign the LCG back onto `gRandomLcgState`" entry above describes.
 
 **Cause.** The four assignments share one pseudo, so its live range spans the
 whole function instead of four short windows. `global_alloc` then hands it a
@@ -55794,7 +55794,7 @@ them anyway — but it decides that per block, which is what the ROM's code does
 The general rule: a value that is recomputed from scratch at several unrelated
 points is several variables, and writing it as one is a register-allocation
 pessimisation GCC 2.8.1 will not undo. This is the mirror image of the
-`Gp_LcgState` store-sinking entry above — there the remedy was to give the
+`gRandomLcgState` store-sinking entry above — there the remedy was to give the
 store an ordering edge, here it is to stop the pseudo from living long enough
 for the store to have anywhere to sink to.
 
@@ -55810,14 +55810,14 @@ sitting between them:
 
 ```c
 work->field_10 = 0;
-ang0           = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState    = ang0;
+ang0           = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState    = ang0;
 work->field_12 = (u16)task->spawnArg1 - ((ang0 >> 16) & 0x3F);
 work->field_14 = 0;   /* after the draw, not next to field_10 */
 ```
 
 Clearing `field_14` next to `field_10` — the grouping that reads better — held
-the score at 99.4% with `regs=3`: the `lw` of `Gp_LcgState` landed in `$v1`
+the score at 99.4% with `regs=3`: the `lw` of `gRandomLcgState` landed in `$v1`
 instead of `$a0`, which serialised the `lhu` of `task->spawnArg1` behind the
 multiply chain and dragged the `ori` of the LCG constant to the top of the
 block. Moving the one `sh $zero` past the draw took it to 100%. Writing the
@@ -56512,10 +56512,10 @@ by hand does not just move code, it changes what combine is allowed to fold.
 two registers permuted": in the spark loop, two chained LCG draws
 
 ```c
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[i + 8] += (Gp_LcgState >> 16) & 0xFF;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+D_m4a1_hammer_8012D630[i + 8] += (gRandomLcgState >> 16) & 0xFF;
 ```
 
 put the first draw in `$a1` and the second in `$a2`, where the target has them
@@ -56526,7 +56526,7 @@ is allocated first and takes the lower register.
 
 What did *not* work, and is worth not repeating: every semantically valid
 permutation of the four statements, hoisting either draw into an explicit
-`u32` temporary, moving either `Gp_LcgState` store earlier or later,
+`u32` temporary, moving either `gRandomLcgState` store earlier or later,
 reordering the declarations, hoisting `(SVECTOR*)&work->field_18` out of the
 loop, rewriting the `for` as a `do`/`while`, and `SOFT_USE_REG` /
 `SOFT_TOUCH_REG` on the second draw. All of them re-normalise to the same RTL
@@ -56539,10 +56539,10 @@ What worked was giving the *index* a name:
 ```c
 for (i = 0; i < 8; i++) {
     j = i + 8;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[i] -= ((Gp_LcgState >> 16) & 0x1FF) - 0x100;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[j] += (Gp_LcgState >> 16) & 0xFF;
+    gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+    D_m4a1_hammer_8012D630[i] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+    gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+    D_m4a1_hammer_8012D630[j] += (gRandomLcgState >> 16) & 0xFF;
     ...
     work->field_1A = D_m4a1_hammer_8012D630[j];
 }
@@ -57722,7 +57722,7 @@ turns `x % 970` into `x - (((x >> 1) * 0x872032AD >> 32) >> 8) * 970`. When `x`
 is itself a shift, as in the LCG idiom, the two shifts collide:
 
 ```c
-pos.vz = ((u32)Gp_LcgState >> 16) % 970 + 0xF63C;   /* wrong */
+pos.vz = ((u32)gRandomLcgState >> 16) % 970 + 0xF63C;   /* wrong */
 ```
 
 CSE knows the pre-shift's operand is `lcg >> 16`, folds the pair into
@@ -57737,7 +57737,7 @@ operand and you get the duplicated shift for a second reason — that is the
 A `(u16)` cast on the shifted value fixes it:
 
 ```c
-pos.vz = (u16)((u32)Gp_LcgState >> 16) % 970 + 0xF63C;   /* matches */
+pos.vz = (u16)((u32)gRandomLcgState >> 16) % 970 + 0xF63C;   /* matches */
 ```
 
 The cast is a no-op numerically — the value is already 16 bits — but the
@@ -58802,12 +58802,12 @@ The same function's first roll is `srl v1, a1, 16` followed by `multu`/`srl 5`
 — an unsigned divide by 144 of the shifted value. Writing that literally,
 
 ```c
-work->field_10.vy = ((u32)Gp_LcgState >> 16) % 144 + 0x60;
+work->field_10.vy = ((u32)gRandomLcgState >> 16) % 144 + 0x60;
 ```
 
 gets a *signed* `mult` by `0x38E38E39` and `sra 21` instead: fold collapses the
 shift and the divide into a single division by `144 << 16 == 9437184`, and
-because `Gp_LcgState` is an `s32` that division is signed. m2c reports the same
+with a signed state declaration that division is signed. m2c reports the same
 fold from the other direction, printing `x / 9437184` for a `multu`-based
 sequence, so the seed carries the wrong shape in.
 
@@ -58815,7 +58815,7 @@ Assigning the shift to a `u16` local first blocks the fold — the truncation is
 free after `srl 16`, but the divide can no longer see through it:
 
 ```c
-u16 rnd = (u32)Gp_LcgState >> 16;
+u16 rnd = (u32)gRandomLcgState >> 16;
 work->field_10.vy = (u32)rnd % 144 + 0x60;
 ```
 
@@ -61102,7 +61102,7 @@ held `q * C` and the whole surrounding block rotates:
 ```c
 /* 99.564% — subu v0, a2, v0; and the else arm's three constants rotate */
 u16 tick;
-tick = ((u32)Gp_LcgState >> 16) % 0x3C;
+tick = ((u32)gRandomLcgState >> 16) % 0x3C;
 if (tick == 0) { … }
 ```
 
@@ -61112,7 +61112,7 @@ which is what the target does, and the rest of the block falls into place:
 
 ```c
 /* 99.918% */
-if ((u16)(((u32)Gp_LcgState >> 16) % 0x3C) == 0) { … }
+if ((u16)(((u32)gRandomLcgState >> 16) % 0x3C) == 0) { … }
 ```
 
 Keep the cast. It is not cosmetic: it is what forces the `andi $x, $x, 0xffff`
@@ -61126,11 +61126,11 @@ written to three `sb`s — a named local is unavoidable, and the same dest-tied
 
 ```c
 /* subu a0, a0, v0; sb a0, 4(t0) …  (and the %hi(gDisplayState) lui stays after) */
-level  = (u32)Gp_LcgState >> 16;
+level  = (u32)gRandomLcgState >> 16;
 level %= 0xC0;
 ```
 
-Written as one expression, `level = ((u32)Gp_LcgState >> 16) % 0xC0;`, the
+Written as one expression, `level = ((u32)gRandomLcgState >> 16) % 0xC0;`, the
 destination is a fresh quantity, the `subu` writes `v1`, and the scheduler
 hoists the next `lui` above the stores.
 
@@ -61752,8 +61752,8 @@ that only feeds a narrow store.
 `func_combustion_8012F2BC` runs the same LCG step in two of its three cases:
 
 ```c
-rng         = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState = rng;
+rng         = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState = rng;
 ```
 
 Declaring one `rng` and using it in `case 1` and `case 2` scored 94.7% with
@@ -61777,13 +61777,13 @@ locals cost no instructions.
 value:
 
 ```c
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-yaw         = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-spread      = ((u32)Gp_LcgState >> 16) & 0xFFF;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+yaw         = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+spread      = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
-That compiled with only *one* `sw ..., %lo(Gp_LcgState)`: the second assignment
+That compiled with only *one* `sw ..., %lo(gRandomLcgState)`: the second assignment
 kills the first, and with nothing in between GCC 2.8.1 deletes the dead store
 even though the destination is a global. The ROM has both stores, so the
 `delete` penalty is the giveaway — a missing `sw` to a global, not a wrong
@@ -61796,11 +61796,11 @@ may alias the global and blocks the elimination:
 
 ```c
 slot->coord.coord.t[0] = coord->coord.t[0];
-Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
-yaw                    = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0xA00;
+gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
+yaw                    = (((u32)gRandomLcgState >> 16) & 0x3FF) + 0xA00;
 slot->coord.coord.t[1] = coord->coord.t[1];   /* keeps the first sw alive */
-Gp_LcgState            = Gp_LcgState * 5 + 0x71357911;
-spread                 = ((u32)Gp_LcgState >> 16) & 0xFFF;
+gRandomLcgState            = gRandomLcgState * 5 + 0x71357911;
+spread                 = ((u32)gRandomLcgState >> 16) & 0xFFF;
 ```
 
 Which copy goes in the gap is not free: the scheduler picks the hard register
@@ -61866,14 +61866,14 @@ common case. Writing it the obvious way loses stores:
 ```c
 rng2        = rng1 * 5 + 0x71357911;
 rng3        = rng2 * 5 + 0x71357911;
-Gp_LcgState = rng2;                 /* deleted */
-Gp_LcgState = rng3;
+gRandomLcgState = rng2;                 /* deleted */
+gRandomLcgState = rng3;
 ```
 
-The target has one `sw %lo(Gp_LcgState)` per step, the compiled version one
+The target has one `sw %lo(gRandomLcgState)` per step, the compiled version one
 fewer, and the missing store shows up as a `delete` penalty in the middle of an
 otherwise register-perfect block. Interleaving the assignments is *not* enough
-either - `Gp_LcgState = rng2; rng3 = rng2 * 5 + …; Gp_LcgState = rng3;` still
+either - `gRandomLcgState = rng2; rng3 = rng2 * 5 + …; gRandomLcgState = rng3;` still
 has nothing but register arithmetic between the two stores, so the first is
 still dead.
 
@@ -61883,10 +61883,10 @@ intermediate value is that reference, so put it where it belongs:
 
 ```c
 rng2          = rng1 * 5 + 0x71357911;
-Gp_LcgState   = rng2;
+gRandomLcgState   = rng2;
 mem->field_24 = Table[mem->field_20].field_8 + (((u32)rng2 >> 16) & 0x1FF);
 rng3          = rng2 * 5 + 0x71357911;
-Gp_LcgState   = rng3;
+gRandomLcgState   = rng3;
 mem->field_26 = ((u32)rng3 >> 16) & 0xFFF;
 ```
 
@@ -61993,19 +61993,19 @@ before looking anywhere else.
 ## Repeated stores to a fixed-address global survive only if a struct store sits between them
 
 `func_lifedrain_8012FAF8` seeds three drift components from three LCG steps and
-the ROM keeps *all three* `sw $aN, %lo(Gp_LcgState)($t1)` back to back, right
+the ROM keeps *all three* `sw $aN, %lo(gRandomLcgState)($t1)` back to back, right
 before the `sh` of the next field. Writing that literally,
 
 ```c
-rng1 = Gp_LcgState * 5 + 0x71357911;
+rng1 = gRandomLcgState * 5 + 0x71357911;
 rng2 = rng1 * 5 + 0x71357911;
 rng3 = rng2 * 5 + 0x71357911;
 mem->field_10 = 0x40   - (((u32)rng1 >> 16) & 0x7F);
 mem->field_12 = 0xFFE0 - (((u32)rng2 >> 16) & 0x3F);
 mem->field_14 = 0x40   - (((u32)rng3 >> 16) & 0x7F);
-Gp_LcgState = rng1;
-Gp_LcgState = rng2;
-Gp_LcgState = rng3;
+gRandomLcgState = rng1;
+gRandomLcgState = rng2;
+gRandomLcgState = rng3;
 ```
 
 emits only the last store. `flow.c` tracks `last_mem_set` and deletes a store
@@ -62015,12 +62015,12 @@ all**, so three adjacent writes to one global collapse to one.
 Interleaving them the way the source must have read keeps all three:
 
 ```c
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_12 = 0xFFE0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_10 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_12 = 0xFFE0 - (((u32)gRandomLcgState >> 16) & 0x3F);
+gRandomLcgState   = gRandomLcgState * 5 + 0x71357911;
+mem->field_14 = 0x40 - (((u32)gRandomLcgState >> 16) & 0x7F);
 ```
 
 The `sh` between each pair blocks the deletion, CSE still folds each reload
@@ -62247,8 +62247,8 @@ of its subscript, into a plain local computed before the second LCG step,
 
 ```c
 n           = i + D_apobiosis_80130B5C[mem->field_20].field_4;
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-D_apobiosis_80130B80[n] -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+D_apobiosis_80130B80[n] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
 ```
 
 moves seven insns of address arithmetic ahead of `rngB`'s definition. `rngB`'s
@@ -62477,7 +62477,7 @@ time and rescore. A pin narrows *every* allocation decision in the function, so
 the ones the sibling needed are as likely to hurt as to help.
 
 **Problem.** `func_antibody_8012EF34`'s state-0 loop divides `0x1000` by a
-table field and adds `Gp_LcgState * 5 + 0x71357911`. The target hoists
+table field and adds `gRandomLcgState * 5 + 0x71357911`. The target hoists
 `li $a3, 0x1000` and the table address into the preheader but recomputes
 `lui`/`ori 0x71357911` every iteration. Every natural ordering of the loop
 body hoisted the RNG constant too, so the function stayed exactly one
@@ -62515,9 +62515,9 @@ do {
 
     dst = D_antibody_80130C0C;                       /* %hi movable first */
     lo  = i * (0x1000 / D_antibody_80130BD4[mem->field_20].field_0);
-    rng = Gp_LcgState * 5 + 0x71357911;              /* now the last movable */
+    rng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
     dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
-    Gp_LcgState = rng;
+    gRandomLcgState = rng;
 } while (++i < D_antibody_80130BD4[mem->field_20].field_0);
 ```
 
@@ -62661,7 +62661,7 @@ sra    v1, v1, 0x12    <- field_54
 Written against a local, the sign extension disappears:
 
 ```c
-s16 amp = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+s16 amp = (((u32)gRandomLcgState >> 16) & 0x700) + 0x800;
 slot->field_50 = amp;
 slot->field_52 = (u16)amp >> 1;   /* srl 1  - correct */
 slot->field_54 = amp >> 2;        /* srl 2  - WRONG, wanted sll 16 / sra 18 */
@@ -62986,7 +62986,7 @@ that no amount of statement shuffling fixes.
 ```
 blez  v0, ...
 move  s0, zero          ; i = 0
-lui   a2, %hi(Gp_LcgState)   ; movable
+lui   a2, %hi(gRandomLcgState)   ; movable
 lui   a3, 0x7135             ; movable
 ori   a3, a3, 0x7911         ;   (the LCG constant)
 move  t0, a1                 ; movable: the table address, used by the exit test
@@ -62999,9 +62999,9 @@ source indexes the array and re-reads the global:
 
 ```c
 do {
-    rng                     = Gp_LcgState * 5 + 0x71357911;
+    rng                     = gRandomLcgState * 5 + 0x71357911;
     D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
-    Gp_LcgState             = rng;
+    gRandomLcgState             = rng;
 } while (++i < D_lifedrain_80130AB4[mem->field_20].unk0);
 ```
 
@@ -63151,16 +63151,16 @@ folds the pair back into one `lh` - which it refuses to do for a volatile
 Non-volatile, CSE turns the reload into `sll/sra` of the stored register (or a
 bare `move` when the store operand is already `HImode`). A memory clobber
 between the two keeps the `lh` but also fences the block, and the target
-sinks both `Gp_LcgState = rng; Gp_LcgState = rng2;` stores below the reload.
+sinks both `gRandomLcgState = rng; gRandomLcgState = rng2;` stores below the reload.
 What matches is putting one of those global stores between the field store and
 the field reload in the source:
 
 ```c
 mem->field_2A = kind;
-Gp_LcgState   = rng;        /* any store CSE cannot prove disjoint */
+gRandomLcgState   = rng;        /* any store CSE cannot prove disjoint */
 tmp           = mem->field_2A;   /* s32 tmp: keeps the sign_extend → lh */
 mem->field_12 = -hi - (tmp << 6);
-Gp_LcgState   = rng2;
+gRandomLcgState   = rng2;
 ```
 
 A `sw` to a symbol invalidates every register-based `mem` in the hash table,
@@ -65530,7 +65530,7 @@ ranges to distinguish these effects from register coloring.
 
 Changing the shared state declaration from scalar to array also changed
 `Gp_FindStreamSlot`: its reset could now alias the subsequent slot/RNG reads.
-Explicitly loading `slot->data.scene.vlcTableMode` and `Gp_LcgState` into locals before the
+Explicitly loading `slot->data.scene.vlcTableMode` and `gRandomLcgState` into locals before the
 reset restored that already-matched sibling's scheduling without new pins.
 The scoped rebuild then matched every byte of the gameplay overlay.
 
@@ -70162,20 +70162,21 @@ target reuses for the `field_7A -= 0x18` stores; without it GCC emits both an
 at priority 1 in sched1 - swapping `coord = obj->field_8;` above
 `enemy = index->spawnArg2;` changed their luids and matched.
 
-### LCG draw indexing a table: write the `Gp_LcgState` update inside the index
+### LCG draw indexing a table: write the `gRandomLcgState` update inside the index
 `func_actor_342400_801624A4` returns `table[row][rng >> 16 & 3]` after an LCG step.
-Target loads the constant and `lui/addiu %hi/%lo(table)` *before* `lw Gp_LcgState`
+Target loads the constant and `lui/addiu %hi/%lo(table)` *before* `lw gRandomLcgState`
 (`$a2` = constant, `$a0` = table, `$v1` = new state). Writing the update as a
-statement (`Gp_LcgState = Gp_LcgState * 5 + 0x71357911; return T[k][Gp_LcgState >> 16 & 3];`,
+statement (`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; return T[k][gRandomLcgState >> 16 & 3];`,
 or via a `rng` local) expands the table address after the multiply: 65%, regs rotated.
 Putting the assignment in the subscript expands the array base first and matches:
 
 ```c
-return D_actor_342400_8016C054[k][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+return D_actor_342400_8016C054[k][(gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16 & 3];
 ```
 
-`Gp_LcgState` must be `u32` here (`srl`, not `sra`); the sibling unit declares it `s32`,
-so keep the extern file-local rather than in the overlay header.
+`gRandomLcgState` is declared `u32` in `main/random.h` (`srl`, not `sra`).
+Include that common declaration instead of supplying a file-local extern with
+different signedness.
 
 ### `srl` on an `rsin`/`rcos` result stored to a halfword: cast to `u32` before the shift
 `func_actor_400600_8013896C` stores `rsin(a) >> 3` into an `SVECTOR` field, and
@@ -70486,8 +70487,8 @@ then seeds a field from one of the copies:
 work->field_90 = coord->coord.t[0];
 work->field_92 = coord->coord.t[1];
 work->field_94 = coord->coord.t[2];   /* must precede the LCG lines */
-rnd = ((u32)Gp_LcgState * 5) + 0x71357911;
-Gp_LcgState = rnd;
+rnd = ((u32)gRandomLcgState * 5) + 0x71357911;
+gRandomLcgState = rnd;
 work->field_716 = rnd >> 0x10;
 work->field_73E = work->field_92;     /* target reloads: lhu a0,0x92(s3) */
 ```
@@ -72106,7 +72107,7 @@ the shared tail of a switch
 ```c
 switch (v) { case 0: spin = 0x14; break; … }
 work->spin = spin;              /* first statement of the join block */
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 ```
 
 cannot come out first in the join block: the store and the constant's `lui`/`ori`
@@ -75108,8 +75109,8 @@ idiom `src/actors/lib/actor_100700_text.c:94` already uses — is the whole fix:
 
 ```c
 work->field_59C =
-    D_actor_510900_801679F0[((u32)(rng = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF];
-Gp_LcgState = rng;
+    D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * 5 + 0x71357911) >> 16) & 0xF];
+gRandomLcgState = rng;
 ```
 
 The address quantity goes 4 refs / span 8 / priority 10000 to span 18 /
@@ -78325,7 +78326,7 @@ edf031662f8887b2de117fad7c58ed693802a69c5bf6495bf67d4f8d6463bc13.
 Same function, `base_5` to `base_6`. The target computes
 
 ```
-lw      v1,Gp_LcgState
+lw      v1,gRandomLcgState
 ...     v0 = v1*5 + 0x71357911
 srl     t0,v0,0x10
 andi    t0,t0,0x10FF          ; A = (rng >> 16) & 0x10FF
@@ -78342,10 +78343,10 @@ and homed it in `$v0`, aliasing the first LCG step. Naming it in its own
 statement before the second step fixes both at once:
 
 ```c
-rng  = Gp_LcgState * 5 + 0x71357911;
+rng  = gRandomLcgState * 5 + 0x71357911;
 hi   = (rng >> 16) & 0x10FF;          /* want srl/andi right here, in $t0 */
 rng2 = rng * 5 + 0x71357911;
-Gp_LcgState = rng2;
+gRandomLcgState = rng2;
 Gp_SpawnEff(0x60070, sub, hi + 0x800231C0 + (((rng2 >> 16) & 1) << 30), NULL);
 ```
 
@@ -87815,7 +87816,7 @@ The same holds for the `GpRingScratch` ring-and-flare body shared by
 matched with a `move` asm, and the compound push matches it with every field
 written through `sc->`. The copy's register reaches the store because
 local-alloc's `optimize_reg_copy_1` rewrites the carve into the copy after the
-copy insn. If an unrelated global store (here `Gp_LcgState`) lands on the wrong
+copy insn. If an unrelated global store (here `gRandomLcgState`) lands on the wrong
 side of the head store, move that statement ahead of the push rather than
 holding the carve in a local.
 
@@ -90434,7 +90435,7 @@ converges later is evidence the *source* had it twice.
 **Fix.**
 
 ```c
-if ((Gp_LcgState >> 16) & 1) {
+if ((gRandomLcgState >> 16) & 1) {
     D_800678F0[0] = Actor00400_D0F25C;
     eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
 } else {
@@ -93120,8 +93121,8 @@ none) changes both the register count and where the value lives.
 **Do not reuse a temp for a repeated read-modify-write of a global.** Writing
 
 ```c
-r = Gp_LcgState * 5 + 0x71357911;  vec.vx = 0x80 - ((r >> 16) & 0xFF);  Gp_LcgState = r;
-r = Gp_LcgState * 5 + 0x71357911;  /* … twice more, same r … */
+r = gRandomLcgState * 5 + 0x71357911;  vec.vx = 0x80 - ((r >> 16) & 0xFF);  gRandomLcgState = r;
+r = gRandomLcgState * 5 + 0x71357911;  /* … twice more, same r … */
 ```
 
 gives one pseudo that all three draws chain through, so the object reuses a
@@ -93470,8 +93471,8 @@ lifts the whole chain to a higher register.** `func_neo_ark_bridge_8017E954`
 (rooms, 2026-09-17) rolls the LCG twice in one arm:
 
 ```c
-    rndSpawn    = Gp_LcgState * 5 + 0x71357911;
-    Gp_LcgState = rndSpawn;
+    rndSpawn    = gRandomLcgState * 5 + 0x71357911;
+    gRandomLcgState = rndSpawn;
     Gp_SpawnEff(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200, &D_...F60);
 ```
 
@@ -93739,12 +93740,12 @@ divide's signedness was.
 `(u16)`, and the same edit scored 100%:
 
 ```c
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+if ((u16)(((u32)gRandomLcgState >> 16) % 3U) == 0) {
 ```
 
 `antibody.c` and `energyshot.c` carry the `((u32)rng >> 16) & mask` sibling
-form. `python3 tools/learn.py LCG` lists those `Gp_LcgState` idiom entries, so
+form. `python3 tools/learn.py LCG` lists those `gRandomLcgState` idiom entries, so
 the corpus is the first place to look rather than the last — but the rule
 generalises past the LCG: when an m2c seed's `/` or `%` compiles to `mult`
 where the target has `multu`, the original operand was unsigned, and a `(u32)`
@@ -95288,10 +95289,10 @@ The converse of the same rule closed the last 6%. A table lookup whose result
 goes to a struct field:
 
 ```c
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 work->obj4E4.flags &= 0x7FFF;
 work->obj504.flags &= 0x7FFF;
-work->field_59C = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+work->field_59C = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
 ```
 
 put the `lhu` after the flag updates, while the target has it before them and
@@ -95300,7 +95301,7 @@ against each other, so the `sh` pins the whole expression; giving the load its
 own temp lets it float ahead while the store stays last:
 
 ```c
-val = D_actor_510900_801679D0[(Gp_LcgState >> 16) & 0xF];
+val = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
 work->obj4E4.flags &= 0x7FFF;
 work->obj504.flags &= 0x7FFF;
 work->field_59C = val;
@@ -95964,11 +95965,11 @@ of the function merges the live ranges instead and scores worse.
 
 ## A symbol-based `array[i]` materialises its address *after* the index; a pointer local moves it before
 
-`work->field_59C = D_actor_510900_801679D0[(Gp_LcgState >> 0x10) & 0xF];` puts
+`work->field_59C = D_actor_510900_801679D0[(gRandomLcgState >> 0x10) & 0xF];` puts
 the `lui`/`addiu` pair at the end of the block:
 
 ```
-sll   a0,a1,0x2        ; index: Gp_LcgState * 5 + 0x71357911
+sll   a0,a1,0x2        ; index: gRandomLcgState * 5 + 0x71357911
 addu  a0,a0,a1
 addu  a0,a0,a3
 lui   v1,%hi(D_actor_510900_801679D0)
@@ -95989,7 +95990,7 @@ is emitted at that assignment instead, ahead of the index:
 ```c
 u16* tbl = D_actor_510900_801679D0;
 ...
-work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+work->field_59C = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```
 
 **Declare that pointer per block, not once per function.** One variable used at
@@ -96022,12 +96023,12 @@ between them, by embedding the assignment in the comparison:
 
 ```c
 if ((D_actor_510900_80167A10[work->field_59C] <
-     (s32)(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
+     (s32)(((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
     (work->field_59C >= 3)) {
 ```
 
 The subscript is then read before the store and the `>= 3` test after it, so
-`true_dependence` kills the cached load - `Gp_LcgState` is a `symbol_ref` and
+`true_dependence` kills the cached load - `gRandomLcgState` is a `symbol_ref` and
 `work` an unknown pointer, which may alias. Hoisting the assignment to its own
 statement ahead of the `if`, the natural way to write it, puts both reads after
 the store and merges them again.
@@ -96139,7 +96140,7 @@ A statement expression is opaque to `fold` and expands into ordinary temporaries
 which gave the exact schedule (100%):
 
 ```c
-eff = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
+eff = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
 ```
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -102862,7 +102863,7 @@ sibling in a **different overlay** (`actor_401300`) that happens to load at the
 same address. Stripping the address and comment columns and the local label
 names from the two `.s` files and diffing them shows they are
 instruction-for-instruction identical for 190 of 210 instructions: the whole
-`Gp_LcgState` xorshift, the four-arm decision tree over the magnitude, the
+`gRandomLcgState` xorshift, the four-arm decision tree over the magnitude, the
 scratchpad allocate/free and the prologue need no experiment at all. Only the
 block after the magnitude switch differs, and only in three places:
 
@@ -103027,8 +103028,8 @@ back to the same global:
 
 ```c
     case 2:
-        value = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState = value;
+        value = (gRandomLcgState * 5) + 0x71357911;
+        gRandomLcgState = value;
         rnd = ((value >> 0x10) % 3) + 1;
         break;
 ```
@@ -103044,16 +103045,16 @@ Give each arm its own local and the score goes 93.4% -> 99.3% in one build:
 
 ```c
     case 2:
-        value2 = (Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState = value2;
+        value2 = (gRandomLcgState * 5) + 0x71357911;
+        gRandomLcgState = value2;
         rnd = ((value2 >> 0x10) % 3) + 1;
         break;
 ```
 
 ...and the identical `case 3: case 8:` / `default:` pair must not be folded onto
 one variable either. The last 0.7% is the *store*: two arms that shared a
-`block_30:` label for `Gp_LcgState = value` (m2c's rendering of one store jumped
-to from two arms) put the address in `$v0` and reloaded `%hi(Gp_LcgState)` for
+`block_30:` label for `gRandomLcgState = value` (m2c's rendering of one store jumped
+to from two arms) put the address in `$v0` and reloaded `%hi(gRandomLcgState)` for
 it. Writing the store in each arm instead makes the two stores identical
 instruction-for-instruction, so `jump.c` cross-jumps them into the single tail
 the target has — 100.000%, all penalties zero.
@@ -104280,7 +104281,7 @@ a third inline taking the vector, for the extra `move s3,s0` register.
 
 ### `move v1,a0` in a branch delay slot and `move v0,a0` before `bgtz`: the masked roll is an `s16` local
 
-`func_actor_403000_8013A678` rolls `r = ((Gp_LcgState = ...) >> 16) & 0xF` and
+`func_actor_403000_8013A678` rolls `r = ((gRandomLcgState = ...) >> 16) & 0xF` and
 tests it in both arms of an `if`. The ROM keeps `r` in `$a0` and copies it into
 each arm's own register (`move v1,a0` in the `bne` delay slot, `move v0,a0`
 ahead of `bgtz v0`). With `s32 r` cse folds the copies away and both arms test
@@ -106343,8 +106344,8 @@ work->field_68E = D_actor_521100_8015F634[(rng >> 16) & 0xF];   /* lui/addiu bot
 
 ```c
 tbl             = D_actor_521100_8015F634;      /* lui early, addiu sinks to the use */
-rng             = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState     = rng;
+rng             = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState     = rng;
 work->field_68E = tbl[(rng >> 16) & 0xF];
 ```
 
@@ -106661,7 +106662,7 @@ one *more*: `tbl[(rng >> 16) & 7]` folds to exactly the target's
 `srl 15` / `andi 0xE` pair. The mask is unchanged (0x7 -> 0xE is the same fold),
 which is what makes the mistake easy to read past: the `andi` is right, so only
 the shift amount is wrong, and only by one. This is also the natural spelling
-for an LCG draw - the family takes `(Gp_LcgState >> 16)` everywhere else.
+for an LCG draw - the family takes `(gRandomLcgState >> 16)` everywhere else.
 
 ## Holding a table base in a local pointer across an unrelated computation re-homes the whole block
 
@@ -106676,8 +106677,8 @@ What moves it is parking the table's base in a local *before* the LCG update:
 
 ```
 tbl = D_actor_521100_8015F8BC;
-Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-part = tbl[(Gp_LcgState >> 16) & 7];
+gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
+part = tbl[(gRandomLcgState >> 16) & 7];
 ```
 
 No instruction is added - `tbl` is the symbol address either way - but the
@@ -106777,7 +106778,7 @@ Two related readings from the same function:
 
 - **m2c's statement order is the *scheduler's* order, not the source's.** The
   LCG block only reached 97.4% once the table read was written *before* the
-  `Gp_LcgState` store (`part = tbl[(rng >> 16) & 0xF]; Gp_LcgState = rng;`).
+  `gRandomLcgState` store (`part = tbl[(rng >> 16) & 0xF]; gRandomLcgState = rng;`).
   With the store first the drawn value's live range ends before the index chain,
   the index reuses its register, and the store cannot be scheduled down past the
   load; with the read first the value stays live, gets a register of its own and
@@ -107051,7 +107052,7 @@ everything else unmoved.
 one.** With the LCG update written before the first field adjustment, `sched1`
 leaves the store parked before both halfword-field loads and the base lands in
 `$a0` (`regs=5`). Moving that one statement after the first adjustment (`t[2] +=
-0x32; Gp_LcgState = ...; t[1] -= ...;`) lets the store sink below both loads,
+0x32; gRandomLcgState = ...; t[1] -= ...;`) lets the store sink below both loads,
 which frees `$a0` for the field base the target uses - 100.000%, every penalty
 zero. The two loads are from a register-based address while the store is to a
 symbol address, so `memrefs_conflict_p` cannot order them and only the ready-list
@@ -107111,13 +107112,13 @@ initial ready list, picked second → emitted near the end, between the LCG stor
 and the effect-id store:
 
 ```
-   3510 sw   v1,%lo(Gp_LcgState)(a1)      sw    v1,%lo(Gp_LcgState)(a1)
+   3510 sw   v1,%lo(gRandomLcgState)(a1)      sw    v1,%lo(gRandomLcgState)(a1)
    3514 sh   zero,0x6ae(s2)        vs     sh   v0,0x68e(s2)
    3518 sh   v0,0x68e(s2)                 sh   zero,0x6ae(s2)     ← target
 ```
 
 The store's *statement position* elsewhere in the source is inert: putting it
-between the LCG arithmetic and the `Gp_LcgState` store changed nothing at all
+between the LCG arithmetic and the `gRandomLcgState` store changed nothing at all
 (`base_3` and `base_4` compile to the same object), because only the position
 relative to the surrounding memory references matters. When a lone `sh $zero`
 sits one slot off in an otherwise exact block, look at which memory reference it
@@ -107166,8 +107167,8 @@ u16* tbl;
 u32  rng;
 
 tbl             = D_actor_521100_8015F634;
-rng             = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState     = rng;
+rng             = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState     = rng;
 work->field_68E = tbl[(rng >> 16) & 0xF];   /* folds to srl 15 / andi 0x1E */
 ```
 
@@ -107271,9 +107272,9 @@ source `base_1.c` `cb2ffab3886c6cf58d30c7362bac1b40421e18a66f62d0949e30dadcb1146
 in three `switch` arms:
 
 ```c
-    case 0: tbl = D_actor_521100_8015F5D4; work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF]; break;
-    case 1: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF]; break;
-    case 3: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF]; break;
+    case 0: tbl = D_actor_521100_8015F5D4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 1: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 3: tbl = D_actor_521100_8015F5F4; work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF]; break;
 ```
 
 Each arm wants `lui $a0,%hi(tbl)` + `addiu $a0,$a0,%lo(tbl)`, one register, and
@@ -107301,7 +107302,7 @@ and the cascade starts.
         if (…) {
             u16* tbl = D_actor_521100_8015F5D4;   /* block-scoped, set once, used once */
             …
-            work->field_68E = tbl[(Gp_LcgState >> 16) & 0xF];
+            work->field_68E = tbl[(gRandomLcgState >> 16) & 0xF];
         }
 ```
 
@@ -110982,7 +110983,7 @@ them. The scratch address form is independent of this - see the
 
 ## A switch arm the mask makes unreachable is still emitted, so write it
 
-`func_actor_421600_801350BC` dispatches on `switch ((s32)(Gp_LcgState >> 16) & 3)`
+`func_actor_421600_801350BC` dispatches on `switch ((s32)(gRandomLcgState >> 16) & 3)`
 and the target has five arms: cases 0..3 copy table entries 0..3 and the
 `default` copies entry 4. `andi 3` cannot yield anything but 0..3, so that arm
 is provably dead - and it is there all the same, because `expand_end_case`
@@ -114819,11 +114820,11 @@ to `sw $zero,4($s4)` is the same split.
 
 ## m2c reconstructs the LCG draw's `% 100` as a signed division; `mult` + `sra`/`subu` is the tell (func_actor_107000_80132674, 2026-09-16)
 
-The shared `Gp_LcgState` draw has one spelled-out form in matched bodies across this family:
+The shared `gRandomLcgState` draw has one spelled-out form in matched bodies across this family:
 
 ```c
-    rng         = Gp_LcgState * 5 + 0x71357911;   /* keep the new state in a local; */
-    Gp_LcgState = rng;                            /* the store uses it, not a reread  */
+    rng         = gRandomLcgState * 5 + 0x71357911;   /* keep the new state in a local; */
+    gRandomLcgState = rng;                            /* the store uses it, not a reread  */
     work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
 ```
 
@@ -116268,10 +116269,10 @@ Four steps, each an instance of rules already in this file, took it from 86.5% t
 100% with `blocks`/`instructions` matching from the first one:
 
 - 86.5 -> 93.1% (`regs` 65 -> 50): the first LCG step written
-  `rng = Gp_LcgState * 5 + 0x71357911; Gp_LcgState = rng;` (see "Assign the LCG
-  back onto `Gp_LcgState`"), i.e. store and **read the global back** in the
+  `rng = gRandomLcgState * 5 + 0x71357911; gRandomLcgState = rng;` (see "Assign the LCG
+  back onto `gRandomLcgState`"), i.e. store and **read the global back** in the
   consuming expression:
-  `Gp_LcgState = Gp_LcgState * 5 + 0x71357911; vec->vy = 0xE000 - ((Gp_LcgState >> 16) & 0x1FF);`
+  `gRandomLcgState = gRandomLcgState * 5 + 0x71357911; vec->vy = 0xE000 - ((gRandomLcgState >> 16) & 0x1FF);`
 - 93.1 -> 98.2%: the other two steps the same way, and the middle one *between*
   the `t[0]` and `t[2]` adds, which is where the target's `lw`/`sw` pair sits.
 - 98.2 -> 99.3% (`regs` 35 -> 17): a `mtx = &coord->coord` local, then
@@ -116345,8 +116346,8 @@ all four are about *where an instruction lands in sched1's output*.
 
 ```c
     u16* tbl        = D_actor_510900_801679D0;
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_59C = tbl[(Gp_LcgState >> 0x10) & 0xF];
+    gRandomLcgState     = gRandomLcgState * 5 + 0x71357911;
+    work->field_59C = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```
 
 With the array reached directly (`D_...[idx]`) the address computation lands
@@ -116370,7 +116371,7 @@ order. A store of a constant is a leaf: priority 1, issued last, placed first.
 `(insn_list:REG_DEP_ANTI <the table load>)`: a load through a *register*
 (`lhu $a0, 0($v0)`) has `rtx_addr_varies_p` true, which is exactly what stops
 `true_dependence` (`sched.c:846`) from discarding the dependence against an
-in-struct varying store. A load through a symbol -- `lw Gp_LcgState` -- is the
+in-struct varying store. A load through a symbol -- `lw gRandomLcgState` -- is the
 other side of that same exemption and contributes nothing. So the fix for a
 store that schedules too early is to make sure a varying-address load precedes
 it in the RTL; here that meant reading the pose *before* the `field_598` store
@@ -116457,7 +116458,7 @@ the expander, so the same source shape with the same expansion still moves.
 
 `func_actor_105100_8013345C` opens with five constant stores into one
 `Actor105100Work` -- `field_58E` 3, then `field_59C`, `field_5AE`, `field_598`,
-`field_5AC` -- and the target has the `lw` of `Gp_LcgState` ahead of the whole
+`field_5AC` -- and the target has the `lw` of `gRandomLcgState` ahead of the whole
 run, the stores in source order behind it. A body that is otherwise finished
 (98.609%, `insert=1 delete=1`) emits exactly one instruction one slot early:
 `sh $zero, 0x59C($s1)` jumps ahead of that `lw`, and nothing else differs.
@@ -117748,7 +117749,7 @@ cast around the group - came out as `(low + C) + hi` or with the operands
 swapped (98-99.8%). Assigning the group to its own local first matched:
 
 ```c
-high = (((Gp_LcgState >> 16) & 1) << 30) + 0x800231C0;
+high = (((gRandomLcgState >> 16) & 1) << 30) + 0x800231C0;
 Gp_SpawnEff(0x60070, part, low + high, NULL);
 ```
 
@@ -117879,12 +117880,12 @@ the loop bound's callee-saved register.
 ## Hoist an LCG step above unrelated constant stores to load its constant first
 
 `ActorsShared80132de4` (from `func_actor_101500_80132DE4`) writes five constant
-fields and then draws twice from `Gp_LcgState`. With the draw written after the
+fields and then draws twice from `gRandomLcgState`. With the draw written after the
 stores, the object had `lui/ori 0x400F0002` ahead of `lui/ori 0x71357911`; the
-ROM loads the LCG multiplier constant first. Computing `rnd = Gp_LcgState * 5 +
-0x71357911;` *before* the field stores (and assigning `Gp_LcgState = rnd`
+ROM loads the LCG multiplier constant first. Computing `rnd = gRandomLcgState * 5 +
+0x71357911;` *before* the field stores (and assigning `gRandomLcgState = rnd`
 after them) moved that load to the front while the stores kept their order:
-99.59% -> 100%. The two `Gp_LcgState` stores also needed the `field_362` store
+99.59% -> 100%. The two `gRandomLcgState` stores also needed the `field_362` store
 between them, or flow deletes the first one (see "Back-to-back writes to the
 same global").
 
@@ -121202,7 +121203,7 @@ Every if/else spelling (named `r`, reused `r`, separate `next`) put `seed` in
 `v1` and the arm temps in `v0` (regs 21-27).
 
 **Fix.** Write the arms as one ternary inside the expression:
-`x = pts->vx + (((seed >> 16) & 1) ? ((Gp_LcgState = seed * 5 + C) >> 16) & 7 : -(((Gp_LcgState = seed * 5 + C) >> 16) & 7)) * 100;`
+`x = pts->vx + (((seed >> 16) & 1) ? ((gRandomLcgState = seed * 5 + C) >> 16) & 7 : -(((gRandomLcgState = seed * 5 + C) >> 16) & 7)) * 100;`
 That took regs to 0. Two more things were needed: the loop-invariant `0x81203400`
 argument only hoists to `s4` from a local assigned before the loop (a literal is
 built into `a2` in the loop), and the `sh` of `pos.vx` only lands after the
@@ -124278,8 +124279,8 @@ sum named in a variable first is exact, storing the expression straight into the
 `SVECTOR` field is 42 register differences:
 
 ```c
-vx     = x + (((seed >> 16) & 1) ? ((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7
-                                 : -(((Gp_LcgState = (seed * 5) + 0x71357911) >> 16) & 7)) * 10;
+vx     = x + (((seed >> 16) & 1) ? ((gRandomLcgState = (seed * 5) + 0x71357911) >> 16) & 7
+                                 : -(((gRandomLcgState = (seed * 5) + 0x71357911) >> 16) & 7)) * 10;
 pos.vx = vx;                    /* exact */
 ...
 pos.vx = x + ( ... same ternary ... ) * 10;   /* regs=42 */
@@ -125945,12 +125946,12 @@ expression is free here, because the compiler folds it back into one address.
 
 ## Assigning the LCG straight to the global keeps the chain in one register, a `rnd` local does not (func_actor_105300_8013222C, 2026-09-17)
 
-Both LCG sites of the body compute `(Gp_LcgState * 5) + 0x71357911` and read its
+Both LCG sites of the body compute `(gRandomLcgState * 5) + 0x71357911` and read its
 high half. Written as a local,
 
 ```c
-    rnd             = (Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState     = rnd;
+    rnd             = (gRandomLcgState * 5) + 0x71357911;
+    gRandomLcgState     = rnd;
     work->field_32A = ((rnd >> 16) & 0x3F) + 0x1E;
 ```
 
@@ -125961,8 +125962,8 @@ cost `regs=22`). Writing the idiom as the already-matched `actor_201200` bodies
 do, straight into the global and read back,
 
 ```c
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
+    gRandomLcgState     = gRandomLcgState * 5 + 0x71357911;
+    work->field_32A = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
 ```
 
 makes the final add write the register its dying input held (`addu $v0,$v0,$a1`)
@@ -129329,15 +129330,15 @@ before the scheduler.
 
 ## A subexpression hoisted into its own local moves `sched2`/`dbr`'s choices for the whole block (func_actor_311500_80162C34, 2026-09-17)
 
-Case 0 advances `Gp_LcgState` and then tests its high half. Writing
-`} else if (((u32)Gp_LcgState >> 16) & 1) {` leaves the shift inside the arm
-and the block schedules badly: `sw $v0,Gp_LcgState` is pushed into the `bnez`'s
+Case 0 advances `gRandomLcgState` and then tests its high half. Writing
+`} else if (((u32)gRandomLcgState >> 16) & 1) {` leaves the shift inside the arm
+and the block schedules badly: `sw $v0,gRandomLcgState` is pushed into the `bnez`'s
 delay slot and `srl $v0,$v0,0x10` falls into the bit-test block, against a
 target that keeps the store before the `slti` and puts the `srl` in the delay
 slot (`branch=3 reorder=2`). Giving the high half its own statement —
 
 ```c
-rng = (u32)Gp_LcgState >> 16;
+rng = (u32)gRandomLcgState >> 16;
 if (work->field_4C8 >= 2) { ... } else if (rng & 1) { ... } ...
 ```
 
@@ -130633,7 +130634,7 @@ statement-level edits cannot move.
 
 **Two residual differences worth naming**, both visible only after the port:
 
-- `extern s32 Gp_LcgState;` makes `rng = Gp_LcgState >> 16` an arithmetic shift,
+- `extern s32 gRandomLcgState;` makes `rng = gRandomLcgState >> 16` an arithmetic shift,
   and combine then folds the following `(s16)rng >> 8` into a single `sra`. The
   symbol is `u32`; with the right declaration the `srl` plus the `sll`/`sra`
   sign-extension pair come back. Declaring an LCG or hash state signed is a
@@ -135045,7 +135046,7 @@ Passing the full `0x71357911` through `SOFT_TOUCH_REG` gave this function the re
 
 The retry prediction used `increment = 0x71350000; SOFT_TOUCH_REG(increment); increment |= 0x7911;`. In current base_1, reload UID1379 is a single-instruction high-half SET, and OR UID672 already exists before sched2. RNG load UID675 fits between them. The required v0 load, v1 accumulation and a0 increment survive. This is evidence about materialization timing, not a general allocation priority rule. The baseline-to-base_1 edit also explicitly accumulates into the existing SI result; the archived base_8 already had that source form.
 
-Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/func_actor_403600_8013D15C/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real Gp_LcgState is 0x80070F60.
+Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/func_actor_403600_8013D15C/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real gRandomLcgState is 0x80070F60.
 
 ## A post-call store changes pre-call scheduling through the block's memory-unit count (func_actor_403600_8013A444, 2026-09-20)
 
@@ -137081,7 +137082,7 @@ predicted follow-up, distinct from the router's retained alternate improvement.
 
 ## A later constant store can free a load-hazard slot for an unrelated ori (func_actor_101500_80132FD0, 2026-09-20)
 
-The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the Gp_LcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->field_380 = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
+The archived seed had perfect registers and structure, but two case-2 scheduling differences (99.551%). The table-address low instruction filled the gRandomLcgState load delay; target used the flag constant's ori there and placed the table address earlier. The permuter's exact change was moving `work->field_380 = 15` after the flag store, preserving all values and independent stores. A preplanned normal-style port reproduced 100% without pins or asm.
 
 The important movement is in reverse scheduling time. Baseline sched1 cycle 7 blocks table load UID 356 for one memory-unit cycle and selects newly ready li15 UID 359; load 356 wins cycle 8, and ori701 does not win until cycle 21. In the port, the moved store causes li15 UID369 to issue at cycle 5. At cycle 7, blocked load356 loses to Gp store361. That store blocks the load again at cycle 8, letting ori701 issue; the load follows at cycle 9. The table low's launch priority is unchanged.
 
@@ -137552,13 +137553,13 @@ worth computing by hand before spending builds on spellings:
 
 Reconstructing those numbers from the `.lreg` walk reproduced every register in
 the block, which made the lever findable: a quantity that is allocated too late
-because it lives too long. Here the global's high half (`lui a2,%hi(Gp_LcgState)`)
+because it lives too long. Here the global's high half (`lui a2,%hi(gRandomLcgState)`)
 died at the `sw`, and the `sw` was scheduled late because the store was a
 separate statement in the middle of the block. Hoisting it into the expression
 that reads it,
 
 ```c
-timer = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
+timer = (((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16) & 0xF) + 0x1E;
 ```
 
 moved the `sw` early, shortened that quantity's interval enough to raise its
@@ -138301,7 +138302,7 @@ statement produced exactly that, taking the match from 99.67% (register-only
 penalties) to 100%:
 
 ```c
-arg = ((((u32)Gp_LcgState >> 16) % 3) << 16) + 0x80000100;
+arg = ((((u32)gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
 Gp_SpawnEff(0x6003D, coord, lo + arg, &work->field_10);
 ```
 
@@ -138521,7 +138522,7 @@ block only moves sched1's input order, which it re-derives.
 ## Stopping a marginal `%hi` hoist: an earlier constant local used only as a shift amount spends the threshold invisibly (func_mine_cavern_80181864, 2026-09-23)
 
 The inverse of the "threshold decays by 3 per hoist" entry. Here the target kept
-`lui a1,%hi(Gp_LcgState)` local to the outer loop's block (one `lui` for both the
+`lui a1,%hi(gRandomLcgState)` local to the outer loop's block (one `lui` for both the
 `lw` and the write-back), while the build hoisted it: `-dL` showed
 `Insn 202: regno 130 (life 6), move-insn savings 1  moved to 630` against
 `170 real insns`, i.e. 29 × 6 = 174 >= 170 (29 = 1 + 28 non-fixed regs under
@@ -138749,14 +138750,14 @@ This also fixed an unrelated-looking `$v0`/`$v1` swap in the stores before the c
 
 ## An LCG draw written *inside* a field store puts the destination's address before the draw (func_dryfield_night_main_street_8017E484, 2026-09-23)
 
-**Symptom.** A loop fills `D[16].vx/.vy/.vz` from three LCG draws. Written as separate statements (`Gp_LcgState = Gp_LcgState * 5 + 0x71357911; D[16].vx = (Gp_LcgState >> 16) % 300 - 0x4A1;`), the object is 98.8% (`regs=18`). Loop hoisting emits `lui %hi(Gp_LcgState)` before `lui/addiu D`, where the target has the opposite order, and the non-loop copy of the same code swaps `$t3`/`$t4`.
+**Symptom.** A loop fills `D[16].vx/.vy/.vz` from three LCG draws. Written as separate statements (`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; D[16].vx = (gRandomLcgState >> 16) % 300 - 0x4A1;`), the object is 98.8% (`regs=18`). Loop hoisting emits `lui %hi(gRandomLcgState)` before `lui/addiu D`, where the target has the opposite order, and the non-loop copy of the same code swaps `$t3`/`$t4`.
 
-**Cause.** `store_field` (expr.c) builds the component's address with `change_address` *before* `store_expr` expands the right-hand side. The two-statement form reads `Gp_LcgState` first, so its `high` pseudo is created first, and `loop` hoists movables in that order. Moving the update into the expression puts the destination address first.
+**Cause.** `store_field` (expr.c) builds the component's address with `change_address` *before* `store_expr` expands the right-hand side. The two-statement form reads `gRandomLcgState` first, so its `high` pseudo is created first, and `loop` hoists movables in that order. Moving the update into the expression puts the destination address first.
 
 **Fix.** Write the draw as an assignment expression inside the store:
 
 ```c
-#define RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define RAND() ((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16)
 D[16].vx = RAND() % 300 - 0x4A1;   /* 100% */
 ```
 
@@ -138940,7 +138941,7 @@ Indexing `D_x[j].vx` three times instead of through a pointer scored 93.5%.
 **Cause.** local-alloc and global-alloc read the order sched1 produces. The final order comes from sched2, which recomputes it after allocation. In the target, sched1 had placed two loads differently from the final code, and sched2 put them back. So the lever was sched1's order, not the source order:
 
 - A load is **birthing** (`birthing_insn_p`: its destination has `REG_N_SETS == 1`), so it is raised to the ready list's top priority and issued just before its consumer. If the load's destination is a variable set in *another* basic block as well, the load is no longer birthing. It then drops to its path priority and sched1 issues it earlier. That shortened one pointer's live range and fixed `$s1`/`$s3`. The other set must be in a block where that variable already sits in the same hard register and has no local competing for it. A partner set in the same block, or one whose own computation relied on local ties, broke other code.
-- Moving that load freed a slot, so the LCG load was released one cycle earlier and issued too late. What held it back was a **non-struct store**. `long* p = &dst->coord.t[1]; *p = ...;` makes a MEM without `MEM_IN_STRUCT_P`, which may alias the scalar global `Gp_LcgState`. With the state read (`seed = Gp_LcgState;`) placed before that store, sched1 cannot issue the read until the store is scheduled. A plain `dst->coord.t[1] = ...` is a struct MEM, which the 2.8.1 alias rules separate from a fixed scalar, and gives no dependence. Routing all three translation stores through the pointer adds dependences elsewhere and breaks the block.
+- Moving that load freed a slot, so the LCG load was released one cycle earlier and issued too late. What held it back was a **non-struct store**. `long* p = &dst->coord.t[1]; *p = ...;` makes a MEM without `MEM_IN_STRUCT_P`, which may alias the scalar global `gRandomLcgState`. With the state read (`seed = gRandomLcgState;`) placed before that store, sched1 cannot issue the read until the store is scheduled. A plain `dst->coord.t[1] = ...` is a struct MEM, which the 2.8.1 alias rules separate from a fixed scalar, and gives no dependence. Routing all three translation stores through the pointer adds dependences elsewhere and breaks the block.
 - An address computed from a global index (`sll` plus the table `addu`) forms a two-insn local quantity with priority 20000. That beat the `*5` chain for `$v0`. Keeping the address in a global temporary as well (shared with a later pointer local) left only the one-insn `sll` temporary local, and the chain took `$v0`.
 
 **Measured and refuted along the way:**
@@ -138987,7 +138988,7 @@ Nothing in those cases used `$t0`/`$t1`.
 `order_regs_for_reload` ranks spill registers by the use count of every pseudo
 allocated to them *across the whole function* (`CODEGEN_MODEL.md` section 11).
 In case 0 five LCG results were live at once, because all five
-`Gp_LcgState` stores had sunk to just before the call, so two of them got
+`gRandomLcgState` stores had sunk to just before the call, so two of them got
 `$t0`/`$t1`, and those registers were no longer "unused" for reload.
 
 **Fix:** match case 0 first. There the source position of an unrelated
@@ -139065,7 +139066,7 @@ separate result variables, a store per arm, or moving the `- 0x10`. Some of
 those change sched1's order or cause reassociation instead.
 
 **Fix:** assign the constant to one variable in both arms
-(`k = 0x71357911; Gp_LcgState = Gp_LcgState * 5 + k;`). One pseudo set in two
+(`k = 0x71357911; gRandomLcgState = gRandomLcgState * 5 + k;`). One pseudo set in two
 blocks is global, so global-alloc places it after the higher-priority `w`.
 That gives `w` `a1` and `k` `a2`. The `.greg` conflict list gives it away:
 if the arm-crossing pseudo lists a hard register that only a local constant
@@ -139940,10 +139941,10 @@ state->field_E = quadW; ... state->field_1E = spriteX;
 A fill loop `D[i][j] = lcg >> 16` whose target preheader materialises the
 array base (`lui`/`addiu`) *before* the LCG global's `lui` and constant
 scored 95.5% (`regs=8 reorder=1`) written as two statements:
-`Gp_LcgState = Gp_LcgState * 5 + K; D[i][j] = Gp_LcgState >> 16;`. Loop
+`gRandomLcgState = gRandomLcgState * 5 + K; D[i][j] = gRandomLcgState >> 16;`. Loop
 invariants are hoisted in the order they appear in the body, and with two
 statements the LCG update comes first. Writing it as one assignment,
-`D[i][j] = (Gp_LcgState = Gp_LcgState * 5 + K) >> 16;`, matched: `expand_assignment`
+`D[i][j] = (gRandomLcgState = gRandomLcgState * 5 + K) >> 16;`, matched: `expand_assignment`
 expands the array reference's address before the right-hand side, so the base
 is the first invariant loop.c meets. m2c's `temp_a0 = j + i*16` computed ahead
 of the LCG is the hint.
@@ -140309,7 +140310,7 @@ base           = task->spawnArg1.halves.high;   /* s32 base */
 work->field_24 = (u16)((rand8) + 0x180) + base;
 ```
 
-In the same function a store to a *struct* field did not force a reload of `Gp_LcgState` (a fixed-address scalar), but a store to another struct (`task->spawnArg1 &= 0xFFF`) did force a reload of a `work` field (`lhu` again). Placing that statement between the two uses is what reproduced the target's reload.
+In the same function a store to a *struct* field did not force a reload of `gRandomLcgState` (a fixed-address scalar), but a store to another struct (`task->spawnArg1 &= 0xFFF`) did force a reload of a `work` field (`lhu` again). Placing that statement between the two uses is what reproduced the target's reload.
 
 ### A permuter `f(volatile short)` prototype mutation ports as a call-site `(s16)` cast (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
 
@@ -140557,11 +140558,11 @@ thing, look for that hazard line in its `.sched` dump.
 ### Loop-invariant hoist order follows first use in the loop body: fold an LCG step into the store (func_shelter_b1_pod_service_gantry_8017FA7C)
 
 An 8-iteration fill `arr[i] = rng >> 16` written as two statements
-(`Gp_LcgState = Gp_LcgState * 5 + 0x71357911; arr[i] = Gp_LcgState >> 16;`)
-scored 90.7% with the preheader emitting `lui %hi(Gp_LcgState)` and the
+(`gRandomLcgState = gRandomLcgState * 5 + 0x71357911; arr[i] = gRandomLcgState >> 16;`)
+scored 90.7% with the preheader emitting `lui %hi(gRandomLcgState)` and the
 constant before the array base. The target hoists the array base first.
 Writing the step as an embedded assignment in the store,
-`arr[i] = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;`, makes the
+`arr[i] = (gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16;`, makes the
 array address the first invariant the loop body mentions and matched outright.
 
 ### Prologue `move sN, aK` order wrong with registers right: narrow the parameter's prototype type (func_shelter_b1_pod_service_gantry_8017F160, 2026-09-24)
@@ -140655,14 +140656,14 @@ if (arg2 == 3) {
 ### An unrelated constant store between LCG draws decides which draw's chain wins `$v1`
 
 `func_shelter_b6_nursery_80181314` seeds `field_10.vx`, `.vz` and `field_24`
-from three chained `Gp_LcgState` draws and also clears `field_10.vy`. With
+from three chained `gRandomLcgState` draws and also clears `field_10.vy`. With
 `vy = 0` written after the second draw, everything matched except the first two
 draws' registers swapped (`$v1`/`$a2`, 99.68%). In `.lreg` the two multiply
 chains (`sll`/`addu`/`addu` tied into one quantity each) had identical refs and
 spans, so the tie went to the earlier quantity. Moving `work->field_10.vy = 0;`
 to between the first and second draws shifted the sched1 order by one insn,
 broke the tie in favour of the second chain, and matched outright. Operand
-order, chained `x = (Gp_LcgState = ...)` forms and temps did nothing here; when
+order, chained `x = (gRandomLcgState = ...)` forms and temps did nothing here; when
 two draw chains swap registers, try moving the block's constant stores between
 draws before anything else.
 
@@ -140807,10 +140808,10 @@ constant) take its register first. The order matched, but four registers were wr
 
 **Fix.**
 ```c
-r = Gp_LcgState * 5 + 0x71357911;
+r = gRandomLcgState * 5 + 0x71357911;
 SOFT_TOUCH_REG_USE(v, r);   /* gives the shift a priority-2 predecessor, emits nothing */
 s = v >> 12;                /* s shared by several blocks: multi-set, so not boosted */
-Gp_LcgState = r;
+gRandomLcgState = r;
 r >>= 16;                   /* in place: the store must precede it, so sw cannot go last */
 q = -s;
 if (r & 1) w = q - d; else w = q;
@@ -140929,9 +140930,9 @@ preferences.
 **Fix.** Put a redundant zero-extension step in the in-place chain:
 
 ```c
-rnd  = Gp_LcgState * 5;
+rnd  = gRandomLcgState * 5;
 rnd += 0x71357911;
-Gp_LcgState = rnd;
+gRandomLcgState = rnd;
 rnd  = (u16)(rnd >> 16);
 rnd &= 0x1FF;
 radius = rnd + 0x100;
@@ -140964,12 +140965,12 @@ combine bounds the `+0x100` and drops the `sll/sra`.
 and then folds away:
 
 ```c
-hi      = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16; /* P */
+hi      = (gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16; /* P */
 hiShift = hi << 16;          /* M: (ashift (lshiftrt st 16) 16) is no insn  */
 angle   = hiShift >> 16;     /* U: merges to (and hi 0xffff), then with P    */
 angle  &= 0xFFF;             /*    to (lshiftrt st 16): P is gone            */
-rnd = Gp_LcgState * 5 + 0x71357911;
-Gp_LcgState = rnd;
+rnd = gRandomLcgState * 5 + 0x71357911;
+gRandomLcgState = rnd;
 hi = (rnd >> 16) & 0x1FF;    /* hi's only set left: reg_last_set_invalid     */
 radius = hi + 0x100;         /* value validates to (clobber)+256: sext stays */
 ```
@@ -141356,11 +141357,11 @@ same pins.
 
 ## A `%hi` hoisted into a saved register across a function means a real loop, not a pointer to the symbol (func_actor_403600_8013D15C, 2026-09-26)
 
-The target kept `lui $s6, %hi(Gp_LcgState)` live through the whole function and
-used `%lo(Gp_LcgState)($s6)` at five sites; the old source faked it with a
+The target kept `lui $s6, %hi(gRandomLcgState)` live through the whole function and
+used `%lo(gRandomLcgState)($s6)` at five sites; the old source faked it with a
 hard-coded `0x80070000` base, which matched the words but dropped every
 relocation. The body was a goto-built loop. Written as a real
-`for (i = 0; i < 4; i++)`, loop.c hoists `%hi(Gp_LcgState)`, the constant 1
+`for (i = 0; i < 4; i++)`, loop.c hoists `%hi(gRandomLcgState)`, the constant 1
 and two other addresses on its own. Loop uses count double in the allocator's
 reference counts, so two natural features supplied the extra uses the target's
 register choice needs, both later removed: a value re-read from the scratch
@@ -141430,7 +141431,7 @@ static inline void rotateSv(MATRIX* m, SVECTOR* v)
 
 **Fix.** `gDisplayState.screenDistance = h; gte_SetGeomScreen(gDisplayState.screenDistance);`. The field is addressed twice, so CSE keeps `&gDisplayState` in a pseudo and addresses both through it; the read-back itself is then satisfied from the stored register and emits no load. The same pair of statements in gameplay's view loaders reads the value from a record instead, which is why they fold.
 
-The in-place random-radius trick above (`rnd = (u16)(rnd >> 16); rnd &= mask;`) keeps a wanted `sll 16; sra 16`, but the in-place set adds an anti-dependence on the `Gp_LcgState` store. That lengthens the radius chain's sched1 priority, so an independent computation next to it (here the angle drawn from the previous LCG step) is scheduled after the chain instead of before it. Where the target computes that neighbour first, the trick does not fit, and the extension stays a hack.
+The in-place random-radius trick above (`rnd = (u16)(rnd >> 16); rnd &= mask;`) keeps a wanted `sll 16; sra 16`, but the in-place set adds an anti-dependence on the `gRandomLcgState` store. That lengthens the radius chain's sched1 priority, so an independent computation next to it (here the angle drawn from the previous LCG step) is scheduled after the chain instead of before it. Where the target computes that neighbour first, the trick does not fit, and the extension stays a hack.
 ## `addu base,idx` against a constant table: CSE puts a known constant second, so the base must be a real array indexed by an offset variable (Gp_EquipRelatedItem, 2026-09-26)
 
 `fold_rtx` (cse.c, "place any constant second") swaps a commutative operation
@@ -142086,7 +142087,7 @@ entry's two traps are not universal.
 A decision function reloaded `lw a0, 0x1C(a3)` (`task->work`) before every
 `work->state = N; work->step = 0;` tail except the first, although the target
 shows no store anywhere between the entry load and those tails - only the LCG
-update `sw Gp_LcgState`, which sits *above* the `lw` of `task->work`. The seed
+update `sw gRandomLcgState`, which sits *above* the `lw` of `task->work`. The seed
 forced the reloads with `TOUCH_REG_MEM` per site.
 
 The source order was the other way round: `work = task->work;` first, then the
@@ -144105,7 +144106,7 @@ turns the last arm into set-then-override, and sched1 drops the constant set
 then lives across that chain, conflicts with `$v0`, and moves to `$a1`. Storing
 `work->field = 3 / 2 / 1` in each arm lets GCC build the same shared-store join
 itself, with the constant set after the compare. The second LCG step was also
-`Gp_LcgState = Gp_LcgState * 5 + …` read back through the global, not a second
+`gRandomLcgState = gRandomLcgState * 5 + …` read back through the global, not a second
 local copy: CSE reuses the first draw's register either way, but a named copy
 takes `$a1` from it.
 ## A switch's hoisted case constant can outrank the task parameter; each branch owning its tail tips it back (Actor05500_Fn00A94, 2026-09-26)
@@ -144636,7 +144637,7 @@ For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` lo
 
 ### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (func_apobiosis_8012F808, 2026-09-26)
 
-Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((Gp_LcgState = Gp_LcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
+Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((gRandomLcgState = gRandomLcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
 
 ## A memory barrier holding a load below a store can stand for an inline helper's argument evaluation (Ui_DrawListHighlight, 2026-09-26)
 

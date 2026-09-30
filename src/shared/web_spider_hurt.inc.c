@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Behaviour state 6, entered when a hit does damage. On entry it starts
@@ -39,8 +41,8 @@ void spiderHurtState(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = state;
-                random          = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_39E = (random >> 0x10) & 0xF;
             } else {
                 return;

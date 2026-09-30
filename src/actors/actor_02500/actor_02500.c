@@ -28,7 +28,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -635,8 +635,8 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
             work->field_322 = 0;
             work->field_324 = 0;
             ctx->recs       = work->field_1C4;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_32E = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x1E;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_32E = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
             break;
         case 1:
             work->field_322 = 5;
@@ -651,8 +651,8 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
             Gp_SetLightMode(ctx, ENEMY_COLOR_BLACK);
             break;
     }
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_338 = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x1E;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_338 = ((gRandomLcgState >> 16) & 0x7F) + 0x1E;
     work->field_314 = coord->coord.t[0];
     work->field_316 = coord->coord.t[1];
     work->field_318 = coord->coord.t[2];
@@ -933,8 +933,8 @@ static void Actor02500_Fn00B18(Task* actor)
                 work->field_336 = 0;
                 work->field_31C = 3;
                 work->field_324 = 1;
-                randomAngle     = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = randomAngle;
+                randomAngle     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = randomAngle;
                 work->field_32A = ((u32)randomAngle >> 0x10) & 0xFFF;
             }
             break;
@@ -942,8 +942,8 @@ static void Actor02500_Fn00B18(Task* actor)
             work->field_326 = 0;
             if (work->field_32C == (s16)work->field_32A) {
                 work->field_324 = 2;
-                randomMoveTime  = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = randomMoveTime;
+                randomMoveTime  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = randomMoveTime;
                 work->field_32E = (((u32)randomMoveTime >> 0x10) & 0x7F) + 0x1E;
             }
             break;
@@ -965,8 +965,8 @@ static void Actor02500_Fn00B18(Task* actor)
                     }
                 }
                 work->field_324 = 0;
-                randomIdleTime  = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = randomIdleTime;
+                randomIdleTime  = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = randomIdleTime;
                 idleTime        = ((u32)randomIdleTime >> 0x10) & 0x3F;
                 work->field_32E = idleTime + 0x1E;
             }
@@ -1096,9 +1096,9 @@ static void Actor02500_Fn01144(Task* actor)
     coord = actor->extra.tmd->coords;
     work->field_338--;
     if (work->field_338 <= 0) {
-        random          = Gp_LcgState * 5 + 0x71357911;
+        random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_338 = ((random >> 16) & 0x7F) + 0x1E;
-        Gp_LcgState     = random;
+        gRandomLcgState = random;
         sound           = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40190008;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
@@ -1214,11 +1214,11 @@ static void Actor02500_Fn012F0(Task* actor)
         effectTimer     = (u16)work->field_330 - 1;
         work->field_330 = effectTimer;
         if (!(effectTimer & 3)) {
-            random      = (Gp_LcgState * 5) + 0x71357911;
-            i           = 0;
-            dist        = ((random >> 0x10) & 0x3F) + 0x12C;
-            Gp_LcgState = random;
-            index       = (((u16)work->field_330 >> 2) ^ 1) & 1;
+            random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            i               = 0;
+            dist            = ((random >> 0x10) & 0x3F) + 0x12C;
+            gRandomLcgState = random;
+            index           = (((u16)work->field_330 >> 2) ^ 1) & 1;
             for (; i < 4; i++) {
                 pair            = &Actor02500_D05BE8[index + i * 2];
                 scratch->rot.vx = (pair->x * dist) >> 0xC;

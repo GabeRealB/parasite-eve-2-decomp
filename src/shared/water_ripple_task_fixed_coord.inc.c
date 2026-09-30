@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the water effects library; see water_effects.h. */
 
 /// Room-effect task drawing a growing, fading quad through
@@ -23,10 +25,10 @@ void waterRippleTaskFixedCoord(Task* task)
     } else {
         work->age++;
         if (task->state == 0) {
-            work->scale = 0x40;
-            work->angle = task->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+            work->scale     = 0x40;
+            work->angle     = task->spawnArg1.halves.low & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state         = 1;
         }

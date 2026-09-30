@@ -15,7 +15,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -364,27 +364,27 @@ static s16 func_actor_342400_801624A4(void)
     s16       z     = coord->coord.t[2];
 
     if (x <= 5000) {
-        return D_actor_342400_8016C054[0][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[0][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (x <= 8000) {
-        return D_actor_342400_8016C054[1][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[1][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (x <= 11000) {
-        return D_actor_342400_8016C054[2][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[2][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (z >= -5500) {
-        return D_actor_342400_8016C054[3][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[3][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (z >= -8500) {
-        return D_actor_342400_8016C054[4][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[4][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (z >= -11500) {
-        return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
     if (z >= -24500) {
-        return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+        return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
     }
-    return D_actor_342400_8016C054[5][(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 3];
+    return D_actor_342400_8016C054[5][(gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 3];
 }
 
 void func_actor_342400_801626AC(Task* arg0, s32 arg1, ActorCommand* request)

@@ -28,7 +28,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/task_types.h"
@@ -473,7 +473,7 @@ void func_dryfield_night_motel_loft_8017D9BC(s32 arg0)
 /// of the room's points, and views 3, 10 and 8 additionally run a burst of
 /// effect 0x601B0 at the room's seventh point: 0x20 steps from state 1 (to
 /// state 2) and 0x30 from state 0 (to state 1). Every step rolls the room LCG
-/// (`Gp_LcgState`) four times and builds the offset vector from the top bits of
+/// (`gRandomLcgState`) four times and builds the offset vector from the top bits of
 /// each draw, the last draw's low six bits biased by 0x10 riding along as the
 /// spawn argument.
 void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
@@ -499,14 +499,14 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
                 i   = 0;
                 pos = &p[-1];
                 do {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vx   = 0xFB8 - (((u32)Gp_LcgState >> 16) & 0x3FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vy   = (((u32)Gp_LcgState >> 16) & 0x1FF) - 0xD5C;
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vz   = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x601B0, NULL, (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10, &pos[6]);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vx       = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vy       = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x601B0, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
                     i++;
                 } while (i < 0x20);
                 arg0->state = 2;
@@ -531,14 +531,14 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
                 i   = 0;
                 pos = &D_dryfield_night_motel_loft_8017ED78[0];
                 do {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vx   = 0xFB8 - (((u32)Gp_LcgState >> 16) & 0x3FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vy   = (((u32)Gp_LcgState >> 16) & 0x1FF) - 0xD5C;
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    pos[6].vz   = 0x400 - (((u32)Gp_LcgState >> 16) & 0x7FF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x601B0, NULL, (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10, &pos[6]);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vx       = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vy       = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x601B0, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
                     i++;
                 } while (i < 0x30);
                 arg0->state = 1;
@@ -571,24 +571,24 @@ void func_dryfield_night_motel_loft_8017E090(Task* task)
         if (ev < ROOM_EFFECT_CONTROL_HIDDEN) {
             switch (task->state) {
                 case 0:
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->vel.vx   = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->vel.vy   = ((u32)Gp_LcgState >> 16) & 0x7F;
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->vel.vz   = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->gain     = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                    w->size     = task->spawnArg1.value & 0xFFF;
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    w->shade    = (((u32)Gp_LcgState >> 16) & 0x7F) + 0x40;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->vel.vx       = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->vel.vy       = (gRandomLcgState >> 16) & 0x7F;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->vel.vz       = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->gain         = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                    w->size         = task->spawnArg1.value & 0xFFF;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->shade        = ((gRandomLcgState >> 16) & 0x7F) + 0x40;
                     VectorNormalSS(&w->vel, &w->vel);
-                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vx          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vy          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-                    w->spin.vz          = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->spin.vx          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->spin.vy          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    w->spin.vz          = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                     task->state         = 1;
                     break;
@@ -705,8 +705,8 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
         setRGB0(prim, shade, shade, shade);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gp_AddTpageShift((P_TAG*)prim, ((u32)Gp_LcgState >> 16) & 1, blk->otz);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        Gp_AddTpageShift((P_TAG*)prim, (gRandomLcgState >> 16) & 1, blk->otz);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_DryfieldNightMotelLoftTriScratch);
 }

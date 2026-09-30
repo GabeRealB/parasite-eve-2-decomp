@@ -42,7 +42,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1878,8 +1878,8 @@ static void func_actor_405800_801334B8(Task* arg0)
     work->field_90  = coord->coord.t[0];
     work->field_92  = coord->coord.t[1];
     work->field_94  = coord->coord.t[2];
-    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState     = rnd;
+    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rnd;
     work->field_840 = rnd >> 0x10;
     work->field_86A = work->field_92;
     w4              = (Actor405800Work*)arg0->work;
@@ -2644,8 +2644,8 @@ static void func_actor_405800_80135558(Task* arg0)
             return;
         }
         work->field_85A  = 0;
-        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = rnd;
+        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rnd;
         work->field_87C  = ((rnd >> 0x10) & 0x7F) + 0x1E;
         work3            = (Actor405800Work*)arg0->work;
         work3->field_846 = 5;
@@ -2666,10 +2666,10 @@ static void func_actor_405800_801356A8(Task* arg0)
         count           = (u16)work->field_882 - 1;
         work->field_882 = count;
         if ((count << 0x10) == 0) {
-            rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
+            rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             work->field_838 = ((rnd >> 0x10) & 0x3F) + 0x1E;
             work2           = (Actor405800Work*)arg0->work;
-            Gp_LcgState     = rnd;
+            gRandomLcgState = rnd;
             if (((s8)work2->field_895 >= 0) || ((work2->field_895 & 0x7F) != 1)) {
                 work2->field_895 = 0x81;
                 work2->field_896 = 0;
@@ -3591,11 +3591,11 @@ static s32 func_actor_405800_801373E0(Task* arg0)
     u32              bits;
     s16              ang;
 
-    work        = (Actor405800Work*)arg0->work;
-    coord       = arg0->extra.tmd->coords;
-    rnd         = Gp_LcgState * 5 + 0x71357911;
-    bits        = rnd >> 0x10;
-    Gp_LcgState = rnd;
+    work            = (Actor405800Work*)arg0->work;
+    coord           = arg0->extra.tmd->coords;
+    rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    bits            = rnd >> 0x10;
+    gRandomLcgState = rnd;
     if (work->field_85C == 0) {
         if (work->field_890 == 0) {
             if ((bits & 0xF) == 0) {
@@ -3820,9 +3820,9 @@ static void func_actor_405800_80137994(Task* arg0, s16 arg1)
 
     work = (Actor405800Work*)arg0->work;
     if ((arg1 << 16) != 0) {
-        rnd1            = ((u32)Gp_LcgState * 5) + 0x71357911;
-        rnd2            = (rnd1 * 5) + 0x71357911;
-        Gp_LcgState     = rnd2;
+        rnd1            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        rnd2            = (rnd1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd2;
         work->field_85C = arg1 + ((rnd1 >> 0x10) & 0x3F) + ((rnd2 >> 0x10) & 0xF);
         return;
     }
@@ -4457,8 +4457,8 @@ static void func_actor_405800_8013902C(Task* task)
     work = (Actor405800Work*)task->work;
     min  = 0x10;
     if (work->field_852 > 0xBB8 && work->field_893 == 0) {
-        rnd         = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState = rnd;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         if ((rnd >> 0x10) & 1) {
             min  = 0x18;
             step = 0x24;
@@ -4921,12 +4921,12 @@ static void func_actor_405800_80139BD8(Task* arg0)
 
     work = (Actor405800Work*)arg0->work;
     if ((func_actor_405800_80136B94(arg0) << 0x10) != 0) {
-        rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState     = rnd;
+        rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rnd;
         work->field_87C = ((rnd >> 0x10) & 0x7F) + 0x1E;
     } else if ((func_actor_405800_801385F4(arg0) << 0x10) != 0) {
-        rnd              = ((u32)Gp_LcgState * 5) + 0x71357911;
-        Gp_LcgState      = rnd;
+        rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = rnd;
         work->field_87C  = ((rnd >> 0x10) & 0x7F) + 0x1E;
         work2            = (Actor405800Work*)arg0->work;
         work2->field_846 = 0xA;
@@ -5040,8 +5040,8 @@ static void func_actor_405800_80139EAC(Task* arg0)
     work->field_850 = 0x10;
     work->field_872 = 1;
     work->field_86E = 1;
-    rnd             = ((u32)Gp_LcgState * 5) + 0x71357911;
-    Gp_LcgState     = rnd;
+    rnd             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = rnd;
     work->field_882 = ((rnd >> 0x10) & 0x3F) + 0x5A;
     work->field_848 = work->field_848 + 1;
 }

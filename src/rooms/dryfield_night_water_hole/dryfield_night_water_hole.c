@@ -42,7 +42,7 @@
 #include "main/display_types.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1504,12 +1504,12 @@ void func_dryfield_night_water_hole_8017E6D0(Task* arg0)
                     surface.coord.t[1]   = gGameSession->waterY;
                     surface.composeStamp = GRAPHICS_COORD_DIRTY;
                     Gp_UpdateCoord(&surface);
-                    rnd = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911);
+                    rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
                         Gp_SpawnEff(D_8011574C, &surface, 0x40, 0);
                     }
                     splash->strength -= 0x20;
-                    rnd               = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911);
+                    rnd               = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < splash->strength) {
                         Gp_SpawnEff(D_80115738, &surface, 0x1202180, 0);
                     }

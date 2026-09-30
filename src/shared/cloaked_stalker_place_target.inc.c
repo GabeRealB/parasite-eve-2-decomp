@@ -1,9 +1,11 @@
+#include "main/random.h"
+
 /* Part of the cloaked stalker library; see cloaked_stalker.h. */
 
 /// Parks the actor's target position off the player (`gameGetPtrSlot(3)`).
 /// In state 3 it takes `field_6E6` from the player's heading and places the
 /// target 0x5AA behind the player, raising bit 0x4000 of `field_5BA` and
-/// `field_5DA`; in state 4 it rolls an angle from `Gp_LcgState` (anywhere, or
+/// `field_5DA`; in state 4 it rolls an angle from `gRandomLcgState` (anywhere, or
 /// within a quarter turn either side while `field_6E8` is clear), derives
 /// `field_5DC` / `field_5E0` from it, adds the player's heading and places the
 /// target 0x4B out along the result, raising bit 0x4000 of `field_5BA`.
@@ -40,12 +42,12 @@ void stalkerPlaceTarget(Task* arg0)
         work->field_5DA |= 0x4000;
     } else if (work->field_6CE == 4) {
         if (work->field_6E8 != 0) {
-            Gp_LcgState     = (Gp_LcgState * 5) + 0x71357911;
-            work->field_6E6 = (Gp_LcgState >> 16) & 0xFFF;
+            gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            work->field_6E6 = (gRandomLcgState >> 16) & 0xFFF;
         } else {
-            random      = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState = random;
-            angle       = (random >> 16) & 0x3FF;
+            random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
+            angle           = (random >> 16) & 0x3FF;
             if (!((random >> 16) & 0x400)) {
                 angle = -angle;
             }

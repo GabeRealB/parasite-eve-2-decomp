@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Per-frame tick of the homing projectile: while the global mode is 1 the
@@ -57,10 +59,10 @@ void spiderPuffTick(Enemy* arg0, Task* arg1)
                 arg1->state = 2;
                 return;
             }
-            random         = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState    = random;
-            speed          = (u16)work->field_3A - ((random >> 0x10) & 0x1F);
-            work->field_3A = speed;
+            random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
+            speed           = (u16)work->field_3A - ((random >> 0x10) & 0x1F);
+            work->field_3A  = speed;
             if (speed < 0) {
                 work->field_3A = 0;
             }

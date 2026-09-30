@@ -32,7 +32,7 @@
 
 #include "main/coord.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -1419,9 +1419,9 @@ void lungerTakeHits(Task* arg0)
                             work->field_6A6 = 2;
                             work->field_6A8 = 0;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        rng         = Gp_LcgState >> 16;
-                        tilt        = (rng & 0x7F) + 0x40;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        rng             = gRandomLcgState >> 16;
+                        tilt            = (rng & 0x7F) + 0x40;
                         if (!(rng & 1)) {
                             tilt = -tilt;
                         }
@@ -1531,7 +1531,7 @@ void lungerTakeHits(Task* arg0)
 /// flag, drops the third node's, and clears the enemy's `reactionFlags`.
 /// States 1 and 2 play the voice cues at their frame marks and, at the end of
 /// the animation, settle on an idle (0x19 / 0x1D) with a fresh 6-bit dwell
-/// from `Gp_LcgState`: into state 3 while the enemy has hit points left,
+/// from `gRandomLcgState`: into state 3 while the enemy has hit points left,
 /// otherwise handing the task over to state 2. States 3 and 4 alternate
 /// between the two idles until the dwell runs out.
 void Actor02300_Fn00E0C(Task* arg0)
@@ -1590,9 +1590,9 @@ void Actor02300_Fn00E0C(Task* arg0)
             if (work->field_698 >= 0x42) {
                 work->field_694 = 0x19;
                 work->field_6D4 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random;
+                gRandomLcgState = random;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -1614,9 +1614,9 @@ void Actor02300_Fn00E0C(Task* arg0)
             if (work->field_698 >= 0x31) {
                 work->field_694 = 0x1D;
                 work->field_6D4 = 0;
-                random2         = (Gp_LcgState * 5) + 0x71357911;
+                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random2;
+                gRandomLcgState = random2;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -1652,8 +1652,8 @@ void Actor02300_Fn00E0C(Task* arg0)
                 }
                 work->field_694 = nextAnim2;
                 work->field_6A8 = 3;
-                random3         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random3;
+                random3         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random3;
                 work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
             }
             break;
@@ -1901,7 +1901,7 @@ void Actor02300_Fn02290(Task* arg0)
 /// `Enemy::spawnState` then picks how the enemy starts: 0 builds the full
 /// object set -- the four `WorldCollisionBody` nodes with their `WorldCollisionContact` tables, the voice
 /// cue looked up per room in `Actor02300_D15C80`, and the coin-flip in
-/// `field_6C4` drawn from `Gp_LcgState` -- while 1 and 2 only prime the
+/// `field_6C4` drawn from `gRandomLcgState` -- while 1 and 2 only prime the
 /// animation state and hand straight on to the next task state.
 static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 {
@@ -1999,9 +1999,9 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
             work->field_49C.ends[1].vy      = 0;
             work->field_49C.ends[1].vz      = 0;
             work->field_49C.contacts        = work->field_4B4;
-            lcg                             = (Gp_LcgState * 5) + 0x71357911;
+            lcg                             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             work->field_6C4                 = ((lcg >> 16) & 1) + 1;
-            Gp_LcgState                     = lcg;
+            gRandomLcgState                 = lcg;
             partsA                          = actor->extra.tmd->coords;
             work->field_47C.context.capsule = &work->field_49C;
             work->field_47C.pos.vx          = 0;
@@ -2080,7 +2080,7 @@ static void Actor02300_Fn028AC(Enemy* enemy, Task* actor)
 /// once), within 0x80 it raises the body node's 0xC000 flags and commits as
 /// soon as `field_6B2` reports contact. State 1 picks what to do next: inside
 /// 0x8CA of the player it lunges (animation 8), otherwise it draws from
-/// `Gp_LcgState` through a mask that widens by a bit each cycle and either
+/// `gRandomLcgState` through a mask that widens by a bit each cycle and either
 /// circles (animation 0xA) or walks in (animation 5). State 2 waits out the
 /// recovery and state 3 the turn.
 void Actor02300_Fn0327C(Task* actor)
@@ -2169,8 +2169,8 @@ void Actor02300_Fn0327C(Task* actor)
                 work->field_6A8 = 0;
                 work->field_694 = 8;
             } else {
-                random      = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState = random;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 if (!((random >> 0x10) & ((1 << (work->field_6C0 + 1)) - 1)) && !(Player_Status.statusFlags & PLAYER_STATUS_SILENCE) &&
                     work->field_6C4 != 0) {
                     work->field_6A6 = 5;

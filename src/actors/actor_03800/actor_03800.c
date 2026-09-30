@@ -29,7 +29,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -822,8 +822,8 @@ static void Actor03800_Fn003B8(Task* arg0)
                 case 0:
                     work->field_348 = 1;
                     work->field_37A = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_356 = (((u32)Gp_LcgState >> 0x10) & 0xFF) + 0x5A;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_356 = ((gRandomLcgState >> 0x10) & 0xFF) + 0x5A;
                     break;
                 case 1:
                     work->field_348 = 2;
@@ -1221,9 +1221,9 @@ static void Actor03800_Fn01150(Task* arg0)
             work->field_356--;
             if (work->field_356 <= 0) {
                 work->field_354 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                turn            = ((u32)Gp_LcgState >> 16) & 0x3FF;
-                if ((((u32)Gp_LcgState >> 16) & 0x400) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                turn            = (gRandomLcgState >> 16) & 0x3FF;
+                if (((gRandomLcgState >> 16) & 0x400) == 0) {
                     turn = -turn;
                 }
                 work->field_348 = 2;
@@ -1240,8 +1240,8 @@ static void Actor03800_Fn01150(Task* arg0)
                     work->field_354 = 0;
                     work->field_348 = 1;
                     work->field_36A = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_356 = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x5A;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_356 = ((gRandomLcgState >> 16) & 0xFF) + 0x5A;
                 } else {
                     work->field_352 = 1;
                     work->field_354 = 0;
@@ -1276,9 +1276,9 @@ static void Actor03800_Fn012B4(Task* arg0)
         case 0:
             work->field_360 = 0;
             work->field_35E = 2;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            turn            = ((u32)Gp_LcgState >> 16) & 0x1FF;
-            if ((((u32)Gp_LcgState >> 16) & 0x400) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            turn            = (gRandomLcgState >> 16) & 0x1FF;
+            if (((gRandomLcgState >> 16) & 0x400) == 0) {
                 turn = -turn;
             }
             delta = turn;
@@ -1290,21 +1290,21 @@ static void Actor03800_Fn012B4(Task* arg0)
             work->field_354 = 1;
             work->field_364 = (work->field_362 + delta) & 0xFFF;
             turn            = 0; /* dead store: keeps `turn` cse-canonical over `delta` */
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_356 = (((u32)Gp_LcgState >> 16) & 0xF) + 0x19;
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-            work->field_358 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_356 = ((gRandomLcgState >> 16) & 0xF) + 0x19;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->field_358 = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
             break;
         case 1:
             work->field_360 = 0x1E;
             work->field_35E = 2;
             work->field_356--;
             if (work->field_356 <= 0) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_356 = (((u32)Gp_LcgState >> 16) & 0xF) + 0x19;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                turn2           = ((u32)Gp_LcgState >> 16) & 0x1FF;
-                if ((((u32)Gp_LcgState >> 16) & 0x400) == 0) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_356 = ((gRandomLcgState >> 16) & 0xF) + 0x19;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                turn2           = (gRandomLcgState >> 16) & 0x1FF;
+                if (((gRandomLcgState >> 16) & 0x400) == 0) {
                     turn2 = -turn2;
                 }
                 work->field_364 = (work->field_362 + turn2) & 0xFFF;
@@ -1315,8 +1315,8 @@ static void Actor03800_Fn012B4(Task* arg0)
                     work->field_354 = 0;
                     work->field_348 = 1;
                     work->field_36A = 0;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_356 = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
                 } else {
                     work->field_352 = 0xC;
                     work->field_354 = 0;
@@ -1328,8 +1328,8 @@ static void Actor03800_Fn012B4(Task* arg0)
                 work->field_354 = 0;
                 work->field_348 = 1;
                 work->field_36A = 0;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x1E;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_356 = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
             }
             break;
     }
@@ -1370,8 +1370,8 @@ static void Actor03800_Fn01520(Task* arg0)
             work->field_35E = 0;
             if (work->field_362 == work->field_364) {
                 work->field_354 = 2;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_356 = (((u32)Gp_LcgState >> 16) & 0x1F) + 0x78;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_356 = ((gRandomLcgState >> 16) & 0x1F) + 0x78;
             }
             break;
         case 2:
@@ -1524,8 +1524,8 @@ static void Actor03800_Fn01AD0(Task* arg0)
             work->field_348 = 6;
         }
         work->field_34A = 1;
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-        work->field_356 = (((u32)Gp_LcgState >> 16) & 7) + 3;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->field_356 = ((gRandomLcgState >> 16) & 7) + 3;
     }
     if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
         work->field_37E = 0;
@@ -1640,9 +1640,9 @@ static void Actor03800_Fn01EEC(Task* arg0)
                 break;
             }
 
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->field_354 = 1;
-            rand            = (u32)Gp_LcgState >> 16;
+            rand            = gRandomLcgState >> 16;
             delta           = rand & 0x3FF;
             if (!(rand & 0x400)) {
                 delta = -delta;
@@ -1658,24 +1658,24 @@ static void Actor03800_Fn01EEC(Task* arg0)
             work->field_35C = 0;
             work->field_35E = 0;
             if (work->field_362 == work->field_364) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_354 = 0;
                 work->field_348 = 1;
                 work->field_36A = 0;
-                work->field_356 = ((u32)Gp_LcgState >> 16 & 0xFF) + 0x5A;
+                work->field_356 = (gRandomLcgState >> 16 & 0xFF) + 0x5A;
             }
             break;
     }
 
     if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
         work->field_37A = 1;
         work->field_360 = 0;
         work->field_35C = 0;
         work->field_35E = 0;
-        work->field_356 = ((u32)Gp_LcgState >> 16 & 0xF) + 0xF;
+        work->field_356 = (gRandomLcgState >> 16 & 0xF) + 0xF;
     }
 }
 
@@ -1702,9 +1702,9 @@ static void Actor03800_Fn02068(Task* arg0)
                 break;
             }
 
-            Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->field_354 = 1;
-            rand            = (u32)Gp_LcgState >> 16;
+            rand            = gRandomLcgState >> 16;
             delta           = rand & 0x3FF;
             if (!(rand & 0x400)) {
                 delta = -delta;
@@ -1720,24 +1720,24 @@ static void Actor03800_Fn02068(Task* arg0)
             work->field_35C = 0;
             work->field_35E = 0;
             if (work->field_362 == work->field_364) {
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->field_354 = 0;
                 work->field_348 = 1;
                 work->field_36A = 0;
-                work->field_356 = ((u32)Gp_LcgState >> 16 & 0xFF) + 0x5A;
+                work->field_356 = (gRandomLcgState >> 16 & 0xFF) + 0x5A;
             }
             break;
     }
 
     if ((Gp_StateF0.prefix.bytes.field_2 & 5) || work->field_36C != 0) {
-        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_352 = 0xA;
         work->field_354 = 0;
         work->field_37A = 1;
         work->field_360 = 0;
         work->field_35C = 0;
         work->field_35E = 0;
-        work->field_356 = ((u32)Gp_LcgState >> 16 & 0xF) + 0xF;
+        work->field_356 = (gRandomLcgState >> 16 & 0xF) + 0xF;
     }
 }
 
@@ -2155,8 +2155,8 @@ static void Actor03800_Fn02E50(Task* actor)
     u32  first;
     s32  second;
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    first       = (u16)((Gp_LcgState >> 16) % 5);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    first           = (u16)((gRandomLcgState >> 16) % 5);
     Actor03800_Fn03008(actor, first);
     if (Gp_StateF0.field_6 < 2) {
         count = Actor03800_D05FA8[Gp_StateF0.field_6];
@@ -2166,8 +2166,8 @@ static void Actor03800_Fn02E50(Task* actor)
                 *out++ = i;
             }
         }
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        second      = (Gp_LcgState >> 16) & 3;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        second          = (gRandomLcgState >> 16) & 3;
         Actor03800_Fn03008(actor, variants[second]);
         if (--count > 0) {
             s16* next = variants;
@@ -2177,8 +2177,8 @@ static void Actor03800_Fn02E50(Task* actor)
                     *next++ = i;
                 }
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Actor03800_Fn03008(actor, variants[(u16)((Gp_LcgState >> 16) % 3)]);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Actor03800_Fn03008(actor, variants[(u16)((gRandomLcgState >> 16) % 3)]);
         }
     }
 }

@@ -29,7 +29,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/task_types.h"
@@ -472,24 +472,24 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
     }
     if (gDisplayState.animFrame % (task->state * 2 + 4) == 0) {
         for (i = 0; i < task->state; i++) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            angle       = ((Gp_LcgState >> 16) & 0x7FF) - 0x400;
-            pos.vx      = D_shelter_b6_growth_room_8017F258[i + 30].vx + ((rcos(angle) * 1000) >> 12);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            pos.vy      = -((s32)(Gp_LcgState >> 16) % ((task->spawnArg1.value + 1) * 8));
-            pos.vz      = D_shelter_b6_growth_room_8017F258[i + 30].vz + ((rsin(angle) * 1000) >> 12);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            angle           = ((gRandomLcgState >> 16) & 0x7FF) - 0x400;
+            pos.vx          = D_shelter_b6_growth_room_8017F258[i + 30].vx + ((rcos(angle) * 1000) >> 12);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pos.vy          = -((s32)(gRandomLcgState >> 16) % ((task->spawnArg1.value + 1) * 8));
+            pos.vz          = D_shelter_b6_growth_room_8017F258[i + 30].vz + ((rsin(angle) * 1000) >> 12);
             Gp_SpawnEff(0x601A1, NULL, 0x106500, &pos);
         }
     }
     if (!(gDisplayState.animFrame & 1)) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        pos.vx      = -1000;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        pos.vy      = -1200 - (Gp_LcgState >> 16) % 400;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        z           = (Gp_LcgState >> 16) % 400 + 0xDAC;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        pos.vz      = z + ((Gp_LcgState >> 16) & 1) * 1000;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        pos.vx          = -1000;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        pos.vy          = -1200 - (gRandomLcgState >> 16) % 400;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        z               = (gRandomLcgState >> 16) % 400 + 0xDAC;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        pos.vz          = z + ((gRandomLcgState >> 16) & 1) * 1000;
         Gp_SpawnEff(0x601A2, NULL, 0x183280, &pos);
     }
     func_shelter_b6_growth_room_8017E448(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
@@ -607,15 +607,15 @@ void func_shelter_b6_growth_room_8017E564(Task* task)
             f2a = 0x40;
         }
 
-        work->step    = f2a;
-        work->move.vy = 0;
-        rng2          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng2;
-        work->move.vx = 0x80 - ((rng2 >> 16) & 0xFF);
-        rng3          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng3;
-        vz            = 0x80 - ((rng3 >> 16) & 0xFF);
-        work->move.vz = vz;
+        work->step      = f2a;
+        work->move.vy   = 0;
+        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng2;
+        work->move.vx   = 0x80 - ((rng2 >> 16) & 0xFF);
+        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng3;
+        vz              = 0x80 - ((rng3 >> 16) & 0xFF);
+        work->move.vz   = vz;
         VectorNormalSS(&work->move, &work->move);
 
         gte_lddp(work->step);
@@ -725,9 +725,9 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1.value & 0xFFF;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        work->angle = (Gp_LcgState >> 16) & 0xFFF;
+        work->scale     = task->spawnArg1.value & 0xFFF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->angle     = (gRandomLcgState >> 16) & 0xFFF;
 
         if (task->spawnArg1.value & 0xF000) {
             work->period = (task->spawnArg1.value >> 12) & 0x7;
@@ -744,15 +744,15 @@ void func_shelter_b6_growth_room_8017EAC8(Task* task)
             f2a = 0x40;
         }
 
-        work->step    = f2a;
-        work->move.vy = 0;
-        rng2          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng2;
-        work->move.vx = ((rng2 >> 16) & 0x7F) + 0x40;
-        rng3          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng3;
-        vz            = 0x40 - ((rng3 >> 16) & 0x7F);
-        work->move.vz = vz;
+        work->step      = f2a;
+        work->move.vy   = 0;
+        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng2;
+        work->move.vx   = ((rng2 >> 16) & 0x7F) + 0x40;
+        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng3;
+        vz              = 0x40 - ((rng3 >> 16) & 0x7F);
+        work->move.vz   = vz;
         VectorNormalSS(&work->move, &work->move);
 
         gte_lddp(work->step);

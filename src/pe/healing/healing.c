@@ -21,7 +21,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
@@ -125,18 +125,18 @@ void func_healing_8012EF34(Task* arg0)
             gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            rng          = Gp_LcgState * 5 + 0x71357911;
-            ang          = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState  = rng;
-            mem->step    = ang;
-            mem->move.vx = (rcos(ang) * (mem->angle * 3 / 2)) >> 12;
-            temp_lo      = rsin(mem->step) * (mem->angle * 3 / 2);
-            rng          = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState  = rng;
-            mem->move.vy = temp_lo >> 12;
-            mem->move.vz = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            spawned      = Gp_SpawnEff(0x60017, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
-                                       &mem->move);
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            ang             = ((u32)rng >> 16) & 0xFFF;
+            gRandomLcgState = rng;
+            mem->step       = ang;
+            mem->move.vx    = (rcos(ang) * (mem->angle * 3 / 2)) >> 12;
+            temp_lo         = rsin(mem->step) * (mem->angle * 3 / 2);
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
+            mem->move.vy    = temp_lo >> 12;
+            mem->move.vz    = (rsin(((u32)rng >> 16) & 0xFFF) * mem->move.vx) >> 12;
+            spawned         = Gp_SpawnEff(0x60017, coord, (s32)(D_healing_8012FC1C[mem->index].field_6),
+                                          &mem->move);
             if (spawned != NULL) {
                 Task_Reparent(arg0, spawned->task);
             }
@@ -207,15 +207,15 @@ void func_healing_8012F494(Task* arg0)
     state    = arg0->state;
     switch (state) {
         case 0:
-            mem->move.vy = 4;
-            mem->move.vx = 0;
-            mem->move.vz = 0;
-            arg0->state  = 1;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            spawn        = (u16)arg0->spawnArg1.value;
-            mem->period  = 0x1000;
-            mem->angle   = spawn & 0xFFF;
+            mem->move.vy    = 4;
+            mem->move.vx    = 0;
+            mem->move.vz    = 0;
+            arg0->state     = 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+            spawn           = (u16)arg0->spawnArg1.value;
+            mem->period     = 0x1000;
+            mem->angle      = spawn & 0xFFF;
             return;
         case 1:
             step                = mem->move.vy;

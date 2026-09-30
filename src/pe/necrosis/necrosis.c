@@ -24,7 +24,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -234,12 +234,12 @@ void func_necrosis_8012F52C(Task* arg0)
 
     mem->age = mem->age + 1;
     if (arg0->state == 0) {
-        mem->scale  = arg0->spawnArg1.value & 0xFFF;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->angle  = (Gp_LcgState >> 16) & 0xFFF;
-        mem->period = mem->scale - 0x100;
-        mem->step   = mem->scale >> 4;
-        arg0->state = 1;
+        mem->scale      = arg0->spawnArg1.value & 0xFFF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
+        mem->period     = mem->scale - 0x100;
+        mem->step       = mem->scale >> 4;
+        arg0->state     = 1;
     }
     Gp_UpdateCoord(coord);
     func_necrosis_8012F6EC(coord, mem->age % 6, mem->scale, mem->angle);
@@ -341,21 +341,21 @@ void func_necrosis_8012FAF8(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            mem->age     = 0;
-            temp_v0      = arg0->spawnArg1.value;
-            mem->period  = temp_v0 & 0xFFF;
-            rng1         = (Gp_LcgState * 5) + 0x71357911;
-            mem->scale   = ((u32)rng1 >> 16) & 0xFFF;
-            Gp_LcgState  = rng1;
-            mem->angle   = mem->period / 20;
-            mem->move.vx = (rsin(mem->scale) * mem->angle) >> 12;
-            temp_lo      = rcos(mem->scale) * mem->angle;
-            rng2         = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState  = rng2;
-            mem->move.vy = temp_lo >> 12;
-            mem->move.vz = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->move.vx) >> 12;
-            rng3         = (Gp_LcgState * 5) + 0x71357911;
-            Gp_LcgState  = rng3;
+            mem->age        = 0;
+            temp_v0         = arg0->spawnArg1.value;
+            mem->period     = temp_v0 & 0xFFF;
+            rng1            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((u32)rng1 >> 16) & 0xFFF;
+            gRandomLcgState = rng1;
+            mem->angle      = mem->period / 20;
+            mem->move.vx    = (rsin(mem->scale) * mem->angle) >> 12;
+            temp_lo         = rcos(mem->scale) * mem->angle;
+            rng2            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng2;
+            mem->move.vy    = temp_lo >> 12;
+            mem->move.vz    = (rsin(((u32)rng2 >> 16) & 0xFFF) * mem->move.vx) >> 12;
+            rng3            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng3;
             if ((s32)(((u32)rng3 >> 16) & 3) < ((u16)(Gp_StateC08.field_0 % 10U) - 1)) {
                 mem->step = 0x1000;
             }

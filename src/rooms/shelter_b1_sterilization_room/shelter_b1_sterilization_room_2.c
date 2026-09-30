@@ -36,7 +36,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1153,22 +1153,22 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
                             vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
 
-                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
-                            hiShift     = hi << 16;
-                            angle       = hiShift >> 16;
-                            angle      &= 0xFFF;
-                            rnd         = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rnd;
-                            hi          = (rnd >> 16) & 0x1FF;
-                            radius      = hi + 0x100;
-                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
-                            vec0->vy    = 0;
-                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
-                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
-                            vec1->vy    = 0;
-                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            hi              = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                            hiShift         = hi << 16;
+                            angle           = hiShift >> 16;
+                            angle          &= 0xFFF;
+                            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rnd;
+                            hi              = (rnd >> 16) & 0x1FF;
+                            radius          = hi + 0x100;
+                            vec0->vx        = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy        = 0;
+                            vec0->vz        = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy        = 0;
+                            vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 21:
@@ -1181,18 +1181,18 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             SVECTOR* vec1;
                             vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
 
-                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
-                            hiShift     = hi << 16;
-                            angle       = hiShift >> 16;
-                            angle      &= 0xFFF;
-                            rnd         = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rnd;
-                            hi          = (rnd >> 16) & 0x1FF;
-                            radius      = hi + 0x100;
-                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
-                            vec1->vy    = 0;
-                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            hi              = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                            hiShift         = hi << 16;
+                            angle           = hiShift >> 16;
+                            angle          &= 0xFFF;
+                            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rnd;
+                            hi              = (rnd >> 16) & 0x1FF;
+                            radius          = hi + 0x100;
+                            vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy        = 0;
+                            vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 22:
@@ -1206,18 +1206,18 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             SVECTOR* vec1;
                             vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
 
-                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
-                            hiShift     = hi << 16;
-                            angle       = hiShift >> 16;
-                            angle      &= 0xFFF;
-                            rnd         = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rnd;
-                            hi          = (rnd >> 16) & 0x1FF;
-                            radius      = hi + 0x100;
-                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
-                            vec1->vy    = 0;
-                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            hi              = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                            hiShift         = hi << 16;
+                            angle           = hiShift >> 16;
+                            angle          &= 0xFFF;
+                            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rnd;
+                            hi              = (rnd >> 16) & 0x1FF;
+                            radius          = hi + 0x100;
+                            vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy        = 0;
+                            vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 23:
@@ -1233,22 +1233,22 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
                             vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
 
-                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
-                            hiShift     = hi << 16;
-                            angle       = hiShift >> 16;
-                            angle      &= 0xFFF;
-                            rnd         = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rnd;
-                            hi          = (rnd >> 16) & 0x1FF;
-                            radius      = hi + 0x100;
-                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
-                            vec0->vy    = 0;
-                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
-                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
-                            vec1->vy    = 0;
-                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            hi              = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                            hiShift         = hi << 16;
+                            angle           = hiShift >> 16;
+                            angle          &= 0xFFF;
+                            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rnd;
+                            hi              = (rnd >> 16) & 0x1FF;
+                            radius          = hi + 0x100;
+                            vec0->vx        = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy        = 0;
+                            vec0->vz        = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy        = 0;
+                            vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 24:
@@ -1264,22 +1264,22 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec0 = &D_shelter_b1_sterilization_room_8018909C[0x51];
                             vec1 = &D_shelter_b1_sterilization_room_8018909C[0x52];
 
-                            hi          = (Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16;
-                            hiShift     = hi << 16;
-                            angle       = hiShift >> 16;
-                            angle      &= 0xFFF;
-                            rnd         = Gp_LcgState * 5 + 0x71357911;
-                            Gp_LcgState = rnd;
-                            hi          = (rnd >> 16) & 0x1FF;
-                            radius      = hi + 0x100;
-                            vec0->vx    = ((radius * rcos(angle)) >> 12) + 0x5DC;
-                            vec0->vy    = 0;
-                            vec0->vz    = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
-                            vec1->vx    = ((radius * rcos(angle)) >> 12) + 0x157C;
-                            vec1->vy    = 0;
-                            vec1->vz    = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(0x60070, coord, ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            hi              = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                            hiShift         = hi << 16;
+                            angle           = hiShift >> 16;
+                            angle          &= 0xFFF;
+                            rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            gRandomLcgState = rnd;
+                            hi              = (rnd >> 16) & 0x1FF;
+                            radius          = hi + 0x100;
+                            vec0->vx        = ((radius * rcos(angle)) >> 12) + 0x5DC;
+                            vec0->vy        = 0;
+                            vec0->vz        = ((radius * rsin((s16)angle)) >> 12) + 0xBB8;
+                            vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
+                            vec1->vy        = 0;
+                            vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            Gp_SpawnEff(0x60070, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                 } while (0);
@@ -1289,7 +1289,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 14:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 8; i < 0x10; i += 4) {
-                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
@@ -1297,8 +1297,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 15:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 4; i < 0x10; i += 4) {
-                        if (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 1) {
-                            idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        if (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) {
+                            idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                             Gp_SpawnEff(0x6017D, coord, idx - 0x800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                         }
                     }
@@ -1307,8 +1307,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 16:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0; i < 0x40; i += 4) {
-                        if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
-                            idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
+                            idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                             Gp_SpawnEff(0x6017D, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
                         }
                     }
@@ -1319,8 +1319,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 4; i < 0x10; i += 4) {
-                            if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
-                                idx = j + i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                            if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
+                                idx = j + i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                                 Gp_SpawnEff(0x6017D, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                             }
                         }
@@ -1333,8 +1333,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (j = 0; j < 0x40; j += 0x10) {
                         for (i = 0; i < 0xC; i += 4) {
-                            if (!(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3)) {
-                                idx = j + i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                            if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
+                                idx = j + i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                                 Gp_SpawnEff(0x6017D, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                             }
                         }
@@ -1344,7 +1344,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 17:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
-                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx + 0x1800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
@@ -1352,7 +1352,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
             case 18:
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
-                        idx = i + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3);
+                        idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
                         Gp_SpawnEff(0x6017D, coord, idx + 0x1000000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
@@ -1382,20 +1382,20 @@ void func_shelter_b1_sterilization_room_801823D8(Task* task)
     switch (task->state) {
         case 0:
             base                   = task->spawnArg1.halves.high;
-            work->scale            = ((((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFF) + 0x180) + base;
-            work->angle            = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xFFF;
+            work->scale            = ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF) + 0x180) + base;
+            work->angle            = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
             task->spawnArg1.value &= 0xFFF;
-            work->index            = (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 3) + 1;
-            work->period           = (work->scale >> 5) + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF);
-            work->step             = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
+            work->index            = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3) + 1;
+            work->period           = (work->scale >> 5) + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
+            work->step             = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
             gte_lddp(work->period);
             gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / 16]);
             gte_gpf12();
             vec = &work->move;
             gte_stsv(vec);
-            work->move.vx -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
-            work->move.vy -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
-            work->move.vz -= (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF) - 8;
+            work->move.vx -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
+            work->move.vy -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
+            work->move.vz -= (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) - 8;
             task->state    = 1;
         case 1:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {

@@ -31,7 +31,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -440,18 +440,18 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 work->soundDelay--;
             }
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                rnd         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rnd;
+                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60070, 0, ((Gp_LcgState >> 16) & 0x11FF) | 0x22200,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
-                rnd         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rnd;
+                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60070, 0, ((Gp_LcgState >> 16) & 0x11FF) | 0x22200,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }
@@ -480,18 +480,18 @@ void func_neo_ark_garden_8017EA9C(Task* task)
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[2]);
             func_neo_ark_garden_8017F42C(&D_neo_ark_garden_801813E0[3]);
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                rnd         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rnd;
+                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60070, 0, ((Gp_LcgState >> 16) & 0x11FF) | 0x22200,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
-                rnd         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rnd;
+                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60070, 0, ((Gp_LcgState >> 16) & 0x11FF) | 0x22200,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60070, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }

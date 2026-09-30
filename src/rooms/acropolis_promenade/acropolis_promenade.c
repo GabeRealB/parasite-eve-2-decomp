@@ -43,7 +43,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -1953,7 +1953,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
 
 /// One falling water drip on the promenade, drawn as a `DR_MOVE` that smears a
 /// one-pixel-tall strip of the frame buffer down by a pixel. The first frame
-/// rolls the whole drip out of `Gp_LcgState`: `move.vx` is the column
+/// rolls the whole drip out of `gRandomLcgState`: `move.vx` is the column
 /// (0..0xEF), `move.vy` the row it starts on (0xB0..0xEF), `scale` the
 /// lifetime in frames, `angle` the width and `period` the number of frames
 /// each row of fall takes. `gDisplayState.drawBuffer` picks the buffer half, and
@@ -1976,17 +1976,17 @@ void func_acropolis_promenade_8017E394(Task* task)
     bufferY = gDisplayState.drawBuffer * 0x110;
     if ((u8)Gp_GetViewIndex() == task->spawnArg1.value) {
         if (work->age == 0) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = ((u32)Gp_LcgState >> 16) % 240;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0xB0;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            rnd           = (u32)Gp_LcgState >> 16;
-            work->scale   = (u32)rnd % 90 + 0x1E;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->angle   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x10;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->period  = (((u32)Gp_LcgState >> 16) & 3) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = (gRandomLcgState >> 16) % 240;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = ((gRandomLcgState >> 16) & 0x3F) + 0xB0;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd             = gRandomLcgState >> 16;
+            work->scale     = (u32)rnd % 90 + 0x1E;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = ((gRandomLcgState >> 16) & 0x3F) + 0x10;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = ((gRandomLcgState >> 16) & 3) + 1;
             task->state++;
         }
         y        = work->move.vy + work->age / work->period;
@@ -2087,22 +2087,22 @@ void func_acropolis_promenade_8017E634(Task* task)
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        prim->clut  = 0x4381;
-        prim->tpage = 0x2B;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        grey        = ((u32)Gp_LcgState >> 16) % 96 + 0x20;
-        prim->u0    = 0;
-        prim->v0    = 0x10;
-        prim->u1    = 0x27;
-        prim->v1    = 0x10;
-        prim->u2    = 0;
-        prim->v2    = 0x37;
-        prim->u3    = 0x27;
-        prim->v3    = 0x37;
-        prim->code |= 2;
-        prim->r0    = grey;
-        prim->g0    = grey;
-        prim->b0    = grey;
+        prim->clut      = 0x4381;
+        prim->tpage     = 0x2B;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        grey            = (gRandomLcgState >> 16) % 96 + 0x20;
+        prim->u0        = 0;
+        prim->v0        = 0x10;
+        prim->u1        = 0x27;
+        prim->v1        = 0x10;
+        prim->u2        = 0;
+        prim->v2        = 0x37;
+        prim->u3        = 0x27;
+        prim->v3        = 0x37;
+        prim->code     |= 2;
+        prim->r0        = grey;
+        prim->g0        = grey;
+        prim->b0        = grey;
 
         work->scale = gDisplayState.animFrame + work->age;
         blk->dx     = ((0x3A80 / blk->otz) * rsin(work->scale)) >> 12;
@@ -2200,14 +2200,14 @@ void func_acropolis_promenade_8017ED44(Task* task)
     gte_stszotz(&blk->otz);
     blk->otz += 0x20;
     if (blk->otz >= 0x11) {
-        prim->tpage = 0x2B;
-        prim->clut  = 0x4381;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        grey        = ((u32)Gp_LcgState >> 16) & 0xF;
-        prim->r0    = grey;
-        prim->g0    = grey;
-        prim->b0    = grey;
-        prim->code |= 2;
+        prim->tpage     = 0x2B;
+        prim->clut      = 0x4381;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        grey            = (gRandomLcgState >> 16) & 0xF;
+        prim->r0        = grey;
+        prim->g0        = grey;
+        prim->b0        = grey;
+        prim->code     |= 2;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }

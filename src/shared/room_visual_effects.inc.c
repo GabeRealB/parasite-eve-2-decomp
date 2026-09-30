@@ -20,7 +20,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -76,7 +76,7 @@ static inline void RoomFx_MoteTask(Task* task)
                     lifetime      = ((RoomMoteArg*)&task->spawnArg1.value)->lifetime;
                     work->step    = lifetime;
                     work->move.vx = 0;
-                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x3F);
+                    work->move.vy = -((RoomMoteArg*)&task->spawnArg1.value)->speed - (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x3F);
                     work->move.vz = 0;
                     task->state   = (task->spawnArg1.value & 1) + 1;
                 }

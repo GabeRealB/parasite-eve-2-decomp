@@ -30,7 +30,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -1554,9 +1554,9 @@ static void Actor02100_Fn01FF0(Task* arg0)
             root->shortVec.vx = 0;
             root->shortVec.vy = 0;
             root->shortVec.vz = 0x12C;
-            random            = Gp_LcgState * 5 + 0x71357911;
+            random            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             packed2           = ((random >> 16) & 0x1FF) | 0x200;
-            Gp_LcgState       = random;
+            gRandomLcgState   = random;
             Gp_SpawnEff(0x60034, coord, packed2, &root->shortVec);
             Gp_SpawnEff(0x60072, coord, packed2, &root->shortVec);
             sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000B;

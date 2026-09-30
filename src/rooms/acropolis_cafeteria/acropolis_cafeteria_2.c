@@ -36,7 +36,7 @@
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflow.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1063,18 +1063,18 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
             flags = 0;
         }
         for (i = 0; i < count; i++) {
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            rnd           = (u32)Gp_LcgState >> 16;
-            work->move.vx = (u32)rnd % 2620 + 0x230;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            rnd           = (u32)Gp_LcgState >> 16;
-            work->move.vy = -0x12C - (u16)((u32)rnd % 5) * 0x190;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            rnd           = (u32)Gp_LcgState >> 16;
-            work->move.vz = (rnd & 0x3FF) + 0xB00;
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            rnd           = (u32)Gp_LcgState >> 16;
-            spawnArg      = flags + 0x180;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd             = gRandomLcgState >> 16;
+            work->move.vx   = (u32)rnd % 2620 + 0x230;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd             = gRandomLcgState >> 16;
+            work->move.vy   = -0x12C - (u16)((u32)rnd % 5) * 0x190;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd             = gRandomLcgState >> 16;
+            work->move.vz   = (rnd & 0x3FF) + 0xB00;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rnd             = gRandomLcgState >> 16;
+            spawnArg        = flags + 0x180;
             Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, &work->move);
         }
     }
@@ -1123,16 +1123,16 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
             gte_stsxy(&head[-1].sxy);
             gte_stszotz(&block->otz);
             if (head[-1].otz > 16 && work->age == 0) {
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                work->angle   = task->spawnArg1.halves.low & 0xFFF;
-                work->move.vx = 0;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) + 4;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->move.vz = -(((u32)Gp_LcgState >> 16) & 0xF) - 4;
-                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-                work->step    = (((u32)Gp_LcgState >> 16) & 3) + 3;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->scale     = (gRandomLcgState >> 16) & 0xFFF;
+                work->angle     = task->spawnArg1.halves.low & 0xFFF;
+                work->move.vx   = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vy   = ((gRandomLcgState >> 16) & 0xF) + 4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->move.vz   = -((gRandomLcgState >> 16) & 0xF) - 4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->step      = ((gRandomLcgState >> 16) & 3) + 3;
                 if (task->spawnArg1.value & 0x1000) {
                     work->age = 10;
                 }
@@ -1222,11 +1222,11 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     if (task->state == 0) {
         obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         if (task->spawnArg1.value != 0) {
-            work->period = 0xD90;
-            work->angle  = 0;
-            work->index  = 2;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->scale  = ((u32)Gp_LcgState >> 16) & 0xF00;
+            work->period    = 0xD90;
+            work->angle     = 0;
+            work->index     = 2;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale     = (gRandomLcgState >> 16) & 0xF00;
         } else {
             work->scale  = 0x400;
             work->angle  = 0;
@@ -1238,11 +1238,11 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     }
     switch (work->index) {
         case 0:
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->angle  = 0;
-            work->scale -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 30) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = 0;
+            work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
                 work->index = 1;
             }
             if (work->age >= 0x79) {
@@ -1250,23 +1250,23 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             }
             break;
         case 1:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if (((u32)Gp_LcgState >> 16) & 1) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((gRandomLcgState >> 16) & 1) {
                 v = work->scale;
                 if (v > 0x400) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    n           = v - 0x10;
-                    n          -= ((u32)Gp_LcgState >> 16) & 0x3F;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    n               = v - 0x10;
+                    n              -= (gRandomLcgState >> 16) & 0x3F;
                 } else {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    n           = v + 0x10;
-                    n          += ((u32)Gp_LcgState >> 16) & 0x3F;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    n               = v + 0x10;
+                    n              += (gRandomLcgState >> 16) & 0x3F;
                 }
                 work->scale = n;
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            work->angle = 0x200;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 30) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = 0x200;
+            if ((u16)((gRandomLcgState >> 16) % 30) == 0) {
                 work->index = 0;
             }
             if (work->age >= 0x79) {
@@ -1274,18 +1274,18 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             }
             break;
         case 2:
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->scale -= (((u32)Gp_LcgState >> 16) & 0xFF) - 0x80;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)(((u32)Gp_LcgState >> 16) % 240) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->scale    -= ((gRandomLcgState >> 16) & 0xFF) - 0x80;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 240) == 0) {
                 work->scale = 0x400;
                 work->angle = 0x200;
                 work->index = 3;
             }
             break;
         case 3:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((((u32)Gp_LcgState >> 16) & 7) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & 7) == 0) {
                 work->angle = 0;
                 work->index = 2;
             }
@@ -1293,15 +1293,15 @@ void func_acropolis_cafeteria_8017F390(Task* task)
         case 4:
             w = work->scale;
             if (w > 0x400) {
-                k           = 0x71357911;
-                Gp_LcgState = Gp_LcgState * 5 + k;
-                w          -= 0x10;
-                w          -= ((u32)Gp_LcgState >> 16) & 0x3F;
+                k               = RANDOM_LCG_INCREMENT;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + k;
+                w              -= 0x10;
+                w              -= (gRandomLcgState >> 16) & 0x3F;
             } else {
-                k           = 0x71357911;
-                Gp_LcgState = Gp_LcgState * 5 + k;
-                w          += 0x10;
-                w          += ((u32)Gp_LcgState >> 16) & 0x3F;
+                k               = RANDOM_LCG_INCREMENT;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + k;
+                w              += 0x10;
+                w              += (gRandomLcgState >> 16) & 0x3F;
             }
             work->scale = w;
             work->angle = 0x300;

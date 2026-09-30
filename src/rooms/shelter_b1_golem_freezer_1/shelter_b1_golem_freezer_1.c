@@ -30,7 +30,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -44,7 +44,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-#define GOLEM_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define GOLEM_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 extern void func_80131E70(void);
 extern void func_80131E24(void);
@@ -540,9 +540,9 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 
     work->age++;
     if (task->state == 0) {
-        work->scale = task->spawnArg1.value & 0xFFF;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        work->angle = (Gp_LcgState >> 16) & 0xFFF;
+        work->scale     = task->spawnArg1.value & 0xFFF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->angle     = (gRandomLcgState >> 16) & 0xFFF;
 
         if (task->spawnArg1.value & 0xF000) {
             work->period = (task->spawnArg1.value >> 12) & 0x7;
@@ -559,15 +559,15 @@ void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
             f2a = 0x40;
         }
 
-        work->step    = f2a;
-        work->move.vy = 0;
-        rng2          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng2;
-        work->move.vx = 0x80 - (((u32)rng2 >> 16) & 0xFF);
-        rng3          = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState   = rng3;
-        vz            = 0x80 - (((u32)rng3 >> 16) & 0xFF);
-        work->move.vz = vz;
+        work->step      = f2a;
+        work->move.vy   = 0;
+        rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng2;
+        work->move.vx   = 0x80 - (((u32)rng2 >> 16) & 0xFF);
+        rng3            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng3;
+        vz              = 0x80 - (((u32)rng3 >> 16) & 0xFF);
+        work->move.vz   = vz;
         VectorNormalSS(&work->move, &work->move);
 
         gte_lddp(work->step);

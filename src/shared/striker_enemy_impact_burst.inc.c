@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the striker enemy library; see striker_enemy.h. */
 
 /// Spawns the impact burst at `coord`. Kind 0 is a lone room effect. Kind 1 is
@@ -36,12 +38,12 @@ void strikerImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
             if (!(arg1 & 7)) {
                 SVECTOR* dir;
 
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vx          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vy          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vz          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
 
                 dir = &vec;
                 VectorNormalSS(dir, dir);
@@ -61,12 +63,12 @@ void strikerImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
 
                 Gp_SpawnEff(D_80115738, coord, 0x02001000 + param + variant, NULL);
 
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vx      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vy      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                vec.vz      = 0x80 - ((Gp_LcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vx          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vy          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                vec.vz          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
 
                 dir = &vec;
                 VectorNormalSS(dir, dir);

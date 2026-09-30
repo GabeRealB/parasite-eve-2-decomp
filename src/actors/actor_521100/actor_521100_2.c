@@ -19,7 +19,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -601,10 +601,10 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 /// fills it with the world position of the model's *second* attach coordinate
 /// (the one the shrink is scaling) and hands it to `Gp_UpdateActorColor` as the
 /// colour target. The same draw then overwrites the three components with
-/// `field_488` scaled by the top half of three successive `Gp_LcgState` draws,
+/// `field_488` scaled by the top half of three successive `gRandomLcgState` draws,
 /// and `ScaleMatrixL` multiplies the work block's second matrix by it.
 ///
-/// Each draw reads `Gp_LcgState` back from the global: the initialiser's store
+/// Each draw reads `gRandomLcgState` back from the global: the initialiser's store
 /// is what the next draw's shift sees, and it is why one `lw` feeds all three
 /// and each draw's value gets its own register.
 static void func_actor_521100_80136290(Enemy* arg0, Task* task)
@@ -625,13 +625,13 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
     Gp_UpdateActorColor(arg0, block, 0, 0);
-    work        = D_actor_521100_8016A3D8;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    block->vx   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    block->vy   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    block->vz   = (s16)work->field_488 * (s32)(((u32)Gp_LcgState >> 16) + 0x8000) / 0x10000;
+    work            = D_actor_521100_8016A3D8;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    block->vx       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    block->vy       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    block->vz       = (s16)work->field_488 * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
     ScaleMatrixL(&work->color, block);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
@@ -652,7 +652,7 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
 /// every frame and the body stops re-anchoring once it reaches 0x83, killing
 /// the task and clearing whichever slot holds it.
 ///
-/// The 0x32 pair is adjusted before the `Gp_LcgState` draw, not after: that is
+/// The 0x32 pair is adjusted before the `gRandomLcgState` draw, not after: that is
 /// the source order that lets the draw's store sink below both halfword-field
 /// loads in `sched2`, which is what puts them on $a3 rather than $a0.
 void func_actor_521100_80136404(Task* task)
@@ -664,8 +664,8 @@ void func_actor_521100_80136404(Task* task)
         if (task->spawnArg1.value == 0) {
             D_actor_521100_8016A3E8             = ctx->extra.tmd->coords[1];
             D_actor_521100_8016A3E8.coord.t[2] += 0x32;
-            Gp_LcgState                         = Gp_LcgState * 5 + 0x71357911;
-            D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)(((u32)Gp_LcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
+            gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_actor_521100_8016A3E8.coord.t[1] -= 0xFA + (s32)((gRandomLcgState >> 16) - 0x8000) * 0xC8 / 0x10000;
             D_actor_521100_8016A3E8.coord.t[0] -= 0x32;
         } else {
             D_actor_521100_8016A3E8             = gameGetPtrSlot(3)->extra.tmd->coords[0];

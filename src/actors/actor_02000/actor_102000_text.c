@@ -29,7 +29,7 @@
 
 #include "main/coord.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -381,9 +381,9 @@ static void Actor02000_Fn00078(Task* arg0)
                             work->field_6A6 = 2;
                             work->field_6A8 = 0;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        rng         = Gp_LcgState >> 16;
-                        tilt        = (rng & 0x7F) + 0x40;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        rng             = gRandomLcgState >> 16;
+                        tilt            = (rng & 0x7F) + 0x40;
                         if (!(rng & 1)) {
                             tilt = -tilt;
                         }
@@ -1662,9 +1662,9 @@ void Actor02000_Fn00E0C(Task* arg0)
             if (work->field_698 >= 0x42) {
                 work->field_694 = 0x19;
                 work->field_6D4 = 0;
-                random          = (Gp_LcgState * 5) + 0x71357911;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random;
+                gRandomLcgState = random;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -1686,9 +1686,9 @@ void Actor02000_Fn00E0C(Task* arg0)
             if (work->field_698 >= 0x31) {
                 work->field_694 = 0x1D;
                 work->field_6D4 = 0;
-                random2         = (Gp_LcgState * 5) + 0x71357911;
+                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
-                Gp_LcgState     = (s32)random2;
+                gRandomLcgState = random2;
                 if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
@@ -1724,8 +1724,8 @@ void Actor02000_Fn00E0C(Task* arg0)
                 }
                 work->field_694 = nextAnim2;
                 work->field_6A8 = 3;
-                random3         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random3;
+                random3         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random3;
                 work->field_6AE = (u16)(((u32)random3 >> 0x10) & 0x3F);
             }
             break;
@@ -1762,8 +1762,8 @@ void Actor02000_Fn011E8(Task* arg0)
                 work->field_694 = 0x19;
                 work->field_6A6 = 0xB;
                 work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6AE = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
         case 2:
@@ -1771,8 +1771,8 @@ void Actor02000_Fn011E8(Task* arg0)
                 work->field_694 = 0x1D;
                 work->field_6A6 = 0xB;
                 work->field_6A8 = 3;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_6AE = ((u32)Gp_LcgState >> 16) & 0x3F;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_6AE = (gRandomLcgState >> 16) & 0x3F;
             }
             break;
     }
@@ -2088,11 +2088,11 @@ static void Actor02000_Fn01A20(Enemy* ctx, Task* actor)
             break;
         case 1:
             if (!(work->field_698 & 3)) {
-                scratch->vx = 0;
-                scratch->vz = 0;
-                random      = (Gp_LcgState * 5) + 0x71357911;
-                scratch->vy = -((random >> 0x10) & 0x1FF);
-                Gp_LcgState = random;
+                scratch->vx     = 0;
+                scratch->vz     = 0;
+                random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                scratch->vy     = -((random >> 0x10) & 0x1FF);
+                gRandomLcgState = random;
                 Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x400, scratch);
             }
             break;

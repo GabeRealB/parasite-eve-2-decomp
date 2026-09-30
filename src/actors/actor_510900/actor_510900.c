@@ -36,7 +36,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1188,12 +1188,12 @@ void func_actor_510900_80131F24(Task* arg0)
         case 1:
             mem->scale = (mem->scale < 0x100) ? mem->scale + 0x10 : 0x100;
             for (i = 0; i < 2; i++) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
-                mem->move.vy = 0x40;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->scale, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x2C0) - 0x80;
+                mem->move.vy    = 0x40;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
@@ -1201,68 +1201,68 @@ void func_actor_510900_80131F24(Task* arg0)
             base->framesLeft = 0x10;
             slot->inner      = 0x1F40;
             slot->outer      = 0x2710;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            bits             = Gp_LcgState >> 16;
+            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            bits             = gRandomLcgState >> 16;
             /* The `field_24 + 0x10000` sums below are evaluated as their own
              * operand. Written plainly, `fold` reassociates the constant onto
              * the draw; held in a local, sched1 moves the load ahead of it. */
             if (!(bits & 3)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0x40;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
-                                           &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0x40;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                                              &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
-                                           &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->scale + 0x10000; }),
+                                              &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + mem->scale, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + mem->scale, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (bits % 3 == 0) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0x80;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0x80;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = -0x80;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = -0x80;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
@@ -1273,124 +1273,124 @@ void func_actor_510900_80131F24(Task* arg0)
             slot->inner      = 0x1F40;
             slot->outer      = 0x2710;
             for (i = 0; i < 3; i++) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0x40;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0x40;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            bits        = Gp_LcgState >> 16;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            bits            = gRandomLcgState >> 16;
             if (!(bits & 7)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 3)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = 0x80;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = 0x80;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             bits >>= 1;
             if (!(bits & 7)) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                mem->move.vy = -0x80;
-                mem->move.vz = 0;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                mem->move.vy    = -0x80;
+                mem->move.vz    = 0;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
             }
             break;
         case 3:
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            bits        = Gp_LcgState >> 16;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            bits            = gRandomLcgState >> 16;
             mem->age++;
             if (mem->age < 0x1E) {
                 if (!(bits & 7)) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x2C0) - 0x80;
-                    mem->move.vy = 0x40;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x80, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x2C0) - 0x80;
+                    mem->move.vy    = 0x40;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x80, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 3)) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy = 0x40;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x60045, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy    = 0x40;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy = 0;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x6004C, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x10100, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy    = 0;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x6004C, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x10100, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 7)) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy = 0;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy    = 0;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
                 }
                 bits >>= 1;
                 if (!(bits & 7)) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy = 0x80;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x60052, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x10080, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy    = 0x80;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x60052, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x10080, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
                 }
                 for (i = 0; i < 2; i++) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = -((Gp_LcgState >> 16) % 0x280) - 0x80;
-                    mem->move.vy = -0x80;
-                    mem->move.vz = 0;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    eff          = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) + 0x180, &mem->move);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = -((gRandomLcgState >> 16) % 0x280) - 0x80;
+                    mem->move.vy    = -0x80;
+                    mem->move.vz    = 0;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    eff             = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) + 0x180, &mem->move);
                     if (eff != NULL) {
                         Task_Reparent(arg0, eff->task);
                     }
@@ -1402,12 +1402,12 @@ void func_actor_510900_80131F24(Task* arg0)
                 base->framesLeft = 2;
                 slot->inner      = 0x190;
                 slot->outer      = 0x190;
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx     = -((Gp_LcgState >> 16) % 0x280) - 0x80;
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx     = -((gRandomLcgState >> 16) % 0x280) - 0x80;
                 mem->move.vy     = 0x80;
                 mem->move.vz     = 0;
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                eff              = Gp_SpawnEff(0x60059, coord, ((Gp_LcgState >> 16) & 0xF0) | 0x100, &mem->move);
+                gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                eff              = Gp_SpawnEff(0x60059, coord, ((gRandomLcgState >> 16) & 0xF0) | 0x100, &mem->move);
                 if (eff != NULL) {
                     Task_Reparent(arg0, eff->task);
                 }
@@ -1464,12 +1464,12 @@ void func_actor_510900_80132D4C(Task* arg0)
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg0->state == 0) {
-                mem->scale  = (u16)arg0->spawnArg1.value & 0xFFF;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->angle  = ((u32)Gp_LcgState >> 16) & 0xF;
+                mem->scale      = (u16)arg0->spawnArg1.value & 0xFFF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->angle      = (gRandomLcgState >> 16) & 0xF;
                 if (arg0->spawnArg1.value & 0x10000) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->period     = (gRandomLcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
@@ -1576,8 +1576,8 @@ void func_actor_510900_801332EC(Task* arg0)
                 }
                 mem->scale = amt;
                 if (arg0->spawnArg1.value & 0x10000) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->period     = (gRandomLcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
@@ -1672,8 +1672,8 @@ void func_actor_510900_8013371C(Task* arg0)
                 }
                 mem->scale = amt;
                 if (mem->period = (u16)((u32)arg0->spawnArg1.value >> 16) & 1) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->period     = (gRandomLcgState >> 16) % 0x30;
                 }
                 arg0->state++;
             }
@@ -1770,9 +1770,9 @@ void func_actor_510900_80133C84(Task* arg0)
                 } else {
                     amt = 0x200;
                 }
-                mem->scale  = amt;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                mem->period = ((u32)Gp_LcgState >> 16) % 0x30;
+                mem->scale      = amt;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->period     = (gRandomLcgState >> 16) % 0x30;
                 arg0->state++;
             }
             prim->tpage = 0x4B;
@@ -1904,21 +1904,21 @@ void func_actor_510900_80134284(Task* arg0)
     }
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        eff->move.vx = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        eff->move.vy = -((Gp_LcgState >> 16) & 0x3F) - 0x10;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        eff->move.vz = 0x20 - ((Gp_LcgState >> 16) & 0x3F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        step         = 2;
-        if (((Gp_LcgState >> 16) & 3) != 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        eff->move.vx    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        eff->move.vy    = -((gRandomLcgState >> 16) & 0x3F) - 0x10;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        eff->move.vz    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        step            = 2;
+        if (((gRandomLcgState >> 16) & 3) != 0) {
             step = 1;
         }
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        eff->scale  = step;
-        eff->angle  = (((u32)rng >> 16) & 1) + 1;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        eff->scale      = step;
+        eff->angle      = (((u32)rng >> 16) & 1) + 1;
+        gRandomLcgState = rng;
         arg0->state++;
     }
     block->vec0.vx      = (u16)coord->workm.t[0];
@@ -2046,9 +2046,9 @@ void func_actor_510900_8013482C(Task* arg0)
         if (arg0->spawnArg1.value & 0xFFF) {
             scale = arg0->spawnArg1.halves.low & 0xFFF;
         }
-        eff->scale  = scale;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        eff->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        eff->scale      = scale;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        eff->angle      = (gRandomLcgState >> 16) & 0xFFF;
         if (arg0->spawnArg1.value & 0xF000) {
             step = (arg0->spawnArg1.value >> 12) & 0xF;
         } else {
@@ -2059,12 +2059,12 @@ void func_actor_510900_8013482C(Task* arg0)
         tmp         = arg0->spawnArg1.signedBytes[3];
         eff->index  = tmp & 0xF;
         if (eff->index != 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            eff->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            eff->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            eff->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            eff->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            eff->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            eff->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
             gte_lddp(eff->scale << 3);
             gte_ldsv(&eff->move);
             gte_gpf12();

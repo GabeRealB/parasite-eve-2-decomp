@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the incinerator boss library; see incinerator_boss.h. */
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131F0C`:
@@ -55,8 +57,8 @@ void incinBossChunkSpawn(Enemy* enemy, Task* task)
     pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 0x10) & 0x1FF, 1);
 
     vec.vx = vec.vy = vec.vz = 0;
 

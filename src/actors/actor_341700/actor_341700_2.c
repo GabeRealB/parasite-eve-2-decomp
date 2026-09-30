@@ -20,7 +20,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -990,12 +990,12 @@ static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
         if (*p == 0) {
             return;
         }
-        rnd         = Gp_LcgState * 5 + 0x71357911;
-        t           = (rnd >> 16) & 0xFF;
-        index       = *p;
-        r           = t;
-        Gp_LcgState = rnd;
-        vec         = table[index];
+        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        t               = (rnd >> 16) & 0xFF;
+        index           = *p;
+        r               = t;
+        gRandomLcgState = rnd;
+        vec             = table[index];
         if (r % 2) {
             r = -t;
         }

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 
 /// Draws the beam between two rings of eight coordinate frames as seven
@@ -143,14 +145,14 @@ static inline void RoomFx_SparkBurstTask(Task* task)
             break;
 
         case 1:
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            work->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x60070, objCoord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x82003400,
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x60070, objCoord, ((gRandomLcgState >> 16) & 0x1FF) | 0x82003400,
                         &work->move);
             if (work->age >= 7) {
                 task->state = 3;

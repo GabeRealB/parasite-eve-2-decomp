@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Starts a walk: requests animation 7, plays the enemy's sound 1, draws a
@@ -20,8 +22,8 @@ void hopperWalkStart(Task* arg0)
     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
     pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_410 = (Gp_LcgState >> 0x10) & 0x7FF;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_410 = (gRandomLcgState >> 0x10) & 0x7FF;
     if (work->field_43A < 1000) {
         work->field_41C = 0x10;
         work->field_436 = 0x10;

@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Plays sound 4 on the first frame and, once the hit flags are set, turns
@@ -20,7 +22,7 @@ void hopperLeapTurnAway(Task* arg0)
     }
     if (hopperAnimEnded(arg0) != 0) {
         work->field_438  = 0;
-        rand             = Gp_LcgState * 5 + 0x71357911;
+        rand             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->field_44A  = ((rand >> 16) & 0x7F) + 0x5A;
         work->field_7A  += 0x800;
         work2            = (Actor341700Work*)arg0->work;
@@ -28,7 +30,7 @@ void hopperLeapTurnAway(Task* arg0)
         work2->field_418 = 0xD;
         work2->field_414 = 2;
         work3            = (Actor341700Work*)arg0->work;
-        Gp_LcgState      = rand;
+        gRandomLcgState  = rand;
         arg0->state      = 1;
         work3->field_420 = 0;
         work3->field_422 = 0;

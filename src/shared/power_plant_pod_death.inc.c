@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the power plant pod library; see power_plant_pod.h. */
 
 /// Death handler of the main task (its state 2). Death state `field_32E` 3 is
@@ -66,14 +68,14 @@ void podDeathState(Enemy* arg0, Task* arg1)
                 work->field_328 = 0;
                 work->field_32C = 0;
                 work->field_32E = 1;
-                r               = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = r;
+                r               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = r;
             } else {
                 work->field_328 = 0;
                 work->field_32C = 0;
                 work->field_32E = 1;
-                r               = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = r;
+                r               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = r;
             }
             flag                = 1;
             work->field_32A     = (((u32)r >> 16) & 0xF) + 0xA;
@@ -96,8 +98,8 @@ void podDeathState(Enemy* arg0, Task* arg1)
                     scale = ((s16)work->field_326 * (s16)clip->field_2) >> 12;
                     if (clip->field_0 != 0) {
                         work->field_32C = 0;
-                        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                        work->field_32A = ((Gp_LcgState >> 16) & 0xF) + 0xA;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        work->field_32A = ((gRandomLcgState >> 16) & 0xF) + 0xA;
                     } else {
                         work->field_32A++;
                     }
@@ -105,30 +107,30 @@ void podDeathState(Enemy* arg0, Task* arg1)
             }
             modelPlacementSetScaled(arg1, &work->field_2FC, scale, 0);
             if (!(work->field_328 & 3)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                x               = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     x = -x;
                 }
-                ofs.vx      = x;
-                ofs.vy      = -0x9C4;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                ofs.vx          = x;
+                ofs.vy          = -0x9C4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                z               = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     z = -z;
                 }
                 ofs.vz = z;
                 Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                x2              = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     x2 = -x2;
                 }
-                ofs.vx      = x2;
-                ofs.vy      = -0x960;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                ofs.vx          = x2;
+                ofs.vy          = -0x960;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                z2              = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     z2 = -z2;
                 }
                 ofs.vz = z2;
@@ -159,30 +161,30 @@ void podDeathState(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             work->field_328++;
             if (!(work->field_328 & 3)) {
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                x               = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     x = -x;
                 }
-                ofs.vx      = x;
-                ofs.vy      = -0x9C4;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z           = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                ofs.vx          = x;
+                ofs.vy          = -0x9C4;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                z               = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     z = -z;
                 }
                 ofs.vz = z;
                 Gp_SpawnEff(0x600E0, coord, 0x400, &ofs);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                x2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                x2              = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     x2 = -x2;
                 }
-                ofs.vx      = x2;
-                ofs.vy      = -0x960;
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                z2          = (Gp_LcgState >> 16) & 0x3FF;
-                if (!((Gp_LcgState >> 16) & 0x400)) {
+                ofs.vx          = x2;
+                ofs.vy          = -0x960;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                z2              = (gRandomLcgState >> 16) & 0x3FF;
+                if (!((gRandomLcgState >> 16) & 0x400)) {
                     z2 = -z2;
                 }
                 ofs.vz = z2;

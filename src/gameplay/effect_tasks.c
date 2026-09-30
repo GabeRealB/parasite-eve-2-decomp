@@ -21,7 +21,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/display.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -231,8 +231,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                 switch (arg0->spawnArg1.value) {
                     case 1:
                     default:
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rng;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rng;
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
@@ -242,8 +242,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                         break;
                     case 2:
                     case 3:
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rng;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rng;
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx         = arg0->spawnArg1.value;
                         arg0->state = 1;
@@ -254,9 +254,9 @@ void Gp_EffCtlTask2B(Task* arg0)
                     case 30:
                     case 31:
                     case 32:
-                        arg0->state = 2;
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rng;
+                        arg0->state     = 2;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rng;
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
                         Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
@@ -271,10 +271,10 @@ void Gp_EffCtlTask2B(Task* arg0)
                         base->framesLeft = 0;
                         break;
                     case 33:
-                        mem->index  = 1;
-                        arg0->state = 1;
-                        rng         = Gp_LcgState * 5 + 0x71357911;
-                        Gp_LcgState = rng;
+                        mem->index      = 1;
+                        arg0->state     = 1;
+                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        gRandomLcgState = rng;
                         Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1.value;
                         Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
@@ -287,8 +287,8 @@ void Gp_EffCtlTask2B(Task* arg0)
                 }
                 break;
             case 1:
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                 arg0->state++;
                 break;
@@ -336,24 +336,24 @@ void Gp_EffCtlTask6A(Task* arg0)
                 coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
                 coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = (Gp_LcgState >> 16) & 0x1FF;
-                mem->move.vx = 0;
-                mem->move.vy = 0;
-                mem->move.vz = -(mem->scale >> 1);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
+                mem->move.vx    = 0;
+                mem->move.vy    = 0;
+                mem->move.vz    = -(mem->scale >> 1);
                 Gp_SpawnEff(0x60034, coord, mem->scale + 0x600, &mem->move);
                 arg0->state                    = 1;
                 gRoomEffectState->burstRequest = true;
                 break;
             case 1:
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x11280,
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x11280,
                             &mem->move);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x21280,
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21280,
                             &mem->move);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gp_SpawnEff(0x60035, coord, ((Gp_LcgState >> 16) & 0x1FF) + 0x31280,
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x31280,
                             &mem->move);
                 arg0->state++;
                 break;
@@ -406,14 +406,14 @@ void Gp_EffCtlTask6B(Task* arg0)
             coord->coord.t[2]                             = D_801124DC[arg0->spawnArg1.value].vz;
             coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((u32)Gp_LcgState >> 16) & 0x1FF;
-            mem->move.vx = 0;
-            mem->move.vy = 0;
-            mem->move.vz = -(mem->scale >> 1);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
+            mem->move.vx    = 0;
+            mem->move.vy    = 0;
+            mem->move.vz    = -(mem->scale >> 1);
             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
             idx         = arg0->spawnArg1.value;
             arg0->state = 1;
             Gp_SpawnEff(0x60067, coord, idx, &D_801125EC[idx]);
@@ -480,8 +480,8 @@ void func_800ED42C(Task* arg0)
                 switch (arg0->spawnArg1.value) {
                     case 1:
                     default:
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        mem->scale  = ((u32)Gp_LcgState >> 16) & 0x1FF;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
                         if (mem->index == 0xD) {
                             mem->move.vx = 0;
                             mem->move.vy = 0;
@@ -499,26 +499,26 @@ void func_800ED42C(Task* arg0)
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
-                                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
-                                                   ((u32)Gp_LcgState >> 16) & 0xFFF);
+                                                   (gRandomLcgState >> 16) & 0xFFF);
                             }
                             mem->scale = 4;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x200, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
                         arg0->state = 1;
                         break;
                     case 15:
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        mem->scale  = ((u32)Gp_LcgState >> 16) & 0x1FF;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
                         if (mem->index == 0xD) {
                             mem->move.vx = 0;
                             mem->move.vy = 0;
@@ -535,27 +535,27 @@ void func_800ED42C(Task* arg0)
                             mem->move.vy = 0;
                             mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, &mem->move);
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
-                                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
-                                                   ((u32)Gp_LcgState >> 16) & 0xFFF);
+                                                   (gRandomLcgState >> 16) & 0xFFF);
                             }
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x200, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
                         Gp_SpawnEff(0x60068, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
                         arg0->state = 2;
                         mem->scale  = 4;
                         break;
                     case 23:
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        mem->scale  = ((u32)Gp_LcgState >> 16) & 0x1FF;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
                         if (mem->index == 0xD) {
                             mem->move.vx = 0;
                             mem->move.vy = 0;
@@ -587,21 +587,21 @@ void func_800ED42C(Task* arg0)
                             gte_rtv0();
                             gte_stsv(vec);
                             Gp_SpawnEff(0x60034, coord, mem->scale + 0x380, vec);
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x60072, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
                             if (mem->index == 0xF) {
-                                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 Gp_DrawEffSprite6C(coord, (s16)(mem->scale + 0x280),
-                                                   ((u32)Gp_LcgState >> 16) & 0xFFF);
+                                                   (gRandomLcgState >> 16) & 0xFFF);
                             }
                             Gfx_RotMatrixX(&coord->coord, 0x400, 0);
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
-                        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                        Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x20300, 0);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
                         for (i = 0; i < 4; i++) {
-                            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                            Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) | 0x200, 0);
+                            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
                         }
                         Gp_SpawnEff(0x60068, mem->parent, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
                         arg0->state = 2;
@@ -668,18 +668,18 @@ void Gp_EffCtlTask6C(Task* arg0)
                 coord->coord.t[2]                             = D_801126FC[arg0->spawnArg1.value].vz;
                 coord->composeStamp                           = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
-                rng         = Gp_LcgState * 5 + 0x71357911;
-                idx         = ((u32)rng >> 16) & 0x1FF;
-                rng2        = rng * 5 + 0x71357911;
-                Gp_LcgState = rng;
-                mem->scale  = idx;
-                Gp_LcgState = rng2;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                idx             = ((u32)rng >> 16) & 0x1FF;
+                rng2            = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
+                mem->scale      = idx;
+                gRandomLcgState = rng2;
                 Gp_DrawEffSprite6C(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
                 for (i = 0; i < 4; i++) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21380, 0);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x6006F, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x21380, 0);
                 }
                 switch (arg0->spawnArg1.value) {
                     case 1:
@@ -704,14 +704,14 @@ void Gp_EffCtlTask6C(Task* arg0)
                 break;
             case 1:
                 if (mem->age == mem->scale) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x12180,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x12180,
                                 &D_8011280C[arg0->spawnArg1.value]);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x22180,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x22180,
                                 &D_8011280C[arg0->spawnArg1.value]);
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x32180,
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    Gp_SpawnEff(0x60035, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x32180,
                                 &D_8011280C[arg0->spawnArg1.value]);
                     Gp_SpawnEff(0x60091, coord, arg0->spawnArg1.value + mem->angle,
                                 &D_8011280C[arg0->spawnArg1.value]);
@@ -747,10 +747,10 @@ void Gp_EffSprTask34(Task* arg0)
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (mem->age == 0) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState = rng;
-            mem->angle  = arg0->spawnArg1.halves.low;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((u32)rng >> 16) & 0xFFF;
+            gRandomLcgState = rng;
+            mem->angle      = arg0->spawnArg1.halves.low;
         }
         head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
@@ -830,11 +830,11 @@ void Gp_EffSprTask72(Task* arg0)
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = (((u32)rng >> 16) & 0x800) - 0x200;
-            Gp_LcgState = rng;
-            mem->angle  = arg0->spawnArg1.halves.low;
-            arg0->state = 1;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (((u32)rng >> 16) & 0x800) - 0x200;
+            gRandomLcgState = rng;
+            mem->angle      = arg0->spawnArg1.halves.low;
+            arg0->state     = 1;
         }
         head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
@@ -914,15 +914,15 @@ void Gp_EffLineTaskA3(Task* arg0)
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((u32)Gp_LcgState >> 16) % 3 + 1;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-            arg0->state  = 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) % 3 + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = ((gRandomLcgState >> 16) & 0x1FF) + 0x200;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+            arg0->state     = 1;
         }
         head                                        = SCRATCH_STACK_CURSOR(u8);
         ((GpEffLineScratch*)(head - 0x20))->vec0.vx = (u16)coord->workm.t[0];
@@ -1070,10 +1070,10 @@ void Gp_EffSprTask35(Task* arg0)
         }
     } else {
         if (arg0->state == 0) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState = rng;
-            mem->angle  = arg0->spawnArg1.halves.low & 0xFFF;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((u32)rng >> 16) & 0xFFF;
+            gRandomLcgState = rng;
+            mem->angle      = arg0->spawnArg1.halves.low & 0xFFF;
             if (arg0->spawnArg1.value & 0xF0000) {
                 val = (arg0->spawnArg1.value >> 16) & 0xF;
             } else {
@@ -1081,12 +1081,12 @@ void Gp_EffSprTask35(Task* arg0)
             }
             mem->period = val;
             if (arg0->spawnArg1.value & 0x1000) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
             }
             arg0->state = 1;
         }
@@ -1180,17 +1180,17 @@ void Gp_EffSprTask6F(Task* arg0)
     } else {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            mem->angle   = arg0->spawnArg1.halves.low & 0xFFF;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->period  = (((u32)Gp_LcgState >> 16) & 1) + 1;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = ((u32)Gp_LcgState >> 14) & 0x7C;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+            mem->angle      = arg0->spawnArg1.halves.low & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->period     = ((gRandomLcgState >> 16) & 1) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = (gRandomLcgState >> 14) & 0x7C;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
             gte_SetRotMatrix(&mem->parent->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();
@@ -1292,42 +1292,42 @@ void Gp_EffModelTask(Task* arg0)
         switch (arg0->spawnArg1.value) {
             case 1:
             default:
-                mem->scale   = 0xD4;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0xD4;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 2:
-                mem->scale   = 0x100;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0x100;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 3:
-                mem->scale   = 0x114;
-                mem->angle   = 0xF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0x114;
+                mem->angle      = 0xF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
@@ -1336,14 +1336,14 @@ void Gp_EffModelTask(Task* arg0)
             case 30:
             case 31:
             case 32:
-                mem->scale   = 0x114;
-                mem->angle   = 0xA;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0x114;
+                mem->angle      = 0xA;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
@@ -1351,29 +1351,29 @@ void Gp_EffModelTask(Task* arg0)
                 break;
             case 5:
             case 33:
-                mem->scale   = 0xD4;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0xD4;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 9:
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
@@ -1387,28 +1387,28 @@ void Gp_EffModelTask(Task* arg0)
             case 27:
             case 28:
             case 29:
-                mem->scale   = 0x114;
-                mem->angle   = 0xF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0x114;
+                mem->angle      = 0xF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 17:
-                mem->scale   = 0x114;
-                mem->angle   = 5;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0xFF80 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                mem->scale      = 0x114;
+                mem->angle      = 5;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x40;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0xFF80 - ((gRandomLcgState >> 16) & 0x3F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
@@ -1417,28 +1417,28 @@ void Gp_EffModelTask(Task* arg0)
             case 13:
             case 14:
             case 15:
-                mem->scale   = 0xBF;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((u32)Gp_LcgState >> 16) & 0x7F;
+                mem->scale      = 0xBF;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (gRandomLcgState >> 16) & 0x7F;
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 23:
-                mem->scale   = 0xBF;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0xFFA0 - (((u32)Gp_LcgState >> 16) & 0x3F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = -(((u32)Gp_LcgState >> 16) & 0x7F);
+                mem->scale      = 0xBF;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0xFFA0 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = -((gRandomLcgState >> 16) & 0x7F);
                 memset(&tmp, 0, 0x10);
                 tmp.vx = mem->move.vx;
                 tmp.vy = mem->move.vy;
@@ -1450,42 +1450,42 @@ void Gp_EffModelTask(Task* arg0)
                 mem->move.vz = vec.vz;
                 break;
             case 11:
-                mem->scale   = 0x60;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = ((((u32)Gp_LcgState >> 16) & 0x1F) + 0x10);
+                mem->scale      = 0x60;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = (((gRandomLcgState >> 16) & 0x1F) + 0x10);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 12:
-                mem->scale   = 0x80;
-                mem->angle   = 0xF;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                mem->scale      = 0x80;
+                mem->angle      = 0xF;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0xFFC0 - ((gRandomLcgState >> 16) & 0x3F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
                 gte_stsv(&mem->move);
                 break;
             case 37:
-                mem->scale   = 0x60;
-                mem->angle   = 0x14;
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                mem->scale      = 0x60;
+                mem->angle      = 0x14;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0xFFF0 - ((gRandomLcgState >> 16) & 0x1F);
                 gte_SetRotMatrix(&mem->parent->coord);
                 gte_ldv0(&mem->move);
                 gte_rtv0();
@@ -1493,12 +1493,12 @@ void Gp_EffModelTask(Task* arg0)
                 break;
         }
         VectorNormalSS(&mem->move, &mem->move);
-        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vx         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vy         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-        Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-        mem->pos.vz         = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vx         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vy         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+        gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->state         = 1;
         Gfx_RotMatrixX(&coord->coord, 0x800, 0);
@@ -1580,15 +1580,15 @@ void Gp_EffCtlTask6E(Task* arg0)
         coord->coord.t[2]    += mem->pos.vz;
         coord->composeStamp   = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
-        arg0->state = 1;
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        arg0->state     = 1;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
     }
     Gp_SpawnEff(0x60091, coord, arg0->spawnArg1.value, 0);
@@ -1641,29 +1641,29 @@ void Gp_EffTileTaskA4(Task* arg0)
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
         if (arg0->spawnArg1.value != 0) {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
         } else {
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x100;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = ((gRandomLcgState >> 16) & 0xFF) + 0x100;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
 
             gte_SetRotMatrix(&mem->parent->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();
             gte_stsv(&mem->move);
 
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = ((u32)Gp_LcgState >> 16) % 3 + 1;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->angle  = (((u32)Gp_LcgState >> 16) & 1) + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = (gRandomLcgState >> 16) % 3 + 1;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->angle      = ((gRandomLcgState >> 16) & 1) + 1;
         }
         arg0->state = 1;
     }
@@ -1720,9 +1720,9 @@ void Gp_EffCtlTask3B(Task* arg0)
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->scale  = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->scale      = ((u32)rng >> 16) & 0xFFF;
+            gRandomLcgState = rng;
             if (arg0->spawnArg1.value & 0xFFF) {
                 mem->angle = arg0->spawnArg1.halves.low & 0xFFF;
             } else {
@@ -1841,10 +1841,10 @@ void Gp_EffSprTask5C(Task* arg0)
             if (arg0->spawnArg1.value & 0xFFF) {
                 scale = arg0->spawnArg1.halves.low & 0xFFF;
             }
-            mem->scale  = scale;
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            mem->angle  = ((u32)rng >> 16) & 0xFFF;
-            Gp_LcgState = rng;
+            mem->scale      = scale;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->angle      = ((u32)rng >> 16) & 0xFFF;
+            gRandomLcgState = rng;
             if (arg0->spawnArg1.value & 0xF000) {
                 step = (arg0->spawnArg1.value >> 12) & 0xF;
             } else {
@@ -1855,12 +1855,12 @@ void Gp_EffSprTask5C(Task* arg0)
             tmp         = arg0->spawnArg1.signedBytes[3];
             mem->index  = tmp & 0xF;
             if (mem->index != 0) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gte_lddp(mem->scale << 3);
                 gte_ldsv(&mem->move);
                 gte_gpf12();
@@ -1990,9 +1990,9 @@ void func_800F289C(Task* arg0)
             if (arg0->spawnArg1.value & 0xFFF) {
                 scale = arg0->spawnArg1.halves.low & 0xFFF;
             }
-            mem->scale  = scale;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            mem->scale      = scale;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
             if (arg0->spawnArg1.value & 0xF000) {
                 mem->period = (arg0->spawnArg1.value >> 12) & 0xF;
             } else {
@@ -2008,19 +2008,19 @@ void func_800F289C(Task* arg0)
             mem->index = mode;
             if (mode != 0) {
                 if (mode == 1) {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = (((u32)Gp_LcgState >> 16) & 0xF) * 3;
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 8 - (((u32)Gp_LcgState >> 16) & 0xF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = ((gRandomLcgState >> 16) & 0xF) * 3;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
                 } else {
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                     gte_lddp((mem->scale << 3));
                     gte_ldsv(&mem->move);
                     gte_gpf12();
@@ -2037,26 +2037,26 @@ void func_800F289C(Task* arg0)
             } else {
                 switch (mem->step) {
                     case 1:
-                        mem->move.vx = 0;
-                        mem->move.vz = 0;
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0xF) - 0x20;
+                        mem->move.vx    = 0;
+                        mem->move.vz    = 0;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = -((gRandomLcgState >> 16) & 0xF) - 0x20;
                         break;
                     case 2:
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vy = -(((u32)Gp_LcgState >> 0x10) & 0x1F) - 0x10;
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = -((gRandomLcgState >> 0x10) & 0x1F) - 0x10;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                         break;
                     case 3:
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vy = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 0x10) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                         gte_lddp((mem->scale << 2));
                         gte_ldsv(&mem->move);
                         gte_gpf12();
@@ -2179,11 +2179,11 @@ void Gp_EffSprTask76(Task* arg0)
             } else {
                 scale = 0x200;
             }
-            mem->scale  = scale;
-            rng         = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = rng;
-            mem->angle  = ((u32)rng >> 16) & 0xFFF;
-            arg0->state = 1;
+            mem->scale      = scale;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
+            mem->angle      = ((u32)rng >> 16) & 0xFFF;
+            arg0->state     = 1;
         }
         prim->code |= 3;
         prim->tpage = ((Gp_EffSprRecs[mem->age].tpageX & 0x3FF) >> 6) | 0x20;
@@ -2251,24 +2251,24 @@ void Gp_EffSprTask7C(Task* arg0)
         if (arg0->spawnArg1.value & 0xFFF) {
             scale = arg0->spawnArg1.halves.low & 0xFFF;
         }
-        mem->scale  = scale;
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        mem->angle  = ((u32)rng >> 16) & 0xFFF;
-        Gp_LcgState = rng;
+        mem->scale      = scale;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->angle      = ((u32)rng >> 16) & 0xFFF;
+        gRandomLcgState = rng;
         if (arg0->spawnArg1.value & 0xF000) {
             step = (arg0->spawnArg1.value >> 12) & 0xF;
         } else {
             step = 1;
         }
-        mem->period  = step;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->step    = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vx = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vz = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+        mem->period     = step;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->step       = 0x100 - ((gRandomLcgState >> 16) & 0x1F0);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vx    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vy    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
         mem->index++;
     }
     Gp_UpdateCoord(coord);
@@ -2397,28 +2397,28 @@ void func_800F4308(Task* arg0)
         case 10:
             switch (arg0->state) {
                 case 0:
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    vec          = &mem->move;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    vec             = &mem->move;
                     Gp_SpawnEff(0x6005C, coord, 0x600, vec);
-                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
-                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x6007C, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
                     arg0->state++;
                     break;
                 case 1:
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0xD0000400,
                                 &mem->move);
                     if (mem->age >= 7) {
@@ -2426,13 +2426,13 @@ void func_800F4308(Task* arg0)
                     }
                     break;
                 case 2:
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0x82003400,
                                 &mem->move);
                     if (mem->age >= 0xB) {
@@ -2457,25 +2457,25 @@ void func_800F4308(Task* arg0)
         case 11:
             switch (arg0->state) {
                 case 0:
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                    Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                    mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     Gp_SpawnEff(0x60076, coord, 0x500, &mem->move);
                     condInc = mem->age < 2;
                     goto maybe11;
                 case 1:
                     i = 0;
                     do {
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
                                     &mem->move);
                         i += 1;
@@ -2485,13 +2485,13 @@ void func_800F4308(Task* arg0)
                 case 2:
                     i = 0;
                     do {
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                        mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                        rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0xFF) | 0xD0000400,
                                     &mem->move);
                         i += 1;
@@ -2540,25 +2540,25 @@ void func_800F4308(Task* arg0)
                 }
                 goto skip12;
             }
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             Gp_SpawnEff(0x60076, coord, 0x500, &mem->move);
             condInc = mem->age < 2;
             goto maybe12;
         case12_1:
             i = 0;
             do {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vx = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vz = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
-                rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+                rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 Gp_SpawnEff(0x60070, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
                             &mem->move);
                 i += 1;
@@ -2623,18 +2623,18 @@ void Gp_EffLineTask92(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     if (mem->age == 0) {
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vx = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vy = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        step         = 2;
-        if ((((u32)Gp_LcgState >> 16) & 3) != 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vx    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vy    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vz    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        step            = 2;
+        if (((gRandomLcgState >> 16) & 3) != 0) {
             step = 1;
         }
-        rng                  = Gp_LcgState * 5 + 0x71357911;
+        rng                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         one                  = ONE;
         m                    = &coord->coord;
         mem->angle           = (((u32)rng >> 16) & 1) + 1;
@@ -2647,7 +2647,7 @@ void Gp_EffLineTask92(Task* arg0)
         mem->pos.vx          = (u16)coord->workm.t[0];
         mem->pos.vy          = (u16)coord->workm.t[1];
         mem->pos.vz          = (u16)coord->workm.t[2];
-        Gp_LcgState          = rng;
+        gRandomLcgState      = rng;
     }
     coord->coord.t[0]  += mem->move.vx;
     coord->coord.t[1]  += mem->move.vy;
@@ -2807,9 +2807,9 @@ static void Gp_DrawEffShard(GfxCoord* arg0, s16 arg1, s16 arg2, u16 arg3)
             block->dy = 0x2400 / block->otz;
             ang       = 0;
             do {
-                rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                tri               = gGpuPrimCursor;
-                gGpuPrimCursor    = tri + 1;
+                rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tri                   = gGpuPrimCursor;
+                gGpuPrimCursor        = tri + 1;
                 setlen(tri, 6);
                 setcode(tri, 0x30);
                 tri->r0 = r;
@@ -2856,8 +2856,8 @@ void Gp_EffSprTask9E(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gfxRotMatrixY(&coord->coord, (gRandomLcgState >> 16) & 0xFFF, 1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->spawnArg1.value & 0xFFF) {
             scale = arg0->spawnArg1.halves.low & 0xFFF;
@@ -2956,21 +2956,21 @@ void Gp_EffSprTask54(Task* arg0)
 
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        mem->scale  = arg0->spawnArg1.halves.low & 0xFFF;
-        mem->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->scale      = arg0->spawnArg1.halves.low & 0xFFF;
+        mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
         if (arg0->spawnArg1.value & 0xF000) {
             count = (arg0->spawnArg1.value >> 12) & 0xF;
         } else {
             count = 1;
         }
-        mem->period  = count;
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vx = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0xF);
-        Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-        mem->move.vz = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+        mem->period     = count;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vy    = -((gRandomLcgState >> 16) & 0xF);
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
         if (arg0->spawnArg1.value < 0) {
             if (mem->angle & 1) {
                 Gp_SpawnEff(0x60054, coord, ((mem->scale * 3) >> 2) + 0x3000, NULL);

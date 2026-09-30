@@ -30,7 +30,7 @@
 #include "gameplay/world_targets.h"
 
 #include "main/coord.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/gfxgte.h"
@@ -271,7 +271,7 @@ typedef struct Actor107000Work {
     /* 0x2CA */ s16                   field_2CA; // angle the transform is scaled by
     /* 0x2CC */ s16                   field_2CC; // countdown seeded by the damage branch
     /* 0x2CE */ s16                   field_2CE; // remaining hit cooldown
-    /* 0x2D0 */ u16                   field_2D0; // frames until the next sound cue; re-rolled from `Gp_LcgState`
+    /* 0x2D0 */ u16                   field_2D0; // frames until the next sound cue; re-rolled from `gRandomLcgState`
     /* 0x2D2 */ s16                   field_2D2; // non-zero: the rebind is suppressed
     /* 0x2D4 */ u16                   field_2D4; // frames the reaction has run; the death branch fires at 5
     /* 0x2D6 */ s16                   field_2D6; // selects the sound event's high half
@@ -1105,7 +1105,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1);
 /// `field_382`, then hands back the collision record the caller armed. A
 /// countdown of 0xBB8 or more, or a record with no slot matching the 0x10000
 /// kind, clears the branch and `field_36E` instead. Otherwise the branch is 3
-/// when the first `Gp_LcgState` draw folds to under 11, 2 when the target is
+/// when the first `gRandomLcgState` draw folds to under 11, 2 when the target is
 /// 2500 units or further. Closer than that, a second draw is taken: it lands on
 /// 1 when that draw folds to 11 or more, and the branch stays 2 when it does
 /// not. Either way `field_374`/`field_372` are reset, and the record is released.
@@ -1408,7 +1408,7 @@ static void Actor07000_Fn00478(Task* arg0)
 /// state through `Gp_ArmStateF0`. The record is released either way.
 ///
 /// While the work plays animation 1 the arm also counts `field_2D0` down and,
-/// when it expires, re-rolls it from `Gp_LcgState` to between 0x50 and 0xB3
+/// when it expires, re-rolls it from `gRandomLcgState` to between 0x50 and 0xB3
 /// frames and cues a sound event, `field_2D6` choosing between the two ids.
 /// `field_2BE` is then set from the frames spent on the animation - 0x14 in
 /// the first window, -0x14 in the second, 0 outside both - the frame count
@@ -1440,8 +1440,8 @@ static void Actor07000_Fn00654(Task* arg0)
         countdown       = work->field_2D0 - 1;
         work->field_2D0 = countdown;
         if ((countdown << 16) <= 0) {
-            rng             = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState     = rng;
+            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = rng;
             work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
             if (work->field_2D6 != 0) {
                 soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
@@ -1472,7 +1472,7 @@ static void Actor07000_Fn00654(Task* arg0)
 /// the shared epilogue, so the switch's default is a jump straight there.
 ///
 /// Stage 1 ticks `field_2D0` down and, when it runs out, re-rolls it from
-/// `Gp_LcgState` as `(state >> 16) % 100 + 0x50` frames - between 0x50 and 0xB3.
+/// `gRandomLcgState` as `(state >> 16) % 100 + 0x50` frames - between 0x50 and 0xB3.
 /// The re-roll also cues a sound event: `field_2D6` picks between the two
 /// half-ids, the actor id in bits 12+ of the context's `field_8` supplies the
 /// sound bank, and the pan and depth of the model's coordinate are passed
@@ -1507,8 +1507,8 @@ static void Actor07000_Fn00854(Task* arg0)
             countdown       = work->field_2D0 - 1;
             work->field_2D0 = countdown;
             if ((countdown << 16) <= 0) {
-                rng             = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = rng;
+                rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = rng;
                 work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
                 if (work->field_2D6 != 0) {
                     soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
@@ -1929,13 +1929,13 @@ static void Actor07000_Fn016A8(Task* arg0, u8 arg1)
     GfxCoord*        coord;
     s32              soundId;
 
-    obj         = arg0->extra.tmd;
-    enemy       = arg0->spawnArg2.pointer;
-    work        = (Actor107000Work*)arg0->work;
-    coord       = obj->coords;
-    enemy->hp   = 0;
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if (((Gp_LcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
+    obj             = arg0->extra.tmd;
+    enemy           = arg0->spawnArg2.pointer;
+    work            = (Actor107000Work*)arg0->work;
+    coord           = obj->coords;
+    enemy->hp       = 0;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if (((gRandomLcgState >> 0x10) & 2) || (arg1 & 0xFF)) {
         if (work->field_2D6 != 0) {
             soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000B;
             SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -2620,7 +2620,7 @@ static void Actor07000_Fn02D78(Task* task)
 /// `Actor07000_D0003C`: allocates the 0x39C-byte `Actor107000Spawn2Work`,
 /// rebinds the model's light and colour matrices into it, links the enemy
 /// node and the three render nodes with their collision tables, seeds the six
-/// helper animation slots, draws the two `Gp_LcgState` timers `field_390`/
+/// helper animation slots, draws the two `gRandomLcgState` timers `field_390`/
 /// `field_392`, installs `Actor07000_Fn06750` as the exit callback and moves
 /// the task on to its per-frame state.
 static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
@@ -2713,11 +2713,11 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     Gp_InitRec18Table(work->field_2CC, 1, 0);
     work->field_394    = 0;
     work->obj3.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    rng                = Gp_LcgState * 5 + 0x71357911;
-    Gp_LcgState        = rng;
+    rng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState    = rng;
     work->field_390    = (u16)((rng >> 16) % 20U + 0x50);
-    rng2               = rng * 5 + 0x71357911;
-    Gp_LcgState        = rng2;
+    rng2               = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState    = rng2;
     work->field_392    = (u16)((rng2 >> 16) % 50U + 0x32);
     arg1->exitCallback = Actor07000_Fn06750;
     arg1->state       += 1;
@@ -2854,10 +2854,10 @@ static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
             work->field_36E++;
             if ((s16)work->field_36E > work->field_390) {
                 work->field_36E = 0;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_390 = (Gp_LcgState >> 16) % 20 + 80;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                if ((u16)((Gp_LcgState >> 16) % 100) < 31U) {
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_390 = (gRandomLcgState >> 16) % 20 + 80;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                if ((u16)((gRandomLcgState >> 16) % 100) < 31U) {
                     work->field_370 = 2;
                 } else {
                     work->field_370 = 9;
@@ -2889,8 +2889,8 @@ static void Actor07000_Fn03460(Task* arg0, TmdObject* arg1, s32 arg2)
             if ((s16)work->field_374 >= work->field_392 + 18) {
                 work->field_38E = 0;
                 work->field_370 = 1;
-                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                work->field_392 = (Gp_LcgState >> 16) % 50 + 50;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->field_392 = (gRandomLcgState >> 16) % 50 + 50;
             }
             break;
         case 4:
@@ -2946,8 +2946,8 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
                     work->field_36E = 0;
                     work->field_36A = 0;
                     work->field_370 = 2;
-                    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-                    work->field_390 = (Gp_LcgState >> 16) % 20 + 80;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    work->field_390 = (gRandomLcgState >> 16) % 20 + 80;
                 }
             } else {
                 work->field_382 = 1;
@@ -3174,8 +3174,8 @@ static void Actor07000_Fn03E08(Task* arg0)
                         work->field_38A = (s16)cooldown;
                     }
                     work->field_38C   = 1;
-                    random            = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState       = random;
+                    random            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState   = random;
                     work->rotation.vx = (s16)(((random >> 0xB) & 0x60) + 0x100);
                 }
                 break;
@@ -3374,7 +3374,7 @@ static void Actor07000_Fn04468(Enemy* arg0, Task* arg1)
 /// Picks the reaction branch in `field_382` from the collision record at
 /// `field_214` and the distance to the model in pointer slot 3. With no occupant
 /// of kind 0x10000, or at 3000 or more, the branch is cleared. Otherwise a
-/// `Gp_LcgState` draw under 11 of 100 selects branch 3; failing that, 2500 or
+/// `gRandomLcgState` draw under 11 of 100 selects branch 3; failing that, 2500 or
 /// more selects 2, and closer in a second draw picks 2 on the same odds or 1.
 /// A chosen branch restarts the animation bookkeeping. The record is released
 /// either way.
@@ -3390,15 +3390,15 @@ static void Actor07000_Fn046B8(Task* arg0, s32 arg1)
         work->field_382 = 0;
         work->field_36E = 0;
     } else {
-        rng         = Gp_LcgState * 5 + 0x71357911;
-        Gp_LcgState = rng;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
         if ((u16)((rng >> 16) % 100) < 11) {
             work->field_382 = 3;
         } else if (dist >= 2500) {
             work->field_382 = 2;
         } else {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            if ((u16)((Gp_LcgState >> 16) % 100) < 11) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if ((u16)((gRandomLcgState >> 16) % 100) < 11) {
                 work->field_382 = 2;
             } else {
                 work->field_382 = 1;
@@ -3430,7 +3430,7 @@ static s32 Actor07000_Fn047F4(GfxCoord* arg0, u32* arg1)
     return angle;
 }
 
-/// Ground-burst tick of the specimen. The `Gp_LcgState` draw is folded to a
+/// Ground-burst tick of the specimen. The `gRandomLcgState` draw is folded to a
 /// variant and each of the three effect-setup records, with its own part of the
 /// model, is spawned as effect 0x80005: variant 2 uses part 5, variant 3 part 4,
 /// and variants 0 and 1 share part 1. The spawned effect is re-coloured from the
@@ -3441,8 +3441,8 @@ static void Actor07000_Fn049C0(Task* arg0)
     EffectWork* effect;
     s32         r;
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    r           = (Gp_LcgState >> 16) & 3;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    r               = (gRandomLcgState >> 16) & 3;
     switch (r) {
         case 0:
         case 1:
@@ -3474,7 +3474,7 @@ static void Actor07000_Fn049C0(Task* arg0)
 /// Spawn handler of a specimen projectile, entry 0 of `Actor07000_D000E0`.
 /// Allocates the 0x58-byte work, spawns effect 0x60081 on the parent's
 /// coordinate and re-parents the task under it, and derives a launch velocity
-/// from the spawn angle in `spawnArg1` and two `Gp_LcgState` draws, rotated
+/// from the spawn angle in `spawnArg1` and two `gRandomLcgState` draws, rotated
 /// into the coordinate's frame and scaled on the GTE. The coordinate's rotation
 /// is reset to identity and nudged by that velocity, and the render node is
 /// linked with a capsule collision record keyed by `Actor07000_D08078`. The
@@ -3504,21 +3504,21 @@ static void Actor07000_Fn04B18(Task* arg0)
     eff                     = Gp_SpawnEff(0x60081, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;
     Task_Reparent(arg0, eff->task);
-    angle       = arg0->spawnArg1.value;
-    vec->vy     = -rcos(angle);
-    vec->vx     = rsin(angle);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    vec->vz     = 0xE000 - ((Gp_LcgState >> 16) & 0x1FFF);
+    angle           = arg0->spawnArg1.value;
+    vec->vy         = -rcos(angle);
+    vec->vx         = rsin(angle);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    vec->vz         = 0xE000 - ((gRandomLcgState >> 16) & 0x1FFF);
     gfxRotateSv(&coord->coord, vec);
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    gte_lddp(((Gp_LcgState >> 16) & 0x1F) + 0x1E);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gte_lddp(((gRandomLcgState >> 16) & 0x1F) + 0x1E);
     gte_ldsv(vec);
     gte_gpf12();
     gte_stsv(&work->vec);
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0]   += work->vec.vx;
-    Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-    coord->coord.t[1]   += (Gp_LcgState >> 16) & 0x7F;
+    gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    coord->coord.t[1]   += (gRandomLcgState >> 16) & 0x7F;
     coord->coord.t[2]   += work->vec.vz;
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     obj->coord           = coord;
@@ -3658,7 +3658,7 @@ default_body:
 ///
 /// The spawn arg seeds `field_364`/`field_366` the same way it does there, and
 /// a high halfword of 1 kills the specimen instead. The tail draws two numbers
-/// off `Gp_LcgState` for `field_390`/`field_392`, the spawn countdown and the
+/// off `gRandomLcgState` for `field_390`/`field_392`, the spawn countdown and the
 /// running total the spawn cue fires on at 5.
 static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
 {
@@ -3758,12 +3758,12 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->field_394  = 0;
     work->field_396  = 0;
     work->obj3.flags = (u16)(work->obj3.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    work->field_390    = (u16)(((u32)draw >> 16) % 20U + 0x50);
-    draw = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    work->field_392    = (u16)(((u32)draw >> 16) % 50U + 0x32);
-    arg1->msgTable     = Actor07000_D0D7C0;
-    arg1->state        = 4;
+    draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_390        = (u16)(((u32)draw >> 16) % 20U + 0x50);
+    draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_392        = (u16)(((u32)draw >> 16) % 50U + 0x32);
+    arg1->msgTable         = Actor07000_D0D7C0;
+    arg1->state            = 4;
 }
 
 static __inline__ void update_color(Enemy* enemy, GfxCoord* coord)

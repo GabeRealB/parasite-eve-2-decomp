@@ -38,7 +38,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -444,7 +444,7 @@ static void func_actor_503500_80133270(Task* arg0)
 }
 
 /// Per-frame upkeep: ticks the `field_752` slot counters down to 0 while the
-/// boss is in state 0, rolls `field_7C8` from `Gp_LcgState`, stores the yaw to
+/// boss is in state 0, rolls `field_7C8` from `gRandomLcgState`, stores the yaw to
 /// `Player_Status.coordMtx` (offset by `field_7D2`, wrapped into [-0x800, 0x800)) in
 /// `field_7B8`, and when `field_7CC` runs out links or unlinks `field_20`'s
 /// node per `field_7E2`.
@@ -468,8 +468,8 @@ static void func_actor_503500_801334CC(Task* arg0)
             }
         }
     }
-    Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
-    work->field_7C8 = Gp_LcgState >> 16;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_7C8 = gRandomLcgState >> 16;
     coord           = arg0->extra.tmd->coords;
     vec.vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     vec.vy          = 0;
@@ -1001,7 +1001,7 @@ static void func_actor_503500_80134408(Task* arg0)
 
 /// Seven-step state of the boss block. Step 0 applies preset 0x13 and clears
 /// `field_79C`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
-/// frame count, one from `Gp_LcgState`), plays 0x40230012, and at frame 0x97
+/// frame count, one from `gRandomLcgState`), plays 0x40230012, and at frame 0x97
 /// spawns the attached effect task into `field_79C`. Step 2 waits for
 /// `field_7E3`, kills that task and spawns a fresh one; steps 3..6 walk
 /// presets 6, 7 and 8 and finally return the boss to state 0.
@@ -1024,9 +1024,9 @@ static void func_actor_503500_801345F4(Task* arg0)
             if (work->field_7BC < 0x78) {
                 Gp_SpawnEff(0x60055, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(s16)(work->field_7BC % 7)]);
-                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 Gp_SpawnEff(0x60055, &arg0->extra.tmd->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(u16)((Gp_LcgState >> 16) % 7)]);
+                            &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
             }
             if (work->field_7BC == 0x78) {
                 SndEvt_EnqueueType7(0x40230012, 0x3C);

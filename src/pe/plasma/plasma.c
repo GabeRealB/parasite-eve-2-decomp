@@ -22,7 +22,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/sound.h"
 #include "main/task_types.h"
@@ -106,12 +106,12 @@ void func_plasma_8012EF34(Task* arg0)
             mem->index = (Gp_StateC08.field_0 % 10) - 1;
             i          = 0;
             do {
-                Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
-                D_plasma_8012FF54[0][i] = ((u32)Gp_LcgState >> 16) & 0xFF;
-                Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
-                D_plasma_8012FF54[1][i] = ((u32)Gp_LcgState >> 16) & 0xFF;
-                Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
-                D_plasma_8012FF54[2][i] = ((u32)Gp_LcgState >> 16) & 0xFF;
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_plasma_8012FF54[0][i] = (gRandomLcgState >> 16) & 0xFF;
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_plasma_8012FF54[1][i] = (gRandomLcgState >> 16) & 0xFF;
+                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_plasma_8012FF54[2][i] = (gRandomLcgState >> 16) & 0xFF;
                 i++;
             } while (i < 0x10);
             st = 2;

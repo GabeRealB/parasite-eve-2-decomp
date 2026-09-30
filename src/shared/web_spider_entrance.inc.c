@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the web spider library; see web_spider.h. */
 
 /// Behaviour state 8, a scripted entrance: hidden and undrawn until the scene
@@ -75,11 +77,11 @@ void spiderEntranceState(Task* arg0)
                 work->field_294.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->field_214.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
                 do {
-                    velocity->vx = 0;
-                    velocity->vz = 0;
-                    randomRise   = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState  = randomRise;
-                    velocity->vy = ((randomRise >> 0x10) & 0x1FF) + 0x2EE;
+                    velocity->vx    = 0;
+                    velocity->vz    = 0;
+                    randomRise      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = randomRise;
+                    velocity->vy    = ((randomRise >> 0x10) & 0x1FF) + 0x2EE;
                     Gp_SpawnEff(0x6017C, coord, 0, velocity);
                     indexOrSound++;
                 } while (indexOrSound < 5);
@@ -97,15 +99,15 @@ void spiderEntranceState(Task* arg0)
             indexOrSound = 0;
             if ((s16)work->field_396 == 0x27) {
                 do {
-                    randomX      = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState  = randomX;
-                    velocity->vx = -((coord->coord.m[0][2] * (s32)(((randomX >> 16) & 0x3F) + 0xAF)) >> 12);
-                    randomY      = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState  = randomY;
-                    velocity->vy = ((randomY >> 16) & 0x1FF) - 0x6D6;
-                    randomZ      = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState  = randomZ;
-                    velocity->vz = -((coord->coord.m[2][2] * (s32)(((randomZ >> 16) & 0x3F) + 0xAF)) >> 12);
+                    randomX         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = randomX;
+                    velocity->vx    = -((coord->coord.m[0][2] * (s32)(((randomX >> 16) & 0x3F) + 0xAF)) >> 12);
+                    randomY         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = randomY;
+                    velocity->vy    = ((randomY >> 16) & 0x1FF) - 0x6D6;
+                    randomZ         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = randomZ;
+                    velocity->vz    = -((coord->coord.m[2][2] * (s32)(((randomZ >> 16) & 0x3F) + 0xAF)) >> 12);
                     Gp_SpawnEff(0x60051, coord, 0, velocity);
                     indexOrSound++;
                 } while (indexOrSound < 3);
@@ -133,9 +135,9 @@ void spiderEntranceState(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                randomDelay     = (Gp_LcgState * 5) + 0x71357911;
+                randomDelay     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
-                Gp_LcgState     = randomDelay;
+                gRandomLcgState = randomDelay;
                 Gp_ArmStateF0(1);
             }
             break;

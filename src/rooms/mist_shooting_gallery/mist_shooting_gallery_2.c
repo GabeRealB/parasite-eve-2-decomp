@@ -43,7 +43,7 @@ s32 D_mist_shooting_gallery_8018E0C0;
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
@@ -2071,17 +2071,17 @@ void func_mist_shooting_gallery_80182064(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state         = 1;
 
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            rand0        = Gp_LcgState;
-            work->pos.vx = (u16)coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            rand1        = Gp_LcgState;
-            work->pos.vy = coord->workm.t[1] - 0x800;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            rand2        = Gp_LcgState;
-            work->pos.vz = (u16)coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
-            work->scale  = 0x80;
-            work->angle  = rand2 >> 16 & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rand0           = gRandomLcgState;
+            work->pos.vx    = (u16)coord->workm.t[0] - ((rand0 >> 16 & 0x3FF) - 0x200);
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rand1           = gRandomLcgState;
+            work->pos.vy    = coord->workm.t[1] - 0x800;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            rand2           = gRandomLcgState;
+            work->pos.vz    = (u16)coord->workm.t[2] - ((rand1 >> 16 & 0x3FF) - 0x200);
+            work->scale     = 0x80;
+            work->angle     = rand2 >> 16 & 0xFFF;
         case 1:
             if (work->age & 1) {
                 func_mist_shooting_gallery_80182294(coord, ++work->index, 0x400, work->angle);

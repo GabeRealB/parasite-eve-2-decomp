@@ -48,7 +48,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -2238,14 +2238,14 @@ void func_mine_cavern_8017E474(Task* arg0)
     }
 
     if (GameFlag_GetNibble(0xC4) == 1) {
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        if (((Gp_LcgState >> 16) & 7) == 0) {
-            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-            D_mine_cavern_80188FBC.vx = ((Gp_LcgState >> 16) & 0x3F) + 0x1766;
-            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-            D_mine_cavern_80188FBC.vy = ((Gp_LcgState >> 16) & 0x3F) - 0x5B4;
-            Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-            D_mine_cavern_80188FBC.vz = ((Gp_LcgState >> 16) & 0x3F) - 0x14A;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        if (((gRandomLcgState >> 16) & 7) == 0) {
+            gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_mine_cavern_80188FBC.vx = ((gRandomLcgState >> 16) & 0x3F) + 0x1766;
+            gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_mine_cavern_80188FBC.vy = ((gRandomLcgState >> 16) & 0x3F) - 0x5B4;
+            gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            D_mine_cavern_80188FBC.vz = ((gRandomLcgState >> 16) & 0x3F) - 0x14A;
             Gp_SpawnEff(0x600E0, NULL, 0x300, &D_mine_cavern_80188FBC);
         }
     }
@@ -2425,10 +2425,10 @@ static void func_mine_cavern_80181864(void)
         if (flag < 0) {
             continue;
         }
-        x           = sxy;
-        y           = sxy >> 16;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        radius      = (s32)(size + ((Gp_LcgState >> 16) & 0xF)) * 0x160 / (otz * 4);
+        x               = sxy;
+        y               = sxy >> 16;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        radius          = (s32)(size + ((gRandomLcgState >> 16) & 0xF)) * 0x160 / (otz * 4);
         /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
            reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
            the larger types. */
@@ -2474,7 +2474,7 @@ static void func_mine_cavern_80181CAC(s16 point)
 
     light->framesLeft                              = 2;
     work->inner                                    = D_mine_cavern_8018E366;
-    work->outer                                    = D_mine_cavern_8018E368 + (((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x7FF);
+    work->outer                                    = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
     work->head.color.r                             = D_mine_cavern_8018E360;
     work->head.color.g                             = D_mine_cavern_8018E362;
     work->head.color.b                             = D_mine_cavern_8018E364;
@@ -2539,10 +2539,10 @@ static void func_mine_cavern_80181D80(s16 point)
     gte_stflg(&flag);
     gte_stszotz(&otz);
     if (flag >= 0) {
-        x           = sxy;
-        y           = sxy >> 16;
-        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        radius      = (s32)(base | ((Gp_LcgState >> 16) & 0x7F)) * 0x160 / (otz * 4);
+        x               = sxy;
+        y               = sxy >> 16;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        radius          = (s32)(base | ((gRandomLcgState >> 16) & 0x7F)) * 0x160 / (otz * 4);
         /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
            reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
            the larger types. */
@@ -2627,9 +2627,9 @@ static void func_mine_cavern_80182184(void)
             m->m[2][2]                      = 0x1000;
             coord.parent                    = &gGfxViewCoord;
             pos                             = &D_mine_cavern_8018E39C[i];
-            coord.coord.t[0]                = pos->vx + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[1]                = pos->vy + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[2]                = pos->vz + ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[0]                = pos->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[1]                = pos->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[2]                = pos->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
             coord.composeStamp              = GRAPHICS_COORD_DIRTY;
             Gp_SpawnEff(0x60080, &coord, 0x800004FF, NULL);
         }

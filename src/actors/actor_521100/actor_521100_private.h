@@ -57,7 +57,7 @@ typedef struct Actor521100Work {
     /* 0x658 */ byte           pad_658[0x20];
     /// Residual twist of the coordinate at `field_8[3]`, two angles of the
     /// +/-(0x40..0xBF) range the hit body `func_actor_521100_801322F8` draws
-    /// from `Gp_LcgState` on the frame it takes a hit. It writes them here and
+    /// from `gRandomLcgState` on the frame it takes a hit. It writes them here and
     /// arms `field_680`; the untwist body `func_actor_521100_80135024` then
     /// rotates that coordinate's matrix back by them, stepping each angle 0x20
     /// towards zero per frame until both arrive and it clears the flag. Same

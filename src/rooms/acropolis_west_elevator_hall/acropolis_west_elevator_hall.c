@@ -36,7 +36,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfxgte.h"
 #include "main/mc.h"
@@ -1214,8 +1214,8 @@ void func_acropolis_west_elevator_hall_8017FE18(Task* task)
         y += base;
         t  = 0x800 - rcos((gDisplayState.animFrame + i * 2) * 16);
         if (gDisplayState.animFrame & 0x80) {
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            x           = t / (s32)(((Gp_LcgState >> 16) & 0x3F) + 0xC0) + 0x50;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            x               = t / (s32)(((gRandomLcgState >> 16) & 0x3F) + 0xC0) + 0x50;
         } else {
             x = t / 0x100 + 0x50;
         }

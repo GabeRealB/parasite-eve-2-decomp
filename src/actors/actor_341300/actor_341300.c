@@ -20,7 +20,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mc_types.h"
@@ -31,7 +31,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-#define ACTOR_341300_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
+#define ACTOR_341300_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
 

@@ -40,7 +40,7 @@
 
 #include "main/coord.h"
 #include "main/display.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mc.h"
@@ -4551,7 +4551,7 @@ found:
 /// `sc->angle` is the yaw of the contact point relative to the fourth escort's
 /// facing, wrapped to +/-0x800.
 ///
-/// The attack kind drives a sub-state change: kinds 4 and 6 roll `Gp_LcgState`
+/// The attack kind drives a sub-state change: kinds 4 and 6 roll `gRandomLcgState`
 /// and take the boss out of state 3 into 8 one time in six, kind 2 does it
 /// outright, and both are gated on the `field_F1C` re-arm countdown.
 ///
@@ -4664,8 +4664,8 @@ hit:
             case 6:
                 state = work->field_0;
                 if (state != 3) {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    roll        = ((u32)Gp_LcgState >> 16) % 6;
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    roll            = (gRandomLcgState >> 16) % 6;
                     if (roll == 0 && work->field_F1C == 0) {
                         work->field_0 = 8;
                         work->field_2 = -1;
@@ -5372,8 +5372,8 @@ static void func_actor_403200_8013B740(Task* arg0)
 
     work = (Actor403200Work*)arg0->work;
 
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    formation   = ((u32)Gp_LcgState >> 16) & 3;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    formation       = (gRandomLcgState >> 16) & 3;
     if (formation == 3) {
         formation = 0;
     }
@@ -6677,7 +6677,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
 ///
 /// Once the `field_F10` stagger countdown has run out it walks the three
 /// `field_F08` sub-states, in which the player-relative range and the enemy's
-/// remaining HP pick the next state, and a roll of `Gp_LcgState` breaks the tie
+/// remaining HP pick the next state, and a roll of `gRandomLcgState` breaks the tie
 /// between the two strafing states; the state already in `field_F1D` is never
 /// re-selected twice in a row. A positive heal counter in `field_F1A` overrides
 /// all of it with the heal state 0xF.
@@ -6775,8 +6775,8 @@ static void func_actor_403200_8013EB64(Task* arg0)
                 if (enemy->hp < 0x320) {
                     work->field_0 = 9;
                 } else {
-                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
+                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    if (((gRandomLcgState >> 16) & 0xF) == 0) {
                         work->field_0 = 3;
                     } else if (sc->dist >= 0x20D1) {
                         if (work->field_F1D == 6) {
@@ -6826,7 +6826,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
 /// index into `Enemy::placeKey`, and plays the two type-7 launch cues.
 /// Every later tick yaws the host at the player, and at `field_6` 0x46 / 0x78
 /// it sends escort 0 or 1 a 0x7DB order whose action is picked from
-/// `field_F08` and a coin flip of `Gp_LcgState`.
+/// `field_F08` and a coin flip of `gRandomLcgState`.
 static void func_actor_403200_8013EF6C(Task* arg0)
 {
     Actor403200SpawnScratch* sc;
@@ -6970,15 +6970,15 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                     goto L_default;
                 }
                 if (sc->i == 0) {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 3;
                     } else {
                         D_actor_403200_8015F8F4.command = 4;
                     }
                 } else {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 9;
                     } else {
                         D_actor_403200_8015F8F4.command = 0xA;
@@ -6987,15 +6987,15 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 goto L_join;
             L_case1:
                 if (sc->i == 0) {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 0xA;
                     } else {
                         D_actor_403200_8015F8F4.command = 0xB;
                     }
                 } else {
-                    Gp_LcgState = (Gp_LcgState * 5) + 0x71357911;
-                    if (!(((u32)Gp_LcgState >> 16) & 1)) {
+                    gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    if (!((gRandomLcgState >> 16) & 1)) {
                         D_actor_403200_8015F8F4.command = 4;
                     } else {
                         D_actor_403200_8015F8F4.command = 5;
@@ -7010,9 +7010,9 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                 }
             L_join:
                 D_actor_403200_8015F8F4.command <<= 8;
-                rnd                               = (Gp_LcgState * 5) + 0x71357911;
+                rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-                Gp_LcgState                       = rnd;
+                gRandomLcgState                   = rnd;
                 Gp_DispatchMsgPtr(work->field_EE8[sc->i]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
             }
         }

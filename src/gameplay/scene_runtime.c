@@ -43,6 +43,7 @@
 #include "main/loadui.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stream.h"
@@ -496,7 +497,7 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     u16         found;
     s32         decodeBufferBytes;
     u16         vlcTableMode;
-    s32         seed;
+    u32         savedRandomState;
 
     p = &gCdCmdQueue;
     if (arg0 == 0) {
@@ -533,12 +534,12 @@ s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     p->scenePayloadLoading = 0;
     p->imageLayout         = FILE_SYSTEM_IMAGE_CONTIGUOUS;
     vlcTableMode           = slot->data.scene.vlcTableMode;
-    seed                   = Gp_LcgState;
+    savedRandomState       = gRandomLcgState;
     *D_80114D14            = 0;
     p->sceneVlcTableMode   = vlcTableMode;
-    p->savedLcgState       = seed;
+    p->savedLcgState       = savedRandomState;
     p->savedRandSeed       = rand();
-    Gp_LcgState            = 0;
+    gRandomLcgState        = 0;
     srand(1);
     D_80114D20 = 0xFFFF;
     return i;
@@ -750,7 +751,7 @@ void Gp_StepCdAudioCmd(void)
                 q->sceneAudioStarted     = 0;
                 q->sceneBuffersNeeded    = 0;
                 q->paceToSceneTiming     = 0;
-                Gp_LcgState              = q->savedLcgState;
+                gRandomLcgState          = q->savedLcgState;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -792,7 +793,7 @@ void Gp_StepCdAudioCmd(void)
                 q->sceneAudioStarted     = 0;
                 q->sceneBuffersNeeded    = 0;
                 q->paceToSceneTiming     = 0;
-                Gp_LcgState              = q->savedLcgState;
+                gRandomLcgState          = q->savedLcgState;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -854,7 +855,7 @@ void Gp_RestoreStreamRng(void)
     p->sceneAudioStarted     = 0;
     p->sceneBuffersNeeded    = 0;
     p->paceToSceneTiming     = 0;
-    Gp_LcgState              = p->savedLcgState;
+    gRandomLcgState          = p->savedLcgState;
     srand(p->savedRandSeed);
 }
 

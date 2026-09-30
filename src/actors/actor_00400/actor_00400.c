@@ -40,7 +40,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1873,8 +1873,8 @@ static void Actor00400_Fn0237C(Task* arg0)
             tmdProcessStream(dst3);
         }
     }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((Gp_LcgState >> 16) & 1) {
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((gRandomLcgState >> 16) & 1) {
         D_800678F0[0] = &Actor00400_D0F25C;
         eff4          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
     } else {
@@ -3430,8 +3430,8 @@ static void Actor00400_Fn05728(Task* arg0)
     work = arg0->work;
     if ((Actor00400_Fn02154(arg0) << 0x10) == 0) {
         if (work->field_640 < 0x2710 && (u32)(work->field_634 - 0xC0) >= 0xE81U) {
-            random      = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState = random;
+            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
             if ((random >> 16) & 1) {
                 work2                              = arg0->work;
                 work2->field_638                   = 0xA;
@@ -4253,10 +4253,10 @@ static void Actor00400_Fn07738(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     Gp_IncStateF0Ref(0);
-    Gp_LcgState                  = Gp_LcgState * 5 + 0x71357911;
-    work->flags_62C.hi.field_62E = Gp_LcgState >> 16;
-    Gp_LcgState                  = Gp_LcgState * 5 + 0x71357911;
-    work->field_630              = Gp_LcgState >> 16;
+    gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->flags_62C.hi.field_62E = gRandomLcgState >> 16;
+    gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->field_630              = gRandomLcgState >> 16;
     state                        = arg0->work;
     state->field_632             = 0x10;
     state->field_628             = 1;
@@ -4964,8 +4964,8 @@ static void Actor00400_Fn08ADC(Task* arg0)
     u32              random;
 
     work             = arg0->work;
-    random           = Gp_LcgState * 5 + 0x71357911;
-    Gp_LcgState      = random;
+    random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState  = random;
     state            = arg0->work;
     state->field_63C = 8;
     state->field_632 = ((random >> 16) & 3) + 3;
@@ -5906,14 +5906,14 @@ static void Actor00400_Fn0A510(Task* arg0)
     u32              random;
 
     work             = arg0->work;
-    random           = Gp_LcgState * 5 + 0x71357911;
+    random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->field_63E  = work->field_64E;
     state            = arg0->work;
     state->field_63C = 8;
     state->field_632 = ((random >> 16) & 3) + 3;
     state->field_628 = 0x10;
     state->field_624 = 1;
-    Gp_LcgState      = random;
+    gRandomLcgState  = random;
     work->field_636  = 0;
     work->field_63A++;
 }

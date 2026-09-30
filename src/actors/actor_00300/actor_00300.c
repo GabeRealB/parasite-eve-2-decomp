@@ -43,7 +43,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -1587,11 +1587,11 @@ static void Actor00300_Fn00E54(Task* arg0)
                         work->field_684 = 5;
                         work->field_686 = 0;
                     } else {
-                        random      = Gp_LcgState * 5 + 0x71357911;
-                        rng         = random >> 16;
-                        tilt        = _actor00300TiltMagnitude(rng);
-                        bit         = rng & 1;
-                        Gp_LcgState = random;
+                        random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        rng             = random >> 16;
+                        tilt            = _actor00300TiltMagnitude(rng);
+                        bit             = rng & 1;
+                        gRandomLcgState = random;
                         if (!bit) {
                             tilt = -tilt;
                         }
@@ -1800,8 +1800,8 @@ static void Actor00300_Fn019C0(Task* arg0)
                 if (distance >= 0xBB8 || angle >= 0x100) {
                     work->field_686 = 1;
                 }
-                random          = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = random;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_688 = (((u32)random >> 16) & 31) + 30;
             }
             break;
@@ -1831,8 +1831,8 @@ static void Actor00300_Fn019C0(Task* arg0)
             work->field_688 = timer;
             if (timer <= 0 || (distance < 0xBB8 && angle < 0x100)) {
                 work->field_686 = 0;
-                random          = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = random;
+                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random;
                 work->field_688 = ((u32)random >> 16) & 31;
             }
             break;
@@ -1847,8 +1847,8 @@ static void Actor00300_Fn019C0(Task* arg0)
         timer           = (u16)work->field_68A - 1;
         work->field_68A = timer;
         if (timer <= 0) {
-            random          = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState     = random;
+            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
             work->field_68A = (((u32)random >> 16) & 63) + 60;
             if (work->field_6A2 == 1) {
                 Actor00300_Fn01D60(arg0);
@@ -1876,15 +1876,15 @@ static void Actor00300_Fn01D60(Task* arg0)
         work->field_686  = 0;
     } else if ((s16)work->field_666 >= 5) {
         work->field_666 -= 5;
-        work->field_66A  = Actor00300_D16000[((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 15];
+        work->field_66A  = Actor00300_D16000[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 15];
         if (work->field_66A == 0) {
             work->field_684 = 1;
             work->field_686 = 0;
-            work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31);
+            work->field_688 = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31);
         } else {
             work->field_684 = 2;
             work->field_686 = 0;
-            work->field_688 = ((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16 & 31) + 60;
+            work->field_688 = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31) + 60;
         }
     } else {
         sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
@@ -1893,8 +1893,8 @@ static void Actor00300_Fn01D60(Task* arg0)
         if (SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz) < 3000) {
             work->field_684 = 3;
             work->field_686 = 0;
-            random          = Gp_LcgState * 5 + 0x71357911;
-            Gp_LcgState     = random;
+            random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = random;
             work->field_688 = (((u32)random >> 16) & 31) + 60;
         } else {
             work->field_684 = 7;
@@ -1967,8 +1967,8 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 if ((turnTimer << 0x10) <= 0) {
                     work->field_684 = 1;
                     work->field_686 = 0;
-                    delayRandom0    = (Gp_LcgState * 5) + 0x71357911;
-                    Gp_LcgState     = delayRandom0;
+                    delayRandom0    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = delayRandom0;
                     delay           = ((u32)delayRandom0 >> 0x10) & 0xF;
                     work->field_688 = delay;
                 }
@@ -1985,12 +1985,12 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
                 0xFFF;
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState   = (s32)effectRandom1;
+                effectRandom1   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
-                    random1      = (effectRandom1 * 5) + 0x71357911;
-                    Gp_LcgState  = random1;
-                    effectAngle1 = ((u32)random1 >> 0x10) & 0xF80;
+                    random1         = (effectRandom1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random1;
+                    effectAngle1    = ((u32)random1 >> 0x10) & 0xF80;
                     memset(&sp18, 0, 8);
                     sp18.vx = (s16)((u32)(rcos(effectAngle1) * 5) >> 5);
                     sp18.vz = (s16)((u32)(rsin(effectAngle1) * 5) >> 5);
@@ -2042,12 +2042,12 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 }
             }
             if (((s16)work->field_672 < 0xE) && (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
-                effectRandom2 = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState   = (s32)effectRandom2;
+                effectRandom2   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = effectRandom2;
                 if (!((effectRandom2 >> 0x10) & 3)) {
-                    random2      = (effectRandom2 * 5) + 0x71357911;
-                    Gp_LcgState  = random2;
-                    effectAngle2 = ((u32)random2 >> 0x10) & 0xF80;
+                    random2         = (effectRandom2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random2;
+                    effectAngle2    = ((u32)random2 >> 0x10) & 0xF80;
                     memset(&sp18, 0, 8);
                     sp18.vx = (s16)((u32)(rcos(effectAngle2) * 5) >> 5);
                     sp18.vz = (s16)((u32)(rsin(effectAngle2) * 5) >> 5);
@@ -2071,8 +2071,8 @@ static void Actor00300_Fn01F9C(Task* arg0)
             if ((s16)work->field_672 >= 0x14) {
                 work->field_684 = 1;
                 work->field_686 = 0;
-                delayRandom3    = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = delayRandom3;
+                delayRandom3    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = delayRandom3;
                 delay           = ((u32)delayRandom3 >> 0x10) & 0x1F;
                 work->field_688 = delay;
             }
@@ -2123,8 +2123,8 @@ static void Actor00300_Fn02620(Task* arg0)
                 if (timer <= 0) {
                     work->field_684 = 1;
                     work->field_686 = 0;
-                    random          = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState     = random;
+                    random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random;
                     work->field_688 = ((u32)random >> 16) & 15;
                 }
             }
@@ -2145,8 +2145,8 @@ static void Actor00300_Fn02620(Task* arg0)
                 work->field_676     = 0;
                 work->field_684     = 1;
                 work->field_686     = 0;
-                random              = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState         = random;
+                random              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = random;
                 work->field_688     = ((u32)random >> 16) & 31;
                 work->obj5B8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -2188,12 +2188,12 @@ static void Actor00300_Fn028D0(Task* arg0)
     switch (state) {
         case 0:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom0 = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState   = (s32)effectRandom0;
+                effectRandom0   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = effectRandom0;
                 if (!((effectRandom0 >> 0x10) & 3)) {
-                    random0     = (effectRandom0 * 5) + 0x71357911;
-                    Gp_LcgState = random0;
-                    angle0      = ((u32)random0 >> 0x10) & 0xF80;
+                    random0         = (effectRandom0 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random0;
+                    angle0          = ((u32)random0 >> 0x10) & 0xF80;
                     memset(&sp20, 0, sizeof(sp20));
                     sp20.vx = (s16)((u32)(rcos(angle0) * 5) >> 5);
                     sp20.vz = (s16)((u32)(rsin(angle0) * 5) >> 5);
@@ -2230,12 +2230,12 @@ static void Actor00300_Fn028D0(Task* arg0)
                 }
             }
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom1 = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState   = (s32)effectRandom1;
+                effectRandom1   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = effectRandom1;
                 if (!((effectRandom1 >> 0x10) & 3)) {
-                    random1     = (effectRandom1 * 5) + 0x71357911;
-                    Gp_LcgState = random1;
-                    angle1      = ((u32)random1 >> 0x10) & 0xF80;
+                    random1         = (effectRandom1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random1;
+                    angle1          = ((u32)random1 >> 0x10) & 0xF80;
                     memset(&sp20, 0, sizeof(sp20));
                     sp20.vx = (s16)((u32)(rcos(angle1) * 5) >> 5);
                     sp20.vz = (s16)((u32)(rsin(angle1) * 5) >> 5);
@@ -2263,8 +2263,8 @@ static void Actor00300_Fn028D0(Task* arg0)
             if ((s16)work->field_672 >= 0xF) {
                 work->field_684 = 1;
                 work->field_686 = 0;
-                random2         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random2;
+                random2         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random2;
                 work->field_688 = ((u32)random2 >> 0x10) & 0x1F;
             }
             break;
@@ -2355,8 +2355,8 @@ static void Actor00300_Fn02CE8(Task* arg0)
                 work->field_686 = 1;
                 work->field_6A0 = 0x1C2;
                 work->field_69E = 0;
-                random0         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random0;
+                random0         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random0;
                 work->field_688 = ((u32)random0 >> 0x10) & 0x1F;
             }
             animation = work->field_66E;
@@ -2418,8 +2418,8 @@ static void Actor00300_Fn02CE8(Task* arg0)
                 work->field_686 = 1;
                 work->field_6A0 = 0x1C2;
                 work->field_69E = 0;
-                random1         = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState     = random1;
+                random1         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = random1;
                 work->field_688 = ((u32)random1 >> 0x10) & 0x1F;
             }
             break;
@@ -2454,12 +2454,12 @@ static void Actor00300_Fn030B8(Task* arg0)
             return;
         case 1:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom = (Gp_LcgState * 5) + 0x71357911;
-                Gp_LcgState  = (s32)effectRandom;
+                effectRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = effectRandom;
                 if (!((effectRandom >> 0x10) & 3)) {
-                    random      = (effectRandom * 5) + 0x71357911;
-                    Gp_LcgState = random;
-                    angle       = ((u32)random >> 0x10) & 0xF80;
+                    random          = (effectRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = random;
+                    angle           = ((u32)random >> 0x10) & 0xF80;
                     memset(&sp18, 0, sizeof(sp18));
                     sp18.vx = (u32)(rcos(angle) * 5) >> 5;
                     sp18.vz = (u32)(rsin(angle) * 5) >> 5;
@@ -2473,10 +2473,10 @@ static void Actor00300_Fn030B8(Task* arg0)
                 work->field_684 = 1;
                 work->field_688 = 0;
                 work->field_686 = 0;
-                nextRandom      = (Gp_LcgState * 5) + 0x71357911;
+                nextRandom      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 work->field_666 = (u16)(work->field_666 + 5);
                 work->field_688 = (nextRandom >> 0x10) & 0x1F;
-                Gp_LcgState     = (s32)nextRandom;
+                gRandomLcgState = nextRandom;
                 sound           = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
                 pan             = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
@@ -3328,8 +3328,8 @@ static void Actor00300_Fn04D28(Task* arg0)
             if ((s16)work->field_672 >= 0xB) {
                 work->field_684 = state;
                 work->field_686 = state;
-                value           = Gp_LcgState * 5 + 0x71357911;
-                Gp_LcgState     = value;
+                value           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = value;
                 work->field_688 = ((u32)value >> 16) & 0x1F;
             }
             break;

@@ -26,7 +26,7 @@
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "main/gamemain.h"
+#include "main/random.h"
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
@@ -154,15 +154,15 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             gte_rtv0();
             gte_stsv(&mem->move);
             for (i = 0; i < 16; i++) {
-                Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-                D_pyrokinesis_80131DFC[i] = ((u32)Gp_LcgState >> 16) & 0xFF;
+                gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_pyrokinesis_80131DFC[i] = (gRandomLcgState >> 16) & 0xFF;
             }
-            mem->scale  = 0xC0;
-            mem->angle  = 0x500;
-            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            mem->period = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            mem->index  = (Gp_StateC08.field_0 % 10) - 1;
-            pan         = (s8)Gp_GetObjPan(coord);
+            mem->scale      = 0xC0;
+            mem->angle      = 0x500;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            mem->period     = (gRandomLcgState >> 16) & 0xFFF;
+            mem->index      = (Gp_StateC08.field_0 % 10) - 1;
+            pan             = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
                                 (s8)gpGetObjDepth(coord));
             Gp_SpawnPadLerp((s16)(mem->index * 2 + 8), 0xFF, 8);
@@ -260,8 +260,8 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             base->framesLeft    = 4;
             slot->inner         = (mem->index << 9) + 0x200;
             slot->outer         = slot->inner * 16;
-            Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            amp                 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            amp                 = ((gRandomLcgState >> 16) & 0x700) + 0x800;
             slot->head.color.r  = amp;
             slot->head.color.g  = (u16)slot->head.color.r >> 1;
             slot->head.color.b  = slot->head.color.r >> 2;
@@ -624,11 +624,11 @@ void func_pyrokinesis_80130C54(Task* arg0)
             }
             mem->age = mem->age + 1;
             if (arg0->state == 0) {
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->move.vy = -(((u32)Gp_LcgState >> 16) & 0x1F);
-                Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-                mem->scale   = ((u32)Gp_LcgState >> 16) & 0xFFF;
-                arg0->state  = 1;
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->move.vy    = -((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                mem->scale      = (gRandomLcgState >> 16) & 0xFFF;
+                arg0->state     = 1;
             }
             y                   = coord->coord.t[1] + mem->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

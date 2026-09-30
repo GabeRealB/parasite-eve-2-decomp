@@ -1,3 +1,5 @@
+#include "main/random.h"
+
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Scatters the body when the enemy bursts: a chunk of model 0 from joint 6,
@@ -25,8 +27,8 @@ void hopperSpawnGibs(Task* arg0)
             tmdProcessStream(dst);
         }
     }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((Gp_LcgState >> 16) & 1) {
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    if ((gRandomLcgState >> 16) & 1) {
         D_800678F0[0] = &gHopperChunkModel1;
         eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
     } else {
