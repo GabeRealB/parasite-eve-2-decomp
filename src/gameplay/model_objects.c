@@ -64,7 +64,13 @@ static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
         enum {                                                                                                          \
             GTE_ROT_TRANS_LV_LOW_ROTATE_TRANSLATE = 0x4A480012, /* MVMVA(1, 0, 0, 0, 0): (RT * V0 + TR * 4096) >> 12 */ \
             GTE_ROT_TRANS_LV_MIDDLE_ROTATE        = 0x4A40E012, /* MVMVA(0, 0, 1, 3, 0): RT * V1 */                     \
-            GTE_ROT_TRANS_LV_HIGH_ROTATE          = 0x4A416012  /* MVMVA(0, 0, 2, 3, 0): RT * V2 */                     \
+            GTE_ROT_TRANS_LV_HIGH_ROTATE          = 0x4A416012  /* Rotates signed high chunks without translation.      \
+                                                                 *                                                      \
+                                                                 * MVMVA(sf=0, mx=0, v=2, cv=3, lm=0).                  \
+                                                                 * V2 = (input >> 20) + (input < 0), componentwise.     \
+                                                                 * Read MAC1..3 = RT * V2; IR1..3 saturate.             \
+                                                                 * MAC << 8 restores the 2^20 chunk's weight            \
+                                                                 * with RT's 12 fractional bits; wraps at 32 bits. */   \
         };                                                                                                              \
         /* Sign corrections make the weighted chunks reconstruct negative inputs too. */                                \
         __asm__ volatile(                                                                                               \
