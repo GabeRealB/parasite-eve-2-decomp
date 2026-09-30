@@ -57,10 +57,17 @@ typedef struct {
 } SndBankLayer;
 STATIC_ASSERT_SIZEOF(SndBankLayer, 0x14);
 
-// Bank ids encode their storage class in the high nibble. Sequence table
-// storage is retained across reloads; the free id belongs to that same band.
+/// Mask selecting bits 12..15, the encoded type of a 16-bit sound-bank id.
+///
+/// The result retains the type in place (0x0000..0xF000) for type-only lookup
+/// and allocation/release policy. Shifting it right by 12 gives a slot-map
+/// index in 0..15. `SOUND_BANK_ID_FREE` has the same masked type as
+/// `SOUND_BANK_TYPE_SEQUENCE`; detecting a free descriptor requires the full id.
+enum { SOUND_BANK_TYPE_MASK = 0xF000 };
+
+// Sequence table storage is retained across reloads; the free id belongs to
+// that same band.
 enum {
-    SOUND_BANK_TYPE_MASK     = 0xF000,
     SOUND_BANK_TYPE_SEQUENCE = 0xF000,
     SOUND_BANK_ID_FREE       = 0xFFFF
 };

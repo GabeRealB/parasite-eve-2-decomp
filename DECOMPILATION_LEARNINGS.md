@@ -11212,7 +11212,7 @@ if (table[x >> 12] == -1) {
     return 0;
 }
 /* still use arg0 for later masks that need the full value */
-switch (arg0 & 0xF000) { ... }
+switch (arg0 & SOUND_BANK_TYPE_MASK) { ... }
 ```
 
 The `u16` assignment forces the early `sw ra` plus `move v0,a0` / `andi v0,v0,
@@ -15623,8 +15623,8 @@ appears, and the default re-mask uses `$a2` (~99.7%).
 
 Fix: type the first parameter as `s16` (or `short`). The ABI still passes it in
 `$a0`, but the HImode formal forces a second full-width copy into `$a3` for the
-`u16` path while `$a2` holds the value used for wider masks (`& 0xF000`). Keep
-the rest of the `SndLoad_AllocBuffer` pattern:
+`u16` path while `$a2` holds the value used for wider masks (`& SOUND_BANK_TYPE_MASK`).
+Keep the rest of the `SndLoad_AllocBuffer` pattern:
 
 ```c
 s32 func_...(s16 arg0, s32 arg1)
@@ -15635,7 +15635,7 @@ s32 func_...(s16 arg0, s32 arg1)
     if ((arg1 & 0xFF) == 0) {
         return 0;
     }
-    /* table[x >> 12], switch ((u32)(arg0 & 0xF000) >> 12), ... */
+    /* table[x >> 12], switch ((u32)(arg0 & SOUND_BANK_TYPE_MASK) >> 12), ... */
 }
 ```
 
@@ -16112,7 +16112,7 @@ SndBankSlot* func_...(u16 arg0, s32 arg1)
         /* walk with key */
         return NULL;
     case 1:
-        key = arg0 & 0xF000; /* andi a0,a0,0xf000 — no extra copy */
+        key = arg0 & SOUND_BANK_TYPE_MASK; /* andi a0,a0,0xf000 — no extra copy */
         /* walk with key */
         break;
     }
@@ -19128,7 +19128,7 @@ bne   v1, v0, success
 
 the `andi` is the conversion of a `u16` local, not a mask the source wrote,
 and it survives because the loaded value (`a1`) stays live for a later
-`id & 0xF000`. An older recipe rebuilt it with an `asm("" : "+r"(index),
+`id & SOUND_BANK_TYPE_MASK`. An older recipe rebuilt it with an `asm("" : "+r"(index),
 "+r"(mask))` barrier and `$a1`/`$v1` pins; none is needed:
 
 ```c

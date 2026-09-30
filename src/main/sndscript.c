@@ -303,8 +303,8 @@ static void SndVoice_Detach(void* context);
 ///
 /// A bank id carries the bank's type in its high nibble, and `byType` selects
 /// how it is compared with the id each loaded bank carries: 0 matches the whole
-/// id, 1 only the `0xF000` type band. A search that matches nothing returns
-/// `NULL`.
+/// id, 1 only the bits selected by `SOUND_BANK_TYPE_MASK`. A search that matches
+/// nothing returns `NULL`.
 static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType);
 
 static SndVoice* SndVoice_Alloc(s32 arg0);
@@ -411,7 +411,7 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
     s32 temp_a2;
 
     temp_a2 = (arg0 + 0x3F) & ~0x3F;
-    switch ((u32)(arg1 & 0xF000) >> 0xC) {
+    switch ((u32)(arg1 & SOUND_BANK_TYPE_MASK) >> 0xC) {
         case 0:
             arg0 = 0x63810;
             break;
@@ -722,7 +722,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         return orig;
     }
     if (D_800689E4 != 0xFF) {
-        if ((D_800689E4 & 0xF000) == (((u32)arg0 >> 16) & 0xF000)) {
+        if ((D_800689E4 & SOUND_BANK_TYPE_MASK) == (((u32)arg0 >> 16) & SOUND_BANK_TYPE_MASK)) {
             return -1;
         }
     }
@@ -1936,8 +1936,8 @@ static void SndVoice_Detach(void* context)
 ///
 /// A bank id carries the bank's type in its high nibble, and `byType` selects
 /// how it is compared with the id each loaded bank carries: 0 matches the whole
-/// id, 1 only the `0xF000` type band. A search that matches nothing returns
-/// `NULL`.
+/// id, 1 only the bits selected by `SOUND_BANK_TYPE_MASK`. A search that matches
+/// nothing returns `NULL`.
 static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
 {
     s32          i;

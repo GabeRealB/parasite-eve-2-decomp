@@ -1755,7 +1755,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 dst++;
             } while (i < 5U);
 
-            nibble = state->payload.header.bankId & 0xF000;
+            nibble = state->payload.header.bankId & SOUND_BANK_TYPE_MASK;
             if ((u32)(nibble - 0x8000) < 0x5001U) {
                 D_800689E8     = 1;
                 state->field_2 = 7;
@@ -1891,14 +1891,14 @@ s32 SndLoad_ProcessSector(u32* arg0)
         case 6:
             if ((state->field_1 + 1) >= (s32)state->payload.header.transferSectors) {
                 D_800689E8 = 6;
-                if ((state->payload.header.bankId & 0xF000) == 0x5000) {
+                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == 0x5000) {
                     if (D_80082128 == 0) {
                         D_80082124 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                     } else {
                         D_80082124 = D_80082128 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                     }
                 }
-                if ((state->payload.header.bankId & 0xF000) == 0x1000) {
+                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == 0x1000) {
                     D_80082128 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
                 }
                 state->field_2 = 5;
@@ -1930,7 +1930,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     if (slot == -1) {
         goto fail;
     }
-    if ((id & 0xF000) == 0x4000) {
+    if ((id & SOUND_BANK_TYPE_MASK) == 0x4000) {
         slot = slot - 1 + D_80082122;
     }
     bankSlot = SndBankSlot_Get(slot);
@@ -2159,7 +2159,7 @@ static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
     if (Snd_BankSlotsByType[x >> 12] == -1) {
         return 0;
     }
-    switch (arg0 & 0xF000) {
+    switch (arg0 & SOUND_BANK_TYPE_MASK) {
         case 0x2000:
             if (arg2 < 0x210U) {
                 arg2 = 0x210;
@@ -2231,7 +2231,7 @@ static s32 SndBank_FreeById(u16 arg0, s32 arg1)
     if ((s8)slot == -1) {
         return -1;
     }
-    switch ((u32)(arg0 & 0xF000) >> 12) {
+    switch ((u32)(arg0 & SOUND_BANK_TYPE_MASK) >> 12) {
         case 4:
             i    = 4;
             base = Snd_Banks;
