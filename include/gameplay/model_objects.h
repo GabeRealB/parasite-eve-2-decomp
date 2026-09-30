@@ -74,12 +74,17 @@ void modelObjectUnlinkTmd(TmdListNode* node);
 /// selects the primary heap and leaves it selected.
 void modelObjectFreeTmd(TmdObject* model);
 
-/// Unlinks a coordinate body from its refresh list (`gModelObjectCoordBodyList`).
+/// Unlinks a coordinate body from the live refresh list (`gModelObjectCoordBodyList`).
 ///
-/// `node` must be an element's link currently on this list, never the sentinel
-/// or an already detached link. The body stays allocated and its old links
-/// remain in place; release it with `modelObjectFreeCoordBody` after unlinking.
-void modelObjectUnlinkDisp2d(TmdListNode* node);
+/// `node` is that body's `link` and is on the live list. It is not the
+/// sentinel, a model link, or a link already removed from the live list. A
+/// stashed chain still points back at this sentinel, but the live endpoints no
+/// longer name it, so a stashed link is not an argument. Neighbors are
+/// updated, and the sentinel's `prev` is updated when `node` is the tail.
+/// `node`'s own `next` and `prev` are left unchanged. The body stays
+/// allocated; release it with `modelObjectFreeCoordBody`. This does not change
+/// the owning task's body pointer or body kind.
+void modelObjectUnlinkCoordBody(TmdListNode* node);
 
 /// Releases a detached task-owned coordinate body to the primary heap.
 ///

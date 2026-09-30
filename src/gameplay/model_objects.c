@@ -382,7 +382,7 @@ void modelObjectFreeTmd(TmdObject* model)
     memFree(model);
 }
 
-void modelObjectUnlinkDisp2d(TmdListNode* node)
+void modelObjectUnlinkCoordBody(TmdListNode* node)
 {
     TmdListNode*  next;
     TmdListNode** prevSlot;
@@ -390,6 +390,7 @@ void modelObjectUnlinkDisp2d(TmdListNode* node)
 
     next = node->next;
     if (next == NULL) {
+        // No successor holds the back-link, so retarget the sentinel's prev.
         prevSlot = &gModelObjectCoordBodyList.prev;
     } else {
         prevSlot = &next->prev;

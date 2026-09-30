@@ -24011,13 +24011,13 @@ addiu v0, v0, 4
 
 `if (next != NULL) { pp = &next->prev; } else { pp = &D_xxx; }` is the same
 logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
-and drops the `j`. `taskKill`'s inline unlink and `modelObjectUnlinkDisp2d` both need
+and drops the `j`. `taskKill`'s inline unlink and `modelObjectUnlinkCoordBody` both need
 the `== NULL` form.
 
 The tail needs no symbol of its own: the field access is what the target emits.
 Where the function already holds the head's address the target reuses that
 register and puts `addiu v0, v0, 0x4` in the `j` delay slot — `taskKill`'s
-inline unlink, `modelObjectUnlinkTmd` and `modelObjectUnlinkDisp2d` all match as `&<head>.prev`.
+inline unlink, `modelObjectUnlinkTmd` and `modelObjectUnlinkCoordBody` all match as `&<head>.prev`.
 An interior alias for the field (`D_800711C4`-style) is what the overlay import
 lists used to carry and no longer do, so a body that matches with the field
 access should keep it.

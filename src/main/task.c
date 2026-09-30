@@ -225,7 +225,7 @@ void taskKill(Task* task)
         return;
 
     case2:
-        modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
+        modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
         task->killCountdown = 1;
         task->callback      = taskNoopCallback;
         task->exitCallback  = taskNoopCallback;
@@ -286,7 +286,7 @@ imm1:
     goto imm_unlink;
 
 imm2:
-    modelObjectUnlinkDisp2d(&task->extra.coordBody->link);
+    modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
     modelObjectFreeCoordBody(task->extra.coordBody);
 
 imm_unlink:
