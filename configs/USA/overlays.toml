@@ -2542,7 +2542,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room", rodata = "0x4", text = "0x38", data = "0x2DBC" },
   { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_2", rodata = "0x10", text = "0x2D8", data = "0x2E90" },
-  { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_3", rodata = "0x24", text = "0x11B4" },
+  { unit = "shelter_b2_breeding_room/shelter_b2_breeding_room_3", rodata = "0x24", text = "0x11B4", data = "0x2F90" },
   { kind = "model", at = "0x2DBC", in_c = true },
   { kind = "modelSource", at = "0x2E30", in_c = true },
   { kind = "collision", at = "0x3014", in_c = true },
