@@ -25,6 +25,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/model_placement.h"
 
 /// Work block the spawn state `func_actor_213100_8014A118` allocates
 /// (`memCalloc(0x488)`) and parks in `Task::work` -- that slot is not a
@@ -84,7 +85,6 @@ extern Actor213100MessageEntry D_actor_213100_801521C0[4];
 /// view: nonzero shows the actor and its child, zero hides both.
 extern s8 D_actor_213100_801521E0[];
 
-static void func_actor_213100_8014A03C(Task* task);
 static void func_actor_213100_8014A0B8(Task* task);
 static void func_actor_213100_8014A118(Task* arg0);
 static void func_actor_213100_8014A21C(Task* arg0);
@@ -464,7 +464,7 @@ static void func_actor_213100_80149E3C(Task* task)
 /// idle, kill.
 static const TaskFuncTable3 D_actor_213100_80149E24 = {
     {
-        func_actor_213100_8014A03C,
+        modelPlacementAttachPart,
         func_actor_213100_8014A0B8,
         taskKill,
     },
@@ -480,33 +480,7 @@ void func_actor_213100_80149FE4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// State 0 of the child: chains the child's root coordinate under the
-/// parent's skeleton part named by the spawn arguments (the parent task and
-/// the part index it was spawned with), inherits the parent's light and colour
-/// matrices, reparents the task so it runs with the parent, and advances to
-/// the idle state.
-static void func_actor_213100_8014A03C(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// The child's idle state: does nothing.
 static void func_actor_213100_8014A0B8(Task* task)

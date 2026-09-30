@@ -65,7 +65,6 @@ STATIC_ASSERT_SIZEOF(Actor443500Work, 0x4C4);
 
 static void func_actor_443500_80132078(Task* task);
 static void func_actor_443500_801321F0(Task* task);
-static void func_actor_443500_801326A0(Task* task);
 static void func_actor_443500_801327A4(Task* arg0);
 static void func_actor_443500_801327C4(Task* task);
 s32         func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* params, s32 arg3);
@@ -75,7 +74,7 @@ static void func_actor_443500_80132A68(s32 arg0);
 /// State table of the actor's child task (`TaskDesc` entry 1): setup, the
 /// per-frame flag mirror and `taskKill`.
 static const TaskFuncTable3 D_actor_443500_80131E24 = {
-    { modelPlacementAttachChild, func_actor_443500_801326A0, taskKill }
+    { modelPlacementAttachChild, modelPlacementMirrorParent, taskKill }
 };
 
 /// State table of the actor's main task (`TaskDesc` entry 0): the spawn
@@ -2650,31 +2649,7 @@ void func_actor_443500_8013253C(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Per-frame state of the actor's child task: mirrors the hidden bit 0x80 and
-/// the buffers-live bit 0x4 of the parent's `TmdObject` - the task the spawn
-/// handler passed as `Task::spawnArg2` - onto the child's own model. When the
-/// parent's 0x4 is clear the child's is cleared too and its buffers are
-/// reallocated through `Tmd_AllocBuffers`.
-static void func_actor_443500_801326A0(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
 /// from `D_actor_443500_80131E30`, skipping the frame while `Gp_StateF0.field_4` is

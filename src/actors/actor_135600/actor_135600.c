@@ -35,6 +35,7 @@
 #include "overlay.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/model_placement.h"
 
 /// Optional start animation for `actorMotionStartWalk`: the preset's
 /// `field_4` and the `model.nextAnimId` byte. Absent, the defaults are anim 0xD and 1.
@@ -75,7 +76,6 @@ extern Actor135600MsgEntry D_actor_135600_8013B0F4[];
 
 static void func_actor_135600_80132234(Task* task);
 static void func_actor_135600_801324D0(Task* task);
-static void func_actor_135600_80132A38(Task* task);
 static void func_actor_135600_80132AB4(Task* task);
 static void func_actor_135600_80132B14(Task* task);
 static void func_actor_135600_80132C18(Task* task);
@@ -91,7 +91,7 @@ s32         func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3
 /// dispatched by `func_actor_135600_801329E0`: attach to the parent, idle,
 /// kill.
 static const TaskFuncTable3 D_actor_135600_80131E24 = { {
-    func_actor_135600_80132A38,
+    modelPlacementAttachPart,
     func_actor_135600_80132AB4,
     taskKill,
 } };
@@ -901,32 +901,7 @@ void func_actor_135600_801329E0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Setup state of a part task (entry 0 of `D_actor_135600_80131E24`): chains
-/// the task's root coordinate under the parent's part coordinate the spawn
-/// arguments name, inherits the parent's light and colour matrices, reparents the task so it
-/// is updated with the parent, and advances to the next state.
-static void func_actor_135600_80132A38(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// Tick state of a part task: nothing to do, the parent drives it.
 static void func_actor_135600_80132AB4(Task* task)

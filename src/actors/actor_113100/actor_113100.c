@@ -123,7 +123,6 @@ static void func_actor_113100_8013264C(Task* task);
 s32         func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
 static void func_actor_113100_80132B30(Task* task);
 static void func_actor_113100_80132BDC(Task* task);
-static void func_actor_113100_80132E00(Task* task);
 static void func_actor_113100_80132EF0(Task* task);
 static void func_actor_113100_80132F24(Task* task);
 static void func_actor_113100_80132F40(Task* task);
@@ -146,7 +145,7 @@ static const TaskFuncTable3 D_actor_113100_80131E24 = { {
 /// Dispatched by `func_actor_113100_80132C9C`.
 static const TaskFuncTable3 D_actor_113100_80131E30 = { {
     modelPlacementAttachChild,
-    func_actor_113100_80132E00,
+    modelPlacementMirrorParent,
     taskKill,
 } };
 
@@ -1730,31 +1729,7 @@ void func_actor_113100_80132C9C(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Tick state of the child task whose state table is
-/// `D_actor_113100_80131E30`: copies the parent's (`spawnArg2`) model flag bits
-/// 0x80 and 0x4 onto the child's own model. `TMD_OBJECT_SKIP_ACTIVE_DRAW`
-/// excludes active drawing; when the parent's bit 0x4 is clear the child's is
-/// cleared too and `Tmd_AllocBuffers` is called on the child's model.
-static void func_actor_113100_80132E00(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
 void func_actor_113100_80132E98(Task* task)
 {

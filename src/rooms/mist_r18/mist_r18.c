@@ -40,6 +40,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_akropolis.h"
+#include "../../shared/model_placement.h"
 
 extern GpRoomCoordSet D_mist_r18_80186E44[1];
 
@@ -115,7 +116,6 @@ void func_80179FC8(s32 arg0, s32 arg1);
 static void func_mist_r18_8017D960(Task* task);
 static void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
 static void func_mist_r18_8017DD7C(Task* task);
-static void func_mist_r18_8017E320(Task* task);
 static void func_mist_r18_8017E39C(Task* task);
 static void func_mist_r18_8017E448(MistR18Sprite* sprite);
 static void func_mist_r18_8017E534(MistR18Sprite* sprite, u32 clutX, s32 clutY);
@@ -155,7 +155,7 @@ extern s32 D_mist_r18_80186EA0;
 /// dispatches: attach to the parent's part, an empty idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_mist_r18_8017D5C4 = {
-    { func_mist_r18_8017E320, func_mist_r18_8017E39C, taskKill },
+    { modelPlacementAttachPart, func_mist_r18_8017E39C, taskKill },
 };
 
 /// State handlers of the room's cutscene task `func_mist_r18_8017ED64`
@@ -1507,32 +1507,7 @@ void func_mist_r18_8017E2C8(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Attach this task's model to part `Task::spawnArg1` of the parent task in
-/// `Task::spawnArg2`: parent the coordinate system to that part's, share the
-/// parent's light and colour matrices, reparent the task under it and step
-/// past the set-up state.
-static void func_mist_r18_8017E320(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// Idle state of the attached-model task: nothing to do until it is killed.
 static void func_mist_r18_8017E39C(Task* task)

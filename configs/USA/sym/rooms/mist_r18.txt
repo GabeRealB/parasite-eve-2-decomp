@@ -153,3 +153,4 @@ D_mist_r18_80184E58 = 0x80184E58; // size:0x28 defined:True
 D_mist_r18_80184E80 = 0x80184E80; // size:0x28 defined:True
 D_mist_r18_80184EA8 = 0x80184EA8; // size:0x3C defined:True
 D_mist_r18_80184EE4 = 0x80184EE4; // size:0x20 defined:True
+modelPlacementAttachPart = 0x8017E320; // type:func

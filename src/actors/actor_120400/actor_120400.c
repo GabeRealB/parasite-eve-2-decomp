@@ -81,7 +81,6 @@ extern Actor120400MsgEntry D_actor_120400_8013E76C[];
 
 static void func_actor_120400_80131E5C(Task* arg0);
 static void func_actor_120400_80132050(Task* arg0);
-static void func_actor_120400_801326B0(Task* task);
 static void func_actor_120400_801327B4(Task* task);
 static void func_actor_120400_801327D4(Task* task);
 static void func_actor_120400_801327F0(Task* arg0);
@@ -92,7 +91,7 @@ static void func_actor_120400_80132920(Task* task);
 /// `func_actor_120400_8013254C`.
 static const TaskFuncTable3 D_actor_120400_80131E24 = { {
     modelPlacementAttachChild,
-    func_actor_120400_801326B0,
+    modelPlacementMirrorParent,
     taskKill,
 } };
 
@@ -1111,29 +1110,7 @@ void func_actor_120400_8013254C(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Per-frame tick of a child task: copies the parent model's hidden bit (0x80)
-/// and bit 0x4 onto the child's own model. While the parent's bit 0x4 is
-/// clear the child's display buffers are (re)allocated as well.
-static void func_actor_120400_801326B0(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// State dispatcher of the parent task: copies its spawn/tick/teardown table
 /// onto the stack and, unless the game is frozen, runs the entry `Task::state`

@@ -33,6 +33,7 @@
 #include "main/ui_types.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/model_placement.h"
 
 void func_mist_parking_8018345C(Task* arg0);
 
@@ -48,7 +49,6 @@ extern s32      D_mist_parking_8018FC10[];
 
 static void func_mist_parking_801833F8(Task* task);
 
-static void func_mist_parking_8018307C(Task* task);
 static void func_mist_parking_801830F8(Task* task);
 static void func_mist_parking_80183304(Task* task);
 static void func_mist_parking_80183434(Task* arg0);
@@ -57,7 +57,7 @@ static void func_mist_parking_80183434(Task* arg0);
 /// parent's part and then idles; nothing in the room reads this table.
 static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
     {
-        func_mist_parking_8018307C,
+        modelPlacementAttachPart,
         func_mist_parking_801830F8,
         taskKill,
     },
@@ -953,31 +953,7 @@ void func_mist_parking_80182F60(Task* task)
     }
 }
 
-/// Attaches the task's model to the coordinate frame of part `spawnArg1` of
-/// the model of the task in `spawnArg2`, sharing its light and colour
-/// matrices, reparents the task under that one and steps it on.
-static void func_mist_parking_8018307C(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// The empty per-frame state of `D_mist_parking_8017D7E8`.
 static void func_mist_parking_801830F8(Task* task)

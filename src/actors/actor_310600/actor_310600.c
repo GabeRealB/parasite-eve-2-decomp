@@ -118,8 +118,6 @@ static void func_actor_310600_80161FA0(Task* task);
 static void func_actor_310600_8016231C(Task* arg0);
 s32         func_actor_310600_8016246C(Task* task, s32 arg1, AnimationPlayRequest* cmd, s32 arg3);
 s32         func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3);
-static void func_actor_310600_801628B0(Task* task);
-static void func_actor_310600_80162948(Task* task);
 static void func_actor_310600_801629C4(Task* task);
 static void func_actor_310600_80162A24(Task* arg0);
 static void func_actor_310600_80162A58(Task* arg0);
@@ -132,14 +130,14 @@ static void func_actor_310600_80162B98(Task* task);
 /// runs by `Task::state`: setup, tick and exit.
 static const TaskFuncTable3 D_actor_310600_80161E24 = { {
     modelPlacementAttachChild,
-    func_actor_310600_801628B0,
+    modelPlacementMirrorParent,
     taskKill,
 } };
 
 /// A second child handler triple - attach to the parent's part, an empty tick,
 /// exit. No dispatcher in this package reads it.
 static const TaskFuncTable3 D_actor_310600_80161E30 = { {
-    func_actor_310600_80162948,
+    modelPlacementAttachPart,
     func_actor_310600_801629C4,
     taskKill,
 } };
@@ -749,59 +747,9 @@ void func_actor_310600_8016274C(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Keeps a child model's visibility in step with its parent's: bits 0x80
-/// (hidden) and 0x4 (buffers released) of the parent task's `TmdObject` - the
-/// task named by `spawnArg2` - are copied onto the calling task's own object.
-/// When bit 0x4 comes off, the child's draw buffers are rebuilt through
-/// `Tmd_AllocBuffers`.
-static void func_actor_310600_801628B0(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
-
-/// Attaches a child model to the part of its parent's skeleton named by the
-/// spawn arguments (`spawnArg2` the parent task, `spawnArg1` the part): the
-/// child's root coordinate is chained under that part's coordinate, the
-/// parent's light and colour matrices are shared, and the task is reparented
-/// so it is updated with the parent.
-static void func_actor_310600_80162948(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// Tick state of the second child handler triple `D_actor_310600_80161E30`:
 /// does nothing.

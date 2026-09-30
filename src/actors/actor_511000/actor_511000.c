@@ -112,9 +112,7 @@ STATIC_ASSERT_SIZEOF(Actor511000Work2, 0x4D4);
 
 static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
-static void func_actor_511000_801321A8(Task* task);
 static void func_actor_511000_80132224(Task* task);
-static void func_actor_511000_80132390(Task* task);
 static void func_actor_511000_80132480(Task* task);
 static void func_actor_511000_801325A4(Task* task);
 static void func_actor_511000_801329C4(Task* task);
@@ -142,7 +140,7 @@ static void func_actor_511000_80134130(GpEnemy* enemy, Task* task);
 /// State table of a child chained under a part of its spawner's model: the
 /// attach state, an empty tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E24 = {
-    func_actor_511000_801321A8,
+    modelPlacementAttachPart,
     func_actor_511000_80132224,
     taskKill,
 };
@@ -152,7 +150,7 @@ static const TaskFuncTable3 D_actor_511000_80131E24 = {
 /// tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E30 = {
     modelPlacementAttachChild,
-    func_actor_511000_80132390,
+    modelPlacementMirrorParent,
     taskKill,
 };
 
@@ -2211,32 +2209,7 @@ void func_actor_511000_80132150(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Spawn state of the child in the first state table: chains this task's root
-/// coordinate under the parent's part named by `spawnArg1`, takes the parent
-/// model's light and colour matrices, reparents the task under the spawner
-/// named by `spawnArg2` and advances to the next state.
-static void func_actor_511000_801321A8(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// Tick state of the first state table's child: nothing to do, the chained
 /// coordinate follows the spawner by itself.
@@ -2254,30 +2227,7 @@ void func_actor_511000_8013222C(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Tick state of the child in the second state table: copies the spawner's
-/// model flag bits 0x80 (hidden) and 0x4 (draw buffers allocated) onto this
-/// task's model, rebuilding the buffers through `Tmd_AllocBuffers` when the
-/// spawner's are gone.
-static void func_actor_511000_80132390(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
 void func_actor_511000_80132428(Task* task)
 {

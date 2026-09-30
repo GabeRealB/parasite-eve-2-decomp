@@ -77,9 +77,7 @@ extern Actor213000MsgEntry D_actor_213000_80157E1C[];
 extern AnimationSet*  D_actor_213000_80157DB0[11];
 extern AnimationSet** D_actor_213000_80157DDC[1];
 
-static void func_actor_213000_8014A0DC(Task* task);
 static void func_actor_213000_8014A158(Task* task);
-static void func_actor_213000_8014A2C4(Task* task);
 static void func_actor_213000_8014A5D0(Task* task);
 static void func_actor_213000_8014A6AC(Task* task);
 
@@ -602,7 +600,7 @@ static void func_actor_213000_80149E54(Task* task)
 /// the parent, idle, kill.
 static const TaskFuncTable3 D_actor_213000_80149E24 = {
     {
-        func_actor_213000_8014A0DC,
+        modelPlacementAttachPart,
         func_actor_213000_8014A158,
         taskKill,
     },
@@ -618,33 +616,7 @@ void func_actor_213000_8014A084(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// State 0 of the children spawned from table entries 1 and 2: chains the
-/// child's root coordinate under the parent's skeleton part named by the spawn
-/// arguments (the parent task and the part index it was spawned with),
-/// inherits the parent's light and colour matrices, reparents the task so it
-/// runs with the parent, and advances to the idle state.
-static void func_actor_213000_8014A0DC(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// The idle state of the children spawned from table entries 1 and 2: does
 /// nothing.
@@ -656,7 +628,7 @@ static void func_actor_213000_8014A158(Task* task)
 static const TaskFuncTable3 D_actor_213000_80149E30 = {
     {
         modelPlacementAttachChild,
-        func_actor_213000_8014A2C4,
+        modelPlacementMirrorParent,
         taskKill,
     },
 };
@@ -673,30 +645,7 @@ void func_actor_213000_8014A160(Task* task)
 
 #include "../../shared/model_placement_attach.inc.c"
 
-/// Tick state of the child spawned from table entry 4: shows or hides the
-/// child's model with the parent's (`spawnArg2`), copying bit 0x80, and
-/// copies bit 0x4 too; when the parent's 0x4 is clear the child's buffers are
-/// reallocated through `Tmd_AllocBuffers`.
-static void func_actor_213000_8014A2C4(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+#include "../../shared/model_placement_mirror_parent.inc.c"
 
 /// Setup state of the child spawned from table entry 3: hangs each of the
 /// child's three root coordinates off the parent's part nine slots above it
@@ -747,29 +696,10 @@ static void func_actor_213000_8014A35C(Task* task)
     task->state += 1;
 }
 
-/// Tick state of the child spawned from table entry 3: the same mirroring
-/// of the parent's model bits 0x80 (hidden) and 0x4 onto the child's model,
-/// reallocating the child's buffers when the parent's 0x4 is clear.
-static void func_actor_213000_8014A488(Task* task)
-{
-    TmdObject* parentObject;
-    TmdObject* object;
-
-    parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
-    object       = task->extra.tmd;
-
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        object->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        Tmd_AllocBuffers(object);
-        return;
-    }
-    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-}
+/// A second copy, under this file's own name.
+#define modelPlacementMirrorParent func_actor_213000_8014A488
+#include "../../shared/model_placement_mirror_parent.inc.c"
+#undef modelPlacementMirrorParent
 
 /// State table of the child spawned from table entry 3: setup, tick, kill.
 static const TaskFuncTable3 D_actor_213000_80149E3C = {

@@ -37,6 +37,7 @@
 #include "rooms/dryfield_night_garage.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/model_placement.h"
 
 /// Work block of the actor's second task, the one `func_actor_135400_80132B60`
 /// sets up: the `memCalloc(0x498, 0)` result it stores in `Task::work`, which
@@ -64,7 +65,7 @@ STATIC_ASSERT_SIZEOF(Actor135400Work, 0x498);
 ///
 /// `field_4B8` / `field_4BC` are the two part tasks the same spawn creates
 /// through `Task_SpawnFromTable` (part 1 and part 2); each reparents itself
-/// onto this task in its state 0 (`func_actor_135400_80132450` /
+/// onto this task in its state 0 (`modelPlacementAttachPart` /
 /// `func_actor_135400_8013252C`). `headAim` is the on/off latch the 0x7DB
 /// handler `func_actor_135400_801328DC` sets and clears (its cases 2 and 3),
 /// and `headRate` the 0x000..0xFFF rate the tick ramps toward or away from
@@ -90,7 +91,7 @@ typedef struct Actor135400Places {
 STATIC_ASSERT_SIZEOF(Actor135400Places, 0x30);
 
 /// The actor's two-entry `TaskDesc` table, indexed by `Task_SpawnFromTable`:
-/// entry 1 is the model-bearing part task `func_actor_135400_80132450`
+/// entry 1 is the model-bearing part task `modelPlacementAttachPart`
 /// reparents, entry 2 the second part (`func_actor_135400_8013252C`).
 extern TaskDesc D_actor_135400_8013A4AC[];
 
@@ -145,7 +146,6 @@ extern AnimationSet** D_actor_135400_8013F8D4[1];
 static void func_actor_135400_80131EB4(Task* task);
 static void func_actor_135400_80132064(Task* arg0);
 static void func_actor_135400_801322A8(Task* task);
-static void func_actor_135400_80132450(Task* task);
 static void func_actor_135400_801324CC(Task* task);
 static void func_actor_135400_8013252C(Task* task);
 static void func_actor_135400_80132614(Task* arg0);
@@ -158,10 +158,10 @@ s32         func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayReques
 s32         func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3);
 
 /// State table of the first part task: state 0 reparents it
-/// (`func_actor_135400_80132450`), state 1 does nothing and state 2 kills it.
+/// (`modelPlacementAttachPart`), state 1 does nothing and state 2 kills it.
 /// Dispatched by `func_actor_135400_801323F8`.
 static const TaskFuncTable3 D_actor_135400_80131E24 = { {
-    func_actor_135400_80132450,
+    modelPlacementAttachPart,
     func_actor_135400_801324CC,
     taskKill,
 } };
@@ -747,32 +747,7 @@ void func_actor_135400_801323F8(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// State 0 of the first part task (`D_actor_135400_80131E24`): hangs the
-/// part's root coordinate under the parent's coordinate that `spawnArg1`
-/// indexes, shares the parent model's light and colour matrices and reparents
-/// the task onto the parent before advancing the state.
-static void func_actor_135400_80132450(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 /// State 1 of the first part task: nothing to do while it rides its parent.
 static void func_actor_135400_801324CC(Task* task)
@@ -789,32 +764,10 @@ void func_actor_135400_801324D4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// State 0 of the second part task (`D_actor_135400_80131E30`): hangs the
-/// part's root coordinate under the parent's coordinate that `spawnArg1`
-/// indexes, shares the parent model's light and colour matrices and reparents
-/// the task onto the parent before advancing the state.
-static void func_actor_135400_8013252C(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+/// A second copy, under this file's own name.
+#define modelPlacementAttachPart func_actor_135400_8013252C
+#include "../../shared/model_placement_attach_part.inc.c"
+#undef modelPlacementAttachPart
 
 /// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
 /// from `D_actor_135400_80131E3C`, skipping the frame while `Gp_StateF0.field_4` is
@@ -1102,7 +1055,7 @@ s32 func_actor_135400_80132D24(Task* task, s32 anim, AnimationPlayRequest* param
     return 0;
 }
 
-/// A second copy of the handler, under this file's own name.
+/// A second copy, under this file's own name.
 #define actorMsgPlaceEuler func_actor_135400_80132E40
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef actorMsgPlaceEuler

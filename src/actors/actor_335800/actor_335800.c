@@ -50,6 +50,7 @@
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/model_placement.h"
 
 /// Work block of the overlay's walker, allocated zeroed by its spawn routine
 /// and kept at `Task::work`: a nineteen-part rig, the walk state, and
@@ -129,7 +130,6 @@ extern Actor335800MsgEntry D_actor_335800_80172EA8[];
 
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
-static void func_actor_335800_80162E8C(Task* task);
 static void func_actor_335800_80162F08(Task* task);
 static void func_actor_335800_80162F7C(Task* arg0);
 static void func_actor_335800_80162F9C(Task* arg0);
@@ -149,7 +149,7 @@ static void func_actor_335800_80163D20(Task* arg0);
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
 /// spawns, dispatched by `func_actor_335800_80162E34`.
 static const TaskFuncTable3 D_actor_335800_80161E24 = { {
-    func_actor_335800_80162E8C,
+    modelPlacementAttachPart,
     func_actor_335800_80162F08,
     taskKill,
 } };
@@ -1372,28 +1372,7 @@ void func_actor_335800_80162E34(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_actor_335800_80162E8C(Task* task)
-{
-    Task*      parent;
-    s32        part;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
-
-    parent              = (Task*)task->spawnArg2.pointer;
-    part                = task->spawnArg1.value;
-    extra               = task->extra.tmd;
-    parentExtra         = parent->extra.tmd;
-    coord               = extra->coords;
-    dest                = &parentExtra->coords[part];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = dest;
-    extra->lightMtx     = parentExtra->lightMtx;
-    extra->colorMtx     = parentExtra->colorMtx;
-    Task_Reparent(parent, task);
-    task->state += 1;
-}
+#include "../../shared/model_placement_attach_part.inc.c"
 
 static void func_actor_335800_80162F08(Task* task)
 {
