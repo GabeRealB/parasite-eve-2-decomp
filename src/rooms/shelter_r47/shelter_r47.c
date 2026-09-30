@@ -61,6 +61,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/action_prompt.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -499,8 +500,6 @@ u8 D_shelter_r47_801873FC[8] = {
 };
 
 static const char Telephone_Data_8017D638[];
-
-static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b);
 
 #include "../../shared/telephone.inc.c"
 
@@ -1130,60 +1129,7 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
     }
 }
 
-/// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2` edges linked
-/// into `gGpuCurrentOt[1]`.
-static void func_shelter_r47_80181148(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 void func_shelter_r47_8018138C(Task* task)
 {

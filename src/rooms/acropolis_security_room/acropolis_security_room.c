@@ -68,6 +68,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// 0xA work block of the security-monitor task, hung off the `Task::work`
 /// slot (0x1C) -- that slot is *not* a `TaskIdMap` here, it is the
@@ -195,7 +196,7 @@ extern TaskDesc                      D_acropolis_security_room_80182618[];
 extern TaskDesc                      D_acropolis_security_room_8018263C;
 
 /// The security monitor's own hotspot table, hit-tested by
-/// `func_acropolis_security_room_8017ECB4`.
+/// `actionPromptHitTest`.
 extern OverlayHotspot D_acropolis_security_room_80182648[];
 
 /// The five camera ids the security monitor can display, in the order the
@@ -267,14 +268,10 @@ static void func_acropolis_security_room_8017DB30(Task* task);
 static void func_acropolis_security_room_8017DC7C(Task* task);
 static void func_acropolis_security_room_8017E0C4(s16 id);
 static void func_acropolis_security_room_8017E37C(Task* task);
-static void func_acropolis_security_room_8017E490(Task* task);
-static void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant);
 static void func_acropolis_security_room_8017EA28(Task* task);
 static void func_acropolis_security_room_8017EA5C(Task* task);
 static void func_acropolis_security_room_8017EADC(Task* task);
 static void func_acropolis_security_room_8017EB9C(Task* task);
-static s32  func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y);
-static void func_acropolis_security_room_8017EDE4(Task* task);
 static void func_acropolis_security_room_8017EE44(Task* task);
 static void func_acropolis_security_room_8017F480(Task* task);
 static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant);
@@ -1893,7 +1890,6 @@ Task* D_acropolis_security_room_801855AC;
 SVECTOR D_acropolis_security_room_801855B0;
 
 static void func_acropolis_security_room_8017DE80(RoomRect* rect, u8 r, u8 g, u8 b);
-static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b);
 static void func_acropolis_security_room_8017F1BC(Task* task);
 static void func_acropolis_security_room_8017F300(Task* task);
 static s32  func_acropolis_security_room_80181C84(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
@@ -2116,7 +2112,7 @@ static void func_acropolis_security_room_8017DB30(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
@@ -2379,211 +2375,18 @@ static void func_acropolis_security_room_8017E37C(Task* task)
     }
 }
 
-/// Per-frame cursor driver of the security-room action prompt, run as state 1
-/// of `func_acropolis_security_room_8017E9D8`. Byte-for-byte the same body as
-/// `func_acropolis_security_room_8017F480` in the cap script.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (input format 0x12 reads it linearly, 0x73 squares it for a dead-zone
-/// curve) and then the d-pad -- whose four bits select one of eight
-/// 1/16-of-a-turn headings fed to `rsin`/`rcos` -- into the prompt's
-/// 1/512-pixel position, clamps that to the screen, classifies the confirm
-/// (0x40) and cancel (0xA0) buttons into the prompt's two button slots, and
-/// finally hands the rounded position to `func_acropolis_security_room_8017E8F0`
-/// to draw the cursor. `RoomActionPrompt::targetId` doubles as the cursor speed
-/// here and `field_E` as the double-press window: a second press inside that
-/// many frames without the cursor having moved reports state 4 instead of 2.
-///
-/// `step` carries the analog delta first and the d-pad heading afterwards, and
-/// `idx` indexes the button slots in `u16` units so that `i` survives as the
-/// loop counter.
-static void func_acropolis_security_room_8017E490(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_acropolis_security_room_8017E8F0(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues the security monitor's 16x24 cursor/highlight quad at (`x`, `y`)
-/// into the current OT. `variant` picks the palette -- 0x3C87 when it is 2,
-/// and 0x3C88 otherwise -- and 0 draws nothing at all. The room carries a
-/// second copy of this body at `func_acropolis_security_room_8017F8E0`.
-static void func_acropolis_security_room_8017E8F0(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// Two-state dispatcher whose handler table is built on the stack rather than
-/// read from `.data`: state 0 runs `func_acropolis_security_room_8017EDE4` and
-/// state 1 runs `func_acropolis_security_room_8017E490`.
+/// read from `.data`: state 0 runs `actionPromptReset` and
+/// state 1 runs `actionPromptMoveCursors`.
 void func_acropolis_security_room_8017E9D8(Task* task)
 {
     TaskFunc funcs[2] = {
-        func_acropolis_security_room_8017EDE4,
-        func_acropolis_security_room_8017E490,
+        actionPromptReset,
+        actionPromptMoveCursors,
     };
 
     funcs[task->state](task);
@@ -2676,7 +2479,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_acropolis_security_room_8017ECB4(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hotspot->id != -1; hotspot++) {
@@ -2696,28 +2499,7 @@ static void func_acropolis_security_room_8017EB9C(Task* task)
     }
 }
 
-/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
-/// hotspot table `table`, raising `hit` on every entry whose rectangle
-/// contains the point and clearing it on every other one. Returns non-zero if
-/// any entry was hit, so `func_acropolis_security_room_8017EB9C` can tell
-/// "cursor is over something" from "cursor is over nothing" without rescanning
-/// the table. Same body as `func_acropolis_security_room_8017FCB0`.
-static s32 func_acropolis_security_room_8017ECB4(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 /// The sixteen state handlers of the room's cap script.
 static const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
@@ -2750,27 +2532,7 @@ void func_acropolis_security_room_8017ED68(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Resets both action-prompt slots before the cursor driver's first frame and
-/// steps the caller on one state: clears each slot's leading words and its two
-/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
-/// marks the slot as highlighted (`mode` 1). The room carries a second copy of
-/// this body at `func_acropolis_security_room_80180308`.
-static void func_acropolis_security_room_8017EDE4(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 /// Idle state of the security room's cap script: the same hotspot scan
 /// `func_acropolis_security_room_8017EB9C` runs for the monitor, but against
@@ -2817,61 +2579,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
     }
 }
 
-/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
-/// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
-/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-static void func_acropolis_security_room_8017EF78(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 static void func_acropolis_security_room_8017F1BC(Task* task)
 {
@@ -2956,200 +2664,17 @@ static void func_acropolis_security_room_8017F300(Task* task)
     task->state = 2;
 }
 
-/// Per-frame cursor driver of the security-room action prompt, run as state 1
-/// of `func_acropolis_security_room_8017F9C8`.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (input format 0x12 reads it linearly, 0x73 squares it for a dead-zone
-/// curve) and then the d-pad -- whose four bits select one of eight
-/// 1/16-of-a-turn headings fed to `rsin`/`rcos` -- into the prompt's
-/// 1/512-pixel position, clamps that to the screen, classifies the confirm
-/// (0x40) and cancel (0xA0) buttons into the prompt's two button slots, and
-/// finally hands the rounded position to `func_acropolis_security_room_8017F8E0`
-/// to draw the cursor. `RoomActionPrompt::targetId` doubles as the cursor speed
-/// here and `field_E` as the double-press window: a second press inside that
-/// many frames without the cursor having moved reports state 4 instead of 2.
-///
-/// `step` carries the analog delta first and the d-pad heading afterwards, and
-/// `idx` indexes the button slots in `u16` units so that `i` survives as the
-/// loop counter.
-static void func_acropolis_security_room_8017F480(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+/// The second prompt's copy.
+#define actionPromptMoveCursors func_acropolis_security_room_8017F480
+#define actionPromptDrawCursor  func_acropolis_security_room_8017F8E0
+#include "../../shared/action_prompt_move_cursors.inc.c"
+#undef actionPromptMoveCursors
+#undef actionPromptDrawCursor
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_acropolis_security_room_8017F8E0(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues the security-room's 16x24 cursor/highlight quad at (`x`, `y`) into
-/// the current OT. `variant` picks the palette -- 0x3C87 when it is 2, and
-/// 0x3C88 otherwise -- and 0 draws nothing at all.
-static void func_acropolis_security_room_8017F8E0(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+/// The second prompt's copy.
+#define actionPromptDrawCursor func_acropolis_security_room_8017F8E0
+#include "../../shared/action_prompt_draw_cursor.inc.c"
+#undef actionPromptDrawCursor
 
 /// Task callback of the descriptor at `D_acropolis_security_room_801826C0`:
 /// a two-state dispatcher whose handler table is built on the stack rather
@@ -3269,27 +2794,10 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     Task_RequestKill(task, 0);
 }
 
-/// Hit-tests the action cursor at (`x`, `y`) against the 0xFFFF-terminated
-/// hotspot table `table`, raising `hit` on every entry whose rectangle
-/// contains the point and clearing it on every other one. Returns non-zero if
-/// any entry was hit, so the caller can tell "cursor is over something" from
-/// "cursor is over nothing" without rescanning the table.
-static s32 func_acropolis_security_room_8017FCB0(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+/// The second prompt's copy.
+#define actionPromptHitTest func_acropolis_security_room_8017FCB0
+#include "../../shared/action_prompt_hit_test.inc.c"
+#undef actionPromptHitTest
 
 /// Repaints the two security-monitor sprites for the current state of game
 /// flag nibble 9, whose low two bits say which of the two shutters has been
@@ -3490,27 +2998,10 @@ void func_acropolis_security_room_80180294(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Resets both action-prompt slots before the script's first cursor scan and
-/// steps the caller on one state: clears each slot's leading words and its two
-/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
-/// marks the slot as highlighted (`mode` 1). The room carries a second copy of
-/// this body at `func_acropolis_security_room_8017EDE4`.
-static void func_acropolis_security_room_80180308(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+/// The second prompt's copy.
+#define actionPromptReset func_acropolis_security_room_80180308
+#include "../../shared/action_prompt_reset.inc.c"
+#undef actionPromptReset
 
 /// First `TaskDesc` of `D_acropolis_security_room_80182700`: starts the room's
 /// looping ambience, then rides alongside the cutscene task

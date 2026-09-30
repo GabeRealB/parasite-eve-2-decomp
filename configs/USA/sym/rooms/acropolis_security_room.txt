@@ -84,3 +84,8 @@ func_acropolis_security_room_80180E34 = 0x80180E34; // type:func
 func_acropolis_security_room_80181108 = 0x80181108; // type:func
 
 func_acropolis_security_room_801817A4 = 0x801817A4; // type:func
+actionPromptMoveCursors = 0x8017E490; // type:func
+actionPromptDrawCursor = 0x8017E8F0; // type:func
+actionPromptHitTest = 0x8017ECB4; // type:func
+actionPromptReset = 0x8017EDE4; // type:func
+actionPromptOutlineRect = 0x8017EF78; // type:func
