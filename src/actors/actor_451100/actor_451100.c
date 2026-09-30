@@ -53,9 +53,9 @@ extern Actor260500Work* gFootstepWalkWork;
 extern Task* D_actor_451100_8014E748;
 
 /// Reset argument the first actor forwards to every reseeded slot.
-extern s16 D_actor_451100_8013F700;
+extern s16 gFootstepWalkBlendFrames;
 
-/// Picks the distance `func_actor_451100_80131F84` walks the model each frame:
+/// Picks the distance `footstepWalkQuietUpdate` walks the model each frame:
 /// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
 extern s16 gFootstepWalkMode;
 
@@ -83,11 +83,8 @@ extern u8                  D_actor_451100_8014E6FC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_451100_80131F84(Task* task);
 static void func_actor_451100_80132330(GpEnemy* enemy, Task* task);
 static void func_actor_451100_801323B4(Task* task);
-static void func_actor_451100_80132428(void);
-static void func_actor_451100_801324B8(void);
 static void func_actor_451100_80132C28(GpEnemy* enemy, Task* task);
 static void func_actor_451100_80132CAC(Task* task);
 static void func_actor_451100_80132CD4(Task* task);
@@ -889,7 +886,7 @@ AnimationSet D_actor_451100_8013F6D8 = {
     { NULL, D_actor_451100_8013F464, NULL, NULL, D_actor_451100_8013F53C, NULL, NULL, NULL },
 };
 
-s16 D_actor_451100_8013F700 = 8;
+s16 gFootstepWalkBlendFrames = 8;
 
 Actor451100MsgEntry D_actor_451100_8013F704[6] = {
     { 2003, { .call1 = func_actor_451100_80132538 } },
@@ -1501,58 +1498,11 @@ static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task)
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_451100_8013F704;
-    func_actor_451100_80131F84(task);
+    footstepWalkQuietUpdate(task);
     task->state += 1;
 }
 
-/// Step routine of the actor `func_actor_451100_801322D4` dispatches, run each
-/// frame and by its "start animation" opcode: states 1 and 2 run their one-shot
-/// animation reseed and leave the work block in state 3; state 3 walks the
-/// model while `travel` counts down in clips 0xE, 2 and 0xF (stride picked by
-/// `gFootstepWalkMode`), dropping to clip 0xD with a reset argument of 10
-/// when it runs out, turns it while `turnFrames` counts down in clip 3, then ticks
-/// the animation.
-static void func_actor_451100_80131F84(Task* task)
-{
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor260500Work* work  = (Actor260500Work*)task->work;
-
-    if (gFootstepWalkWork->st.state == 1) {
-        func_actor_451100_801324B8();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 2) {
-        func_actor_451100_80132428();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 3) {
-        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
-            if (work->st.travel != 0) {
-                switch (gFootstepWalkMode) {
-                    case 0:
-                        actorMoveModelForward(task, 0x3C);
-                        break;
-                    case 1:
-                        actorMoveModelForward(task, -0xF);
-                        break;
-                    case 2:
-                        actorMoveModelForward(task, 0x19);
-                        break;
-                }
-                if (--work->st.travel == 0) {
-                    work->st.state          = 1;
-                    D_actor_451100_8013F700 = 10;
-                    work->st.animId         = 0xD;
-                }
-            }
-        }
-        if (work->st.animId == 3 && work->turnFrames != 0) {
-            work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->turnFrames--;
-        }
-        footstepWalkTickAnim();
-    }
-}
+#include "../../shared/footstep_walk_quiet_update.inc.c"
 
 /// Task handler of the actor whose work block this overlay publishes: runs
 /// the handler for the task's state from a two-entry table built on the stack
@@ -1571,7 +1521,7 @@ void func_actor_451100_801322D4(Task* task)
 }
 
 #define walkerFrame      func_actor_451100_80132330
-#define walkerUpdate     func_actor_451100_80131F84
+#define walkerUpdate     footstepWalkQuietUpdate
 #define walkerDrawShadow walkerDrawShadowShaded
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1587,39 +1537,9 @@ static void func_actor_451100_801323B4(Task* task)
 
 #include "../../shared/footstep_walk_tick_anim.inc.c"
 
-/// Restarts the animation without a reset argument, the step routine's state
-/// 2: marks animation slots 1..0x12 as reset-pending and reseeds each of them
-/// from the current animation id, then records that id as the one now
-/// playing. Reaches the block through `gFootstepWalkWork`.
-static void func_actor_451100_80132428(void)
-{
-    s32 i;
+#include "../../shared/footstep_walk_quiet_reset_anim.inc.c"
 
-    i = 1;
-    do {
-        gFootstepWalkWork->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
-        i++;
-    } while (i < 0x13);
-    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
-}
-
-/// Restarts the animation with the reset argument in
-/// `D_actor_451100_8013F700`, the step routine's state 1: reseeds animation
-/// slots 1..0x12 from the current animation id and records that id as the one
-/// now playing.
-static void func_actor_451100_801324B8(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        func_800B4114(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
-                      D_actor_451100_8013F700);
-        i++;
-    } while (i < 0x13);
-    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
-}
+#include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
 
 /// Starts the actor's scripted animation selected by the request.
 ///
@@ -1631,12 +1551,12 @@ s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args)
         gFootstepWalkWork->st.animId = args->animationId;
         if (args->blend != ANIMATION_BLEND_RESET) {
             gFootstepWalkWork->st.state = 1;
-            D_actor_451100_8013F700     = args->blendFrames;
+            gFootstepWalkBlendFrames    = args->blendFrames;
         } else {
             gFootstepWalkWork->st.state = 2;
         }
         gFootstepWalkWork->st.field_6 = 0;
-        func_actor_451100_80131F84(D_actor_451100_8014E748);
+        footstepWalkQuietUpdate(D_actor_451100_8014E748);
         return 0;
     }
     return -1;

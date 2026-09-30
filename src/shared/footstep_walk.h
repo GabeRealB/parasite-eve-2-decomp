@@ -45,4 +45,8 @@ s32  footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
 s32 footstepWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
 
+void footstepWalkQuietUpdate(Task* task);
+void footstepWalkQuietResetAnim(void);
+void footstepWalkQuietBlendAnim(void);
+
 #endif /* SRC_SHARED_FOOTSTEP_WALK_H */

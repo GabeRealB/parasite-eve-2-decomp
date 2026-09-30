@@ -54,11 +54,11 @@ extern Task* D_actor_260500_80159E50;
 /// Reset argument the blended reseed forwards: the play-animation handler
 /// latches the preset's `field_C` here, and the update sets it to 10 when a
 /// walk ends.
-extern s16 D_actor_260500_80159D7C;
+extern s16 gFootstepWalkBlendFrames;
 
 /// Approach mode the last `func_actor_260500_8014A83C` call selected; the
 /// update picks its step length from it.
-extern s16 D_actor_260500_80159E54;
+extern s16 gFootstepWalkMode;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -85,11 +85,8 @@ STATIC_ASSERT_SIZEOF(Actor260500MsgEntry, 8);
 extern Actor260500MsgEntry D_actor_260500_80159D80[];
 extern u8                  D_actor_260500_80159DBC[];
 
-static void func_actor_260500_8014A110(Task* task);
 static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
 static void func_actor_260500_8014A540(Task* task);
-static void func_actor_260500_8014A5B4(void);
-static void func_actor_260500_8014A644(void);
 
 extern TmdSource D_actor_260500_80159D58;
 void             func_actor_260500_8014A460(Task*);
@@ -1339,7 +1336,7 @@ TmdSource D_actor_260500_80159D58 = {
     D_actor_260500_80155B48,
 };
 
-s16 D_actor_260500_80159D7C = 8;
+s16 gFootstepWalkBlendFrames = 8;
 
 Actor260500MsgEntry D_actor_260500_80159D80[6] = {
     { 2003, { .call0 = func_actor_260500_8014A6C4 } },
@@ -1503,7 +1500,7 @@ Actor260500Work* gFootstepWalkWork = NULL;
 
 Task* D_actor_260500_80159E50;
 
-s16 D_actor_260500_80159E54;
+s16 gFootstepWalkMode;
 
 static void func_actor_260500_80149E80(void);
 static void func_actor_260500_80149EBC(void);
@@ -1603,57 +1600,11 @@ static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
     gFootstepWalkWork->st.travel  = 0;
     gFootstepWalkWork->turnFrames = 0;
     task->msgTable                = D_actor_260500_80159D80;
-    func_actor_260500_8014A110(task);
+    footstepWalkQuietUpdate(task);
     task->state++;
 }
 
-/// Per-frame update: reset modes 1 and 2 run their one-shot reseed (blended or
-/// plain) and switch to mode 3. In mode 3 the walking animations 2, 0xE and 0xF
-/// step the model forward while `st.travel` counts down, by a distance the
-/// approach mode in `D_actor_260500_80159E54` picks, and blend into animation
-/// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
-/// while `turnFrames` counts down. Mode 3 then ticks the animation.
-static void func_actor_260500_8014A110(Task* task)
-{
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor260500Work* work  = (Actor260500Work*)task->work;
-
-    if (gFootstepWalkWork->st.state == 1) {
-        func_actor_260500_8014A644();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 2) {
-        func_actor_260500_8014A5B4();
-        gFootstepWalkWork->st.state = 3;
-    } else if (gFootstepWalkWork->st.state == 3) {
-        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
-            if (work->st.travel != 0) {
-                switch (D_actor_260500_80159E54) {
-                    case 0:
-                        actorMoveModelForward(task, 0x3C);
-                        break;
-                    case 1:
-                        actorMoveModelForward(task, -0xF);
-                        break;
-                    case 2:
-                        actorMoveModelForward(task, 0x19);
-                        break;
-                }
-                if (--work->st.travel == 0) {
-                    work->st.state          = 1;
-                    D_actor_260500_80159D7C = 10;
-                    work->st.animId         = 0xD;
-                }
-            }
-        }
-        if (work->st.animId == 3 && work->turnFrames != 0) {
-            work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->turnFrames--;
-        }
-        footstepWalkTickAnim();
-    }
-}
+#include "../../shared/footstep_walk_quiet_update.inc.c"
 
 /// Two-state task handler: publishes the task's work block in
 /// `gFootstepWalkWork` on the way through, then calls the spawn routine
@@ -1671,7 +1622,7 @@ void func_actor_260500_8014A460(Task* task)
 }
 
 #define walkerFrame      func_actor_260500_8014A4BC
-#define walkerUpdate     func_actor_260500_8014A110
+#define walkerUpdate     footstepWalkQuietUpdate
 #define walkerDrawShadow walkerDrawShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1687,37 +1638,9 @@ static void func_actor_260500_8014A540(Task* task)
 
 #include "../../shared/footstep_walk_tick_anim.inc.c"
 
-/// Plain reseed: marks animation slots 1..0x12 of the work block reset-pending
-/// and reseeds each of them from the current animation id, then records that id
-/// as the one now playing.
-static void func_actor_260500_8014A5B4(void)
-{
-    s32 i;
+#include "../../shared/footstep_walk_quiet_reset_anim.inc.c"
 
-    i = 1;
-    do {
-        gFootstepWalkWork->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId);
-        i++;
-    } while (i < 0x13);
-    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
-}
-
-/// Blended reseed: reseeds animation slots 1..0x12 of the work block from the
-/// current animation id with the latched reset argument
-/// `D_actor_260500_80159D7C`, and records that id as the one now playing.
-static void func_actor_260500_8014A644(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        func_800B4114(&gFootstepWalkWork->rig.anim, i, gFootstepWalkWork->st.animId, 0,
-                      D_actor_260500_80159D7C);
-        i++;
-    } while (i < 0x13);
-    gFootstepWalkWork->st.appliedAnimId = gFootstepWalkWork->st.animId;
-}
+#include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
 
 /// Play-animation message handler: adopts the preset's animation id when it is
 /// one of the first 0x24, latching the reset mode -- 1 for the blended reseed,
@@ -1730,12 +1653,12 @@ s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* prese
         gFootstepWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
             gFootstepWalkWork->st.state = 1;
-            D_actor_260500_80159D7C     = preset->blendFrames;
+            gFootstepWalkBlendFrames    = preset->blendFrames;
         } else {
             gFootstepWalkWork->st.state = 2;
         }
         gFootstepWalkWork->st.field_6 = 0;
-        func_actor_260500_8014A110(D_actor_260500_80159E50);
+        footstepWalkQuietUpdate(D_actor_260500_80159E50);
         return 0;
     }
     return -1;
@@ -1773,7 +1696,7 @@ s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg)
 
 /// Approach handler: turns the model to face `target` -- away from it in mode
 /// 1, where the update then walks it backwards -- keeps the mode in
-/// `D_actor_260500_80159E54`, and stores the number of steps the walk takes:
+/// `gFootstepWalkMode`, and stores the number of steps the walk takes:
 /// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
 /// and 25 in mode 2.
 s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
@@ -1786,20 +1709,20 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32              dist;
     s32              angle;
 
-    steps                   = 0;
-    coord                   = task->extra.tmd->coords;
-    work                    = (Actor260500Work*)task->work;
-    D_actor_260500_80159E54 = mode;
-    dx                      = target->vx - coord->coord.t[0];
-    dz                      = target->vz - coord->coord.t[2];
-    angle                   = ratan2(dx, dz);
-    work->st.yaw            = angle;
-    if (D_actor_260500_80159E54 == 1) {
+    steps             = 0;
+    coord             = task->extra.tmd->coords;
+    work              = (Actor260500Work*)task->work;
+    gFootstepWalkMode = mode;
+    dx                = target->vx - coord->coord.t[0];
+    dz                = target->vz - coord->coord.t[2];
+    angle             = ratan2(dx, dz);
+    work->st.yaw      = angle;
+    if (gFootstepWalkMode == 1) {
         work->st.yaw = angle + 0x800;
     }
     Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
-    switch (D_actor_260500_80159E54) {
+    switch (gFootstepWalkMode) {
         case 0:
             steps = 0x3C;
             break;
