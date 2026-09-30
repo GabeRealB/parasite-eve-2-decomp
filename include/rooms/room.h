@@ -8,17 +8,21 @@
 
 #include "main/task_types.h"
 
-/// A scripted event a room starts in answer to a message. The room's message
-/// handler builds the record, and if the event has not happened yet it copies
-/// the record into the room's own pending copy and spawns the room's event
-/// task, which works through it: it runs the capture command, starts the fade
-/// task if asked to once the capture has finished, plays the stage sound and
-/// waits for it, and then moves the player on.
-typedef struct RoomLatchedEvent {
-    s32 capCmd;   // Capture command the event task runs first
-    s32 stageSnd; // Packed stage sound played once the capture has finished; 0 for none
-    s16 flagId;   // Game-flag nibble that records the event as done, set when it starts; 0 for none
-    u8  fade;     // Non-zero starts the fade task (bank 1, type 0x31) over 30 frames once the capture has finished
+/// Script record for a room's staged event.
+///
+/// The message handler fills the record on the stack. The event is eligible
+/// when `flagId` is 0 or the game-flag nibble it names is 0. Accepting an
+/// executing message copies the record into the room's latched event, copies
+/// the message into the latched destination, sets a non-zero `flagId` nibble
+/// to 1 and spawns the staged event task. A query leaves that state alone.
+/// The task runs `capCmd`, starts the screen fade when `fade` asks for it,
+/// plays `stageSnd` and waits for that voice, then commits the latched
+/// message's area, warp and room. `flagId` is the handler's latch key.
+typedef struct {
+    s32 capCmd;   // CAP command index the event task runs first
+    s32 stageSnd; // Stage sound id played after that command; 0 skips it. A set stage nibble is replaced with the current stage
+    s16 flagId;   // Game-flag nibble set to 1 on latch; 0 records nothing and stays eligible
+    u8  fade;     // (0 skip, nonzero start fade task 0x31: a 30-frame ramp, fade-out flag left clear)
 } RoomLatchedEvent;
 STATIC_ASSERT_SIZEOF(RoomLatchedEvent, 0xC);
 
