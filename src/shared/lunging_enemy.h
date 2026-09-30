@@ -46,4 +46,17 @@ void lungerBulletFly(GpEnemy* arg0, Task* arg1);
 void lungerGunTick(GpEnemy* enemy, Task* task);
 void lungerBulletDestroy(GpEnemy* arg0, Task* arg1);
 
+void lungerSilenceScreamState(Task* arg0);
+void lungerFrameState(GpEnemy* ctx, Task* actor);
+void lungerBurstPartTick(GpEnemy* arg0, Task* arg1);
+
+/* Defined by each package. */
+void lungerTakeHits(Task* arg0);
+
+static inline void lungerSpawnDust(Task* actor);
+static inline void lungerApplyReaction(Task* actor);
+static inline void lungerStepRoot(Task* actor);
+static inline void lungerTickAnim(Task* actor);
+static inline void lungerDraw(Task* actor, GfxCoord* coord);
+
 #endif /* SRC_SHARED_LUNGING_ENEMY_H */

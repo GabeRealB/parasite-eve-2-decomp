@@ -62,7 +62,6 @@ static void Actor05700_Fn0509C(GpEnemy* arg0, Task* task);
 static void Actor05700_Fn050E0(GpEnemy* enemy, Task* task);
 static void Actor05700_Fn051D8(GpEnemy* arg0, Task* arg1);
 static void Actor05700_Fn052CC(GpEnemy* arg0, Task* task);
-static void Actor05700_Fn05310(GpEnemy* arg0, Task* arg1);
 
 /// Sound ids this actor's cues play, indexed by `Actor105600Work.field_6D6`
 /// (row `field_6D6` starts at the second word, the `- 1` in the body).
@@ -112,7 +111,6 @@ extern TmdSource    Actor05700_D0AE78;
 void                Actor05700_Fn00E44(Task*);
 void                Actor05700_Fn01E28(Task*);
 void                Actor05700_Fn023AC(Task*);
-void                Actor05700_Fn03930(Task*);
 void                Actor05700_Fn04714(Task*);
 void                Actor05700_Fn04DA0(Task*);
 void                Actor05700_Fn04EF4(Task*);
@@ -979,11 +977,11 @@ s32 Actor05700_D17228 = 0x40390007;
 
 s32 Actor05700_D1722C = 0x40390008;
 
-s32 Actor05700_D17230 = 0x40390013;
+s32 gLungerScreamCue = 0x40390013;
 
-s32 Actor05700_D17234 = 0x40390014;
+s32 gLungerSilenceCue = 0x40390014;
 
-s32 Actor05700_D17238 = 0x40390015;
+s32 gLungerBurstCue = 0x40390015;
 
 u16 Actor05700_D1723C[22] = {
     0,
@@ -1241,13 +1239,13 @@ AnimationSet* Actor05700_D17408[31] = {
     &Actor05700_D170CC,
 };
 
-TaskFunc Actor05700_D17484[15] = {
+TaskFunc gLungerStates[15] = {
     lungerIdleState,
     lungerApproachState,
     Actor05700_Fn04714,
     Actor05700_Fn05038,
     Actor05700_Fn05038,
-    Actor05700_Fn03930,
+    lungerSilenceScreamState,
     Actor05700_Fn01E28,
     Actor05700_Fn023AC,
     Actor05700_Fn04DA0,
@@ -1273,9 +1271,9 @@ extern s32 Actor05700_D17228;
 /// packed in like `Actor05700_D17228`.
 extern s32 Actor05700_D1722C;
 
-extern s32 Actor05700_D17230;
+extern s32 gLungerScreamCue;
 
-extern s32 Actor05700_D17234;
+extern s32 gLungerSilenceCue;
 
 /// Animation bank the work block's animation context is started on.
 extern AnimationSet* Actor05700_D17408[31];
@@ -1292,23 +1290,16 @@ extern u16* Actor05700_D173B0[];
 extern EnemyParams Actor05700_D17108[];
 
 /// Per-state handlers of the approach cycle, indexed by `field_6A6`.
-extern TaskFunc Actor05700_D17484[];
+extern TaskFunc gLungerStates[];
 
 /// Sound id the spawn cue is played against; the low byte comes from the
 /// context block's room/channel bits.
-extern s32 Actor05700_D17238;
+extern s32 gLungerBurstCue;
 
-static void            Actor05700_Fn000B0(Task* arg0);
 static void            Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1);
 static void            Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1);
 static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx);
 static void            Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor);
-static __inline__ void Actor105700_SpawnDust(Task* actor);
-static inline void     _actor05700ApplyReaction(Task* actor);
-static inline void     _actor05700StepRoot(Task* actor);
-static inline void     _actor05700TickAnim(Task* actor);
-static inline void     _actor05700Draw(Task* actor, GfxCoord* coord);
-static void            Actor05700_Fn04338(GpEnemy* ctx, Task* actor);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -1316,7 +1307,7 @@ static void            Actor05700_Fn04338(GpEnemy* ctx, Task* actor);
 /// reaction animation picked into `field_6A6`), kind 3 a push-out whose
 /// deepest overlap is applied to the root after the loop. Finally raises
 /// `field_6B2` when the player's segment test against `field_4B4` fails.
-static void Actor05700_Fn000B0(Task* arg0)
+void lungerTakeHits(Task* arg0)
 {
     s32                    result;
     s32                    maxPush;
@@ -2382,94 +2373,7 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
 
-/// Four-step burst sequence driven by `field_6A8`: 0 spawns the effect and cue
-/// on entry, rumbles every tenth frame and either ends after `field_6B6` passes
-/// 0x28 or times out at 0x96 frames; 1 counts `field_6AE` down into 2; 2
-/// triggers the PE state and plays the second cue; 3 spawns random-offset
-/// sparks every fourth frame until `field_6AE` runs out.
-void Actor05700_Fn03930(Task* arg0)
-{
-    Actor105600Work* work;
-    GfxCoord*        self;
-    SVECTOR*         scratch;
-    s32              sound;
-    u32              random;
-
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
-    work    = arg0->work;
-    self    = arg0->extra.tmd->coords;
-    switch (work->field_6A8) {
-        case 0:
-            if (work->field_6AE == 0) {
-                scratch->vx     = 0;
-                scratch->vy     = 0;
-                scratch->vz     = 0;
-                work->field_690 = Gp_SpawnEff(D_80115758, &arg0->extra.tmd->coords[4], 0x96, scratch);
-                sound           = Actor05700_D17230 | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-                SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
-            }
-            work->field_6CE = work->field_6D0 > 0;
-            if ((s16)(work->field_6AE % 10) == 0) {
-                Gp_SpawnPadLerp(5, 0x80, 8);
-            }
-            if (work->field_6B6 >= 0x29) {
-                work->field_6C2 = 0;
-                if (--work->field_6C4 <= 0) {
-                    work->field_6A6 = 9;
-                    work->field_6A8 = 0;
-                } else {
-                    work->field_6A6 = 5;
-                    work->field_6A8 = 3;
-                    work->field_694 = 0x15;
-                    work->field_6AE = 0x4F;
-                }
-                work->field_6CE = 0;
-                if (work->field_690 != NULL) {
-                    work->field_690->task->state = 3;
-                }
-                work->field_690 = NULL;
-            } else if (++work->field_6AE >= 0x96) {
-                work->field_6AE = 8;
-                work->field_6A8 = 1;
-                work->field_694 = 0xB;
-                work->field_6C2 = 0;
-                work->field_6CE = 0;
-                work->field_690 = NULL;
-                Gp_SpawnPadLerp(0xF, 0xFF, 8);
-            }
-            break;
-        case 1:
-            if (--work->field_6AE <= 0) {
-                work->field_6A8 = 2;
-                work->field_6AE = 0;
-            }
-            break;
-        case 2:
-            Gp_TriggerPeState(0, PLAYER_STATUS_SILENCE);
-            work->field_6A6 = 2;
-            work->field_6A8 = 0;
-            work->field_694 = 2;
-            sound           = Actor05700_D17234 | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-            SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(self), (s8)gpGetObjDepth(self));
-            break;
-        case 3:
-            if (!(work->field_698 & 3)) {
-                scratch->vx = 0;
-                scratch->vz = 0;
-                random      = Gp_LcgState * 5 + 0x71357911;
-                scratch->vy = -((random >> 16) & 0x1FF);
-                Gp_LcgState = random;
-                Gp_SpawnEff(0x600E0, &arg0->extra.tmd->coords[3], 0x100, scratch);
-            }
-            if (--work->field_6AE <= 0) {
-                work->field_6A6 = 2;
-                work->field_6A8 = 0;
-                work->field_694 = 2;
-            }
-            break;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
+#include "../../shared/lunging_enemy_silence_scream.inc.c"
 
 /// `actorTintModel` for a spawned enemy's model.
 static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx)
@@ -2667,162 +2571,9 @@ static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
     }
 }
 
-/// Every third frame while `field_6C4` is clear, kicks a dust effect off the
-/// fourth body coordinate with a random upward velocity.
-static __inline__ void Actor105700_SpawnDust(Task* actor)
-{
-    Actor105600Work* work;
-    SVECTOR*         head;
-    SVECTOR*         rot;
+#include "../../shared/lunging_enemy_inlines.inc.c"
 
-    work                          = actor->work;
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    rot                           = head - 1;
-    SCRATCH_STACK_CURSOR(SVECTOR) = rot;
-    if (++work->field_6B0 >= 3) {
-        work->field_6B0 = 0;
-        head[-1].vx     = 0;
-        rot->vz         = 0;
-        rot->vy         = -(((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1FF);
-        Gp_SpawnEff(0x600E0, &actor->extra.tmd->coords[3], 0x100, rot);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(8);
-}
-
-/// Takes a pending reaction: while `field_6B8` is 0, bit 1 of the spawn
-/// context's `reactionFlags` is cleared and the enemy switches to entry 0xA of
-/// the `field_6A6` table with animation 0x14.
-static inline void _actor05700ApplyReaction(Task* actor)
-{
-    GpEnemy*         spawn;
-    Actor105600Work* work;
-    u8               flags;
-
-    spawn = actor->spawnArg2.pointer;
-    flags = spawn->reactionFlags;
-    work  = actor->work;
-    if ((flags & 2) && (work->field_6B8 == 0)) {
-        spawn->reactionFlags = flags & 0xFD;
-        work->field_6A6      = 0xA;
-        work->field_694      = 0x14;
-        work->field_6A8      = 0;
-        work->field_6E0      = 1;
-    }
-}
-
-/// Saves the root coordinate's translation in `field_678`..`field_680`, then
-/// moves it `field_69C` along its facing, raising it by 0x80 while `field_6DE`
-/// is below 2.
-static inline void _actor05700StepRoot(Task* actor)
-{
-    GfxCoord*        coord;
-    Actor105600Work* work;
-
-    coord              = actor->extra.tmd->coords;
-    work               = actor->work;
-    work->field_678    = coord->coord.t[0];
-    work->field_67C    = coord->coord.t[1];
-    work->field_680    = coord->coord.t[2];
-    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->field_69C) >> 0xC;
-    if (work->field_6DE < 2) {
-        coord->coord.t[1] += 0x80;
-    }
-    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->field_69C) >> 0xC;
-}
-
-/// Advances animation slots 1..0x12 by one frame, or, when `field_694` names a
-/// new animation, restarts the frame count and cross-fades every slot to it
-/// over the animation's `gLungerAnimBlendFrames` duration.
-static inline void _actor05700TickAnim(Task* actor)
-{
-    Actor105600Work* work;
-    s16              duration;
-    s32              i;
-
-    work = actor->work;
-    if (work->field_694 != work->field_696) {
-        work->field_696 = work->field_694;
-        work->field_698 = 0;
-        duration        = gLungerAnimBlendFrames[work->field_694];
-        for (i = 1; i < 0x13; i++) {
-            func_800B4114(&work->rig.anim, i, work->field_694, 0, duration);
-        }
-    } else {
-        work->field_698++;
-        for (i = 1; i < 0x13; i++) {
-            Gp_AnimTickIndex(&work->rig.anim, i);
-        }
-    }
-}
-
-/// Updates the enemy's colour from `coord`'s world position and draws the
-/// ground quad under part 3.
-static inline void _actor05700Draw(Task* actor, GfxCoord* coord)
-{
-    VECTOR3   pos;
-    GfxCoord* root;
-    GfxCoord* part;
-
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor(actor->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
-    root   = actor->extra.tmd->coords;
-    part   = root + 3;
-    pos.vx = part->workm.t[0];
-    pos.vy = root->workm.t[1];
-    pos.vz = part->workm.t[2];
-    Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
-}
-
-/// Per-frame tick: runs the state handler, integrates the forward step,
-/// advances or reseeds the animation slots, then draws. The same body as
-/// `Actor02000_Fn02A34` plus the dust effect.
-static void Actor05700_Fn04338(GpEnemy* ctx, Task* actor)
-{
-    TmdObject*       model;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-
-    work  = actor->work;
-    model = actor->extra.tmd;
-    coord = model->coords;
-    switch (Gp_StateF0.field_4) {
-        case 0:
-            model->flags                = 0;
-            ctx->node.state.parts.flags = 0;
-            break;
-        case 1:
-            _actor05700Draw(actor, coord);
-            return;
-        case 2:
-            model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            return;
-    }
-
-    if (ctx->reactionFlags != 0) {
-        _actor05700ApplyReaction(actor);
-    }
-    Actor05700_Fn000B0(actor);
-    Actor05700_D17484[work->field_6A6](actor);
-    if (work->field_69E != 0) {
-        lungerTurnTowardTarget(actor);
-    }
-    _actor05700StepRoot(actor);
-    _actor05700TickAnim(actor);
-    if (work->field_6B4 != 0) {
-        lungerDecayHitTilt(actor);
-    }
-    lungerPlayAnimCues(actor);
-    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
-    actor->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(coord);
-    if (work->field_6C4 == 0) {
-        Actor105700_SpawnDust(actor);
-    }
-    _actor05700Draw(actor, coord);
-}
+#include "../../shared/lunging_enemy_frame.inc.c"
 
 void Actor05700_Fn04714(Task* arg0)
 {
@@ -3160,7 +2911,7 @@ static void Actor05700_Fn051D8(GpEnemy* arg0, Task* arg1)
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05270`.
 static const GpEnemyTaskFuncTable3 Actor05700_D00098 = {
     Actor05700_Fn052CC,
-    Actor05700_Fn05310,
+    lungerBurstPartTick,
     Gp_DestroyEnemy,
 };
 
@@ -3172,7 +2923,7 @@ void Actor05700_Fn05270(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-/// Spawn state of the burst child driven by `Actor05700_Fn05310`: parents the
+/// Spawn state of the burst child driven by `lungerBurstPartTick`: parents the
 /// child's root coordinate to part 11 of the actor's model, points the
 /// child's model at the actor's light and colour matrices and advances to
 /// state 1.
@@ -3203,51 +2954,11 @@ static void Actor05700_Fn052CC(GpEnemy* arg0, Task* task)
 /// teardown take the task as the actor view it is.
 static const GpEnemyTaskFuncTable3 Actor05700_D000A4 = {
     Actor05700_Fn03CC4,
-    Actor05700_Fn04338,
+    lungerFrameState,
     lungerDeadState,
 };
 
-/// Spawns the effect burst for the owner's coordinate, hands that coordinate
-/// to the pan/depth sound cue, then parks the work block in state 2.
-static void Actor05700_Fn05310(GpEnemy* arg0, Task* arg1)
-{
-    Task*            owner;
-    TmdObject*       obj;
-    TmdObject*       ownerObj;
-    Actor105600Work* work;
-    GfxCoord*        coord;
-    s16              state;
-    s32              snd;
-    s32              pan;
-
-    owner      = arg1->parent;
-    obj        = arg1->extra.tmd;
-    ownerObj   = owner->extra.tmd;
-    work       = owner->work;
-    coord      = obj->coords;
-    obj->flags = ownerObj->flags;
-    state      = work->field_6D2;
-
-    switch (state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            return;
-        case 1:
-            Gp_SpawnEff(0x6005C, coord, 0x10002600, NULL);
-            Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
-            Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
-            Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
-            work->field_6D2 = 2;
-            snd             = Actor05700_D17238 |
-                  ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 0xC) << 8);
-            pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-            return;
-        case 2:
-            arg1->state = state;
-            return;
-    }
-}
+#include "../../shared/lunging_enemy_burst_part.inc.c"
 
 void Actor05700_Fn05470(Task* arg0)
 {
