@@ -15,4 +15,6 @@
 
 void effectSpriteDrawRotated(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 
+void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
+
 #endif /* SRC_SHARED_EFFECT_SPRITE_H */
