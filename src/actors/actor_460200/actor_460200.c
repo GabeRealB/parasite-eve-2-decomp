@@ -40,6 +40,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
+#include "../../shared/screen_negative.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -104,7 +105,6 @@ extern s32                     D_actor_460200_80151538;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
-static void func_actor_460200_80131FB0(void);
 static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
 static void func_actor_460200_80132950(Task* task);
 static void func_actor_460200_80132978(Task* task);
@@ -194,7 +194,7 @@ extern ActorTransform       D_actor_460200_80136204;
 extern ActorTransform       D_actor_460200_8013621C;
 void                        func_actor_460200_80132090(Task*);
 void                        func_actor_460200_801320E0(s32);
-void                        func_actor_460200_80132124(void);
+static void                 func_actor_460200_80132124(void);
 void                        func_actor_460200_80132204(s8);
 
 extern Actor460200AnimStorage5E30 D_actor_460200_80135E30;
@@ -2204,7 +2204,7 @@ void func_actor_460200_80131E24(Task* task)
                 goto advance;
             case 1:
                 DrawSync(0);
-                func_actor_460200_80131FB0();
+                screenNegativeFilter();
             advance:
                 task->state++;
                 break;
@@ -2221,51 +2221,7 @@ void func_actor_460200_80131E24(Task* task)
     }
 }
 
-static void func_actor_460200_80131FB0(void)
-{
-    s32     i;
-    u_long* p0;
-    u_long* p1;
-    u32     hi;
-    u32     lo;
-    u32     gray;
-    u32     t;
-
-    p0 = Fs_ImgBuffers->words;
-    i  = 0;
-    p1 = p0 + 1;
-    do {
-        i++;
-        hi    = *p1;
-        lo    = *p0;
-        t     = hi & 0x001F001F;
-        t   <<= 8;
-        t    |= lo & 0x001F001F;
-        gray  = t * 3;
-        t     = hi & 0x03E003E0;
-        t   <<= 3;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t * 4;
-        hi  >>= 2;
-        t     = hi & 0x1F001F00;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t;
-        gray  = (gray >> 3) & 0x1F1F1F1F;
-        gray  = 0x1F1F1F1F - gray;
-
-        lo   = gray & 0x001F001F;
-        lo  |= (lo << 10) | (lo << 5);
-        hi   = gray & 0x1F001F00;
-        hi >>= 8;
-        hi  |= (hi << 10) | (hi << 5);
-        *p0  = lo;
-        *p1  = hi;
-        p1  += 2;
-        p0  += 2;
-    } while (i < 0x4B00);
-}
+#include "../../shared/screen_negative_filter.inc.c"
 
 void func_actor_460200_80132090(Task* arg0)
 {
@@ -2292,51 +2248,10 @@ void func_actor_460200_801320E0(s32 arg0)
     Gp_ResetCap();
 }
 
-void func_actor_460200_80132124(void)
-{
-    s32     i;
-    u_long* p0;
-    u_long* p1;
-    u32     hi;
-    u32     lo;
-    u32     gray;
-    u32     t;
-
-    p0 = Fs_ImgBuffers->words;
-    i  = 0;
-    p1 = p0 + 1;
-    do {
-        i++;
-        hi    = *p1;
-        lo    = *p0;
-        t     = hi & 0x001F001F;
-        t   <<= 8;
-        t    |= lo & 0x001F001F;
-        gray  = t * 3;
-        t     = hi & 0x03E003E0;
-        t   <<= 3;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t * 4;
-        hi  >>= 2;
-        t     = hi & 0x1F001F00;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t;
-        gray  = (gray >> 3) & 0x1F1F1F1F;
-        gray  = 0x1F1F1F1F - gray;
-
-        lo   = gray & 0x001F001F;
-        lo  |= (lo << 10) | (lo << 5);
-        hi   = gray & 0x1F001F00;
-        hi >>= 8;
-        hi  |= (hi << 10) | (hi << 5);
-        *p0  = lo;
-        *p1  = hi;
-        p1  += 2;
-        p0  += 2;
-    } while (i < 0x4B00);
-}
+/// The same filter under the name the cutscene script's command 13 calls.
+#define screenNegativeFilter func_actor_460200_80132124
+#include "../../shared/screen_negative_filter.inc.c"
+#undef screenNegativeFilter
 
 void func_actor_460200_80132204(s8 arg0)
 {

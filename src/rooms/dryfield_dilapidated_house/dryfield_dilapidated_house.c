@@ -72,6 +72,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/screen_wave.h"
 #include "../../shared/bezier_curve.h"
+#include "../../shared/screen_negative.h"
 
 extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 
@@ -248,7 +249,6 @@ static s32  func_dryfield_dilapidated_house_80180FD8(Task* task);
 static void func_dryfield_dilapidated_house_80181028(Task* task);
 static void func_dryfield_dilapidated_house_801810F8(TmdObject* dst, TmdObject* src);
 
-static void func_dryfield_dilapidated_house_8017E48C(void);
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
 static void func_dryfield_dilapidated_house_8017E014(Task* task);
 static void func_dryfield_dilapidated_house_80180B84(Task* task);
@@ -1755,7 +1755,7 @@ void func_dryfield_dilapidated_house_8017DE88(Task* task)
                 goto advance;
             case 1:
                 DrawSync(0);
-                func_dryfield_dilapidated_house_8017E48C();
+                screenNegativeFilter();
             advance:
                 task->state++;
                 break;
@@ -1939,56 +1939,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
     }
 }
 
-/// Inverts the grey of the whole image buffer in place, two 16-bit texels per
-/// step. Each packed pair is averaged with weights 3:4:1 over its R, G and B
-/// fields, the average is complemented against the 5-bit field mask, and the
-/// result is spread back over 15 bits. The 0x4B00 passes cover the buffer's
-/// 38400 words exactly.
-static void func_dryfield_dilapidated_house_8017E48C(void)
-{
-    s32     i;
-    u_long* p0;
-    u_long* p1;
-    u32     hi;
-    u32     lo;
-    u32     gray;
-    u32     t;
-
-    p0 = Fs_ImgBuffers->words;
-    i  = 0;
-    p1 = p0 + 1;
-    do {
-        i++;
-        hi    = *p1;
-        lo    = *p0;
-        t     = hi & 0x001F001F;
-        t   <<= 8;
-        t    |= lo & 0x001F001F;
-        gray  = t * 3;
-        t     = hi & 0x03E003E0;
-        t   <<= 3;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t * 4;
-        hi  >>= 2;
-        t     = hi & 0x1F001F00;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t;
-        gray  = (gray >> 3) & 0x1F1F1F1F;
-        gray  = 0x1F1F1F1F - gray;
-
-        lo   = gray & 0x001F001F;
-        lo  |= (lo << 10) | (lo << 5);
-        hi   = gray & 0x1F001F00;
-        hi >>= 8;
-        hi  |= (hi << 10) | (hi << 5);
-        *p0  = lo;
-        *p1  = hi;
-        p1  += 2;
-        p0  += 2;
-    } while (i < 0x4B00);
-}
+#include "../../shared/screen_negative_filter.inc.c"
 
 s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
