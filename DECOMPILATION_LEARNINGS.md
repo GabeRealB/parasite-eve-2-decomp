@@ -19136,7 +19136,7 @@ and it survives because the loaded value (`a1`) stays live for a later
 u16 id;
 if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
 fail:
-    gSndLoadBankId = 0xFF;
+    gSndLoadBankId = SOUND_LOAD_BANK_NONE;
     return -1;
 }
 slot = D_800680AC[id >> 12];

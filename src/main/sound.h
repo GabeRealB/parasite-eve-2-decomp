@@ -18,7 +18,9 @@ extern s8 Snd_BankSlotsByType[];
 
 /// Value of `gSndLoadBankId` when no sound-bank load has published its id.
 ///
-/// Not a bank id. A free descriptor uses `SOUND_BANK_ID_FREE`.
+/// The stored word is 255. Readers compare that whole word before applying
+/// `SOUND_BANK_TYPE_MASK`, so a bank id that only ends in 255 does not match.
+/// A free descriptor uses `SOUND_BANK_ID_FREE`.
 enum { SOUND_LOAD_BANK_NONE = 0xFF };
 
 /// 16-bit bank id of a sound-bank load that has accepted its header, or
