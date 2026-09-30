@@ -47,3 +47,4 @@ func_dryfield_r08_8017F438 = 0x8017F438; // type:func
 func_dryfield_r08_8017D5F8 = 0x8017D5F8; // type:func
 
 func_dryfield_r08_8017D8B4 = 0x8017D8B4; // type:func
+glowDrawDisc = 0x8017E7C8; // type:func

@@ -19,6 +19,13 @@
 
 #include "main/coord.h"
 
+/* glowDrawDisc's scratch block. The disc comes in two builds whose blocks
+   order the radius and the GTE flag differently; a room carrying the second
+   defines this as RoomDraw31Scratch before including this header. */
+#ifndef GLOW_DRAW_DISC_SCRATCH
+#define GLOW_DRAW_DISC_SCRATCH RoomDraw13Scratch
+#endif
+
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2);
 void glowDrawRedDisc(SVECTOR* arg0, s16 arg1);
 void glowDrawPulsingDisc(SVECTOR* arg0, s32 arg1, s32 arg2);

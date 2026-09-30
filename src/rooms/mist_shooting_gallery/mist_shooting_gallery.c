@@ -59,6 +59,7 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
+#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
 #include "../../shared/glow_draw.h"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
@@ -222,7 +223,6 @@ extern UiObjectDesc D_mist_shooting_gallery_8018535C;
 extern TaskDesc D_mist_shooting_gallery_80185378;
 
 static void func_mist_shooting_gallery_801801E4(s32 arg0);
-static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 static const char D_mist_shooting_gallery_8017D65C[];
 
@@ -2669,103 +2669,39 @@ void func_mist_shooting_gallery_801811EC(Task* unused)
             glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], 0x200, 0x222);
             glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], 0x200, 0x222);
             glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], 0x200, 0x222);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_801855F0[16], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_801855F0[16], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
             break;
         case 10:
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185678[0], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185678[2], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185678[4], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185678[6], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[2], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[4], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185678[6], 0x300, 0x111);
             break;
         case 11:
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185680[0], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185680[1], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185680[3], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185680[4], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[1], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[3], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185680[4], 0x300, 0x111);
             break;
         case 12:
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185690[0], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185690[1], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185690[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185690[1], 0x300, 0x111);
             break;
         case 13:
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185688[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185688[0], 0x300, 0x111);
             break;
         case 14:
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185670[0], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185670[1], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185670[3], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185670[5], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_80185670[7], 0x300, 0x111);
-            func_mist_shooting_gallery_80181CC4(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[0], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[1], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[3], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[5], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_80185670[7], 0x300, 0x111);
+            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], 0x300, 0x111);
             break;
     }
 }
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Draws a glowing disc around the point `arg0`, projected through
-/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
-/// wedges lit at the projected centre and black at the rim, of screen radius
-/// `arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels (0xRGB),
-/// brightened slightly on odd frames.
-static void func_mist_shooting_gallery_80181CC4(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw31Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw31Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"

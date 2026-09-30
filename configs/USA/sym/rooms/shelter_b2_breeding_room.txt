@@ -90,3 +90,4 @@ RoomFx_DrawFlyingDisc = 0x8017F598; // type:func
 RoomFx_DrawBurst2Glow = 0x8017FAD8; // type:func
 RoomFx_DrawGround2Quad = 0x80180004; // type:func
 glowDrawCapsule = 0x8017DB90; // type:func
+glowDrawDisc = 0x8017E3D4; // type:func

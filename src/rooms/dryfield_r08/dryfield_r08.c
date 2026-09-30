@@ -41,6 +41,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_r08_8017F464[];
 extern SVECTOR D_dryfield_r08_8017F4C4[];
@@ -51,7 +53,6 @@ extern GpRoomCoordSet D_dryfield_r08_80180B58;
 
 static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_r08_8017EB68(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams D_dryfield_r08_8017FB98[1];
@@ -498,14 +499,14 @@ void func_dryfield_r08_8017D5F8(Task* task)
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[3], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[6], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[14], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[15], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[16], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[17], 0x200, 0x444);
+            glowDrawDisc(&q[0], 0x200, 0x444);
+            glowDrawDisc(&q[2], 0x200, 0x444);
+            glowDrawDisc(&q[3], 0x200, 0x444);
+            glowDrawDisc(&q[6], 0x200, 0x444);
+            glowDrawDisc(&q[14], 0x200, 0x444);
+            glowDrawDisc(&q[15], 0x200, 0x444);
+            glowDrawDisc(&q[16], 0x200, 0x444);
+            glowDrawDisc(&q[17], 0x200, 0x444);
             break;
         }
         case 3:
@@ -522,29 +523,29 @@ void func_dryfield_r08_8017D5F8(Task* task)
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[1], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[7], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[8], 0x200, 0x444);
-            func_dryfield_r08_8017E7C8(&q[21], 0x200, 0x400);
-            func_dryfield_r08_8017E7C8(&q[22], 0x200, 0x400);
-            func_dryfield_r08_8017E7C8(&q[23], 0x200, 0x400);
-            func_dryfield_r08_8017E7C8(&q[29], 0x200, 0x400);
+            glowDrawDisc(&q[0], 0x200, 0x444);
+            glowDrawDisc(&q[1], 0x200, 0x444);
+            glowDrawDisc(&q[2], 0x200, 0x444);
+            glowDrawDisc(&q[7], 0x200, 0x444);
+            glowDrawDisc(&q[8], 0x200, 0x444);
+            glowDrawDisc(&q[21], 0x200, 0x400);
+            glowDrawDisc(&q[22], 0x200, 0x400);
+            glowDrawDisc(&q[23], 0x200, 0x400);
+            glowDrawDisc(&q[29], 0x200, 0x400);
             break;
         }
         case 6: {
             SVECTOR* q;
 
             q = D_dryfield_r08_8017F4C4;
-            func_dryfield_r08_8017E7C8(&q[0], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[2], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[3], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[6], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[14], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[15], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[16], 0x200, 0x433);
-            func_dryfield_r08_8017E7C8(&q[17], 0x200, 0x433);
+            glowDrawDisc(&q[0], 0x200, 0x433);
+            glowDrawDisc(&q[2], 0x200, 0x433);
+            glowDrawDisc(&q[3], 0x200, 0x433);
+            glowDrawDisc(&q[6], 0x200, 0x433);
+            glowDrawDisc(&q[14], 0x200, 0x433);
+            glowDrawDisc(&q[15], 0x200, 0x433);
+            glowDrawDisc(&q[16], 0x200, 0x433);
+            glowDrawDisc(&q[17], 0x200, 0x433);
             break;
         }
     }
@@ -844,71 +845,7 @@ static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
     SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
 }
 
-/// Draws a glowing disc around the point `arg0`, projected through
-/// `gGfxViewCoord.workm`, unless the projection flags an error: four gouraud
-/// wedges lit at the projected centre and black at the rim, of screen radius
-/// `(s16)arg1 * 64 / otz`. `arg2` is the colour as three 4-bit channels
-/// (0xRGB), brightened slightly on odd frames.
-static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw31Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw31Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues an eight-wedge gouraud disc plus four

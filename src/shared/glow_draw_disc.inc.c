@@ -8,20 +8,20 @@
 /// counter's low bit as a flicker; the rim is black.
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
+    GLOW_DRAW_DISC_SCRATCH* block;
+    POLY_G4*                prim;
+    s32                     ang;
+    s32                     t;
+    s32                     t2;
+    s32                     packed;
+    s32                     blend;
+    s32                     tr;
+    s32                     tg;
+    u8                      r;
+    u8                      g;
+    u8                      b;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GLOW_DRAW_DISC_SCRATCH);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -64,5 +64,5 @@ void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GLOW_DRAW_DISC_SCRATCH);
 }

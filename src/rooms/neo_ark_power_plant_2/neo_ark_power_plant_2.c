@@ -60,6 +60,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#include "../../shared/glow_draw.h"
 
 extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
@@ -78,7 +80,6 @@ extern GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[];
 
 static void func_neo_ark_power_plant_2_8017D6F4(Task* task);
 static void func_neo_ark_power_plant_2_8017D758(Task* task);
-static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, watch for the room's event trigger, then kill
@@ -905,7 +906,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
                     }
                 }
             } else {
-                func_neo_ark_power_plant_2_8017DA54(&D_neo_ark_power_plant_2_80180678, 0x300, 0x334);
+                glowDrawDisc(&D_neo_ark_power_plant_2_80180678, 0x300, 0x334);
             }
             break;
         case 8:
@@ -928,72 +929,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, unless
-/// the GTE flags the projection, queues four gouraud `POLY_G4` wedges filling a
-/// disc around it, tinted at the centre and black at the rim. `arg1` is the
-/// radius in world units, scaled by depth; `arg2` is the tint as three 4-bit
-/// channels (red at bit 8, green at bit 4, blue at bit 0), with 8 added to each
-/// on odd display frames so the glow flickers.
-static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw31Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                packed;
-    s32                blend;
-    s32                tr;
-    s32                tg;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw31Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / block->otz;
-        ang           = 0;
-        blend         = ((u8)gDisplayState.animFrame & 1) * 8;
-        packed        = arg2 << 16;
-        tr            = (packed >> 20) & 0xF0;
-        tg            = (packed >> 16) & 0xF0;
-        r             = blend | tr;
-        g             = blend | tg;
-        b             = blend | ((arg2 & 0xF) << 4);
-        block->radius = arg1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->radius * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy + ((block->radius * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->radius * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->radius * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->radius * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->radius * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw31Scratch);
-}
+#include "../../shared/glow_draw_disc.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 
