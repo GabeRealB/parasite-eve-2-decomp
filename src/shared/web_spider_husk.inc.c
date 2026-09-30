@@ -1,0 +1,42 @@
+/* Part of the web spider library; see web_spider.h. */
+
+/// Spawns the husk model effect at node 4 and gives it the texture page and
+/// CLUT of the enemy's area placement.
+void spiderSpawnHusk(Task* actor)
+{
+    GameLocationKey  key;
+    GameLocationKey* sessionKey;
+    u8               areaByte0;
+    GpAreaVariant*   rec;
+    AreaPlacement*   entry;
+    GpEffWork*       eff;
+    TmdObject*       model;
+    s32              idx;
+    u32              raw;
+
+    D_80067704[0] = &gSpiderHuskModel;
+    eff           = Gp_SpawnEff(0x40007, actor->extra.tmd->coords + 4, 0x100, NULL);
+    if (eff == NULL) {
+        return;
+    }
+    sessionKey = &gGameSession->location.loc;
+    raw        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey;
+    model      = eff->task->extra.tmd;
+    key.stage  = sessionKey->stage;
+    key.area   = sessionKey->area;
+    key.room   = sessionKey->room;
+    areaByte0  = sessionKey->view;
+    idx        = raw >> 12;
+    key.view   = areaByte0;
+    areaSyncLocationVariant(&key);
+    rec = Gp_GetNestedAreaRec(&key);
+    /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
+       onto the table (`addu s0, s0, v0`). */
+    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
+    if (model->buffer != NULL) {
+        tmdProcessStream(model);
+        tmdProcessStream(model);
+    }
+}
