@@ -56,7 +56,7 @@
 /// and `field_262` is set while the actor holds the player.
 typedef struct Actor103700Work {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[6];
+    /* 0x014 */ AnimationSlot         slots[6];
     /* 0x104 */ byte                  poses[0x60]; // pose buffer, `func_800B3F84` arg3
     /* 0x164 */ MATRIX                colorMtx;
     /* 0x184 */ MATRIX                lightMtx;

@@ -59,7 +59,7 @@ typedef struct Actor01200Work {
     /* 0x008 */ s16                   field_8;
     /* 0x00A */ byte                  pad_A[2];
     /* 0x00C */ GpAnimCtx             anim;
-    /* 0x020 */ GpAnimSlot            slots[1]; // `func_800B3F84` arg4; later slots overlap the fields below
+    /* 0x020 */ AnimationSlot         slots[1]; // `func_800B3F84` arg4; later slots overlap the fields below
     /* 0x048 */ byte                  pad_48[0x2];
     /* 0x04A */ u16                   field_4A; // low ten bits: slot 1's animation id
     /* 0x04C */ byte                  pad_4C[0xC];

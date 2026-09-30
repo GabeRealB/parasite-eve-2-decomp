@@ -277,36 +277,36 @@ STATIC_ASSERT_SIZEOF(Actor421600DamageScratch, 0x30);
 
 /// Animation view of the same work block, as `func_actor_421600_80133B30`
 /// reads it: the pose context at 0x1C and its blend twin at 0x420, each
-/// followed by 0x28-byte `GpAnimSlot`s, plus the two clip ids the loop copies
+/// followed by 0x28-byte `AnimationSlot`s, plus the two clip ids the loop copies
 /// into them. The pads stand in for the rest of the block -- a slot array
 /// cannot span the fields `Actor421600Work` names at 0x5A / 0x68, and 0x420 is
 /// not a whole number of slots past 0x30.
 typedef struct Actor421600AnimWork {
-    /* 0x000 */ s16        field_0;
-    /* 0x002 */ byte       pad_2[0x1A];
-    /* 0x01C */ GpAnimCtx  anim;
-    /* 0x030 */ GpAnimSlot slots[25];
-    /* 0x418 */ byte       pad_418[8];
-    /* 0x420 */ GpAnimCtx  blendAnim;
-    /* 0x434 */ GpAnimSlot blendSlots[25];
-    /* 0x81C */ byte       pad_81C[0xC];
-    /* 0x828 */ u16        field_828;
-    /* 0x82A */ s16        field_82A;
-    /* 0x82C */ s16        field_82C;
-    /* 0x82E */ s16        field_82E;
-    /* 0x830 */ u16        field_830;
-    /* 0x832 */ u16        field_832;
-    /* 0x834 */ u16        field_834;
-    /* 0x836 */ s16        field_836;
-    /* 0x838 */ s16        field_838;
-    /* 0x83A */ u16        field_83A;
-    /* 0x83C */ s16        field_83C;
-    /* 0x83E */ u16        field_83E;
-    /* 0x840 */ u16        field_840;
-    /* 0x842 */ s16        field_842;
-    /* 0x844 */ s16        field_844;
-    /* 0x846 */ byte       pad_846[2];
-    /* 0x848 */ s32        field_848[18];
+    /* 0x000 */ s16           field_0;
+    /* 0x002 */ byte          pad_2[0x1A];
+    /* 0x01C */ GpAnimCtx     anim;
+    /* 0x030 */ AnimationSlot slots[25];
+    /* 0x418 */ byte          pad_418[8];
+    /* 0x420 */ GpAnimCtx     blendAnim;
+    /* 0x434 */ AnimationSlot blendSlots[25];
+    /* 0x81C */ byte          pad_81C[0xC];
+    /* 0x828 */ u16           field_828;
+    /* 0x82A */ s16           field_82A;
+    /* 0x82C */ s16           field_82C;
+    /* 0x82E */ s16           field_82E;
+    /* 0x830 */ u16           field_830;
+    /* 0x832 */ u16           field_832;
+    /* 0x834 */ u16           field_834;
+    /* 0x836 */ s16           field_836;
+    /* 0x838 */ s16           field_838;
+    /* 0x83A */ u16           field_83A;
+    /* 0x83C */ s16           field_83C;
+    /* 0x83E */ u16           field_83E;
+    /* 0x840 */ u16           field_840;
+    /* 0x842 */ s16           field_842;
+    /* 0x844 */ s16           field_844;
+    /* 0x846 */ byte          pad_846[2];
+    /* 0x848 */ s32           field_848[18];
 } Actor421600AnimWork;
 STATIC_ASSERT_SIZEOF(Actor421600AnimWork, 0x890);
 
@@ -2830,13 +2830,13 @@ static void func_actor_421600_80133B30(Task* arg0)
         }
         invBlend = 0x1000 - blend;
         if (index < 0xB) {
-            work->blendSlots[index].rate = (u8)work->field_83A;
-            work->slots[index].rate      = (s8)(work->field_832 - 3);
+            work->blendSlots[index].rate = work->field_83A;
+            work->slots[index].rate      = (work->field_832 - 3);
             animationTickSlotPose(&work->anim, index, &pose, 0);
             animationTickSlotPose(&work->blendAnim, index, &blendPose, 0);
             Gp_AnimWritePoseCopy(&work->anim, index, &pose, &blendPose, blend, invBlend);
         } else {
-            work->slots[index].rate = (s8)(work->field_832 - 3);
+            work->slots[index].rate = (work->field_832 - 3);
             Gp_AnimTickIndex(&work->anim, index);
         }
         next  = index + 1;
@@ -3212,7 +3212,7 @@ static void func_actor_421600_80134604(Task* arg0)
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
                 animation      = (s16)seekWork->field_82E;
-                seekSlot      += 0x28;
+                seekSlot      += sizeof(AnimationSlot);
                 index          = seekWork->field_82C * 0x19;
                 func_800B4114(&seekWork->anim, seekSlotIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
@@ -3229,7 +3229,7 @@ static void func_actor_421600_80134604(Task* arg0)
         do {
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
-            resetSlot      += 0x28;
+            resetSlot      += sizeof(AnimationSlot);
             Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)(s16)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
@@ -3247,7 +3247,7 @@ static void func_actor_421600_80134604(Task* arg0)
         do {
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
-            secondarySlot      += 0x28;
+            secondarySlot      += sizeof(AnimationSlot);
             Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
@@ -3262,12 +3262,12 @@ static void func_actor_421600_80134604(Task* arg0)
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
             Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
-            tickSlot  += 0x28;
+            tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {
         func_actor_421600_80133B30(arg0);
-        if (work->blendSlots[1].flags & 0x100) {
+        if (work->blendSlots[1].flags & ANIMATION_SLOT_SETTLED) {
             work->field_82A = 0;
         }
     }

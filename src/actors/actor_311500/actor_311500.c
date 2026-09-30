@@ -533,7 +533,7 @@ static inline u16 _actor311500TickAnim(Task* task)
         Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    if (work->rig.slots[1].flags & 1) {
+    if (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_END) {
         return 1;
     }
     return 0;

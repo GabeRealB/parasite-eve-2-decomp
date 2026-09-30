@@ -2194,7 +2194,7 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 /// source and HP (`field_40`, seeded from the record's `hpMax`).
 ///
 /// The block's 0x14-prefix then becomes the `GpAnimCtx`: `func_800B3F84` loads
-/// the animation data into it over the nineteen `GpAnimSlot`s, and slots 1..18
+/// the animation data into it over the nineteen `AnimationSlot`s, and slots 1..18
 /// are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
 /// and 3 are the two whose models get the current room's texture page and CLUT
 /// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose

@@ -212,36 +212,36 @@ STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 /// per context. `field_AD4` is the blend weight, `field_AD2` the clip written
 /// to the blend slots and `field_ACA` the clip id (see `Actor403000Work`).
 typedef struct Actor403000AnimWork {
-    /* 0x000 */ byte       pad_0[0x14];
-    /* 0x014 */ GpAnimCtx  anim;
-    /* 0x028 */ GpAnimSlot slots[24];
-    /* 0x3E8 */ byte       pad_3E8[0x180];
-    /* 0x568 */ GpAnimCtx  blendAnim;
-    /* 0x57C */ GpAnimSlot blendSlots[24];
-    /* 0x93C */ byte       pad_93C[0x184];
-    /* 0xAC0 */ s16        field_AC0;
-    /* 0xAC2 */ s16        field_AC2;
-    /* 0xAC4 */ s16        field_AC4;
-    /* 0xAC6 */ s16        field_AC6;
-    /* 0xAC8 */ u16        field_AC8;
-    /* 0xACA */ s16        field_ACA;
-    /* 0xACC */ byte       pad_ACC[2];
-    /* 0xACE */ s16        field_ACE;
-    /* 0xAD0 */ s16        field_AD0;
-    /* 0xAD2 */ s16        field_AD2;
-    /* 0xAD4 */ s16        field_AD4;
-    /* 0xAD6 */ u16        field_AD6;
-    /* 0xAD8 */ u16        field_AD8;
-    /* 0xADA */ byte       pad_ADA[4];
-    /* 0xADE */ s16        field_ADE;
-    /* 0xAE0 */ u16        field_AE0;
-    /* 0xAE2 */ byte       pad_AE2[6];
-    /* 0xAE8 */ s8         field_AE8;
-    /* 0xAE9 */ s8         field_AE9;
-    /* 0xAEA */ s8         field_AEA;
-    /* 0xAEB */ s8         field_AEB;
-    /* 0xAEC */ byte       pad_AEC[4];
-    /* 0xAF0 */ u32        field_AF0;
+    /* 0x000 */ byte          pad_0[0x14];
+    /* 0x014 */ GpAnimCtx     anim;
+    /* 0x028 */ AnimationSlot slots[24];
+    /* 0x3E8 */ byte          pad_3E8[0x180];
+    /* 0x568 */ GpAnimCtx     blendAnim;
+    /* 0x57C */ AnimationSlot blendSlots[24];
+    /* 0x93C */ byte          pad_93C[0x184];
+    /* 0xAC0 */ s16           field_AC0;
+    /* 0xAC2 */ s16           field_AC2;
+    /* 0xAC4 */ s16           field_AC4;
+    /* 0xAC6 */ s16           field_AC6;
+    /* 0xAC8 */ u16           field_AC8;
+    /* 0xACA */ s16           field_ACA;
+    /* 0xACC */ byte          pad_ACC[2];
+    /* 0xACE */ s16           field_ACE;
+    /* 0xAD0 */ s16           field_AD0;
+    /* 0xAD2 */ s16           field_AD2;
+    /* 0xAD4 */ s16           field_AD4;
+    /* 0xAD6 */ u16           field_AD6;
+    /* 0xAD8 */ u16           field_AD8;
+    /* 0xADA */ byte          pad_ADA[4];
+    /* 0xADE */ s16           field_ADE;
+    /* 0xAE0 */ u16           field_AE0;
+    /* 0xAE2 */ byte          pad_AE2[6];
+    /* 0xAE8 */ s8            field_AE8;
+    /* 0xAE9 */ s8            field_AE9;
+    /* 0xAEA */ s8            field_AEA;
+    /* 0xAEB */ s8            field_AEB;
+    /* 0xAEC */ byte          pad_AEC[4];
+    /* 0xAF0 */ u32           field_AF0;
 } Actor403000AnimWork;
 
 /// Event record `func_actor_403000_801324EC` dispatches on: `w[0]` is the
@@ -4129,13 +4129,13 @@ static void func_actor_403000_801336B4(Task* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x18; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].rate = (u8)work->field_AD2;
-            work->slots[i].rate      = (u8)(work->field_ACA - 3);
+            work->blendSlots[i].rate = work->field_AD2;
+            work->slots[i].rate      = (work->field_ACA - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].rate = (u8)(work->field_ACA - 3);
+            work->slots[i].rate = (work->field_ACA - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -4146,68 +4146,68 @@ static s32 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work)
     s32 ret;
 
     ret = 0;
-    if (work->field_AF0 == (work->slots[1].curRec & 0x3FF)) {
+    if (work->field_AF0 == (work->slots[1].currentPose.indices.recordIndex & 0x3FF)) {
         return ret;
     }
     switch ((s16)(work->field_AC6 - 1)) {
         case 0:
-            if ((work->slots[1].curRec & 0x3FF) >= 0x21 && work->field_AF0 < 0x21) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x21 && work->field_AF0 < 0x21) {
                 ret = 0x401E0002;
             }
-            if ((work->slots[1].curRec & 0x3FF) >= 0x2C && work->field_AF0 < 0x2C) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x2C && work->field_AF0 < 0x2C) {
                 ret = 0x401E0001;
             }
             break;
         case 8:
-            if ((work->slots[1].curRec & 0x3FF) >= 5 && work->field_AF0 < 5) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 5 && work->field_AF0 < 5) {
                 ret = 0x401E0002;
             }
-            if ((work->slots[1].curRec & 0x3FF) >= 0xA && work->field_AF0 < 0xA) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0xA && work->field_AF0 < 0xA) {
                 ret = 0x401E0001;
             }
             break;
         case 13:
-            if ((work->slots[1].curRec & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
                 ret = 0x401E000E;
             }
             break;
         case 1:
-            if ((work->slots[1].curRec & 0x3FF) >= 0x1D && work->field_AF0 < 0x1D) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x1D && work->field_AF0 < 0x1D) {
                 ret = 0x401E0003;
             }
-            if ((work->slots[1].curRec & 0x3FF) >= 0x17 && work->field_AF0 < 0x17) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x17 && work->field_AF0 < 0x17) {
                 ret = 0x401E0004;
             }
             break;
         case 11:
-            if ((work->slots[1].curRec & 0x3FF) >= 0x13 && work->field_AF0 < 0x13) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x13 && work->field_AF0 < 0x13) {
                 ret = 0x401E0008;
             }
         case 10:
-            if ((work->slots[1].curRec & 0x3FF) >= 0x12 && work->field_AF0 < 0x12) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x12 && work->field_AF0 < 0x12) {
                 ret = 0x401E0007;
             }
-            if ((work->slots[1].curRec & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0xF && work->field_AF0 < 0xF) {
                 ret = 0x401E000C;
             }
             break;
         case 6:
-            if ((work->slots[1].curRec & 0x3FF) >= 0x15 && work->field_AF0 < 0x15) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x15 && work->field_AF0 < 0x15) {
                 ret = 0x401E0009;
             }
             break;
         case 16:
-            if ((work->slots[1].curRec & 0x3FF) >= 8 && work->field_AF0 < 8) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 8 && work->field_AF0 < 8) {
                 ret = 0x401E000B;
             }
             break;
         case 7:
-            if ((work->slots[1].curRec & 0x3FF) >= 0xD && work->field_AF0 < 0xD) {
+            if ((work->slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0xD && work->field_AF0 < 0xD) {
                 ret = 0x401E000D;
             }
             break;
     }
-    work->field_AF0 = work->slots[1].curRec & 0x3FF;
+    work->field_AF0 = work->slots[1].currentPose.indices.recordIndex & 0x3FF;
     return ret;
 }
 
@@ -4240,10 +4240,10 @@ static void func_actor_403000_80133AF8(Task* arg0)
     s32                  tickIndex;
     s32                  seekIndex;
     s32                  delta;
-    GpAnimSlot*          tickSlot;
-    GpAnimSlot*          seekSlot;
-    GpAnimSlot*          resetSlot;
-    GpAnimSlot*          secondarySlot;
+    AnimationSlot*       tickSlot;
+    AnimationSlot*       seekSlot;
+    AnimationSlot*       resetSlot;
+    AnimationSlot*       secondarySlot;
     s32                  pan;
     s32                  currentAngleBits;
     u16                  originalTurn;
@@ -4262,7 +4262,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
             seekSlot  = work->slots;
             do {
                 seekSlotIndex    = seekIndex;
-                seekSlot[1].rate = (u8)seekWork->field_ACA;
+                seekSlot[1].rate = seekWork->field_ACA;
                 animation        = seekWork->field_AC6;
                 seekSlot        += 1;
                 index            = seekWork->field_AC4 * 0x2D;
@@ -4280,7 +4280,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         resetSlot  = work->slots;
         do {
             resetSlotIndex    = resetIndex;
-            resetSlot[1].rate = (u8)resetWork->field_ACA;
+            resetSlot[1].rate = resetWork->field_ACA;
             resetSlot        += 1;
             Gp_AnimResetSlot(&resetWork->anim, resetSlotIndex, (s32)resetWork->field_AC6);
             resetIndex += 1;
@@ -4298,7 +4298,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
         secondaryWork->field_AD4 = 0x800;
         do {
             secondarySlotIndex    = secondaryIndex;
-            secondarySlot[1].rate = (u8)secondaryWork->field_AD2;
+            secondarySlot[1].rate = secondaryWork->field_AD2;
             secondarySlot        += 1;
             Gp_AnimResetSlot(&secondaryWork->blendAnim, secondarySlotIndex, (s32)secondaryWork->field_AD0);
             secondaryIndex += 1;
@@ -4312,14 +4312,14 @@ static void func_actor_403000_80133AF8(Task* arg0)
         tickSlot  = tickWork->slots;
         do {
             tickSlotIndex    = tickIndex;
-            tickSlot[1].rate = (u8)tickWork->field_ACA;
+            tickSlot[1].rate = tickWork->field_ACA;
             Gp_AnimTickIndex(&tickWork->anim, tickSlotIndex);
             tickSlot  += 1;
             tickIndex += 1;
         } while (tickIndex < 0x18);
     } else {
         func_actor_403000_801336B4(arg0);
-        if (work->blendSlots[1].flags & 0x100) {
+        if (work->blendSlots[1].flags & ANIMATION_SLOT_SETTLED) {
             work->field_AC2 = 0;
         }
     }

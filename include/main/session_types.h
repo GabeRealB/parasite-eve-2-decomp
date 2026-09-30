@@ -6,6 +6,7 @@
 
 #include "common.h"
 
+#include "gameplay/animation_types.h"
 #include "gameplay/world_collision_types.h"
 
 #include "main/coord.h"
@@ -175,54 +176,6 @@ typedef struct {
 } GpActorD4Rec;
 STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
 
-/// One animation slot: the playback state of one model part's animation.
-///
-/// The slot walks the keyframe records of a single track, blending the pose it
-/// has reached (`curSet`/`curRec`) into the one it is heading for
-/// (`nextSet`/`nextRec`), which takes that keyframe's `duration` as the length
-/// of the segment. `timeLeft` counts the segment down under `rate` and is the
-/// blend's numerator, `timeSpan` its denominator. Records that are control
-/// entries rather than poses are not shown: the walk follows them and reports
-/// what it did in `flags`.
-///
-/// A slot's track and its transform are separate: `trackIndex` names the track
-/// it reads and `mtxIndex` the coordinate it writes, the same part unless a
-/// caller pairs a slot with another part's track. Slots sit in the array
-/// `GpAnimCtx.slots` points at - `GameActor.field_438` is the array the actor's
-/// own context is given - and the tick helpers recover that array as
-/// `slot - slot->trackIndex`, so a slot following another part's track cannot
-/// be ticked through a pointer alone.
-///
-/// Either keyframe may instead be a pose the caller supplies, kept per slot in
-/// the context's pose buffer and marked by the 0x7FFF sentinel; `bufPose` says
-/// one of the two is that kind.
-///
-/// Declared main-side because `GameActor` embeds the array by value; the actor
-/// work blocks that carry the same slots reach the type through this
-/// declaration.
-typedef struct {
-    /* 0x00 */ u16                   curSet;      // set of the keyframe the slot has reached; 0x7FFF takes the pose from the context's pose buffer
-    /* 0x02 */ u16                   curRec;      // that keyframe's record index
-    /* 0x04 */ u16                   nextSet;     // set of the keyframe it is heading for; 0x7FFF as in `curSet`
-    /* 0x06 */ u16                   nextRec;     // that keyframe's record index
-    /* 0x08 */ byte                  pad_8;
-    /* 0x09 */ u8                    rate;        // segment advance per tick in 16ths of a frame (0x10 one frame), read signed, so a negative rate runs the segment backwards
-    /* 0x0A */ u8                    field_A;     // role unproven: written 0 by the walk, never read
-    /* 0x0B */ u8                    poseKind;    // Track encoding cached from the initial keyframe's flags low nibble; selects `AnimationSet.poseBanks`
-    /* 0x0C */ s16                   timeLeft;    // frames left in the segment, in 16ths; it runs past zero until the walk catches up
-    /* 0x0E */ u16                   timeSpan;    // Segment duration in sixteenths of a frame, from `AnimationRecord.durationFrames` or a requested blend; the blend denominator
-    /* 0x10 */ u16                   flags;       // bit 0 the walk took the clip's end, bit 1 it followed a control entry, bit 8 the clip has ended and settled on its last pose
-    /* 0x12 */ u16                   field_12;    // role unproven: written 0 by every initialiser, never read
-    /* 0x14 */ u8                    mtxIndex;    // `GpAnimCtx.coords` entry the slot writes: the model part whose transform it drives
-    /* 0x15 */ u8                    trackIndex;  // track the slot reads: the model part whose keyframes it follows
-    /* 0x16 */ u8                    atEnd;       // the clip has run to its end: the slot holds its last pose and does not advance
-    /* 0x17 */ u8                    bufPose;     // the pose came from the context's pose buffer rather than a pose bank
-    /* 0x18 */ SVECTOR               bufRotDelta; // Euler angles of the rotation from the previous buffered pose to the current, applied while both ticks are buffered
-    /* 0x20 */ struct AnimationSet** sets;        // the animation set table `curSet` and `nextSet` index (the context's)
-    /* 0x24 */ byte                  pad_24[4];
-} GpAnimSlot;
-STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
-
 /// Large object pointed to by Task::work for the slot-3 game object
 /// (gameGetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
@@ -281,7 +234,7 @@ typedef struct _GameActor {
     /* 0x3BC */ WorldCollisionContact         aimContacts[1];  // Single result for the aiming capsule
     /* 0x3D4 */ GfxCoord                      field_3D4;       // copy of the attached model's root coordinate; the frame of the body at `field_10C`
     /* 0x424 */ byte                          field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
-    /* 0x438 */ GpAnimSlot                    field_438[19];   // the actor's animation slots, the array its `GpAnimCtx` walks
+    /* 0x438 */ AnimationSlot                 field_438[19];   // the actor's animation slots, the array its `GpAnimCtx` walks
     /* 0x730 */ byte                          pad_730[0x10];
     /* 0x740 */ byte                          pad_740[0x68];
     /* 0x7A8 */ byte                          field_7A8; // addr taken as func_800B3F84 arg3

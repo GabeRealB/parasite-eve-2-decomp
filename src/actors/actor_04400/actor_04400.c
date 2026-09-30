@@ -104,9 +104,9 @@ typedef struct Actor104400Work {
     /* 0x096 */ byte      pad_96[0x2];
     /* 0x098 */ SVECTOR   field_98; // translation of coords[6] relative to the view
     /* 0x0A0 */ GpAnimCtx anim;
-    /// First of the nine `GpAnimSlot`s (0xB4..0x21C); the second overlaps
+    /// First of the nine `AnimationSlot`s (0xB4..0x21C); the second overlaps
     /// `flags_EC`, so only the first is spelled out.
-    /* 0x0B4 */ GpAnimSlot            slot_B4;
+    /* 0x0B4 */ AnimationSlot         slot_B4;
     /* 0x0DC */ byte                  pad_DC[0x10];
     /* 0x0EC */ Actor104400Flags      flags_EC;
     /* 0x0F0 */ byte                  pad_F0[0x12C];

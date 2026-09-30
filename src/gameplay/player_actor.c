@@ -4901,7 +4901,7 @@ void Gp_TickActorAnimState(Task* arg0)
         case 8:
             if (rec != NULL) {
                 flags = actor->field_438[1].flags;
-                if ((flags & 1) || (flags & 2)) {
+                if ((flags & ANIMATION_SLOT_REACHED_END) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
                     actor->field_95E++;
                     func_801066DC(arg0, 0);
                 }
@@ -6759,7 +6759,7 @@ s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor = arg0->work;
     ret   = 0;
     for (i = actor->field_938 - 1; i > 0; i--) {
-        if ((actor->field_438[i].flags & 0x100) == 0) {
+        if ((actor->field_438[i].flags & ANIMATION_SLOT_SETTLED) == 0) {
             ret = 1;
             break;
         }
@@ -6769,10 +6769,10 @@ s32 func_8010583C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 func_80105894(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GpAnimSlot* slot;
+    AnimationSlot* slot;
 
     slot = &((GameActor*)arg0->work)->field_438[(u32)arg1];
-    return (slot->flags & 0x102) == 0;
+    return (slot->flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) == 0;
 }
 
 s32 func_801058BC(Task* arg0, s32 arg1, s32 arg2)

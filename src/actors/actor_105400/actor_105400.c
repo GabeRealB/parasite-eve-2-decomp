@@ -848,7 +848,7 @@ static void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
 /// second `GpObj` from the spawn offsets.
 ///
 /// The block's 0x14 prefix becomes the `GpAnimCtx`: `func_800B3F84` loads the
-/// animation bank into it over the ten `GpAnimSlot`s and slots 1..9 are reset.
+/// animation bank into it over the ten `AnimationSlot`s and slots 1..9 are reset.
 /// The two `GpObj` nodes at 0x284 / 0x2A4 are linked onto list 2 with their two
 /// `WorldCollisionContact` records (`Gp_InitRec18Table`), each carrying the "last element"
 /// flag 0x8000. A child enemy is spawned from `D_actor_105400_8013CEA0` and its

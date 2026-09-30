@@ -19,7 +19,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`CdCmd_EnqueueLoadFile`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `Tmd_InitSourceStream` / `tmdProcessStream` |
-| Anim player | `GpAnimCtx` / `GpAnimSlot` / `AnimationSet` (`scene_runtime.c`) |
+| Anim player | `GpAnimCtx` / `AnimationSlot` / `AnimationSet` (`scene_runtime.c`) |
 
 The formats themselves are documented in
 [`TMD_FORMAT.md`](TMD_FORMAT.md) (the model packet stream and its opcodes) and
@@ -598,7 +598,7 @@ live in the actor overlay** (`D_80136224`, `D_8013700C`, … at
 ### 6.3 Animation split
 
 Playback is one system in gameplay (`Gp_AnimInitCtx` … `func_800B4754`,
-`GpAnimCtx` / `GpAnimSlot` / `AnimationSet`). What it *points at* depends on
+`GpAnimCtx` / `AnimationSlot` / `AnimationSet`). What it *points at* depends on
 who is moving:
 
 | Who | Clip data |

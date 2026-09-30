@@ -156,7 +156,7 @@ typedef union Actor100400Flags {
 
 typedef struct Actor100400Work {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[15];
+    /* 0x014 */ AnimationSlot         slots[15];
     /* 0x26C */ byte                  poses[0xF0];
     /* 0x35C */ GpObj                 obj_35C;
     /* 0x37C */ GpObj                 obj_37C;
@@ -5113,7 +5113,7 @@ static void Actor00400_Fn085B8(Task* arg0)
     i    = 1;
     do {
         Gp_AnimResetSlot(&work->anim, i, work->field_628);
-        work->slots[i].rate = (u8)work->field_632;
+        work->slots[i].rate = work->field_632;
         i++;
     } while (i < 0xF);
     work->field_626 = (u16)work->field_628;
@@ -5131,14 +5131,14 @@ static void Actor00400_Fn08624(Task* arg0)
     if (work->field_626 == work->field_628) {
         i = 1;
         do {
-            work->slots[i].rate = (u8)work->field_632;
+            work->slots[i].rate = work->field_632;
             func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            work->slots[i].rate = (u8)work->field_632;
+            work->slots[i].rate = work->field_632;
             func_800B4114(&work->anim, i, work->field_628, 0, work->field_63C);
             i++;
         } while (i < 0xF);

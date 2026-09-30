@@ -131,7 +131,7 @@ typedef struct Actor405800Work {
     /* 0x09E */ byte                  pad_9E[0xA];
     /* 0x0A8 */ SVECTOR               field_A8; // world point `func_actor_405800_801383CC` turns to face (it reads `vx` / `vz`)
     /* 0x0B0 */ GpAnimCtx             anim;     // slots 1..0x11 reset by func_actor_405800_80138224
-    /* 0x0C4 */ GpAnimSlot            slots[0x12];
+    /* 0x0C4 */ AnimationSlot         slots[0x12];
     /* 0x394 */ byte                  pad_394[0x120];
     /* 0x4B4 */ GpObj                 obj_4B4;    // collision node; unlinked on death
     /* 0x4D4 */ WorldCollisionContact rec_4D4[8]; // obj_4B4 table

@@ -145,22 +145,22 @@ STATIC_ASSERT_SIZEOF(Actor341900TaskWork, 0x258);
 /// eight slots (`func_800B3F84` gets `pad_154` as its scratch area) and the
 /// light/colour matrix pair the model draws with.
 typedef struct Actor341900AnimWork {
-    /* 0x000 */ GpAnimCtx  ctx;
-    /* 0x014 */ GpAnimSlot slots[8];
-    /* 0x154 */ byte       pad_154[0x80];
-    /* 0x1D4 */ MATRIX     light;
-    /* 0x1F4 */ MATRIX     color;
-    /* 0x214 */ s32        field_214;
-    /* 0x218 */ s32        field_218;
-    /* 0x21C */ s32        field_21C;
-    /* 0x220 */ s32        field_220;
-    /* 0x224 */ s32        field_224;
-    /* 0x228 */ byte       pad_228[0x20];
-    /* 0x248 */ Task*      field_248;
-    /* 0x24C */ Task*      field_24C;
-    /* 0x250 */ Task*      field_250;
-    /* 0x254 */ u16        field_254;
-    /* 0x256 */ byte       pad_256[0x2];
+    /* 0x000 */ GpAnimCtx     ctx;
+    /* 0x014 */ AnimationSlot slots[8];
+    /* 0x154 */ byte          pad_154[0x80];
+    /* 0x1D4 */ MATRIX        light;
+    /* 0x1F4 */ MATRIX        color;
+    /* 0x214 */ s32           field_214;
+    /* 0x218 */ s32           field_218;
+    /* 0x21C */ s32           field_21C;
+    /* 0x220 */ s32           field_220;
+    /* 0x224 */ s32           field_224;
+    /* 0x228 */ byte          pad_228[0x20];
+    /* 0x248 */ Task*         field_248;
+    /* 0x24C */ Task*         field_24C;
+    /* 0x250 */ Task*         field_250;
+    /* 0x254 */ u16           field_254;
+    /* 0x256 */ byte          pad_256[0x2];
 } Actor341900AnimWork;
 STATIC_ASSERT_SIZEOF(Actor341900AnimWork, 0x258);
 
@@ -471,7 +471,7 @@ static s32 func_actor_341900_80161E58(Task* arg0, u16 arg1)
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->slots[i].flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }

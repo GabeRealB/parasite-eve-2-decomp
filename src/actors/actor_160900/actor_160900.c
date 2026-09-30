@@ -1217,7 +1217,7 @@ static s32 func_actor_160900_80132844(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < 0x14; i++) {
-        if (!(work->rig.slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
             done = 0;
             break;
         }

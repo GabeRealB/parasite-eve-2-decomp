@@ -47,7 +47,7 @@
 /// allocates it with `Mem_Malloc(0x4CC, 0)` and zeroes it with `Mem_Set`.
 ///
 /// It opens with the animation state `func_800B3F84` is handed: the
-/// `GpAnimCtx`, the twenty `GpAnimSlot`s the tick walks and the pose buffer.
+/// `GpAnimCtx`, the twenty `AnimationSlot`s the tick walks and the pose buffer.
 /// The two `MATRIX`es are the model's light and colour matrices, published
 /// through `TmdObject::lightMtx` / `colorMtx`. The three code/phase pairs at
 /// the end are requests the setters arm and the tick consumes.
@@ -633,7 +633,7 @@ void func_actor_120500_8013241C(Task* arg0)
 
     i = 1;
 loop_slots:
-    if ((slotsWork->rig.slots[(u16)i].flags & 1) != 0) {
+    if ((slotsWork->rig.slots[(u16)i].flags & ANIMATION_SLOT_REACHED_END) != 0) {
         i++;
         if ((u16)i < 0x14U) {
             goto loop_slots;

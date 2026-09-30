@@ -88,17 +88,12 @@
 
 #include "rooms/shelter_r48.h"
 
-// Playback units, buffered-pose selector and results of the track walk.
+// Playback timing and the reserved bytes of each buffered pose.
 enum {
-    ANIMATION_TIME_FRACTION_BITS       = 4,                                       // Playback time in sixteenths of a normal-rate frame
+    ANIMATION_TIME_FRACTION_BITS       = 4,                                      // Playback time in sixteenths of a normal-rate frame
     ANIMATION_TIME_UNITS_PER_FRAME     = 1 << ANIMATION_TIME_FRACTION_BITS,
-    ANIMATION_POSE_BUFFER_STRIDE_SHIFT = 4,                                       // Byte-offset shift for a buffered slot pose
-    ANIMATION_POSE_BUFFER_BYTES        = 1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT, // Bytes reserved for each buffered slot pose
-    ANIMATION_SET_BUFFERED_POSE        = 0x7FFF,                                  // Current or next pose comes from the context buffer
-    ANIMATION_SLOT_REACHED_END         = 1,                                       // End marker or jump back to the current keyframe
-    ANIMATION_SLOT_FOLLOWED_JUMP       = 2,                                       // A nonterminal control record was followed
-    ANIMATION_SLOT_BOUNDARY_MASK       = ANIMATION_SLOT_REACHED_END | ANIMATION_SLOT_FOLLOWED_JUMP,
-    ANIMATION_SLOT_SETTLED             = 0x100                                    // Playback has settled on its end pose
+    ANIMATION_POSE_BUFFER_STRIDE_SHIFT = 4,                                      // Byte-offset shift for a buffered slot pose
+    ANIMATION_POSE_BUFFER_BYTES        = 1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT // Bytes reserved for each buffered slot pose
 };
 
 /// Packed saved placement key: high nibble placement, next nibble stage, low byte area.
@@ -279,12 +274,12 @@ static void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, 
 
 static void func_800B28E0(Task* task);
 
-static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot,
+static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
                                     _AnimationBlendScratch* scratch);
 
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot);
+static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot);
+static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);
 
@@ -292,17 +287,17 @@ static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3
 
 static void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-static void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1);
+static void Gp_AnimTickSlot3(GpAnimCtx* arg0, AnimationSlot* arg1);
 
-static void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+static void func_800B3E74(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3);
 
-static void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
+static void func_800B3EE8(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
 
 static void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 
-static void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
+static void func_800B46A4(GpAnimCtx* arg0, AnimationSlot* arg1, u16 arg2, u16 arg3);
 
-static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
+static void func_800B4754(GpAnimCtx* arg0, AnimationSlot* arg1, u16 arg2, u16 arg3);
 
 static void func_800B51F4(Task* task);
 
@@ -1906,20 +1901,20 @@ Task* func_800B2968(void)
 }
 
 /// Blends decoded angles into the model coordinate or an unpacked pose.
-static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot,
+static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot,
                                     _AnimationBlendScratch* scratch)
 {
-    if (slot->bufPose != 0) {
+    if (slot->usesBufferedPose != 0) {
         // Interpolate a relative rotation when either endpoint comes from the pose buffer.
         RotMatrix_gte(&scratch->currentRotation, &scratch->currentMatrix);
         if (request->refreshRotationDelta == 1) {
             RotMatrix_gte(&scratch->nextRotation, &scratch->nextMatrix);
             TransposeMatrix(&scratch->currentMatrix, &scratch->deltaMatrix);
             gte_MulMatrix0(&scratch->nextMatrix, &scratch->deltaMatrix, &scratch->deltaMatrix);
-            Gfx_MatrixToEuler(&scratch->deltaMatrix, &slot->bufRotDelta);
+            Gfx_MatrixToEuler(&scratch->deltaMatrix, &slot->bufferedRotationDelta);
         }
         gte_lddp(scratch->nextWeight);
-        gte_ldsv(&slot->bufRotDelta);
+        gte_ldsv(&slot->bufferedRotationDelta);
         gte_gpf12();
         gte_stsv(&scratch->nextRotation);
         RotMatrix_gte(&scratch->nextRotation, &scratch->deltaMatrix);
@@ -1953,7 +1948,7 @@ static void _animationBlendRotation(_AnimationBlendRequest* request, GfxCoord* c
 }
 
 /// Blends encoding 1, writing a local transform and optionally a compact pose.
-static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot)
+static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
 {
     _AnimationBlendScratch*    scratch;
     const AnimationPackedPose* encodedPose;
@@ -2016,7 +2011,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
 }
 
 /// Blends encoding 4 without changing the part's local translation.
-static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, GpAnimSlot* slot)
+static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot)
 {
     _AnimationBlendScratch*        scratch;
     const AnimationPackedRotation* sourcePose;
@@ -2058,7 +2053,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
 
 static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     AnimationSet**         sets;
     const AnimationRecord* recs;
     const AnimationRecord* rec;
@@ -2068,37 +2063,37 @@ static void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
 
     slot        = &arg0->slots[arg1];
     slot->flags = 0;
-    if (*(s32*)&slot->curSet != *(s32*)&slot->nextSet) {
+    if (slot->currentPose.key != slot->nextPose.key) {
         sets = slot->sets;
         do {
-            *(s32*)&slot->curSet = *(s32*)&slot->nextSet;
-            recordIndex          = slot->nextRec + 1;
-            setIndex             = slot->nextSet;
-            recs                 = sets[setIndex]->records;
+            slot->currentPose.key = slot->nextPose.key;
+            recordIndex           = slot->nextPose.indices.recordIndex + 1;
+            setIndex              = slot->nextPose.indices.setIndex;
+            recs                  = sets[setIndex]->records;
             while ((s8)recs[recordIndex].flags < 0) {
                 // Negated-index subtraction preserves the address-add operand order.
                 rec = recs - -(s32)recordIndex;
                 if (rec->flags < ANIMATION_RECORD_END) {
                     recordIndex = rec->wordOffset;
-                    if (recordIndex == slot->nextRec) {
+                    if (recordIndex == slot->nextPose.indices.recordIndex) {
                         slot->flags |= ANIMATION_SLOT_REACHED_END;
                     }
                     slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
                 } else {
-                    recordIndex  = slot->nextRec;
+                    recordIndex  = slot->nextPose.indices.recordIndex;
                     slot->flags |= ANIMATION_SLOT_REACHED_END;
                     break;
                 }
             }
-            slot->nextRec = recordIndex;
-            slot->nextSet = setIndex;
+            slot->nextPose.indices.recordIndex = recordIndex;
+            slot->nextPose.indices.setIndex    = setIndex;
             if (slot->flags & ANIMATION_SLOT_BOUNDARY_MASK) {
                 break;
             }
-        } while (*(s32*)&slot->curSet != *(s32*)&slot->nextSet);
+        } while (slot->currentPose.key != slot->nextPose.key);
     }
 
-    segmentTime    = slot->sets[slot->nextSet]->records[slot->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    segmentTime    = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     slot->timeSpan = segmentTime;
     slot->timeLeft = segmentTime;
     animationTickSlotPose(arg0, arg1, 0, 0);
@@ -2110,7 +2105,7 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     enum { ANIMATION_POSE_UNSUPPORTED = 2 };
 
     _AnimationTickScratch* scratch;
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     GfxCoord*              coord;
     AnimationSet*          set;
     const AnimationRecord* records;
@@ -2123,17 +2118,17 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     u16                    firstRecordIndex;
     u16                    segmentDuration;
     s16                    remainingTime;
-    s32                    poseKind;
+    s32                    poseEncoding;
     u16                    decrementedTime;
 
     slot  = &context->slots[slotIndex];
-    coord = &context->coords[slot->mtxIndex];
+    coord = &context->coords[slot->coordIndex];
     SCRATCH_PUSH(_AnimationTickScratch);
     scratch     = SCRATCH_HEAD(_AnimationTickScratch);
     slot->flags = 0;
     // Advance signed sixteenth-frame timing, then follow any control records.
     if (slot->atEnd == 1) {
-        if (*(s32*)&slot->nextSet == *(s32*)&slot->curSet) {
+        if (slot->nextPose.key == slot->currentPose.key) {
             slot->flags = ANIMATION_SLOT_SETTLED;
         } else {
             slot->atEnd = 0;
@@ -2141,9 +2136,9 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     } else {
         if (gGameSession->deathVariant != 0) {
             decrementedTime = slot->timeLeft - 1;
-            slot->timeLeft  = decrementedTime - (((s8)slot->rate - 1) >> 1);
+            slot->timeLeft  = decrementedTime - ((slot->rate - 1) >> 1);
         } else {
-            slot->timeLeft -= (s8)slot->rate;
+            slot->timeLeft -= slot->rate;
         }
     }
 
@@ -2152,30 +2147,30 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     if (remainingTime <= 0) {
         slot->field_A = 0;
         while (slot->timeLeft <= 0) {
-            *(s32*)&slot->curSet = *(s32*)&slot->nextSet;
-            nextRecordIndex      = slot->nextRec + 1;
-            nextSetIndex         = slot->nextSet;
-            records              = slot->sets[nextSetIndex]->records;
+            slot->currentPose.key = slot->nextPose.key;
+            nextRecordIndex       = slot->nextPose.indices.recordIndex + 1;
+            nextSetIndex          = slot->nextPose.indices.setIndex;
+            records               = slot->sets[nextSetIndex]->records;
             while ((s8)records[nextRecordIndex].flags < 0) {
                 record = records - -(s32)nextRecordIndex;
                 if (record->flags < ANIMATION_RECORD_END) {
                     nextRecordIndex = record->wordOffset;
-                    if (nextRecordIndex == slot->nextRec) {
+                    if (nextRecordIndex == slot->nextPose.indices.recordIndex) {
                         slot->flags |= ANIMATION_SLOT_REACHED_END;
                     }
                     slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
                 } else {
-                    nextRecordIndex = slot->nextRec;
+                    nextRecordIndex = slot->nextPose.indices.recordIndex;
                     slot->flags    |= ANIMATION_SLOT_REACHED_END;
                     break;
                 }
             }
-            slot->nextSet   = nextSetIndex;
-            slot->nextRec   = nextRecordIndex;
-            records         = slot->sets[slot->nextSet]->records;
-            segmentDuration = records[slot->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
-            slot->timeSpan  = segmentDuration;
-            slot->timeLeft += segmentDuration;
+            slot->nextPose.indices.setIndex    = nextSetIndex;
+            slot->nextPose.indices.recordIndex = nextRecordIndex;
+            records                            = slot->sets[slot->nextPose.indices.setIndex]->records;
+            segmentDuration                    = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+            slot->timeSpan                     = segmentDuration;
+            slot->timeLeft                    += segmentDuration;
         }
         if (slot->flags & ANIMATION_SLOT_REACHED_END) {
             slot->atEnd  = 1;
@@ -2186,20 +2181,20 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     } else if (slot->timeSpan < remainingTime) {
         slot->field_A = 0;
         while (slot->timeLeft > slot->timeSpan) {
-            slot->timeLeft       -= slot->timeSpan;
-            *(s32*)&slot->nextSet = *(s32*)&slot->curSet;
-            previousSetIndex      = slot->curSet;
-            previousRecordIndex   = slot->curRec - 1;
-            firstRecordIndex      = slot->sets[previousSetIndex]->trackStartIndices[slot->trackIndex];
+            slot->timeLeft     -= slot->timeSpan;
+            slot->nextPose.key  = slot->currentPose.key;
+            previousSetIndex    = slot->currentPose.indices.setIndex;
+            previousRecordIndex = slot->currentPose.indices.recordIndex - 1;
+            firstRecordIndex    = slot->sets[previousSetIndex]->trackStartIndices[slot->trackIndex];
             if (previousRecordIndex < firstRecordIndex) {
                 previousRecordIndex = firstRecordIndex;
                 slot->flags        |= ANIMATION_SLOT_REACHED_END;
             }
-            slot->curRec    = previousRecordIndex;
-            slot->curSet    = previousSetIndex;
-            records         = slot->sets[slot->nextSet]->records;
-            segmentDuration = records[slot->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
-            slot->timeSpan  = segmentDuration;
+            slot->currentPose.indices.recordIndex = previousRecordIndex;
+            slot->currentPose.indices.setIndex    = previousSetIndex;
+            records                               = slot->sets[slot->nextPose.indices.setIndex]->records;
+            segmentDuration                       = records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+            slot->timeSpan                        = segmentDuration;
         }
         if (slot->flags & ANIMATION_SLOT_REACHED_END) {
             slot->atEnd  = 1;
@@ -2210,34 +2205,34 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
     }
 
     // Bank offsets count words; buffered entries reserve four words per slot.
-    poseKind                              = slot->poseKind;
-    scratch->request.refreshRotationDelta = slot->bufPose;
-    slot->bufPose                         = 0;
-    if (slot->curSet == ANIMATION_SET_BUFFERED_POSE) {
+    poseEncoding                          = slot->poseEncoding;
+    scratch->request.refreshRotationDelta = slot->usesBufferedPose;
+    slot->usesBufferedPose                = 0;
+    if (slot->currentPose.indices.setIndex == ANIMATION_SET_BUFFERED_POSE) {
         scratch->request.currentPose = &context->poses[slotIndex * ANIMATION_POSE_BUFFER_BYTES];
-        slot->bufPose                = 1;
+        slot->usesBufferedPose       = 1;
     } else {
-        records                      = slot->sets[slot->curSet]->records;
-        poseBytes                    = slot->sets[slot->curSet]->poseBanks[poseKind];
-        scratch->request.currentPose = &poseBytes[records[slot->curRec].wordOffset * sizeof(u32)];
+        records                      = slot->sets[slot->currentPose.indices.setIndex]->records;
+        poseBytes                    = slot->sets[slot->currentPose.indices.setIndex]->poseBanks[poseEncoding];
+        scratch->request.currentPose = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
     }
-    if (slot->nextSet == ANIMATION_SET_BUFFERED_POSE) {
+    if (slot->nextPose.indices.setIndex == ANIMATION_SET_BUFFERED_POSE) {
         scratch->request.nextPose = &context->poses[slotIndex * ANIMATION_POSE_BUFFER_BYTES];
-        slot->bufPose             = 1;
+        slot->usesBufferedPose    = 1;
     } else {
-        set                       = slot->sets[slot->nextSet];
+        set                       = slot->sets[slot->nextPose.indices.setIndex];
         records                   = set->records;
-        poseBytes                 = set->poseBanks[poseKind];
-        scratch->request.nextPose = &poseBytes[records[slot->nextRec].wordOffset * sizeof(u32)];
+        poseBytes                 = set->poseBanks[poseEncoding];
+        scratch->request.nextPose = &poseBytes[records[slot->nextPose.indices.recordIndex].wordOffset * sizeof(u32)];
     }
-    if ((scratch->request.refreshRotationDelta == 0) && (slot->bufPose == 1)) {
-        scratch->request.refreshRotationDelta = slot->bufPose;
+    if ((scratch->request.refreshRotationDelta == 0) && (slot->usesBufferedPose == 1)) {
+        scratch->request.refreshRotationDelta = slot->usesBufferedPose;
     } else {
         scratch->request.refreshRotationDelta = 0;
     }
     scratch->request.encodedDestination  = encodedDestination;
     scratch->request.unpackedDestination = unpackedDestination;
-    switch (poseKind) {
+    switch (poseEncoding) {
         case ANIMATION_POSE_TRANSLATION_ROTATION:
             _animationBlendTranslationRotation(&scratch->request, coord, slot);
             break;
@@ -2253,7 +2248,7 @@ void animationTickSlotPose(GpAnimCtx* context, s32 slotIndex, GpAnimPose* unpack
 
 static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     AnimationSet*          set;
     const AnimationRecord* recs;
     const AnimationRecord* rec;
@@ -2264,49 +2259,49 @@ static inline void _gpAnimSeekSlot(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3
     poseBufferOffset = arg1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT;
     slot             = &arg0->slots[arg1];
     animationTickSlotPose(arg0, arg1, 0, arg0->poses + poseBufferOffset);
-    slot->curSet = ANIMATION_SET_BUFFERED_POSE;
-    set          = slot->sets[arg2];
-    recs         = set->records;
-    recordIndex  = set->trackStartIndices[slot->trackIndex] + arg3;
+    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
+    set                                = slot->sets[arg2];
+    recs                               = set->records;
+    recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg3;
     while ((s8)recs[recordIndex].flags < 0) {
         rec = recs - -(s32)recordIndex;
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
-            if (recordIndex == slot->nextRec) {
+            if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_END;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            recordIndex  = slot->nextRec;
+            recordIndex  = slot->nextPose.indices.recordIndex;
             slot->flags |= ANIMATION_SLOT_REACHED_END;
             break;
         }
     }
-    slot->nextRec  = recordIndex;
-    slot->nextSet  = arg2;
-    blendTime      = arg4 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan = blendTime;
-    slot->timeLeft = blendTime;
-    slot->bufPose  = 0;
+    slot->nextPose.indices.recordIndex = recordIndex;
+    slot->nextPose.indices.setIndex    = arg2;
+    blendTime                          = arg4 << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                     = blendTime;
+    slot->timeLeft                     = blendTime;
+    slot->usesBufferedPose             = 0;
 }
 
 static void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     const AnimationRecord* recs;
     u16                    segmentTime;
 
     slot = &arg0->slots[arg1];
     recs = slot->sets[arg2]->records;
     _gpAnimSeekSlot(arg0, arg1, arg2, arg3, 1);
-    segmentTime    = recs[slot->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    segmentTime    = recs[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     slot->timeSpan = segmentTime;
     slot->timeLeft = segmentTime;
 }
 
-void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+void func_800B3AA4(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     AnimationSet**         sets;
     AnimationSet*          set;
     const AnimationRecord* recs;
@@ -2323,35 +2318,35 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
         slotIndex        = arg1->trackIndex;
         setIndex         = arg3;
         arg0->slots      = arg1 - slotIndex;
-        arg1->mtxIndex   = arg2;
+        arg1->coordIndex = arg2;
         slotIndex        = arg1->trackIndex;
         poseBufferOffset = slotIndex << ANIMATION_POSE_BUFFER_STRIDE_SHIFT;
         slot             = &arg0->slots[slotIndex];
         animationTickSlotPose(arg0, slotIndex, 0, arg0->poses + poseBufferOffset);
-        slot->curSet = ANIMATION_SET_BUFFERED_POSE;
-        set          = slot->sets[(u16)setIndex];
-        recs         = set->records;
-        recordIndex  = set->trackStartIndices[slot->trackIndex] + arg4;
+        slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
+        set                                = slot->sets[(u16)setIndex];
+        recs                               = set->records;
+        recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
         while ((s8)recs[recordIndex].flags < 0) {
             rec = recs - -(s32)recordIndex;
             if (rec->flags < ANIMATION_RECORD_END) {
                 recordIndex = rec->wordOffset;
-                if (recordIndex == slot->nextRec) {
+                if (recordIndex == slot->nextPose.indices.recordIndex) {
                     slot->flags |= ANIMATION_SLOT_REACHED_END;
                 }
                 slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
             } else {
-                recordIndex  = slot->nextRec;
+                recordIndex  = slot->nextPose.indices.recordIndex;
                 slot->flags |= ANIMATION_SLOT_REACHED_END;
                 break;
             }
         }
-        slot->nextRec  = recordIndex;
-        slot->nextSet  = setIndex;
-        blendTime      = arg5 << ANIMATION_TIME_FRACTION_BITS;
-        slot->timeSpan = blendTime;
-        slot->timeLeft = blendTime;
-        slot->bufPose  = 0;
+        slot->nextPose.indices.recordIndex = recordIndex;
+        slot->nextPose.indices.setIndex    = setIndex;
+        blendTime                          = arg5 << ANIMATION_TIME_FRACTION_BITS;
+        slot->timeSpan                     = blendTime;
+        slot->timeLeft                     = blendTime;
+        slot->usesBufferedPose             = 0;
     } else {
         if (arg3 == 0) {
             arg3 = 1;
@@ -2359,22 +2354,22 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
             arg3 = -arg3;
         }
 
-        arg1->rate       = ANIMATION_TIME_UNITS_PER_FRAME;
-        arg1->timeLeft   = 0;
-        arg1->curSet     = arg3;
-        arg1->curRec     = 0;
-        arg1->mtxIndex   = arg2;
-        arg1->trackIndex = arg2;
-        arg1->nextSet    = arg3;
-        sets             = arg0->sets;
-        arg1->sets       = sets;
-        arg1->nextRec    = sets[arg3]->trackStartIndices[arg1->trackIndex];
-        arg1->curRec     = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
-        recordFlags      = arg1->sets[arg1->nextSet]->records[arg1->nextRec].flags;
-        arg1->field_12   = 0;
-        arg1->flags      = 0;
-        arg1->atEnd      = 0;
-        arg1->poseKind   = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+        arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+        arg1->timeLeft                        = 0;
+        arg1->currentPose.indices.setIndex    = arg3;
+        arg1->currentPose.indices.recordIndex = 0;
+        arg1->coordIndex                      = arg2;
+        arg1->trackIndex                      = arg2;
+        arg1->nextPose.indices.setIndex       = arg3;
+        sets                                  = arg0->sets;
+        arg1->sets                            = sets;
+        arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
+        arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
+        recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
+        arg1->field_12                        = 0;
+        arg1->flags                           = 0;
+        arg1->atEnd                           = 0;
+        arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
     }
 }
 
@@ -2386,7 +2381,7 @@ void Gp_AnimInitCtx(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses)
     ctx->partCount = model->partCount;
 }
 
-void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
+void Gp_AnimInitSlot(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3)
 {
     AnimationSet** sets;
     u8             recordFlags;
@@ -2397,25 +2392,25 @@ void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
         arg3 = -arg3;
     }
 
-    arg1->rate       = ANIMATION_TIME_UNITS_PER_FRAME;
-    arg1->timeLeft   = 0;
-    arg1->curSet     = arg3;
-    arg1->curRec     = 0;
-    arg1->mtxIndex   = arg2;
-    arg1->trackIndex = arg2;
-    arg1->nextSet    = arg3;
-    sets             = arg0->sets;
-    arg1->sets       = sets;
-    arg1->nextRec    = sets[arg3]->trackStartIndices[arg1->trackIndex];
-    arg1->curRec     = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
-    recordFlags      = arg1->sets[arg1->nextSet]->records[arg1->nextRec].flags;
-    arg1->field_12   = 0;
-    arg1->flags      = 0;
-    arg1->atEnd      = 0;
-    arg1->poseKind   = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    arg1->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    arg1->timeLeft                        = 0;
+    arg1->currentPose.indices.setIndex    = arg3;
+    arg1->currentPose.indices.recordIndex = 0;
+    arg1->coordIndex                      = arg2;
+    arg1->trackIndex                      = arg2;
+    arg1->nextPose.indices.setIndex       = arg3;
+    sets                                  = arg0->sets;
+    arg1->sets                            = sets;
+    arg1->nextPose.indices.recordIndex    = sets[arg3]->trackStartIndices[arg1->trackIndex];
+    arg1->currentPose.indices.recordIndex = arg1->sets[arg3]->trackStartIndices[arg1->trackIndex];
+    recordFlags                           = arg1->sets[arg1->nextPose.indices.setIndex]->records[arg1->nextPose.indices.recordIndex].flags;
+    arg1->field_12                        = 0;
+    arg1->flags                           = 0;
+    arg1->atEnd                           = 0;
+    arg1->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 }
 
-void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1)
+void Gp_AnimTickSlot(GpAnimCtx* arg0, AnimationSlot* arg1)
 {
     u8 idx;
 
@@ -2424,7 +2419,7 @@ void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1)
     animationTickSlotPose(arg0, idx, 0, 0);
 }
 
-void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
+void Gp_AnimTickSlot2(GpAnimCtx* arg0, AnimationSlot* arg1)
 {
     u8 idx;
 
@@ -2433,7 +2428,7 @@ void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
     animationTickSlotPose(arg0, idx, 0, 0);
 }
 
-static void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
+static void Gp_AnimTickSlot3(GpAnimCtx* arg0, AnimationSlot* arg1)
 {
     u8 idx;
 
@@ -2442,31 +2437,31 @@ static void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
     animationTickSlotPose(arg0, idx, 0, 0);
 }
 
-static void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
+static void func_800B3E74(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3)
 {
     const AnimationRecord* recs;
     u16                    segmentTime;
 
     recs = arg1->sets[arg3]->records;
     func_800B3AA4(arg0, arg1, arg2, arg3, 0, 8);
-    segmentTime    = recs[arg1->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     arg1->timeSpan = segmentTime;
     arg1->timeLeft = segmentTime;
 }
 
-static void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
+static void func_800B3EE8(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     const AnimationRecord* recs;
     u16                    segmentTime;
 
     recs = arg1->sets[arg3]->records;
     func_800B3AA4(arg0, arg1, arg2, arg3, arg4, 8);
-    segmentTime    = recs[arg1->nextRec].durationFrames << ANIMATION_TIME_FRACTION_BITS;
+    segmentTime    = recs[arg1->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     arg1->timeSpan = segmentTime;
     arg1->timeLeft = segmentTime;
 }
 
-void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, GpAnimSlot* slots)
+void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, AnimationSlot* slots)
 {
     ctx->sets      = sets;
     ctx->coords    = PARENT_OF(model, TmdAllocation, object)->coords;
@@ -2475,57 +2470,57 @@ void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* pos
     ctx->slots     = slots;
 }
 
-void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4)
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4)
 {
     Gp_AnimInitCtxSlots(arg0, arg1, arg2, arg3, arg4);
 }
 
 void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 {
-    GpAnimSlot*    slot;
+    AnimationSlot* slot;
     AnimationSet** sets;
     u8             recordFlags;
 
-    slot             = &arg0->slots[arg1];
-    slot->rate       = ANIMATION_TIME_UNITS_PER_FRAME;
-    slot->timeLeft   = 0;
-    slot->curSet     = arg2;
-    slot->curRec     = 0;
-    slot->mtxIndex   = arg1;
-    slot->trackIndex = arg1;
-    slot->nextSet    = arg2;
-    sets             = arg0->sets;
-    slot->sets       = sets;
-    slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
-    recordFlags      = slot->sets[slot->nextSet]->records[slot->nextRec].flags;
-    slot->flags      = 0;
-    slot->atEnd      = 0;
-    slot->field_12   = 0;
-    slot->poseKind   = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot                                  = &arg0->slots[arg1];
+    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    slot->timeLeft                        = 0;
+    slot->currentPose.indices.setIndex    = arg2;
+    slot->currentPose.indices.recordIndex = 0;
+    slot->coordIndex                      = arg1;
+    slot->trackIndex                      = arg1;
+    slot->nextPose.indices.setIndex       = arg2;
+    sets                                  = arg0->sets;
+    slot->sets                            = sets;
+    slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
+    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->flags                           = 0;
+    slot->atEnd                           = 0;
+    slot->field_12                        = 0;
+    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 }
 
 void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    GpAnimSlot*    slot;
+    AnimationSlot* slot;
     AnimationSet** sets;
     u8             recordFlags;
 
-    slot             = &arg0->slots[arg1];
-    slot->rate       = ANIMATION_TIME_UNITS_PER_FRAME;
-    slot->timeLeft   = 0;
-    slot->curSet     = arg2;
-    slot->curRec     = 0;
-    slot->mtxIndex   = arg4;
-    slot->trackIndex = arg3;
-    slot->nextSet    = arg2;
-    sets             = arg0->sets;
-    slot->sets       = sets;
-    slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
-    recordFlags      = slot->sets[slot->nextSet]->records[slot->nextRec].flags;
-    slot->flags      = 0;
-    slot->atEnd      = 0;
-    slot->field_12   = 0;
-    slot->poseKind   = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
+    slot                                  = &arg0->slots[arg1];
+    slot->rate                            = ANIMATION_TIME_UNITS_PER_FRAME;
+    slot->timeLeft                        = 0;
+    slot->currentPose.indices.setIndex    = arg2;
+    slot->currentPose.indices.recordIndex = 0;
+    slot->coordIndex                      = arg4;
+    slot->trackIndex                      = arg3;
+    slot->nextPose.indices.setIndex       = arg2;
+    sets                                  = arg0->sets;
+    slot->sets                            = sets;
+    slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
+    recordFlags                           = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].flags;
+    slot->flags                           = 0;
+    slot->atEnd                           = 0;
+    slot->field_12                        = 0;
+    slot->poseEncoding                    = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK;
 }
 
 static void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
@@ -2541,22 +2536,22 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                            s32 arg5)
 {
-    void**      scratch;
-    GpAnimPose* head;
-    GpAnimSlot* slot;
-    GfxCoord*   dest;
-    SVECTOR*    trans;
-    SVECTOR*    rot;
-    s32         idx;
+    void**         scratch;
+    GpAnimPose*    head;
+    AnimationSlot* slot;
+    GfxCoord*      dest;
+    SVECTOR*       trans;
+    SVECTOR*       rot;
+    s32            idx;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &arg0->slots[arg1];
     head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
-    idx                            = slot->mtxIndex;
+    idx                            = slot->coordIndex;
     SCRATCH_HEAD_AT(scratch, void) = head - 1;
     dest                           = &arg0->coords[idx];
     trans                          = &head[-1].trans;
-    if (slot->poseKind == ANIMATION_POSE_TRANSLATION_ROTATION) {
+    if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
         gte_lddp(arg4);
         gte_ldsv(&arg2->trans);
         gte_gpf12();
@@ -2584,20 +2579,20 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
 void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                           s32 arg5)
 {
-    void**      scratch;
-    GpAnimPose* head;
-    GpAnimSlot* slot;
-    GfxCoord*   dest;
-    SVECTOR*    rot;
-    s32         idx;
+    void**         scratch;
+    GpAnimPose*    head;
+    AnimationSlot* slot;
+    GfxCoord*      dest;
+    SVECTOR*       rot;
+    s32            idx;
 
     scratch                        = SCRATCH_HEAD_ADDR;
     slot                           = &arg0->slots[arg1];
     head                           = SCRATCH_HEAD_AT(scratch, GpAnimPose);
-    idx                            = slot->mtxIndex;
+    idx                            = slot->coordIndex;
     SCRATCH_HEAD_AT(scratch, void) = head - 1;
     dest                           = &arg0->coords[idx];
-    if (slot->poseKind == ANIMATION_POSE_TRANSLATION_ROTATION) {
+    if (slot->poseEncoding == ANIMATION_POSE_TRANSLATION_ROTATION) {
         dest->coord.t[0] = arg2->trans.vx;
         dest->coord.t[1] = arg2->trans.vy;
         dest->coord.t[2] = arg2->trans.vz;
@@ -2622,7 +2617,7 @@ void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1)
 
 void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     AnimationSet*          set;
     const AnimationRecord* recs;
     const AnimationRecord* rec;
@@ -2633,47 +2628,47 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 ar
     poseBufferOffset = arg1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT;
     slot             = &arg0->slots[arg1];
     animationTickSlotPose(arg0, arg1, arg2, arg0->poses + poseBufferOffset);
-    slot->curSet = ANIMATION_SET_BUFFERED_POSE;
-    set          = slot->sets[arg3];
-    recs         = set->records;
-    recordIndex  = set->trackStartIndices[slot->trackIndex] + arg4;
+    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
+    set                                = slot->sets[arg3];
+    recs                               = set->records;
+    recordIndex                        = set->trackStartIndices[slot->trackIndex] + arg4;
     while ((s8)recs[recordIndex].flags < 0) {
         rec = recs - -(s32)recordIndex;
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
-            if (recordIndex == slot->nextRec) {
+            if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_END;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            recordIndex  = slot->nextRec;
+            recordIndex  = slot->nextPose.indices.recordIndex;
             slot->flags |= ANIMATION_SLOT_REACHED_END;
             break;
         }
     }
-    slot->nextRec  = recordIndex;
-    slot->nextSet  = arg3;
-    blendTime      = arg6 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan = blendTime;
-    slot->timeLeft = blendTime;
-    slot->bufPose  = 0;
+    slot->nextPose.indices.recordIndex = recordIndex;
+    slot->nextPose.indices.setIndex    = arg3;
+    blendTime                          = arg6 << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                     = blendTime;
+    slot->timeLeft                     = blendTime;
+    slot->usesBufferedPose             = 0;
 }
 
-const AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot)
+const AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, AnimationSlot* slot)
 {
     u16                    setIndex;
     const AnimationRecord* record;
 
-    setIndex = slot->curSet;
+    setIndex = slot->currentPose.indices.setIndex;
     if (setIndex == ANIMATION_SET_BUFFERED_POSE) {
         return NULL;
     }
     record  = slot->sets[setIndex]->records;
-    record += slot->curRec;
+    record += slot->currentPose.indices.recordIndex;
     return record;
 }
 
-static void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+static void func_800B46A4(GpAnimCtx* arg0, AnimationSlot* arg1, u16 arg2, u16 arg3)
 {
     const AnimationRecord* recs;
     const AnimationRecord* rec;
@@ -2683,21 +2678,21 @@ static void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
         rec = recs - -(s32)arg3;
         if (rec->flags < ANIMATION_RECORD_END) {
             arg3 = rec->wordOffset;
-            if (arg3 == arg1->nextRec) {
+            if (arg3 == arg1->nextPose.indices.recordIndex) {
                 arg1->flags |= ANIMATION_SLOT_REACHED_END;
             }
             arg1->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            arg3         = arg1->nextRec;
+            arg3         = arg1->nextPose.indices.recordIndex;
             arg1->flags |= ANIMATION_SLOT_REACHED_END;
             break;
         }
     }
-    arg1->nextRec = arg3;
-    arg1->nextSet = arg2;
+    arg1->nextPose.indices.recordIndex = arg3;
+    arg1->nextPose.indices.setIndex    = arg2;
 }
 
-static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+static void func_800B4754(GpAnimCtx* arg0, AnimationSlot* arg1, u16 arg2, u16 arg3)
 {
     u16 limit;
 
@@ -2706,14 +2701,14 @@ static void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
         arg3         = limit;
         arg1->flags |= ANIMATION_SLOT_REACHED_END;
     }
-    arg1->curRec = arg3;
-    arg1->curSet = arg2;
+    arg1->currentPose.indices.recordIndex = arg3;
+    arg1->currentPose.indices.setIndex    = arg2;
 }
 
 void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                      void* arg7)
 {
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     AnimationSet*          set;
     const AnimationRecord* recs;
     const AnimationRecord* rec;
@@ -2724,7 +2719,7 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 
     poseBufferOffset = arg1 << ANIMATION_POSE_BUFFER_STRIDE_SHIFT;
     slot             = &arg0->slots[arg1];
     animationTickSlotPose(arg0, arg1, arg2, arg0->poses + poseBufferOffset);
-    slot->curSet = ANIMATION_SET_BUFFERED_POSE;
+    slot->currentPose.indices.setIndex = ANIMATION_SET_BUFFERED_POSE;
     if (arg7 != NULL) {
         arg0->sets = arg7;
         slot->sets = arg7;
@@ -2738,22 +2733,22 @@ void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 
         rec = recs - -(s32)recordIndex;
         if (rec->flags < ANIMATION_RECORD_END) {
             recordIndex = rec->wordOffset;
-            if (recordIndex == slot->nextRec) {
+            if (recordIndex == slot->nextPose.indices.recordIndex) {
                 slot->flags |= ANIMATION_SLOT_REACHED_END;
             }
             slot->flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
         } else {
-            recordIndex  = slot->nextRec;
+            recordIndex  = slot->nextPose.indices.recordIndex;
             slot->flags |= ANIMATION_SLOT_REACHED_END;
             break;
         }
     }
-    slot->nextRec  = recordIndex;
-    slot->nextSet  = arg3;
-    blendTime      = arg6 << ANIMATION_TIME_FRACTION_BITS;
-    slot->timeSpan = blendTime;
-    slot->timeLeft = blendTime;
-    slot->bufPose  = 0;
+    slot->nextPose.indices.recordIndex = recordIndex;
+    slot->nextPose.indices.setIndex    = arg3;
+    blendTime                          = arg6 << ANIMATION_TIME_FRACTION_BITS;
+    slot->timeSpan                     = blendTime;
+    slot->timeLeft                     = blendTime;
+    slot->usesBufferedPose             = 0;
 }
 
 void Gp_SaveEnemyPose(GpEnemy* enemy)

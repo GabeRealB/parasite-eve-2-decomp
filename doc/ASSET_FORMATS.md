@@ -650,7 +650,7 @@ AnimationRecord (4 bytes):
                            0x80 marks a control entry, 0xC0 ends the track
 ```
 
-Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind`:
+Pose bank formats, dispatched by `animationTickSlotPose` on `AnimationSlot.poseEncoding`:
 
 | `flags & 0xF` | Bank type | Layout |
 |---|---|---|
@@ -740,8 +740,8 @@ is never read on a control entry — it continues at `wordOffset` or ends the tr
 instead. Corrected, Kyle's clips are 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
-it once (`slot->poseKind = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK`) and
-`animationTickSlotPose` reads `poseKind = slot->poseKind` for every record after that. The control records carry 0
+it once (`slot->poseEncoding = recordFlags & ANIMATION_RECORD_POSE_KIND_MASK`) and
+`animationTickSlotPose` reads `poseEncoding = slot->poseEncoding` for every record after that. The control records carry 0
 in those bits, so reading the kind per record throws away the final keyframe.
 Kind **1** is `AnimationPackedPose`, six `s16` — local XYZ translation followed
 by XYZ Euler angles, with 4096 angle units per turn. A pose takes three words;
@@ -775,7 +775,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
 - **The `flags` cue bits.** `0x10` and `0x20` appear on some keyframes and
   are not decoded; a frame handler reads them off the record `Gp_AnimGetRec`
   hands it, so what each one means is the handler's own. `_animationBlendRotation`
-  has a second path (`GpAnimSlot.bufPose`) that blends through a delta matrix
+  has a second path (`AnimationSlot.usesBufferedPose`) that blends through a delta matrix
   rather than the Euler angles, taken when the pose comes from the context's
   pose buffer instead of a keyframe.
 - **Pose banks.** The per-model bone count is now available — it is the number

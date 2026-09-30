@@ -47,7 +47,7 @@
 
 typedef struct Actor103800Work {
     /* 0x000 */ GpAnimCtx              anim;
-    /* 0x014 */ GpAnimSlot             slots[6];
+    /* 0x014 */ AnimationSlot          slots[6];
     /* 0x104 */ byte                   field_104[0x60];
     /* 0x164 */ MATRIX                 field_164;
     /* 0x184 */ MATRIX                 field_184;

@@ -287,7 +287,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x008 */ s16                   yaw;
     /* 0x00A */ byte                  pad_A[0x2];
     /* 0x00C */ GpAnimCtx             anim;
-    /* 0x020 */ GpAnimSlot            slots[4];
+    /* 0x020 */ AnimationSlot         slots[4];
     /* 0x0C0 */ byte                  pad_C0[0x40];
     /* 0x100 */ s16                   field_100;
     /* 0x102 */ s16                   field_102;
@@ -6533,7 +6533,7 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     if (task->extra.tmd->coords->coord.t[1] < 0x320) {
         anim = (AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].curRec == anim->slots[1].nextRec) {
+        if (anim->slots[1].currentPose.indices.recordIndex == anim->slots[1].nextPose.indices.recordIndex) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0x1F) == 0) {
                 work->field_108 = 0x10;
@@ -6625,7 +6625,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
     }
     if (task->extra.tmd->coords->coord.t[1] < 0x320) {
         anim = (AcropolisBridgeEnemyWork*)task->work;
-        if (anim->slots[1].curRec == anim->slots[1].nextRec) {
+        if (anim->slots[1].currentPose.indices.recordIndex == anim->slots[1].nextPose.indices.recordIndex) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0x1F) == 0) {
                 work->field_108 = 0x10;

@@ -107,14 +107,14 @@ typedef struct ActorsShared80138efcWork {
     /// Root coordinate the model's second part is parented to.
     /* 0x000 */ GfxCoord coord;
     /// Body animation. Slot 1's `flags` report the clip's end and its control
-    /// entries to the state handlers, and its `curSet` is the motion playing.
-    /* 0x050 */ GpAnimCtx  anim;
-    /* 0x064 */ GpAnimSlot slots[21];
-    /* 0x3AC */ byte       poses[0x150];
+    /// entries to the state handlers, and its `currentPose.indices.setIndex` is the motion playing.
+    /* 0x050 */ GpAnimCtx     anim;
+    /* 0x064 */ AnimationSlot slots[21];
+    /* 0x3AC */ byte          poses[0x150];
     /// Second animation, blended into the first by `field_BA2`.
-    /* 0x4FC */ GpAnimCtx  anim2;
-    /* 0x510 */ GpAnimSlot slots2[21];
-    /* 0x858 */ byte       poses2[0x150];
+    /* 0x4FC */ GpAnimCtx     anim2;
+    /* 0x510 */ AnimationSlot slots2[21];
+    /* 0x858 */ byte          poses2[0x150];
     /// Display nodes: the first on the model's root, the last on part 3, and
     /// between them the pair on parts 12 and 8 that the handlers switch on and
     /// off through the top two bits of `flags`.
@@ -1217,8 +1217,8 @@ static s32 Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 
 /// animation contexts.
 static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u8 rate)
 {
-    GpAnimSlot* slot;
-    s32         i;
+    AnimationSlot* slot;
+    s32            i;
 
     for (i = 1; i < 0x15; i++) {
         slot       = &work->slots[i];
@@ -1538,7 +1538,7 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
     s32                    died;
     s32                    sndId;
     s32                    rate;
-    GpAnimSlot*            slot;
+    AnimationSlot*         slot;
     WorldCollisionContact* world;
     GfxCoord*              coord;
     s32                    savedY;
@@ -2186,7 +2186,7 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 if (work->field_BA2 < 0x40) {
                     work->field_BA2 += 4;
                 }
-                if (work->slots2[1].flags & 1) {
+                if (work->slots2[1].flags & ANIMATION_SLOT_REACHED_END) {
                     work->field_BA3++;
                 }
                 break;
@@ -2236,7 +2236,7 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
             }
             slot++;
         } while (slot < 0x15);
-        if (work->slots[1].flags & 1) {
+        if (work->slots[1].flags & ANIMATION_SLOT_REACHED_END) {
             work->field_BA9 = 1;
         }
         part               = task->extra.tmd->coords;
@@ -3254,21 +3254,21 @@ static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 s
 /// 0xF beyond it.
 static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GfxCoord*   actorCoords;
-    GfxCoord*   coords;
-    GfxCoord*   pose;
-    GpAnimSlot* motion;
-    s32         dist;
-    s32         dist2;
-    s32         turn;
-    s32         yaw;
-    s32         yaw2;
-    s32         scale;
-    s32         frame;
-    s32         n;
-    s32         snd;
-    u16         angle;
-    u32         rng;
+    GfxCoord*      actorCoords;
+    GfxCoord*      coords;
+    GfxCoord*      pose;
+    AnimationSlot* motion;
+    s32            dist;
+    s32            dist2;
+    s32            turn;
+    s32            yaw;
+    s32            yaw2;
+    s32            scale;
+    s32            frame;
+    s32            n;
+    s32            snd;
+    u16            angle;
+    u32            rng;
 
     if (work->field_BA8 == 0) {
         actorCoords = task->extra.tmd->coords;
@@ -3299,8 +3299,8 @@ static void Actor01100_Fn0516C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         work->field_BA8 = (u8)work->field_BA8 + 1;
     } else {
         motion = &work->slots[1];
-        if ((work->slots[1].curSet != work->field_BA4) ||
-            (work->field_BAD = (u8)work->field_BAD + 1, (motion->curRec > motion->nextRec))) {
+        if ((work->slots[1].currentPose.indices.setIndex != work->field_BA4) ||
+            (work->field_BAD = (u8)work->field_BAD + 1, (motion->currentPose.indices.recordIndex > motion->nextPose.indices.recordIndex))) {
             work->field_BAD = -1;
         }
     }
@@ -4228,7 +4228,7 @@ static void Actor01100_Fn06F38(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// `Actor01100_Fn05678` on the 0x18 motion.
 static void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpAnimSlot* motion = &work->slots[1];
+    AnimationSlot* motion = &work->slots[1];
 
     if (work->field_BA8 == 0) {
         if (work->field_BAE == 0) {
@@ -4240,7 +4240,7 @@ static void Actor01100_Fn07014(GpEnemy* enemy, Task* task, ActorsShared80138efcW
         work->field_B8C = 0xA;
         work->field_BA8 = (u8)work->field_BA8 + 1;
     }
-    if (motion->flags & 2) {
+    if (motion->flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
         work->field_B9C = 0;
         if (work->field_B92 > 0) {
             if (!(enemy->reactionFlags & 2)) {

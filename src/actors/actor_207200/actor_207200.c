@@ -47,7 +47,7 @@
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
 typedef struct ActorShared8014df20Work {
     /* 0x000 */ GpAnimCtx             context;
-    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx

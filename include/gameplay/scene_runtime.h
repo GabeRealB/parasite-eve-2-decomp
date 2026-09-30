@@ -62,7 +62,7 @@ void Gp_ComposeParentWorld(GfxCoord* arg0, MATRIX* arg1, SVECTOR* arg2);
 
 void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 
-void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void func_800B3AA4(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 
 /// Binds an animation context to a model allocation's coordinate tail and caller-owned playback data.
 ///
@@ -71,19 +71,19 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
 /// live while the context is used. Playback slots are bound separately.
 void Gp_AnimInitCtx(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses);
 
-void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void Gp_AnimInitSlot(GpAnimCtx* arg0, AnimationSlot* arg1, s32 arg2, s32 arg3);
 
-void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void Gp_AnimTickSlot(GpAnimCtx* arg0, AnimationSlot* arg1);
 
 /// Binds the model, set table, pose buffer and playback slots to an animation context.
 ///
 /// The model allocation and borrowed-data lifetime requirements are those of
 /// `Gp_AnimInitCtx`; `slots` supplies one playback slot per model part.
-void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, GpAnimSlot* slots);
+void Gp_AnimInitCtxSlots(GpAnimCtx* ctx, void* sets, TmdObject* model, void* poses, AnimationSlot* slots);
 
 /// Forwards to `Gp_AnimInitCtxSlots`, which most callers reach by this name
 /// rather than its own.
-void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, GpAnimSlot* arg4);
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, TmdObject* arg2, void* arg3, AnimationSlot* arg4);
 
 void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 
@@ -106,7 +106,7 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 ar
 /// borrows the set's record array and remains valid while that resource is loaded;
 /// callers may compare it across ticks to detect a new keyframe. `unusedContext`
 /// is ignored and may be `NULL`.
-const AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot);
+const AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, AnimationSlot* slot);
 
 /// Records an enemy's state and world pose under its packed placement key.
 ///

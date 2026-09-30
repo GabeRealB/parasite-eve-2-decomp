@@ -712,13 +712,13 @@ GpDelayArg D_actor_356100_801732D0;
 /// `blendSlots[i].field_9`, and `field_98C` the blend weight, the same three
 /// roles `Actor01900AnimWork.field_8A2` / `field_8AA` / `field_8AC` have.
 typedef struct Actor356100AnimWork {
-    /* 0x000 */ byte       pad_0[0x1C];
-    /* 0x01C */ GpAnimCtx  anim;
-    /* 0x030 */ GpAnimSlot slots[24];
-    /* 0x3F0 */ byte       pad_3F0[0xD8];
-    /* 0x4C8 */ GpAnimCtx  blendAnim;
-    /* 0x4DC */ GpAnimSlot blendSlots[24];
-    /* 0x89C */ byte       pad_89C[0xDC];
+    /* 0x000 */ byte          pad_0[0x1C];
+    /* 0x01C */ GpAnimCtx     anim;
+    /* 0x030 */ AnimationSlot slots[24];
+    /* 0x3F0 */ byte          pad_3F0[0xD8];
+    /* 0x4C8 */ GpAnimCtx     blendAnim;
+    /* 0x4DC */ AnimationSlot blendSlots[24];
+    /* 0x89C */ byte          pad_89C[0xDC];
     /// The animation-state halfwords `func_actor_356100_80163508` drives, the
     /// same slots `Actor356100Work` names: `field_978` is the state it leaves
     /// at 3 once the 1/2 entry has been served, `field_97C` the clip id the
@@ -1056,13 +1056,13 @@ static void func_actor_356100_801633DC(Task* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x15; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].rate = (u8)work->field_98A;
-            work->slots[i].rate      = (u8)(work->field_982 - 3);
+            work->blendSlots[i].rate = work->field_98A;
+            work->slots[i].rate      = (work->field_982 - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].rate = (u8)(work->field_982 - 3);
+            work->slots[i].rate = (work->field_982 - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -1081,7 +1081,7 @@ static void func_actor_356100_80163508(Task* arg0)
         anim = (Actor356100AnimWork*)arg0->work;
         if (work->field_97C != work->field_97E) {
             for (i = 1; i < 0x15; i++) {
-                anim->slots[i].rate = (u8)anim->field_982;
+                anim->slots[i].rate = anim->field_982;
                 func_800B4114(&anim->anim, i, anim->field_97E, 0,
                               D_actor_356100_801728CC[anim->field_97C][anim->field_97E]);
             }
@@ -1096,7 +1096,7 @@ static void func_actor_356100_80163508(Task* arg0)
 
         anim = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
-            anim->slots[i].rate = (u8)anim->field_982;
+            anim->slots[i].rate = anim->field_982;
             Gp_AnimResetSlot(&anim->anim, i, anim->field_97E);
         }
         anim->field_97C = anim->field_97E;
@@ -1112,7 +1112,7 @@ static void func_actor_356100_80163508(Task* arg0)
         blend->field_98A = 0x30;
         blend->field_98C = 0x800;
         for (i = 1; i < 0x15; i++) {
-            blend->slots[i].rate = (u8)blend->field_98A;
+            blend->slots[i].rate = blend->field_98A;
             Gp_AnimResetSlot(&blend->blendAnim, i, blend->field_988);
         }
         work->field_986 = 3;
@@ -1124,12 +1124,12 @@ static void func_actor_356100_80163508(Task* arg0)
 
         tick = (Actor356100AnimWork*)arg0->work;
         for (i = 1; i < 0x15; i++) {
-            tick->slots[i].rate = (u8)tick->field_982;
+            tick->slots[i].rate = tick->field_982;
             Gp_AnimTickIndex(&tick->anim, i);
         }
     } else {
         func_actor_356100_801633DC(arg0);
-        if (work->blendSlots[1].flags & 1) {
+        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_END) {
             work->field_97A = 0;
         }
     }

@@ -1482,13 +1482,13 @@ static void func_actor_401800_801337EC(Task* arg0)
     anim   = &work->rig.anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blend.slots[i].rate = (u8)work->field_8AA;
-            work->rig.slots[i].rate   = (u8)(work->field_8A2 - 3);
+            work->blend.slots[i].rate = work->field_8AA;
+            work->rig.slots[i].rate   = (work->field_8A2 - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->rig.slots[i].rate = (u8)(work->field_8A2 - 3);
+            work->rig.slots[i].rate = (work->field_8A2 - 3);
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
@@ -1739,7 +1739,7 @@ static void func_actor_401800_80133EB8(Task* arg0)
             table     = (u32)&D_actor_401800_8015514C;
             do {
                 seekSlotIndex                   = seekIndex;
-                work->rig.slots[seekIndex].rate = (u8)seekWork->field_8A2;
+                work->rig.slots[seekIndex].rate = seekWork->field_8A2;
                 animation                       = (s16)seekWork->field_89E;
                 index                           = seekWork->field_89C * 0x2D;
                 func_800B4114(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
@@ -1757,7 +1757,7 @@ static void func_actor_401800_80133EB8(Task* arg0)
         resetIndex = 1;
         do {
             resetSlotIndex                   = resetIndex;
-            work->rig.slots[resetIndex].rate = (u8)resetWork->field_8A2;
+            work->rig.slots[resetIndex].rate = resetWork->field_8A2;
             Gp_AnimResetSlot(&resetWork->rig.anim, resetSlotIndex,
                              (s32)(s16)resetWork->field_89E);
             resetIndex += 1;
@@ -1774,7 +1774,7 @@ static void func_actor_401800_80133EB8(Task* arg0)
         secondaryWork->field_8AC = 0x800;
         do {
             secondarySlotIndex                            = secondaryIndex;
-            secondaryWork->rig.slots[secondaryIndex].rate = (u8)secondaryWork->field_8AA;
+            secondaryWork->rig.slots[secondaryIndex].rate = secondaryWork->field_8AA;
             Gp_AnimResetSlot(&secondaryWork->blend.anim, secondarySlotIndex,
                              (s32)secondaryWork->field_8A8);
             secondaryIndex += 1;
@@ -1787,13 +1787,13 @@ static void func_actor_401800_80133EB8(Task* arg0)
         tickIndex = 1;
         do {
             tickSlotIndex                       = tickIndex;
-            tickWork->rig.slots[tickIndex].rate = (u8)tickWork->field_8A2;
+            tickWork->rig.slots[tickIndex].rate = tickWork->field_8A2;
             Gp_AnimTickIndex(&tickWork->rig.anim, tickSlotIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {
         func_actor_401800_801337EC(arg0);
-        if (work->blend.slots[1].flags & 1) {
+        if (work->blend.slots[1].flags & ANIMATION_SLOT_REACHED_END) {
             work->field_89A = 0;
         }
     }

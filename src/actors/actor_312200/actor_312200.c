@@ -53,7 +53,7 @@ extern Actor312200MessageEntry D_actor_312200_80169F5C[4];
 extern SVECTOR D_actor_312200_80169F88;
 
 /// Dual-width view of the animation rate the seeding body
-/// `func_actor_312200_80162FB4` copies into every slot's `GpAnimSlot.rate`:
+/// `func_actor_312200_80162FB4` copies into every slot's `AnimationSlot.rate`:
 /// the state handlers arm it as a halfword, the seeding body reads back only
 /// its low byte.
 typedef union Actor312200Rate {
@@ -950,7 +950,7 @@ static void func_actor_312200_801637CC(Task* task)
         work->field_896.half = 0x10;
         func_actor_312200_80162FB4(task);
     }
-    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].flags & 1)) {
+    if ((s16)work->field_892 == 0x10 && (work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_END)) {
         work->field_892 = 4;
         work->field_88C = 1;
     }

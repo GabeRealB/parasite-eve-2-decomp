@@ -1741,8 +1741,8 @@ static void func_actor_401300_80133324(Task* arg0)
     weight = work->field_8B0;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blend.slots[i].rate = (u8)work->field_8AE;
-            work->rig.slots[i].rate   = (u8)(work->field_8A6 - 3);
+            work->blend.slots[i].rate = work->field_8AE;
+            work->rig.slots[i].rate   = (work->field_8A6 - 3);
             if (i >= 7) {
                 if (i < 9) {
                     continue;
@@ -1754,7 +1754,7 @@ static void func_actor_401300_80133324(Task* arg0)
                 Gp_AnimWritePoseCopy(&work->rig.anim, i, &pose, &blendPose, weight, 0x1000 - weight);
             } while (0);
         } else {
-            work->rig.slots[i].rate = (u8)(work->field_8A6 - 3);
+            work->rig.slots[i].rate = (work->field_8A6 - 3);
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
@@ -2182,7 +2182,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
         Actor401300_TickAnim(arg0);
     } else {
         func_actor_401300_80133324(arg0);
-        if (((Actor401300AnimWork*)work)->blend.slots[1].flags & 0x100) {
+        if (((Actor401300AnimWork*)work)->blend.slots[1].flags & ANIMATION_SLOT_SETTLED) {
             work->field_89E = 0;
         }
     }

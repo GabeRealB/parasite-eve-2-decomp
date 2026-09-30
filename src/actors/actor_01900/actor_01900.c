@@ -992,13 +992,13 @@ static void Actor01900_Fn01950(Task* arg0)
     anim   = &work->rig.anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blend.slots[i].rate = (u8)work->field_8AA;
-            work->rig.slots[i].rate   = (u8)(work->field_8A2 - 3);
+            work->blend.slots[i].rate = work->field_8AA;
+            work->rig.slots[i].rate   = (work->field_8A2 - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->rig.slots[i].rate = (u8)(work->field_8A2 - 3);
+            work->rig.slots[i].rate = (work->field_8A2 - 3);
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
@@ -1135,7 +1135,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         w1 = work;
         if (work->field_89C != work->field_89E) {
             for (i = 1; i < 0x13; i++) {
-                w1->rig.slots[i].rate = (u8)w1->field_8A2;
+                w1->rig.slots[i].rate = w1->field_8A2;
                 func_800B4114(&w1->rig.anim, i, w1->field_89E, 0,
                               (s32)Actor01900_D16988[w1->field_89C][w1->field_89E]);
             }
@@ -1149,7 +1149,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         w2 = work;
         i2 = 1;
         do {
-            w2->rig.slots[i2].rate = (u8)w2->field_8A2;
+            w2->rig.slots[i2].rate = w2->field_8A2;
             Gp_AnimResetSlot(&w2->rig.anim, i2, w2->field_89E);
             i2++;
         } while (i2 < 0x13);
@@ -1165,7 +1165,7 @@ static void Actor01900_Fn01C94(Task* arg0)
         w1->field_8AA = 0x30;
         w1->field_8AC = 0x800;
         do {
-            w1->rig.slots[i3].rate = (u8)w1->field_8AA;
+            w1->rig.slots[i3].rate = w1->field_8AA;
             Gp_AnimResetSlot(&w1->blend.anim, i3, w1->field_8A8);
             i3++;
         } while (i3 < 0x13);
@@ -1176,13 +1176,13 @@ static void Actor01900_Fn01C94(Task* arg0)
         w3 = (Actor01900AnimWork*)((Actor01900Work*)arg0->work);
         i4 = 1;
         do {
-            w3->rig.slots[i4].rate = (u8)w3->field_8A2;
+            w3->rig.slots[i4].rate = w3->field_8A2;
             Gp_AnimTickIndex(&w3->rig.anim, i4);
             i4++;
         } while (i4 < 0x13);
     } else {
         Actor01900_Fn01950(arg0);
-        if (work->blend.slots[1].flags & 0x100) {
+        if (work->blend.slots[1].flags & ANIMATION_SLOT_SETTLED) {
             work->field_89A = 0;
         }
     }

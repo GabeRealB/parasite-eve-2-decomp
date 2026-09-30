@@ -459,20 +459,20 @@ STATIC_ASSERT_SIZEOF(ActorHeightClamp, 0x10);
 /// The animation rig of a twenty-part model: the context `func_800B3F84`
 /// builds, and the playback slots and pose buffer that context points at. The
 /// slots and the poses are the owner's storage, one of each per model part;
-/// each pose record is in the encoding its slot's `GpAnimSlot.poseKind` names,
+/// each pose record is in the encoding its slot's `AnimationSlot.poseEncoding` names,
 /// so the buffer is kept as raw records.
 typedef struct ActorAnimRig20 {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x14];
-    byte       poses[0x14][0x10];
+    GpAnimCtx     anim;
+    AnimationSlot slots[0x14];
+    byte          poses[0x14][0x10];
 } ActorAnimRig20;
 STATIC_ASSERT_SIZEOF(ActorAnimRig20, 0x474);
 
 /// The animation rig of a nineteen-part model, laid out as `ActorAnimRig20`.
 typedef struct ActorAnimRig19 {
-    GpAnimCtx  anim;
-    GpAnimSlot slots[0x13];
-    byte       poses[0x13][0x10];
+    GpAnimCtx     anim;
+    AnimationSlot slots[0x13];
+    byte          poses[0x13][0x10];
 } ActorAnimRig19;
 STATIC_ASSERT_SIZEOF(ActorAnimRig19, 0x43C);
 
@@ -544,9 +544,9 @@ typedef struct Actor341700Work {
     byte      pad_96[0x2];
     SVECTOR   field_98;     // translation of coords[6] relative to the view
     GpAnimCtx anim;
-    /// First of the nine `GpAnimSlot`s handed to `func_800B3F84`; the second
+    /// First of the nine `AnimationSlot`s handed to `func_800B3F84`; the second
     /// overlaps `flags_EC`, so only the first is spelled out.
-    GpAnimSlot            slot_B4;
+    AnimationSlot         slot_B4;
     byte                  pad_DC[0x10];
     Actor341700Flags      flags_EC;
     byte                  pad_F0[0x12C];
@@ -604,7 +604,7 @@ STATIC_ASSERT_SIZEOF(Actor341700Work, 0x454);
 /// the projectile task has its own smaller collision-work allocation.
 typedef struct Actor105500Work {
     GpAnimCtx             anim;
-    GpAnimSlot            slots[8];
+    AnimationSlot         slots[8];
     byte                  field_154[0x80];
     MATRIX                field_1D4;
     MATRIX                field_1F4;
@@ -695,7 +695,7 @@ STATIC_ASSERT_SIZEOF(Actor105500HitScratch, 0x38);
 /// handlers drive.
 typedef struct Actor05300Work {
     GpAnimCtx             anim;
-    GpAnimSlot            slots[10];
+    AnimationSlot         slots[10];
     GpAnimPose            poses[10];
     MATRIX                field_244;
     MATRIX                field_264;
@@ -948,7 +948,7 @@ STATIC_ASSERT_SIZEOF(Actor402200Spot, 0x8);
 /// are the cue ids it plays.
 typedef struct Actor402200Work {
     GpAnimCtx              anim;
-    GpAnimSlot             slots[19];
+    AnimationSlot          slots[19];
     byte                   field_30C[0x130];
     MATRIX                 field_43C;
     MATRIX                 field_45C;
@@ -1296,16 +1296,16 @@ typedef struct Actor323000Work {
     byte pad_8[0xE];
     /// Yaw of the root coordinate as the placement handler
     /// `func_actor_323000_80164954` leaves it, read back from the matrix.
-    s16        field_16;
-    byte       pad_18[4];
-    GpAnimCtx  anim;
-    GpAnimSlot slots[18];
+    s16           field_16;
+    byte          pad_18[4];
+    GpAnimCtx     anim;
+    AnimationSlot slots[18];
     /// Pose buffer `func_800B3F84` takes as its arg3, `GpAnimCtx.poses`.
-    byte       poses[0x120];
-    GpAnimCtx  blendAnim;
-    GpAnimSlot blendSlots[18];
-    byte       blendPoses[0x120];
-    byte       pad_824[4];
+    byte          poses[0x120];
+    GpAnimCtx     blendAnim;
+    AnimationSlot blendSlots[18];
+    byte          blendPoses[0x120];
+    byte          pad_824[4];
     /// Animation-state slots the handlers seed and the tick keeps: the seed
     /// mode the tick acts on (1 re-seeds from the per-state table, 2 resets
     /// the slots, 3 runs), whether the blend context is live, the clip the
@@ -1570,29 +1570,29 @@ typedef struct Actor403200Work {
     /* 0x006 */ s16  field_6;
     /* 0x008 */ byte pad_8[0x4];
     /// Six back-to-back animation blocks, each a `GpAnimCtx` followed by its
-    /// own `GpAnimSlot[N]` and an N-entry 0x10-byte pose table -- the three
+    /// own `AnimationSlot[N]` and an N-entry 0x10-byte pose table -- the three
     /// argument groups the spawn state hands `func_800B3F84`. They pair up
     /// (0/1, 2/3, 4/5), eight slots in the first pair and four in the others;
     /// the even member drives the model and the odd one is the pose blended
-    /// into it. The states latch their one-shot cues on `slots0[n].curRec`.
-    /* 0x00C */ GpAnimCtx  anim0;
-    /* 0x020 */ GpAnimSlot slots0[8];
-    /* 0x160 */ byte       aux0[0x80];
-    /* 0x1E0 */ GpAnimCtx  anim1;
-    /* 0x1F4 */ GpAnimSlot slots1[8];
-    /* 0x334 */ byte       aux1[0x80];
-    /* 0x3B4 */ GpAnimCtx  anim2;
-    /* 0x3C8 */ GpAnimSlot slots2[4];
-    /* 0x468 */ byte       aux2[0x40];
-    /* 0x4A8 */ GpAnimCtx  anim3;
-    /* 0x4BC */ GpAnimSlot slots3[4];
-    /* 0x55C */ byte       aux3[0x40];
-    /* 0x59C */ GpAnimCtx  anim4;
-    /* 0x5B0 */ GpAnimSlot slots4[4];
-    /* 0x650 */ byte       aux4[0x40];
-    /* 0x690 */ GpAnimCtx  anim5;
-    /* 0x6A4 */ GpAnimSlot slots5[4];
-    /* 0x744 */ byte       aux5[0x40];
+    /// into it. The states latch their one-shot cues on `slots0[n].currentPose.indices.recordIndex`.
+    /* 0x00C */ GpAnimCtx     anim0;
+    /* 0x020 */ AnimationSlot slots0[8];
+    /* 0x160 */ byte          aux0[0x80];
+    /* 0x1E0 */ GpAnimCtx     anim1;
+    /* 0x1F4 */ AnimationSlot slots1[8];
+    /* 0x334 */ byte          aux1[0x80];
+    /* 0x3B4 */ GpAnimCtx     anim2;
+    /* 0x3C8 */ AnimationSlot slots2[4];
+    /* 0x468 */ byte          aux2[0x40];
+    /* 0x4A8 */ GpAnimCtx     anim3;
+    /* 0x4BC */ AnimationSlot slots3[4];
+    /* 0x55C */ byte          aux3[0x40];
+    /* 0x59C */ GpAnimCtx     anim4;
+    /* 0x5B0 */ AnimationSlot slots4[4];
+    /* 0x650 */ byte          aux4[0x40];
+    /* 0x690 */ GpAnimCtx     anim5;
+    /* 0x6A4 */ AnimationSlot slots5[4];
+    /* 0x744 */ byte          aux5[0x40];
     /// Per-part yaw the fifth escort's model is being driven to, one entry per
     /// part, and the angle each part is currently at. The escort pose driver
     /// picks the targets from `field_7A4` and walks every `field_794` toward
@@ -1606,7 +1606,7 @@ typedef struct Actor403200Work {
     /* 0x7A4 */ s16 field_7A4;
     /// Most a `field_794` entry may move in one call.
     /* 0x7A6 */ s16 field_7A6;
-    /// The masked `slots0[3].curRec` frame the launch state last saw, so each of its
+    /// The masked `slots0[3].currentPose.indices.recordIndex` frame the launch state last saw, so each of its
     /// four one-shot cues only fires on the step the animation first reaches
     /// that frame.
     /* 0x7A8 */ s32 field_7A8;
@@ -1623,7 +1623,7 @@ typedef struct Actor403200Work {
     /* 0x7B3 */ s8 field_7B3;
     /// Frames since the animation block was re-armed.
     /* 0x7B4 */ u16 field_7B4;
-    /// The `GpAnimSlot.rate` the even animation members tick at; the launch
+    /// The `AnimationSlot.rate` the even animation members tick at; the launch
     /// state arms it to 0x40 and then to 0x10.
     /* 0x7B6 */ s16 field_7B6;
     /* 0x7B8 */ s16 field_7B8;
@@ -1632,7 +1632,7 @@ typedef struct Actor403200Work {
     /* 0x7BA */ s16 field_7BA;
     /// Animation id the blend seeds the odd members' slots with.
     /* 0x7BC */ s16 field_7BC;
-    /// The `GpAnimSlot.rate` the odd members tick at while blending.
+    /// The `AnimationSlot.rate` the odd members tick at while blending.
     /* 0x7BE */ s16 field_7BE;
     /// Blend weight of the odd member in the pose written to the even one, out
     /// of 0x1000.
@@ -1651,7 +1651,7 @@ typedef struct Actor403200Work {
     /// Start of a 0x20-byte run cleared whenever the animation block is
     /// re-armed.
     /* 0x7D0 */ byte field_7D0[0x8];
-    /// The masked `slots0[2].curRec` frame the per-frame body last saw, so each of its
+    /// The masked `slots0[2].currentPose.indices.recordIndex` frame the per-frame body last saw, so each of its
     /// two one-shot cues only fires on the step the animation first reaches
     /// that frame.
     /* 0x7D8 */ s32  field_7D8;

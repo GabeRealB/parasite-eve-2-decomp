@@ -51,7 +51,7 @@
 /// `WorldCollisionContact` tables.
 typedef struct Actor02500Work {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            field_14[5];
+    /* 0x014 */ AnimationSlot         field_14[5];
     /* 0x0DC */ byte                  field_DC[0x50];
     /* 0x12C */ byte                  field_12C[0x20];
     /* 0x14C */ byte                  field_14C[0x20];

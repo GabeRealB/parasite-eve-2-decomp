@@ -225,8 +225,8 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 /// `WorldCollisionContact` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[0xF];
+    /* 0x000 */ GpAnimCtx     anim;
+    /* 0x014 */ AnimationSlot slots[0xF];
     /// `func_800B3F84`'s arg3 buffer, the 0x90-byte scratch every animation
     /// context carries alongside its slot array.
     /* 0x26C */ byte animAux[0x90];
@@ -3999,7 +3999,7 @@ static void func_actor_206100_8014F284(Task* task)
     i    = 1;
     do {
         Gp_AnimResetSlot(&work->anim, i, work->field_510);
-        work->slots[i].rate = (u8)work->field_51A;
+        work->slots[i].rate = work->field_51A;
         i++;
     } while (i < 0xF);
     work->field_50E = (u16)work->field_510;
@@ -4022,14 +4022,14 @@ static void func_actor_206100_8014F2F0(Task* arg0)
     if (work->field_50E == work->field_510) {
         i = 1;
         do {
-            work->slots[i].rate = (u8)work->field_51A;
+            work->slots[i].rate = work->field_51A;
             func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
             i++;
         } while (i < 0xF);
     } else {
         i = 1;
         do {
-            work->slots[i].rate = (u8)work->field_51A;
+            work->slots[i].rate = work->field_51A;
             func_800B4114(&work->anim, i, work->field_510, 0, work->field_524);
             i++;
         } while (i < 0xF);

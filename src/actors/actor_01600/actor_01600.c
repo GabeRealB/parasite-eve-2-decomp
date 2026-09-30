@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(Actor01600Contacts, 0xE0);
 
 typedef struct Actor01600Work {
     /* 0x000 */ GpAnimCtx              anim;
-    /* 0x014 */ GpAnimSlot             slots[9];
+    /* 0x014 */ AnimationSlot          slots[9];
     /* 0x17C */ byte                   pad_17C[0x90];
     /* 0x20C */ MATRIX                 field_20C;
     /* 0x22C */ MATRIX                 field_22C;
@@ -3303,7 +3303,7 @@ static void Actor01600_Fn03D48(Task* arg0)
         } else {
             work->field_50A = (u16)work->field_50A + 1;
             for (i = 1; i < 9; i++) {
-                work->slots[i].rate = (u8)work->field_538;
+                work->slots[i].rate = work->field_538;
                 Gp_AnimTickIndex(&work->anim, i);
             }
         }

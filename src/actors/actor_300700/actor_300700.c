@@ -63,7 +63,7 @@ extern AnimationSet* D_actor_300700_80165B94[2];
 /// same object.
 typedef struct Actor300700SpawnWork {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[4];
+    /* 0x014 */ AnimationSlot         slots[4];
     /* 0x0B4 */ byte                  field_B4[0x40]; // pose buffer, `func_800B3F84` arg3
     /* 0x0F4 */ MATRIX                field_F4;       // color matrix handed to the stream
     /* 0x114 */ MATRIX                field_114;      // light matrix handed to the stream

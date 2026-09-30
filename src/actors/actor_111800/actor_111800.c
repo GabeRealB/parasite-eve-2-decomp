@@ -35,7 +35,7 @@
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
-/// layout: a `GpAnimCtx` and the nineteen `GpAnimSlot`s `func_800B3F84` seeds
+/// layout: a `GpAnimCtx` and the nineteen `AnimationSlot`s `func_800B3F84` seeds
 /// from the animation bank and the frame handler ticks. `field_43C` /
 /// `field_45C` are the light and colour matrices handed to the model
 /// `TmdObject`.
@@ -51,7 +51,7 @@ typedef struct Actor111800Work {
     /* 0x48A */ byte           pad_48A[2];
     /* 0x48C */ s16            field_48C; // angle ramped in steps 1 and 3
     /* 0x48E */ byte           pad_48E[4];
-    /* 0x492 */ s16            field_492; // latched copy of slots[1].curRec
+    /* 0x492 */ s16            field_492; // latched copy of slots[1].currentPose.indices.recordIndex
     /* 0x494 */ s16            field_494; // angle ramped in step 1; spawn seeds 0x155
 } Actor111800Work;
 STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
@@ -260,7 +260,7 @@ static inline void _actor111800TickAnim(Task* task)
     for (i = 1; i < 0x13; i++) {
         Gp_AnimTickIndex(&work->rig.anim, i);
     }
-    work->field_492 = work->rig.slots[1].curRec;
+    work->field_492 = work->rig.slots[1].currentPose.indices.recordIndex;
 }
 
 /// Cross-fades body slots 1..0x12 of `work`'s animation context to animation
@@ -282,7 +282,7 @@ static inline void _actor111800Reseed(Task* task, u16 id, u16 frames)
     _ACTOR111800_BLEND_SLOTS(work, id, frames);
 }
 
-/// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].curRec`
+/// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].currentPose.indices.recordIndex`
 /// into `field_492`, then runs the seven-step sequence in `field_484` (reseed,
 /// ramp the two angles, wait, reverse the first angle, reseed again, wait,
 /// then drop the model coordinate's Z and clear its flag).
@@ -397,7 +397,7 @@ static void func_actor_111800_80132390(Task* task)
     work2            = (Actor111800Work*)task->work;
     work2->field_492 = 0;
     do {
-        work2->rig.slots[i & 0xFFFF].rate = 0x10;
+        work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
         Gp_AnimResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
@@ -478,7 +478,7 @@ void func_actor_111800_8013251C(Task* task)
                 Gp_AnimTickIndex(&ctx->rig.anim, i & 0xFFFF);
                 i += 1;
             } while ((u32)(i & 0xFFFF) < 0x13U);
-            ctx->field_492 = ctx->rig.slots[1].curRec;
+            ctx->field_492 = ctx->rig.slots[1].currentPose.indices.recordIndex;
             viewMtx        = work->field_480;
             x              = viewMtx->t[0];
             if ((x >= 0x5DD && viewMtx->t[2] >= -0x513) || (x >= 0xC81 && viewMtx->t[2] < -0x514)) {

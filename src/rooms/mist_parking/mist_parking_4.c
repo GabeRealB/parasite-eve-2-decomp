@@ -395,7 +395,7 @@ void func_mist_parking_80183D58(Task* task)
 
     actor = (GameActor*)(gameGetPtrSlot(3))->work;
     if (D_801156F9 == 0) {
-        idx = actor->field_438[1].nextSet - 0x2F;
+        idx = actor->field_438[1].nextPose.indices.setIndex - 0x2F;
         if ((idx > 0) && (idx < D_mist_parking_80190870.count)) {
             flag = D_mist_parking_801908C8[idx];
         } else {

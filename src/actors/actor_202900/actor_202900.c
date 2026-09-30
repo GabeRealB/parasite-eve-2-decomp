@@ -449,7 +449,7 @@ static s32 func_actor_202900_8014A394(void)
 {
     u16 frame;
 
-    frame = D_actor_202900_80156E54->rig.slots[1].curRec;
+    frame = D_actor_202900_80156E54->rig.slots[1].currentPose.indices.recordIndex;
     if ((frame & 0x3FF) == 0x15) {
         if (D_actor_202900_80156E54->st.field_8 != (frame & 0x3FF)) {
             D_actor_202900_80156E54->st.field_8 = frame & 0x3FF;

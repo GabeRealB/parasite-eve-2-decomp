@@ -98,7 +98,7 @@ typedef struct Actor00100Work {
     /* 0x016 */ byte pad_16[6];
     /// First of the two animation contexts, with the 0x12 slots it drives.
     /* 0x01C */ GpAnimCtx              anim0;
-    /* 0x030 */ GpAnimSlot             slot0;
+    /* 0x030 */ AnimationSlot          slot0;
     /* 0x058 */ byte                   pad_58[2];
     /* 0x05A */ u16                    field_5A;
     /* 0x05C */ byte                   pad_5C[0xC];
@@ -106,7 +106,7 @@ typedef struct Actor00100Work {
     /* 0x06A */ byte                   pad_6A[0x296];
     /* 0x300 */ byte                   data0[0x120];
     /* 0x420 */ GpAnimCtx              anim1;
-    /* 0x434 */ GpAnimSlot             slot1;
+    /* 0x434 */ AnimationSlot          slot1;
     /* 0x45C */ byte                   pad_45C[0x10];
     /* 0x46C */ u16                    field_46C;
     /* 0x46E */ byte                   pad_46E[0x296];
@@ -2493,7 +2493,7 @@ static void Actor00100_Fn02788(Task* arg0)
                 seekSlotIndex  = seekIndex;
                 seekSlot[0x39] = (u8)seekWork->field_832;
                 animation      = (s16)seekWork->field_82E;
-                seekSlot      += 0x28;
+                seekSlot      += sizeof(AnimationSlot);
                 index          = seekWork->field_82C * 0x19;
                 func_800B4114(&seekWork->anim0, seekSlotIndex, (s16)(animation), 0, (s32) * (s8*)((animation + index) + table));
                 seekIndex += 1;
@@ -2510,7 +2510,7 @@ static void Actor00100_Fn02788(Task* arg0)
         do {
             resetSlotIndex  = resetIndex;
             resetSlot[0x39] = (u8)resetWork->field_832;
-            resetSlot      += 0x28;
+            resetSlot      += sizeof(AnimationSlot);
             Gp_AnimResetSlot(&resetWork->anim0, resetSlotIndex, (s32)(s16)resetWork->field_82E);
             resetIndex += 1;
         } while (resetIndex < 0x12);
@@ -2526,7 +2526,7 @@ static void Actor00100_Fn02788(Task* arg0)
         do {
             secondarySlotIndex  = secondaryIndex;
             secondarySlot[0x39] = (u8)secondaryWork->field_83A;
-            secondarySlot      += 0x28;
+            secondarySlot      += sizeof(AnimationSlot);
             Gp_AnimResetSlot(&secondaryWork->anim1, secondarySlotIndex, (s32)secondaryWork->field_838);
             secondaryIndex += 1;
         } while (secondaryIndex < 0x12);
@@ -2541,7 +2541,7 @@ static void Actor00100_Fn02788(Task* arg0)
             tickSlotIndex  = tickIndex;
             tickSlot[0x39] = (u8)tickWork->field_832;
             Gp_AnimTickIndex(&tickWork->anim0, tickSlotIndex);
-            tickSlot  += 0x28;
+            tickSlot  += sizeof(AnimationSlot);
             tickIndex += 1;
         } while (tickIndex < 0x12);
     } else {

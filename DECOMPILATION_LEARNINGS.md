@@ -3422,8 +3422,8 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `GpAnimCtx` (0x14) then `GpAnimSlot slots[0x12]`
-(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `GpAnimSlot*`
+`Actor400500Work` opens with `GpAnimCtx` (0x14) then `AnimationSlot slots[0x12]`
+(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
 
@@ -7305,7 +7305,7 @@ sh    v0, 0xe(s1)
 sh    v0, 0xc(s1)
 ```
 
-Writing `slot->bufPose = 0` *before* `val = arg6 << 4` lets GCC hoist the
+Writing `slot->usesBufferedPose = 0` *before* `val = arg6 << 4` lets GCC hoist the
 constant store and leaves `lw / nop / sll`. Write the zero store *after*
 the uses of that stack arg; `-fschedule-insns` lifts `sb zero` into the
 load delay and keeps the two `sh`s together.
@@ -7314,7 +7314,7 @@ load delay and keeps the two `sh`s together.
 val            = arg6 << 4;
 slot->timeSpan = val;
 slot->timeLeft = val;
-slot->bufPose  = 0;
+slot->usesBufferedPose  = 0;
 ```
 
 `func_800B4538` is the example. The same tail is in `func_800B4114` /
@@ -24485,7 +24485,7 @@ in place:
 
 ```c
 ret = sets[idx]->records;
-ret += slot->curRec; /* pointer stays in $v0; idx loads into $v1 */
+ret += slot->currentPose.indices.recordIndex; /* pointer stays in $v0; idx loads into $v1 */
 return ret;
 ```
 
@@ -24728,7 +24728,7 @@ still assigns `saved` to `$s1` and `actor` to `$s2`.
 ## Keep the `i * sizeof(slot)` overlay inside the loop body
 
 `GameActor` helpers walk the actor's animation slots (`GameActor.field_438`),
-each `sizeof(GpAnimSlot)` past the one before, and then store through the
+each `sizeof(AnimationSlot)` past the one before, and then store through the
 slot's own field (`func_80105894` / `func_801058BC`).
 A 1-based walk that the target implements as
 
@@ -24783,7 +24783,7 @@ fails its checksum with no other symptom. Put the multiply first and the
 array's own address second:
 
 ```c
-slot = (GpAnimSlot*)((arg1 * sizeof(GpAnimSlot)) + (s32)arg0->actor->field_438);
+slot = (AnimationSlot*)((arg1 * sizeof(AnimationSlot)) + (s32)arg0->actor->field_438);
 return (slot->flags & 0x102) == 0;
 ```
 
@@ -28310,10 +28310,10 @@ them into an earlier load delay instead.
 
 ```c
 slot->trackIndex = arg1;
-slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
-op               = recs[slot->nextRec].flags;
+slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
+op               = recs[slot->nextPose.indices.recordIndex].flags;
 slot->flags      = 0;
-slot->poseKind   = op & 0xF;
+slot->poseEncoding   = op & 0xF;
 ```
 
 `Gp_AnimResetSlot` is the example. `table[(u8)value]` stuck at 99.3% with
@@ -28408,7 +28408,7 @@ argument register and the `andi` dest is `$v0`, so the pointer stays in
 
 ```c
 slot->trackIndex = arg3;
-slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
+slot->nextPose.indices.recordIndex    = sets[arg2]->trackStartIndices[slot->trackIndex];
 ```
 
 `Gp_AnimResetSlotEx` is the example (`Gp_AnimResetSlot` already uses
@@ -31404,7 +31404,7 @@ store. Hold the index in an `s32` so the `lbu` stands alone:
 
 ```c
 s32 idx;
-idx  = slot->mtxIndex; /* lbu */
+idx  = slot->coordIndex; /* lbu */
 dest = &arr[idx];      /* sll / addu, no andi */
 ```
 
@@ -39105,15 +39105,15 @@ The last two diffs in `animationTickSlotPose` were `addu v0,v1,v0` vs `addu v1,v
 same operands, different destination — from
 
 ```c
-scratch->request.currentPose = &((u8*)set->poseBanks[poseKind])[records[slot->curRec].wordOffset * sizeof(u32)];
+scratch->request.currentPose = &((u8*)set->poseBanks[poseEncoding])[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
 ```
 
 GCC ties the add's output to whichever input pseudo it decides dies first.
 Hoisting the inner pointer into its own local flips that choice:
 
 ```c
-poseBytes                    = set->poseBanks[poseKind];
-scratch->request.currentPose = &poseBytes[records[slot->curRec].wordOffset * sizeof(u32)];
+poseBytes                    = set->poseBanks[poseEncoding];
+scratch->request.currentPose = &poseBytes[records[slot->currentPose.indices.recordIndex].wordOffset * sizeof(u32)];
 ```
 
 Neither a temporary for the whole address (`p = &...; x = p;`) nor the
@@ -39121,15 +39121,15 @@ Neither a temporary for the whole address (`p = &...; x = p;`) nor the
 
 ## `lbu` + `sll 24` + `sra 24` vs `lb`: it is the statement form, not the cast
 
-Both branches of an if in `animationTickSlotPose` sign-extend the same `u8` field, but
-the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The cast is
+Both branches of an if in `animationTickSlotPose` sign-extend the same signed-byte rate, but
+the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The signed value is
 identical in both; what differs is the assignment:
 
 ```c
 decrementedTime = slot->timeLeft - 1;              /* lhu, then lb  for rate */
-slot->timeLeft = decrementedTime - (((s8)slot->rate - 1) >> 1);
+slot->timeLeft = decrementedTime - ((slot->rate - 1) >> 1);
 ...
-slot->timeLeft -= (s8)slot->rate;               /* lbu; sll 24; sra 24 */
+slot->timeLeft -= slot->rate;               /* lbu; sll 24; sra 24 */
 ```
 
 A compound `x -= (s8)f` evaluates the RHS before reloading `x` and loses the
@@ -71139,8 +71139,8 @@ needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
 
 ## Anim ctx + 0x28 slots: walk a 0x28 stride from offset 0 so `rate` is `sb 0x1D`
 
-`Actor400500Work` opens with `GpAnimCtx` (0x14) then `GpAnimSlot slots[0x12]`
-(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `GpAnimSlot*`
+`Actor400500Work` opens with `GpAnimCtx` (0x14) then `AnimationSlot slots[0x12]`
+(0x28 each). `slots[i].rate` is at `0x14 + i*0x28 + 9`. A `AnimationSlot*`
 walk from `&slots[1]` emits `addiu 0x3C` / `sb 9`. The target walks from the
 work base:
 
@@ -82265,7 +82265,7 @@ overlays already do and the same code falls out unaided.
 ```c
 typedef struct {
     /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[19];
+    /* 0x014 */ AnimationSlot slots[19];
     ...
 } Actor323300Work;
 
@@ -82277,13 +82277,13 @@ for (i = 1; i < 0x13; i++) {
 emits `addiu v1, s0, 0x28` / `sb a1, 0x1D(v1)` / `addiu v1, v1, 0x28`: the
 strength-reduced induction variable carries only `i*0x28` and the invariant
 `0x14 + 9` stays in the displacement, so `$v1` walks from the work base rather
-than from a `GpAnimSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
+than from a `AnimationSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
 example (`Actor503500Effect4CC` / `Actor503500WorkBoss` are the same shape
 already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
 
 **Sizing the array.** Such a block hands `func_800B3F84` the block itself as its
-`GpAnimCtx`, the slot array as its `GpAnimSlot*`, and a pose buffer
+`GpAnimCtx`, the slot array as its `AnimationSlot*`, and a pose buffer
 directly after it; those last two addresses bound the array, since
 `0x14 + N*0x28` is the buffer's address. actor_323300 passes `+0x14` and `+0x30C`,
 so `N = 19`. The tick loops then walk indices 1..0x13 -- index 0 exists and is
@@ -100238,7 +100238,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/func_actor_341300_80163A10-vacuum` (`base_4_diff`).
 ## Hoisting a `& 0x3FF` into a `u16` local folds the compare's zero-extension to a `move` (func_actor_202900_8014A394, 2026-09-16)
 
-The slot's animation id is the low ten bits of `GpAnimSlot.curRec`, and the
+The slot's cue index is the low ten bits of `AnimationSlot.currentPose.indices.recordIndex`, and the
 target masks it at every use - the mask and the re-extension of its own result
 are two separate instructions:
 
@@ -100281,12 +100281,12 @@ A probe of the same body with the mask spelled eight different ways, target
 sequence first:
 
 ```
-u16 raw = slot.curRec;   ... (raw & 0x3FF) at each use     andi $a0; andi $a1,0xffff
-s32 raw = slot.curRec & 0x3FF;   (u16) casts at each use   andi $a0; andi $a1,0xffff
-u16 frame = slot.curRec & 0x3FF;   frame used              andi $a0; move
+u16 raw = slot.currentPose.indices.recordIndex;   ... (raw & 0x3FF) at each use     andi $a0; andi $a1,0xffff
+s32 raw = slot.currentPose.indices.recordIndex & 0x3FF;   (u16) casts at each use   andi $a0; andi $a1,0xffff
+u16 frame = slot.currentPose.indices.recordIndex & 0x3FF;   frame used              andi $a0; move
 u16 frame; frame = ...; frame &= 0x3FF;                     andi $a0; move
 u16 frame = ...;   (frame & 0xFFFF) at each use             andi $a0; move
-s32 raw = slot.curRec;   s32 frame = raw & 0x3FF;          andi $a0 (no extension at all)
+s32 raw = slot.currentPose.indices.recordIndex;   s32 frame = raw & 0x3FF;          andi $a0 (no extension at all)
 ```
 
 So the tell is a target that masks a halfword read *and* re-extends that very
@@ -100915,7 +100915,7 @@ The struct that fixes it here is also the layout worth reusing in this family:
 ```c
 typedef struct Actor311900Anim {
     /* 0x000 */ GpAnimCtx  context;
-    /* 0x014 */ GpAnimSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
+    /* 0x014 */ AnimationSlot slots[0x14];  /* 20 * 0x28 fills the gap to 0x334 */
     /* 0x334 */ byte       poses[0x140]; /* GpAnimCtx.poses, packed encodings in 0x10-byte slots */
 } Actor311900Anim;
 STATIC_ASSERT_SIZEOF(Actor311900Anim, 0x474);
@@ -114277,7 +114277,7 @@ Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.
 The brief's starred twin, `Actor01900_Fn01A7C`, is this body verbatim with a
 different cue set and writes every case with a single shared `id` / `prev` pair.
 Copying that shape here scored 89.7%: gcc reuses a variable's pseudo for the next
-assignment once the old value is dead, so all eight `id = slots[n].curRec & 0x3FF;`
+assignment once the old value is dead, so all eight `id = slots[n].currentPose.indices.recordIndex & 0x3FF;`
 statements of the switch became *one* `reg/v` pseudo live from the first case to
 the last (`base_1.i.lreg`: `Register 84 used 22 times across 35 insns`). The gate
 is in `local-alloc.c`:
@@ -114312,7 +114312,7 @@ pulls both cases' quantities into one set of live ranges. Writing each case out
 in full instead, each ending in its own
 
 ```c
-        anim->field_8AC = anim->slots[1].curRec & 0x3FF;
+        anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
         break;
 ```
 
@@ -125117,7 +125117,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 reads it straight back with `lb` to index the bank table (`sll $v1,$v1,2` before
 the `lw`). The m2c baseline emitted no `lb` at all: the index came from the byte
 still in a register (`lbu` + `sll 24` / `sra 20`). Retyping the work block as its
-animation head -- `GpAnimCtx anim; GpAnimSlot slots[20]; byte field_334[0x140];
+animation head -- `GpAnimCtx anim; AnimationSlot slots[20]; byte field_334[0x140];
 s8 field_474; s8 field_475; s8 field_476;` replacing a `byte pad_0[0x475]`, which
 keeps every later offset -- and writing the body the way the matched sibling
 `func_actor_503500_8014652C` writes it (two field stores, then
@@ -127087,7 +127087,7 @@ The pick-up after the inline is an effect guarded on an animation clip, and the
 two halves of that guard read **different slots** -- do not assume symmetry:
 
 ```c
-id = work->slots[1].curRec & 0x3FF;                   /* 0x3E, `lhu` + `andi` */
+id = work->slots[1].currentPose.indices.recordIndex & 0x3FF;                   /* 0x3E, `lhu` + `andi` */
 if (id == 7 && work->field_896 != id) {
     memset(&vec, 0, 8);                               /* SVECTOR, not NULL */
     eff.coord      = ((TmdObject*)task->extra)->coords; /* part 0, no addiu */
@@ -127095,7 +127095,7 @@ if (id == 7 && work->field_896 != id) {
     eff.spawnArgHi = 2;
     func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, ((TmdObject*)task->extra)->coords + 1, &vec, &eff);
 }
-work->field_896 = work->slots[0].curRec & 0x3FF;      /* 0x16 -- slot 0, not 1 */
+work->field_896 = work->slots[0].currentPose.indices.recordIndex & 0x3FF;      /* 0x16 -- slot 0, not 1 */
 ```
 
 Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
@@ -132650,7 +132650,7 @@ A `u16` field read through an explicit `(s16)` cast and the same field declared
 value is stored back as a halfword: the store discards the bits the sign extension
 supplied, so the two declarations are one and GCC loads with `lhu` either way.
 
-`GpAnimSlot.timeLeft` is the worked example — a countdown compared `<= 0`, four
+`AnimationSlot.timeLeft` is the worked example — a countdown compared `<= 0`, four
 `(s16)` casts in `src/gameplay/1BC.c`. Declaring it `s16` and deleting all four
 leaves every instruction in `gameplay` unchanged.
 
@@ -137287,7 +137287,7 @@ The candidate is outside the branch's block, so this extends the earlier
 actor_206100 constant-in-branch-block example to selection from the taken path.
 
 The final two-argument port with `SOFT_BARRIER()` also matches and passed the
-unscoped build. Replacing the established stride view with `GpAnimSlot*` was
+unscoped build. Replacing the established stride view with `AnimationSlot*` was
 separately rejected for matching: `.combine` folded the member-base offset but
 reversed the `addu` operands, scoring 99.906%. That was operand canonicalization,
 not a changed allocation. No new general allocator rule is implied.
@@ -143568,7 +143568,7 @@ The pass stops at a jump, so when the copy sits *before* the `if` the reads
 inside the block keep the carve, the copy serves the asm operand alone, and dbr
 moves it into the branch delay slot.
 
-**Fix.** `trans = &head[-1].trans;` just above `if (slot->poseKind == 1)`, no
+**Fix.** `trans = &head[-1].trans;` just above `if (slot->poseEncoding == 1)`, no
 pins. This also settled a scheduling difference the seed held with `USE_REG`.
 
 ## `addiu sB,sH,-N; move sV,sB` at entry with the head store reading `sB`: `SCRATCH_PUSH` first, member pointer second (worldCollisionCalcContactViewOffset, 2026-09-26)

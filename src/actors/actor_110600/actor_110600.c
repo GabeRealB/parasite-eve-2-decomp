@@ -231,7 +231,7 @@ STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 
 /// Animation view of the same block `Actor110600Work` describes: a primary
 /// `GpAnimCtx` at 0x10 and a blend context at 0x44C, each followed by its own
-/// 24-entry `GpAnimSlot` array (0x24 / 0x460). `func_actor_110600_80134438`
+/// 24-entry `AnimationSlot` array (0x24 / 0x460). `func_actor_110600_80134438`
 /// drives both for clip ids 1..0x12: the blend weight is the halfword at 0x8A0,
 /// the two clip ids the bytes at 0x896 / 0x89E. Same view as
 /// `Actor403000AnimWork`, which is the same body one overlay over; the two
@@ -245,16 +245,16 @@ STATIC_ASSERT_SIZEOF(Actor110600Work, 0xBEC);
 /// armed with, `field_894` the frame counter it bumps, and `field_8AC` the
 /// word its stage setup clears.
 typedef struct Actor110600AnimWork {
-    /* 0x000 */ byte       pad_0[0x10];
-    /* 0x010 */ GpAnimCtx  anim;
-    /* 0x024 */ GpAnimSlot slots[24];
-    /* 0x3E4 */ byte       pad_3E4[0x68];
-    /* 0x44C */ GpAnimCtx  blendAnim;
-    /* 0x460 */ GpAnimSlot blendSlots[24];
-    /* 0x820 */ byte       pad_820[0x6C];
-    /* 0x88C */ s16        field_88C;
-    /* 0x88E */ s16        field_88E;
-    /* 0x890 */ s16        field_890;
+    /* 0x000 */ byte          pad_0[0x10];
+    /* 0x010 */ GpAnimCtx     anim;
+    /* 0x024 */ AnimationSlot slots[24];
+    /* 0x3E4 */ byte          pad_3E4[0x68];
+    /* 0x44C */ GpAnimCtx     blendAnim;
+    /* 0x460 */ AnimationSlot blendSlots[24];
+    /* 0x820 */ byte          pad_820[0x6C];
+    /* 0x88C */ s16           field_88C;
+    /* 0x88E */ s16           field_88E;
+    /* 0x890 */ s16           field_890;
     /// Clip id the slots are armed with; read as an unsigned halfword into the
     /// clamped halfword `field_890` is assigned from.
     /* 0x892 */ s16 field_892;
@@ -2053,13 +2053,13 @@ static void func_actor_110600_80134438(Task* arg0)
     anim   = &work->anim;
     for (i = 1; i < 0x13; i++) {
         if (i < 0xB) {
-            work->blendSlots[i].rate = (u8)work->field_89E;
-            work->slots[i].rate      = (u8)(work->field_896 - 3);
+            work->blendSlots[i].rate = work->field_89E;
+            work->slots[i].rate      = (work->field_896 - 3);
             animationTickSlotPose(anim, i, &pose, 0);
             animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
             Gp_AnimWritePoseCopy(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
         } else {
-            work->slots[i].rate = (u8)(work->field_896 - 3);
+            work->slots[i].rate = (work->field_896 - 3);
             Gp_AnimTickIndex(&work->anim, i);
         }
     }
@@ -2087,7 +2087,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
     state = (u16)anim->field_892 - 2;
     switch (state) {
         case 1:
-            id14 = anim->slots[14].curRec & 0x3FF;
+            id14 = anim->slots[14].currentPose.indices.recordIndex & 0x3FF;
             if (id14 == 0xC5) {
                 prev = anim->field_8AC;
                 if (prev != id14) {
@@ -2097,7 +2097,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
                 anim->field_8AC = prev;
                 return 0;
             }
-            id18 = anim->slots[18].curRec & 0x3FF;
+            id18 = anim->slots[18].currentPose.indices.recordIndex & 0x3FF;
             if (id18 == 0xFD) {
                 if (anim->field_8AC != 0xFC) {
                     anim->field_8AC = id18;
@@ -2109,7 +2109,7 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             anim->field_8AC = 0;
             break;
         case 0:
-            id2 = anim->slots[1].curRec & 0x3FF;
+            id2 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id2 == 0x33) {
                 if (anim->field_8AC != id2) {
                     anim->field_8AC = id2;
@@ -2128,28 +2128,28 @@ static s32 func_actor_110600_80134564(Actor110600AnimWork* anim)
             }
             break;
         case 19:
-            id21 = anim->slots[1].curRec & 0x3FF;
+            id21 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id21 == 4 && anim->field_8AC != id21) {
                 anim->field_8AC = id21;
                 return 0x401D0006;
             }
-            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
         case 2:
-            id4 = anim->slots[1].curRec & 0x3FF;
+            id4 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id4 == 9 && anim->field_8AC != id4) {
                 anim->field_8AC = id4;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
         case 3:
-            id5 = anim->slots[1].curRec & 0x3FF;
+            id5 = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             if (id5 == 0xB && anim->field_8AC != id5) {
                 anim->field_8AC = id5;
                 return 0x401D000C;
             }
-            anim->field_8AC = anim->slots[1].curRec & 0x3FF;
+            anim->field_8AC = anim->slots[1].currentPose.indices.recordIndex & 0x3FF;
             break;
     }
     return 0;
@@ -2210,7 +2210,7 @@ static void func_actor_110600_80134728(Task* arg0)
         seekIndex = 1;
         table     = (u32)D_actor_110600_80147D20;
         do {
-            work->slots[seekIndex].rate = (u8)seekWork->field_896;
+            work->slots[seekIndex].rate = seekWork->field_896;
             animation                   = seekWork->field_892;
             index                       = seekWork->field_890 * 0x2D;
             func_800B4114(&seekWork->anim, seekIndex, animation, 0, (s32) * (s8*)((animation + index) + table));
@@ -2224,7 +2224,7 @@ static void func_actor_110600_80134728(Task* arg0)
         resetWork  = work;
         resetIndex = 1;
         do {
-            work->slots[resetIndex].rate = (u8)resetWork->field_896;
+            work->slots[resetIndex].rate = resetWork->field_896;
             Gp_AnimResetSlot(&resetWork->anim, resetIndex, (s32)resetWork->field_892);
             resetIndex += 1;
         } while (resetIndex < 0x13);
@@ -2246,7 +2246,7 @@ static void func_actor_110600_80134728(Task* arg0)
             tickWork  = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
             tickIndex = 1;
             do {
-                tickWork->slots[tickIndex].rate = (u8)tickWork->field_896;
+                tickWork->slots[tickIndex].rate = tickWork->field_896;
                 Gp_AnimTickIndex(&tickWork->anim, tickIndex);
                 tickIndex += 1;
             } while (tickIndex < 0x13);
@@ -2262,7 +2262,7 @@ static void func_actor_110600_80134728(Task* arg0)
         blendWork->field_89E = 0x30;
         blendWork->field_8A0 = 0xB78;
         do {
-            blendWork->slots[blendIndex].rate = (u8)blendWork->field_89E;
+            blendWork->slots[blendIndex].rate = blendWork->field_89E;
             Gp_AnimResetSlot(&blendWork->blendAnim, blendIndex, (s32)blendWork->field_89C);
             blendIndex += 1;
         } while (blendIndex < 0x13);
@@ -2273,13 +2273,13 @@ static void func_actor_110600_80134728(Task* arg0)
         tickWork  = (Actor110600AnimWork*)((Actor110600Work*)arg0->work);
         tickIndex = 1;
         do {
-            tickWork->slots[tickIndex].rate = (u8)tickWork->field_896;
+            tickWork->slots[tickIndex].rate = tickWork->field_896;
             Gp_AnimTickIndex(&tickWork->anim, tickIndex);
             tickIndex += 1;
         } while (tickIndex < 0x13);
     } else {
         func_actor_110600_80134438(arg0);
-        if (work->blendSlots[1].flags & 0x1) {
+        if (work->blendSlots[1].flags & ANIMATION_SLOT_REACHED_END) {
             work->field_88E = 0;
         }
     }

@@ -164,36 +164,36 @@ STATIC_ASSERT_SIZEOF(Actor560800AnimWork, 0x4CC);
 /// 0x38 bytes of `rot` (`Mem_CopyUnaligned`'s source and destination in
 /// `func_actor_560800_80136AA8`) belong to the handlers, not to the spawner.
 typedef struct Actor560800ModelWork {
-    /* 0x000 */ GpAnimCtx  anim;
-    /* 0x014 */ GpAnimSlot slots[7];
-    /* 0x12C */ byte       poseBuf[0x50];
-    /* 0x17C */ MATRIX     field_17C;
-    /* 0x19C */ MATRIX     light;
-    /* 0x1BC */ MATRIX     color;
-    /* 0x1DC */ SVECTOR    rot[7];
-    /* 0x214 */ SVECTOR    swing[7];
-    /* 0x24C */ s16        field_24C;
-    /* 0x24E */ s16        field_24E;
-    /* 0x250 */ s16        field_250;
-    /* 0x252 */ byte       pad_252[2];
-    /* 0x254 */ s16        field_254;
-    /* 0x256 */ u16        field_256;
-    /* 0x258 */ s16        field_258;
-    /* 0x25A */ byte       pad_25A[2];
-    /* 0x25C */ u16        swingDir[8];
-    /* 0x26C */ Task*      field_26C;
-    /* 0x270 */ u32        field_270;
-    /* 0x274 */ u32        field_274;
-    /* 0x278 */ s16        field_278;
-    /* 0x27A */ byte       pad_27A[2];
-    /* 0x27C */ s16        field_27C;
-    /* 0x27E */ s16        field_27E;
-    /* 0x280 */ s16        field_280;
-    /* 0x282 */ s16        field_282;
-    /* 0x284 */ byte       pad_284[2];
-    /* 0x286 */ s16        field_286;
-    /* 0x288 */ s16        field_288;
-    /* 0x28A */ s16        field_28A;
+    /* 0x000 */ GpAnimCtx     anim;
+    /* 0x014 */ AnimationSlot slots[7];
+    /* 0x12C */ byte          poseBuf[0x50];
+    /* 0x17C */ MATRIX        field_17C;
+    /* 0x19C */ MATRIX        light;
+    /* 0x1BC */ MATRIX        color;
+    /* 0x1DC */ SVECTOR       rot[7];
+    /* 0x214 */ SVECTOR       swing[7];
+    /* 0x24C */ s16           field_24C;
+    /* 0x24E */ s16           field_24E;
+    /* 0x250 */ s16           field_250;
+    /* 0x252 */ byte          pad_252[2];
+    /* 0x254 */ s16           field_254;
+    /* 0x256 */ u16           field_256;
+    /* 0x258 */ s16           field_258;
+    /* 0x25A */ byte          pad_25A[2];
+    /* 0x25C */ u16           swingDir[8];
+    /* 0x26C */ Task*         field_26C;
+    /* 0x270 */ u32           field_270;
+    /* 0x274 */ u32           field_274;
+    /* 0x278 */ s16           field_278;
+    /* 0x27A */ byte          pad_27A[2];
+    /* 0x27C */ s16           field_27C;
+    /* 0x27E */ s16           field_27E;
+    /* 0x280 */ s16           field_280;
+    /* 0x282 */ s16           field_282;
+    /* 0x284 */ byte          pad_284[2];
+    /* 0x286 */ s16           field_286;
+    /* 0x288 */ s16           field_288;
+    /* 0x28A */ s16           field_28A;
 } Actor560800ModelWork;
 STATIC_ASSERT_SIZEOF(Actor560800ModelWork, 0x28C);
 
@@ -4362,7 +4362,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < work->field_4BA; i++) {
-        if (!(work->rig.slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
             done = 0;
             break;
         }
@@ -6522,7 +6522,7 @@ void func_actor_560800_80137820(Task* arg0)
                 i++;
             } while ((u32)(i & 0xFFFF) < 7U);
             for (i = 1; (u32)(i & 0xFFFF) < 7U; i++) {
-                if (!(anim->slots[i & 0xFFFF].flags & 0x100)) {
+                if (!(anim->slots[i & 0xFFFF].flags & ANIMATION_SLOT_SETTLED)) {
                     break;
                 }
             }

@@ -699,7 +699,7 @@ static s32 func_actor_310100_80161E24(Task* task)
         Gp_AnimTickIndex(&work->rig.anim, i & 0xFFFF);
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
-    return work->rig.slots[1].flags & 1;
+    return work->rig.slots[1].flags & ANIMATION_SLOT_REACHED_END;
 }
 
 static void func_actor_310100_80161F80(Task* task)

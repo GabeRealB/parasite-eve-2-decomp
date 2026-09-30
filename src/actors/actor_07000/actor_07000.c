@@ -309,7 +309,7 @@ typedef struct Actor107000Work {
 /// be merged without moving one of the two offsets.
 typedef struct Actor107000SpawnWork {
     /* 0x000 */ GpAnimCtx             context;
-    /* 0x014 */ GpAnimSlot            slots[3];
+    /* 0x014 */ AnimationSlot         slots[3];
     /* 0x08C */ byte                  field_8C[0x30]; // pose buffer handed to func_800B3F84
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
@@ -942,7 +942,7 @@ TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor070
 /// last saw, which is why the reset loop walks slots 1..6 and not 1..2.
 typedef struct Actor107000Spawn2Work {
     /* 0x000 */ GpAnimCtx             context;
-    /* 0x014 */ GpAnimSlot            slots[7];        // six helper slots + slot 0
+    /* 0x014 */ AnimationSlot         slots[7];        // six helper slots + slot 0
     /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, func_800B3F84 arg3
     /* 0x19C */ MATRIX                field_19C;       // colour matrix, TmdObject::colorMtx
     /* 0x1BC */ MATRIX                field_1BC;       // light matrix, TmdObject::lightMtx

@@ -128,7 +128,7 @@ typedef struct Actor00700Work {
 /// The 0x2F4-byte allocation used by Actor00700_Fn01FE0.
 typedef struct Actor00700SpawnWork {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[4];
+    /* 0x014 */ AnimationSlot         slots[4];
     /* 0x0B4 */ u8                    field_B4[0x40];
     /* 0x0F4 */ MATRIX                field_F4;
     /* 0x114 */ MATRIX                field_114;
@@ -187,7 +187,7 @@ STATIC_ASSERT_SIZEOF(Actor00700SpawnWork, 0x2F4);
 /// own `WorldCollisionContact` table) start at +0x1DC rather than +0x134.
 typedef struct Actor00700InitWork {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[7];
+    /* 0x014 */ AnimationSlot         slots[7];
     /* 0x12C */ byte                  field_12C[0x70];
     /* 0x19C */ MATRIX                field_19C;
     /* 0x1BC */ MATRIX                field_1BC;

@@ -2962,7 +2962,7 @@ static void Actor00300_Fn03A1C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (AnimationSlot*)&work->obj38.prev);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_696 & ANIMATION_RECORD_CUE_2)) {
             sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40030001;

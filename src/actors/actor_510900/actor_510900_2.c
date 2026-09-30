@@ -88,7 +88,7 @@ STATIC_ASSERT_SIZEOF(Actor510900GridScratch, 0x10);
 /// `field_5C2`.
 typedef struct Actor510900ChildAnim {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[11];   ///< `func_800B3F84` arg4, reset 1..10
+    /* 0x014 */ AnimationSlot         slots[11];   ///< `func_800B3F84` arg4, reset 1..10
     /* 0x1CC */ byte                  poses[0xB0]; ///< `func_800B3F84` arg3
     /* 0x27C */ MATRIX                colorMtx;    ///< handed to `TmdObject::colorMtx`
     /* 0x29C */ MATRIX                lightMtx;    ///< handed to `TmdObject::lightMtx`
@@ -2321,7 +2321,7 @@ static void func_actor_510900_80138A9C(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (GpAnimSlot*)&work->obj38.prev);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)work, (AnimationSlot*)&work->obj38.prev);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->field_59A & ANIMATION_RECORD_CUE_2)) {
             snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40780001;

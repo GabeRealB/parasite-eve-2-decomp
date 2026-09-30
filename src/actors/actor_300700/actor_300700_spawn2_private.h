@@ -25,7 +25,7 @@
 /// only here, so `Actor300700Work` carries it as padding.
 typedef struct Actor300700Spawn2Work {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[7];
+    /* 0x014 */ AnimationSlot         slots[7];
     /* 0x12C */ byte                  field_12C[0x50]; // pose buffer, func_800B3F84 arg3
     /* 0x17C */ MATRIX                field_17C;
     /* 0x19C */ MATRIX                field_19C;       // TmdObject color matrix

@@ -40,7 +40,7 @@
 
 /// Dual-width view of the animation rate in the work block. The message
 /// handler `func_actor_210600_8014B770` arms it as one halfword, while the
-/// seeding body copies the low byte into every slot's `GpAnimSlot.rate`.
+/// seeding body copies the low byte into every slot's `AnimationSlot.rate`.
 typedef union Actor210600Rate {
     /* 0x0 */ u16 half;
     /* 0x0 */ u8  byte;
@@ -75,7 +75,7 @@ typedef struct Actor210600Work {
     /* 0x88C */ byte            pad_88C[0x4];
     /* 0x890 */ s16             field_890;
     /* 0x892 */ byte            pad_892[0x4];
-    /// Clip id (low 10 bits of `curRec`) slot 0 held on the last update, kept
+    /// Clip id (low 10 bits of `currentPose.indices.recordIndex`) slot 0 held on the last update, kept
     /// so the once-per-clip effect is not respawned while the clip is held.
     /* 0x896 */ s16 field_896;
     /// The light / colour matrices the spawn body points the task's
@@ -503,7 +503,7 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
         func_actor_210600_8014B2C0(task);
         Actor210600_ScaleRotation(task, 0xC00);
 
-        id = work->rig.slots[1].curRec & 0x3FF;
+        id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
         if (id == 7 && work->field_896 != id) {
             memset(&vec, 0, 8);
             eff.coord      = task->extra.tmd->coords;
@@ -511,7 +511,7 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
             eff.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, task->extra.tmd->coords + 1, &vec, &eff);
         }
-        work->field_896 = work->rig.slots[0].curRec & 0x3FF;
+        work->field_896 = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF;
     }
 }
 

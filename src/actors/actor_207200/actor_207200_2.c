@@ -645,7 +645,7 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->hp                 = (u16)D_actor_207200_8014E7D4.hpMax;
     work->field_44C.vy       = (coord)->param.rot.vy;
     func_800B3F84((GpAnimCtx*)work, D_actor_207200_80153ED4, obj,
-                  work->field_12C, (GpAnimSlot*)work->field_14);
+                  work->field_12C, (AnimationSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
         Gp_AnimResetSlot((GpAnimCtx*)work, i, 1);
     }

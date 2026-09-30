@@ -1624,7 +1624,7 @@ s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
     if (arg2->source.index != work->field_7D6) {
         work->field_7D6 = arg2->source.index;
         func_800B3F84((GpAnimCtx*)work, D_actor_503500_8016EAB8[work->field_7D6], ext,
-                      work->field_334, (GpAnimSlot*)&work->obj.pos.vz);
+                      work->field_334, (AnimationSlot*)&work->obj.pos.vz);
         work->field_7D4 = 0;
     }
     work->field_7D5 = arg2->animationId;
@@ -1812,19 +1812,19 @@ void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
     D_actor_503500_80176574.value.field_730[arg1] = arg2;
 }
 
-/// Sets the per-slot playback rate `GpAnimSlot.rate` on animation slots 1..16 of the
+/// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
 /// boss block -- `rate` of 0 meaning `Gp_AnimResetSlot`'s own 0x10 default,
 /// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
 void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
 {
     ActorAnimRig20* work;
-    GpAnimSlot*     slot;
+    AnimationSlot*  slot;
     s32             i;
 
     work = (ActorAnimRig20*)arg0->work;
     slot = &work->slots[1];
     if (rate == 0) {
-        rate = 0x10;
+        rate = ANIMATION_RATE_ONE;
     }
     for (i = 0xF; i >= 0; i--) {
         slot->rate = rate;
@@ -2471,19 +2471,19 @@ static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
     return ret;
 }
 
-/// Sets `GpAnimSlot.rate` -- the per-slot value `Gp_AnimResetSlot` seeds
+/// Sets `AnimationSlot.rate` -- the per-slot value `Gp_AnimResetSlot` seeds
 /// with 0x10 -- on animation slots 1..16 of the boss block, `rate` of 0
 /// meaning that default.
 static void func_actor_503500_80137048(Task* arg0, s32 rate)
 {
     ActorAnimRig20* work;
-    GpAnimSlot*     slot;
+    AnimationSlot*  slot;
     s32             i;
 
     work = (ActorAnimRig20*)arg0->work;
     slot = &work->slots[1];
     if (rate == 0) {
-        rate = 0x10;
+        rate = ANIMATION_RATE_ONE;
     }
     for (i = 0xF; i >= 0; i--) {
         slot->rate = rate;

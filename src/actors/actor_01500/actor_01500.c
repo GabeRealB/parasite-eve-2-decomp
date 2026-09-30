@@ -53,7 +53,7 @@
 /// when they differ and ticks them while they match.
 typedef struct Actor101500Work {
     /* 0x000 */ GpAnimCtx             anim;
-    /* 0x014 */ GpAnimSlot            slots[7];
+    /* 0x014 */ AnimationSlot         slots[7];
     /* 0x12C */ byte                  field_12C[0x70]; // pose buffer, handed to `func_800B3F84`
     /* 0x19C */ MATRIX                field_19C;       // model colour matrix
     /* 0x1BC */ MATRIX                field_1BC;       // model light matrix

@@ -63,7 +63,7 @@ extern TaskDesc D_actor_121300_8013D390[];
 ///
 /// The block opens with the animation prefix `actor_105100` and `actor_136100`
 /// also carry: the 0x14-byte `GpAnimCtx` `func_800B3F84` is handed as its
-/// `arg0`, the nineteen 0x28-byte `GpAnimSlot`s `Gp_AnimResetSlot` walks, and
+/// `arg0`, the nineteen 0x28-byte `AnimationSlot`s `Gp_AnimResetSlot` walks, and
 /// the pose buffer at 0x30C.  The two `MATRIX`es at 0x43C / 0x45C are the
 /// model's light and colour matrices, published through `TmdObject::lightMtx`
 /// / `field_20`.
@@ -1947,7 +1947,7 @@ static s32 func_actor_121300_80132818(Task* arg0)
     i    = 1;
     done = 1;
     for (; i < 0x13; i++) {
-        if (!(work->rig.slots[i].flags & 0x100)) {
+        if (!(work->rig.slots[i].flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }

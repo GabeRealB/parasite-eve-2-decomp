@@ -84,7 +84,7 @@
 /// handler's second payload.
 ///
 /// The block opens with the actor's animation context -- `ctx` and the eight
-/// `GpAnimSlot`s `func_800B3F84` initialises from this overlay's banks -- so the
+/// `AnimationSlot`s `func_800B3F84` initialises from this overlay's banks -- so the
 /// block pointer is also the `GpAnimCtx*` the animation helpers take:
 /// `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
@@ -92,25 +92,25 @@
 /// republishes onto the model's `TmdObject::lightMtx` / `colorMtx`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
-    /* 0x000 */ GpAnimCtx  ctx;
-    /* 0x014 */ GpAnimSlot slots[8];
-    /* 0x154 */ byte       pad_154[0x80];
-    /* 0x1D4 */ MATRIX     light;
-    /* 0x1F4 */ MATRIX     color;
-    /* 0x214 */ GfxCoord   coord;
-    /* 0x264 */ VECTOR     field_264;
-    /* 0x274 */ s32        field_274;
-    /* 0x278 */ s32        field_278;
-    /* 0x27C */ s32        field_27C;
-    /* 0x280 */ byte       pad_280[0x8];
-    /* 0x288 */ s32        field_288;
-    /* 0x28C */ byte       pad_28C[0xC];
-    /* 0x298 */ Task*      field_298;
-    /* 0x29C */ Task*      field_29C;
-    /* 0x2A0 */ Task*      field_2A0;
-    /* 0x2A4 */ GfxCoord*  field_2A4;
-    /* 0x2A8 */ byte       pad_2A8[0x2];
-    /* 0x2AA */ u16        field_2AA;
+    /* 0x000 */ GpAnimCtx     ctx;
+    /* 0x014 */ AnimationSlot slots[8];
+    /* 0x154 */ byte          pad_154[0x80];
+    /* 0x1D4 */ MATRIX        light;
+    /* 0x1F4 */ MATRIX        color;
+    /* 0x214 */ GfxCoord      coord;
+    /* 0x264 */ VECTOR        field_264;
+    /* 0x274 */ s32           field_274;
+    /* 0x278 */ s32           field_278;
+    /* 0x27C */ s32           field_27C;
+    /* 0x280 */ byte          pad_280[0x8];
+    /* 0x288 */ s32           field_288;
+    /* 0x28C */ byte          pad_28C[0xC];
+    /* 0x298 */ Task*         field_298;
+    /* 0x29C */ Task*         field_29C;
+    /* 0x2A0 */ Task*         field_2A0;
+    /* 0x2A4 */ GfxCoord*     field_2A4;
+    /* 0x2A8 */ byte          pad_2A8[0x2];
+    /* 0x2AA */ u16           field_2AA;
 } Actor342000Work;
 STATIC_ASSERT_SIZEOF(Actor342000Work, 0x2AC);
 
@@ -449,7 +449,7 @@ static inline void Actor342000_EnterArea(void);
 
 /// Ticks slots `(arg1 == 8)..arg1-1` of the task's animation context (slot 0 is
 /// skipped for the eight-slot actor). If every one of them then has
-/// `GpAnimSlot.flags` bit 0x100 set, passes them the
+/// `AnimationSlot.flags` bit 0x100 set, passes them the
 /// `D_actor_342000_80164810` id and returns 1; otherwise returns 0. The gotos
 /// reproduce retail's block layout.
 static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
@@ -471,7 +471,7 @@ static s32 func_actor_342000_80161EA4(Task* arg0, u16 arg1)
     i    = start;
     done = 1;
     for (; i < arg1; i++) {
-        if (!(work->slots[i].flags & 0x100)) {
+        if (!(work->slots[i].flags & ANIMATION_SLOT_SETTLED)) {
             goto fail;
         }
     }
