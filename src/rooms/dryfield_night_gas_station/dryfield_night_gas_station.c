@@ -74,6 +74,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 /// The block the room's effect task carries as its `spawnArg2`.
 /// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
@@ -289,7 +290,6 @@ void                              func_dryfield_night_gas_station_80180C3C(s32);
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 void                        func_dryfield_night_gas_station_8017FB64(u8);
 
-s32 func_dryfield_night_gas_station_8017F544(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_gas_station_8017F6B8(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
@@ -301,7 +301,7 @@ void func_dryfield_night_gas_station_8017FA6C(Task*);
 #include "../../shared/telephone_data.inc.c"
 
 DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = func_dryfield_night_gas_station_8017F544 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call2 = roomVariantGasStationMsg } },
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
@@ -2566,54 +2566,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
     D_80115598  = 1;
 }
 
-/// Answers the room message `in`, copying it to `out` first. For message 2 it
-/// reports in `out->room` how far nibble 0x61 has advanced (3 once nibble
-/// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
-/// place 1 with `Gp_StateF0` agreeing, and 0 while nibble 0x3B is clear;
-/// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
-/// write that go with those answers run only when `in->queryOnly` is clear.
-/// Every other case returns 1.
-s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    s32 n;
-    s32 val;
-
-    *out = *in;
-    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = GameFlag_GetNibble(0x7A);
-        if (n >= 4) {
-            val = 3;
-        } else {
-            val = GameFlag_GetNibble(0x61) + 1;
-        }
-        out->room = val;
-    }
-    if (in->areaId == 3) {
-        if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant)) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(0x15);
-            }
-            return 2;
-        }
-        if (GameFlag_GetNibble(0x3B) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(7);
-                Gp_SetNibbleIf(in->flagId, 2);
-            }
-            return 0;
-        }
-    }
-    if (in->areaId == 2) {
-        if (GameFlag_GetNibble(0x45) == 1) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(8);
-            }
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_gas_station.inc.c"
 
 /// Maps a cap (cutscene) script event key to the stage sound it should play in
 /// the night gas station, then enqueues it as a type-6 sound event. Event key

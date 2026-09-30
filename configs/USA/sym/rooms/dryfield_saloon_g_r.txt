@@ -64,3 +64,4 @@ roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
 glowDrawFlareLocal = 0x8017DBB4; // type:func
 glowDrawTaperedBeam = 0x8017E430; // type:func
+roomVariantSaloonMsg = 0x8017D8BC; // type:func

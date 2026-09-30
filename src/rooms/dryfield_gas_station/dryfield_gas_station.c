@@ -42,6 +42,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
+#include "../../shared/room_variants.h"
 
 extern UiObjectDesc D_800611E4;
 
@@ -134,13 +135,12 @@ TaskDesc D_dryfield_gas_station_80181E3C[2] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_gas_station_8017FA20(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_gas_station_8017FB94(s32, s32, s32);
 s32 func_dryfield_gas_station_8017FD4C(void);
 s32 func_dryfield_gas_station_8017FD54(s32, s32, s32);
 
 DryfieldGasStationMessageEntry D_dryfield_gas_station_80181E54[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_dryfield_gas_station_8017FA20 } },
+    { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = roomVariantGasStationMsg } },
     { 5105, { .call0 = func_dryfield_gas_station_8017FD4C } },
     { 5104, { .call2 = func_dryfield_gas_station_8017FD54 } },
     { 5106, { .call2 = func_dryfield_gas_station_8017FB94 } },
@@ -166,54 +166,7 @@ void func_dryfield_gas_station_8017EA90(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// Answers the room message `in`, copying it to `out` first. For message 2 it
-/// reports in `out->room` how far nibble 0x61 has advanced (3 once nibble
-/// 0x7A reaches 4). Message 3 returns 2 when the session sits at stage 3,
-/// place 1 with `Gp_StateF0` agreeing, and 0 while nibble 0x3B is clear;
-/// message 2 returns 0 while nibble 0x45 reads 1. The cap commands and nibble
-/// write that go with those answers run only when `in->queryOnly` is clear.
-/// Every other case returns 1.
-s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    s32 n;
-    s32 val;
-
-    *out = *in;
-    if (in->areaId == 2 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        n = GameFlag_GetNibble(0x7A);
-        if (n >= 4) {
-            val = 3;
-        } else {
-            val = GameFlag_GetNibble(0x61) + 1;
-        }
-        out->room = val;
-    }
-    if (in->areaId == 3) {
-        if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant)) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(0x15);
-            }
-            return 2;
-        }
-        if (GameFlag_GetNibble(0x3B) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(7);
-                Gp_SetNibbleIf(in->flagId, 2);
-            }
-            return 0;
-        }
-    }
-    if (in->areaId == 2) {
-        if (GameFlag_GetNibble(0x45) == 1) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_RunCapCmd1(8);
-            }
-            return 0;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_gas_station.inc.c"
 
 /// Maps a cap (cutscene) script event key to the stage sound it should play in
 /// the gas station, then enqueues it as a type-6 sound event. Event key 0x83

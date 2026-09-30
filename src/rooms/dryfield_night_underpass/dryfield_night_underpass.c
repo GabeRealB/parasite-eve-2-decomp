@@ -38,6 +38,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 extern TaskDesc   D_dryfield_night_underpass_8017DCD8[];
 extern GpMsgEntry D_dryfield_night_underpass_8017DCF0[];
@@ -45,7 +46,6 @@ extern SVECTOR    D_dryfield_night_underpass_8017DD20[8];
 extern s16        D_dryfield_night_underpass_8017DD60[8];
 
 void func_dryfield_night_underpass_8017D5D0(Task*);
-s32  func_dryfield_night_underpass_8017D788(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_underpass_8017D868(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_night_underpass_8017D8CC(Task*, s32, s32, s32);
 s32  func_dryfield_night_underpass_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -64,7 +64,7 @@ TaskDesc D_dryfield_night_underpass_8017DCD8[2] = {
 };
 
 GpMsgEntry D_dryfield_night_underpass_8017DCF0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_underpass_8017D788 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantUnderpassMsg },
     { 5105, func_dryfield_night_underpass_8017D900 },
     { 5103, func_dryfield_night_underpass_8017D908 },
     { 5104, func_dryfield_night_underpass_8017D868 },
@@ -777,32 +777,7 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
     }
 }
 
-/// Handler for message 0x13EE: copies the incoming record onto the outgoing one
-/// and, unless the query is report-only (`queryOnly` set), answers record id 0x20
-/// with 1 or 2 from nibble 0x51, raised by 2 while nibble 0x53 is set, and
-/// record id 0x22 with 1 or 2 from nibble 0x52. Always returns 1.
-s32 func_dryfield_night_underpass_8017D788(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x51) == 0) {
-            out->room = 2;
-        } else {
-            out->room = 1;
-        }
-        if (GameFlag_GetNibble(0x53) != 0) {
-            out->room += 2;
-        }
-    }
-    if (in->areaId == 0x22 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (GameFlag_GetNibble(0x52) == 0) {
-            out->room = 2;
-        } else {
-            out->room = 1;
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_underpass.inc.c"
 
 /// Handler for message 0x13F0: for `arg2` 1 or 2, spawns the room's switch
 /// task `func_dryfield_night_underpass_8017D5D0` from the task table, toggling

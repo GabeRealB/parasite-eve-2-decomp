@@ -149,3 +149,4 @@ roomCutsceneTask = 0x8017F4B4; // type:func
 screenFadeInTask = 0x801801E4; // type:func
 roomCutsceneSoundTask = 0x8017FCBC; // type:func
 glowDrawStarLocal = 0x80180B4C; // type:func
+roomVariantGasStationMsg = 0x8017FA20; // type:func

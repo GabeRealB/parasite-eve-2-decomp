@@ -48,6 +48,7 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 #define D_dryfield_saloon_g_r_8017ED4C (D_dryfield_saloon_g_r_8017ECE4 + 13)
 #define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
@@ -87,7 +88,6 @@ static void func_dryfield_saloon_g_r_8017DA10(Task* task);
 static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord);
 
 // Indexed views below share one contiguous table.
-s32 func_dryfield_saloon_g_r_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, TaskMessageArg);
 s32 func_dryfield_saloon_g_r_8017D9C4(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -107,7 +107,7 @@ extern SpriteSource D_dryfield_saloon_g_r_8017FAF4[14];
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_saloon_g_r_8017D8BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantSaloonMsg },
     { 5105, func_dryfield_saloon_g_r_8017D994 },
     { 5103, func_dryfield_saloon_g_r_8017D9C4 },
     { 5104, func_dryfield_saloon_g_r_8017D99C },
@@ -746,35 +746,7 @@ static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
     { func_dryfield_saloon_g_r_8017D9CC, func_dryfield_saloon_g_r_8017DA10, taskKill },
 };
 
-/// Handler for message 0x13EE in the room's message table, which filters a
-/// warp request: copies `in` to `out`, and for area 0xF picks the destination
-/// room from game-flag nibble 0x61 (unless `in->queryOnly` asks for a dry run),
-/// then passes the warp through the event gate with the room's own request -
-/// nibble 0x35, no collected bit, cap command 2 and two stage sound ids. Any other area
-/// answers 1.
-s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    RoomEventReq req;
-    u16          msgId;
-
-    *out  = *in;
-    msgId = in->areaId;
-    if (msgId == 0xF) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = GameFlag_GetNibble(0x61) + 1;
-        }
-        if (in->areaId == msgId) {
-            req.capCmd        = 2;
-            req.missingCapCmd = 2;
-            req.firstSnd      = Gp_PackStageSndId(0x52120005);
-            req.secondSnd     = Gp_PackStageSndId(0x52120003);
-            req.flagId        = 0x35;
-            req.collectedBit  = 0;
-            return roomEventGate(&req, in);
-        }
-    }
-    return 1;
-}
+#include "../../shared/room_variants_saloon.inc.c"
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.

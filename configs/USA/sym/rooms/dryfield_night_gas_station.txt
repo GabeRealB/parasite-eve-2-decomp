@@ -296,3 +296,4 @@ RoomFx_DrawTwinTrail = 0x80182CD4; // type:func
 RoomFx_DrawBurstStar = 0x80183354; // type:func
 glowDrawCapsule = 0x801812B4; // type:func
 glowDrawFlare = 0x80181AF8; // type:func
+roomVariantGasStationMsg = 0x8017F544; // type:func
