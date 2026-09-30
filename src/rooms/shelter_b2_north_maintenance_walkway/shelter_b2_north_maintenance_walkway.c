@@ -46,7 +46,6 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
 extern s32 D_80165354;
@@ -100,8 +99,6 @@ extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_801860A4[3];
 
 extern TaskDesc D_80142604;
 extern TaskDesc D_801575F0;
-
-#include "../../shared/room_visual_effects_trail_data.inc.c"
 
 u8* D_shelter_b2_north_maintenance_walkway_80183C5C[1] = {
     D_8010CAF8,

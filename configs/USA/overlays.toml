@@ -2519,7 +2519,7 @@ objects = [
 id = 400
 objects = [
   { kind = "packageId" },
-  { unit = "shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", rodata = "0x4", text = "0x5C", data = "0x668C" },
+  { unit = "shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway", rodata = "0x4", text = "0x5C", data = "0x669C" },
   { unit = "shelter_b2_north_maintenance_walkway/shelter_b2_north_maintenance_walkway_2", rodata = "0x40", text = "0x828", data = "0x6588" },
   { kind = "collision", at = "0x6714", in_c = true },
   { kind = "collisionSource", at = "0x6A5C", in_c = true },

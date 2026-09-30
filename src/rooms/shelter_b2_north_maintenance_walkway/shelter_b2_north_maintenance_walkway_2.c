@@ -121,6 +121,8 @@ static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
+#include "../../shared/room_visual_effects_trail_data.inc.c"
+
 /// The room's per-frame glow task. Its first tick sets the gameplay effect ids
 /// the room's effects use; every tick then draws the flares, discs and stars
 /// visible from the current camera view. One star turns from red to blue once
