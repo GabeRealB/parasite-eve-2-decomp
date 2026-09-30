@@ -13,7 +13,8 @@
  *   matrices into the GTE (ctc2 to control regs) and runs packed mvmva
  *   vertex transforms for the current TMD node. Args (a0..a3) are the
  *   draw frame's stream workspace, flags, stream pointer, and TmdObject*.
- *   Calls Tmd_DispatchStream to walk the command stream.
+ *   Calls Tmd_DispatchStream to walk one command group. Returns, without
+ *   consuming the word, when the stream pointer addresses TMD_STREAM_END.
  *
  * Why this stays handwritten assembly
  *   1. Direct GTE coprocessor ops (ctc2 / mtc2 / mfc2 / mvmva) laid out
@@ -46,7 +47,7 @@ glabel Tmd_SetupGteMatrices
     /* 107C 8001087C 50003126 */  addiu      $s1, $s1, 0x50
   .L80010880:
     /* 1080 80010880 0000C88C */  lw         $t0, 0x0($a2)
-    /* 1084 80010884 FFFF0924 */  addiu      $t1, $zero, -0x1
+    /* 1084 80010884 FFFF0924 */  addiu      $t1, $zero, -0x1 /* TMD_STREAM_END */
     /* 1088 80010888 5D000911 */  beq        $t0, $t1, .L80010A00
     /* 108C 8001088C 00000000 */   nop
     /* 1090 80010890 5400001A */  blez       $s0, .L800109E4
@@ -62,7 +63,7 @@ glabel Tmd_SetupGteMatrices
     /* 10B8 800108B8 0008C948 */  ctc2       $t1, $1 /* handwritten instruction */
     /* 10BC 800108BC 0010CA48 */  ctc2       $t2, $2 /* handwritten instruction */
     /* 10C0 800108C0 0018CB48 */  ctc2       $t3, $3 /* handwritten instruction */
-    /* 10C4 800108C4 FFFF1924 */  addiu      $t9, $zero, -0x1
+    /* 10C4 800108C4 FFFF1924 */  addiu      $t9, $zero, -0x1 /* halfword mask */
     /* 10C8 800108C8 02CC1900 */  srl        $t9, $t9, 16
     /* 10CC 800108CC 00C41900 */  sll        $t8, $t9, 16
     /* 10D0 800108D0 24601901 */  and        $t4, $t0, $t9

@@ -22,6 +22,9 @@ STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
 void Tmd_SetupGteMatrices(TmdStreamWorkspace* ws, u32 flags, void* stream, TmdObject* node);
 
 /// Walk stream records and jalr each draw handler until `TMD_STREAM_GROUP_END`.
+///
+/// The caller stops when the word at entry is `TMD_STREAM_END`. This walk does
+/// not test that marker, so a terminator in the opcode position is not a stop.
 u32* Tmd_DispatchStream(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 // The per-frame callback of the task that holds the models' buffers, and the
@@ -39,9 +42,11 @@ void Tmd_AllocNodeBuffers(struct Task* task);
 /// three-word header and stored `ws->elemStride` and `ws->elemCount`: the
 /// stride is the element's length in `u32` words, and the count is how many
 /// elements follow. The handler returns that cursor advanced by the stride
-/// times the count. That address is the word after the payload; a following
-/// group or stream terminator stays for the caller to consume. It reads
-/// neither the payload nor `flags`, and it writes nothing.
+/// times the count. That address is the word after the payload, so a following
+/// group marker or `TMD_STREAM_END` stays for the caller. Construction skips
+/// group markers and stops on the terminator without passing it. Drawing
+/// returns at a group marker; its outer loop stops on the terminator instead.
+/// The handler reads neither the payload nor `flags`, and it writes nothing.
 ///
 /// Packet construction calls it when the opcode has no construction handler.
 /// Draw-handler resolution stores it when the opcode has no draw handler, and

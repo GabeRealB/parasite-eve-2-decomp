@@ -335,6 +335,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
                 stream++;
             read_id:
                 id = stream->value;
+                // Terminator at entry, or after a group marker. Leave the word in place.
                 if (id == TMD_STREAM_END) {
                     goto done;
                 }
@@ -521,6 +522,7 @@ void tmdProcessStream(TmdObject* obj)
             stream++;
         read_id:
             id = *stream;
+            // Terminator at entry, or after a group marker. Leave the word in place.
             if (id == TMD_STREAM_END) {
                 goto done;
             }
@@ -705,6 +707,7 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
     u32  groupEnd;
 
     stream = src->stream;
+    // A stream whose first word is the terminator has no groups to rewrite.
     if (*stream != TMD_STREAM_END) {
         groupEnd = TMD_STREAM_GROUP_END;
         do {

@@ -691,8 +691,9 @@ A packaged model's arrays are laid out as
 `[skeleton][part vertex counts][vertices][normals][face stream][TmdSource]`,
 with the record pointing at each array. The skeleton holds one `TmdBone` per
 part: its initial local matrix and parent index. The stream is packets of
-`[id][handler slot][dims][payload]` terminated by `0xFFFFFFFF`. Geometry is
-solved for the `0x38` (triangle) and `0x78` (quad) families; texture
+`[id][handler slot][dims][payload]` terminated by `TMD_STREAM_END`
+(`0xFFFFFFFF`). Geometry is solved for the `0x38` (triangle) and `0x78`
+(quad) families; texture
 coordinates and the remaining 21 families are open.
 
 Streams are carved to `raw/model/*.tmd` and stored raw only, since nothing

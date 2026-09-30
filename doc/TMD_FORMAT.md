@@ -86,7 +86,7 @@ three.
 
 ```text
 repeated:
-  u32 id            opcode; 0xFFFFFFFF ends the stream,
+  u32 id            opcode; TMD_STREAM_END (0xFFFFFFFF) ends the stream,
                     0xFFFFFFFE ends one command group (see 2.2)
   u32 handler_slot  overwritten at runtime - see below
   u32 dims          (count << 16) | stride, stride in words
@@ -118,7 +118,7 @@ Tmd_SetupGteMatrices(ws, flags, stream, obj):
     s1 = obj->field_8           # per-part blocks, 0x50 bytes each
     loop:
         w = *stream
-        if w == 0xFFFFFFFF: return                  # model done
+        if w == TMD_STREAM_END: return              # 0xFFFFFFFF; leave the word
         if w != 0xFFFFFFFE and s0 > 0:
             ctc2 rotation   <- s1[0x24 .. 0x37]     # GTE R11R12 .. R33
             ctc2 translation<- s1[0x38], [0x3C], [0x40]

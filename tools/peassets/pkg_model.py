@@ -4,7 +4,7 @@ The model format is a packet stream, read out of ``Tmd_InitSourceStream``
 (``src/main/tmd.c``)::
 
     [id][handler slot][dims][payload ...]   repeated
-    id   = 0xFFFFFFFF  end of stream
+    id   = 0xFFFFFFFF  end of stream (TMD_STREAM_END, enumerator -1)
          = 0xFFFFFFFE  end of one command group (TMD_STREAM_GROUP_END)
     dims = (count << 16) | stride, payload is stride*count words
 
@@ -75,6 +75,8 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
             if off + 4 > n:
                 return None
             (idv,) = struct.unpack_from("<I", data, off)
+        # Game walks recognize TMD_STREAM_END at entry and after a group
+        # marker. This walker also accepts that word in the opcode slot.
         if idv == STREAM_END:
             return packets, off + 4
         if idv not in TMD_OPCODES or off + HEADER_WORDS * 4 > n:

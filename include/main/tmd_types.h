@@ -66,10 +66,17 @@ STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 /// marker and advances the part slot; a final group after the skeletal parts
 /// may use pre-transformed primitives without another coordinate. Buffer builds
 /// and handler resolution skip the marker without changing coordinate state.
-/// The negative enum value converts to the encoded word in the u32 stream.
+///
+/// `TMD_STREAM_END` is the stream's last word. The enumerator is -1, the signed
+/// immediate the walks compare, and that value is the word 0xFFFFFFFF in the
+/// `u32` stream. Handler resolution, packet construction, opcode rewriting and
+/// drawing stop when they read it and leave the word in place. They recognize
+/// it as the stream's first word or as the word immediately after a group
+/// marker, so a stream may contain only this word. It is not a command: no
+/// handler slot, dimensions or payload follow it.
 enum {
     TMD_STREAM_GROUP_END = -2, // Single-word command-group terminator, including groups without a skeletal part
-    TMD_STREAM_END       = -1  // End of the complete stream
+    TMD_STREAM_END       = -1  // Last stream word (encoded 0xFFFFFFFF); walks stop and leave it unconsumed
 };
 
 /// Intrusive link for an attached model or coordinate body, also used as a

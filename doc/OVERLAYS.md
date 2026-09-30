@@ -582,7 +582,7 @@ stream (`Tmd_InitSourceStream`):
 opcode, handler-slot, dims, payload words…
 0xFFFFFFFE          object break
 …
-0xFFFFFFFF          end
+0xFFFFFFFF          end (TMD_STREAM_END)
 ```
 
 `dims` is `(count_hi << 16) | count_lo`; payload length is
