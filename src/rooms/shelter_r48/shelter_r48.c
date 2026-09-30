@@ -1861,7 +1861,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     ang2 = arg0->killCountdown * 2;
     ang  = arg0->killCountdown;
     SCRATCH_PUSH(OverlayRippleScratch);
-    block = SCRATCH_HEAD(OverlayRippleScratch);
+    block = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
     block->origin.vx = gGfxViewCoord.workm.t[0];
     block->origin.vy = gGfxViewCoord.workm.t[1];
@@ -3057,10 +3057,10 @@ static void func_shelter_r48_80180804(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
     s32              bank;
     s32              idx;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1 & 0xFFF;
@@ -3123,10 +3123,10 @@ static void func_shelter_r48_80180C5C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 ar
     s32              bank;
     u16              idx;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1 & 0xFFF;

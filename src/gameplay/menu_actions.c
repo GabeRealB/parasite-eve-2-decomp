@@ -1153,16 +1153,16 @@ static void func_800D0614(Task* arg0)
     SPRT*           sprt;
     DR_TPAGE*       dr;
 
-    obj                          = arg0->spawnArg2.pointer;
-    p                            = gGpuPrimCursor;
-    pos                          = (GpMapCursorPos*)(SCRATCH_HEAD(u8) - 0x1C);
-    SCRATCH_HEAD(GpMapCursorPos) = pos;
-    gGpuPrimCursor               = p + 1;
-    pos->field_14                = 0;
-    pos->field_12                = 0;
-    pos->field_10                = 0;
-    pos->y                       = 0;
-    pos->x                       = 0;
+    obj                                  = arg0->spawnArg2.pointer;
+    p                                    = gGpuPrimCursor;
+    pos                                  = (GpMapCursorPos*)(SCRATCH_STACK_CURSOR(u8) - 0x1C);
+    SCRATCH_STACK_CURSOR(GpMapCursorPos) = pos;
+    gGpuPrimCursor                       = p + 1;
+    pos->field_14                        = 0;
+    pos->field_12                        = 0;
+    pos->field_10                        = 0;
+    pos->y                               = 0;
+    pos->x                               = 0;
     setPolyFT4(p);
     setRGB0(p, 0x80, 0x80, 0x80);
     p->clut = 0x4000;

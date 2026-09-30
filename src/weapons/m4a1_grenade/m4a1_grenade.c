@@ -86,7 +86,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
        `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GfxCoord);
+    spot = SCRATCH_STACK_CURSOR(GfxCoord);
     sfx  = slot->secondaryItemId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
@@ -210,14 +210,14 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     GfxCoord*          muzzle;
     WeaponGrenadeWork* work;
 
-    extra                 = arg0->extra.tmd;
-    head                  = SCRATCH_HEAD(u8);
-    coord                 = extra->coords;
-    blk                   = (SVECTOR*)(head - 0x28);
-    SCRATCH_HEAD(SVECTOR) = blk;
-    muzzle                = coord->parent;
-    work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec                   = blk;
+    extra                         = arg0->extra.tmd;
+    head                          = SCRATCH_STACK_CURSOR(u8);
+    coord                         = extra->coords;
+    blk                           = (SVECTOR*)(head - 0x28);
+    SCRATCH_STACK_CURSOR(SVECTOR) = blk;
+    muzzle                        = coord->parent;
+    work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    vec                           = blk;
     if (work == NULL) {
         SCRATCH_POP_BYTES(0x28);
         taskKill(arg0);

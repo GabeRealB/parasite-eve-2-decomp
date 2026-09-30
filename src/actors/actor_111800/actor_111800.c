@@ -240,7 +240,7 @@ static void func_actor_111800_80131E40(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);

@@ -1443,14 +1443,14 @@ void func_actor_510900_80132D4C(Task* arg0)
         }
     } else {
         Gp_UpdateCoord(coord);
-        head                          = SCRATCH_HEAD(u8);
-        vecp                          = (GpFxQuadScratch*)(head - 0x1C);
-        vecp->vec.vx                  = (u16)coord->workm.t[0];
-        block                         = vecp;
-        block->vec.vy                 = (u16)coord->workm.t[1];
-        vz                            = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch) = block;
-        block->vec.vz                 = vz;
+        head                                  = SCRATCH_STACK_CURSOR(u8);
+        vecp                                  = (GpFxQuadScratch*)(head - 0x1C);
+        vecp->vec.vx                          = (u16)coord->workm.t[0];
+        block                                 = vecp;
+        block->vec.vy                         = (u16)coord->workm.t[1];
+        vz                                    = (u16)coord->workm.t[2];
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch) = block;
+        block->vec.vz                         = vz;
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
         gte_ldv0(&vecp->vec);
@@ -1892,7 +1892,7 @@ void func_actor_510900_80134284(Task* arg0)
     s16                      count;
 
     SCRATCH_PUSH_BYTES(sizeof(Actor510900TrailScratch));
-    block = (Actor510900TrailScratch*)SCRATCH_HEAD(void);
+    block = SCRATCH_STACK_CURSOR(Actor510900TrailScratch);
     eff   = arg0->spawnArg2.pointer;
     mode  = Gp_State1C->effectControl;
     coord = arg0->extra.coordBody->coord;

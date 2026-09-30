@@ -1190,13 +1190,13 @@ static s32 Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 
         return 0;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    push->vz         = 0;
-    push->vy         = 0;
-    push->vx         = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s->blocked               = 0;
+    push->vz                 = 0;
+    push->vy                 = 0;
+    push->vx                 = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1753,7 +1753,7 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
         actorStepForward(arg1->extra.tmd->coords, 0x32);
     }
     work->field_0 = 0xC;
-    head          = SCRATCH_HEAD(Actor104000AimScratch);
+    head          = SCRATCH_STACK_CURSOR(Actor104000AimScratch);
     sc            = (Actor104000AimScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor104000AimScratch));
     pos           = arg1->extra.tmd->coords;
     head[-1].d.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
@@ -1825,10 +1825,10 @@ static __inline__ void Actor204000_FaceScale(GfxCoord* coord, s16 s)
     ActorScaleRotScratch* head;
     ActorScaleRotScratch* sc;
 
-    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
-    sc                                 = head - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
-    sc->angle                          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    sc                                         = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
+    sc->angle                                  = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
@@ -2057,7 +2057,7 @@ static void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
         work->field_494 = 0;
         return;
     }
-    head = SCRATCH_HEAD(ActorTurnScratch);
+    head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     Actor04000_Fn00E6C(arg1);
     pos               = arg1->extra.tmd->coords;
@@ -2528,7 +2528,7 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
         work->field_6 = 0;
         return;
     }
-    head              = SCRATCH_HEAD(ActorTurnScratch);
+    head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     sc                = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     head[-1].delta.vx = work->patrol[work->patrolIdx].vx - arg1->extra.tmd->coords->coord.t[0];
     sc->delta.vy      = 0;
@@ -2610,7 +2610,7 @@ static void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
         work->field_494 = 0;
         return;
     }
-    head = SCRATCH_HEAD(ActorTurnScratch);
+    head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
     Actor04000_Fn00E6C(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

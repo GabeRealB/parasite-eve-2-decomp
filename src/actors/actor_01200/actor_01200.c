@@ -600,13 +600,13 @@ static s16 Actor01200_Fn00130(GfxCoord* coord, WorldCollisionContact* recs, s16 
         return 0;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    push->vz         = 0;
-    push->vy         = 0;
-    push->vx         = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s->blocked               = 0;
+    push->vz                 = 0;
+    push->vy                 = 0;
+    push->vx                 = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1055,9 +1055,9 @@ static void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
         Gp_ArmStateF0(1);
         return;
     }
-    head                           = SCRATCH_HEAD(ActorTurnScratch);
-    SCRATCH_HEAD(ActorTurnScratch) = head - 1;
-    s                              = head - 1;
+    head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
+    s                                      = head - 1;
     Actor01200_Fn00820(arg1);
     coord             = arg1->extra.tmd->coords;
     head[-1].delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
@@ -1108,10 +1108,10 @@ static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s)
     ActorScaleRotScratch* head;
     ActorScaleRotScratch* sc;
 
-    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
-    sc                                 = head - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = sc;
-    sc->angle                          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    sc                                         = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
+    sc->angle                                  = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     Gfx_RotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
@@ -1553,15 +1553,15 @@ static void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
         work->field_6 = 0;
         return;
     }
-    head                           = SCRATCH_HEAD(ActorTurnScratch);
-    SCRATCH_HEAD(ActorTurnScratch) = head - 1;
-    sc                             = head - 1;
-    head[-1].delta.vx              = work->patrol[work->patrolIdx].vx - arg1->extra.tmd->coords->coord.t[0];
-    sc->delta.vy                   = 0;
-    sc->delta.vz                   = work->patrol[work->patrolIdx].vz - arg1->extra.tmd->coords->coord.t[2];
-    coord                          = arg1->extra.tmd->coords;
-    angle                          = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->angle                      = actorNormalizeYaw(angle);
+    head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
+    sc                                     = head - 1;
+    head[-1].delta.vx                      = work->patrol[work->patrolIdx].vx - arg1->extra.tmd->coords->coord.t[0];
+    sc->delta.vy                           = 0;
+    sc->delta.vz                           = work->patrol[work->patrolIdx].vz - arg1->extra.tmd->coords->coord.t[2];
+    coord                                  = arg1->extra.tmd->coords;
+    angle                                  = ratan2(head[-1].delta.vx, sc->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    sc->angle                              = actorNormalizeYaw(angle);
     if (sc->angle > 0x20) {
         sc->angle = 0x20;
     }
@@ -1636,9 +1636,9 @@ static void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
         work->field_6   = 0;
         return;
     }
-    head                           = SCRATCH_HEAD(ActorTurnScratch);
-    SCRATCH_HEAD(ActorTurnScratch) = head - 1;
-    s                              = head - 1;
+    head                                   = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1;
+    s                                      = head - 1;
     Actor01200_Fn00820(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->origin.vx - arg1->extra.tmd->coords->coord.t[0];

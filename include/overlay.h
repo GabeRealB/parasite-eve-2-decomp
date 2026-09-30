@@ -153,9 +153,9 @@ static __inline__ void overlayToWorld(GfxCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
-    SCRATCH_HEAD(OverlayWalkScratch)[-1].coord = coord;
+    SCRATCH_STACK_CURSOR(OverlayWalkScratch)[-1].coord = coord;
     SCRATCH_PUSH(OverlayWalkScratch);
-    blk         = SCRATCH_HEAD(OverlayWalkScratch);
+    blk         = SCRATCH_STACK_CURSOR(OverlayWalkScratch);
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
@@ -185,13 +185,13 @@ static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)
 {
     OverlayWalkScratch* blk;
 
-    blk         = (OverlayWalkScratch*)((u8*)SCRATCH_HEAD(void) - sizeof(OverlayWalkScratch));
+    blk         = (OverlayWalkScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(OverlayWalkScratch));
     blk->coord  = coord;
     blk->vec.vx = v->vx;
     blk->vec.vy = v->vy;
     blk->vec.vz = v->vz;
 
-    SCRATCH_HEAD(void) = blk;
+    SCRATCH_STACK_CURSOR(void) = blk;
     while (blk->coord != NULL) {
         gte_SetTransMatrix(&blk->coord->coord);
         gte_SetRotMatrix(&blk->coord->coord);
@@ -228,16 +228,16 @@ static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
     OverlayRangeScratch* blk;
     s32                  ret;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((OverlayRangeScratch*)(head - 0xC))->dx  = d->vx;
     blk                                       = (OverlayRangeScratch*)(head - 0xC);
     blk->dz                                   = d->vz;
     blk->r                                    = r;
     ((OverlayRangeScratch*)(head - 0xC))->dx *= ((OverlayRangeScratch*)(head - 0xC))->dx;
-    SCRATCH_HEAD(OverlayRangeScratch)         = blk;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch)         = blk;
     blk->dz                                  *= blk->dz;
     blk->r                                   *= blk->r;
-    SCRATCH_HEAD(u8)                          = head;
+    SCRATCH_STACK_CURSOR(u8)                          = head;
     ret                                       = ((OverlayRangeScratch*)(head - 0xC))->dx + blk->dz >= blk->r;
     return ret;
 }
@@ -423,13 +423,13 @@ static __inline__ s16 overlayBearingXZ(SVECTOR3* p, SVECTOR3* eye)
     u8*                head;
     OverlayAvoidDelta* d;
 
-    head             = SCRATCH_HEAD(u8);
+    head             = SCRATCH_STACK_CURSOR(u8);
     d                = (OverlayAvoidDelta*)(head - 0x10);
     d->vx            = p->vx - eye->vx;
-    SCRATCH_HEAD(u8) = (u8*)d;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
     d->vy            = p->vy - eye->vy;
     d->vz            = p->vz - eye->vz;
-    SCRATCH_HEAD(u8) = head;
+    SCRATCH_STACK_CURSOR(u8) = head;
     return ratan2(d->vx, d->vz);
 }
 
@@ -440,13 +440,13 @@ static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
     u8*                head;
     OverlayAvoidDelta* d;
 
-    head             = SCRATCH_HEAD(u8);
+    head             = SCRATCH_STACK_CURSOR(u8);
     d                = (OverlayAvoidDelta*)(head - 0x10);
     d->vx            = p->vx - eye->vx;
-    SCRATCH_HEAD(u8) = (u8*)d;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
     d->vy            = p->vy - eye->vy;
     d->vz            = p->vz - eye->vz;
-    SCRATCH_HEAD(u8) = head;
+    SCRATCH_STACK_CURSOR(u8) = head;
     return ratan2(d->vx, d->vy);
 }
 
@@ -652,9 +652,9 @@ static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 
     OverlayRangeScratch* b;
     u8*                  head;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0xC;
-    b                = (OverlayRangeScratch*)SCRATCH_HEAD(u8);
+    head             = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0xC;
+    b                = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
 
     b->dx            = (s16)d->x;
     b->dz            = (s16)d->z;
@@ -662,7 +662,7 @@ static __inline__ s32 overlayWalkerOutOfRange(OverlayWalkerArrivalDelta* d, s16 
     b->dx            = b->dx * b->dx;
     b->dz            = b->dz * b->dz;
     b->r             = b->r * b->r;
-    SCRATCH_HEAD(u8) = head;
+    SCRATCH_STACK_CURSOR(u8) = head;
     return b->dx + b->dz >= b->r;
 }
 
@@ -673,13 +673,13 @@ static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
 {
     u8*                head;
     OverlayAvoidDelta* d;
-    head             = SCRATCH_HEAD(u8);
+    head             = SCRATCH_STACK_CURSOR(u8);
     d                = (OverlayAvoidDelta*)(head - 0x10);
     d->vx            = pos->vx - coord->coord.t[0];
-    SCRATCH_HEAD(u8) = (u8*)d;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)d;
     d->vy            = pos->vy - coord->coord.t[1];
     d->vz            = pos->vz - coord->coord.t[2];
-    SCRATCH_HEAD(u8) = head;
+    SCRATCH_STACK_CURSOR(u8) = head;
     return ratan2(d->vx, d->vz);
 }
 

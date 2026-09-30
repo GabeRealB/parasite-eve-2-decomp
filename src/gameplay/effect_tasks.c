@@ -752,12 +752,12 @@ void Gp_EffSprTask34(Task* arg0)
             Gp_LcgState = rng;
             mem->angle  = arg0->spawnArg1.halves.low;
         }
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -836,12 +836,12 @@ void Gp_EffSprTask72(Task* arg0)
             mem->angle  = arg0->spawnArg1.halves.low;
             arg0->state = 1;
         }
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -924,12 +924,12 @@ void Gp_EffLineTaskA3(Task* arg0)
             mem->move.vz = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
             arg0->state  = 1;
         }
-        head                                        = SCRATCH_HEAD(u8);
+        head                                        = SCRATCH_STACK_CURSOR(u8);
         ((GpEffLineScratch*)(head - 0x20))->vec0.vx = (u16)coord->workm.t[0];
         block                                       = (GpEffLineScratch*)(head - 0x20);
         block->vec0.vy                              = (u16)coord->workm.t[1];
         vz                                          = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpEffLineScratch)              = block;
+        SCRATCH_STACK_CURSOR(GpEffLineScratch)      = block;
         block->vec0.vz                              = vz;
         vecp                                        = block;
         gte_SetRotMatrix(&mem->parent->coord);
@@ -1004,12 +1004,12 @@ static void Gp_DrawEffSprite6C(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3)
     s32              ang;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1091,12 +1091,12 @@ void Gp_EffSprTask35(Task* arg0)
             arg0->state = 1;
         }
         Gp_UpdateCoord(coord);
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -1197,12 +1197,12 @@ void Gp_EffSprTask6F(Task* arg0)
             gte_stsv(&mem->move);
             arg0->state = 1;
         }
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -1636,7 +1636,7 @@ void Gp_EffTileTaskA4(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     SCRATCH_PUSH_BYTES(0x14);
-    block = SCRATCH_HEAD(GpEffTileScratch);
+    block = SCRATCH_STACK_CURSOR(GpEffTileScratch);
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     if (arg0->state == 0) {
@@ -1757,12 +1757,12 @@ static void Gp_DrawEffSprite3B(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
     s32              ang;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1893,12 +1893,12 @@ void Gp_EffSprTask5C(Task* arg0)
             }
             arg0->state = 1;
         }
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -2272,14 +2272,14 @@ void Gp_EffSprTask7C(Task* arg0)
         mem->index++;
     }
     Gp_UpdateCoord(coord);
-    head                          = SCRATCH_HEAD(u8);
-    vecp                          = (GpFxQuadScratch*)(head - 0x1C);
-    vecp->vec.vx                  = (u16)coord->workm.t[0];
-    block                         = vecp;
-    block->vec.vy                 = (u16)coord->workm.t[1];
-    vz                            = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch) = block;
-    block->vec.vz                 = vz;
+    head                                  = SCRATCH_STACK_CURSOR(u8);
+    vecp                                  = (GpFxQuadScratch*)(head - 0x1C);
+    vecp->vec.vx                          = (u16)coord->workm.t[0];
+    block                                 = vecp;
+    block->vec.vy                         = (u16)coord->workm.t[1];
+    vz                                    = (u16)coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch) = block;
+    block->vec.vz                         = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&vecp->vec);
@@ -2619,7 +2619,7 @@ void Gp_EffLineTask92(Task* arg0)
 
     SCRATCH_PUSH_BYTES(0x20);
     coord = arg0->extra.coordBody->coord;
-    block = SCRATCH_HEAD(GpEffLineScratch);
+    block = SCRATCH_STACK_CURSOR(GpEffLineScratch);
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
     if (mem->age == 0) {
@@ -2982,12 +2982,12 @@ void Gp_EffSprTask54(Task* arg0)
         arg0->state = 1;
     }
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)coord->workm.t[1];
     vz                                        = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);

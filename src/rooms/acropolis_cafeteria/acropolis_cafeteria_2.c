@@ -1101,9 +1101,9 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
         mode = gGameSession->location.loc.view;
         if (mode == 9) {
             Gp_UpdateCoord(coord);
-            head = SCRATCH_HEAD(OverlaySpriteScratch);
+            head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
             SCRATCH_PUSH(OverlaySpriteScratch);
-            block         = SCRATCH_HEAD(OverlaySpriteScratch);
+            block         = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
             block->vec.vx = coord->workm.t[0];
             block->vec.vy = coord->workm.t[1];
             block->vec.vz = coord->workm.t[2];
@@ -1412,10 +1412,10 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     SVECTOR*                  direction;
     s32                       speed;
 
-    head                 = SCRATCH_HEAD(MATRIX);
-    SCRATCH_HEAD(MATRIX) = head - 1;
-    work                 = (AcropolisCafeteriaDebris*)task->work;
-    coord                = task->extra.tmd->coords;
+    head                         = SCRATCH_STACK_CURSOR(MATRIX);
+    SCRATCH_STACK_CURSOR(MATRIX) = head - 1;
+    work                         = (AcropolisCafeteriaDebris*)task->work;
+    coord                        = task->extra.tmd->coords;
     work->field_B0--;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]  += 0x80;
@@ -1574,7 +1574,7 @@ static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, WorldCollisionCont
     }
 
     SCRATCH_PUSH(OverlayBisectorScratch);
-    st         = SCRATCH_HEAD(OverlayBisectorScratch);
+    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];

@@ -2195,7 +2195,7 @@ static void func_actor_206100_8014BEC4(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     Actor206100_AccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = Actor206100_LocalizeRotation(coord, rotation);
@@ -3830,11 +3830,11 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
     Actor206100DistScratch* head;
     Actor206100DistScratch* scratch;
 
-    head                                 = SCRATCH_HEAD(Actor206100DistScratch);
-    scratch                              = head - 1;
-    SCRATCH_HEAD(Actor206100DistScratch) = scratch;
-    work                                 = (Actor206100Work*)task->work;
-    coord                                = task->extra.tmd->coords;
+    head                                         = SCRATCH_STACK_CURSOR(Actor206100DistScratch);
+    scratch                                      = head - 1;
+    SCRATCH_STACK_CURSOR(Actor206100DistScratch) = scratch;
+    work                                         = (Actor206100Work*)task->work;
+    coord                                        = task->extra.tmd->coords;
     func_actor_206100_8014EA8C(task, arg1, work->field_43E);
     scratch->delta.vx = -(u16)coord->coord.t[0];
     scratch->delta.vz = -(u16)coord->coord.t[2];

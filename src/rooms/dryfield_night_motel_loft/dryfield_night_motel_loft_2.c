@@ -706,7 +706,7 @@ static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, 
     s32                                ang;
 
     SCRATCH_PUSH(_DryfieldNightMotelLoftTriScratch);
-    blk = SCRATCH_HEAD(_DryfieldNightMotelLoftTriScratch);
+    blk = SCRATCH_STACK_CURSOR(_DryfieldNightMotelLoftTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     // `off` is the corner's byte offset in the block, initialised with the
     // other locals; indexing `v[]` instead lets loop strength reduction

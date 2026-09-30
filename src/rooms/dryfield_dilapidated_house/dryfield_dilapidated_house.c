@@ -3445,7 +3445,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     u8               shade;
 
     SCRATCH_PUSH(RoomQuadScratch);
-    blk = SCRATCH_HEAD(RoomQuadScratch);
+    blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x14;
     for (i = 0; i < 4; i++) {
@@ -3668,7 +3668,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
     s32                        fade;
 
     SCRATCH_PUSH(OverlayFlaggedQuadScratch);
-    blk = SCRATCH_HEAD(OverlayFlaggedQuadScratch);
+    blk = SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {

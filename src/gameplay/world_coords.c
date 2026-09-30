@@ -488,7 +488,7 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
         }
     }
     SCRATCH_PUSH(GpSpotScratch);
-    block          = SCRATCH_HEAD(GpSpotScratch);
+    block          = SCRATCH_STACK_CURSOR(GpSpotScratch);
     block->vec.vx  = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
     block->vec.vy  = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
     block->vec.vz  = (light->transform.lighting.composed.t[2] - pos->vz) >> 1;
@@ -582,7 +582,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     arg1->light   = NULL;
     if (set != NULL) {
         SCRATCH_PUSH_BYTES(0x10);
-        delta = SCRATCH_HEAD(VECTOR);
+        delta = SCRATCH_STACK_CURSOR(VECTOR);
         if (set->n60 > 0) {
             point = set->arr60;
             for (i = 0; i < set->n60; i++, point++) {
@@ -624,7 +624,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block    = SCRATCH_HEAD(GpLightScratch);
+    block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
     Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
@@ -653,7 +653,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block        = SCRATCH_HEAD(GpLightScratch);
+    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
@@ -685,7 +685,7 @@ static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECT
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block        = SCRATCH_HEAD(GpLightScratch);
+    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
@@ -793,10 +793,10 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     {
         u8* head;
 
-        head             = SCRATCH_HEAD(u8);
-        head            -= 0x7C;
-        SCRATCH_HEAD(u8) = head;
-        block            = SCRATCH_HEAD(GpLightSolveScratch);
+        head                     = SCRATCH_STACK_CURSOR(u8);
+        head                    -= 0x7C;
+        SCRATCH_STACK_CURSOR(u8) = head;
+        block                    = SCRATCH_STACK_CURSOR(GpLightSolveScratch);
     }
 
     {
@@ -1074,7 +1074,7 @@ static void Gp_DebugPanTask(Task* arg0)
 
     if (Pad_RemapState->field_1 == 0x13) {
         SCRATCH_PUSH(WorldCoordProjectionScratch);
-        projection          = SCRATCH_HEAD(WorldCoordProjectionScratch);
+        projection          = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
         D_80760618->field_1 = 1;
         func_800D7A9C(extra, &vec, 0, 3);
         func_800D78A4(&vec, &D_80760618->field_24);
@@ -1395,10 +1395,10 @@ s32 Gp_GetObjPan(GfxCoord* coord)
     SVECTOR*                     inputPoint;
     s32                          ret;
 
-    scratchEnd                                = SCRATCH_HEAD(WorldCoordProjectionScratch);
-    projection                                = scratchEnd - 1;
-    SCRATCH_HEAD(WorldCoordProjectionScratch) = projection;
-    inputPoint                                = &projection->point;
+    scratchEnd                                        = SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch);
+    projection                                        = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(WorldCoordProjectionScratch) = projection;
+    inputPoint                                        = &projection->point;
     gte_SetRotMatrix(&coord->workm);
     gte_SetTransMatrix(&coord->workm);
     // Project the coordinate's local origin through its composed view matrix.
@@ -1550,7 +1550,7 @@ static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block    = SCRATCH_HEAD(GpLightScratch);
+    block    = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
     Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
@@ -1579,7 +1579,7 @@ static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block        = SCRATCH_HEAD(GpLightScratch);
+    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
@@ -1611,7 +1611,7 @@ static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
     MATRIX*         colorMtx;
 
     SCRATCH_PUSH(GpLightScratch);
-    block        = SCRATCH_HEAD(GpLightScratch);
+    block        = SCRATCH_STACK_CURSOR(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
     block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
@@ -1740,7 +1740,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 
     src = slot->field_0;
     SCRATCH_PUSH(GpPerspScratch);
-    block         = SCRATCH_HEAD(GpPerspScratch);
+    block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
     block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
@@ -1759,9 +1759,9 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
 {
     u8*     h;
     VECTOR* vec;
-    h                  = SCRATCH_HEAD(u8);
-    vec                = (VECTOR*)(h - 0x30);
-    SCRATCH_HEAD(void) = vec;
+    h                          = SCRATCH_STACK_CURSOR(u8);
+    vec                        = (VECTOR*)(h - 0x30);
+    SCRATCH_STACK_CURSOR(void) = vec;
     gte_SetRotMatrix(&obj->coord->workm);
     gte_ldv0(&obj->pos);
     gte_rtv0();

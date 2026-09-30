@@ -972,7 +972,7 @@ static void func_dryfield_night_water_tower_8017DC70(SVECTOR* arg0, s32 arg1)
 
     p1 = arg0 + 1;
     SCRATCH_PUSH(OverlayPointPairScratch);
-    block = SCRATCH_HEAD(OverlayPointPairScratch);
+    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

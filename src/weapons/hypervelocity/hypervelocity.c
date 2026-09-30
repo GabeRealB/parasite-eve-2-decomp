@@ -629,12 +629,12 @@ static void func_hypervelocity_8011E494(GfxCoord* coord, s16 age, s16 spin, s16 
     s32              ang2;
     u16              vz;
 
-    head                                                         = SCRATCH_HEAD(u8);
+    head                                                         = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = (u16)coord->workm.t[0];
     block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
     block->vec.vy                                                = (u16)coord->workm.t[1];
     vz                                                           = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)                                = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)                        = block;
     block->vec.vz                                                = vz;
     vec                                                          = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -1106,11 +1106,11 @@ static void func_hypervelocity_8011F724(Task* arg0)
     s32          count;
     s32          step;
 
-    head                      = SCRATCH_HEAD(u8);
-    rec                       = (HyperRecoil*)(head - 0x18);
-    SCRATCH_HEAD(HyperRecoil) = rec;
-    actor                     = arg0->work;
-    eff                       = actor->field_91C;
+    head                              = SCRATCH_STACK_CURSOR(u8);
+    rec                               = (HyperRecoil*)(head - 0x18);
+    SCRATCH_STACK_CURSOR(HyperRecoil) = rec;
+    actor                             = arg0->work;
+    eff                               = actor->field_91C;
     switch (actor->field_95E) {
         case 0:
             actor->field_954                  = 0;

@@ -569,10 +569,10 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
     if (Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
-    head                  = SCRATCH_HEAD(SVECTOR);
-    vec                   = head - 1;
-    gte                   = head - 1;
-    SCRATCH_HEAD(SVECTOR) = vec;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec                           = head - 1;
+    gte                           = head - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
     if (arg1 != 0) {
         Gfx_MatrixCol2(&arg0->coord, vec);
         VectorNormalSS(vec, vec);

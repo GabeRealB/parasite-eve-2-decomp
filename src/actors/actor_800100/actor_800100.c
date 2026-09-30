@@ -1571,12 +1571,12 @@ static void func_actor_800100_80163214(Task* arg0)
     u8                     saved;
     void*                  head;
 
-    actor              = arg0->work;
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = head - 8;
-    scratch            = (SVECTOR3*)(head - 8);
-    extra              = arg0->extra.tmd;
-    coord              = extra->coords;
+    actor                      = arg0->work;
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = head - 8;
+    scratch                    = (SVECTOR3*)(head - 8);
+    extra                      = arg0->extra.tmd;
+    coord                      = extra->coords;
     arg0->state++;
     arg0->msgTable      = D_actor_800100_80167130;
     arg0->exitCallback  = func_actor_800100_80163C04;
@@ -2309,11 +2309,11 @@ static void func_actor_800100_80164710(Task* arg0)
     s32                     dist;
     u16                     state;
 
-    head               = SCRATCH_HEAD(Actor800100LockScratch);
-    actor              = arg0->work;
-    scratch            = head - 1;
-    SCRATCH_HEAD(void) = scratch;
-    d4                 = actor->field_910;
+    head                       = SCRATCH_STACK_CURSOR(Actor800100LockScratch);
+    actor                      = arg0->work;
+    scratch                    = head - 1;
+    SCRATCH_STACK_CURSOR(void) = scratch;
+    d4                         = actor->field_910;
     Gp_TrackAllyLockTarget(arg0, 3);
     state = actor->field_95E;
     if (state != 0) {
@@ -3076,14 +3076,14 @@ static void func_actor_800100_801659EC(Task* arg0)
     s32         inRange;
     s32         mode;
 
-    head                  = SCRATCH_HEAD(VECTOR);
-    lock                  = (VECTOR3*)(head - 1);
-    SCRATCH_HEAD(VECTOR3) = lock;
-    actor                 = arg0->work;
-    d4                    = actor->field_910;
-    coord                 = arg0->extra.tmd->coords;
-    node                  = Gp_FindLockNode(arg0);
-    actor->field_90C      = node;
+    head                          = SCRATCH_STACK_CURSOR(VECTOR);
+    lock                          = (VECTOR3*)(head - 1);
+    SCRATCH_STACK_CURSOR(VECTOR3) = lock;
+    actor                         = arg0->work;
+    d4                            = actor->field_910;
+    coord                         = arg0->extra.tmd->coords;
+    node                          = Gp_FindLockNode(arg0);
+    actor->field_90C              = node;
     if (node != NULL) {
         Gp_GetLockPos(node, lock);
         func_80103C74(coord, lock, lock);

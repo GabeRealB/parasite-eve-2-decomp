@@ -1300,7 +1300,7 @@ static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_PUSH(GpRingScratch);
-    sc         = SCRATCH_HEAD(GpRingScratch);
+    sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
     sc->vec.vx = coord->workm.t[0];
     sc->vec.vy = coord->workm.t[1];
     sc->vec.vz = coord->workm.t[2];
@@ -1670,10 +1670,10 @@ static void Actor00300_Fn00E54(Task* arg0)
     critical = 0;
     lastId   = 0;
     work     = arg0->work;
-    head     = SCRATCH_HEAD(GpDeltaScratch);
+    head     = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self     = arg0->extra.tmd->coords;
     SCRATCH_PUSH(_Actor00300HitScratch);
-    scratch = SCRATCH_HEAD(_Actor00300HitScratch);
+    scratch = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->rec558, &scratch->delta, 4, NULL)) {
@@ -1878,12 +1878,12 @@ static void Actor00300_Fn01678(Task* arg0)
     VECTOR*          vec;
     VECTOR*          scratchEnd;
 
-    scratchEnd         = SCRATCH_HEAD(void);
-    vec                = scratchEnd - 1;
-    SCRATCH_HEAD(void) = vec;
-    work               = arg0->work;
-    state              = work->field_686;
-    coord              = arg0->extra.tmd->coords;
+    scratchEnd                 = SCRATCH_STACK_CURSOR(void);
+    vec                        = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(void) = vec;
+    work                       = arg0->work;
+    state                      = work->field_686;
+    coord                      = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             work->field_67C = 0;
@@ -1966,11 +1966,11 @@ static void Actor00300_Fn019C0(Task* arg0)
     s32              distance;
     s32              random;
 
-    scratchEnd           = SCRATCH_HEAD(VECTOR);
-    vec                  = scratchEnd - 1;
-    SCRATCH_HEAD(VECTOR) = vec;
-    work                 = arg0->work;
-    coord                = arg0->extra.tmd->coords;
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
+    vec                          = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    work                         = arg0->work;
+    coord                        = arg0->extra.tmd->coords;
     switch (work->field_686) {
         case 0:
             work->field_67C = 0;
@@ -2135,9 +2135,9 @@ static void Actor00300_Fn01F9C(Task* arg0)
     ActorFaceScratch* scratchEnd;
     ActorFaceScratch* scratch;
 
-    scratchEnd = SCRATCH_HEAD(ActorFaceScratch);
+    scratchEnd = SCRATCH_STACK_CURSOR(ActorFaceScratch);
     scratch =
-        (ActorFaceScratch*)(SCRATCH_HEAD(u8) = (u8*)scratchEnd - 0x18);
+        (ActorFaceScratch*)(SCRATCH_STACK_CURSOR(u8) = (u8*)scratchEnd - 0x18);
     work  = arg0->work;
     state = work->field_686;
     coord = arg0->extra.tmd->coords;
@@ -2295,11 +2295,11 @@ static void Actor00300_Fn02620(Task* arg0)
     s32              pan;
     s32              random;
 
-    scratchEnd           = SCRATCH_HEAD(VECTOR);
-    vec                  = scratchEnd - 1;
-    SCRATCH_HEAD(VECTOR) = vec;
-    work                 = arg0->work;
-    coord                = arg0->extra.tmd->coords;
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
+    vec                          = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    work                         = arg0->work;
+    coord                        = arg0->extra.tmd->coords;
     switch (work->field_686) {
         case 0:
             work->field_67C   = 0x3C;
@@ -3113,19 +3113,19 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         }
-        head                            = SCRATCH_HEAD(ActorScaleScratch);
-        scratch                         = head - 1;
-        coord                           = arg1->extra.tmd->coords;
-        SCRATCH_HEAD(ActorScaleScratch) = scratch;
-        scratch->scale.vx               = 0x1000;
-        scratch->scale.vy               = scale;
-        scratch->scale.vz               = 0x1000;
-        coord->coord                    = work->field_628;
-        scratch->mat.ident.m00_m01      = 0x1000;
-        scratch->mat.ident.m02_m10      = 0;
-        scratch->mat.ident.m11_m12      = 0x1000;
-        scratch->mat.ident.m20_m21      = 0;
-        scratch->mat.ident.m22          = 0x1000;
+        head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+        scratch                                 = head - 1;
+        coord                                   = arg1->extra.tmd->coords;
+        SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+        scratch->scale.vx                       = 0x1000;
+        scratch->scale.vy                       = scale;
+        scratch->scale.vz                       = 0x1000;
+        coord->coord                            = work->field_628;
+        scratch->mat.ident.m00_m01              = 0x1000;
+        scratch->mat.ident.m02_m10              = 0;
+        scratch->mat.ident.m11_m12              = 0x1000;
+        scratch->mat.ident.m20_m21              = 0;
+        scratch->mat.ident.m22                  = 0x1000;
         ScaleMatrix(&scratch->mat.mat, &scratch->scale);
         MulMatrix(&coord->coord, &scratch->mat.mat);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3152,15 +3152,15 @@ static void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     GfxCoord*           objCoord;
     GfxCoord*           objCoord2;
 
-    head                             = SCRATCH_HEAD(ActorOffsetScratch);
-    scratch                          = head - 1;
-    SCRATCH_HEAD(ActorOffsetScratch) = scratch;
-    offset                           = &scratch->offset;
-    parent                           = arg1->parent;
-    coord                            = arg1->extra.tmd->coords;
-    parentCoord                      = parent->extra.tmd->coords;
-    parentWork                       = (Actor100300Work*)parent->work;
-    work                             = memCalloc(0x8C, 0);
+    head                                     = SCRATCH_STACK_CURSOR(ActorOffsetScratch);
+    scratch                                  = head - 1;
+    SCRATCH_STACK_CURSOR(ActorOffsetScratch) = scratch;
+    offset                                   = &scratch->offset;
+    parent                                   = arg1->parent;
+    coord                                    = arg1->extra.tmd->coords;
+    parentCoord                              = parent->extra.tmd->coords;
+    parentWork                               = (Actor100300Work*)parent->work;
+    work                                     = memCalloc(0x8C, 0);
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
@@ -3658,19 +3658,19 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
-    scratch->scale.vx               = 0x1000;
-    scratch->scale.vy               = arg2;
-    scratch->scale.vz               = 0x1000;
-    coord->coord                    = *arg1;
-    scratch->mat.ident.m00_m01      = 0x1000;
-    scratch->mat.ident.m02_m10      = 0;
-    scratch->mat.ident.m11_m12      = 0x1000;
-    scratch->mat.ident.m20_m21      = 0;
-    scratch->mat.ident.m22          = 0x1000;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
+    scratch->scale.vx                       = 0x1000;
+    scratch->scale.vy                       = arg2;
+    scratch->scale.vz                       = 0x1000;
+    coord->coord                            = *arg1;
+    scratch->mat.ident.m00_m01              = 0x1000;
+    scratch->mat.ident.m02_m10              = 0;
+    scratch->mat.ident.m11_m12              = 0x1000;
+    scratch->mat.ident.m20_m21              = 0;
+    scratch->mat.ident.m22                  = 0x1000;
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

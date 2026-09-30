@@ -2547,11 +2547,11 @@ static void Actor07000_Fn02BB8(Task* arg0)
     ActorScaleScratch* scratch;
     Actor107000Work*   work;
 
-    head               = SCRATCH_HEAD(ActorScaleScratch);
-    work               = arg0->work;
-    scratch            = head - 1;
-    SCRATCH_HEAD(void) = scratch;
-    coord              = arg0->extra.tmd->coords;
+    head                       = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                       = arg0->work;
+    scratch                    = head - 1;
+    SCRATCH_STACK_CURSOR(void) = scratch;
+    coord                      = arg0->extra.tmd->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
@@ -3769,11 +3769,11 @@ static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
 static __inline__ void update_color(GpEnemy* enemy, GfxCoord* coord)
 {
     VECTOR* block;
-    block                = (VECTOR*)((u8*)SCRATCH_HEAD(void) - 0x10);
-    SCRATCH_HEAD(VECTOR) = block;
-    block->vx            = coord->workm.t[0];
-    block->vy            = coord->workm.t[1];
-    block->vz            = coord->workm.t[2];
+    block                        = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
+    SCRATCH_STACK_CURSOR(VECTOR) = block;
+    block->vx                    = coord->workm.t[0];
+    block->vy                    = coord->workm.t[1];
+    block->vz                    = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
     SCRATCH_POP_BYTES(0x10);
 }
@@ -3785,11 +3785,11 @@ static __inline__ void rotate_parts(Task* arg0)
     u8*                    head;
     s16                    value;
 
-    work                 = (Actor107000Spawn2Work*)arg0->work;
-    head                 = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(MATRIX) = (MATRIX*)(head - 0x20);
-    scratch              = (MATRIX*)(head - 0x20);
-    coord                = arg0->extra.tmd->coords;
+    work                         = (Actor107000Spawn2Work*)arg0->work;
+    head                         = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(MATRIX) = (MATRIX*)(head - 0x20);
+    scratch                      = (MATRIX*)(head - 0x20);
+    coord                        = arg0->extra.tmd->coords;
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(scratch);
@@ -4230,11 +4230,11 @@ static void Actor07000_Fn06390(Task* arg0)
     u8*                    head;
     s16                    value;
 
-    work                 = (Actor107000Spawn2Work*)arg0->work;
-    head                 = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(MATRIX) = (MATRIX*)(head - 0x20);
-    scratch              = (MATRIX*)(head - 0x20);
-    coord                = arg0->extra.tmd->coords;
+    work                         = (Actor107000Spawn2Work*)arg0->work;
+    head                         = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(MATRIX) = (MATRIX*)(head - 0x20);
+    scratch                      = (MATRIX*)(head - 0x20);
+    coord                        = arg0->extra.tmd->coords;
     RotMatrix(&work->rotation, scratch);
     gte_SetRotMatrix(&coord[3].coord);
     gte_ldclmv(scratch);

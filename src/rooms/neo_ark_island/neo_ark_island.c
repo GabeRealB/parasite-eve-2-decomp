@@ -820,7 +820,7 @@ void func_neo_ark_island_8017D650(Task* task)
     sinArg = task->killCountdown * 2;
     cosArg = task->killCountdown;
     SCRATCH_PUSH(OverlayRippleScratch);
-    scratch = SCRATCH_HEAD(OverlayRippleScratch);
+    scratch = SCRATCH_STACK_CURSOR(OverlayRippleScratch);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->mtx);
     scratch->origin.vx = gGfxViewCoord.workm.t[0];
     scratch->origin.vy = gGfxViewCoord.workm.t[1];

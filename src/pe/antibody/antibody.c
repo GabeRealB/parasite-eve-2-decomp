@@ -431,12 +431,12 @@ static void func_antibody_8012FBB0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u;
     s32              ang2;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -502,12 +502,12 @@ static void func_antibody_8012FFEC(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3)
     s32              u1;
     s32              ang2;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vec                                       = &block->vec;
 
@@ -575,7 +575,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
     u16                 vz;
 
     player                                      = &(gameGetPtrSlot(3))->extra.tmd->coords[1];
-    head                                        = SCRATCH_HEAD(u8);
+    head                                        = SCRATCH_STACK_CURSOR(u8);
     ((AntibodyArcScratch*)(head - 0x28))->v0.vx = (u16)arg0->workm.t[0];
     block                                       = (AntibodyArcScratch*)(head - 0x28);
     block->v0.vy                                = (u16)arg0->workm.t[1];
@@ -583,7 +583,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2)
     block->v1.vx                                = (u16)player->workm.t[0];
     block->v1.vy                                = (u16)player->workm.t[1];
     vz                                          = (u16)player->workm.t[2];
-    SCRATCH_HEAD(AntibodyArcScratch)            = block;
+    SCRATCH_STACK_CURSOR(AntibodyArcScratch)    = block;
     block->v1.vz                                = vz;
     vec                                         = &block->v0;
 
@@ -648,12 +648,12 @@ static void func_antibody_801308D4(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32            ang2;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);

@@ -24,7 +24,7 @@ static void func_m950_8011D1DC(Task* arg0)
     s32        anim;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GfxCoord);
+    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = actor->field_91C->extra.tmd->coords;
     switch (actor->field_95E) {

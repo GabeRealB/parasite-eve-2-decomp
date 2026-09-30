@@ -1517,9 +1517,9 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
     s32               i;
 
     e                          = D_shelter_b4_reservoir_80184F90;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1589,9 +1589,9 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
     s32               i;
 
     e                          = D_shelter_b4_reservoir_80184FA8;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1663,9 +1663,9 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
     s32               i;
 
     e                          = D_shelter_b4_reservoir_80184FCC;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1738,9 +1738,9 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
     u8                c;
 
     e                          = D_shelter_b4_reservoir_80184FE4;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

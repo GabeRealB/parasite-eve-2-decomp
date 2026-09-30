@@ -1187,7 +1187,7 @@ static void func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
@@ -1247,9 +1247,9 @@ static s16 func_actor_110600_80132470(OverlayWalker* walker)
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x8;
-    d                = (OverlayWalkerArrivalDelta*)(head - 0x8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x8;
+    d                        = (OverlayWalkerArrivalDelta*)(head - 0x8);
 
     d->x = walker->nav->nodes[walker->node].x;
     d->y = walker->nav->nodes[walker->node].y;
@@ -1315,9 +1315,9 @@ static u8 func_actor_110600_801327EC(OverlayWalker* work, s32 actor)
     u8*                          head;
     s16                          dz;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x18;
-    block            = (OverlayWalkerNearCfgScratch*)SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearCfgScratch);
 
     block->cfg  = &Player_Status + ((s16)actor - 1);
     block->best = -1;
@@ -1346,9 +1346,9 @@ static u8 func_actor_110600_80132958(OverlayWalker* work)
     u8*                       head;
     s16                       dz;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x14;
-    block            = (OverlayWalkerNearScratch*)SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x14;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
 
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
@@ -1383,9 +1383,9 @@ static void func_actor_110600_80132A84(OverlayWalker* work, s16 actor)
     s32                        diff;
     s32                        best;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x1C;
-    s                = (OverlayWalkerRouteScratch*)(head - 0x1C);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    s                        = (OverlayWalkerRouteScratch*)(head - 0x1C);
 
     s->nodeA  = func_actor_110600_801327EC(work, actor);
     s->nodeB  = func_actor_110600_80132958(work);
@@ -1449,9 +1449,9 @@ static void func_actor_110600_80132D54(OverlayWalker* work)
     s32                       dz;
     s32                       y;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x18;
-    s                = (OverlayWalkerMoveScratch*)(head - 0x18);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
+    s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
     if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
         dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
         dz         = s->delta.vz.h.hi;
@@ -1531,9 +1531,9 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
     work->push.vy = 0;
     work->push.vx = 0;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
 
     Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1602,8 +1602,8 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
         }
     }
 
-    SCRATCH_HEAD(u8) =
-        SCRATCH_HEAD(u8) + sizeof(OverlayAvoidScratch);
+    SCRATCH_STACK_CURSOR(u8) =
+        SCRATCH_STACK_CURSOR(u8) + sizeof(OverlayAvoidScratch);
 }
 
 /// Turns the walker towards `pos` by at most `field_5A` angle units a frame.
@@ -1619,11 +1619,11 @@ static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
 
     if (Mc_SaveData[0].state.unknown_5C0 == 1)
         return;
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x1C;
-    s                = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord            = work->coord;
-    diff             = overlayCoordBearingXZ(pos, coord) -
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    s                        = (OverlayWalkerTurnScratch*)(head - 0x1C);
+    coord                    = work->coord;
+    diff                     = overlayCoordBearingXZ(pos, coord) -
            ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     t = diff;
     if (diff < 0) {
@@ -1679,14 +1679,14 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
 
     if (work->nav->count < 2)
         return;
-    head                  = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)      = head - 0x2C;
-    blk                   = (Actor110600TsvScratch*)(head - 0x2C);
-    work->nav->nodes[0].x = (u16)work->coord->coord.t[0];
-    work->nav->nodes[0].y = (u16)work->coord->coord.t[1];
-    work->nav->nodes[0].z = (u16)work->coord->coord.t[2];
-    work->nav->field_4[0] = 0;
-    blk->m                = work->coord->coord;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x2C;
+    blk                      = (Actor110600TsvScratch*)(head - 0x2C);
+    work->nav->nodes[0].x    = (u16)work->coord->coord.t[0];
+    work->nav->nodes[0].y    = (u16)work->coord->coord.t[1];
+    work->nav->nodes[0].z    = (u16)work->coord->coord.t[2];
+    work->nav->field_4[0]    = 0;
+    blk->m                   = work->coord->coord;
     for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
         Gfx_RotMatrixY(&blk->m, angle, 0);
         Gfx_MatrixCol2(&blk->m, &blk->v);
@@ -1795,10 +1795,10 @@ static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
         step->vy            = 0;
         walker->moveStep.vx = 0;
     } else {
-        head2            = SCRATCH_HEAD(u8);
-        sv               = (SVECTOR*)(head2 - 8);
-        SCRATCH_HEAD(u8) = (u8*)sv;
-        gsv              = sv;
+        head2                    = SCRATCH_STACK_CURSOR(u8);
+        sv                       = (SVECTOR*)(head2 - 8);
+        SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
+        gsv                      = sv;
         if (speed != 0) {
             Gfx_MatrixCol2(&coord->coord, sv);
             VectorNormalSS(sv, sv);
@@ -1833,9 +1833,9 @@ static void func_actor_110600_80133A94(OverlayWalker* walker)
     u8*                       head;
     OverlayWalkerTickScratch* block;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x28;
-    block            = (OverlayWalkerTickScratch*)SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x28;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
     Actor110600_WalkerStep(walker, head, block);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(0x28);
@@ -1856,10 +1856,10 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    head                               = SCRATCH_HEAD(u8);
-    coord                              = task->extra.tmd->coords;
-    blk                                = (ActorScaleRotScratch*)(head - 0x34);
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    head                                       = SCRATCH_STACK_CURSOR(u8);
+    coord                                      = task->extra.tmd->coords;
+    blk                                        = (ActorScaleRotScratch*)(head - 0x34);
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -2335,9 +2335,9 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
 {
     VECTOR *head, *scale;
     s32     amount;
-    head                     = SCRATCH_HEAD(VECTOR);
-    scale                    = head - 1;
-    SCRATCH_HEAD(VECTOR)     = scale;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    scale                        = head - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = scale;
     walker->scaleMtx.m[0][0] = walker->scaleMtx.m[1][1] = walker->scaleMtx.m[2][2] = 0x1000;
     walker->scaleMtx.m[0][1] = walker->scaleMtx.m[0][2] = walker->scaleMtx.m[1][0] = walker->scaleMtx.m[1][2] = walker->scaleMtx.m[2][0] = walker->scaleMtx.m[2][1] = 0;
     walker->scaleMtx.t[0] = walker->scaleMtx.t[1] = walker->scaleMtx.t[2] = 0;
@@ -3272,33 +3272,33 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
     u16                   m22;
     ActorScaleRotScratch* restoredHead;
 
-    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
-    obj                                = arg0->extra.tmd;
-    coord                              = obj->coords;
-    page                               = work->walker.scale;
-    blk                                = head - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-    y                                 -= (work->field_BE0 - 0x12C) * 2;
-    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                         = ang;
+    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    obj                                        = arg0->extra.tmd;
+    coord                                      = obj->coords;
+    page                                       = work->walker.scale;
+    blk                                        = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
+    y                                         -= (work->field_BE0 - 0x12C) * 2;
+    ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                                 = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = page;
     blk->scale.vy = y;
     blk->scale.vz = page;
     ScaleMatrix(&blk->m, &blk->scale);
-    coord->coord.m[0][0]               = (u16)(head - 1)->m.m[0][0];
-    coord->coord.m[0][1]               = (u16)blk->m.m[0][1];
-    coord->coord.m[0][2]               = (u16)blk->m.m[0][2];
-    coord->coord.m[1][0]               = (u16)blk->m.m[1][0];
-    coord->coord.m[1][1]               = (u16)blk->m.m[1][1];
-    coord->coord.m[1][2]               = (u16)blk->m.m[1][2];
-    coord->coord.m[2][0]               = (u16)blk->m.m[2][0];
-    coord->coord.m[2][1]               = (u16)blk->m.m[2][1];
-    restoredHead                       = SCRATCH_HEAD(ActorScaleRotScratch);
-    m22                                = (u16)blk->m.m[2][2];
-    coord->composeStamp                = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(ActorScaleRotScratch) = restoredHead + 1;
-    coord->coord.m[2][2]               = m22;
+    coord->coord.m[0][0]                       = (u16)(head - 1)->m.m[0][0];
+    coord->coord.m[0][1]                       = (u16)blk->m.m[0][1];
+    coord->coord.m[0][2]                       = (u16)blk->m.m[0][2];
+    coord->coord.m[1][0]                       = (u16)blk->m.m[1][0];
+    coord->coord.m[1][1]                       = (u16)blk->m.m[1][1];
+    coord->coord.m[1][2]                       = (u16)blk->m.m[1][2];
+    coord->coord.m[2][0]                       = (u16)blk->m.m[2][0];
+    coord->coord.m[2][1]                       = (u16)blk->m.m[2][1];
+    restoredHead                               = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    m22                                        = (u16)blk->m.m[2][2];
+    coord->composeStamp                        = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = restoredHead + 1;
+    coord->coord.m[2][2]                       = m22;
 }
 
 static void func_actor_110600_80136B20(Task* arg0)
@@ -3541,12 +3541,12 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    head                               = SCRATCH_HEAD(u8);
-    coord                              = arg0->extra.tmd->coords;
-    blk                                = (ActorScaleRotScratch*)(head - 0x34);
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                         = ang;
+    head                                       = SCRATCH_STACK_CURSOR(u8);
+    coord                                      = arg0->extra.tmd->coords;
+    blk                                        = (ActorScaleRotScratch*)(head - 0x34);
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
+    ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                                 = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = (s16)scale;
     blk->scale.vy = (s16)scale;

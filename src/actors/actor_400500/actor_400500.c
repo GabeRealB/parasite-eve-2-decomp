@@ -3093,12 +3093,12 @@ static __inline__ s32 lookup_zone(Task* task)
 
 static __inline__ VECTOR* push_color(GfxCoord* coord)
 {
-    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
 
-    ((VECTOR*)(SCRATCH_HEAD(u8) - 0x10))->vx = coord->workm.t[0];
-    block->vy                                = coord->workm.t[1];
-    block->vz                                = coord->workm.t[2];
-    SCRATCH_HEAD(VECTOR)                     = block;
+    ((VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10))->vx = coord->workm.t[0];
+    block->vy                                        = coord->workm.t[1];
+    block->vz                                        = coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR)                     = block;
     return block;
 }
 
@@ -3109,10 +3109,10 @@ static __inline__ void pop_scratch(s32 n)
 
 static __inline__ u8* push_proj(void)
 {
-    u8*                  head  = SCRATCH_HEAD(u8);
+    u8*                  head  = SCRATCH_STACK_CURSOR(u8);
     ActorProjectScratch* block = (ActorProjectScratch*)(head - 0x18);
 
-    SCRATCH_HEAD(ActorProjectScratch)             = block;
+    SCRATCH_STACK_CURSOR(ActorProjectScratch)     = block;
     ((ActorProjectScratch*)(head - 0x18))->vec.vx = 0;
     block->vec.vy                                 = 0;
     block->vec.vz                                 = 0;
@@ -5759,11 +5759,11 @@ static inline void _actor400500UpdateColor(Task* arg0, GfxCoord* coord, TmdObjec
     VECTOR* block;
     u8      room;
 
-    block                = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
-    block->vx            = coord->workm.t[0];
-    block->vy            = coord->workm.t[1];
-    block->vz            = coord->workm.t[2];
-    SCRATCH_HEAD(VECTOR) = block;
+    block                        = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
+    block->vx                    = coord->workm.t[0];
+    block->vy                    = coord->workm.t[1];
+    block->vz                    = coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = block;
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     room = gGameSession->location.loc.room;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {

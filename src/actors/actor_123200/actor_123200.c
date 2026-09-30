@@ -843,9 +843,9 @@ static __inline__ void Actor123200_StepForward(GfxCoord* coord)
     u8*      head;
     SVECTOR* dir;
 
-    head               = SCRATCH_HEAD(u8);
-    dir                = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_HEAD(void) = dir;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    dir                        = (SVECTOR*)(head - sizeof(SVECTOR));
+    SCRATCH_STACK_CURSOR(void) = dir;
 
     Gfx_MatrixCol2(&coord->coord, dir);
     VectorNormalSS(dir, dir);
@@ -913,9 +913,9 @@ static __inline__ void Actor123200_MoveForward(GfxCoord* coord)
     SVECTOR* vec;
 
     if (Mc_SaveData[0].state.field_5C1 != 1) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        vec                   = head - 1;
-        SCRATCH_HEAD(SVECTOR) = vec;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(5);

@@ -35,7 +35,7 @@ static void func_m249_8011D1DC(Task* arg0)
     s32          anim;
 
     SCRATCH_PUSH_BYTES(0x68);
-    scratch = SCRATCH_HEAD(M249Scratch);
+    scratch = SCRATCH_STACK_CURSOR(M249Scratch);
     actor   = arg0->work;
     coord   = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

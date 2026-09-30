@@ -278,11 +278,11 @@ static s32 func_actor_311500_80161E38(GfxCoord* coord, WorldCollisionContact* re
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
-    head                            = SCRATCH_HEAD(ActorRepelScratch);
-    blk                             = head - 1;
-    SCRATCH_HEAD(ActorRepelScratch) = blk;
-    s                               = blk;
+    coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+    head                                    = SCRATCH_STACK_CURSOR(ActorRepelScratch);
+    blk                                     = head - 1;
+    SCRATCH_STACK_CURSOR(ActorRepelScratch) = blk;
+    s                                       = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -337,13 +337,13 @@ static s32 func_actor_311500_80162180(GfxCoord* coord, WorldCollisionContact* re
         return 0;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    pos->vz          = 0;
-    pos->vy          = 0;
-    pos->vx          = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s->blocked               = 0;
+    pos->vz                  = 0;
+    pos->vy                  = 0;
+    pos->vx                  = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -425,7 +425,7 @@ static void func_actor_311500_801626CC(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);

@@ -693,12 +693,12 @@ static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 ar
     s32              t;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -809,13 +809,13 @@ static void func_pyrokinesis_80130DC0(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
     s32              ang2;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
     block->vec.vz                             = vz;
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);

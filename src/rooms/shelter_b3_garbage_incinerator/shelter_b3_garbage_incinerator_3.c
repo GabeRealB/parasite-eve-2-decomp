@@ -2174,9 +2174,9 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
     u8                 g;
     u8                 b;
 
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = head - 0x10;
-    block              = SCRATCH_HEAD(RoomDraw13Scratch);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = head - 0x10;
+    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -2387,10 +2387,10 @@ static void func_shelter_b3_garbage_incinerator_80182AB8(GfxCoord* arg0, u16 arg
     u16              bank;
     u32              idx;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -2455,10 +2455,10 @@ static void func_shelter_b3_garbage_incinerator_80182F18(GfxCoord* arg0, u16 arg
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2748,9 +2748,9 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
     u8                 g;
     u8                 b;
 
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = head - 0x10;
-    block              = SCRATCH_HEAD(RoomDraw13Scratch);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = head - 0x10;
+    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

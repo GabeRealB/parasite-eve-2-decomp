@@ -395,14 +395,14 @@ static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
     u16                h;
     u16                frame;
 
-    tbl                = D_inferno_801304E4;
-    row                = &tbl[kind];
-    h                  = mem->period + row->field_2;
-    inner              = mem->angle + row->field_0;
-    outer              = row->field_4 + (inner + mem->step);
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x70;
-    block              = (InfernoFanScratch*)(head - 0x70);
+    tbl                        = D_inferno_801304E4;
+    row                        = &tbl[kind];
+    h                          = mem->period + row->field_2;
+    inner                      = mem->angle + row->field_0;
+    outer                      = row->field_4 + (inner + mem->step);
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x70;
+    block                      = (InfernoFanScratch*)(head - 0x70);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         ang                = i * 0x2AA;
@@ -494,14 +494,14 @@ static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
     u16                h;
     u16                frame;
 
-    tbl                = D_inferno_801304E4;
-    row                = &tbl[kind];
-    inner              = mem->angle + row->field_0;
-    outer              = row->field_4 + (inner + mem->step);
-    h                  = row->field_2;
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x70;
-    block              = (InfernoFanScratch*)(head - 0x70);
+    tbl                        = D_inferno_801304E4;
+    row                        = &tbl[kind];
+    inner                      = mem->angle + row->field_0;
+    outer                      = row->field_4 + (inner + mem->step);
+    h                          = row->field_2;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x70;
+    block                      = (InfernoFanScratch*)(head - 0x70);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 6; i++) {
         ang                = i * 0x2AA;

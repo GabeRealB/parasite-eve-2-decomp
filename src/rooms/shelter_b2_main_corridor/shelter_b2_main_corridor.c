@@ -2088,9 +2088,9 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
     } else {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

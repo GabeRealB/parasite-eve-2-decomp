@@ -311,8 +311,8 @@ void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     GpGridParams* p;
     s32           val;
 
-    head = SCRATCH_HEAD(u8);
-    vec = SCRATCH_HEAD(VECTOR) = (VECTOR*)(head - 0x10);
+    head = SCRATCH_STACK_CURSOR(u8);
+    vec = SCRATCH_STACK_CURSOR(VECTOR) = (VECTOR*)(head - 0x10);
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)arg0, vec);
     p   = Gp_GridParams;
     val = ((VECTOR*)(head - 0x10))->vx + p->field_14 - p->field_0->coord.t[0];
@@ -337,7 +337,7 @@ void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
     VECTOR3* vec;
 
     SCRATCH_PUSH_BYTES(0x30);
-    vec = SCRATCH_HEAD(VECTOR3);
+    vec = SCRATCH_STACK_CURSOR(VECTOR3);
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&arg0->pos.vx);
     gte_rtv0();
@@ -354,7 +354,7 @@ void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
     s32            i;
 
     SCRATCH_PUSH_BYTES(0x20);
-    block              = SCRATCH_HEAD(GpAxisScratch);
+    block              = SCRATCH_STACK_CURSOR(GpAxisScratch);
     block->local[0].vx = 0;
     block->local[0].vy = (u16)arg0->pos.vy + arg0->radius;
     block->local[0].vz = 0;
@@ -433,9 +433,9 @@ s32 func_800E0C10(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
             return count;
         }
 
-        head               = SCRATCH_HEAD(u8);
-        SCRATCH_HEAD(void) = head - 0x34;
-        s                  = (GpSlideScratch*)(head - 0x34);
+        head                       = SCRATCH_STACK_CURSOR(u8);
+        SCRATCH_STACK_CURSOR(void) = head - 0x34;
+        s                          = (GpSlideScratch*)(head - 0x34);
 
         s->acc[0].vx = 0;
         s->acc[0].vy = 0;
@@ -515,9 +515,9 @@ s32 func_800E0FEC(WorldCollisionContact* arg0, GpDeltaScratch* arg1, s32 arg2, s
         return ret;
     }
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x40;
-    s                  = (GpPushScratch*)(head - 0x40);
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x40;
+    s                          = (GpPushScratch*)(head - 0x40);
 
     for (i = 0; i < 3; i++) {
         s->acc[i].vx = 0;
@@ -598,14 +598,14 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
     s32                    dz;
     s32                    dist;
 
-    minDist            = -1;
-    index              = 0;
-    best               = index;
-    rec                = arg0->context.capsule;
-    head               = SCRATCH_HEAD(u8);
-    slot               = rec->recs;
-    SCRATCH_HEAD(void) = (void*)(head - 0x28);
-    block              = (GpNearScratch*)(head - 0x28);
+    minDist                    = -1;
+    index                      = 0;
+    best                       = index;
+    rec                        = arg0->context.capsule;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    slot                       = rec->recs;
+    SCRATCH_STACK_CURSOR(void) = (void*)(head - 0x28);
+    block                      = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&arg0->coord->workm);
     block->local.vx = (u16)rec->end1.vx + (u16)arg0->pos.vx;
     block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;
@@ -1033,10 +1033,10 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     s32              yaw;
     s32              pitch;
 
-    head                          = SCRATCH_HEAD(u8);
-    block                         = (GpDirMatScratch*)(head - 0x4C);
-    vec                           = (SVECTOR*)block;
-    SCRATCH_HEAD(GpDirMatScratch) = block;
+    head                                  = SCRATCH_STACK_CURSOR(u8);
+    block                                 = (GpDirMatScratch*)(head - 0x4C);
+    vec                                   = (SVECTOR*)block;
+    SCRATCH_STACK_CURSOR(GpDirMatScratch) = block;
     VectorNormalS(arg0, vec);
 
     mat1       = (MATRIX*)(head - 0x44);

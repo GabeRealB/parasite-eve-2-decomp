@@ -2771,7 +2771,7 @@ static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s16            count;
 
     SCRATCH_PUSH(GpRingScratch);
-    block         = SCRATCH_HEAD(GpRingScratch);
+    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
     block->vec.vx = arg0->workm.t[0];
     block->vec.vy = arg0->workm.t[1];
     block->vec.vz = arg0->workm.t[2];
@@ -3239,13 +3239,13 @@ static void func_800FCD00(Task* arg0)
     } else {
         bright += sum & 0xF;
     }
-    r                  = bright;
-    g                  = r >> 1;
-    b                  = r >> 2;
-    outer              = rad;
-    head               = SCRATCH_HEAD(u8) - 0x78;
-    SCRATCH_HEAD(void) = head;
-    block              = (GpEffRingScratch*)head;
+    r                          = bright;
+    g                          = r >> 1;
+    b                          = r >> 2;
+    outer                      = rad;
+    head                       = SCRATCH_STACK_CURSOR(u8) - 0x78;
+    SCRATCH_STACK_CURSOR(void) = head;
+    block                      = (GpEffRingScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
 
     i = 0;
@@ -3731,9 +3731,9 @@ void Gp_EffSprTask80(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        head               = SCRATCH_HEAD(u8) - 0x18;
-        SCRATCH_HEAD(void) = head;
-        block              = (GpRingScratch*)head;
+        head                       = SCRATCH_STACK_CURSOR(u8) - 0x18;
+        SCRATCH_STACK_CURSOR(void) = head;
+        block                      = (GpRingScratch*)head;
         if (arg0->state == 0) {
             t   = (u16)arg0->spawnArg1.value & 0xFFF;
             amt = 0x200;
@@ -4156,12 +4156,12 @@ void Gp_EffSprTaskE0(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (flag < ROOM_EFFECT_CONTROL_HIDDEN) {
         Gp_UpdateCoord(coord);
-        head                                      = SCRATCH_HEAD(u8);
+        head                                      = SCRATCH_STACK_CURSOR(u8);
         ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)coord->workm.t[0];
         block                                     = (GpFxQuadScratch*)(head - 0x1C);
         block->vec.vy                             = (u16)coord->workm.t[1];
         vz                                        = (u16)coord->workm.t[2];
-        SCRATCH_HEAD(GpFxQuadScratch)             = block;
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
         block->vec.vz                             = vz;
         vecp                                      = block;
         gte_SetTransMatrix(&GsWSMATRIX);
@@ -4260,10 +4260,10 @@ void Gp_EffSprTaskE1(Task* arg0)
             return;
         }
     } else {
-        head                          = SCRATCH_HEAD(u8);
-        block                         = (GpFxQuadScratch*)(head - 0x1C);
-        SCRATCH_HEAD(GpFxQuadScratch) = block;
-        vecp                          = block;
+        head                                  = SCRATCH_STACK_CURSOR(u8);
+        block                                 = (GpFxQuadScratch*)(head - 0x1C);
+        SCRATCH_STACK_CURSOR(GpFxQuadScratch) = block;
+        vecp                                  = block;
         if (arg0->state == 0) {
             temp        = (u16)arg0->spawnArg1.value & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -4408,12 +4408,12 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
     s32              ang;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -4602,7 +4602,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
     obj   = (WorldCollisionBody*)actor->field_10C;
     rec   = &actor->field_14C;
     SCRATCH_PUSH(VECTOR);
-    tmp  = SCRATCH_HEAD(VECTOR);
+    tmp  = SCRATCH_STACK_CURSOR(VECTOR);
     task = actor->field_91C;
     if (task != NULL) {
         actor->field_3D4 = *task->extra.tmd->coords;
@@ -4785,7 +4785,7 @@ void Gp_UpdatePlayerMove(void)
     work  = gameGetPtrSlot(3);
     actor = work->work;
     SCRATCH_PUSH(SVECTOR);
-    vec   = SCRATCH_HEAD(SVECTOR);
+    vec   = SCRATCH_STACK_CURSOR(SVECTOR);
     coord = work->extra.tmd->coords;
     _gpCaptureActorPad(work);
     Gp_StateF0.prefix.bytes.field_2 = 0;
@@ -5063,7 +5063,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
     GpAngleScratch* d;
 
     SCRATCH_PUSH(GpAngleScratch);
-    d          = SCRATCH_HEAD(GpAngleScratch);
+    d          = SCRATCH_STACK_CURSOR(GpAngleScratch);
     d->field_0 = to - from;
     d->field_4 = d->field_0 + 0x1000;
     d->field_8 = d->field_0 - 0x1000;
@@ -5129,9 +5129,9 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
     GameActor* actor;
     u8*        head;
 
-    head             = SCRATCH_HEAD(u8);
-    actor            = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(GpYawScratch);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    actor                    = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpYawScratch);
     _gpAimYawAt(actor, (GpYawScratch*)(head - sizeof(GpYawScratch)), arg1);
     SCRATCH_STACK_RELEASE_BLOCK(GpYawScratch);
 }
@@ -5176,10 +5176,10 @@ void Gp_AimPitchToLock(Task* arg0)
     GpPitchScratch* block;
     GfxCoord*       src;
 
-    head             = SCRATCH_HEAD(u8);
-    actor            = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(GpPitchScratch);
-    block            = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    actor                    = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpPitchScratch);
+    block                    = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
     if (actor->field_90C != NULL) {
         src           = arg0->extra.tmd->coords;
         block->rot.vx = 0;
@@ -5224,10 +5224,10 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
     GpPitchScratch* block;
     GfxCoord*       src;
 
-    head             = SCRATCH_HEAD(u8);
-    actor            = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(GpPitchScratch);
-    block            = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    actor                    = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpPitchScratch);
+    block                    = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
     if (actor->field_90C != NULL) {
         src           = arg0->extra.tmd->coords;
         block->rot.vx = 0;
@@ -5270,10 +5270,10 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
     GpPitchScratch* block;
     s32             angle;
 
-    head             = SCRATCH_HEAD(u8);
-    actor            = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(GpPitchScratch);
-    block            = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    actor                    = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpPitchScratch);
+    block                    = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
     if (actor->field_90C != NULL) {
         _gpAimPitchPlace(block, actor->field_91C->extra.tmd->coords, &D_801131B4[arg1]);
         block->dist = _gpAimPitchLockDelta(actor, block);
@@ -5302,10 +5302,10 @@ static void Gp_AimPitchDirect(Task* arg0)
     GpPitchScratch* block;
     GfxCoord*       src;
 
-    head             = SCRATCH_HEAD(u8);
-    actor            = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(GpPitchScratch);
-    block            = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    actor                    = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(GpPitchScratch);
+    block                    = (GpPitchScratch*)(head - sizeof(GpPitchScratch));
     if (actor->field_90C != NULL) {
         src           = actor->field_91C->extra.tmd->coords;
         block->rot.vx = 0;
@@ -5750,9 +5750,9 @@ static void func_80103CB4(GfxCoord* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3
     u8*     head;
     VECTOR* vec;
 
-    head                         = SCRATCH_HEAD(u8);
+    head                         = SCRATCH_STACK_CURSOR(u8);
     vec                          = (VECTOR*)(head - 0x10);
-    SCRATCH_HEAD(VECTOR)         = vec;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
     ((VECTOR*)(head - 0x10))->vx = 0;
     vec->vy                      = -0x600;
     vec->vz                      = 0;
@@ -5780,7 +5780,7 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
     s32      absz;
     s32      vx;
 
-    head                          = SCRATCH_HEAD(u8);
+    head                          = SCRATCH_STACK_CURSOR(u8);
     ((VECTOR3*)(head - 0x10))->vx = arg0->vx - arg1->vx;
     vec                           = (VECTOR3*)(head - 0x10);
     vec->vy                       = arg0->vy - arg1->vy;
@@ -5791,7 +5791,7 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
     vx                            = ((VECTOR3*)(head - 0x10))->vx;
     vx                            = ABS(vx);
     vx                            = vx * vx;
-    SCRATCH_HEAD(VECTOR3)         = vec;
+    SCRATCH_STACK_CURSOR(VECTOR3) = vec;
     vx                            = SquareRoot0(vx + absz);
     SCRATCH_POP_BYTES(0x10);
     return vx;
@@ -6392,9 +6392,9 @@ s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg
     s32        mode;
     s16        angle;
 
-    actor              = arg0->work;
-    head               = SCRATCH_HEAD(s32);
-    SCRATCH_HEAD(void) = head - 4;
+    actor                      = arg0->work;
+    head                       = SCRATCH_STACK_CURSOR(s32);
+    SCRATCH_STACK_CURSOR(void) = head - 4;
     _gpSwitchToPlayerMode2(arg0);
     actor->field_982 = 1;
     actor->field_956 = 2;
@@ -7929,12 +7929,12 @@ static void Gp_PlayerMode2State3(Task* arg0)
     s32            delay;
     s32            mode;
 
-    head                        = SCRATCH_HEAD(u8);
-    blk                         = (GpDashScratch*)(head - 0x2C);
-    SCRATCH_HEAD(GpDashScratch) = blk;
-    vel                         = blk;
-    actor                       = arg0->work;
-    coord                       = arg0->extra.tmd->coords;
+    head                                = SCRATCH_STACK_CURSOR(u8);
+    blk                                 = (GpDashScratch*)(head - 0x2C);
+    SCRATCH_STACK_CURSOR(GpDashScratch) = blk;
+    vel                                 = blk;
+    actor                               = arg0->work;
+    coord                               = arg0->extra.tmd->coords;
     switch (actor->field_95E) {
         case 0:
             blk->mtx = coord->coord;
@@ -9052,14 +9052,14 @@ static void func_80109844(Task* arg0)
     s32        temp;
     s32        val;
 
-    inner            = arg0->work;
-    temp             = (u16)inner->field_96E / 12;
-    head             = SCRATCH_HEAD(u8);
-    params           = &D_80113358;
-    head            -= 8;
-    SCRATCH_HEAD(u8) = head;
-    vec              = (SVECTOR*)head;
-    temp             = _gpCapLevel(temp);
+    inner                    = arg0->work;
+    temp                     = (u16)inner->field_96E / 12;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    params                   = &D_80113358;
+    head                    -= 8;
+    SCRATCH_STACK_CURSOR(u8) = head;
+    vec                      = (SVECTOR*)head;
+    temp                     = _gpCapLevel(temp);
     switch (inner->field_95E) {
         case 0:
             inner->field_95E   = 1;

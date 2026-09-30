@@ -554,13 +554,13 @@ static void func_actor_205200_8014C0C0(Task* arg0)
     s32                 sound;
     s32                 count;
 
-    work               = arg0->work;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(ActorAttackScratch);
-    scratch            = SCRATCH_HEAD(ActorAttackScratch);
-    coord              = arg0->extra.tmd->coords;
-    target             = player->extra.tmd->coords;
+    work                       = arg0->work;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorAttackScratch);
+    scratch                    = SCRATCH_STACK_CURSOR(ActorAttackScratch);
+    coord                      = arg0->extra.tmd->coords;
+    target                     = player->extra.tmd->coords;
 
     switch (work->field_58A) {
         case 0:

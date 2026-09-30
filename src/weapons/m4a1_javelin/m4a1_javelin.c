@@ -346,9 +346,9 @@ static void func_m4a1_javelin_8011DAB0(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     u8                       b;
     u16                      angle;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayPointPairScratch);
-    sc               = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayPointPairScratch);
+    sc                       = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -498,9 +498,9 @@ static void func_m4a1_javelin_8011E4A8(SVECTOR* p0, SVECTOR* p1, u16 flags, u16 
     u16                      ang;
     s32                      i;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayPointPairScratch);
-    sc               = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayPointPairScratch);
+    sc                       = (OverlayPointPairScratch*)(head - sizeof(OverlayPointPairScratch));
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -633,10 +633,10 @@ static void func_m4a1_javelin_8011EE78(SVECTOR* p0, SVECTOR* p1, u16 brightness)
     LINE_G2*                line;
     s32*                    otz0;
 
-    head                                 = SCRATCH_HEAD(u8);
-    sc                                   = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
-    SCRATCH_HEAD(M4a1JavelinLineScratch) = sc;
-    otz0                                 = &sc->otz0;
+    head                                         = SCRATCH_STACK_CURSOR(u8);
+    sc                                           = (M4a1JavelinLineScratch*)(head - sizeof(M4a1JavelinLineScratch));
+    SCRATCH_STACK_CURSOR(M4a1JavelinLineScratch) = sc;
+    otz0                                         = &sc->otz0;
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -687,12 +687,12 @@ static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg
     s32              ang2;
     u16              vz;
 
-    head                                                         = SCRATCH_HEAD(u8);
+    head                                                         = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch)))->vec.vx = arg0->vx;
     block                                                        = (GpFxQuadScratch*)(head - sizeof(GpFxQuadScratch));
     block->vec.vy                                                = arg0->vy;
     vz                                                           = arg0->vz;
-    SCRATCH_HEAD(GpFxQuadScratch)                                = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)                        = block;
     block->vec.vz                                                = vz;
     vec                                                          = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -808,7 +808,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
     SCRATCH_PUSH_BYTES(0x58);
     coord        = arg0->extra.tmd->coords;
     actor        = arg0->work;
-    spot         = SCRATCH_HEAD(GfxCoord);
+    spot         = SCRATCH_STACK_CURSOR(GfxCoord);
     spot->parent = NULL;
 
     switch (actor->field_95E) {

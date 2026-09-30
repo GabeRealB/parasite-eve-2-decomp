@@ -135,13 +135,13 @@ static void func_pepper_spray_8012F21C(GfxCoord* arg0, s16 arg1, s16 arg2)
     POLY_FT4*          prim;
     s32                ang;
 
-    head                            = SCRATCH_HEAD(u8);
-    blk                             = (GpEffFlareScratch*)(head - 0x1C);
-    copy                            = blk;
-    blk->vec.vx                     = (u16)arg0->workm.t[0];
-    blk->vec.vy                     = (u16)arg0->workm.t[1];
-    blk->vec.vz                     = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpEffFlareScratch) = blk;
+    head                                    = SCRATCH_STACK_CURSOR(u8);
+    blk                                     = (GpEffFlareScratch*)(head - 0x1C);
+    copy                                    = blk;
+    blk->vec.vx                             = (u16)arg0->workm.t[0];
+    blk->vec.vy                             = (u16)arg0->workm.t[1];
+    blk->vec.vz                             = (u16)arg0->workm.t[2];
+    SCRATCH_STACK_CURSOR(GpEffFlareScratch) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
@@ -198,12 +198,12 @@ static void func_pepper_spray_8012F634(GfxCoord* arg0, s16 arg1, s16 arg2)
     s32                        depth;
     s16                        color;
 
-    depth                                   = -0x200;
-    head                                    = SCRATCH_HEAD(u8);
-    blk                                     = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
-    SCRATCH_HEAD(OverlayFlaggedQuadScratch) = blk;
-    copy                                    = blk;
-    color                                   = arg2;
+    depth                                           = -0x200;
+    head                                            = SCRATCH_STACK_CURSOR(u8);
+    blk                                             = (OverlayFlaggedQuadScratch*)(head - sizeof(OverlayFlaggedQuadScratch));
+    SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch) = blk;
+    copy                                            = blk;
+    color                                           = arg2;
     gte_SetTransMatrix(&GsWSMATRIX);
     ang = arg1;
 

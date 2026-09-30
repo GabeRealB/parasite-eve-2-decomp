@@ -453,11 +453,11 @@ static void func_actor_300700_801637E4(Task* actor)
 
     bestPush = 0;
     lastId   = 0;
-    head     = SCRATCH_HEAD(GpDeltaScratch);
+    head     = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     work     = actor->work;
-    scratch = SCRATCH_HEAD(GpDeltaScratch) = head - 3;
-    coord                                  = actor->extra.tmd->coords;
-    ctx                                    = actor->spawnArg2.pointer;
+    scratch = SCRATCH_STACK_CURSOR(GpDeltaScratch) = head - 3;
+    coord                                          = actor->extra.tmd->coords;
+    ctx                                            = actor->spawnArg2.pointer;
     switch (func_800E0C10((WorldCollisionContact*)&work->field_27C[0x20], scratch, 4, NULL)) {
         case 0:
             break;
@@ -584,7 +584,7 @@ static void func_actor_300700_801637E4(Task* actor)
         work->field_33C  = target;
     }
     Gp_ClearRec18Occupied(work->sensorContacts);
-    SCRATCH_HEAD(GpDeltaScratch) += 3;
+    SCRATCH_STACK_CURSOR(GpDeltaScratch) += 3;
 }
 
 static void func_actor_300700_80163D64(Task* arg0)
@@ -1435,11 +1435,11 @@ static void func_actor_300700_8016539C(Task* arg0)
     ActorScaleScratch* scratch;
     Actor300700Work*   work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_390 >= 0x201) {
         work->field_390 = (u16)work->field_390 - 0x50;
     }

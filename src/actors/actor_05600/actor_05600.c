@@ -1261,10 +1261,10 @@ static void Actor05600_Fn000A4(Task* arg0)
     hit     = 0;
     lastId  = 0;
     work    = (Actor105600Work*)arg0->work;
-    head    = SCRATCH_HEAD(GpDeltaScratch);
+    head    = SCRATCH_STACK_CURSOR(GpDeltaScratch);
     self    = arg0->extra.tmd->coords;
     SCRATCH_PUSH(Actor105600HitScratch);
-    scratch = SCRATCH_HEAD(Actor105600HitScratch);
+    scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
     enemy   = (GpEnemy*)arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
@@ -1556,8 +1556,8 @@ void Actor05600_Fn00B18(Task* arg0)
     s32              ang;
     s32              param;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x10;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
 
     self  = arg0->extra.tmd->coords;
     work  = (Actor105600Work*)arg0->work;
@@ -1635,18 +1635,18 @@ static void Actor05600_Fn00CFC(Task* arg0)
     VECTOR*          head;
     VECTOR*          delta;
 
-    self                 = arg0->extra.tmd->coords;
-    work                 = (Actor105600Work*)arg0->work;
-    head                 = SCRATCH_HEAD(VECTOR);
-    delta                = head - 1;
-    head[-1].vx          = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
-    delta->vy            = 0;
-    dz                   = Player_Status.coordMtx->t[2] - self->coord.t[2];
-    delta->vz            = dz;
-    dx                   = head[-1].vx;
-    trigger              = 0;
-    SCRATCH_HEAD(VECTOR) = delta;
-    distance             = SquareRoot0((dx * dx) + (dz * dz));
+    self                         = arg0->extra.tmd->coords;
+    work                         = (Actor105600Work*)arg0->work;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = head - 1;
+    head[-1].vx                  = (s32)(Player_Status.coordMtx->t[0] - self->coord.t[0]);
+    delta->vy                    = 0;
+    dz                           = Player_Status.coordMtx->t[2] - self->coord.t[2];
+    delta->vz                    = dz;
+    dx                           = head[-1].vx;
+    trigger                      = 0;
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    distance                     = SquareRoot0((dx * dx) + (dz * dz));
     if (distance < 0x5DC) {
         if (Gp_StateF0.prefix.bytes.field_2 & 0x17) {
             work->field_6B2 = 1;
@@ -2403,7 +2403,7 @@ void Actor05600_Fn023A0(Task* arg0)
     s32              distance;
 
     SCRATCH_PUSH(VECTOR);
-    delta = SCRATCH_HEAD(VECTOR);
+    delta = SCRATCH_STACK_CURSOR(VECTOR);
     work  = (Actor105600Work*)arg0->work;
     anim  = Actor05600_D04CFC[work->field_694];
     self  = arg0->extra.tmd->coords;
@@ -3190,12 +3190,12 @@ void Actor05600_Fn041E4(Task* arg0)
     Actor105600Work* work;
     GfxCoord*        coord;
 
-    head             = SCRATCH_HEAD(u8);
-    delta            = (VECTOR*)(head - 0x10);
-    SCRATCH_HEAD(u8) = (u8*)delta;
-    work             = (Actor105600Work*)arg0->work;
-    state            = work->field_6A8;
-    coord            = arg0->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    delta                    = (VECTOR*)(head - 0x10);
+    SCRATCH_STACK_CURSOR(u8) = (u8*)delta;
+    work                     = (Actor105600Work*)arg0->work;
+    state                    = work->field_6A8;
+    coord                    = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             speed = 0;

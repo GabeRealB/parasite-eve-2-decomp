@@ -1671,9 +1671,9 @@ static void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     u16           color;
     u16           packed;
 
-    head                       = SCRATCH_HEAD(u8);
-    c0                         = (GpRgbScratch*)(head - 0x18);
-    SCRATCH_HEAD(GpRgbScratch) = c0;
+    head                               = SCRATCH_STACK_CURSOR(u8);
+    c0                                 = (GpRgbScratch*)(head - 0x18);
+    SCRATCH_STACK_CURSOR(GpRgbScratch) = c0;
 
     color = *arg0;
     c0->b = color;
@@ -2129,7 +2129,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
     slot  = &context->slots[slotIndex];
     coord = &context->coords[slot->coordIndex];
     SCRATCH_PUSH(_AnimationTickScratch);
-    scratch     = SCRATCH_HEAD(_AnimationTickScratch);
+    scratch     = SCRATCH_STACK_CURSOR(_AnimationTickScratch);
     slot->flags = 0;
     // Advance signed sixteenth-frame timing, then follow any control records.
     if (slot->atEnd == 1) {

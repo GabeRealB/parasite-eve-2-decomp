@@ -1287,8 +1287,8 @@ void func_acropolis_roof_garden_8017E29C(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    head        = SCRATCH_HEAD(void);
-    blk         = (RoomGlowScratch*)(SCRATCH_HEAD(void) = head - 0x18);
+    head        = SCRATCH_STACK_CURSOR(void);
+    blk         = (RoomGlowScratch*)(SCRATCH_STACK_CURSOR(void) = head - 0x18);
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];
     blk->vec.vz = coord->workm.t[2];
@@ -1683,7 +1683,7 @@ static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, WorldCollisionCo
     }
 
     SCRATCH_PUSH(OverlayBisectorScratch);
-    st         = SCRATCH_HEAD(OverlayBisectorScratch);
+    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];

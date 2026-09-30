@@ -38,7 +38,7 @@ static void func_m4a1_8011D1C4(Task* arg0)
     s16 shots;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot  = SCRATCH_HEAD(GfxCoord);
+    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (actor->field_95E) {

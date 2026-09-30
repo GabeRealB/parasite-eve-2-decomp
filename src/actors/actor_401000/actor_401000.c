@@ -1366,7 +1366,7 @@ static void func_actor_401000_801320E0(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
@@ -1493,14 +1493,14 @@ static s32 func_actor_401000_80132824(Task* arg0)
     SVECTOR*           v;
     SVECTOR*           out;
 
-    player           = gameGetPtrSlot(3);
-    head             = SCRATCH_HEAD(u8);
-    local            = (SVECTOR*)(head - 0xC);
-    s                = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx      = player->extra.tmd->coords->coord.t[0];
-    s->local.vy      = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_HEAD(u8) = (u8*)s;
-    s->local.vz      = player->extra.tmd->coords->coord.t[2];
+    player                   = gameGetPtrSlot(3);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    local                    = (SVECTOR*)(head - 0xC);
+    s                        = (ActorSightScratch*)(head - 0x1C);
+    s->local.vx              = player->extra.tmd->coords->coord.t[0];
+    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
+    s->local.vz              = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -2169,8 +2169,8 @@ static void func_actor_401000_80133D50(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if (enemy->hp > 0) {
-        head  = SCRATCH_HEAD(ActorHitScratch);
-        s     = (SCRATCH_HEAD(ActorHitScratch) = head - 1);
+        head  = SCRATCH_STACK_CURSOR(ActorHitScratch);
+        s     = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
         s->id = actorFindHit(&head[-1].hitPos, work->field_8F0);
         if (s->id != 0) {
             if (s->id & 0x8000) {
@@ -2586,7 +2586,7 @@ static void func_actor_401000_80134F98(Task* arg0)
         return;
     }
     SCRATCH_PUSH(ActorChaseScratch);
-    aim                                   = SCRATCH_HEAD(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->flags_68.half & 1) {
         work->field_0 = 7;
@@ -2673,10 +2673,10 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
     if (Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
-    head                         = SCRATCH_HEAD(ActorStepDelta);
-    SCRATCH_HEAD(ActorStepDelta) = head - 1;
-    s                            = head - 1;
-    s->moved                     = 0;
+    head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
+    SCRATCH_STACK_CURSOR(ActorStepDelta) = head - 1;
+    s                                    = head - 1;
+    s->moved                             = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
@@ -2748,9 +2748,9 @@ static s32 func_actor_401000_80135704(Task* arg0, WorldCollisionContact* recs, s
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                    = SCRATCH_HEAD(ActorPushScratch);
+    head                                    = SCRATCH_STACK_CURSOR(ActorPushScratch);
     blk                                     = head - 1;
-    SCRATCH_HEAD(ActorPushScratch)          = blk;
+    SCRATCH_STACK_CURSOR(ActorPushScratch)  = blk;
     s                                       = blk;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
     s->pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
@@ -2825,8 +2825,8 @@ static void func_actor_401000_80135AA4(Task* arg0)
     }
     work->field_6++;
     work->field_8++;
-    head  = SCRATCH_HEAD(ActorChaseScratch);
-    chase = (SCRATCH_HEAD(ActorChaseScratch) = head - 1);
+    head  = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    chase = (SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &head[-1].delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401000_80132EF0(arg0);
@@ -2962,10 +2962,10 @@ static void func_actor_401000_801365C8(Task* arg0)
         work->field_C24++;
         return;
     }
-    head                                  = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch)       = head - 1;
-    chase                                 = head - 1;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    chase                                   = head - 1;
+    arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
     func_actor_401000_80132EF0(arg0);
     if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC) == 1) {
         work->field_8++;
@@ -3075,9 +3075,9 @@ static void func_actor_401000_80136E20(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                                    = SCRATCH_HEAD(ActorChaseScratch);
+        head                                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         obj                                                     = arg0->extra.tmd;
-        SCRATCH_HEAD(ActorChaseScratch)                         = head - 1;
+        SCRATCH_STACK_CURSOR(ActorChaseScratch)                 = head - 1;
         aim                                                     = head - 1;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                              = 0;
@@ -3101,9 +3101,9 @@ static void func_actor_401000_80136E20(Task* arg0)
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    aim                             = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    aim                                     = head - 1;
     func_actor_401000_80132EF0(arg0);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     if (work->field_C00 == work->field_C02) {
@@ -3174,9 +3174,9 @@ static void func_actor_401000_801374D4(Task* arg0)
         work->field_0 = 0x1E;
         return;
     }
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    aim                             = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    aim                                     = head - 1;
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
@@ -3832,7 +3832,7 @@ static void func_actor_401000_801394EC(Task* arg0)
         }
     } else {
         SCRATCH_PUSH(ActorTurnScratch);
-        turn           = SCRATCH_HEAD(ActorTurnScratch);
+        turn           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
         turn->delta.vx = work->field_C[work->field_14].x - arg0->extra.tmd->coords->coord.t[0];
         turn->delta.vy = 0;
         turn->delta.vz = work->field_C[work->field_14].z - arg0->extra.tmd->coords->coord.t[2];
@@ -3931,7 +3931,7 @@ static void func_actor_401000_80139D10(Task* arg0)
         work->field_8A2           = 0x1E;
     }
     SCRATCH_PUSH(ActorTurnScratch);
-    turn            = SCRATCH_HEAD(ActorTurnScratch);
+    turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8AE = turn->angle;
     if (turn->angle > 0x40) {
@@ -3992,7 +3992,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
     }
     func_actor_401000_80132EF0(arg0);
     SCRATCH_PUSH(ActorChaseScratch);
-    aim             = SCRATCH_HEAD(ActorChaseScratch);
+    aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8AE = aim->turn;
     if (ABS(aim->turn) < 0x81 && work->field_89E == 2) {
@@ -4067,7 +4067,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
     }
     work->field_6 += 1;
     SCRATCH_PUSH(ActorChaseScratch);
-    aim                                   = SCRATCH_HEAD(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->flags_68.half & 1) {
         work->field_0 = 7;
@@ -4126,7 +4126,7 @@ static void func_actor_401000_8013A930(Task* arg0)
     }
     work->field_6++;
     SCRATCH_PUSH(ActorChaseScratch);
-    aim       = SCRATCH_HEAD(ActorChaseScratch);
+    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8AE < aim->turn) {
         if (aim->turn - work->field_8AE > 0x28) {
@@ -4401,9 +4401,9 @@ static void func_actor_401000_8013C46C(Task* arg0)
     }
     work->field_6++;
     work->field_8++;
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    s                               = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    s                                       = head - 1;
     if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
         if (func_actor_401000_801323EC(arg0->extra.tmd->coords, work->field_8F0, 0xC) != 1) {
             func_actor_401000_80135704(arg0, work->field_8F0, 0xC);
@@ -4679,9 +4679,9 @@ static void func_actor_401000_8013D044(GpEnemy* enemy, Task* actor)
             return;
     }
 
-    head                           = SCRATCH_HEAD(ActorViewScratch);
-    SCRATCH_HEAD(ActorViewScratch) = head - 1;
-    scratch                        = head - 1;
+    head                                   = SCRATCH_STACK_CURSOR(ActorViewScratch);
+    SCRATCH_STACK_CURSOR(ActorViewScratch) = head - 1;
+    scratch                                = head - 1;
 
     if (work->field_BE8 > 0) {
         work->field_BE8 = (s16)((u16)work->field_BE8 - 1);

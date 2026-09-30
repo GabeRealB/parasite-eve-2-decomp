@@ -178,7 +178,7 @@ static void func_gunblade_8011D70C(s16 slot, s16 flags)
     s32                  fade;
 
     SCRATCH_PUSH_BYTES(sizeof(GunbladeBeamScratch));
-    blk = SCRATCH_HEAD(GunbladeBeamScratch);
+    blk = SCRATCH_STACK_CURSOR(GunbladeBeamScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {

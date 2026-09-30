@@ -52,7 +52,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
     coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GfxCoord);
+    spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

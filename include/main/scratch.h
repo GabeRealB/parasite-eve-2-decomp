@@ -28,11 +28,29 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// lifetime checks are provided; released blocks must not remain in use.
 #define SCRATCH_STACK_CURSOR_SLOT ((void**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET))
 
-/// The stack pointer seen as a `type*`: reads the top block, or, assigned,
-/// moves the top to a block the caller computed.
-#define SCRATCH_HEAD(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT)
+/// Writable `type*` view of the shared downward-growing scratch-stack cursor.
+///
+/// `type` is a pointee type valid in a `type**` cast; use `void` for an
+/// untyped pointer or `u8` for byte displacements. A value read loads the
+/// cursor once from `SCRATCH_STACK_CURSOR_SLOT`; assignment replaces it once,
+/// and a compound update reads and writes it once. Element arithmetic requires
+/// a complete object type and moves by `sizeof(type)` bytes per element.
+/// Taking this lvalue's address gives the slot as `type**` without reading it.
+/// The type argument occurs once and supplies no value expression; the macro
+/// captures no caller variables.
+///
+/// Reading the cursor reserves nothing. It can address the current block or
+/// the empty-stack slot, so the selected type alone does not establish a live
+/// object or its extent. Callers initialize the shared cursor and reserve
+/// aligned storage below it before using a block. Assigning a lower address
+/// reserves bytes; restoring a saved cursor releases intervening reservations
+/// in reverse order. Keep reservations below the slot and clear of other live
+/// scratchpad storage. No bounds or alignment checks or block clearing occur;
+/// released storage can be reused, and resetting the cursor ends all current
+/// reservations.
+#define SCRATCH_STACK_CURSOR(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT)
 
-/// Takes one `type` off the stack; the block is then `SCRATCH_HEAD(type)`.
+/// Takes one `type` off the stack; the block is then `SCRATCH_STACK_CURSOR(type)`.
 #define SCRATCH_PUSH(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT -= 1)
 
 /// Releases one block from the downward-growing scratch stack.
@@ -40,7 +58,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// `blockType` is a complete, fixed-size object type whose size equals the
 /// reservation being released. The shared cursor in `SCRATCH_STACK_CURSOR_SLOT`
 /// advances by `sizeof(blockType)` bytes; reservations must be released in
-/// reverse order, including those made by directly assigning `SCRATCH_HEAD`.
+/// reverse order, including those made by directly assigning `SCRATCH_STACK_CURSOR`.
 /// The cursor must be initialized, and the update must stay within the stack
 /// storage, at or below its empty position at the cursor slot. No bounds or
 /// alignment checks are performed.
@@ -63,7 +81,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
 #define SCRATCH_HEAD_ADDR (SCRATCH_STACK_CURSOR_SLOT)
 
-/// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
+/// `SCRATCH_STACK_CURSOR`, `SCRATCH_PUSH` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
 #define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
 
 #define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)

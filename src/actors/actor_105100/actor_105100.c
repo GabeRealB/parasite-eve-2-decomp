@@ -880,7 +880,7 @@ static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
     light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_PUSH(GpRingScratch);
-    sc         = SCRATCH_HEAD(GpRingScratch);
+    sc         = SCRATCH_STACK_CURSOR(GpRingScratch);
     sc->vec.vx = coord->workm.t[0];
     sc->vec.vy = coord->workm.t[1];
     sc->vec.vz = coord->workm.t[2];
@@ -1815,13 +1815,13 @@ static void func_actor_105100_80133CE4(Task* arg0)
     s32                 sound;
     s32                 count;
 
-    work               = arg0->work;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(ActorAttackScratch);
-    scratch            = SCRATCH_HEAD(ActorAttackScratch);
-    coord              = arg0->extra.tmd->coords;
-    target             = player->extra.tmd->coords;
+    work                       = arg0->work;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(ActorAttackScratch);
+    scratch                    = SCRATCH_STACK_CURSOR(ActorAttackScratch);
+    coord                      = arg0->extra.tmd->coords;
+    target                     = player->extra.tmd->coords;
 
     switch (work->field_5A4) {
         case 0:
@@ -2241,7 +2241,7 @@ static void func_actor_105100_80134B00(GpEnemy* arg0, Task* arg1)
     }
 body:
     SCRATCH_PUSH(Actor105100ProjScratch);
-    scratch = SCRATCH_HEAD(Actor105100ProjScratch);
+    scratch = SCRATCH_STACK_CURSOR(Actor105100ProjScratch);
     switch (work->field_7A) {
         case 0:
             rng         = Gp_LcgState * 5 + 0x71357911;
@@ -2538,12 +2538,12 @@ static void func_actor_105100_80135674(Task* arg0)
     s32             speed;
     s16             timer;
 
-    head                 = SCRATCH_HEAD(VECTOR);
-    vec                  = head - 1;
-    SCRATCH_HEAD(VECTOR) = vec;
-    rec                  = arg0->work;
-    state                = rec->field_46;
-    coord                = arg0->extra.tmd->coords;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    vec                          = head - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    rec                          = arg0->work;
+    state                        = rec->field_46;
+    coord                        = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
@@ -2603,12 +2603,12 @@ static void func_actor_105100_801359B4(Task* arg0)
     s32             dz;
     s32             speed;
 
-    head                 = SCRATCH_HEAD(VECTOR);
-    vec                  = head - 1;
-    SCRATCH_HEAD(VECTOR) = vec;
-    rec                  = arg0->work;
-    state                = rec->field_46;
-    coord                = arg0->extra.tmd->coords;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    vec                          = head - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    rec                          = arg0->work;
+    state                        = rec->field_46;
+    coord                        = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             vec->vx = D_actor_105100_80141418[rec->field_44].vx - coord->coord.t[0];
@@ -3059,10 +3059,10 @@ static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 a
     ActorScaleScratch* blk;
     GfxCoord*          coord;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    SCRATCH_HEAD(ActorScaleScratch) = head - 1;
-    blk                             = head - 1;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1;
+    blk                                     = head - 1;
+    coord                                   = arg0->extra.tmd->coords;
 
     if (arg3 == 0) {
         blk->scale.vx = 0x1000;

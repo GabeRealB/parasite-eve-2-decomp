@@ -389,7 +389,7 @@ static void Pad_TickEventBanks(PadState* pad)
     s32                  i;
 
     SCRATCH_PUSH_BYTES(4);
-    motor    = SCRATCH_HEAD(u8);
+    motor    = SCRATCH_STACK_CURSOR(u8);
     motor[1] = 0;
     motor[0] = 0;
 

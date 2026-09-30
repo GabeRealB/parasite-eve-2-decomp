@@ -1189,9 +1189,9 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
     Actor403600GridQuad*      above;
     Actor403600ScreenScratch* scratch;
 
-    head             = SCRATCH_HEAD(u8) - 0x1C;
-    SCRATCH_HEAD(u8) = head;
-    scratch          = (Actor403600ScreenScratch*)head;
+    head                     = SCRATCH_STACK_CURSOR(u8) - 0x1C;
+    SCRATCH_STACK_CURSOR(u8) = head;
+    scratch                  = (Actor403600ScreenScratch*)head;
     if (Gp_StateF0.field_4 == 0) {
         seed                    = rand();
         D_actor_403600_80160698 = seed;
@@ -1304,8 +1304,8 @@ void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600Fx
     actor  = arg0->parent;
     center = &actor->extra.tmd->coords[8];
     if (Gp_StateF0.field_4 == 0) {
-        head    = SCRATCH_HEAD(u8);
-        scratch = (Actor403600ChainScratch*)(SCRATCH_HEAD(u8) = head - sizeof(Actor403600ChainScratch));
+        head    = SCRATCH_STACK_CURSOR(u8);
+        scratch = (Actor403600ChainScratch*)(SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor403600ChainScratch));
         Gp_UpdateCoord(&actor->extra.tmd->coords[11]);
         if (arg2->chainsSet == 0) {
             TransposeMatrix(&gGfxViewCoord.workm, &scratch->basis);
@@ -1590,7 +1590,7 @@ void func_actor_403600_80134398(Task* arg0)
         return;
     }
     SCRATCH_PUSH(Actor403600ProjectileScratch);
-    scratch = SCRATCH_HEAD(Actor403600ProjectileScratch);
+    scratch = SCRATCH_STACK_CURSOR(Actor403600ProjectileScratch);
     if (arg0->state == 0) {
         newWork = memCalloc(0x15C, 0);
         if (newWork == NULL) {
@@ -2024,10 +2024,10 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
     SVECTOR*                  vec;
     Actor403600EffectScratch* scratch;
 
-    head               = SCRATCH_HEAD(u8);
-    newHead            = head - 0x78;
-    SCRATCH_HEAD(void) = newHead;
-    scratch            = (Actor403600EffectScratch*)newHead;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    newHead                    = head - 0x78;
+    SCRATCH_STACK_CURSOR(void) = newHead;
+    scratch                    = (Actor403600EffectScratch*)newHead;
     Gp_UpdateCoord(arg1);
     gte_SetRotMatrix(&arg1->workm);
     gte_SetTransMatrix(&arg1->workm);
@@ -3136,8 +3136,8 @@ static u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* s
     if (D_actor_403600_801606A0 != NULL) {
         poly  = (POLY_GT3*)ws->primWrite;
         color = D_actor_403600_80131E34;
-        head  = SCRATCH_HEAD(u8);
-        sc    = SCRATCH_HEAD(_Actor403600TriScratch) =
+        head  = SCRATCH_STACK_CURSOR(u8);
+        sc    = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
             (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);
@@ -3212,8 +3212,8 @@ static u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* s
     if (D_actor_403600_801606A0 != NULL) {
         poly  = (POLY_GT4*)ws->primWrite;
         color = D_actor_403600_80131E34;
-        head  = SCRATCH_HEAD(u8);
-        sc    = SCRATCH_HEAD(_Actor403600QuadScratch) =
+        head  = SCRATCH_STACK_CURSOR(u8);
+        sc    = SCRATCH_STACK_CURSOR(_Actor403600QuadScratch) =
             (_Actor403600QuadScratch*)(head - sizeof(_Actor403600QuadScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);
@@ -3306,8 +3306,8 @@ static u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* s
         if (ws->elemCount == 0) {
             return stream;
         }
-        head = SCRATCH_HEAD(u8);
-        sc   = SCRATCH_HEAD(_Actor403600TriScratch) =
+        head = SCRATCH_STACK_CURSOR(u8);
+        sc   = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
             (_Actor403600TriScratch*)(head - sizeof(_Actor403600TriScratch));
         gte_sttr(&sc->trans);
         gte_ReadRotMatrix(&sc->savedRot);

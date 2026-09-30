@@ -1172,11 +1172,11 @@ static void Actor03700_Fn00ABC(Task* task)
     s16              angle;
     s32              dist;
 
-    head                  = SCRATCH_HEAD(SVECTOR);
-    vec                   = head - 1;
-    SCRATCH_HEAD(SVECTOR) = vec;
-    work                  = (Actor103700Work*)task->work;
-    coord                 = task->extra.tmd->coords;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec                           = head - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+    work                          = (Actor103700Work*)task->work;
+    coord                         = task->extra.tmd->coords;
 
     switch (work->field_250) {
         case 0:
@@ -1317,11 +1317,11 @@ static void Actor03700_Fn011B4(Task* task)
     s32              sound;
     s8               slot;
 
-    coord              = task->extra.tmd->coords;
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(SVECTOR);
-    work               = (Actor103700Work*)task->work;
-    vec                = SCRATCH_HEAD(void);
+    coord                      = task->extra.tmd->coords;
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(SVECTOR);
+    work                       = (Actor103700Work*)task->work;
+    vec                        = SCRATCH_STACK_CURSOR(void);
 
     switch (work->field_250) {
         case 0:
@@ -1390,12 +1390,12 @@ static void Actor03700_Fn01550(Task* task)
     AnimationPlayRequest* arg;
     s32                   sound;
 
-    work               = (Actor103700Work*)task->work;
-    obj                = task->extra.tmd->coords;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - 0x1C;
-    arg                = SCRATCH_HEAD(AnimationPlayRequest);
+    work                       = (Actor103700Work*)task->work;
+    obj                        = task->extra.tmd->coords;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - 0x1C;
+    arg                        = SCRATCH_STACK_CURSOR(AnimationPlayRequest);
 
     switch (work->field_250) {
         case 0:
@@ -1547,12 +1547,12 @@ static void Actor03700_Fn01C94(Task* task)
     s32                   sound;
     s32                   pan;
 
-    work               = (Actor103700Work*)task->work;
-    obj                = task->extra.tmd->coords;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(AnimationPlayRequest);
-    arg                = SCRATCH_HEAD(AnimationPlayRequest);
+    work                       = (Actor103700Work*)task->work;
+    obj                        = task->extra.tmd->coords;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(AnimationPlayRequest);
+    arg                        = SCRATCH_STACK_CURSOR(AnimationPlayRequest);
 
     switch (work->field_250) {
         case 0:
@@ -1978,13 +1978,13 @@ static void Actor03700_Fn029C0(Task* task)
     s32                      mode;
     GpEnemy*                 ctx;
 
-    scratch                               = SCRATCH_HEAD(Actor103700SteerScratch) - 1;
-    SCRATCH_HEAD(Actor103700SteerScratch) = scratch;
-    obj                                   = task->extra.tmd;
-    coord                                 = obj->coords;
-    work                                  = (Actor103700Work*)task->work;
-    mode                                  = work->field_250;
-    ctx                                   = (GpEnemy*)task->spawnArg2.pointer;
+    scratch                                       = SCRATCH_STACK_CURSOR(Actor103700SteerScratch) - 1;
+    SCRATCH_STACK_CURSOR(Actor103700SteerScratch) = scratch;
+    obj                                           = task->extra.tmd;
+    coord                                         = obj->coords;
+    work                                          = (Actor103700Work*)task->work;
+    mode                                          = work->field_250;
+    ctx                                           = (GpEnemy*)task->spawnArg2.pointer;
 
     switch (mode) {
         case 0:
@@ -2137,11 +2137,11 @@ static s32 Actor03700_Fn03130(Task* task)
     Actor103700HoldScratch* scratch;
     s32                     ret;
 
-    work               = (Actor103700Work*)task->work;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(Actor103700HoldScratch);
-    scratch            = (Actor103700HoldScratch*)SCRATCH_HEAD(void);
+    work                       = (Actor103700Work*)task->work;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor103700HoldScratch);
+    scratch                    = SCRATCH_STACK_CURSOR(Actor103700HoldScratch);
 
     ret = 0;
     if (((GameActor*)player->work)->field_954 != 2) {

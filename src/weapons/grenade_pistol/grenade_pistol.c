@@ -134,15 +134,15 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
     s32                flags;
     s32                speed;
 
-    head                  = SCRATCH_HEAD(u8);
-    blk                   = (SVECTOR*)(head - 8);
-    SCRATCH_HEAD(SVECTOR) = blk;
-    extra                 = arg0->extra.tmd;
-    idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
-    coord                 = extra->coords;
-    muzzle                = coord->parent;
-    work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec                   = blk;
+    head                          = SCRATCH_STACK_CURSOR(u8);
+    blk                           = (SVECTOR*)(head - 8);
+    SCRATCH_STACK_CURSOR(SVECTOR) = blk;
+    extra                         = arg0->extra.tmd;
+    idx                           = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
+    coord                         = extra->coords;
+    muzzle                        = coord->parent;
+    work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    vec                           = blk;
     if (work == NULL) {
         SCRATCH_POP_BYTES(8);
         taskKill(arg0);
@@ -241,13 +241,13 @@ static void func_grenade_pistol_8011D6FC(Task* arg0)
 
     work  = (WeaponGrenadeWork*)arg0->work;
     coord = arg0->extra.tmd->coords;
-    head  = SCRATCH_HEAD(u8);
+    head  = SCRATCH_STACK_CURSOR(u8);
     /* Pushed and then re-derived rather than stored from `blk`: the scratch
        head has to stay live in its own register, because the `GpDeltaScratch`
        handed to `func_800E0FEC` below is addressed off it and not off `blk`. */
-    SCRATCH_HEAD(u8)    = head - sizeof(WeaponGrenadeScratch);
-    blk                 = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(WeaponGrenadeScratch);
+    blk                      = (WeaponGrenadeScratch*)(head - sizeof(WeaponGrenadeScratch));
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
         blk->field_30 = arg0->spawnArg1.value & 0xFF00;

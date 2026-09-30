@@ -753,11 +753,11 @@ static void Actor02600_Fn0006C(Task* arg0)
     lastId  = 0;
     work    = arg0->work;
     coord   = arg0->extra.tmd->coords;
-    head    = SCRATCH_HEAD(Actor105500HitScratch);
-    scratch = SCRATCH_HEAD(Actor105500HitScratch) = head - 1;
-    enemy                                         = (GpEnemy*)arg0->spawnArg2.pointer;
-    work->field_3CC                               = 0;
-    result                                        = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
+    head    = SCRATCH_STACK_CURSOR(Actor105500HitScratch);
+    scratch = SCRATCH_STACK_CURSOR(Actor105500HitScratch) = head - 1;
+    enemy                                                 = (GpEnemy*)arg0->spawnArg2.pointer;
+    work->field_3CC                                       = 0;
+    result                                                = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
     if (result != 0) {
         if (work->field_39A == 2) {
             work->field_3CC = 1;
@@ -2546,11 +2546,11 @@ static void Actor02600_Fn03B58(Task* arg0)
     ActorScaleScratch* scratch;
     Actor105500Work*   work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_3A0 >= 0x201) {
         work->field_3A0 = (u16)work->field_3A0 - 0x50;
     }

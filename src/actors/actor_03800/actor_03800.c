@@ -1025,7 +1025,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     lastId   = 0;
     work     = arg0->work;
     SCRATCH_PUSH(ActorWallPushFrame);
-    frame  = SCRATCH_HEAD(ActorWallPushFrame);
+    frame  = SCRATCH_STACK_CURSOR(ActorWallPushFrame);
     coord  = work->field_344;
     ctx    = arg0->spawnArg2.pointer;
     result = func_800E0C10(work->field_22C, &frame->delta, 4, NULL);
@@ -2480,11 +2480,11 @@ static void Actor03800_Fn037E0(Task* arg0)
     ActorScaleScratch* head;
     ActorScaleScratch* scratch;
 
-    work                            = arg0->work;
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = work->field_344;
+    work                                    = arg0->work;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = work->field_344;
     if (work->field_35A >= 0x201) {
         work->field_35A = (u16)work->field_35A - 0x50;
     }

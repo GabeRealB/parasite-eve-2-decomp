@@ -2011,17 +2011,17 @@ static void func_actor_521100_80132958(Task* arg0)
     s16              wrapped;
     s32              magnitude;
 
-    coord                = arg0->extra.tmd->coords;
-    work                 = arg0->work;
-    scratchEnd           = SCRATCH_HEAD(VECTOR);
-    vec                  = scratchEnd - 1;
-    SCRATCH_HEAD(VECTOR) = vec;
-    scratchEnd[-1].vx    = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    vec->vy              = 0;
-    vec->vz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-    work->field_6AA      = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
-    angle                = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
-    work->field_698      = angle;
+    coord                        = arg0->extra.tmd->coords;
+    work                         = arg0->work;
+    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
+    vec                          = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    scratchEnd[-1].vx            = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy                      = 0;
+    vec->vz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    work->field_6AA              = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
+    angle                        = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
+    work->field_698              = angle;
     if (gGameSession->location.loc.view == 2) {
         work->field_69E = 6;
         work->field_6A0 = 0;
@@ -2167,13 +2167,13 @@ static void func_actor_521100_80132DE8(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     work  = arg0->work;
-    head  = SCRATCH_HEAD(VECTOR);
+    head  = SCRATCH_STACK_CURSOR(VECTOR);
     vec   = head - 1;
 
-    SCRATCH_HEAD(VECTOR) = vec;
-    head[-1].vx          = Player_Status.coordMtx->t[0] - coord->coord.t[0];
-    vec->vy              = 0;
-    vec->vz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = vec;
+    head[-1].vx                  = Player_Status.coordMtx->t[0] - coord->coord.t[0];
+    vec->vy                      = 0;
+    vec->vz                      = Player_Status.coordMtx->t[2] - coord->coord.t[2];
 
     work->field_6AA = SquareRoot0(head[-1].vx * head[-1].vx + vec->vz * vec->vz);
     work->field_698 = ratan2((s16)head[-1].vx, (s16)vec->vz) & 0xFFF;
@@ -2253,7 +2253,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
 }
 
 /// The scratch head is taken through `ActorScratchStack` rather than as
-/// `SCRATCH_HEAD`, which does not compile the same.
+/// `SCRATCH_STACK_CURSOR`, which does not compile the same.
 static void func_actor_521100_80133104(Task* arg0)
 {
     GfxCoord*        coord;
@@ -2381,13 +2381,13 @@ static void func_actor_521100_8013334C(Task* arg0)
     s32              snd;
     s32              pan;
 
-    work                  = arg0->work;
-    head                  = SCRATCH_HEAD(SVECTOR);
-    vec                   = head - 1;
-    SCRATCH_HEAD(SVECTOR) = vec;
-    clip                  = D_actor_521100_8015F894[work->field_686];
-    clipId                = D_actor_521100_8015F894[work->field_686];
-    coord                 = arg0->extra.tmd->coords;
+    work                          = arg0->work;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec                           = head - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+    clip                          = D_actor_521100_8015F894[work->field_686];
+    clipId                        = D_actor_521100_8015F894[work->field_686];
+    coord                         = arg0->extra.tmd->coords;
 
     turn = 0;
     if ((s16)work->field_68A < clip + 0x28) {
@@ -2589,7 +2589,7 @@ static void func_actor_521100_801339B0(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     player = gameGetPtrSlot(3);
     SCRATCH_PUSH_BYTES(0x54);
-    sc = SCRATCH_HEAD(Actor521100FireScratch);
+    sc = SCRATCH_STACK_CURSOR(Actor521100FireScratch);
 
     switch (work->field_6A0) {
         case 0:
@@ -2952,13 +2952,13 @@ static void func_actor_521100_80134774(Task* arg0)
     u8*               head;
     s16               state;
 
-    head             = SCRATCH_HEAD(u8);
-    sc               = (ActorFaceScratch*)(head - 0x18);
-    sc2              = sc;
-    SCRATCH_HEAD(u8) = (u8*)sc;
-    work             = arg0->work;
-    coord            = arg0->extra.tmd->coords;
-    state            = work->field_6A0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    sc                       = (ActorFaceScratch*)(head - 0x18);
+    sc2                      = sc;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)sc;
+    work                     = arg0->work;
+    coord                    = arg0->extra.tmd->coords;
+    state                    = work->field_6A0;
     switch (state) {
         case 0:
             work->field_686 = 0x12;
@@ -3194,7 +3194,7 @@ static void func_actor_521100_80134EDC(Task* arg0)
     coord = arg0->extra.tmd->coords;
     head  = &coord[4];
     SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
-    scratch = (ActorAimScratch*)SCRATCH_HEAD(void);
+    scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
@@ -3245,7 +3245,7 @@ static void func_actor_521100_80135024(Task* arg0)
     s32              active;
 
     SCRATCH_PUSH(MATRIX);
-    matrix = SCRATCH_HEAD(MATRIX);
+    matrix = SCRATCH_STACK_CURSOR(MATRIX);
     active = 0;
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;

@@ -2534,7 +2534,7 @@ static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, WorldCollisionCont
     }
 
     SCRATCH_PUSH(OverlayBisectorScratch);
-    st         = SCRATCH_HEAD(OverlayBisectorScratch);
+    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];

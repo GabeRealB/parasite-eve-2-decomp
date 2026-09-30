@@ -3845,7 +3845,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
     s32              tz;
 
     SCRATCH_PUSH(RoomQuadScratch);
-    blk   = SCRATCH_HEAD(RoomQuadScratch);
+    blk   = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
@@ -4102,7 +4102,7 @@ static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, WorldCollision
     }
 
     SCRATCH_PUSH(OverlayBisectorScratch);
-    st         = SCRATCH_HEAD(OverlayBisectorScratch);
+    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
     st->eye.vx = (u16)coord->coord.t[0];
     st->eye.vy = (u16)coord->coord.t[1];
     st->eye.vz = (u16)coord->coord.t[2];

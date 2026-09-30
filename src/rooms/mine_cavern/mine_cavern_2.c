@@ -3245,14 +3245,14 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
             return;
     }
 
-    coords                              = arg1->extra.tmd->coords;
-    head                                = SCRATCH_HEAD(u8);
-    ((SVECTOR*)(head - 0x18))->vx       = Player_Status.coordMtx->t[0] - coords->coord.t[0];
-    d                                   = (SVECTOR*)(head - 0x18);
-    d->vy                               = Player_Status.coordMtx->t[1] - coords->coord.t[1];
-    SCRATCH_HEAD(_MineCavernHitScratch) = (_MineCavernHitScratch*)(head - 0x28);
-    d->vz                               = Player_Status.coordMtx->t[2] - coords->coord.t[2];
-    blk                                 = (_MineCavernHitScratch*)(head - 0x28);
+    coords                                      = arg1->extra.tmd->coords;
+    head                                        = SCRATCH_STACK_CURSOR(u8);
+    ((SVECTOR*)(head - 0x18))->vx               = Player_Status.coordMtx->t[0] - coords->coord.t[0];
+    d                                           = (SVECTOR*)(head - 0x18);
+    d->vy                                       = Player_Status.coordMtx->t[1] - coords->coord.t[1];
+    SCRATCH_STACK_CURSOR(_MineCavernHitScratch) = (_MineCavernHitScratch*)(head - 0x28);
+    d->vz                                       = Player_Status.coordMtx->t[2] - coords->coord.t[2];
+    blk                                         = (_MineCavernHitScratch*)(head - 0x28);
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
         (gGameSession->location.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->location.loc.variant != 4)) {

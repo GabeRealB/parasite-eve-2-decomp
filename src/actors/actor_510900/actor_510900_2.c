@@ -785,7 +785,7 @@ static void func_actor_510900_80135744(Task* arg0)
     s16              wait;
 
     SCRATCH_PUSH_BYTES(sizeof(VECTOR));
-    d        = (VECTOR*)SCRATCH_HEAD(void);
+    d        = SCRATCH_STACK_CURSOR(VECTOR);
     coord    = arg0->extra.tmd->coords;
     work     = arg0->work;
     enemy    = arg0->spawnArg2.pointer;
@@ -1992,11 +1992,11 @@ static void func_actor_510900_80137FBC(Task* arg0)
     s16              step;
     u32              rng;
 
-    head                  = SCRATCH_HEAD(SVECTOR);
-    SCRATCH_HEAD(SVECTOR) = head - 1;
-    work                  = arg0->work;
-    enemy                 = arg0->spawnArg2.pointer;
-    coord                 = arg0->extra.tmd->coords;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
+    work                          = arg0->work;
+    enemy                         = arg0->spawnArg2.pointer;
+    coord                         = arg0->extra.tmd->coords;
     switch (work->field_590) {
         case 0:
             work->field_586 = 0x12;
@@ -2065,11 +2065,11 @@ static void func_actor_510900_80138250(Task* arg0)
     s32              loopPan;
     u32              rng;
 
-    head                  = SCRATCH_HEAD(SVECTOR);
-    SCRATCH_HEAD(SVECTOR) = head - 1;
-    work                  = arg0->work;
-    enemy                 = arg0->spawnArg2.pointer;
-    coord                 = arg0->extra.tmd->coords;
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
+    work                          = arg0->work;
+    enemy                         = arg0->spawnArg2.pointer;
+    coord                         = arg0->extra.tmd->coords;
     switch (work->field_590) {
         case 0:
             work->field_5A2 = 0;
@@ -2183,11 +2183,11 @@ static void func_actor_510900_8013864C(Task* arg0)
     s32              dx;
     s32              dz;
 
-    work                 = arg0->work;
-    head                 = SCRATCH_HEAD(VECTOR);
-    coord                = arg0->extra.tmd->coords;
-    SCRATCH_HEAD(VECTOR) = head - 1;
-    delta                = head - 1;
+    work                         = arg0->work;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    coord                        = arg0->extra.tmd->coords;
+    SCRATCH_STACK_CURSOR(VECTOR) = head - 1;
+    delta                        = head - 1;
 
     for (i = 0; i < 4; i++) {
         if (D_actor_510900_80167BA4[i].minX < Player_Status.coordMtx->t[0] &&
@@ -2229,9 +2229,9 @@ static void func_actor_510900_801387F4(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (work->field_5A2 != 0) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        SCRATCH_HEAD(SVECTOR) = head - 1;
-        rot                   = head - 1;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
+        rot                           = head - 1;
         if (work->field_5AE < 0x3E8) {
             target = D_actor_510900_80167B9C[work->field_5A8 + 1];
         } else {
@@ -2357,7 +2357,7 @@ static void func_actor_510900_80138BF0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     head  = &coord[4];
     SCRATCH_PUSH_BYTES(sizeof(ActorAimScratch));
-    scratch = (ActorAimScratch*)SCRATCH_HEAD(void);
+    scratch = SCRATCH_STACK_CURSOR(ActorAimScratch);
 
     Gp_WorldToLocal(&gGfxViewCoord.workm, &head->workm, &scratch->view);
     scratch->delta.vx = Player_Status.coordMtx->t[0] - scratch->view.t[0];
@@ -2401,7 +2401,7 @@ static void func_actor_510900_80138D38(Task* arg0)
     s32              active;
 
     SCRATCH_PUSH(MATRIX);
-    matrix = SCRATCH_HEAD(MATRIX);
+    matrix = SCRATCH_STACK_CURSOR(MATRIX);
     active = 0;
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -2555,13 +2555,13 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
     SVECTOR*         vec;
     SVECTOR*         corners;
 
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(SVECTOR);
-    rot                = (SVECTOR*)SCRATCH_HEAD(void);
-    obj                = arg0->extra.tmd;
-    work               = arg0->work;
-    enemy              = arg0->spawnArg2.pointer;
-    coord              = obj->coords;
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(SVECTOR);
+    rot                        = SCRATCH_STACK_CURSOR(SVECTOR);
+    obj                        = arg0->extra.tmd;
+    work                       = arg0->work;
+    enemy                      = arg0->spawnArg2.pointer;
+    coord                      = obj->coords;
 
     switch (arg2) {
         case 0:
@@ -2898,13 +2898,13 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
             return;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    scratch          = (Actor510900ChildFxTickScratch*)(head - sizeof(Actor510900ChildFxTickScratch));
-    SCRATCH_HEAD(u8) = (u8*)scratch;
-    angle            = -work->field_CE;
-    scratch->rot.vx  = angle;
-    scratch->rot.vy  = 0;
-    scratch->rot.vz  = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    scratch                  = (Actor510900ChildFxTickScratch*)(head - sizeof(Actor510900ChildFxTickScratch));
+    SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
+    angle                    = -work->field_CE;
+    scratch->rot.vx          = angle;
+    scratch->rot.vy          = 0;
+    scratch->rot.vz          = 0;
     RotMatrix(&scratch->rot, &scratch->mtx);
     gte_SetRotMatrix(&coord->coord);
     gte_ldclmv(&scratch->mtx);
@@ -3062,12 +3062,12 @@ static void func_actor_510900_8013A310(Task* task)
     s32                    snd;
     s32                    pan;
 
-    work               = (Actor510900ChildFx*)task->work;
-    parent             = (Actor510900Work*)task->parent->work;
-    player             = gameGetPtrSlot(3);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = (u8*)head - sizeof(Actor510900HitScratch);
-    scratch            = (Actor510900HitScratch*)SCRATCH_HEAD(void);
+    work                       = (Actor510900ChildFx*)task->work;
+    parent                     = (Actor510900Work*)task->parent->work;
+    player                     = gameGetPtrSlot(3);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = (u8*)head - sizeof(Actor510900HitScratch);
+    scratch                    = SCRATCH_STACK_CURSOR(Actor510900HitScratch);
 
     switch (work->field_CC) {
         case 0:
@@ -3143,16 +3143,16 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work           = work;
-    tmd->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    tmd->lightMtx        = &work->lightMtx;
-    tmd->colorMtx        = &work->colorMtx;
-    head                 = SCRATCH_HEAD(void);
-    enemy->field_4       = &coords->coord;
-    rot                  = (SVECTOR*)(head - 8);
-    SCRATCH_HEAD(void)   = head - 8;
-    enemy->field_48      = 0;
+    task->work                 = work;
+    tmd->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    coords->composeStamp       = GRAPHICS_COORD_DIRTY;
+    tmd->lightMtx              = &work->lightMtx;
+    tmd->colorMtx              = &work->colorMtx;
+    head                       = SCRATCH_STACK_CURSOR(void);
+    enemy->field_4             = &coords->coord;
+    rot                        = (SVECTOR*)(head - 8);
+    SCRATCH_STACK_CURSOR(void) = head - 8;
+    enemy->field_48            = 0;
     Gp_LinkNode(&enemy->node);
     enemy->node.state.b.flags  = 1;
     enemy->coord               = coord;
@@ -3298,16 +3298,16 @@ static void func_actor_510900_8013A9BC(Task* task)
     s32                     dmg;
     s16                     state;
 
-    grabbed                              = 0;
-    head                                 = SCRATCH_HEAD(Actor510900GrabScratch);
-    coord                                = &task->extra.tmd->coords[10];
-    SCRATCH_HEAD(Actor510900GrabScratch) = head - 1;
-    scratch                              = head - 1;
-    work                                 = (Actor510900ChildAnim*)task->work;
-    ctx                                  = task->spawnArg2.pointer;
-    state                                = work->field_330;
-    parent                               = (Actor510900Work*)task->parent->work;
-    one                                  = 1;
+    grabbed                                      = 0;
+    head                                         = SCRATCH_STACK_CURSOR(Actor510900GrabScratch);
+    coord                                        = &task->extra.tmd->coords[10];
+    SCRATCH_STACK_CURSOR(Actor510900GrabScratch) = head - 1;
+    scratch                                      = head - 1;
+    work                                         = (Actor510900ChildAnim*)task->work;
+    ctx                                          = task->spawnArg2.pointer;
+    state                                        = work->field_330;
+    parent                                       = (Actor510900Work*)task->parent->work;
+    one                                          = 1;
     if (state == one) {
         goto case1;
     }

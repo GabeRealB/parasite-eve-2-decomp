@@ -739,11 +739,11 @@ static void Actor02500_Fn00494(Task* actor)
     bestPush = 0;
     lastId   = 0;
     work     = actor->work;
-    head     = SCRATCH_HEAD(Actor02500MoveScratch);
-    frame = SCRATCH_HEAD(Actor02500MoveScratch) = head - 1;
-    coord                                       = actor->extra.tmd->coords;
-    ctx                                         = actor->spawnArg2.pointer;
-    work->field_340                             = 0;
+    head     = SCRATCH_STACK_CURSOR(Actor02500MoveScratch);
+    frame = SCRATCH_STACK_CURSOR(Actor02500MoveScratch) = head - 1;
+    coord                                               = actor->extra.tmd->coords;
+    ctx                                                 = actor->spawnArg2.pointer;
+    work->field_340                                     = 0;
     switch (func_800E0C10(work->field_22C, &frame->delta, 5, NULL)) {
         case 0:
             break;
@@ -917,12 +917,12 @@ static void Actor02500_Fn00B18(Task* actor)
     VECTOR*         vector;
     VECTOR*         scratchEnd;
 
-    scratchEnd         = SCRATCH_HEAD(VECTOR);
-    vector             = scratchEnd - 1;
-    SCRATCH_HEAD(void) = vector;
-    work               = actor->work;
-    state              = work->field_324;
-    coord              = actor->extra.tmd->coords;
+    scratchEnd                 = SCRATCH_STACK_CURSOR(VECTOR);
+    vector                     = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(void) = vector;
+    work                       = actor->work;
+    state                      = work->field_324;
+    coord                      = actor->extra.tmd->coords;
     switch (state) {
         case 0:
             work->field_31C = 1;
@@ -1003,12 +1003,12 @@ static void Actor02500_Fn00DD8(Task* actor)
     VECTOR*         vector;
     VECTOR*         scratchEnd;
 
-    scratchEnd         = SCRATCH_HEAD(VECTOR);
-    vector             = scratchEnd - 1;
-    SCRATCH_HEAD(void) = vector;
-    work               = actor->work;
-    state              = work->field_324;
-    coord              = actor->extra.tmd->coords;
+    scratchEnd                 = SCRATCH_STACK_CURSOR(VECTOR);
+    vector                     = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(void) = vector;
+    work                       = actor->work;
+    state                      = work->field_324;
+    coord                      = actor->extra.tmd->coords;
     switch (state) {
         case 0:
             work->field_31C = 4;
@@ -1818,11 +1818,11 @@ static void Actor02500_Fn02480(Task* arg0)
     ActorScaleScratch* scratch;
     Actor02500Work*    work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_332 >= 0x201) {
         work->field_332 = (u16)work->field_332 - 0x50;
     }

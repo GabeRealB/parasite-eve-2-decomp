@@ -183,7 +183,7 @@ static void func_m4a1_bayonet_8011D69C(s16 slot, s16 flags)
     s32                     fade;
 
     SCRATCH_PUSH_BYTES(sizeof(M4a1BayonetBeamScratch));
-    blk = SCRATCH_HEAD(M4a1BayonetBeamScratch);
+    blk = SCRATCH_STACK_CURSOR(M4a1BayonetBeamScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {

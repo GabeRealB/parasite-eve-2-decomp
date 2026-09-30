@@ -2494,7 +2494,7 @@ static void func_dryfield_night_dilapidated_house_8017DD30(GfxCoord* coord, s16 
 
     pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
     SCRATCH_PUSH(RoomQuadScratch);
-    blk = SCRATCH_HEAD(RoomQuadScratch);
+    blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     red   = pulse * 3 / 4;
     green = pulse;

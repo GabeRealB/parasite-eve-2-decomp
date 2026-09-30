@@ -245,12 +245,12 @@ static void func_m4a1_hammer_8011D904(long* arg0, u16 arg1, u16 arg2, s16 arg3)
     u16              vz;
     s32              u;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0[1];
     vz                                        = (u16)arg0[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -350,12 +350,12 @@ static void func_m4a1_hammer_8011DE60(GfxCoord* arg0, s16 arg1, s16 arg2, s16 ar
     u16              vz;
     s32              u;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -416,12 +416,12 @@ static void func_m4a1_hammer_8011E29C(GfxCoord* coord, SVECTOR* arg1, s32 arg2, 
     s16                     ang;
     u16                     vz;
 
-    head                                             = SCRATCH_HEAD(u8);
+    head                                             = SCRATCH_STACK_CURSOR(u8);
     ((M4a1HammerTrailScratch*)(head - 0x20))->vec.vx = (u16)coord->workm.t[0];
     block                                            = (M4a1HammerTrailScratch*)(head - 0x20);
     block->vec.vy                                    = (u16)coord->workm.t[1];
     vz                                               = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(M4a1HammerTrailScratch)             = block;
+    SCRATCH_STACK_CURSOR(M4a1HammerTrailScratch)     = block;
     block->vec.vz                                    = vz;
     vecp                                             = block;
     gte_SetTransMatrix(&GsWSMATRIX);

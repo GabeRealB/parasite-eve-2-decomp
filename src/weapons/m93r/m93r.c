@@ -43,7 +43,7 @@ static void func_m93r_8011D1C4(Task* arg0)
     s32 lockedOut;
 
     SCRATCH_PUSH_BYTES(0x50);
-    spot      = SCRATCH_HEAD(GfxCoord);
+    spot      = SCRATCH_STACK_CURSOR(GfxCoord);
     actor     = arg0->work;
     coord     = arg0->extra.tmd->coords;
     lockedOut = 0;

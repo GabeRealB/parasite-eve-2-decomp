@@ -1288,14 +1288,14 @@ static void func_actor_403900_80131F54(Task* arg0)
     s32                    wait;
     s16                    t;
 
-    lastId                              = 0;
-    work                                = arg0->work;
-    head                                = SCRATCH_HEAD(Actor402200HitScratch);
-    blk                                 = head - 1;
-    SCRATCH_HEAD(Actor402200HitScratch) = blk;
-    sc                                  = blk;
-    coord                               = arg0->extra.tmd->coords;
-    enemy                               = arg0->spawnArg2.pointer;
+    lastId                                      = 0;
+    work                                        = arg0->work;
+    head                                        = SCRATCH_STACK_CURSOR(Actor402200HitScratch);
+    blk                                         = head - 1;
+    SCRATCH_STACK_CURSOR(Actor402200HitScratch) = blk;
+    sc                                          = blk;
+    coord                                       = arg0->extra.tmd->coords;
+    enemy                                       = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_504, &sc->delta, 4, NULL)) {
         case 0:
@@ -1534,10 +1534,10 @@ static void func_actor_403900_80132688(Task* arg0)
     GfxCoord*              coord;
     s32                    i;
 
-    head             = SCRATCH_HEAD(u8);
-    work             = arg0->work;
-    SCRATCH_HEAD(u8) = head - sizeof(Actor402200BoxScratch);
-    sc               = (Actor402200BoxScratch*)(head - sizeof(Actor402200BoxScratch));
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    work                     = arg0->work;
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200BoxScratch);
+    sc                       = (Actor402200BoxScratch*)(head - sizeof(Actor402200BoxScratch));
     switch (work->field_6CE) {
         case 0:
             for (i = 0; i < work->field_6FA; i++) {
@@ -1753,10 +1753,10 @@ static void func_actor_403900_80132E34(Task* arg0)
     u32                       random;
     s32                       angle;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(Actor402200OffsetScratch);
-    sc               = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
-    work             = arg0->work;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200OffsetScratch);
+    sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
+    work                     = arg0->work;
     if (work->field_6CE == 3) {
         coord           = gameGetPtrSlot(3)->extra.tmd->coords;
         work->field_6E6 = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
@@ -1834,7 +1834,7 @@ static void func_actor_403900_8013314C(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     player = gameGetPtrSlot(3);
     SCRATCH_PUSH_BYTES(sizeof(Actor402200GrabScratch));
-    sc     = SCRATCH_HEAD(Actor402200GrabScratch);
+    sc     = SCRATCH_STACK_CURSOR(Actor402200GrabScratch);
     pcoord = player->extra.tmd->coords;
     flag   = 0;
     switch (work->field_6CE) {
@@ -2094,7 +2094,7 @@ static void func_actor_403900_80133AEC(Task* arg0)
     s16                       timer;
 
     SCRATCH_PUSH_BYTES(sizeof(Actor402200OffsetScratch));
-    sc    = SCRATCH_HEAD(Actor402200OffsetScratch);
+    sc    = SCRATCH_STACK_CURSOR(Actor402200OffsetScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6CE) {
@@ -2284,12 +2284,12 @@ static void func_actor_403900_80134194(Task* arg0)
     s32                       val;
     s16                       timer;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(Actor402200OffsetScratch);
-    sc               = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
-    work             = arg0->work;
-    state            = work->field_6CE;
-    coord            = arg0->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200OffsetScratch);
+    sc                       = (Actor402200OffsetScratch*)(head - sizeof(Actor402200OffsetScratch));
+    work                     = arg0->work;
+    state                    = work->field_6CE;
+    coord                    = arg0->extra.tmd->coords;
     switch (state) {
         case 0:
             coord->coord.t[0] = work->field_6B4[work->field_708].field_4;
@@ -3109,14 +3109,14 @@ static void func_actor_403900_80135D5C(Task* arg0)
     s32                    i;
     s16                    dist;
 
-    coord               = arg0->extra.tmd->coords;
-    head                = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)    = head - sizeof(Actor402200AimScratch);
-    sc                  = (Actor402200AimScratch*)(head - sizeof(Actor402200AimScratch));
-    work                = arg0->work;
-    part                = &coord[3] + 1;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    part->composeStamp  = GRAPHICS_COORD_DIRTY;
+    coord                    = arg0->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor402200AimScratch);
+    sc                       = (Actor402200AimScratch*)(head - sizeof(Actor402200AimScratch));
+    work                     = arg0->work;
+    part                     = &coord[3] + 1;
+    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    part->composeStamp       = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(part);
     if (work->field_6D6 > 0) {
         Gp_WorldToLocal(&coord->workm, &part->workm, &sc->m);
@@ -3322,12 +3322,12 @@ static void func_actor_403900_801368E0(GpEnemy* arg0, Task* arg1)
     u32              random;
     s16              anim;
 
-    work             = arg1->work;
-    coord            = &arg1->extra.tmd->coords[0];
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(SVECTOR);
-    sc               = (SVECTOR*)(head - sizeof(SVECTOR));
-    mode             = Gp_StateF0.field_4;
+    work                     = arg1->work;
+    coord                    = &arg1->extra.tmd->coords[0];
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(SVECTOR);
+    sc                       = (SVECTOR*)(head - sizeof(SVECTOR));
+    mode                     = Gp_StateF0.field_4;
     switch (mode) {
         case 0:
             arg1->extra.tmd->flags = 0;
@@ -4023,12 +4023,12 @@ static void func_actor_403900_8013820C(GfxCoord* arg0, s32 arg1)
     ActorProjectScratch* block;
     SVECTOR*             vec;
 
-    head                              = SCRATCH_HEAD(u8);
-    block                             = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
-    SCRATCH_HEAD(ActorProjectScratch) = block;
-    block->vec.vx                     = 0;
-    block->vec.vy                     = 0;
-    block->vec.vz                     = 0;
+    head                                      = SCRATCH_STACK_CURSOR(u8);
+    block                                     = (ActorProjectScratch*)(head - sizeof(ActorProjectScratch));
+    SCRATCH_STACK_CURSOR(ActorProjectScratch) = block;
+    block->vec.vx                             = 0;
+    block->vec.vy                             = 0;
+    block->vec.vz                             = 0;
     Gp_UpdateCoord(arg0);
     vec = &block->vec;
     gte_SetRotMatrix(&arg0->workm);

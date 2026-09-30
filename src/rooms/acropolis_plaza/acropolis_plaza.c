@@ -4605,7 +4605,7 @@ void func_acropolis_plaza_801811D0(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     SCRATCH_PUSH(AcropolisPlazaFlareScratch);
-    blk         = SCRATCH_HEAD(AcropolisPlazaFlareScratch);
+    blk         = SCRATCH_STACK_CURSOR(AcropolisPlazaFlareScratch);
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];
     blk->vec.vz = coord->workm.t[2];
@@ -4770,7 +4770,7 @@ void func_acropolis_plaza_80182054(Task* task)
     coord = task->extra.coordBody->coord;
     Gp_UpdateCoord(coord);
     SCRATCH_PUSH(AcropolisPlazaGlowScratch);
-    blk         = SCRATCH_HEAD(AcropolisPlazaGlowScratch);
+    blk         = SCRATCH_STACK_CURSOR(AcropolisPlazaGlowScratch);
     blk->vec.vx = coord->workm.t[0];
     blk->vec.vy = coord->workm.t[1];
     blk->vec.vz = coord->workm.t[2];

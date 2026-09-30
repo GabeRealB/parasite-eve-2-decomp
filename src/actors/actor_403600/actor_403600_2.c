@@ -2612,11 +2612,11 @@ static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
     Actor403600Point*           temp_v0_11;
     Actor403600Point*           temp_v1_10;
 
-    temp_s2            = SCRATCH_HEAD(void);
-    temp_s3            = temp_s2 - 1;
-    SCRATCH_HEAD(void) = temp_s3;
-    temp_s4            = arg0->work;
-    temp_s5            = temp_s3;
+    temp_s2                    = SCRATCH_STACK_CURSOR(void);
+    temp_s3                    = temp_s2 - 1;
+    SCRATCH_STACK_CURSOR(void) = temp_s3;
+    temp_s4                    = arg0->work;
+    temp_s5                    = temp_s3;
     if (arg1 == 0) {
         temp_s3->x            = Player_Status.coordMtx->t[0] - D_actor_403600_801605F4[0].x;
         temp_v1               = Player_Status.coordMtx->t[2] - D_actor_403600_801605F4[0].z;
@@ -3064,8 +3064,8 @@ static s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
     s32               next;
 
     step    = arg1;
-    oldHead = SCRATCH_HEAD(ActorFaceScratch);
-    scratch = (SCRATCH_HEAD(ActorFaceScratch) =
+    oldHead = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    scratch = (SCRATCH_STACK_CURSOR(ActorFaceScratch) =
                    oldHead - 1);
     work    = arg0->work;
     if ((arg1 << 0x10) == 0) {
@@ -3142,12 +3142,12 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     Actor403600TurnScratch* temp_v1;
     Actor403600TurnScratch* temp_v1_2;
 
-    temp_v1            = SCRATCH_HEAD(Actor403600TurnScratch);
-    temp_v1            = temp_v1 - 1;
-    SCRATCH_HEAD(void) = temp_v1;
-    temp_v1_2          = temp_v1;
-    temp_s4            = arg0->work;
-    temp_v1_3          = temp_s4->field_746;
+    temp_v1                    = SCRATCH_STACK_CURSOR(Actor403600TurnScratch);
+    temp_v1                    = temp_v1 - 1;
+    SCRATCH_STACK_CURSOR(void) = temp_v1;
+    temp_v1_2                  = temp_v1;
+    temp_s4                    = arg0->work;
+    temp_v1_3                  = temp_s4->field_746;
     switch (temp_v1_3) {
         case 0:
             temp_v1_2->vector[0] =
@@ -3293,12 +3293,12 @@ static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
     MATRIX*                    matrix;
     Actor403600BearingScratch* scratch;
 
-    head            = SCRATCH_HEAD(void);
+    head            = SCRATCH_STACK_CURSOR(void);
     coord           = (*Gp_ActorSlots)->extra.tmd->coords;
     head[-1].rel.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
     vec             = &head[-1].rel;
     vec->vy         = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    scratch         = (SCRATCH_HEAD(void) = &head[-1]);
+    scratch         = (SCRATCH_STACK_CURSOR(void) = &head[-1]);
     vec->vz         = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
     matrix          = &head[-1].rot;
     TransposeMatrix(&arg0->workm, matrix);
@@ -3329,13 +3329,13 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     SVECTOR*                   vec;
     Actor403600BearingScratch* head;
 
-    head               = SCRATCH_HEAD(void);
-    coord              = (*Gp_ActorSlots)->extra.tmd->coords;
-    SCRATCH_HEAD(void) = &head[-1];
-    head[-1].rel.vx    = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
-    vec                = &head[-1].rel;
-    vec->vy            = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
-    vec->vz            = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
+    head                       = SCRATCH_STACK_CURSOR(void);
+    coord                      = (*Gp_ActorSlots)->extra.tmd->coords;
+    SCRATCH_STACK_CURSOR(void) = &head[-1];
+    head[-1].rel.vx            = (s16)(arg0->workm.t[0] - coord->workm.t[0]);
+    vec                        = &head[-1].rel;
+    vec->vy                    = (s16)(arg0->workm.t[1] - coord->workm.t[1]);
+    vec->vz                    = (s16)(arg0->workm.t[2] - coord->workm.t[2]);
     TransposeMatrix(&coord->workm, &head[-1].rot);
     gfxRotateSv(&head[-1].rot, vec);
     angle  = ratan2(head[-1].rel.vx, vec->vz);
@@ -4010,12 +4010,12 @@ static __inline__ void _actor403600UpdateColor(GpEnemy* enemy, Task* task)
     Actor403600Work* work;
     VECTOR*          pos;
 
-    work                 = task->work;
-    pos                  = SCRATCH_HEAD(VECTOR) - 1;
-    pos->vx              = work->field_4B8.workm.t[0];
-    pos->vy              = work->field_4B8.workm.t[1];
-    SCRATCH_HEAD(VECTOR) = pos;
-    pos->vz              = work->field_4B8.workm.t[2];
+    work                         = task->work;
+    pos                          = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    pos->vx                      = work->field_4B8.workm.t[0];
+    pos->vy                      = work->field_4B8.workm.t[1];
+    SCRATCH_STACK_CURSOR(VECTOR) = pos;
+    pos->vz                      = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(enemy, pos, 0, 0);
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
@@ -4030,7 +4030,7 @@ static __inline__ void _actor403600RotateParts(Task* task)
 
     work = task->work;
     SCRATCH_PUSH(MATRIX);
-    matrix = SCRATCH_HEAD(MATRIX);
+    matrix = SCRATCH_STACK_CURSOR(MATRIX);
     coord  = task->extra.tmd->coords;
     RotMatrix((SVECTOR*)&work->field_700, matrix);
     gte_SetRotMatrix(&coord[2].coord);
@@ -4612,13 +4612,13 @@ static void func_actor_403600_801412D0(GpEnemy* arg0, Task* arg1)
     VECTOR*          head;
     VECTOR*          block;
 
-    work                 = arg1->work;
-    head                 = SCRATCH_HEAD(VECTOR);
-    head[-1].vx          = work->field_4B8.workm.t[0];
-    block                = head - 1;
-    block->vy            = work->field_4B8.workm.t[1];
-    SCRATCH_HEAD(VECTOR) = block;
-    block->vz            = work->field_4B8.workm.t[2];
+    work                         = arg1->work;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    head[-1].vx                  = work->field_4B8.workm.t[0];
+    block                        = head - 1;
+    block->vy                    = work->field_4B8.workm.t[1];
+    SCRATCH_STACK_CURSOR(VECTOR) = block;
+    block->vz                    = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(arg0, block, 0, 0);
     SCRATCH_POP_BYTES(0x10);
 }
@@ -4632,7 +4632,7 @@ static void func_actor_403600_80141338(Task* arg0)
     MATRIX*          matrix;
 
     SCRATCH_PUSH(MATRIX);
-    matrix = SCRATCH_HEAD(MATRIX);
+    matrix = SCRATCH_STACK_CURSOR(MATRIX);
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     RotMatrix((SVECTOR*)&work->field_700, matrix);

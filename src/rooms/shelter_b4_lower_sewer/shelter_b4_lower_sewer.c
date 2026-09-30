@@ -183,9 +183,9 @@ static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
 
     e                          = D_shelter_b4_lower_sewer_80181E7C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -317,9 +317,9 @@ static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
 
     e                          = D_shelter_b4_lower_sewer_80181E90;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     s                          = (_SurfaceScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

@@ -1127,10 +1127,10 @@ static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* res
 
     rootm = &root->workm;
     world = &arg0->workm;
-    tmp   = SCRATCH_HEAD(_GpRelMatScratch) - 1;
+    tmp   = SCRATCH_STACK_CURSOR(_GpRelMatScratch) - 1;
     out   = &result->coord;
 
-    SCRATCH_HEAD(_GpRelMatScratch) = tmp;
+    SCRATCH_STACK_CURSOR(_GpRelMatScratch) = tmp;
 
     gte_TransposeMatrix(rootm, &tmp->rot);
 
@@ -1318,8 +1318,8 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
 {
     _GpRelMatScratch* tmp;
 
-    tmp                            = SCRATCH_HEAD(_GpRelMatScratch) - 1;
-    SCRATCH_HEAD(_GpRelMatScratch) = tmp;
+    tmp                                    = SCRATCH_STACK_CURSOR(_GpRelMatScratch) - 1;
+    SCRATCH_STACK_CURSOR(_GpRelMatScratch) = tmp;
 
     gte_TransposeMatrix(arg0, &tmp->rot);
 

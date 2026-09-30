@@ -560,12 +560,12 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     ActorScaleMatrixScratch* scratch;
     SVECTOR*                 vec;
 
-    head                                  = SCRATCH_HEAD(ActorScaleMatrixScratch);
-    scratch                               = head - 1;
-    SCRATCH_HEAD(ActorScaleMatrixScratch) = scratch;
-    scratch->scale.vz                     = amount;
-    scratch->scale.vy                     = amount;
-    head[-1].scale.vx                     = amount;
+    head                                          = SCRATCH_STACK_CURSOR(ActorScaleMatrixScratch);
+    scratch                                       = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleMatrixScratch) = scratch;
+    scratch->scale.vz                             = amount;
+    scratch->scale.vy                             = amount;
+    head[-1].scale.vx                             = amount;
     ScaleMatrix(matrix, &scratch->scale);
     scratch->trans.vx = matrix->t[0];
     scratch->trans.vy = matrix->t[1];
@@ -608,15 +608,15 @@ static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
 {
     OverlayRangeScratch* head;
     OverlayRangeScratch* scratch;
-    head                              = SCRATCH_HEAD(OverlayRangeScratch);
-    scratch                           = head - 1;
-    SCRATCH_HEAD(OverlayRangeScratch) = scratch;
-    scratch->dx                       = pos->vx;
-    scratch->dz                       = pos->vz;
-    scratch->r                        = radius;
-    scratch->dx                      *= scratch->dx;
-    scratch->dz                      *= scratch->dz;
-    scratch->r                       *= scratch->r;
+    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    scratch                                   = head - 1;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
+    scratch->dx                               = pos->vx;
+    scratch->dz                               = pos->vz;
+    scratch->r                                = radius;
+    scratch->dx                              *= scratch->dx;
+    scratch->dz                              *= scratch->dz;
+    scratch->r                               *= scratch->r;
     SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
     return scratch->dx + scratch->dz >= scratch->r;
 }
@@ -1548,7 +1548,7 @@ static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
@@ -1575,13 +1575,13 @@ static s32 Actor00100_Fn00508(GfxCoord* coord, WorldCollisionContact* recs, s16 
         return 0;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    pos->vz          = 0;
-    pos->vy          = 0;
-    pos->vx          = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s->blocked               = 0;
+    pos->vz                  = 0;
+    pos->vy                  = 0;
+    pos->vx                  = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1710,14 +1710,14 @@ static s32 Actor00100_Fn00BF8(Task* arg0)
     SVECTOR*           v;
     SVECTOR*           out;
 
-    player           = gameGetPtrSlot(3);
-    head             = SCRATCH_HEAD(u8);
-    local            = (SVECTOR*)(head - 0xC);
-    s                = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx      = player->extra.tmd->coords->coord.t[0];
-    s->local.vy      = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_HEAD(u8) = (u8*)s;
-    s->local.vz      = player->extra.tmd->coords->coord.t[2];
+    player                   = gameGetPtrSlot(3);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    local                    = (SVECTOR*)(head - 0xC);
+    s                        = (ActorSightScratch*)(head - 0x1C);
+    s->local.vx              = player->extra.tmd->coords->coord.t[0];
+    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
+    s->local.vz              = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1918,9 +1918,9 @@ static s32 Actor00100_Fn01388(GfxCoord* coord, WorldCollisionContact* recs, s16 
     Actor00100AvoidScratch16* s;
     s16                       diff;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(Actor00100AvoidScratch16);
-    s                = (Actor00100AvoidScratch16*)SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(Actor00100AvoidScratch16);
+    s                        = SCRATCH_STACK_CURSOR(Actor00100AvoidScratch16);
 
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
@@ -2978,8 +2978,8 @@ static void Actor00100_Fn0375C(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     work = (Actor00100DamageWork*)((Actor00100Work*)arg0->work);
     if (ctx->hp > 0) {
-        head              = SCRATCH_HEAD(Actor00100DamageScratch);
-        scratch           = (SCRATCH_HEAD(Actor00100DamageScratch) = head - 1);
+        head              = SCRATCH_STACK_CURSOR(Actor00100DamageScratch);
+        scratch           = (SCRATCH_STACK_CURSOR(Actor00100DamageScratch) = head - 1);
         scratch->field_20 = Actor00100_FindDamageHit(work->primaryHits, (SVECTOR*)&scratch->field_18);
         if (scratch->field_20 == 0) {
             hitPos            = &scratch->field_18;
@@ -3298,8 +3298,8 @@ static void Actor00100_Fn04864(Task* arg0)
         work->capsuleBody.shape.end1.vz = 0x26C;
         return;
     }
-    head              = SCRATCH_HEAD(ActorTurnScratch);
-    scratch           = (SCRATCH_HEAD(ActorTurnScratch) = head - 1);
+    head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
+    scratch           = (SCRATCH_STACK_CURSOR(ActorTurnScratch) = head - 1);
     move              = (Actor00100MoveWork*)work;
     head[-1].delta.vx = move->pos[move->index][0] - arg0->extra.tmd->coords->coord.t[0];
     scratch->delta.vy = 0;
@@ -3849,13 +3849,13 @@ static void Actor00100_Fn06398(Task* arg0)
     u16             tick;
     Task*           player;
 
-    work                  = arg0->work;
-    player                = gameGetPtrSlot(3);
-    head                  = SCRATCH_HEAD(SVECTOR);
-    vec                   = head - 2;
-    SCRATCH_HEAD(SVECTOR) = vec;
-    ctx                   = arg0->spawnArg2.pointer;
-    gteVec                = vec;
+    work                          = arg0->work;
+    player                        = gameGetPtrSlot(3);
+    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec                           = head - 2;
+    SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+    ctx                           = arg0->spawnArg2.pointer;
+    gteVec                        = vec;
     if (work->field_4 != 0) {
         obj                     = arg0->extra.tmd;
         ctx->node.state.b.flags = 0;
@@ -3906,7 +3906,7 @@ static void Actor00100_Fn06398(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1F;
     }
-    SCRATCH_HEAD(SVECTOR) += 2;
+    SCRATCH_STACK_CURSOR(SVECTOR) += 2;
 }
 
 static void Actor00100_Fn06654(Task* arg0)
@@ -3921,8 +3921,8 @@ static void Actor00100_Fn06654(Task* arg0)
     s32             outside;
     s32             state;
 
-    head = SCRATCH_HEAD(SVECTOR);
-    vec  = (SCRATCH_HEAD(SVECTOR) = head - 2);
+    head = SCRATCH_STACK_CURSOR(SVECTOR);
+    vec  = (SCRATCH_STACK_CURSOR(SVECTOR) = head - 2);
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -3989,7 +3989,7 @@ static void Actor00100_Fn06654(Task* arg0)
             }
             break;
     }
-    SCRATCH_HEAD(SVECTOR) += 2;
+    SCRATCH_STACK_CURSOR(SVECTOR) += 2;
 }
 
 static void Actor00100_Fn06C10(Task* arg0)
@@ -4070,9 +4070,9 @@ static void Actor00100_Fn070DC(Task* arg0)
     Actor00100AngleScratch* head;
     Actor00100AngleScratch* scratch;
 
-    head    = SCRATCH_HEAD(Actor00100AngleScratch);
+    head    = SCRATCH_STACK_CURSOR(Actor00100AngleScratch);
     work    = arg0->work;
-    scratch = (SCRATCH_HEAD(Actor00100AngleScratch) = head - 1);
+    scratch = (SCRATCH_STACK_CURSOR(Actor00100AngleScratch) = head - 1);
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
@@ -4312,9 +4312,9 @@ static void Actor00100_Fn0782C(Task* arg0)
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        head                    = SCRATCH_HEAD(ActorMoveScratch);
+        head                    = SCRATCH_STACK_CURSOR(ActorMoveScratch);
         obj                     = arg0->extra.tmd;
-        scratch                 = (SCRATCH_HEAD(ActorMoveScratch) = head - 1);
+        scratch                 = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head - 1);
         ctx->node.state.b.flags = 0;
         obj->flags              = 0;
         Tmd_AllocBuffers(obj);
@@ -4367,8 +4367,8 @@ static void Actor00100_Fn0782C(Task* arg0)
         return;
     }
     work->field_8      += 1;
-    head2               = SCRATCH_HEAD(ActorMoveScratch);
-    scratch             = (SCRATCH_HEAD(ActorMoveScratch) = head2 - 1);
+    head2               = SCRATCH_STACK_CURSOR(ActorMoveScratch);
+    scratch             = (SCRATCH_STACK_CURSOR(ActorMoveScratch) = head2 - 1);
     head2[-1].vec.vx    = (s16)(((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][0] - arg0->extra.tmd->coords->coord.t[0]);
     scratch->vec.vy     = 0;
     scratch->vec.vz     = ((Actor00100MoveWork*)work)->pos[((Actor00100MoveWork*)work)->index][1] - arg0->extra.tmd->coords->coord.t[2];
@@ -4586,8 +4586,8 @@ static void Actor00100_Fn08588(Task* arg0)
     s32                   angle;
     s32                   firstDelta;
 
-    head    = SCRATCH_HEAD(ActorTurnStepScratch);
-    scratch = (SCRATCH_HEAD(ActorTurnStepScratch) = head - 1);
+    head    = SCRATCH_STACK_CURSOR(ActorTurnStepScratch);
+    scratch = (SCRATCH_STACK_CURSOR(ActorTurnStepScratch) = head - 1);
     work    = arg0->work;
     ctx     = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -4688,8 +4688,8 @@ static void Actor00100_Fn08A14(Task* arg0)
     s32                   angle;
     s32                   firstDelta;
 
-    head    = SCRATCH_HEAD(ActorTurnStepScratch);
-    scratch = (SCRATCH_HEAD(ActorTurnStepScratch) = head - 1);
+    head    = SCRATCH_STACK_CURSOR(ActorTurnStepScratch);
+    scratch = (SCRATCH_STACK_CURSOR(ActorTurnStepScratch) = head - 1);
     work    = arg0->work;
     ctx     = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
@@ -4790,9 +4790,9 @@ static void Actor00100_Fn08E7C(Task* arg0)
     Actor00100ProjectScratch* head;
     Actor00100ProjectScratch* scratch;
 
-    head    = SCRATCH_HEAD(Actor00100ProjectScratch);
+    head    = SCRATCH_STACK_CURSOR(Actor00100ProjectScratch);
     work    = arg0->work;
-    scratch = (SCRATCH_HEAD(Actor00100ProjectScratch) = head - 1);
+    scratch = (SCRATCH_STACK_CURSOR(Actor00100ProjectScratch) = head - 1);
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;

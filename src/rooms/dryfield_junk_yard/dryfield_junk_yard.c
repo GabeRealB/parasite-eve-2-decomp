@@ -1526,8 +1526,8 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
     tmd   = task->extra.tmd;
     coord = tmd->coords;
     if ((tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && tmd->buffer != 0) {
-        scratch                            = SCRATCH_HEAD(DjyGroundQuadScratch) - 1;
-        SCRATCH_HEAD(DjyGroundQuadScratch) = scratch;
+        scratch                                    = SCRATCH_STACK_CURSOR(DjyGroundQuadScratch) - 1;
+        SCRATCH_STACK_CURSOR(DjyGroundQuadScratch) = scratch;
         Gp_UpdateCoord(coord);
         scratch->pos.vx = coord->workm.t[0];
         scratch->pos.vy = coord->workm.t[1];

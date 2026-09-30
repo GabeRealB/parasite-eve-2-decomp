@@ -2047,7 +2047,7 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
     s32                          i;
 
     SCRATCH_PUSH(_ShelterB6NurseryTriScratch);
-    blk = SCRATCH_HEAD(_ShelterB6NurseryTriScratch);
+    blk = SCRATCH_STACK_CURSOR(_ShelterB6NurseryTriScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 3; i++) {
         p     = &blk->v[i];

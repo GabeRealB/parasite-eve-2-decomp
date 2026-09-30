@@ -1769,11 +1769,11 @@ static void Actor04600_Fn02B14(Task* arg0)
     ActorScaleScratch* scratch;
     Actor104600Work*   work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_2CA >= 0x201) {
         work->field_2CA = (u16)work->field_2CA - 0x50;
     }
@@ -2085,13 +2085,13 @@ static void Actor04600_Fn0346C(Task* arg0)
     u32                    damage;
     s32                    snd;
 
-    work                            = (Actor104600Enemy2Work*)arg0->work;
-    head                            = SCRATCH_HEAD(ActorDeltaFrame38);
-    SCRATCH_HEAD(ActorDeltaFrame38) = head - 1;
-    sc                              = head - 1;
-    obj                             = arg0->extra.tmd;
-    coord                           = obj->coords;
-    enemy                           = arg0->spawnArg2.pointer;
+    work                                    = (Actor104600Enemy2Work*)arg0->work;
+    head                                    = SCRATCH_STACK_CURSOR(ActorDeltaFrame38);
+    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = head - 1;
+    sc                                      = head - 1;
+    obj                                     = arg0->extra.tmd;
+    coord                                   = obj->coords;
+    enemy                                   = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -2180,7 +2180,7 @@ static void Actor04600_Fn0346C(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
+    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = SCRATCH_STACK_CURSOR(ActorDeltaFrame38) + 1;
 }
 
 /// Rebinds the second enemy's animation id `field_28C` to its two helper
@@ -2469,11 +2469,11 @@ static void Actor04600_Fn0400C(Task* arg0)
     ActorScaleScratch*     scratch;
     Actor104600Enemy2Work* work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }

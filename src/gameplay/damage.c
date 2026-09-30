@@ -321,9 +321,9 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
         return 0;
     }
 
-    head                        = SCRATCH_HEAD(u8);
-    blk                         = (GpDistScratch*)(head - 0x20);
-    SCRATCH_HEAD(GpDistScratch) = blk;
+    head                                = SCRATCH_STACK_CURSOR(u8);
+    blk                                 = (GpDistScratch*)(head - 0x20);
+    SCRATCH_STACK_CURSOR(GpDistScratch) = blk;
     Gp_UpdateCoord(arg0->coord);
 
     ((VECTOR3*)(head - 0x20))->vx = arg0->bodyPos.vx;

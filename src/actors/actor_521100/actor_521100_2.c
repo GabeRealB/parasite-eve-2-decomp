@@ -794,9 +794,9 @@ static void func_actor_521100_801368B0(Task* task)
     Actor521100Work4B4* work;
     GfxCoord*           coord;
 
-    head    = SCRATCH_HEAD(MATRIX);
+    head    = SCRATCH_STACK_CURSOR(MATRIX);
     work    = task->work;
-    scratch = (SCRATCH_HEAD(void) = (ActorScaleScratch*)((u8*)head - 0x30));
+    scratch = (SCRATCH_STACK_CURSOR(void) = (ActorScaleScratch*)((u8*)head - 0x30));
     coord   = task->extra.tmd->coords;
     if ((s16)work->field_488 >= 0x101) {
         work->field_488 = (u16)work->field_488 - 0x10;

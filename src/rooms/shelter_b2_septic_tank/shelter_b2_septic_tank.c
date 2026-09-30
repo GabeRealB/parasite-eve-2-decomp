@@ -1384,9 +1384,9 @@ static void func_shelter_b2_septic_tank_8017DB68(Task* task)
 
     e                          = D_shelter_b2_septic_tank_801832CC;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1505,9 +1505,9 @@ static void func_shelter_b2_septic_tank_8017E2DC(Task* task)
 
     e                          = D_shelter_b2_septic_tank_801832F0;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

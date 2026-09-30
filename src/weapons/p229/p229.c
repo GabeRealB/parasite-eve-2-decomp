@@ -158,14 +158,14 @@ static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2)
     s32                   ang;
     u16                   vz;
 
-    head                               = SCRATCH_HEAD(u8);
-    blk                                = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
-    blk->vec.vx                        = (u16)arg0->workm.t[0];
-    blk->vec.vy                        = (u16)arg0->workm.t[1];
-    vz                                 = (u16)arg0->workm.t[2];
-    otzp                               = blk;
-    SCRATCH_HEAD(OverlaySpriteScratch) = blk;
-    blk->vec.vz                        = vz;
+    head                                       = SCRATCH_STACK_CURSOR(u8);
+    blk                                        = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
+    blk->vec.vx                                = (u16)arg0->workm.t[0];
+    blk->vec.vy                                = (u16)arg0->workm.t[1];
+    vz                                         = (u16)arg0->workm.t[2];
+    otzp                                       = blk;
+    SCRATCH_STACK_CURSOR(OverlaySpriteScratch) = blk;
+    blk->vec.vz                                = vz;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
@@ -220,10 +220,10 @@ static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2)
     /* `len` and `depth` are locals rather than literals on purpose: as
        constants GCC turns the `* 0x600` into a shift-and-add and drops the
        `mult` the ROM keeps. */
-    depth                           = -0x200;
-    head                            = SCRATCH_HEAD(u8);
-    blk                             = (WeaponQuadScratch*)(head - sizeof(WeaponQuadScratch));
-    SCRATCH_HEAD(WeaponQuadScratch) = blk;
+    depth                                   = -0x200;
+    head                                    = SCRATCH_STACK_CURSOR(u8);
+    blk                                     = (WeaponQuadScratch*)(head - sizeof(WeaponQuadScratch));
+    SCRATCH_STACK_CURSOR(WeaponQuadScratch) = blk;
     gte_SetTransMatrix(&GsWSMATRIX);
     ang = arg1;
 
@@ -331,7 +331,7 @@ static void func_p229_8011DDA0(Task* arg0)
        of the scratch-head address wins the ready list and reschedules the
        entry. */
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GfxCoord);
+    spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             actor->field_956  = 4;

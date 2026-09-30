@@ -299,9 +299,9 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     _WorldCollisionSphereScratch* block;
     s32                           ret;
 
-    head                                       = SCRATCH_HEAD(u8);
-    block                                      = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
-    SCRATCH_HEAD(_WorldCollisionSphereScratch) = block;
+    head                                               = SCRATCH_STACK_CURSOR(u8);
+    block                                              = (_WorldCollisionSphereScratch*)(head - sizeof(_WorldCollisionSphereScratch));
+    SCRATCH_STACK_CURSOR(_WorldCollisionSphereScratch) = block;
     Gp_ObjWorldPos(arg0, (VECTOR3*)&block->pos0);
     Gp_ObjWorldPos(arg1, (VECTOR3*)&block->pos1);
 
@@ -377,11 +377,11 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     s32                            r1;
     s32                            tmp; // combined radius on a straight capsule, taper ratio less 1.0 on a tapered one
 
-    head               = SCRATCH_HEAD(u8);
-    pos                = (VECTOR3*)(head - 0x78);
-    SCRATCH_HEAD(void) = head - sizeof(_WorldCollisionCapsuleScratch);
-    rec                = arg1->context.capsule;
-    block              = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    pos                        = (VECTOR3*)(head - 0x78);
+    SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionCapsuleScratch);
+    rec                        = arg1->context.capsule;
+    block                      = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
     Gp_ObjWorldPos(arg0, pos);
     ends = (VECTOR*)(head - 0x68);
     func_800DEC80(arg1, ends, (SVECTOR*)(head - 0x18), 0);
@@ -525,10 +525,10 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     u16                    dist;
     u16                    flags;
 
-    head               = SCRATCH_HEAD(u8);
-    pos                = (VECTOR3*)(head - 0x80);
-    SCRATCH_HEAD(void) = head - 0x88;
-    block              = (GpGridHitScratch*)(head - 0x88);
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    pos                        = (VECTOR3*)(head - 0x80);
+    SCRATCH_STACK_CURSOR(void) = head - 0x88;
+    block                      = (GpGridHitScratch*)(head - 0x88);
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
@@ -670,11 +670,11 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     s32                          faceKind;
     u16                          flags;
 
-    head               = SCRATCH_HEAD(u8);
-    pos                = (VECTOR3*)(head - 0x80);
-    SCRATCH_HEAD(void) = head - 0x88;
-    block              = (GpGridHitScratch*)(head - 0x88);
-    motionContext      = arg0->context.motion;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    pos                        = (VECTOR3*)(head - 0x80);
+    SCRATCH_STACK_CURSOR(void) = head - 0x88;
+    block                      = (GpGridHitScratch*)(head - 0x88);
+    motionContext              = arg0->context.motion;
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
@@ -837,10 +837,10 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, WorldCollisionBody* arg
     s32               val;
     s32               limit;
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x70;
-    face               = &Gp_GridParams->field_C[faceId];
-    block              = (GpGridRayScratch*)(head - 0x70);
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x70;
+    face                       = &Gp_GridParams->field_C[faceId];
+    block                      = (GpGridRayScratch*)(head - 0x70);
 
     gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
     gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);

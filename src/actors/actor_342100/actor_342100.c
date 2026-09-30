@@ -432,11 +432,11 @@ void func_actor_342100_80161E70(Task* arg0)
     s32 tpage0;
     s32 tpage1;
 
-    head                             = SCRATCH_HEAD(OverlayWaveScratch);
-    CdCmd_Queue.imageMdecMode        = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    SCRATCH_HEAD(OverlayWaveScratch) = head - 1;
-    cols                             = head[-1].cols;
-    scratch                          = head - 1;
+    head                                     = SCRATCH_STACK_CURSOR(OverlayWaveScratch);
+    CdCmd_Queue.imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+    SCRATCH_STACK_CURSOR(OverlayWaveScratch) = head - 1;
+    cols                                     = head[-1].cols;
+    scratch                                  = head - 1;
     switch (arg0->state) {
         case 0:
             for (i = 0; i < 9; i++) {

@@ -408,8 +408,8 @@ static void func_actor_300700_801622B4(Task* arg0)
     GpDeltaScratch*  delta;
 
     work     = arg0->work;
-    head     = SCRATCH_HEAD(void);
-    delta    = (SCRATCH_HEAD(void) = head - 1);
+    head     = SCRATCH_STACK_CURSOR(void);
+    delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(&work->field_18C, delta, 4, 0);
     switch (movement) {
@@ -696,9 +696,9 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
             break;
         case 0:
         default:
-            head                  = SCRATCH_HEAD(SVECTOR);
-            rot                   = head - 1;
-            SCRATCH_HEAD(SVECTOR) = rot;
+            head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+            rot                           = head - 1;
+            SCRATCH_STACK_CURSOR(SVECTOR) = rot;
             switch (work->field_2DE) {
                 case 0:
                     Gp_StateF0.field_18    = 1;
@@ -884,11 +884,11 @@ static void func_actor_300700_80163410(Task* arg0)
     ActorScaleScratch* scratch;
     Actor300700Work*   work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_2E2 >= 0x201) {
         work->field_2E2 = (u16)work->field_2E2 - 0x50;
     }

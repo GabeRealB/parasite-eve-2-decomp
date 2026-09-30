@@ -88,7 +88,7 @@ static void func_gunblade_8011E040(Task* arg0)
     sfx   = (Player_Status.weaponSlotItem - 0xD) << 24;
     rec   = &actor->field_14C;
     SCRATCH_PUSH_BYTES(sizeof(GunbladeScratch));
-    blk   = SCRATCH_HEAD(GunbladeScratch);
+    blk   = SCRATCH_STACK_CURSOR(GunbladeScratch);
     coord = arg0->extra.tmd->coords;
     if (sfx < 0) {
         sfx = 0;

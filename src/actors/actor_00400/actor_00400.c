@@ -2556,13 +2556,13 @@ static void Actor00400_Fn02FF8(Task* arg0)
     s32                        dz;
     s32                        distance;
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)   = head - 0x1C;
-    scratch            = (Actor100400NearestScratch*)SCRATCH_HEAD(u8);
-    work               = arg0->work;
-    scratch->index     = 1;
-    scratch->bestIndex = 0;
-    scratch->best      = 0x7FFFFFFF;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    scratch                  = SCRATCH_STACK_CURSOR(Actor100400NearestScratch);
+    work                     = arg0->work;
+    scratch->index           = 1;
+    scratch->bestIndex       = 0;
+    scratch->best            = 0x7FFFFFFF;
     for (;;) {
         index  = scratch->index;
         record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->field_608);
@@ -2608,13 +2608,13 @@ static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
     s32                        dz;
     s32                        distance;
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)   = head - 0x1C;
-    scratch            = (Actor100400NearestScratch*)SCRATCH_HEAD(u8);
-    work               = arg0->work;
-    scratch->index     = 1;
-    scratch->bestIndex = 0;
-    scratch->best      = 0x7FFFFFFF;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    scratch                  = SCRATCH_STACK_CURSOR(Actor100400NearestScratch);
+    work                     = arg0->work;
+    scratch->index           = 1;
+    scratch->bestIndex       = 0;
+    scratch->best            = 0x7FFFFFFF;
 loop:
     index  = scratch->index;
     record = (SVECTOR*)(index * sizeof(SVECTOR) + (u32)work->field_608);
@@ -2680,7 +2680,7 @@ static void Actor00400_Fn03570(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     Actor00400_AccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = Actor00400_LocalizeRotation(coord, rotation);
@@ -3046,12 +3046,12 @@ static void Actor00400_Fn03920(Task* arg0)
 static __inline__ void Actor00400_UpdateColor(Task* arg0, GfxCoord* coord,
                                               Actor100400Work* work, TmdObject* ctx)
 {
-    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
 
-    block->vx            = coord->workm.t[0];
-    block->vy            = coord->workm.t[1];
-    block->vz            = coord->workm.t[2];
-    SCRATCH_HEAD(VECTOR) = block;
+    block->vx                    = coord->workm.t[0];
+    block->vy                    = coord->workm.t[1];
+    block->vz                    = coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = block;
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
     if (work->field_65F != 0) {
         Gp_SetObjTrans(ctx, 0, 0, 0);

@@ -3221,7 +3221,7 @@ static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     coords = extra->coords;
     coord  = &coords[1];
     flag   = work->field_47C;
-    pos    = SCRATCH_HEAD(VECTOR);
+    pos    = SCRATCH_STACK_CURSOR(VECTOR);
     if (flag != 0) {
         for (i = 1; i < 19; i++) {
             Gp_AnimTickIndex(&work->anim, i);

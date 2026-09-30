@@ -353,14 +353,14 @@ void tmdProcessStream(TmdObject* obj)
     TmdStreamWorkspace*    head;
     TmdStreamWorkspace*    tmp;
 
-    flag                             = 0;
-    src                              = obj->source;
-    tmp                              = SCRATCH_HEAD(TmdStreamWorkspace);
-    stream                           = src->stream;
-    hi                               = GAME_LOCATION_WORD(gGameSession->location.loc);
-    head                             = tmp - 1;
-    hi                              &= GAME_LOCATION_STAGE_AREA_MASK;
-    SCRATCH_HEAD(TmdStreamWorkspace) = head;
+    flag                                     = 0;
+    src                                      = obj->source;
+    tmp                                      = SCRATCH_STACK_CURSOR(TmdStreamWorkspace);
+    stream                                   = src->stream;
+    hi                                       = GAME_LOCATION_WORD(gGameSession->location.loc);
+    head                                     = tmp - 1;
+    hi                                      &= GAME_LOCATION_STAGE_AREA_MASK;
+    SCRATCH_STACK_CURSOR(TmdStreamWorkspace) = head;
     if ((hi == GAME_LOCATION_KEY(2, 15, 0, 0)) || (hi == GAME_LOCATION_KEY(2, 16, 0, 0))) {
         flag = 1;
     }
@@ -596,16 +596,16 @@ static void Tmd_SetupDraw(TmdObject* obj)
         TmdSource* p;
 
         p                       = obj->source;
-        tmp                     = SCRATCH_HEAD(TmdScratchDrawBlock);
+        tmp                     = SCRATCH_STACK_CURSOR(TmdScratchDrawBlock);
         stream                  = p->stream;
         disp                    = gDisplayState.otDepthShift;
         ws                      = tmp - 1;
         ws->stream.obj          = obj;
         ws->stream.otDepthShift = disp;
     }
-    bufptr                            = obj->buffer;
-    ws->stream.primWrite              = bufptr;
-    SCRATCH_HEAD(TmdScratchDrawBlock) = ws;
+    bufptr                                    = obj->buffer;
+    ws->stream.primWrite                      = bufptr;
+    SCRATCH_STACK_CURSOR(TmdScratchDrawBlock) = ws;
     if (obj->nextBufferHalf != 0) {
         ws->stream.primWrite = (u8*)bufptr + obj->bufferHalfBytes;
     }

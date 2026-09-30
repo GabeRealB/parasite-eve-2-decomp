@@ -996,9 +996,9 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
 
     if (Mc_SaveData[0].state.field_5C1 != 1) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        vec                   = head - 1;
-        SCRATCH_HEAD(SVECTOR) = vec;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         Gfx_MatrixCol2(&coord->coord, vec);
         Actor223600_ScaleForward(vec, amount);
         coord->coord.t[0]  += head[-1].vx;
@@ -1152,12 +1152,12 @@ static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
     }
 
     work->field_6++;
-    head                          = SCRATCH_HEAD(Actor223600Turn);
-    head[-1].dx                   = work->field_19C - (u16)task->extra.tmd->coords->coord.t[0];
-    SCRATCH_HEAD(Actor223600Turn) = head - 1;
-    turn                          = head - 1;
-    turn->dy                      = 0;
-    turn->dz                      = work->field_1A0 - (u16)task->extra.tmd->coords->coord.t[2];
+    head                                  = SCRATCH_STACK_CURSOR(Actor223600Turn);
+    head[-1].dx                           = work->field_19C - (u16)task->extra.tmd->coords->coord.t[0];
+    SCRATCH_STACK_CURSOR(Actor223600Turn) = head - 1;
+    turn                                  = head - 1;
+    turn->dy                              = 0;
+    turn->dz                              = work->field_1A0 - (u16)task->extra.tmd->coords->coord.t[2];
 
     coord     = task->extra.tmd->coords;
     turn->yaw = actorNormalizeYaw(ratan2(head[-1].dx, turn->dz) -

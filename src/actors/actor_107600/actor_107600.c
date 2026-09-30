@@ -1190,16 +1190,16 @@ static void func_actor_107600_80132B7C(Task* arg0)
     GfxCoord*        coord = arg0->extra.tmd->coords;
     MATRIX*          m;
 
-    work->pitch         &= 0xFFF;
-    work->yaw           &= 0xFFF;
-    work->roll          &= 0xFFF;
-    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-    SCRATCH_HEAD(MATRIX) = m;
+    work->pitch                 &= 0xFFF;
+    work->yaw                   &= 0xFFF;
+    work->roll                  &= 0xFFF;
+    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
+    MATRIX_PAIR(m, 0, 0)         = 0x1000;
+    MATRIX_PAIR(m, 0, 2)         = 0;
+    MATRIX_PAIR(m, 1, 1)         = 0x1000;
+    MATRIX_PAIR(m, 2, 0)         = 0;
+    m->m[2][2]                   = 0x1000;
+    SCRATCH_STACK_CURSOR(MATRIX) = m;
     RotMatrixZ((s16)work->roll, m);
     RotMatrixX((s16)work->pitch, m);
     RotMatrixY((s16)work->yaw, m);
@@ -1382,7 +1382,7 @@ static void func_actor_107600_80133024(Task* arg0)
     obj   = ext;
     sp    = D_actor_107600_80131E84;
     SCRATCH_PUSH_BYTES(8);
-    v = SCRATCH_HEAD(SVECTOR);
+    v = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (Gp_StateF0.field_4) {
         case 0:
             sp.funcs[work->field_158](arg0);
@@ -1836,7 +1836,7 @@ static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
     s32                     i;
 
     SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
-    s = SCRATCH_HEAD(Actor107600QuadScratch);
+    s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
         s->v[i].vy = pos->vy + (D_actor_107600_80131ED8[i].vy + coord->coord.t[1]);
@@ -1895,7 +1895,7 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     s32                     i;
 
     SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
-    s = SCRATCH_HEAD(Actor107600QuadScratch);
+    s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
         s->v[i].vy = pos->vy + (D_actor_107600_80131EE8[i].vy + coord->coord.t[1]);
@@ -2106,16 +2106,16 @@ static void func_actor_107600_80134A50(Task* arg0)
     GfxCoord*        coord = arg0->extra.tmd->coords;
     MATRIX*          m;
 
-    work->field_50      &= 0xFFF;
-    work->field_52      &= 0xFFF;
-    work->field_54      &= 0xFFF;
-    m                    = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-    SCRATCH_HEAD(MATRIX) = m;
+    work->field_50              &= 0xFFF;
+    work->field_52              &= 0xFFF;
+    work->field_54              &= 0xFFF;
+    m                            = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
+    MATRIX_PAIR(m, 0, 0)         = 0x1000;
+    MATRIX_PAIR(m, 0, 2)         = 0;
+    MATRIX_PAIR(m, 1, 1)         = 0x1000;
+    MATRIX_PAIR(m, 2, 0)         = 0;
+    m->m[2][2]                   = 0x1000;
+    SCRATCH_STACK_CURSOR(MATRIX) = m;
     Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
     Gfx_RotMatrixX(m, (s16)work->field_50, 0);
     Gfx_RotMatrixY(m, (s16)work->field_52, 0);

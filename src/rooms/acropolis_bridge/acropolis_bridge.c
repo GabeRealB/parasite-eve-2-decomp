@@ -5196,9 +5196,9 @@ static s16 func_acropolis_bridge_80184024(OverlayWalker* work)
     OverlayWalkerArrivalDelta* d;
     u8*                        head;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x8;
-    d                = (OverlayWalkerArrivalDelta*)(head - 0x8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x8;
+    d                        = (OverlayWalkerArrivalDelta*)(head - 0x8);
 
     d->x = work->nav->nodes[work->node].x;
     d->y = work->nav->nodes[work->node].y;
@@ -5270,9 +5270,9 @@ static u8 func_acropolis_bridge_801843A0(OverlayWalker* work, s32 actor)
     u8*                          head;
     s16                          dz;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x18;
-    block            = SCRATCH_HEAD(OverlayWalkerNearCfgScratch);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearCfgScratch);
 
     block->cfg  = &Player_Status + ((s16)actor - 1);
     block->best = -1;
@@ -5301,9 +5301,9 @@ static u8 func_acropolis_bridge_8018450C(OverlayWalker* work)
     u8*                       head;
     s16                       dz;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x14;
-    block            = SCRATCH_HEAD(OverlayWalkerNearScratch);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x14;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerNearScratch);
 
     block->best = -1;
     for (block->node = 0; block->node < work->nav->count; block->node++) {
@@ -5338,9 +5338,9 @@ static void func_acropolis_bridge_80184638(OverlayWalker* work, s16 actor)
     s32                        diff;
     s32                        best;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x1C;
-    s                = (OverlayWalkerRouteScratch*)(head - 0x1C);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    s                        = (OverlayWalkerRouteScratch*)(head - 0x1C);
 
     s->nodeA  = func_acropolis_bridge_801843A0(work, actor);
     s->nodeB  = func_acropolis_bridge_8018450C(work);
@@ -5411,9 +5411,9 @@ static void func_acropolis_bridge_80184908(OverlayWalker* work)
     s32                       dz;
     s32                       y;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x18;
-    s                = (OverlayWalkerMoveScratch*)(head - 0x18);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x18;
+    s                        = (OverlayWalkerMoveScratch*)(head - 0x18);
     if (func_800E0C10(work->recs, &s->delta, work->field_56, NULL) != 0) {
         dx         = ((OverlayWalkerMoveScratch*)(head - 0x18))->delta.vx.h.hi;
         dz         = s->delta.vz.h.hi;
@@ -5502,9 +5502,9 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
     work->push.vy = 0;
     work->push.vx = 0;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = SCRATCH_HEAD(OverlayAvoidScratch);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
 
     Gfx_MatrixCol1(&work->coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -5589,12 +5589,12 @@ static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
 
     if (Mc_SaveData[0].state.unknown_5C0 == 1)
         return;
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x1C;
-    s                = (OverlayWalkerTurnScratch*)(head - 0x1C);
-    coord            = work->coord;
-    diff             = overlayCoordBearingXZ(pos, coord) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    t                = diff;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
+    s                        = (OverlayWalkerTurnScratch*)(head - 0x1C);
+    coord                    = work->coord;
+    diff                     = overlayCoordBearingXZ(pos, coord) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    t                        = diff;
     if (diff < 0) {
     wrapUp:
         if (t < -0x800) {
@@ -5723,9 +5723,9 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
         step->vy            = 0;
         walker->moveStep.vx = 0;
     } else {
-        head2            = SCRATCH_HEAD(u8);
-        sv               = (SVECTOR*)(head2 - 8);
-        SCRATCH_HEAD(u8) = (u8*)sv;
+        head2                    = SCRATCH_STACK_CURSOR(u8);
+        sv                       = (SVECTOR*)(head2 - 8);
+        SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
         /* The ROM keeps a second copy of the block address for the GTE
            transfers; without it `sv` and the copy share one register. */
         gsv = sv;
@@ -5757,9 +5757,9 @@ static void func_acropolis_bridge_8018532C(OverlayWalker* walker)
     u8*                       head;
     OverlayWalkerTickScratch* block;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x28;
-    block            = SCRATCH_HEAD(OverlayWalkerTickScratch);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x28;
+    block                    = SCRATCH_STACK_CURSOR(OverlayWalkerTickScratch);
     walkerStep(walker, head, block);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_BYTES(0x28);
@@ -5904,22 +5904,22 @@ static __inline__ void _acropolisBridgeInitWalkerScale(OverlayWalker* walker)
     VECTOR* scale;
     s32     amount;
 
-    head                     = SCRATCH_HEAD(VECTOR);
-    amount                   = walker->scale;
-    walker->scaleMtx.m[2][1] = 0;
-    walker->scaleMtx.m[2][0] = 0;
-    walker->scaleMtx.m[1][2] = 0;
-    walker->scaleMtx.m[1][0] = 0;
-    walker->scaleMtx.m[0][2] = 0;
-    walker->scaleMtx.m[0][1] = 0;
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    walker->scaleMtx.t[2]    = 0;
-    walker->scaleMtx.t[1]    = 0;
-    walker->scaleMtx.t[0]    = 0;
-    scale                    = head - 1;
-    SCRATCH_HEAD(VECTOR)     = scale;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    amount                       = walker->scale;
+    walker->scaleMtx.m[2][1]     = 0;
+    walker->scaleMtx.m[2][0]     = 0;
+    walker->scaleMtx.m[1][2]     = 0;
+    walker->scaleMtx.m[1][0]     = 0;
+    walker->scaleMtx.m[0][2]     = 0;
+    walker->scaleMtx.m[0][1]     = 0;
+    walker->scaleMtx.m[2][2]     = 0x1000;
+    walker->scaleMtx.m[1][1]     = 0x1000;
+    walker->scaleMtx.m[0][0]     = 0x1000;
+    walker->scaleMtx.t[2]        = 0;
+    walker->scaleMtx.t[1]        = 0;
+    walker->scaleMtx.t[0]        = 0;
+    scale                        = head - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = scale;
     if (amount != 0 && amount != 0x1000) {
         scale->vz = amount;
         scale->vy = amount;
@@ -5935,7 +5935,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 {
     VECTOR* vec;
 
-    vec = SCRATCH_HEAD(VECTOR);
+    vec = SCRATCH_STACK_CURSOR(VECTOR);
     Gp_UpdateCoord(coord);
     vec->vx = task->extra.tmd->coords->workm.t[0];
     vec->vy = task->extra.tmd->coords->workm.t[1];
@@ -6116,23 +6116,23 @@ static __inline__ void bridge_reset_scale_mtx_entry(AcropolisBridgeEnemyWork* wo
     VECTOR*        scale;
     s32            amount;
 
-    head                     = SCRATCH_HEAD(u8);
-    walker                   = &work->walker;
-    amount                   = walker->scale;
-    scale                    = (VECTOR*)(head - 0x10);
-    SCRATCH_HEAD(VECTOR)     = scale;
-    walker->scaleMtx.m[2][1] = 0;
-    walker->scaleMtx.m[2][0] = 0;
-    walker->scaleMtx.m[1][2] = 0;
-    walker->scaleMtx.m[1][0] = 0;
-    walker->scaleMtx.m[0][2] = 0;
-    walker->scaleMtx.m[0][1] = 0;
-    walker->scaleMtx.m[2][2] = 0x1000;
-    walker->scaleMtx.m[1][1] = 0x1000;
-    walker->scaleMtx.m[0][0] = 0x1000;
-    walker->scaleMtx.t[2]    = 0;
-    walker->scaleMtx.t[1]    = 0;
-    walker->scaleMtx.t[0]    = 0;
+    head                         = SCRATCH_STACK_CURSOR(u8);
+    walker                       = &work->walker;
+    amount                       = walker->scale;
+    scale                        = (VECTOR*)(head - 0x10);
+    SCRATCH_STACK_CURSOR(VECTOR) = scale;
+    walker->scaleMtx.m[2][1]     = 0;
+    walker->scaleMtx.m[2][0]     = 0;
+    walker->scaleMtx.m[1][2]     = 0;
+    walker->scaleMtx.m[1][0]     = 0;
+    walker->scaleMtx.m[0][2]     = 0;
+    walker->scaleMtx.m[0][1]     = 0;
+    walker->scaleMtx.m[2][2]     = 0x1000;
+    walker->scaleMtx.m[1][1]     = 0x1000;
+    walker->scaleMtx.m[0][0]     = 0x1000;
+    walker->scaleMtx.t[2]        = 0;
+    walker->scaleMtx.t[1]        = 0;
+    walker->scaleMtx.t[0]        = 0;
     if (amount != 0 && amount != 0x1000) {
         scale->vz                    = amount;
         scale->vy                    = amount;
@@ -6154,7 +6154,7 @@ static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* w
     s32            amount;
 
     walker                   = &work->walker;
-    head                     = SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
     walker->scaleMtx.m[2][2] = 0x1000;
     walker->scaleMtx.m[1][1] = 0x1000;
     walker->scaleMtx.m[0][0] = 0x1000;
@@ -6170,7 +6170,7 @@ static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* w
     walker->scaleMtx.t[0]    = 0;
     scale                    = (VECTOR*)(head - 0x10);
 
-    SCRATCH_HEAD(VECTOR) = scale;
+    SCRATCH_STACK_CURSOR(VECTOR) = scale;
     if (amount != 0 && amount != 0x1000) {
         scale->vz                    = amount;
         scale->vy                    = amount;
@@ -6253,7 +6253,7 @@ static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
 
     work->walker.scale      += 0x88;
     walker                   = &work->walker;
-    head                     = SCRATCH_HEAD(u8);
+    head                     = SCRATCH_STACK_CURSOR(u8);
     walker->scaleMtx.m[2][2] = 0x1000;
     walker->scaleMtx.m[1][1] = 0x1000;
     walker->scaleMtx.m[0][0] = 0x1000;
@@ -6269,7 +6269,7 @@ static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work)
     walker->scaleMtx.t[0]    = 0;
     scale                    = (VECTOR*)(head - 0x10);
 
-    SCRATCH_HEAD(VECTOR) = scale;
+    SCRATCH_STACK_CURSOR(VECTOR) = scale;
     if (amount != 0 && amount != 0x1000) {
         scale->vz                    = amount;
         scale->vy                    = amount;
@@ -6974,7 +6974,7 @@ hidden:
 
 body:
     SCRATCH_PUSH_BYTES(0xC);
-    block = SCRATCH_HEAD(AcropolisBridgeHitScratch);
+    block = SCRATCH_STACK_CURSOR(AcropolisBridgeHitScratch);
     recs  = work->recs;
     i     = 0;
     do {

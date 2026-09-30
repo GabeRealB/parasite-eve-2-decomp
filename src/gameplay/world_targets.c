@@ -81,7 +81,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 
     src = slot->field_0;
     SCRATCH_PUSH(GpPerspScratch);
-    block         = SCRATCH_HEAD(GpPerspScratch);
+    block         = SCRATCH_STACK_CURSOR(GpPerspScratch);
     block->vec.vx = GP_NODE_ENEMY(src)->bodyPos.vx;
     block->vec.vy = GP_NODE_ENEMY(src)->bodyPos.vy;
     block->vec.vz = GP_NODE_ENEMY(src)->bodyPos.vz;
@@ -216,7 +216,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
 
     best = NULL;
     SCRATCH_PUSH(GpLockScanScratch);
-    block         = SCRATCH_HEAD(GpLockScanScratch);
+    block         = SCRATCH_STACK_CURSOR(GpLockScanScratch);
     actor         = arg0->work;
     coord         = arg0->extra.tmd->coords;
     block->src.vx = coord->coord.t[0];
@@ -690,8 +690,8 @@ void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
         return;
     }
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x28;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x28;
     Gp_UpdateCoord(coord);
     mat = (MATRIX*)(head - 0x20);
     Gp_WorldToLocal(&world->workm, &coord->workm, mat);

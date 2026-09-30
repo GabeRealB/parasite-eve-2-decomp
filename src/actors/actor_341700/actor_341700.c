@@ -1370,12 +1370,12 @@ static __inline__ void enter_state(Task* arg0, s32 state)
 /// keeps its own `lui` instead of sharing a CSE'd register.
 static __inline__ void update_color(void* enemy, GfxCoord* coord)
 {
-    VECTOR* block = (VECTOR*)(SCRATCH_HEAD(u8) - 0x10);
+    VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
 
-    block->vx            = coord->workm.t[0];
-    block->vy            = coord->workm.t[1];
-    SCRATCH_HEAD(VECTOR) = block;
-    block->vz            = coord->workm.t[2];
+    block->vx                    = coord->workm.t[0];
+    block->vy                    = coord->workm.t[1];
+    SCRATCH_STACK_CURSOR(VECTOR) = block;
+    block->vz                    = coord->workm.t[2];
     Gp_UpdateActorColor(enemy, block, 0, 0);
     SCRATCH_POP_BYTES(0x10);
 }
@@ -1418,19 +1418,19 @@ static __inline__ s16 take_hit(Task* arg0)
 static __inline__ void update_rotation(Task* arg0)
 {
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    MATRIX*          m     = (MATRIX*)(SCRATCH_HEAD(u8) - 0x20);
+    MATRIX*          m     = (MATRIX*)(SCRATCH_STACK_CURSOR(u8) - 0x20);
     GfxCoord*        coord = arg0->extra.tmd->coords;
     MATRIX*          dst;
 
-    work->field_78      &= 0xFFF;
-    work->field_7A      &= 0xFFF;
-    work->field_7C      &= 0xFFF;
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-    SCRATCH_HEAD(MATRIX) = m;
+    work->field_78              &= 0xFFF;
+    work->field_7A              &= 0xFFF;
+    work->field_7C              &= 0xFFF;
+    MATRIX_PAIR(m, 0, 0)         = 0x1000;
+    MATRIX_PAIR(m, 0, 2)         = 0;
+    MATRIX_PAIR(m, 1, 1)         = 0x1000;
+    MATRIX_PAIR(m, 2, 0)         = 0;
+    m->m[2][2]                   = 0x1000;
+    SCRATCH_STACK_CURSOR(MATRIX) = m;
     RotMatrixZ(work->field_7C, m);
     RotMatrixX(work->field_78, m);
     RotMatrixY(work->field_7A, m);

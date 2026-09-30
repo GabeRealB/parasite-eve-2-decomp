@@ -270,12 +270,12 @@ static void func_combustion_8012F5EC(GfxCoord* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -445,13 +445,13 @@ static void func_combustion_8012FB14(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
     s32              ang2;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)arg0->workm.t[0];
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)arg0->workm.t[1];
     vz                                        = (u16)arg0->workm.t[2];
     block->vec.vz                             = vz;
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     vec                                       = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -509,12 +509,12 @@ static void func_combustion_8012FF0C(GfxCoord* arg0, s32 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -643,12 +643,12 @@ static void func_combustion_801305F8(GfxCoord* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);

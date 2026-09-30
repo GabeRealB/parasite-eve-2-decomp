@@ -1026,12 +1026,12 @@ static void func_actor_207200_8014BEF4(Task* arg0)
     s32                    n;
     s32                    snd;
 
-    work                                = (_Actor207200LargeWork*)arg0->work;
-    head                                = SCRATCH_HEAD(Actor207200DmgScratch);
-    SCRATCH_HEAD(Actor207200DmgScratch) = head - 1;
-    sc                                  = head - 1;
-    coord                               = arg0->extra.tmd->coords;
-    enemy                               = arg0->spawnArg2.pointer;
+    work                                        = (_Actor207200LargeWork*)arg0->work;
+    head                                        = SCRATCH_STACK_CURSOR(Actor207200DmgScratch);
+    SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = head - 1;
+    sc                                          = head - 1;
+    coord                                       = arg0->extra.tmd->coords;
+    enemy                                       = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->rec3, &head[-1].d.delta, 6, NULL)) {
         case 0:
@@ -1105,8 +1105,8 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     func_800DA6E8(&enemy->node, damage, 0);
                     if (damage != 0) {
                         arg0->state++;
-                        work->field_48C                     = 0xB;
-                        SCRATCH_HEAD(Actor207200DmgScratch) = SCRATCH_HEAD(Actor207200DmgScratch) + 1;
+                        work->field_48C                             = 0xB;
+                        SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = SCRATCH_STACK_CURSOR(Actor207200DmgScratch) + 1;
                         return;
                     }
                 } else {
@@ -1218,7 +1218,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             Gp_ClearRec18Occupied(work->rec5);
         }
     }
-    SCRATCH_HEAD(Actor207200DmgScratch) = SCRATCH_HEAD(Actor207200DmgScratch) + 1;
+    SCRATCH_STACK_CURSOR(Actor207200DmgScratch) = SCRATCH_STACK_CURSOR(Actor207200DmgScratch) + 1;
 }
 
 /// Ticks the shatter timers the enemy runs while it dies. Every time a timer
@@ -1720,11 +1720,11 @@ static void func_actor_207200_8014D7E8(Task* arg0)
     ActorScaleScratch*     scratch;
     _Actor207200LargeWork* work;
 
-    head               = SCRATCH_HEAD(ActorScaleScratch);
-    work               = arg0->work;
-    scratch            = head - 1;
-    SCRATCH_HEAD(void) = scratch;
-    coord              = arg0->extra.tmd->coords;
+    head                       = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                       = arg0->work;
+    scratch                    = head - 1;
+    SCRATCH_STACK_CURSOR(void) = scratch;
+    coord                      = arg0->extra.tmd->coords;
     if (work->field_49C >= 0x201) {
         work->field_49C = (u16)work->field_49C - 0x50;
     }

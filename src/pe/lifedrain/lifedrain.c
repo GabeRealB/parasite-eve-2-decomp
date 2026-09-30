@@ -537,12 +537,12 @@ static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
     s16            y;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -633,12 +633,12 @@ static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
     s32            ang2;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);

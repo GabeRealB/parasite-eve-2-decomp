@@ -1208,12 +1208,12 @@ void func_acropolis_west_elevator_hall_8017FAE8(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = head - 0x14;
-    block              = (RoomShaftScratch*)(head - 0x14);
-    block->vec.vx      = (u16)coord->workm.t[0];
-    block->vec.vy      = (u16)coord->workm.t[1];
-    block->vec.vz      = (u16)coord->workm.t[2];
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = head - 0x14;
+    block                      = (RoomShaftScratch*)(head - 0x14);
+    block->vec.vx              = (u16)coord->workm.t[0];
+    block->vec.vy              = (u16)coord->workm.t[1];
+    block->vec.vz              = (u16)coord->workm.t[2];
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);

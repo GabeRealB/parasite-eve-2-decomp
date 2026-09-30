@@ -292,7 +292,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     rx2   = (arg1 * arg1) >> 8;
     node  = Gp_LinkList;
     SCRATCH_PUSH(SVECTOR);
-    vec = SCRATCH_HEAD(SVECTOR);
+    vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
     if (node != NULL) {
         do {
@@ -354,7 +354,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     arg2 += 0x64;
     node  = Gp_LinkList;
     SCRATCH_PUSH(SVECTOR);
-    vec = SCRATCH_HEAD(SVECTOR);
+    vec = SCRATCH_STACK_CURSOR(SVECTOR);
 
     if (node != NULL) {
         do {

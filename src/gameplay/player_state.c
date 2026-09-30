@@ -238,14 +238,14 @@ void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
     s32                    id;
     s32                    val;
 
-    rec                = arg1;
-    best               = 0;
-    i                  = 0;
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x40;
-    s                  = (GpPushBackScratch*)(head - 0x40);
-    actor              = arg0->work;
-    coord              = arg0->extra.tmd->coords;
+    rec                        = arg1;
+    best                       = 0;
+    i                          = 0;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x40;
+    s                          = (GpPushBackScratch*)(head - 0x40);
+    actor                      = arg0->work;
+    coord                      = arg0->extra.tmd->coords;
 
     for (i = 0; i < 0x12; rec++, i++) {
         delta = &s->delta;
@@ -1413,10 +1413,10 @@ s32 func_8010BC70(GfxCoord* arg0)
     TmdObject* extra;
     s32        ret;
 
-    extra                 = (gameGetPtrSlot(3))->extra.tmd;
-    head                  = SCRATCH_HEAD(u8);
-    vec                   = (VECTOR3*)(head - 0x10);
-    SCRATCH_HEAD(VECTOR3) = vec;
+    extra                         = (gameGetPtrSlot(3))->extra.tmd;
+    head                          = SCRATCH_STACK_CURSOR(u8);
+    vec                           = (VECTOR3*)(head - 0x10);
+    SCRATCH_STACK_CURSOR(VECTOR3) = vec;
     func_80103C74(arg0, (VECTOR3*)(extra->coords)->coord.t, vec);
     ret = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
     SCRATCH_POP_BYTES(0x10);
@@ -1448,9 +1448,9 @@ void func_8010BD88(Task* arg0, VECTOR3* arg1)
     s32            val;
 
     extra = arg0->extra.tmd;
-    head  = SCRATCH_HEAD(u8);
-    vec = SCRATCH_HEAD(GpTurnScratch) = (GpTurnScratch*)(head - 0x14);
-    actor                             = arg0->work;
+    head  = SCRATCH_STACK_CURSOR(u8);
+    vec = SCRATCH_STACK_CURSOR(GpTurnScratch) = (GpTurnScratch*)(head - 0x14);
+    actor                                     = arg0->work;
     func_80103C74(extra->coords, arg1, (VECTOR3*)vec);
     vec->angle = ratan2(((GpTurnScratch*)(head - 0x14))->vx, vec->vz);
     val        = func_80103E7C(actor->field_52, vec->angle);
@@ -1479,17 +1479,17 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     GameActor*              actor;
     s32                     yawStep;
 
-    head   = SCRATCH_HEAD(_PlayerActorAimScratch);
+    head   = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch);
     extra  = task->extra.tmd;
     actor  = task->work;
     coord  = &head[-1].coord;
     offset = &head[-1].offset;
     // Retain the array pointer's register without treating it as a model object.
     parts = extra->coords;
-    block = SCRATCH_HEAD(_PlayerActorAimScratch) = head - 1;
-    block->offset.vx                             = 0;
-    block->offset.vy                             = 0;
-    block->offset.vz                             = 0;
+    block = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch) = head - 1;
+    block->offset.vx                                     = 0;
+    block->offset.vy                                     = 0;
+    block->offset.vz                                     = 0;
     Gp_PlaceCoordOffset(parts + 4, coord, offset);
     func_80103C74(coord, targetPoint, &block->vec);
     // Turn toward the target relative to body facing, preserving the strict aim limit.

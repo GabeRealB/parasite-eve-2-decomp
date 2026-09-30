@@ -2177,7 +2177,7 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
     level       = arg2 + (rsin(gDisplayState.animFrame << 10) >> 10);
     if (level >= 0) {
         SCRATCH_PUSH(RoomQuadProjScratch);
-        blk = SCRATCH_HEAD(RoomQuadProjScratch);
+        blk = SCRATCH_STACK_CURSOR(RoomQuadProjScratch);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
         for (angle = start; angle < start + step * arg3; angle = next) {
             blk->v[0].vx = v->vx + ((rsin(angle) * innerRadius) >> 12);

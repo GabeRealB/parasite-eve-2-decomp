@@ -491,7 +491,7 @@ static void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
 
     p1 = arg0 + 1;
     SCRATCH_PUSH(OverlayPointPairScratch);
-    block = SCRATCH_HEAD(OverlayPointPairScratch);
+    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

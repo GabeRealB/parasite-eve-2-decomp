@@ -1472,12 +1472,12 @@ s32 Gp_TraceGroundCoord(GfxCoord* arg0, GfxCoord* arg1)
     s32           ret;
     u16           vz;
 
-    head                                   = SCRATCH_HEAD(u8);
+    head                                   = SCRATCH_STACK_CURSOR(u8);
     block                                  = (GpRayScratch*)(head - 0x10);
     ((GpRayScratch*)(head - 0x10))->pos.vx = (u16)arg0->workm.t[0];
     block->pos.vy                          = (u16)arg0->workm.t[1];
     vz                                     = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRayScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRayScratch)     = block;
     block->dir.vx                          = 0;
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
@@ -1513,12 +1513,12 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
     s32           ret;
     u16           vz;
 
-    head                                   = SCRATCH_HEAD(u8);
+    head                                   = SCRATCH_STACK_CURSOR(u8);
     block                                  = (GpRayScratch*)(head - 0x10);
     ((GpRayScratch*)(head - 0x10))->pos.vx = (u16)arg0->vx;
     block->pos.vy                          = (u16)arg0->vy;
     vz                                     = (u16)arg0->vz;
-    SCRATCH_HEAD(GpRayScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRayScratch)     = block;
     block->dir.vx                          = 0;
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;

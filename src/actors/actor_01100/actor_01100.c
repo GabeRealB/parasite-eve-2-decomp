@@ -1077,11 +1077,11 @@ static s32 Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->composeStamp             = GRAPHICS_COORD_DIRTY;
-    head                            = SCRATCH_HEAD(ActorRepelScratch);
-    blk                             = head - 1;
-    SCRATCH_HEAD(ActorRepelScratch) = blk;
-    s                               = blk;
+    coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
+    head                                    = SCRATCH_STACK_CURSOR(ActorRepelScratch);
+    blk                                     = head - 1;
+    SCRATCH_STACK_CURSOR(ActorRepelScratch) = blk;
+    s                                       = blk;
     Gp_UpdateCoord(coord);
     s->pos.vx  = coord->workm.t[0];
     s->pos.vy  = coord->workm.t[1];
@@ -1135,13 +1135,13 @@ static s32 Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 
         return 0;
     }
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - sizeof(OverlayAvoidScratch);
-    s                = (OverlayAvoidScratch*)SCRATCH_HEAD(u8);
-    s->blocked       = 0;
-    pos->vz          = 0;
-    pos->vy          = 0;
-    pos->vx          = 0;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
+    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
+    s->blocked               = 0;
+    pos->vz                  = 0;
+    pos->vy                  = 0;
+    pos->vx                  = 0;
 
     Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
     VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
@@ -1474,9 +1474,9 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     if (Mc_SaveData[0].state.field_5C1 == 1) {
         return 0;
     }
-    head = SCRATCH_HEAD(OverlayDeltaFlag);
+    head = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     SCRATCH_PUSH(OverlayDeltaFlag);
-    blk        = SCRATCH_HEAD(OverlayDeltaFlag);
+    blk        = SCRATCH_STACK_CURSOR(OverlayDeltaFlag);
     blk->moved = 0;
     if (func_800E0C10(contacts, &blk->delta, 3, NULL) != 0) {
         coord->coord.t[0] += head[-1].delta.vx.h.hi;
@@ -3188,12 +3188,12 @@ static void Actor01100_Fn04DB4(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// the distance is one pseudo.
 static __inline__ u8* Actor104900_ScratchRead(void)
 {
-    return SCRATCH_HEAD(u8);
+    return SCRATCH_STACK_CURSOR(u8);
 }
 
 static __inline__ void Actor104900_ScratchWrite(u8* p)
 {
-    SCRATCH_HEAD(u8) = p;
+    SCRATCH_STACK_CURSOR(u8) = p;
 }
 
 #define Actor104900_DistToPlayer(arg0, out)                           \
@@ -3969,13 +3969,13 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
         return 0;
     }
     coord = actor->extra.tmd->coords;
-    head  = SCRATCH_HEAD(ActorBearingScratch);
+    head  = SCRATCH_STACK_CURSOR(ActorBearingScratch);
     blk   = head - 1;
 
-    blk->delta.vx                     = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    blk->delta.vy                     = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    SCRATCH_HEAD(ActorBearingScratch) = blk;
-    blk->delta.vz                     = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
+    blk->delta.vx                             = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
+    blk->delta.vy                             = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
+    SCRATCH_STACK_CURSOR(ActorBearingScratch) = blk;
+    blk->delta.vz                             = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
 
     matrix = &blk->frame;
     TransposeMatrix(&arg0->workm, matrix);

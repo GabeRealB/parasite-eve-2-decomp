@@ -446,10 +446,10 @@ static void func_shelter_b2_pod_bottom_8017DECC(GfxCoord* arg0, u16 arg1, s16 ar
     u16              bank;
     u32              idx;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     idx                                       = arg1;
@@ -521,10 +521,10 @@ static void func_shelter_b2_pod_bottom_8017E334(GfxCoord* arg0, u16 arg1, s16 ar
 
     bank                                      = arg1 >> 12;
     arg1                                     &= 0xFFF;
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);

@@ -2047,13 +2047,13 @@ static void func_actor_800300_80162A98(Task* arg0)
     s32         arg;
     s32         flag;
 
-    actor            = arg0->work;
-    extra            = (gameGetPtrSlot(3))->extra.tmd;
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x10;
-    vec              = (VECTOR3*)(head - 0x10);
-    node             = actor->field_90C;
-    src              = extra->coords;
+    actor                    = arg0->work;
+    extra                    = (gameGetPtrSlot(3))->extra.tmd;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
+    vec                      = (VECTOR3*)(head - 0x10);
+    node                     = actor->field_90C;
+    src                      = extra->coords;
     if (node != NULL) {
         if (!(node->state.b.flags & 1)) {
             Gp_GetLockPos(node, vec);
@@ -2145,13 +2145,13 @@ static void func_actor_800300_80162D74(Task* arg0)
     VECTOR3*    vec;
     u16         state;
 
-    coord            = arg0->extra.tmd->coords;
-    target           = (gameGetPtrSlot(3))->extra.tmd->coords;
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x10;
-    vec              = (VECTOR3*)(head - 0x10);
-    actor            = arg0->work;
-    lock             = actor->field_90C;
+    coord                    = arg0->extra.tmd->coords;
+    target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
+    vec                      = (VECTOR3*)(head - 0x10);
+    actor                    = arg0->work;
+    lock                     = actor->field_90C;
     if (lock != NULL) {
         if (!(lock->state.b.flags & 1)) {
             Gp_GetLockPos(lock, vec);

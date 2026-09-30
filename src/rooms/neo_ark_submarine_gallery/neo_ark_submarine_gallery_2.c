@@ -1600,7 +1600,7 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
     u8                   shade;
 
     SCRATCH_PUSH(RoomQuadProjScratch);
-    blk = SCRATCH_HEAD(RoomQuadProjScratch);
+    blk = SCRATCH_STACK_CURSOR(RoomQuadProjScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     shade = (rsin(gDisplayState.animFrame << 10) >> 11) + 0x18;
     for (i = 0; i < 4; i++) {

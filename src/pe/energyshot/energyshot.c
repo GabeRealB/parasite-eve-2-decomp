@@ -291,12 +291,12 @@ static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb
     s32            ang2;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)arg0->workm.t[1];
     vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -353,11 +353,11 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
     s16            r0;
     s16            r1;
 
-    r1                 = arg1 / 2 + 0x100;
-    r0                 = arg1 + 0x400;
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x118;
-    block              = (GpBandScratch*)(head - 0x118);
+    r1                         = arg1 / 2 + 0x100;
+    r0                         = arg1 + 0x400;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x118;
+    block                      = (GpBandScratch*)(head - 0x118);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (i = 0; i < 16; i++) {
         ang                = i << 8;

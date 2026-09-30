@@ -908,7 +908,7 @@ static void Actor01500_Fn004EC(Task* actor)
     lastId = 0;
     work   = actor->work;
     SCRATCH_PUSH(ActorPushFrame);
-    frame  = SCRATCH_HEAD(ActorPushFrame);
+    frame  = SCRATCH_STACK_CURSOR(ActorPushFrame);
     coord  = actor->extra.tmd->coords;
     result = func_800E0C10(work->field_264, &frame->delta, 5, NULL);
     if (result != 0) {
@@ -1115,7 +1115,7 @@ static void Actor01500_Fn00CA4(Task* actor)
     s16              val;
 
     SCRATCH_PUSH(VECTOR);
-    frame = SCRATCH_HEAD(VECTOR);
+    frame = SCRATCH_STACK_CURSOR(VECTOR);
     work  = actor->work;
     coord = actor->extra.tmd->coords;
     flag  = 0;
@@ -1260,11 +1260,11 @@ static void Actor01500_Fn011B0(Task* actor)
     s32              diff2;
     s32              dist2;
 
-    head             = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8) = head - 0x10;
-    vec              = (VECTOR3*)(head - 0x10);
-    work             = actor->work;
-    coord            = actor->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
+    vec                      = (VECTOR3*)(head - 0x10);
+    work                     = actor->work;
+    coord                    = actor->extra.tmd->coords;
     switch (work->field_35C) {
         case 0:
             off  = work->field_364 + 0x708;
@@ -1364,20 +1364,20 @@ static void Actor01500_Fn015DC(Task* actor)
     VECTOR*          head;
     VECTOR*          blk;
 
-    work                 = actor->work;
-    coord                = actor->extra.tmd->coords;
-    work->field_352      = 0xE;
-    work->field_360      = 5;
-    work->field_376      = 5;
-    work->field_34C      = 0;
-    work->field_366      = 0x80;
-    head                 = SCRATCH_HEAD(VECTOR);
-    blk                  = head - 1;
-    head[-1].vx          = coord->coord.t[0] - Player_Status.coordMtx->t[0];
-    blk->vy              = 0;
-    blk->vz              = coord->coord.t[2] - Player_Status.coordMtx->t[2];
-    SCRATCH_HEAD(VECTOR) = blk;
-    work->field_372      = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
+    work                         = actor->work;
+    coord                        = actor->extra.tmd->coords;
+    work->field_352              = 0xE;
+    work->field_360              = 5;
+    work->field_376              = 5;
+    work->field_34C              = 0;
+    work->field_366              = 0x80;
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    blk                          = head - 1;
+    head[-1].vx                  = coord->coord.t[0] - Player_Status.coordMtx->t[0];
+    blk->vy                      = 0;
+    blk->vz                      = coord->coord.t[2] - Player_Status.coordMtx->t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = blk;
+    work->field_372              = ratan2((s16)head[-1].vx, (s16)blk->vz) & 0xFFF;
     if (coord->coord.t[1] > Player_Status.coordMtx->t[1] + 500 ||
         coord->coord.t[1] < Player_Status.coordMtx->t[1] - 1800 ||
         ++work->field_362 > 1800) {
@@ -1767,12 +1767,12 @@ static void Actor01500_Fn020D8(Task* arg0)
     s32              off;
     s32              delay;
 
-    head             = SCRATCH_HEAD(u8);
-    stk              = (VECTOR3*)(head - 0x10);
-    SCRATCH_HEAD(u8) = (u8*)stk;
-    vec              = stk;
-    work             = arg0->work;
-    coord            = arg0->extra.tmd->coords;
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    stk                      = (VECTOR3*)(head - 0x10);
+    SCRATCH_STACK_CURSOR(u8) = (u8*)stk;
+    vec                      = stk;
+    work                     = arg0->work;
+    coord                    = arg0->extra.tmd->coords;
     switch (work->field_35C) {
         case 0:
             off = work->field_364 + 800;
@@ -2151,11 +2151,11 @@ static void Actor01500_Fn02B70(Task* arg0)
     VECTOR*          head;
     s16              hit;
 
-    head                 = SCRATCH_HEAD(VECTOR);
-    work                 = arg0->work;
-    coord                = arg0->extra.tmd->coords;
-    SCRATCH_HEAD(VECTOR) = head - 1;
-    vec                  = (VECTOR3*)(head - 1);
+    head                         = SCRATCH_STACK_CURSOR(VECTOR);
+    work                         = arg0->work;
+    coord                        = arg0->extra.tmd->coords;
+    SCRATCH_STACK_CURSOR(VECTOR) = head - 1;
+    vec                          = (VECTOR3*)(head - 1);
     if (work->field_35A != 5) {
         hit = func_800EA1A8(MATRIX_TRANS(&coord->workm), vec);
         if (hit != 0) {
@@ -2183,11 +2183,11 @@ static void Actor01500_Fn02C34(Task* arg0)
     ActorScaleScratch* scratch;
     Actor101500Work*   work;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    work                            = arg0->work;
-    scratch                         = head - 1;
-    SCRATCH_HEAD(ActorScaleScratch) = scratch;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = arg0->work;
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    coord                                   = arg0->extra.tmd->coords;
     if (work->field_368 >= 0x201) {
         work->field_368 = (u16)work->field_368 - 0x50;
     }

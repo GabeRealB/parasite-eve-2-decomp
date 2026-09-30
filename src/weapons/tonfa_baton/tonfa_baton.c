@@ -191,7 +191,7 @@ static void func_tonfa_baton_8011D6B0(s16 slot, s16 flags)
     s32               fade;
 
     SCRATCH_PUSH_BYTES(sizeof(TonfaBeamScratch));
-    blk = SCRATCH_HEAD(TonfaBeamScratch);
+    blk = SCRATCH_STACK_CURSOR(TonfaBeamScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     for (i = 0; i < 7; i++) {
@@ -343,7 +343,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
     swinging = 0;
     actor    = arg0->work;
     SCRATCH_PUSH_BYTES(0x18);
-    swing = SCRATCH_HEAD(TonfaSwing);
+    swing = SCRATCH_STACK_CURSOR(TonfaSwing);
     switch (actor->field_95E) {
         case 0:
             actor->field_956 = 4;

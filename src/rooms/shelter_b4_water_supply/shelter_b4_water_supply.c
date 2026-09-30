@@ -1096,9 +1096,9 @@ static void func_shelter_b4_water_supply_8017DE74(Task* task)
 
     e                          = D_shelter_b4_water_supply_80182648;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1233,9 +1233,9 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task)
 
     e                          = D_shelter_b4_water_supply_8018265C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    head                       = SCRATCH_HEAD(u8);
+    head                       = SCRATCH_STACK_CURSOR(u8);
     phase                      = -(gDisplayState.animFrame * 16);
-    SCRATCH_HEAD(u8)           = head - 0xC;
+    SCRATCH_STACK_CURSOR(u8)   = head - 0xC;
     w                          = (RoomWaterScratch*)(head - 0xC);
     Gp_UpdateCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);

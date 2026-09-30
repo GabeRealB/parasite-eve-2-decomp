@@ -4160,11 +4160,11 @@ static inline void _actor403100UpdateColor(Task* task, GfxCoord* coord)
 {
     VECTOR* pos;
 
-    pos                  = SCRATCH_HEAD(VECTOR) - 1;
-    pos->vx              = coord->workm.t[0];
-    pos->vy              = coord->workm.t[1];
-    pos->vz              = coord->workm.t[2];
-    SCRATCH_HEAD(VECTOR) = pos;
+    pos                          = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    pos->vx                      = coord->workm.t[0];
+    pos->vy                      = coord->workm.t[1];
+    pos->vz                      = coord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = pos;
     Gp_UpdateActorColor(task->spawnArg2.pointer, pos, 0, 0);
     SCRATCH_POP_BYTES(sizeof(VECTOR));
 }
@@ -7212,7 +7212,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     lower  = &coords[1];
     part   = 3;
     SCRATCH_PUSH(Actor403100AimScratch);
-    allocated = SCRATCH_HEAD(Actor403100AimScratch);
+    allocated = SCRATCH_STACK_CURSOR(Actor403100AimScratch);
     matrices  = allocated->mats;
     angles    = &allocated->angles;
     gfxSetRotIdentity(matrices);

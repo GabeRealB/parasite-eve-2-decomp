@@ -476,10 +476,10 @@ static void func_apobiosis_8013017C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg3
     s32              u1;
     s32              ang2;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = arg0->workm.t[0];
-    SCRATCH_HEAD(void)                        = head - 0x1C;
-    block                                     = SCRATCH_HEAD(GpFxQuadScratch);
+    SCRATCH_STACK_CURSOR(void)                = head - 0x1C;
+    block                                     = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vy                             = arg0->workm.t[1];
     block->vec.vz                             = arg0->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);

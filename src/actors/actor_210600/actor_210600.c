@@ -459,10 +459,10 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
     s16                   ang;
     u16                   m22;
 
-    head                               = SCRATCH_HEAD(u8);
-    coord                              = task->extra.tmd->coords;
-    blk                                = (ActorScaleRotScratch*)(head - 0x34);
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    head                                       = SCRATCH_STACK_CURSOR(u8);
+    coord                                      = task->extra.tmd->coords;
+    blk                                        = (ActorScaleRotScratch*)(head - 0x34);
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;

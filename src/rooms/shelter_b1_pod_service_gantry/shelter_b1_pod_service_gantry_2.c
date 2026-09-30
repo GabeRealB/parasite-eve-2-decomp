@@ -674,11 +674,11 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
     s32            green;
     u8             red;
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x18;
-    block              = SCRATCH_HEAD(GpRingScratch);
-    color              = arg3;
-    color16            = color;
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x18;
+    block                      = SCRATCH_STACK_CURSOR(GpRingScratch);
+    color                      = arg3;
+    color16                    = color;
     Mem_Set(block, 0, 0x18);
     ((GpRingScratch*)(head - 0x18))->vec.vx = 0;
     block->vec.vy                           = -0xC4;

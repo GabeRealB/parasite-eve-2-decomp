@@ -217,12 +217,12 @@ static void func_m4a1_pyke_8011D548(VECTOR3* pos, u16 frame, s32 brightness)
     s32            u1;
     u16            vz;
 
-    head                                    = SCRATCH_HEAD(u8);
+    head                                    = SCRATCH_STACK_CURSOR(u8);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)pos->vx;
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)pos->vy;
     vz                                      = (u16)pos->vz;
-    SCRATCH_HEAD(GpRingScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -437,12 +437,12 @@ static void func_m4a1_pyke_8011DCEC(VECTOR3* pos, u16 frame, u16 width, s16 ang)
     s32              a;
     u16              vz;
 
-    head                                      = SCRATCH_HEAD(u8);
+    head                                      = SCRATCH_STACK_CURSOR(u8);
     ((GpFxQuadScratch*)(head - 0x1C))->vec.vx = (u16)pos->vx;
     block                                     = (GpFxQuadScratch*)(head - 0x1C);
     block->vec.vy                             = (u16)pos->vy;
     vz                                        = (u16)pos->vz;
-    SCRATCH_HEAD(GpFxQuadScratch)             = block;
+    SCRATCH_STACK_CURSOR(GpFxQuadScratch)     = block;
     block->vec.vz                             = vz;
     vecp                                      = block;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -505,12 +505,12 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
     s32                    flag;
     s32                    otz;
 
-    head = SCRATCH_HEAD(u8) - 0x30;
+    head = SCRATCH_STACK_CURSOR(u8) - 0x30;
     /* The ROM stores the freshly computed head and keeps a *copy* of it in the
        register the rest of the function walks; without the barrier GCC folds
        the two together and stores the copy instead. */
-    SCRATCH_HEAD(u8) = head;
-    block            = (M4a1PykeSplashScratch*)head;
+    SCRATCH_STACK_CURSOR(u8) = head;
+    block                    = (M4a1PykeSplashScratch*)head;
     gte_SetTransMatrix(&GsWSMATRIX);
     i   = 0;
     tbl = D_80111E38;
@@ -606,7 +606,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     SCRATCH_PUSH_BYTES(0x50);
-    spot = SCRATCH_HEAD(GfxCoord);
+    spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
             anim              = 1;

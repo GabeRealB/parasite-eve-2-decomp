@@ -3730,8 +3730,8 @@ static void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
     gameGetPtrSlot(3);
     sp                                    = D_actor_323000_80161E24;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                  = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(u8)                      = head - 0x1C;
+    head                                  = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(u8)              = head - 0x1C;
     scratch                               = (Actor323000TickScratch*)(head - 0x1C);
     Gp_UpdateCoord(task->extra.tmd->coords);
     scratch->pos.vx = task->extra.tmd->coords->workm.t[0];

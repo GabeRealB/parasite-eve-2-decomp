@@ -2571,10 +2571,10 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     mem   = arg0->spawnArg2.pointer;
     Gp_UpdateCoord(coord);
-    head = SCRATCH_HEAD(OverlaySpriteScratch);
+    head = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     vx   = coord->workm.t[0];
     SCRATCH_PUSH(OverlaySpriteScratch);
-    block         = SCRATCH_HEAD(OverlaySpriteScratch);
+    block         = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
     block->vec.vx = vx;
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];

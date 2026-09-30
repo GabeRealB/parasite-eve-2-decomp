@@ -54,15 +54,15 @@ static void func_kyle_800102_80167A84(Task* arg0)
     s32                flags;
     s32                speed;
 
-    head                  = SCRATCH_HEAD(u8);
-    blk                   = (SVECTOR*)(head - 8);
-    SCRATCH_HEAD(SVECTOR) = blk;
-    extra                 = arg0->extra.tmd;
-    idx                   = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
-    coord                 = extra->coords;
-    muzzle                = coord->parent;
-    work                  = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec                   = blk;
+    head                          = SCRATCH_STACK_CURSOR(u8);
+    blk                           = (SVECTOR*)(head - 8);
+    SCRATCH_STACK_CURSOR(SVECTOR) = blk;
+    extra                         = arg0->extra.tmd;
+    idx                           = ((u32)arg0->spawnArg1.value >> 16) & 0xF;
+    coord                         = extra->coords;
+    muzzle                        = coord->parent;
+    work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    vec                           = blk;
     if (work == NULL) {
         SCRATCH_POP_BYTES(8);
         taskKill(arg0);

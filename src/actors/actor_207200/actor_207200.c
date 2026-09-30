@@ -445,13 +445,13 @@ static void func_actor_207200_8014A588(Task* arg0)
     u32                      damage;
     s32                      snd;
 
-    work                            = (ActorShared8014df20Work*)arg0->work;
-    head                            = SCRATCH_HEAD(ActorDeltaFrame38);
-    SCRATCH_HEAD(ActorDeltaFrame38) = head - 1;
-    sc                              = head - 1;
-    obj                             = arg0->extra.tmd;
-    coord                           = obj->coords;
-    enemy                           = arg0->spawnArg2.pointer;
+    work                                    = (ActorShared8014df20Work*)arg0->work;
+    head                                    = SCRATCH_STACK_CURSOR(ActorDeltaFrame38);
+    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = head - 1;
+    sc                                      = head - 1;
+    obj                                     = arg0->extra.tmd;
+    coord                                   = obj->coords;
+    enemy                                   = arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_1A4, &head[-1].delta, 4, NULL)) {
         case 0:
@@ -540,7 +540,7 @@ static void func_actor_207200_8014A588(Task* arg0)
         i++;
     } while (i < 4);
     Gp_ClearRec18Occupied(work->field_1A4);
-    SCRATCH_HEAD(ActorDeltaFrame38) = SCRATCH_HEAD(ActorDeltaFrame38) + 1;
+    SCRATCH_STACK_CURSOR(ActorDeltaFrame38) = SCRATCH_STACK_CURSOR(ActorDeltaFrame38) + 1;
 }
 
 /// Rebinds the small enemy's animation id `field_28C` to its two helper
@@ -833,11 +833,11 @@ static void func_actor_207200_8014B128(Task* arg0)
     ActorScaleScratch* scratch;
     Actor207200Work*   work;
 
-    head               = SCRATCH_HEAD(ActorScaleScratch);
-    work               = arg0->work;
-    scratch            = head - 1;
-    SCRATCH_HEAD(void) = scratch;
-    coord              = arg0->extra.tmd->coords;
+    head                       = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                       = arg0->work;
+    scratch                    = head - 1;
+    SCRATCH_STACK_CURSOR(void) = scratch;
+    coord                      = arg0->extra.tmd->coords;
     if (work->field_2A0 >= 0x201) {
         work->field_2A0 = (u16)work->field_2A0 - 0x50;
     }

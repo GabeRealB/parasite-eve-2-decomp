@@ -1346,7 +1346,7 @@ static void func_actor_401300_801320A4(GfxCoord* coord, s16 yaw)
     GfxCoord* out;
 
     SCRATCH_PUSH(MATRIX);
-    rotation = SCRATCH_HEAD(MATRIX);
+    rotation = SCRATCH_STACK_CURSOR(MATRIX);
     actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     out = actorLocalizeRotation(coord, rotation);
@@ -1514,9 +1514,9 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
         return 0;
     }
     arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    head                                    = SCRATCH_HEAD(ActorPushScratch);
+    head                                    = SCRATCH_STACK_CURSOR(ActorPushScratch);
     blk                                     = head - 1;
-    SCRATCH_HEAD(ActorPushScratch)          = blk;
+    SCRATCH_STACK_CURSOR(ActorPushScratch)  = blk;
     s                                       = blk;
     Gp_UpdateCoord(&arg0->extra.tmd->coords[1]);
     s->pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
@@ -1603,11 +1603,11 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     if (Mc_SaveData[0].state.field_5C1 == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    head                         = SCRATCH_HEAD(ActorStepDelta);
-    blk                          = head - 1;
-    SCRATCH_HEAD(ActorStepDelta) = blk;
-    s                            = blk;
-    s->moved                     = 0;
+    head                                 = SCRATCH_STACK_CURSOR(ActorStepDelta);
+    blk                                  = head - 1;
+    SCRATCH_STACK_CURSOR(ActorStepDelta) = blk;
+    s                                    = blk;
+    s->moved                             = 0;
     if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
@@ -1672,14 +1672,14 @@ static s32 func_actor_401300_80132FF4(Task* arg0)
     SVECTOR*           v;
     SVECTOR*           out;
 
-    player           = gameGetPtrSlot(3);
-    head             = SCRATCH_HEAD(u8);
-    local            = (SVECTOR*)(head - 0xC);
-    s                = (ActorSightScratch*)(head - 0x1C);
-    s->local.vx      = player->extra.tmd->coords->coord.t[0];
-    s->local.vy      = player->extra.tmd->coords->coord.t[1] - 1000;
-    SCRATCH_HEAD(u8) = (u8*)s;
-    s->local.vz      = player->extra.tmd->coords->coord.t[2];
+    player                   = gameGetPtrSlot(3);
+    head                     = SCRATCH_STACK_CURSOR(u8);
+    local                    = (SVECTOR*)(head - 0xC);
+    s                        = (ActorSightScratch*)(head - 0x1C);
+    s->local.vx              = player->extra.tmd->coords->coord.t[0];
+    s->local.vy              = player->extra.tmd->coords->coord.t[1] - 1000;
+    SCRATCH_STACK_CURSOR(u8) = (u8*)s;
+    s->local.vz              = player->extra.tmd->coords->coord.t[2];
     Gp_UpdateCoord(&gGfxViewCoord);
     v = local;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -2320,11 +2320,11 @@ static __inline__ void Actor401300_InitPose(GfxCoord* coord, Actor401300Work* wo
     s16                   ang;
     u16                   m22;
 
-    top                                = SCRATCH_HEAD(ActorScaleRotScratch);
-    blk                                = top - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
-    ang                                = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->angle                         = ang;
+    top                                        = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    blk                                        = top - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
+    ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    blk->angle                                 = ang;
     Gfx_RotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = 0x1964;
     blk->scale.vy = 0x1964;
@@ -2618,8 +2618,8 @@ static void func_actor_401300_80134F90(Task* arg0)
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
     if (enemy->hp > 0 && (work->field_0 != 8 || work->field_8A2 != 0x20)) {
-        head  = SCRATCH_HEAD(ActorHitScratch);
-        s     = (SCRATCH_HEAD(ActorHitScratch) = head - 1);
+        head  = SCRATCH_STACK_CURSOR(ActorHitScratch);
+        s     = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
         s->id = actorFindHit(&head[-1].hitPos, work->field_990);
         if (s->id == 0) {
             s->id = actorFindHit(&s->hitPos, work->field_AD0);
@@ -3051,7 +3051,7 @@ static void func_actor_401300_80136238(Task* arg0)
         }
     }
     SCRATCH_PUSH(ActorChaseScratch);
-    aim                                   = SCRATCH_HEAD(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_6C & 0x100) {
         if (func_actor_401300_80132FF4(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
@@ -3132,15 +3132,15 @@ static void func_actor_401300_801365F8(Task* arg0)
         }
     }
     work->field_6++;
-    head                                    = SCRATCH_HEAD(Actor401300PursuitScratch);
-    delta                                   = &head[-1].delta;
-    c1                                      = arg0->extra.tmd->coords;
-    head[-1].delta.vx                       = Player_Status.coordMtx->t[0] - c1->coord.t[0];
-    delta->vy                               = Player_Status.coordMtx->t[1] - c1->coord.t[1];
-    delta->vz                               = Player_Status.coordMtx->t[2] - c1->coord.t[2];
-    SCRATCH_HEAD(Actor401300PursuitScratch) = head - 1;
-    sc                                      = head - 1;
-    arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
+    head                                            = SCRATCH_STACK_CURSOR(Actor401300PursuitScratch);
+    delta                                           = &head[-1].delta;
+    c1                                              = arg0->extra.tmd->coords;
+    head[-1].delta.vx                               = Player_Status.coordMtx->t[0] - c1->coord.t[0];
+    delta->vy                                       = Player_Status.coordMtx->t[1] - c1->coord.t[1];
+    delta->vz                                       = Player_Status.coordMtx->t[2] - c1->coord.t[2];
+    SCRATCH_STACK_CURSOR(Actor401300PursuitScratch) = head - 1;
+    sc                                              = head - 1;
+    arg0->extra.tmd->coords->composeStamp           = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, work->field_990, 0xC);
@@ -3199,10 +3199,10 @@ static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
     SVECTOR* v;
 
     if (Mc_SaveData[0].state.field_5C1 != 1) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        vec                   = head - 1;
-        SCRATCH_HEAD(SVECTOR) = vec;
-        v                     = vec;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+        v                             = vec;
         if (amount != 0) {
             Gfx_MatrixCol2(&coord->coord, vec);
             VectorNormalSS(vec, vec);
@@ -3295,10 +3295,10 @@ static void func_actor_401300_80136CE8(Task* arg0)
             work->field_8B6 = 0x40;
         }
     }
-    head = SCRATCH_HEAD(Actor401300PursuitScratch);
+    head = SCRATCH_STACK_CURSOR(Actor401300PursuitScratch);
     blk  = head - 1;
     work->field_6++;
-    SCRATCH_HEAD(Actor401300PursuitScratch) = blk;
+    SCRATCH_STACK_CURSOR(Actor401300PursuitScratch) = blk;
     func_actor_401300_80133A3C(arg0);
     s = blk;
     switch (work->field_8A2) {
@@ -3362,9 +3362,9 @@ static void func_actor_401300_801376E4(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                                    = SCRATCH_HEAD(ActorChaseScratch);
+        head                                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
         obj                                                     = arg0->extra.tmd;
-        SCRATCH_HEAD(ActorChaseScratch)                         = head - 1;
+        SCRATCH_STACK_CURSOR(ActorChaseScratch)                 = head - 1;
         s                                                       = head - 1;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
         obj->flags                                              = 0;
@@ -3388,9 +3388,9 @@ static void func_actor_401300_801376E4(Task* arg0)
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    s                               = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    s                                       = head - 1;
     func_actor_401300_80133A3C(arg0);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &s->delta);
     if (work->field_C94 == work->field_C96) {
@@ -3448,9 +3448,9 @@ static void func_actor_401300_80137D78(Task* arg0)
         work->field_0 = 0x1E;
         return;
     }
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    aim                             = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    aim                                     = head - 1;
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
@@ -3798,9 +3798,9 @@ static __inline__ void Actor401300_RescaleYawXZ(GfxCoord* coord, s32 xz, s16 y)
     s16                   ang;
     u16                   m22;
 
-    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
-    blk                                = head - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    blk                                        = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -4043,7 +4043,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
         }
     }
     SCRATCH_PUSH(ActorTurnScratch);
-    s           = SCRATCH_HEAD(ActorTurnScratch);
+    s           = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     s->delta.vx = work->field_C[work->field_16].x - arg0->extra.tmd->coords->coord.t[0];
     s->delta.vy = 0;
     s->delta.vz = work->field_C[work->field_16].z - arg0->extra.tmd->coords->coord.t[2];
@@ -4118,7 +4118,7 @@ static void func_actor_401300_8013A208(Task* arg0)
         work->field_8A6           = 0x1E;
     }
     SCRATCH_PUSH(ActorTurnScratch);
-    turn            = SCRATCH_HEAD(ActorTurnScratch);
+    turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     turn->angle     = actorPositionYaw(arg0, &turn->delta, &Player_Status);
     work->field_8B2 = turn->angle;
     if (turn->angle > 0x40) {
@@ -4175,7 +4175,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     SCRATCH_PUSH(ActorChaseScratch);
-    aim             = SCRATCH_HEAD(ActorChaseScratch);
+    aim             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn       = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     work->field_8B2 = aim->turn;
     if (ABS(aim->turn) <= 0x80 && work->field_8A2 == 2) {
@@ -4245,7 +4245,7 @@ static void func_actor_401300_8013AAE8(Task* arg0)
     }
     work->field_6++;
     SCRATCH_PUSH(ActorChaseScratch);
-    aim                                   = SCRATCH_HEAD(ActorChaseScratch);
+    aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->field_6C & 0x100) || work->field_6 >= 0xB) {
         work->field_0 = 0xB;
@@ -4294,7 +4294,7 @@ static void func_actor_401300_8013AE48(Task* arg0)
     }
     work->field_6++;
     SCRATCH_PUSH(ActorChaseScratch);
-    aim       = SCRATCH_HEAD(ActorChaseScratch);
+    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn = actorPositionYaw(arg0, &aim->delta, &Player_Status);
     if (work->field_8B2 < aim->turn) {
         if (aim->turn - work->field_8B2 > 0x28) {
@@ -4549,9 +4549,9 @@ static void func_actor_401300_8013CBAC(Task* arg0)
         work->field_8 = 0;
     }
     work->field_6++;
-    head                            = SCRATCH_HEAD(ActorChaseScratch);
-    SCRATCH_HEAD(ActorChaseScratch) = head - 1;
-    aim                             = head - 1;
+    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
+    aim                                     = head - 1;
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) == 0) {
         func_actor_401300_80132910(arg0, work->field_990, 0xC);
     }
@@ -4656,7 +4656,7 @@ static void func_actor_401300_8013D2AC(Task* arg0)
             break;
     }
     SCRATCH_PUSH(ActorChaseScratch);
-    aim = SCRATCH_HEAD(ActorChaseScratch);
+    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
@@ -4731,7 +4731,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
             break;
     }
     SCRATCH_PUSH(ActorChaseScratch);
-    aim = SCRATCH_HEAD(ActorChaseScratch);
+    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     actorConfigPositionDelta(&Player_Status, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_401300_80133A3C(arg0);
@@ -4768,10 +4768,10 @@ static __inline__ void Actor401300_ResetActorYaw(Task* actor)
     s16                   ang;
     u16                   m22;
 
-    coord                              = actor->extra.tmd->coords;
-    head                               = SCRATCH_HEAD(ActorScaleRotScratch);
-    blk                                = head - 1;
-    SCRATCH_HEAD(ActorScaleRotScratch) = blk;
+    coord                                      = actor->extra.tmd->coords;
+    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
+    blk                                        = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
@@ -4809,9 +4809,9 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* c
     SVECTOR* vec;
 
     if (save->state.field_5C1 != 1) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        vec                   = head - 1;
-        SCRATCH_HEAD(SVECTOR) = vec;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
         Gfx_MatrixCol2(&coord->coord, vec);
         VectorNormalSS(vec, vec);
         gte_lddp(amount);
@@ -5042,10 +5042,10 @@ static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GfxC
     SVECTOR* gteVec;
 
     if (save->state.field_5C1 != 1) {
-        head                  = SCRATCH_HEAD(SVECTOR);
-        vec                   = head - 1;
-        SCRATCH_HEAD(SVECTOR) = vec;
-        gteVec                = vec;
+        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
+        vec                           = head - 1;
+        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
+        gteVec                        = vec;
         if (amount != 0) {
             Gfx_MatrixCol2(&coord->coord, vec);
             VectorNormalSS(vec, vec);
@@ -5249,12 +5249,12 @@ static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
     ActorScaleMatrixScratch* head;
     ActorScaleMatrixScratch* blk;
 
-    head                                  = SCRATCH_HEAD(ActorScaleMatrixScratch);
-    blk                                   = head - 1;
-    SCRATCH_HEAD(ActorScaleMatrixScratch) = blk;
-    blk->scale.vz                         = scale;
-    blk->scale.vy                         = scale;
-    head[-1].scale.vx                     = scale;
+    head                                          = SCRATCH_STACK_CURSOR(ActorScaleMatrixScratch);
+    blk                                           = head - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleMatrixScratch) = blk;
+    blk->scale.vz                                 = scale;
+    blk->scale.vy                                 = scale;
+    head[-1].scale.vx                             = scale;
     ScaleMatrix(m, &blk->scale);
     blk->trans.vx = m->t[0];
     blk->trans.vy = m->t[1];
@@ -5690,9 +5690,9 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             return;
     }
 
-    head                           = SCRATCH_HEAD(ActorViewScratch);
-    SCRATCH_HEAD(ActorViewScratch) = head - 1;
-    scratch                        = head - 1;
+    head                                   = SCRATCH_STACK_CURSOR(ActorViewScratch);
+    SCRATCH_STACK_CURSOR(ActorViewScratch) = head - 1;
+    scratch                                = head - 1;
 
     if (work->field_C88 > 0) {
         work->field_C88 = (s16)((u16)work->field_C88 - 1);

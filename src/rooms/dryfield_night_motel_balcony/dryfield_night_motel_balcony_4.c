@@ -3042,7 +3042,7 @@ static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
 
     p1 = arg0 + 1;
     SCRATCH_PUSH(OverlayPointPairScratch);
-    block = SCRATCH_HEAD(OverlayPointPairScratch);
+    block = SCRATCH_STACK_CURSOR(OverlayPointPairScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -3415,7 +3415,7 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
 
     size = D_dryfield_night_motel_balcony_80182DE0[task->spawnArg1.value].w - 1;
     SCRATCH_PUSH(GpFxQuadScratch);
-    block         = SCRATCH_HEAD(GpFxQuadScratch);
+    block         = SCRATCH_STACK_CURSOR(GpFxQuadScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];
@@ -3656,7 +3656,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
     work  = task->spawnArg2.pointer;
 
     SCRATCH_PUSH(GpRingScratch);
-    block         = SCRATCH_HEAD(GpRingScratch);
+    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];
@@ -3944,12 +3944,12 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
 
-    head                                    = SCRATCH_HEAD(void);
+    head                                    = SCRATCH_STACK_CURSOR(void);
     ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)coord->workm.t[0];
     block                                   = (GpRingScratch*)(head - 0x18);
     block->vec.vy                           = (u16)coord->workm.t[1];
     vz                                      = (u16)coord->workm.t[2];
-    SCRATCH_HEAD(void)                      = block;
+    SCRATCH_STACK_CURSOR(void)              = block;
     block->vec.vz                           = vz;
     vec                                     = &block->vec;
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -4120,7 +4120,7 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
     coord = task->extra.coordBody->coord;
 
     SCRATCH_PUSH(GpRingScratch);
-    block         = SCRATCH_HEAD(GpRingScratch);
+    block         = SCRATCH_STACK_CURSOR(GpRingScratch);
     block->vec.vx = coord->workm.t[0];
     block->vec.vy = coord->workm.t[1];
     block->vec.vz = coord->workm.t[2];

@@ -168,9 +168,9 @@ static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos
 {
     u8*     h;
     VECTOR* vec;
-    h                  = SCRATCH_HEAD(u8);
-    vec                = (VECTOR*)(h - 0x30);
-    SCRATCH_HEAD(void) = vec;
+    h                          = SCRATCH_STACK_CURSOR(u8);
+    vec                        = (VECTOR*)(h - 0x30);
+    SCRATCH_STACK_CURSOR(void) = vec;
     gte_SetRotMatrix(&obj->coord->workm);
     gte_ldv0(&obj->pos);
     gte_rtv0();
@@ -189,9 +189,9 @@ void func_800DD940(WorldCollisionBody* arg0)
     s32                    i;
     u16                    flags;
 
-    head               = SCRATCH_HEAD(u8);
-    SCRATCH_HEAD(void) = head - 0x50;
-    block              = (GpFloorScratch*)(head - 0x50);
+    head                       = SCRATCH_STACK_CURSOR(u8);
+    SCRATCH_STACK_CURSOR(void) = head - 0x50;
+    block                      = (GpFloorScratch*)(head - 0x50);
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         D_80115450[i] = 0;
     }
@@ -330,12 +330,12 @@ static void func_800DE150(WorldCollisionBody* arg0)
     GfxCoord*      coord;
     MATRIX*        mat;
 
-    coord              = arg0->coord;
-    head               = SCRATCH_HEAD(void);
-    SCRATCH_HEAD(void) = head - 0x50;
-    block              = (GpEdgeScratch*)(head - 0x50);
-    mat                = (MATRIX*)(head - 0x20);
-    src                = &arg0->context.capsule->end0;
+    coord                      = arg0->coord;
+    head                       = SCRATCH_STACK_CURSOR(void);
+    SCRATCH_STACK_CURSOR(void) = head - 0x50;
+    block                      = (GpEdgeScratch*)(head - 0x50);
+    mat                        = (MATRIX*)(head - 0x20);
+    src                        = &arg0->context.capsule->end0;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
@@ -373,9 +373,9 @@ static void func_800DE2C0(VECTOR* arg0, s32 arg1)
     s16*           ids;
     s16            id;
 
-    head          = SCRATCH_HEAD(u8);
+    head          = SCRATCH_STACK_CURSOR(u8);
     cellSize      = Gp_GridParams->field_20;
-    block         = (GpMarkScratch*)(SCRATCH_HEAD(void) = head - 0x28);
+    block         = (GpMarkScratch*)(SCRATCH_STACK_CURSOR(void) = head - 0x28);
     block->vec.vx = arg0[0].vx - arg0[1].vx;
     block->vec.vy = 0;
     vz0           = arg0[0].vz;
@@ -459,11 +459,11 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
     {
         u8* head;
 
-        head             = SCRATCH_HEAD(u8);
-        i                = 0;
-        head            -= 0x40;
-        SCRATCH_HEAD(u8) = head;
-        block            = (GpRayHitScratch*)head;
+        head                     = SCRATCH_STACK_CURSOR(u8);
+        i                        = 0;
+        head                    -= 0x40;
+        SCRATCH_STACK_CURSOR(u8) = head;
+        block                    = (GpRayHitScratch*)head;
         if (ret < params->field_22) {
             do {
                 D_80115450[i] = 0;
@@ -519,13 +519,13 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     GpGridPairScratch* block;
     VECTOR*            out;
 
-    head                            = SCRATCH_HEAD(u8);
-    block                           = (GpGridPairScratch*)(head - 0x40);
-    block->in.vx                    = arg0->vx;
-    block->in.vy                    = arg0->vy;
-    block->in.vz                    = arg0->vz;
-    out                             = (VECTOR*)(head - 0x30);
-    SCRATCH_HEAD(GpGridPairScratch) = block;
+    head                                    = SCRATCH_STACK_CURSOR(u8);
+    block                                   = (GpGridPairScratch*)(head - 0x40);
+    block->in.vx                            = arg0->vx;
+    block->in.vy                            = arg0->vy;
+    block->in.vz                            = arg0->vz;
+    out                                     = (VECTOR*)(head - 0x30);
+    SCRATCH_STACK_CURSOR(GpGridPairScratch) = block;
     ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
     {
         GpGridParams* p = Gp_GridParams;
@@ -652,7 +652,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
     s16               faceDot;
 
     SCRATCH_PUSH(GpQuadHitScratch);
-    block = SCRATCH_HEAD(GpQuadHitScratch);
+    block = SCRATCH_STACK_CURSOR(GpQuadHitScratch);
     Gp_ObjWorldPosInline(node, &block->nodePos);
     gte_SetRotMatrix(&other->field_8->workm);
     gte_ldv0(&other->field_C);
@@ -791,7 +791,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
     s16                faceDot;
 
     SCRATCH_PUSH(_GpQuadDirScratch);
-    block         = SCRATCH_HEAD(_GpQuadDirScratch);
+    block         = SCRATCH_STACK_CURSOR(_GpQuadDirScratch);
     block->dir.vx = node->coord->coord.t[0] - from->vx;
     block->dir.vy = node->coord->coord.t[1] - from->vy;
     block->dir.vz = node->coord->coord.t[2] - from->vz;

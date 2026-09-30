@@ -1059,10 +1059,10 @@ static void func_actor_105300_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 a
     ActorScaleScratch* blk;
     GfxCoord*          coord;
 
-    head                            = SCRATCH_HEAD(ActorScaleScratch);
-    SCRATCH_HEAD(ActorScaleScratch) = head - 1;
-    blk                             = head - 1;
-    coord                           = arg0->extra.tmd->coords;
+    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = head - 1;
+    blk                                     = head - 1;
+    coord                                   = arg0->extra.tmd->coords;
 
     if (arg3 == 0) {
         blk->scale.vx = 0x1000;
