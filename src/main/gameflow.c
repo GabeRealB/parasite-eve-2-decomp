@@ -51,7 +51,11 @@ typedef struct _PadPollWork {
 STATIC_ASSERT_SIZEOF(PadPollWork, 0x14);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-static GameSession D61CC0_800714C0;
+/// Resident storage for the live session exposed through `gGameSession`.
+///
+/// Its address stays fixed across overlay loads. New-game, load and reset paths
+/// clear its contents without releasing the storage.
+static GameSession _gGameSessionState;
 
 /// Unreferenced.
 static u8 D_80071600[0x20];
@@ -104,7 +108,7 @@ enum {
     PAD_LEGACY_VIBRATION_PREFIX        = 0x40,
 };
 
-GameSession* gGameSession = &D61CC0_800714C0;
+GameSession* gGameSession = &_gGameSessionState;
 s32          D_8005ED68   = 0;
 /// Unreferenced.
 static s32 D_8005ED6C      = 0x40;
