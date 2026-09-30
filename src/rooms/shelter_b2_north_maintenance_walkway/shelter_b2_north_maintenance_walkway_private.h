@@ -10,8 +10,6 @@
 
 #include "main/task_types.h"
 
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C4C[2];
-
 extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
 
 extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B54;
