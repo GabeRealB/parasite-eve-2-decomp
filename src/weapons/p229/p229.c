@@ -39,100 +39,19 @@
 
 #include "overlay.h"
 
-#include "weapons/weapons_shared_8011d864.h"
-
-static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2);
-static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2);
+#include "../../shared/muzzle_flash.h"
 
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
-static SVECTOR D_p229_8011E0F0 = { 0, 0x140, 0x20, 0 };
+static SVECTOR _gMuzzleOffset = { 0, 0x140, 0x20, 0 };
 
 static void func_p229_8011DDA0(Task* arg0);
 
-/// Per-frame muzzle-flash task for the P229. Frame 0 claims room-coord slot 0
-/// as a white 0x1000 light at the weapon's world position, parks the task's own
-/// coordinate on the muzzle offset under the hand frame, and rolls the flash
-/// size (`scale`), its spin (`angle`) and the four quad angles; every
-/// later frame just halves the size and the brightness. Each frame then draws
-/// the core (`func_p229_8011D464`), a full-screen fade at the current
-/// brightness and the four flash quads, decays the light's range by 0x190 and
-/// releases the pool block after seven frames. Nothing runs at all once
-/// `Gp_State1C` is fading out (`field_4 >= 2`).
+#include "../../shared/muzzle_flash_task.inc.c"
+
+/// The P229\'s muzzle-flash task, named by gameplay\'s effect table.
 void func_p229_8011D1DC(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    u8            rgb[3];
-    s32           i;
-
-    work  = (GpEffWork*)task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    base  = &Gp_RoomCoords[0];
-    slot  = &base->light;
-
-    if (Gp_State1C->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        return;
-    }
-
-    work->age++;
-    switch (task->state) {
-        case 0:
-            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
-            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
-            slot->head.transform.coord.coord.t[2]         = coord->coord.t[2];
-            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            slot->head.color.r                            = 0x1000;
-            slot->head.color.g                            = 0x1000;
-            slot->head.color.b                            = 0x1000;
-            slot->inner                                   = 0xFA0;
-            slot->outer                                   = 0x12C0;
-            base->framesLeft                              = 4;
-
-            coord->parent       = work->parent;
-            coord->coord.t[0]   = D_p229_8011E0F0.vx;
-            coord->coord.t[1]   = D_p229_8011E0F0.vy;
-            coord->coord.t[2]   = D_p229_8011E0F0.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Gp_UpdateCoord(coord);
-
-            work->period = 0xC0;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->scale  = (((u32)Gp_LcgState >> 16) & 0x3FF) + 0x600;
-            Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
-            work->angle  = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->state  = 1;
-            for (i = 0; i < 4; i++) {
-                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
-                D_p229_8012B658[i] = ((i & 3) << 10) + (((u32)Gp_LcgState >> 16) & 0x3FF);
-            }
-            break;
-        case 1:
-            /* The `(u16)` casts are load-shape, not arithmetic: the ROM reads
-               both fields with `lhu` and sign-extends in the shift pair
-               (`sll 16` / `sra 17`). A plain `>>= 1` on the `s16` field emits
-               `lh` / `sra 1` instead. */
-            work->scale  = work->scale >> 1;
-            work->period = work->period >> 1;
-            break;
-    }
-
-    func_p229_8011D464(coord, work->scale, work->angle);
-    /* Chained on purpose: it is one `lbu` stored three times, in reverse index
-       order. Three separate assignments reload the field each time, because the
-       stores into `rgb` may alias it. */
-    rgb[0] = rgb[1] = rgb[2] = work->period;
-    Gp_DrawFadeQuad(rgb, 1);
-    for (i = 0; i < 4; i++) {
-        func_p229_8011D860(coord, D_p229_8012B658[i], work->period);
-    }
-    if (slot->inner >= 0x191) {
-        slot->inner -= 0x190;
-    }
-    if (work->age >= 7) {
-        Gp_ReleaseState1CMem(work, task);
-    }
+    muzzleFlashTask(task);
 }
 
 /// Draws the core of a gun's muzzle flash: one semi-transparent, shade-blended
@@ -149,160 +68,9 @@ void func_p229_8011D1DC(Task* task)
    loads and stores keep spelling the block out from `head` rather than reusing
    the `blk` register the way CSE off `blk` would. */
 
-static void func_p229_8011D464(GfxCoord* arg0, s16 arg1, s16 arg2)
-{
-    u8*                   head;
-    OverlaySpriteScratch* blk;
-    OverlaySpriteScratch* otzp;
-    POLY_FT4*             prim;
-    s32                   ang;
-    u16                   vz;
+#include "../../shared/muzzle_flash_core.inc.c"
 
-    head                                       = SCRATCH_STACK_CURSOR(u8);
-    blk                                        = (OverlaySpriteScratch*)(head - sizeof(OverlaySpriteScratch));
-    blk->vec.vx                                = (u16)arg0->workm.t[0];
-    blk->vec.vy                                = (u16)arg0->workm.t[1];
-    vz                                         = (u16)arg0->workm.t[2];
-    otzp                                       = blk;
-    SCRATCH_STACK_CURSOR(OverlaySpriteScratch) = blk;
-    blk->vec.vz                                = vz;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((OverlaySpriteScratch*)(head - 0x18))->vec);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&((OverlaySpriteScratch*)(head - 0x18))->sxy);
-    gte_stszotz(&otzp->otz);
-    if (((OverlaySpriteScratch*)(head - 0x18))->otz >= 0x11) {
-        ang         = arg2;
-        prim->tpage = 0x29;
-        prim->clut  = 0x428B;
-        setUV4(prim, 0x70, 0xC8, 0xA7, 0xC8, 0x70, 0xFF, 0xA7, 0xFF);
-        setcode(prim, getcode(prim) | 3);
-        blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
-        prim->x0 = (u16)blk->sxy.vx + (u16)blk->dx;
-        prim->x3 = (u16)blk->sxy.vx - (u16)blk->dx;
-        prim->y0 = (u16)blk->sxy.vy - (u16)blk->dy;
-        ang      = ang + 0x400;
-        prim->y3 = (u16)blk->sxy.vy + (u16)blk->dy;
-        blk->dx  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rsin(ang)) >> 12;
-        blk->dy  = (((arg1 * 55) / ((OverlaySpriteScratch*)(head - 0x18))->otz) * rcos(ang)) >> 12;
-        prim->x1 = (u16)blk->sxy.vx + (u16)blk->dx;
-        prim->x2 = (u16)blk->sxy.vx - (u16)blk->dx;
-        prim->y1 = (u16)blk->sxy.vy - (u16)blk->dy;
-        prim->y2 = (u16)blk->sxy.vy + (u16)blk->dy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((OverlaySpriteScratch*)(head - 0x18))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlaySpriteScratch));
-}
-
-/// Draws a gun's muzzle flash as one Gouraud quad: three corners on a 0x100
-/// circle around `arg1` (at `-0xC0`, `0`, `+0xC0`) and one tip 0x600 out and
-/// 0x200 towards the camera, all in the muzzle coordinate's frame. `arg2` is
-/// the flash brightness; only the corner along `arg1` is lit, with half of
-/// `arg2` in red and green and all of it in blue.
-static void func_p229_8011D860(GfxCoord* arg0, s16 arg1, s16 arg2)
-{
-    u8*                head;
-    WeaponQuadScratch* blk;
-    POLY_G4*           prim;
-    MATRIX*            wm;
-    s32                ang;
-    s32                back;
-    s32                len;
-    s32                depth;
-
-    /* `len` and `depth` are locals rather than literals on purpose: as
-       constants GCC turns the `* 0x600` into a shift-and-add and drops the
-       `mult` the ROM keeps. */
-    depth                                   = -0x200;
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    blk                                     = (WeaponQuadScratch*)(head - sizeof(WeaponQuadScratch));
-    SCRATCH_STACK_CURSOR(WeaponQuadScratch) = blk;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    ang = arg1;
-
-    /* Corner 0: on the small circle, 0xC0 behind the flash direction. */
-    back         = ang - 0xC0;
-    blk->v[0].vx = (u32)rsin(back) >> 4;
-    blk->v[0].vy = (u32)rcos(back) >> 4;
-    blk->v[0].vz = 0;
-    wm           = &arg0->workm;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    gte_rtv0();
-    gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    (u16) blk->v[0].vx = (u16)blk->v[0].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[0].vy = (u16)blk->v[0].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[0].vz = (u16)blk->v[0].vz + (u16)arg0->workm.t[2];
-
-    /* Corner 1: the far tip, a full 0x600 out and 0x200 towards the camera. */
-    len          = 0x600;
-    blk->v[1].vx = (rsin(ang) * len) >> 12;
-    blk->v[1].vy = (rcos(ang) * len) >> 12;
-    blk->v[1].vz = depth;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
-    gte_rtv0();
-    gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[1]);
-    (u16) blk->v[1].vx = (u16)blk->v[1].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[1].vy = (u16)blk->v[1].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[1].vz = (u16)blk->v[1].vz + (u16)arg0->workm.t[2];
-
-    /* Corner 2: on the small circle, straight along the flash direction. This
-       is the only lit corner. */
-    blk->v[2].vx = (u32)rsin(ang) >> 4;
-    blk->v[2].vy = (u32)rcos(ang) >> 4;
-    blk->v[2].vz = 0;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
-    gte_rtv0();
-    gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[2]);
-    (u16) blk->v[2].vx = (u16)blk->v[2].vx + (u16)arg0->workm.t[0];
-    ang                = ang + 0xC0;
-    (u16) blk->v[2].vy = (u16)blk->v[2].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[2].vz = (u16)blk->v[2].vz + (u16)arg0->workm.t[2];
-
-    /* Corner 3: on the small circle, 0xC0 ahead of the flash direction. */
-    blk->v[3].vx = (u32)rsin(ang) >> 4;
-    blk->v[3].vy = (u32)rcos(ang) >> 4;
-    blk->v[3].vz = 0;
-    gte_SetRotMatrix(wm);
-    gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    gte_rtv0();
-    gte_stsv(&((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    (u16) blk->v[3].vx = (u16)blk->v[3].vx + (u16)arg0->workm.t[0];
-    (u16) blk->v[3].vy = (u16)blk->v[3].vy + (u16)arg0->workm.t[1];
-    (u16) blk->v[3].vz = (u16)blk->v[3].vz + (u16)arg0->workm.t[2];
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((WeaponQuadScratch*)(head - 0x24))->v[0]);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&((WeaponQuadScratch*)(head - 0x24))->v[1], &((WeaponQuadScratch*)(head - 0x24))->v[2],
-             &((WeaponQuadScratch*)(head - 0x24))->v[3]);
-    gte_rtpt();
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    if (((WeaponQuadScratch*)(head - 0x24))->otz >= 0x11) {
-        setRGB0(prim, 0, 0, 0);
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, arg2 >> 1, arg2 >> 1, arg2);
-        setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((WeaponQuadScratch*)(head - 0x24))->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, ((WeaponQuadScratch*)(head - 0x24))->otz);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(WeaponQuadScratch));
-}
+#include "../../shared/muzzle_flash_streak.inc.c"
 
 /// Per-frame firing state machine for the P229. State 0 arms the shot and
 /// starts the raise animation (clip 5 instead of 1 when the weapon was already
