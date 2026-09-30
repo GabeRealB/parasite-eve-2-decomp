@@ -8,7 +8,14 @@
 
 #include "main/coord.h"
 
-/// View-filter sentinel allowing a light to contribute in every view.
+/// View filter accepting every current session view.
+///
+/// A world-coordinate light stores this in its view filter. The filter is
+/// compared by equality with the current location view: any other value is one
+/// 1-based room view and contributes only while that view is current. This
+/// zero value contributes in every view. Session views are numbered from 1,
+/// so the sentinel lies outside the view slots. A filter left at this value
+/// therefore admits the light in every view.
 enum { WORLD_COORDINATE_LIGHT_ALL_VIEWS = 0 };
 
 /// A world-coordinate light source with a transform, view filter and RGB intensity.
