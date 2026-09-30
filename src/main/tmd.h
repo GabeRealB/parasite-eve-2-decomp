@@ -76,10 +76,10 @@ u32* Tmd_StreamHandler_Prim32(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// frame. What is left to this handler is the triangle's filing — the three
 /// cached depths averaged for the ordering-table link, the facing taken from the
 /// coordinates the packet already carries, and the packet's length and primitive
-/// code. An element whose cached depth is marked off screen, or whose triangle
-/// turns away, is stepped over rather than drawn, though its packet slot is
-/// passed over either way, so the primitives stay aligned with the elements that
-/// named them.
+/// code. An element with any corner depth marked `TMD_VERTEX_DEPTH_INVALID` by
+/// the projection pre-pass, or whose triangle turns away, is stepped over rather
+/// than drawn, though its packet slot is passed over either way, so the primitives
+/// stay aligned with the elements that named them.
 ///
 /// The blended primitive is an entry of its own (`Tmd_StreamHandler_Prim32`)
 /// rather than a `flags` choice, so `flags` goes unread here.
@@ -248,10 +248,10 @@ u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u3
 /// rather than in the vertex array. What a frame adds is the triangle's filing:
 /// the three cached depths are averaged for the ordering-table link, the facing
 /// comes from the coordinates the packet already carries, and the packet's
-/// length and primitive code are written. An element whose cached depth is marked
-/// off screen, or whose triangle turns away, is stepped over rather than drawn,
-/// though its packet slot is passed over either way, so the primitives stay
-/// aligned with the elements that named them.
+/// length and primitive code are written. An element with any corner depth marked
+/// `TMD_VERTEX_DEPTH_INVALID` by the projection pre-pass, or whose triangle turns
+/// away, is stepped over rather than drawn, though its packet slot is passed over
+/// either way, so the primitives stay aligned with the elements that named them.
 ///
 /// This entry is the whole family's and is the one that chooses between the two
 /// primitive codes: it reaches `tmdDrawStreamPrimGt3PreXformSemiTrans` when the
@@ -294,9 +294,10 @@ u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u3
 /// vertex indices. What a frame adds is the quad's filing: the four cached depths
 /// are averaged for the ordering-table link, the facing comes from the coordinates
 /// the packet already carries, and the packet's length and primitive code are
-/// written. An element whose cached depth is marked off screen, or whose quad turns
-/// away, is stepped over rather than drawn, though its packet slot is passed over
-/// either way, so the primitives stay aligned with the elements that named them.
+/// written. An element with any corner depth marked `TMD_VERTEX_DEPTH_INVALID` by
+/// the projection pre-pass, or whose quad turns away, is stepped over rather than
+/// drawn, though its packet slot is passed over either way, so the primitives stay
+/// aligned with the elements that named them.
 ///
 /// This entry is the whole family's and is the one that chooses between the two
 /// primitive codes: it reaches `tmdDrawStreamPrimGt4PreXformSemiTrans` when the

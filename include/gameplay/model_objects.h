@@ -136,9 +136,9 @@ u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// the three cached depths are averaged for the ordering-table link, and the
 /// facing comes from the coordinates the packet already carries.
 ///
-/// An element whose cached depth is marked off screen, or whose triangle turns
-/// away, is stepped over rather than linked. The record has no variant for
-/// `flags` to select, so it goes unread.
+/// An element with any corner depth marked `TMD_VERTEX_DEPTH_INVALID` by the
+/// projection pre-pass, or whose triangle turns away, is stepped over rather
+/// than linked. The record has no variant for `flags` to select, so it goes unread.
 u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-triangle

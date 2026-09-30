@@ -453,7 +453,7 @@ if (idx != prev) {                                  // the caching branch
     gte_rtps_real();
     gte_stsz(&ws->gteResult);                        // keep Z
     if (ws->gteFlag & TMD_GTE_ERROR_FLAG)
-        ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;   // failed projection
+        ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;   // reject using the saved FLAG
     ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;  // cache[vertex index]
 }
 gte_stsxy(ws->preXformWrite + rec[1]);                    // screen XY into the prim
@@ -465,9 +465,12 @@ Three things fall out of it:
   and holds one word each. That independently confirms the bit `0x01` reading
   in §3.2: those opcodes' refs are byte offsets into this word array, so the
   vertex index is `ref / 4`.
-- **A negative cache entry means the projection failed.** Its sign bit is
-  `TMD_VERTEX_DEPTH_INVALID`, copied from `TMD_GTE_ERROR_FLAG` in the saved
-  FLAG word. The `0x01` handlers `bltz`-test the entry and skip the face.
+- **A negative cache entry marks a rejected projection.** Its sign bit is
+  `TMD_VERTEX_DEPTH_INVALID`; the low 16 bits still hold the GTE screen Z.
+  The pre-pass sets the bit when it tests `TMD_GTE_ERROR_FLAG` in FLAG, and
+  the `0x01` handlers `bltz`-test the entry and skip the face if any corner
+  carries it. For `0xC4`, the decision uses the previously saved FLAG rather
+  than the current projection's hardware FLAG.
 - **`idx & 0xFFF8`** masks the low three bits before use, so they carry flags
   rather than address.
 

@@ -251,7 +251,20 @@ STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, dispatchReturnAddress) == 0x2C, tmd_
 STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, viewLightRotation) == 0x50, tmd_workspace_light_rotation_offset);
 STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, obj) == 0x80, tmd_workspace_object_offset);
 
-/// High-bit marker on a cached vertex depth whose projection raised a GTE error.
+/// Rejection bit in a cached TMD vertex screen-Z word.
+///
+/// OR into the 32-bit entry in `TmdStreamWorkspace.szTable` when the vertex
+/// pre-pass rejects a projection using `TMD_GTE_ERROR_FLAG`. The low 16 bits
+/// retain the GTE screen Z (0..65535); this bit makes the signed cache entry
+/// negative. Pre-transformed draw handlers reject the whole primitive if any
+/// corner carries it, before averaging depths for the ordering-table link.
+/// Test the bit rather than equality with this value: the depth is retained.
+///
+/// The rejection bit records the pre-pass's decision, including a pre-pass
+/// that tests a previously saved FLAG. It has the same value as
+/// `TMD_GTE_ERROR_FLAG` but belongs to the depth cache, not the hardware FLAG
+/// word. The unsigned literal preserves 32-bit mask operations; bit 31 does
+/// not fit a signed enum constant in this compiler.
 #define TMD_VERTEX_DEPTH_INVALID 0x80000000U
 
 /// Bit 31 of the GTE FLAG word saved in `TmdStreamWorkspace.gteFlag`.
