@@ -629,9 +629,10 @@ void Snd_RegisterTickCallbacks(void)
 /// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.
 ///
 /// Callers select that bank by placing `SOUND_BANK_TYPE_1` in the request's
-/// high half, with the rest of the bank id clear. The low half (entry index
-/// and instance tag) is kept, and the loaded script image's bank id replaces
-/// the high half. Any other request is returned unchanged, including a type-1
+/// high half, with the rest of the bank id clear.
+/// `SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK` keeps the entry index and
+/// instance tag, and the loaded script image's bank id replaces the high
+/// half. Any other request is returned unchanged, including a type-1
 /// request when no slot has a type-1 sample descriptor. The search reads that
 /// descriptor's type; the stamp reads `image->bankId`, so the slot must hold
 /// a completed script image.
@@ -639,7 +640,11 @@ static s32 _sndScriptRemapType1Id(s32 requestId)
 {
     enum {
         SOUND_SCRIPT_REQUEST_TYPE_1 = 0x10000000,
-        SOUND_SCRIPT_REQUEST_LOW    = 0xFFFF
+        /// Mask keeping a script request's entry index and instance tag.
+        ///
+        /// Bits 0..7 select the script entry and bits 8..15 distinguish instances.
+        /// Type-1 remapping replaces the bank id above these bits.
+        SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK = 0xFFFF
     };
     s32          soundId;
     SndBankSlot* bankSlot;
@@ -649,7 +654,7 @@ static s32 _sndScriptRemapType1Id(s32 requestId)
     if ((soundId & 0xF0000000) == SOUND_SCRIPT_REQUEST_TYPE_1) {
         bankSlot = _sndBankSlotFind(SOUND_BANK_TYPE_1, SOUND_BANK_SLOT_MATCH_TYPE);
         if (bankSlot != NULL) {
-            soundId = (bankSlot->image->bankId << 16) + (soundId & SOUND_SCRIPT_REQUEST_LOW);
+            soundId = (bankSlot->image->bankId << 16) + (soundId & SOUND_SCRIPT_REQUEST_ENTRY_INSTANCE_MASK);
         }
     }
     return soundId;
