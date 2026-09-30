@@ -82,6 +82,16 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorTaskStorage, 16);
 extern ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0;
 
+/// Departure record plus four trailing bytes.
+///
+/// `departure` is what the departure task reads. The trailing bytes stay
+/// zero; nothing reads or writes them, and their role is unproven.
+typedef struct {
+    RoomDeparture departure;  // Departure the handler staged for the task
+    u8            unknown[4]; // Role unproven; zero, with no recovered access
+} _RoomDepartureStorage;
+STATIC_ASSERT_SIZEOF(_RoomDepartureStorage, 0x10);
+
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b2_main_corridor_8018965C[4];
@@ -100,7 +110,7 @@ extern RoomEventMsg gRoomEventStagedMsg;
 
 /// A second copy of the staged event block, taken whole once the block has been
 /// passed through `roomVariantResolveNeoArk`.
-extern RoomDepartureStorage gRoomDeparture;
+extern _RoomDepartureStorage gRoomDeparture;
 
 /// The exit being taken, read by the exit task.
 extern RoomLatchedEventStorage gRoomEventLatched;
@@ -1578,7 +1588,7 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
 
 u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
-RoomDepartureStorage gRoomDeparture = { 0 };
+_RoomDepartureStorage gRoomDeparture = { 0 };
 
 RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 

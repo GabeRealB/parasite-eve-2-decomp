@@ -81,16 +81,6 @@ typedef struct {
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
 
-/// A room's `gRoomDeparture` when that symbol is sixteen bytes.
-///
-/// `departure` is the record the departure task reads. The four bytes after
-/// it are zero in both rooms with this extent. Their role is unproven.
-typedef struct {
-    RoomDeparture departure;  // Departure the handler staged for the task
-    u8            unknown[4]; // Role unproven; zero, with no recovered access
-} RoomDepartureStorage;
-STATIC_ASSERT_SIZEOF(RoomDepartureStorage, 0x10);
-
 /// A room's `gRoomEventLatched` when that symbol is sixteen bytes.
 ///
 /// `event` is the record the staged event task reads. The four bytes after

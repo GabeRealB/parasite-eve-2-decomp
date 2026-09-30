@@ -37,14 +37,15 @@
  *   ROOM_EVENT_LATCHED  lvalue `RoomLatchedEvent`. Default `gRoomEventLatched`.
  *                       `RoomLatchedEventStorage` rooms bind `.event`.
  *   ROOM_DEPARTURE      lvalue `RoomDeparture`. Default `gRoomDeparture`.
- *                       `RoomDepartureStorage` rooms bind `.departure`.
+ *                       shelter_b2_main_corridor's symbol is sixteen bytes
+ *                       and binds `.departure`.
  *   ROOM_EVENT_FADE     lvalue `ScreenFade`. Default `gRoomEventFade.fade`,
  *                       the record inside `RoomFadeStorage`. A room whose
  *                       symbol is the `ScreenFade` itself binds `gRoomEventFade`.
  *
  * Each binding names an object the room defines. The wider objects are
- * `RoomEventActiveBytes`, `RoomEventActiveStorage`, `RoomEventReqStorage`,
- * `RoomLatchedEventStorage` and `RoomDepartureStorage`.
+ * `RoomEventActiveBytes`, `RoomEventActiveStorage`, `RoomEventReqStorage`
+ * and `RoomLatchedEventStorage`.
  */
 
 #ifndef SRC_SHARED_ROOM_EVENTS_H
