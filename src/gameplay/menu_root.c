@@ -511,7 +511,7 @@ void Gp_MenuRootTask(Task* arg0)
             s32           secondaryItemId;
             s32           old;
             TaskNode*     list;
-            TaskNode*     prev;
+            TaskNode*     previousList;
             s32           saved;
 
             arg0->killCountdown--;
@@ -548,8 +548,8 @@ void Gp_MenuRootTask(Task* arg0)
                 (D_80114DE0 == secondaryItemId)) {
                 break;
             }
-            prev = Task_GetActiveList();
-            list = &gTaskDefaultList;
+            previousList = Task_GetActiveList();
+            list         = &gTaskDefaultList;
             Task_SetActiveList(list);
             saved              = cfg->weapon;
             old                = (u8)D_80114DE8;
@@ -560,14 +560,14 @@ void Gp_MenuRootTask(Task* arg0)
             Task_CallExitFiltered(list, 0x52);
             disp->skipTeardown = 0;
             cfg->weapon        = saved;
-            Task_SetActiveList(prev);
+            Task_SetActiveList(previousList);
             Gp_EnqueueHeldWeaponCd();
             break;
         }
         case 0x3C: {
             PlayerStatus* cfg;
             s32           secondaryItemId;
-            TaskNode*     prev;
+            TaskNode*     previousList;
             s32*          flag;
 
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
@@ -580,7 +580,7 @@ void Gp_MenuRootTask(Task* arg0)
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
                 (D_80114DE0 != secondaryItemId)) {
-                prev = Task_GetActiveList();
+                previousList = Task_GetActiveList();
                 Task_SetActiveList(&gTaskDefaultList);
                 flag  = &D_8005ED8C;
                 *flag = 1;
@@ -593,7 +593,7 @@ void Gp_MenuRootTask(Task* arg0)
                     Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &D_8010E7F4, 0);
                 }
                 *flag = 0;
-                Task_SetActiveList(prev);
+                Task_SetActiveList(previousList);
             }
             GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gDisplayState.keepGraphics = 0;

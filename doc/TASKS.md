@@ -31,7 +31,7 @@ of function pointers, not a cast list.
 ### 1.1 `Task` (0x48)
 
 Allocated with `memCalloc(sizeof(Task), 0)` (0x48 bytes). Inserted into the **active list**
-(`gTaskActiveList`, usually `gTaskDefaultList`) in **priority order**: lower
+(the list headed by `_gTaskActiveList`) in **priority order**: lower
 `priority` runs earlier. Typical values:
 
 | Priority | Who |
@@ -139,12 +139,23 @@ the request and then calls `exitCallback`.
 | List | Role |
 |------|------|
 | `gTaskDefaultList` | Main frame list. `Task_ResetDefaultList` on boot / world reset |
-| `gTaskActiveList` | Where new spawns insert. Almost always the default list |
-| `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `gTaskActiveList` |
+| `_gTaskActiveList` | Private borrowed pointer selecting the head used for spawning and tail unlinking |
+| `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `_gTaskActiveList` |
 
 `Task_SpawnOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
-`gTaskActiveList` to the default list so a spawn from inside another list
+`_gTaskActiveList` to the default list so a spawn from inside another list
 still lands on the main frame walk.
+
+The selection borrows a live, initialized bare `TaskNode`; it owns neither the
+head nor its tasks. Before initialization the pointer is NULL. An empty list
+still has a head, with `next == NULL` and `prev` pointing to the head itself.
+List initialization selects its head. Unfiltered walks select their head on
+entry without restoring the previous selection. The default frame walk selects
+`gTaskDefaultList`; filtered update and exit walks save and restore the previous
+selection, including when a stop request ends the walk.
+Other temporary switches use `Task_GetActiveList` / `Task_SetActiveList` to save
+and restore it. Selecting a head changes the spawn and unlink context without
+moving any tasks between lists.
 
 ---
 

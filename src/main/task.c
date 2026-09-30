@@ -14,15 +14,18 @@
 #include "gameplay/model_objects.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// The task list the running code is working on: the list a spawned task joins
-/// and the list an unlinked node is taken out of.
+/// Borrowed head of the selected execution list for spawning and tail unlinking.
 ///
-/// It points at `gTaskDefaultList` unless something has switched it, and the
-/// default frame walk switches it back. A walk over another list points this
-/// at that list, so a task spawned from inside a callback joins the list its
-/// callback is running on rather than the main one; callers that must leave
-/// the value as they found it save it first and put it back afterwards.
-static TaskNode* gTaskActiveList;
+/// The selected head is an initialized bare `TaskNode`, not an embedded task
+/// node. It must remain alive while selected; this pointer owns neither the
+/// head nor its tasks. NULL is the pre-initialization value, not an empty list.
+///
+/// Initialization selects its head. Unfiltered walks select their head on entry
+/// without restoring the previous selection; filtered walks restore it,
+/// including on an early stop. Callers making temporary switches save and
+/// restore it explicitly. The default frame walk selects `gTaskDefaultList`
+/// before invoking callbacks; ordinary spawns use the current selection.
+static TaskNode* _gTaskActiveList;
 
 TaskNode gTaskDefaultList;
 
@@ -138,7 +141,7 @@ void taskKill(Task* task)
     Task*      cur;
     Task*      temp;
     Task*      next;
-    TaskNode*  saved;
+    TaskNode*  previousList;
     TaskNode** pp;
     TaskNode*  prev;
     TmdObject* model;
@@ -268,9 +271,9 @@ imm2:
     gpFreeDisp2d(task->extra.coordBody);
 
 imm_unlink:
-    saved           = gTaskActiveList;
-    next            = task->node.next;
-    gTaskActiveList = &gTaskDefaultList;
+    previousList     = _gTaskActiveList;
+    next             = task->node.next;
+    _gTaskActiveList = &gTaskDefaultList;
     if (next == NULL) {
         pp = &gTaskDefaultList.prev;
     } else {
@@ -280,12 +283,12 @@ imm_unlink:
     *pp        = prev;
     prev->next = task->node.next;
     memFree(task);
-    gTaskActiveList = saved;
+    _gTaskActiveList = previousList;
 }
 
 Task* Task_SpawnFromTable(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
-    return Task_SpawnFromDesc(&descriptor[arg1], arg2, arg3, gTaskActiveList);
+    return Task_SpawnFromDesc(&descriptor[arg1], arg2, arg3, _gTaskActiveList);
 }
 
 Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
@@ -298,7 +301,7 @@ Task* Task_Spawn(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg ar
     } else {
         ptr = arg1.pointer;
     }
-    return Task_SpawnFromDesc(ptr, arg2, arg3, gTaskActiveList);
+    return Task_SpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 }
 
 void Task_KillChildren(Task* task)
@@ -411,9 +414,9 @@ struct Task* gameGetPtrSlot(s32 slot)
 
 void Task_InitList(TaskNode* node)
 {
-    gTaskActiveList = node;
-    node->next      = NULL;
-    node->prev      = node;
+    _gTaskActiveList = node;
+    node->next       = NULL;
+    node->prev       = node;
 }
 
 void Task_ExecList(TaskNode* node)
@@ -422,8 +425,8 @@ void Task_ExecList(TaskNode* node)
     Task*         curr;
     DisplayState* tmp_ptr; // The indirection is required.
 
-    curr            = node->next;
-    gTaskActiveList = node;
+    curr             = node->next;
+    _gTaskActiveList = node;
     if (curr != NULL) {
         tmp_ptr = &gDisplayState;
     loop_2:
@@ -498,17 +501,17 @@ s32 Task_PollKill(Task* task, s32* arg1)
 
 TaskNode* Task_GetActiveList(void)
 {
-    return gTaskActiveList;
+    return _gTaskActiveList;
 }
 
 void Task_SetActiveList(TaskNode* node)
 {
-    gTaskActiveList = node;
+    _gTaskActiveList = node;
 }
 
 void Task_ResetDefaultList(void)
 {
-    gTaskActiveList       = &gTaskDefaultList;
+    _gTaskActiveList      = &gTaskDefaultList;
     gTaskDefaultList.next = NULL;
     gTaskDefaultList.prev = &gTaskDefaultList;
 }
@@ -521,7 +524,7 @@ static void Task_Unlink(Task* state)
     TaskNode*  prev;
 
     next = state->node.next;
-    head = gTaskActiveList;
+    head = _gTaskActiveList;
     do {
         pp = &head->prev;
         if (next != NULL) {
@@ -544,8 +547,8 @@ void Task_ExecDefaultList(TaskNode* unused)
     Task*         curr;
     DisplayState* tmp_ptr; // The indirection is required.
 
-    curr            = gTaskDefaultList.next;
-    gTaskActiveList = &gTaskDefaultList;
+    curr             = gTaskDefaultList.next;
+    _gTaskActiveList = &gTaskDefaultList;
     if (curr != NULL) {
         tmp_ptr = &gDisplayState;
     loop_2:
@@ -574,12 +577,12 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
     Task*         next;
     Task*         curr;
     DisplayState* tmp_ptr;
-    TaskNode*     saved;
+    TaskNode*     previousList;
     s32           filter;
 
-    curr            = node->next;
-    saved           = gTaskActiveList;
-    gTaskActiveList = node;
+    curr             = node->next;
+    previousList     = _gTaskActiveList;
+    _gTaskActiveList = node;
     if (curr != NULL) {
         filter  = arg1 & 0xFF;
         tmp_ptr = &gDisplayState;
@@ -605,7 +608,7 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
         }
     }
 end:
-    gTaskActiveList = saved;
+    _gTaskActiveList = previousList;
 }
 
 void Task_CallExitFiltered(TaskNode* node, s32 arg1)
@@ -613,12 +616,12 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
     Task*         next;
     Task*         curr;
     DisplayState* tmp_ptr;
-    TaskNode*     saved;
+    TaskNode*     previousList;
     s32           filter;
 
-    curr            = node->next;
-    saved           = gTaskActiveList;
-    gTaskActiveList = node;
+    curr             = node->next;
+    previousList     = _gTaskActiveList;
+    _gTaskActiveList = node;
     if (curr != NULL) {
         filter  = arg1 & 0xFF;
         tmp_ptr = &gDisplayState;
@@ -644,7 +647,7 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
         }
     }
 end:
-    gTaskActiveList = saved;
+    _gTaskActiveList = previousList;
 }
 
 void taskCountdownCallback(Task* task)

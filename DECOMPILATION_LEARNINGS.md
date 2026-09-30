@@ -11337,7 +11337,7 @@ hi/next/lo interleaving without changing semantics (`Task_Unlink`):
 
 ```c
 next = state->node.next;
-head = gTaskActiveList;
+head = _gTaskActiveList;
 do {
     pp = &head->prev;
     if (next != NULL) {
@@ -11894,12 +11894,12 @@ if (arg0 >= 0) {
 } else {
     ptr = (TaskDesc*)arg1;
 }
-return Task_SpawnFromDesc(ptr, arg2, arg3, gTaskActiveList);
+return Task_SpawnFromDesc(ptr, arg2, arg3, _gTaskActiveList);
 ```
 
 Also: use `if (index >= 0)` (not `index < 0`) so the fall-through is the table
 path and the branch is `bltz` to the cast path — that matches the shared
-post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=gTaskActiveList`) of
+post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=_gTaskActiveList`) of
 `Task_Spawn`. Dual early returns force separate call setup and reg-shuffle
 the args too early.
 
@@ -20452,7 +20452,7 @@ phase spills to `$s0`/`$s2`.
 
 Symptom: early section matches only with a pin; applying that pin shifts the
 late section off `$v1` (and often flips `bnez`/`beqz` shapes around
-`gTaskActiveList` save/restore).
+`_gTaskActiveList` save/restore).
 
 Fix: scope the pin to a compound block that ends before the later phase, and
 re-pin (or reuse) `$v1` in a second block for the late phase:
@@ -20475,7 +20475,7 @@ re-pin (or reuse) `$v1` in a second block for the late phase:
 ```
 
 `taskKill` is the pure example: parent detach needs `$v1`/`$a0`, and the
-immediate-free path reuses `$v1` for the type byte and `%hi(gTaskActiveList)`.
+immediate-free path reuses `$v1` for the type byte and `%hi(_gTaskActiveList)`.
 
 ## `if (ptr == NULL)` vs `!= NULL` for `bnez` delay-slot stores
 

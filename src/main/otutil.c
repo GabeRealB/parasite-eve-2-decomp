@@ -126,7 +126,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
 {
     DisplayState* temp;
     GsOT*         ot;
-    TaskNode*     saved;
+    TaskNode*     previousList;
     Task*         ret;
 
     temp = &gDisplayState;
@@ -140,7 +140,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
-        saved                       = Task_GetActiveList();
+        previousList                = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
         if (ret != NULL) {
@@ -148,7 +148,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnA
             temp->displayOwner           = DISPLAY_OWNER_TASK;
             temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
-        Task_SetActiveList(saved);
+        Task_SetActiveList(previousList);
     }
     return ret;
 }
@@ -157,7 +157,7 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
 {
     DisplayState* temp;
     GsOT*         ot;
-    TaskNode*     saved;
+    TaskNode*     previousList;
     Task*         ret;
 
     temp = &gDisplayState;
@@ -171,7 +171,7 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
         _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
         _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
         temp->frameBuffer           = temp->drawBuffer ^ 1;
-        saved                       = Task_GetActiveList();
+        previousList                = Task_GetActiveList();
         Task_InitList(&gTaskDisplayList);
         ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
         if (ret != NULL) {
@@ -179,32 +179,32 @@ Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, Tas
             temp->displayOwner           = DISPLAY_OWNER_TASK;
             temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
-        Task_SetActiveList(saved);
+        Task_SetActiveList(previousList);
     }
     return ret;
 }
 
 Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
-    TaskNode* saved;
+    TaskNode* previousList;
     Task*     ret;
 
-    saved = Task_GetActiveList();
+    previousList = Task_GetActiveList();
     Task_SetActiveList(&gTaskDefaultList);
     ret = Task_Spawn(arg0, arg1, arg2, arg3);
-    Task_SetActiveList(saved);
+    Task_SetActiveList(previousList);
     return ret;
 }
 
 Task* Task_SpawnOnDefaultList(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
 {
-    TaskNode* saved;
+    TaskNode* previousList;
     Task*     ret;
 
-    saved = Task_GetActiveList();
+    previousList = Task_GetActiveList();
     Task_SetActiveList(&gTaskDefaultList);
     ret = Task_SpawnFromTable(descriptor, arg1, arg2, arg3);
-    Task_SetActiveList(saved);
+    Task_SetActiveList(previousList);
     return ret;
 }
 
