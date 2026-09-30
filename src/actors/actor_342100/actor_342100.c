@@ -486,7 +486,7 @@ void func_actor_342100_80162748(Task* arg0)
 /// queried with 0x3ED and a non-zero answer stops the chain with 0; `field_3C`
 /// is range-checked against 0x2F (the first anim id the table can name) and the
 /// table's entry shifted up by 0x2F, a negative entry ending it with 1 as well.
-/// The step that survives re-sends `AnimationPlayRequest {setId, anim, 1, 0xA, ANIMATION_WORLD_COLLISION_DISABLE}` as
+/// The step that survives re-sends `AnimationPlayRequest {setId, anim, ANIMATION_BLEND_INTERPOLATE, 0xA, ANIMATION_WORLD_COLLISION_DISABLE}` as
 /// message 0x3E8 -- `func_actor_342100_8016334C`'s tail with `field_C` = 0xA --
 /// to the same target, and reports 1.
 static s32 func_actor_342100_801629B8(Task* arg0)

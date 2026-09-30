@@ -46,11 +46,11 @@ TaskDesc Gp_EvtSpawnTable[3] = {
     { 0xFFFF, 0, NULL, { NULL } },
 };
 
-AnimationPlayRequest D_8010FB10 = { { 1 }, 32, 1, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest D_8010FB10 = { { 1 }, 32, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_8010FB24 = { { 1 }, 33, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, 1, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_8010FB4C[3] = {
     { 0, 32, func_800E6EF4, { NULL } },

@@ -121,7 +121,15 @@ enum {
     /// ignore `blendFrames` and restart their playback slots. Some receivers
     /// defer the restart or keep an already selected clip. This choice does not
     /// disable interpolation between the clip's own keyframes.
-    ANIMATION_BLEND_RESET       = 0,
+    ANIMATION_BLEND_RESET = 0,
+    /// Blends from the pose at the request into the selected clip.
+    ///
+    /// The value senders store in `AnimationPlayRequest.blend`. Receivers that
+    /// honor this choice treat every nonzero value the same way and pass
+    /// `blendFrames` through as the blend duration. Some substitute a fixed
+    /// duration, defer the blend, or restart when no pose is already playing.
+    /// A zero duration still selects this path. The choice does not change
+    /// interpolation between the clip's own keyframes.
     ANIMATION_BLEND_INTERPOLATE = 1,
 };
 

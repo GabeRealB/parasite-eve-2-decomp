@@ -2746,10 +2746,10 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// at 0x801820E4.
 ///
 /// Republishes the player's weapon to slot 3 (msg 0x3E8) the way
-/// `func_actor_136100_8013467C` does -- `Player_Status.weapon` picked through
-/// `Mc_SaveData[0].state.characterId` is the record's `field_0` -- but fills the two halfword slots
-/// from that script argument: `field_8` is its "non-zero" flag and `field_C`
-/// the halfword itself.
+/// `func_actor_136100_8013467C` does. The bank comes from `Player_Status.weapon`
+/// and the character id. A nonzero script argument selects
+/// `ANIMATION_BLEND_INTERPOLATE` and is also the blend duration in frames;
+/// zero selects `ANIMATION_BLEND_RESET` with no duration.
 void func_dryfield_water_tower_8017F700(s32 arg0)
 {
     AnimationPlayRequest rec;

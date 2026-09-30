@@ -9383,7 +9383,7 @@ after_mode:
                                  [Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])
                                 ->table.sets[7];
                         work->anim.animationId = 4;
-                        work->anim.blend       = 1;
+                        work->anim.blend       = ANIMATION_BLEND_INTERPOLATE;
                         work->anim.blendFrames = 3;
                         Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                         work->field_7CA = 0;
