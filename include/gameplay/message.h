@@ -125,18 +125,23 @@ enum {
     ANIMATION_BLEND_INTERPOLATE = 1,
 };
 
-/// Player and companion grid participation for one playback request.
+/// Grid participation carried by one animation playback request.
 ///
-/// Stored in `AnimationPlayRequest.enableWorldCollision`. Zero tells those
-/// playback handlers to drop grid participation on the two bodies their tick
-/// updates. The first body's participation bit also gates grid-contact
-/// displacement and the fixed height offset. Any other value restores both
-/// bodies. Senders that want participation store
-/// `ANIMATION_WORLD_COLLISION_ENABLE`.
+/// Stored in `AnimationPlayRequest.enableWorldCollision`. The player and
+/// companion playback handlers honor it; other animation receivers leave the
+/// word unread. Zero drops grid participation for both bodies that receiver's
+/// collision update maintains. The first body's participation bit gates
+/// push-back from occupied grid contacts, and the player and companion
+/// updates also apply a fixed height adjustment while that bit is set. Any
+/// other value restores both bodies and that response. Senders that want
+/// participation store `ANIMATION_WORLD_COLLISION_ENABLE`.
 enum {
     /// Drop grid participation and the contact response gated with it.
     ANIMATION_WORLD_COLLISION_DISABLE = 0,
-    ANIMATION_WORLD_COLLISION_ENABLE  = 1,
+    /// Restore grid participation and the contact response gated with the first body.
+    ///
+    /// Handlers treat every nonzero value this way. Senders store this constant.
+    ANIMATION_WORLD_COLLISION_ENABLE = 1,
 };
 
 /// Animation message ids for playback, borrowed tables and writable bank extensions.
