@@ -115,12 +115,16 @@ typedef struct _TaskIdMap {
 } TaskIdMap;
 STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 
-/// Halfword view of a packed task argument on the little-endian PS1.
+/// Unsigned low and signed high halfwords of a `TaskSpawnArg` word.
 ///
-/// The receiving task assigns the units and meaning of each half.
+/// `TaskSpawnArg::halves` reads the same four bytes as the complete argument
+/// word on the little-endian PS1. Integer promotion preserves `low` in
+/// 0..65535 and sign-extends `high` to -32768..32767. The receiving callback
+/// defines each half's units, flags, sentinels and valid values; these can
+/// change when the callback reuses the argument word as state.
 typedef struct {
-    u16 low;  // Low 16 bits, read as an unsigned value
-    s16 high; // High 16 bits, read as a signed value
+    u16 low;  // Bits 0..15, promoted without sign extension
+    s16 high; // Bits 16..31, promoted with sign extension
 } TaskArgHalves;
 STATIC_ASSERT_SIZEOF(TaskArgHalves, 4);
 
