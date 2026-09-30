@@ -26,6 +26,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/scripted_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -43,7 +44,7 @@ STATIC_ASSERT_SIZEOF(Actor260400AnimStorageC668, 136);
 extern Actor260400AnimStorageC668 D_actor_260400_8014C668;
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn routine
-/// and kept both at `Task::work` and in `D_actor_260400_80154C70`: the light
+/// and kept both at `Task::work` and in `gScriptedWalkWork`: the light
 /// and colour matrices the model is drawn under, its rig and animation state,
 /// and the frames of turning left while animation 3 plays. `helper` is the
 /// helper task the spawn routine starts and the exit callback kills, and
@@ -90,30 +91,26 @@ extern u8                      D_actor_260400_80154C30[];
 /// Reset argument the blended reseed forwards: the play-animation handler
 /// latches the preset's `field_C` here, and the update sets it to 10 when a
 /// walk ends.
-extern s16 D_actor_260400_80154BE4;
+extern s16 gScriptedWalkBlendFrames;
 
 /// The work block, published by the spawn routine and by the task handler
 /// `func_actor_260400_8014A550` on every frame, so the message handlers and
 /// the animation loops reach it without the task.
-extern Actor260400Work* D_actor_260400_80154C70;
+extern Actor260400Work* gScriptedWalkWork;
 
 /// The actor's own task, published by the spawn routine: the helper task
 /// hangs its model off this task's model parts, the play-animation handler runs
 /// the update on it, and the visibility handler reaches its model.
 extern Task* D_actor_260400_80154C74;
 
-/// Approach mode the last `func_actor_260400_8014AB50` call selected; the
+/// Approach mode the last `scriptedWalkTo` call selected; the
 /// update picks its step length from it. It is the image's trailing halfword,
 /// which the split covers as padding, so it has no symbol-file declaration.
-extern s16 D_actor_260400_80154C78;
+extern s16 gScriptedWalkMode;
 
-static void func_actor_260400_8014A200(Task* task);
 static void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
 static void func_actor_260400_8014A630(Task* task);
 static void func_actor_260400_8014A66C(Task* task);
-static void func_actor_260400_8014A7AC(void);
-static void func_actor_260400_8014A7F8(void);
-static void func_actor_260400_8014A888(void);
 
 extern TmdSource D_actor_260400_8014F7F0;
 extern TmdSource D_actor_260400_80154BC0;
@@ -124,7 +121,6 @@ s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*);
 s32 func_actor_260400_8014A998(Task*, s32, s32);
 s32 func_actor_260400_8014AA28(Task*, s32, ActorTransform* placement);
 s32 func_actor_260400_8014AAA4(Task*, s32, ActorCommand* msg);
-s32 func_actor_260400_8014AB50(Task*, s32, VECTOR*, s32);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
 extern AnimationPlayRequest D_actor_260400_8014C4EC;
@@ -884,14 +880,14 @@ TmdSource D_actor_260400_80154BC0 = {
     D_actor_260400_8015105C,
 };
 
-s16 D_actor_260400_80154BE4 = 8;
+s16 gScriptedWalkBlendFrames = 8;
 
 Actor260400MessageEntry D_actor_260400_80154BE8[6] = {
     { 2003, { .call0 = func_actor_260400_8014A908 } },
     { 2005, { .call4 = func_actor_260400_8014A998 } },
     { 2004, { .call2 = func_actor_260400_8014AA28 } },
     { ACTOR_COMMAND_MESSAGE_APPLY, { .call1 = func_actor_260400_8014AAA4 } },
-    { 2013, { .call3 = func_actor_260400_8014AB50 } },
+    { 2013, { .call3 = scriptedWalkTo } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -967,11 +963,11 @@ u8 D_actor_260400_80154C30[64] = {
     0,
 };
 
-Actor260400Work* D_actor_260400_80154C70;
+Actor260400Work* gScriptedWalkWork;
 
 Task* D_actor_260400_80154C74;
 
-s16 D_actor_260400_80154C78;
+s16 gScriptedWalkMode;
 
 static void func_actor_260400_80149E38(void);
 static void func_actor_260400_80149FA4(void);
@@ -1028,7 +1024,7 @@ static void func_actor_260400_80149FA4(void)
 }
 
 /// Spawn routine (state 0 of `func_actor_260400_8014A550`): allocates the work
-/// block and publishes it in `D_actor_260400_80154C70` and the task's `work`
+/// block and publishes it in `gScriptedWalkWork` and the task's `work`
 /// slot, binds the model to the view and hands it the block's light and colour
 /// matrices, publishes the task in `D_actor_260400_80154C74`, relights the
 /// model from a point 0x320 above its translation and binds the animation
@@ -1043,97 +1039,51 @@ static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     Task*      spawned;
     void*      work;
 
-    obj                     = task->extra.tmd;
-    coord                   = obj->coords;
-    work                    = memCalloc(0x4F8, 0);
-    D_actor_260400_80154C70 = work;
-    task->work              = work;
+    obj               = task->extra.tmd;
+    coord             = obj->coords;
+    work              = memCalloc(0x4F8, 0);
+    gScriptedWalkWork = work;
+    task->work        = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_260400_8014A630;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
-    obj->lightMtx                    = &D_actor_260400_80154C70->light;
-    obj->colorMtx                    = &D_actor_260400_80154C70->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    D_actor_260400_80154C74          = task;
-    vec.vz                           = coord->workm.t[2];
+    task->exitCallback           = func_actor_260400_8014A630;
+    coord->parent                = &gGfxViewCoord;
+    enemy->field_4               = &coord->coord;
+    enemy->field_48              = 0;
+    enemy->node.state.b.targeted = 0;
+    enemy->node.state.b.flags    = 1;
+    obj->otOffset                = 1;
+    obj->flags                   = 0;
+    obj->lightMtx                = &gScriptedWalkWork->light;
+    obj->colorMtx                = &gScriptedWalkWork->color;
+    vec.vx                       = coord->workm.t[0];
+    vec.vy                       = coord->workm.t[1] - 0x320;
+    D_actor_260400_80154C74      = task;
+    vec.vz                       = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    func_800B3F84(&D_actor_260400_80154C70->rig.anim, D_actor_260400_80154C30, obj,
-                  D_actor_260400_80154C70->rig.poses, D_actor_260400_80154C70->rig.slots);
-    D_actor_260400_80154C70->st.animId = 1;
-    D_actor_260400_80154C70->st.state  = 2;
-    spawned                            = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
+    func_800B3F84(&gScriptedWalkWork->rig.anim, D_actor_260400_80154C30, obj,
+                  gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);
+    gScriptedWalkWork->st.animId = 1;
+    gScriptedWalkWork->st.state  = 2;
+    spawned                      = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
-        D_actor_260400_80154C70->helper = spawned;
+        gScriptedWalkWork->helper = spawned;
         actorTintTask(spawned, (GpEnemy*)task->spawnArg2.pointer);
     }
-    D_actor_260400_80154C70->st.travel   = 0;
-    D_actor_260400_80154C70->turnFrames  = 0;
-    D_actor_260400_80154C70->helperShown = 0;
-    task->msgTable                       = D_actor_260400_80154BE8;
-    func_actor_260400_8014A200(task);
+    gScriptedWalkWork->st.travel   = 0;
+    gScriptedWalkWork->turnFrames  = 0;
+    gScriptedWalkWork->helperShown = 0;
+    task->msgTable                 = D_actor_260400_80154BE8;
+    scriptedWalkUpdate(task);
     task->state++;
 }
 
-/// Per-frame update: reset modes 1 and 2 run their one-shot reseed (blended or
-/// plain) and switch to mode 3. In mode 3 the walking animations 2, 0xE and 0xF
-/// step the model forward while `st.travel` counts down, by a distance the
-/// approach mode in `D_actor_260400_80154C78` picks, and blend into animation
-/// 0xD with reset argument 10 when the walk ends; animation 3 turns the model
-/// while `turnFrames` counts down. Mode 3 then ticks the animation.
-static void func_actor_260400_8014A200(Task* task)
-{
-    GfxCoord*        coord = task->extra.tmd->coords;
-    Actor260400Work* work  = (Actor260400Work*)task->work;
-
-    if (D_actor_260400_80154C70->st.state == 1) {
-        func_actor_260400_8014A888();
-        D_actor_260400_80154C70->st.state = 3;
-    } else if (D_actor_260400_80154C70->st.state == 2) {
-        func_actor_260400_8014A7F8();
-        D_actor_260400_80154C70->st.state = 3;
-    } else if (D_actor_260400_80154C70->st.state == 3) {
-        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
-            if (work->st.travel != 0) {
-                switch (D_actor_260400_80154C78) {
-                    case 0:
-                        actorMoveModelForward(task, 0x3C);
-                        break;
-                    case 1:
-                        actorMoveModelForward(task, -0xF);
-                        break;
-                    case 2:
-                        actorMoveModelForward(task, 0x19);
-                        break;
-                }
-                if (--work->st.travel == 0) {
-                    work->st.state          = 1;
-                    D_actor_260400_80154BE4 = 10;
-                    work->st.animId         = 0xD;
-                }
-            }
-        }
-        if (work->st.animId == 3 && work->turnFrames != 0) {
-            work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->turnFrames--;
-        }
-        func_actor_260400_8014A7AC();
-    }
-}
+#include "../../shared/scripted_walk_update.inc.c"
 
 /// Two-state task handler: publishes the task's work block in
-/// `D_actor_260400_80154C70` on the way through, then calls the spawn routine
+/// `gScriptedWalkWork` on the way through, then calls the spawn routine
 /// or the per-frame state, whichever `Task::state` selects from a table built
 /// on the stack.
 void func_actor_260400_8014A550(Task* task)
@@ -1143,7 +1093,7 @@ void func_actor_260400_8014A550(Task* task)
         func_actor_260400_8014A5AC,
     };
 
-    D_actor_260400_80154C70 = (Actor260400Work*)task->work;
+    gScriptedWalkWork = (Actor260400Work*)task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1163,7 +1113,7 @@ static void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 0x320;
     pos.vz = coord->workm.t[2];
     func_800D7A9C(obj, &pos, 0, 3);
-    func_actor_260400_8014A200(task);
+    scriptedWalkUpdate(task);
     func_actor_260400_8014A66C(task);
 }
 
@@ -1227,49 +1177,11 @@ void func_actor_260400_8014A6F8(Task* task)
     }
 }
 
-/// Ticks animation slots 1..0x13 of the work block's animation context.
-static void func_actor_260400_8014A7AC(void)
-{
-    s32 i;
+#include "../../shared/scripted_walk_tick_anim.inc.c"
 
-    i = 1;
-    do {
-        Gp_AnimTickIndex(&D_actor_260400_80154C70->rig.anim, i);
-        i++;
-    } while (i < 0x14);
-}
+#include "../../shared/scripted_walk_reset_anim.inc.c"
 
-/// Plain reseed: marks animation slots 1..0x13 of the work block reset-pending
-/// and reseeds each of them from the current animation id, then records that id
-/// as the one now playing.
-static void func_actor_260400_8014A7F8(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        D_actor_260400_80154C70->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_260400_80154C70->rig.anim, i, D_actor_260400_80154C70->st.animId);
-        i++;
-    } while (i < 0x14);
-    D_actor_260400_80154C70->st.appliedAnimId = D_actor_260400_80154C70->st.animId;
-}
-
-/// Blended reseed: reseeds animation slots 1..0x13 of the work block from the
-/// current animation id with the latched reset argument
-/// `D_actor_260400_80154BE4`, and records that id as the one now playing.
-static void func_actor_260400_8014A888(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        func_800B4114(&D_actor_260400_80154C70->rig.anim, i, D_actor_260400_80154C70->st.animId, 0,
-                      D_actor_260400_80154BE4);
-        i++;
-    } while (i < 0x14);
-    D_actor_260400_80154C70->st.appliedAnimId = D_actor_260400_80154C70->st.animId;
-}
+#include "../../shared/scripted_walk_blend_anim.inc.c"
 
 /// Message 0x7D3 (play animation): adopts the preset's animation id when it is
 /// one of the first 0x10, latching the reset mode -- 1 for the blended reseed,
@@ -1279,15 +1191,15 @@ static void func_actor_260400_8014A888(void)
 s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* preset)
 {
     if (preset->animationId < 0x10) {
-        D_actor_260400_80154C70->st.animId = preset->animationId;
+        gScriptedWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            D_actor_260400_80154C70->st.state = 1;
-            D_actor_260400_80154BE4           = preset->blendFrames;
+            gScriptedWalkWork->st.state = 1;
+            gScriptedWalkBlendFrames    = preset->blendFrames;
         } else {
-            D_actor_260400_80154C70->st.state = 2;
+            gScriptedWalkWork->st.state = 2;
         }
-        D_actor_260400_80154C70->st.field_6 = 0;
-        func_actor_260400_8014A200(D_actor_260400_80154C74);
+        gScriptedWalkWork->st.field_6 = 0;
+        scriptedWalkUpdate(D_actor_260400_80154C74);
         return 0;
     }
     return -1;
@@ -1303,7 +1215,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
     TmdObject* helperObj;
 
     obj       = D_actor_260400_80154C74->extra.tmd;
-    helperObj = D_actor_260400_80154C70->helper->extra.tmd;
+    helperObj = gScriptedWalkWork->helper->extra.tmd;
 
     if (arg2 & 1) {
         obj->flags       = 0;
@@ -1316,7 +1228,7 @@ s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2)
         obj->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         helperObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    if ((u8)D_actor_260400_80154C70->helperShown == 0) {
+    if ((u8)gScriptedWalkWork->helperShown == 0) {
         helperObj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
     return 0;
@@ -1330,8 +1242,8 @@ s32 func_actor_260400_8014AA28(Task* task, s32 arg1, ActorTransform* placement)
     GfxCoord* coord;
     u16       yaw;
 
-    coord                           = task->extra.tmd->coords;
-    D_actor_260400_80154C70->st.yaw = yaw = placement->rot.vy;
+    coord                     = task->extra.tmd->coords;
+    gScriptedWalkWork->st.yaw = yaw = placement->rot.vy;
     Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
@@ -1349,65 +1261,25 @@ s32 func_actor_260400_8014AAA4(Task* task, s32 arg1, ActorCommand* msg)
     TmdObject* obj;
     s32        mode;
 
-    obj  = D_actor_260400_80154C70->helper->extra.tmd;
+    obj  = gScriptedWalkWork->helper->extra.tmd;
     mode = msg->command;
 
     switch (mode) {
         case 0:
-            D_actor_260400_80154C70->turnFrames = 0x14;
+            gScriptedWalkWork->turnFrames = 0x14;
             break;
         case 1:
             if (func_800B7420(0x88) == 0) {
-                D_actor_260400_80154C70->helperShown = mode;
-                obj->flags                           = 0;
+                gScriptedWalkWork->helperShown = mode;
+                obj->flags                     = 0;
             }
             break;
         case 2:
-            D_actor_260400_80154C70->helperShown = 0;
-            obj->flags                           = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            gScriptedWalkWork->helperShown = 0;
+            obj->flags                     = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     return 0;
 }
 
-/// Message 0x7DD (approach): turns the model to face `target` -- away from it
-/// in mode 1, where the update then walks it backwards -- keeps the mode in
-/// `D_actor_260400_80154C78`, and stores the number of steps the walk takes:
-/// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
-/// and 25 otherwise.
-s32 func_actor_260400_8014AB50(Task* task, s32 arg1, VECTOR* target, s32 mode)
-{
-    GfxCoord*        coord;
-    Actor260400Work* work;
-    s32              dx;
-    s32              dz;
-    s32              steps;
-    s32              dist;
-    s32              angle;
-
-    coord                   = task->extra.tmd->coords;
-    work                    = (Actor260400Work*)task->work;
-    D_actor_260400_80154C78 = mode;
-    dx                      = target->vx - coord->coord.t[0];
-    dz                      = target->vz - coord->coord.t[2];
-    angle                   = ratan2(dx, dz);
-    work->st.yaw            = angle;
-    if (D_actor_260400_80154C78 == 1) {
-        work->st.yaw = angle + 0x800;
-    }
-    Gfx_RotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
-    dist  = SquareRoot0(dx * dx + dz * dz);
-    steps = 0x19;
-    switch (D_actor_260400_80154C78) {
-        case 0:
-            steps = 0x3C;
-            break;
-        case 1:
-            steps = 0xF;
-            break;
-        case 2:
-            break;
-    }
-    work->st.travel = dist / steps;
-    return 0;
-}
+#include "../../shared/scripted_walk_to.inc.c"
