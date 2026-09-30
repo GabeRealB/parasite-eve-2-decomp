@@ -29,6 +29,11 @@ def aliases(root, names):
     return names
 
 
+# The prior-findings section's share of a brief. The whole brief, with the
+# rules and the reference listing, has to stay comfortably small for the agent.
+CONTEXT_BUDGET = 48 * 1024
+
+
 def context(root, names):
     names = aliases(root, names)
     # Qualified macro identity stays in ledgers, but older audit prose often
@@ -55,16 +60,42 @@ def context(root, names):
             if pattern.search(json.dumps(row)):
                 print(f"\nFrom {path.relative_to(root)}:\n{json.dumps(row, indent=2)}")
                 found = True
+    # An earlier review of this item is its own history and is given whole. A
+    # review of another item contributes only the issues that name this one:
+    # a widely used type is mentioned in nearly every review, and printing each
+    # of those whole once made a brief too large to launch an agent with.
+    own, mentions = [], []
     for path in sorted((root / "local/name-pass/reviews").glob("*.json")):
         report = json.loads(path.read_text())
         # Failed/unlanded attempts stay available on disk but are not decisions
         # about the current source. A later report may supersede these findings.
         if not report.get("landed_commit"):
             continue
+        rel = path.relative_to(root)
         for item in report["items"]:
-            if item["unresolved"] and pattern.search(json.dumps(item)):
-                print(f"\nPrior follow-up in {path.relative_to(root)}:\n{json.dumps(item, indent=2)}")
-                found = True
+            if not item["unresolved"]:
+                continue
+            if item.get("name") in names or item.get("current_name") in names:
+                own.append(f"\nPrior follow-up in {rel}:\n{json.dumps(item, indent=2)}")
+                continue
+            issues = [i for i in item["unresolved"] if pattern.search(json.dumps(i))]
+            if issues:
+                mentions.append(f"\nIssue about this item recorded while reviewing "
+                                f"{item.get('current_name') or item.get('name')} ({rel}):\n"
+                                f"{json.dumps(issues, indent=2)}")
+    budget, omitted = CONTEXT_BUDGET, []
+    for block in own + mentions:
+        if len(block) <= budget:
+            print(block)
+            budget -= len(block)
+            found = True
+        else:
+            omitted.append(block.split("(", 1)[-1].split(")", 1)[0] if block in mentions
+                           else block.split(" in ", 1)[-1].split(":", 1)[0])
+    if omitted:
+        print(f"\n{len(omitted)} further prior finding(s) omitted to keep the brief "
+              f"within {CONTEXT_BUDGET // 1024} KB; read them in: " + ", ".join(sorted(set(omitted))))
+        found = True
     if not found:
         print("No matching prior findings available; this does not establish that the item is clear.")
 

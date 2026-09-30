@@ -416,7 +416,13 @@ tree_changes() {
 run_agent() {
   local dir="$1" brief="$2" log="$3" term="$4"
   local -a cmd
-  local stream=0 formatter=tools/stream_format.py
+  local stream=0 formatter=tools/stream_format.py rc
+  # The brief never travels as an argument: Linux caps a single argument at
+  # 128 KB, and a widely used item's brief passed that, so the agent could not
+  # even be launched. Each CLI reads it from a file or standard input instead.
+  local brief_file
+  brief_file="$(mktemp -t name_pass_brief.XXXXXX)"
+  printf '%s\n' "$brief" >"$brief_file"
   case "$CLI" in
     claude)
       # Plain `claude -p` prints only the final result, so a step looks frozen
@@ -427,7 +433,7 @@ run_agent() {
       if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
         cmd+=(--verbose --output-format stream-json); stream=1
       fi
-      cmd+=(--dangerously-skip-permissions "$brief")
+      cmd+=(--dangerously-skip-permissions)
       ;;
     grok)
       # grok emits the same NDJSON wire format on request, so the one formatter
@@ -440,7 +446,7 @@ run_agent() {
         cmd+=(--output-format streaming-messages-json --include-partial-messages)
         stream=1
       fi
-      cmd+=(-p "$brief")
+      cmd+=(--prompt-file "$brief_file")
       ;;
     codex)
       # Plain `codex exec` writes the worktree's cumulative diff after every
@@ -451,25 +457,30 @@ run_agent() {
       if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
         cmd+=(--json); stream=1; formatter=tools/codex_format.py
       fi
-      cmd+=("$brief")
+      cmd+=(-)
       ;;
-    *) echo "unknown api: $CLI" >&2; return 2 ;;
+    *) echo "unknown api: $CLI" >&2; rm -f "$brief_file"; return 2 ;;
   esac
+  # The CLI's own error output goes to the step's log too: a launch failure
+  # prints nothing else, and on the terminal alone it left the log silent.
   if (( stream )); then
     if (( term )); then
-      ( cd "$dir" && "${cmd[@]}" ) \
+      ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2> >(tee -a "$log" >&2) \
         | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
         | tee -a "$log"
     else
-      ( cd "$dir" && "${cmd[@]}" ) \
+      ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2>>"$log" \
         | python3 "$formatter" ${VACUUM_STREAM_QUIET:+--quiet-text} \
         >>"$log" 2>&1
     fi
   elif (( term )); then
-    ( cd "$dir" && "${cmd[@]}" ) | tee -a "$log"
+    ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" 2> >(tee -a "$log" >&2) | tee -a "$log"
   else
-    ( cd "$dir" && "${cmd[@]}" ) >>"$log" 2>&1
+    ( cd "$dir" && "${cmd[@]}" ) <"$brief_file" >>"$log" 2>&1
   fi
+  rc=$?
+  rm -f "$brief_file"
+  return "$rc"
 }
 
 # --- one step, in one tree ----------------------------------------------------
@@ -487,11 +498,22 @@ work_step() {
     echo failed >"$status"
     return 0
   fi
-  if ! run_agent "$dir" "$brief" "$log" "$term" \
-     || ! outcome=$(cd "$dir" && venv/bin/python3 tools/refactor/name_review.py validate --report "$report" "${names[@]}") \
-     || ! ( cd "$dir" && venv/bin/python3 tools/refactor/verify_name_pass.py ) >"$log.build" 2>&1; then
+  # Say which stage failed. The build log is removed first so that a failure
+  # before verification cannot show an earlier step's passing build as its own.
+  local why="" rc
+  rm -f "$log.build"
+  run_agent "$dir" "$brief" "$log" "$term"; rc=$?
+  if (( rc )); then
+    why="the agent session exited with status $rc"
+  elif ! outcome=$(cd "$dir" && venv/bin/python3 tools/refactor/name_review.py validate \
+                     --report "$report" "${names[@]}" 2>>"$log"); then
+    why="its review report did not validate"
+  elif ! ( cd "$dir" && venv/bin/python3 tools/refactor/verify_name_pass.py ) >"$log.build" 2>&1; then
+    why="verification failed"
+  fi
+  if [[ -n "$why" ]]; then
     {
-      echo "step $order FAILED its session, review or verification in $dir; reverting"
+      echo "step $order FAILED: $why ($dir); reverting"
       [[ -f "$log.build" ]] && tail -20 "$log.build"
     } | tee -a "$log" >&2
     git -C "$dir" checkout -- . 2>/dev/null
