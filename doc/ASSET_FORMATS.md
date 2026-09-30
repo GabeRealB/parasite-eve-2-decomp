@@ -494,20 +494,21 @@ Atlas `v` (texel Y in the chrome page):
 
 Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 
-| Table | VA | Count | `glyphTable` | `vBias` (`func_8002E53C`) |
+| Table | VA | Count | `glyphTable` | `vBias` (`Text_DrawString`) |
 |---|---|---|---|---|
-| `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 | `0x26` |
-| `Font_Glyphs1` | `0x8005FA30` | 224 | 1–4 | `0x80` |
-| `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 | `0` |
+| `_gFontGlyphsMedium` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 (`TEXT_GLYPH_TABLE_MEDIUM`) | `0x26` |
+| `Font_Glyphs1` | `0x8005FA30` | 224 (`0x20`…`0xFF`) | any value other than 0 and 5 | `0x80` |
+| `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 (`TEXT_GLYPH_TABLE_SMALL`) | `0` |
 
-`Ui_DrawTextUnderline` sets `glyphTable = 5` (slot 2). Slot 1 letters live
-128 lines down the 256-tall font page; drawing them with `vBias=0` samples
-padding, not glyphs.
+`Ui_DrawTextUnderline` sets `glyphTable` to `TEXT_GLYPH_TABLE_SMALL`. The large
+face sits 128 lines down the 256-tall font page; drawing it with V bias 0
+samples padding, not glyphs.
 
 `_FontGlyph` `u`/`v` are **page-local texels** in the 4bpp page at
 `(960, 256)`, with `vBias` added to `v`. SPRT `w`/`h` are
-`glyph.widthMinusOne+1` / `glyph.heightMinusOne+1`. Pair-shrink is 2
-except table 5 (1). `xOffset` / `yOffset` are signed pixel offsets.
+`glyph.widthMinusOne+1` / `glyph.heightMinusOne+1`. Pair kerning tightens the
+pen by 2 pixels, or by 1 when `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`.
+`xOffset` / `yOffset` are signed pixel offsets.
 
 `Text_LoadClutImages` (`src/main/textutil.c`):
 

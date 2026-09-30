@@ -10,7 +10,13 @@ enum {
     TEXT_GLYPH_TABLE_MEDIUM          = 0,
     TEXT_GLYPH_TABLE_LARGE_ALTERNATE = 2,
     TEXT_GLYPH_TABLE_LARGE           = 4,
-    TEXT_GLYPH_TABLE_SMALL           = 5,
+    /// Small UI face, covering character bytes 0x20..0x7A.
+    ///
+    /// Drawing stores V bias 0. Pair kerning tightens by one pixel while the
+    /// request's `glyphTable` remains this selector. An inline face command
+    /// changes the live metrics and V bias without storing a new selector, so
+    /// kerning still follows the request.
+    TEXT_GLYPH_TABLE_SMALL = 5,
 };
 
 /// Placement of the measured line relative to its initial X coordinate.

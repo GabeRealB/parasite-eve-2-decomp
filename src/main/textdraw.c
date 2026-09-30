@@ -225,8 +225,10 @@ void taskNoopCallback(Task* unusedTask)
 
 /// Kerning between two adjacent glyphs: unless the previous glyph's trailing
 /// byte (`prev`, its rightKerningClass) and the next glyph's leftKerningClass
-/// sum to -1..1 as a byte, the pen position `x` is pulled in by one pixel for font table 5 and
-/// by two for the others. The string drawer applies the same rule.
+/// sum to -1..1 as a byte, the pen position `x` is pulled in by one pixel when
+/// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL` and by two otherwise. The string
+/// drawer applies that test to the request's selector, which an inline face
+/// command does not update.
 #define TEXT_APPLY_KERNING(x, prev, glyph, req)                  \
     do {                                                         \
         if ((u8)((prev) + (glyph)->leftKerningClass + 1) >= 3) { \
