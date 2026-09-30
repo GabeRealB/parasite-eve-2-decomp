@@ -6,8 +6,15 @@
 
 #include "common.h"
 
-/// Values used to invalidate and inspect a coordinate's composition cache.
 enum {
+    /// Zero composition stamp marking a graphics coordinate's cached matrix stale.
+    ///
+    /// Assign to `GfxCoord::composeStamp` when initializing a node or changing
+    /// its local matrix or parent. This clears both the rebuild stamp and visit
+    /// parity without modifying either matrix. Composition must run before
+    /// using `workm`; at the composition root it copies the local matrix, and
+    /// beneath a parent it compares rebuild stamps after refreshing the parent.
+    /// This is a complete stamp value, not a flag to combine with an old stamp.
     GRAPHICS_COORD_DIRTY          = 0,
     GRAPHICS_COORD_SUPPLIED_CACHE = 1 // Nonzero stamp preserving a caller-supplied cache on a parentless node
 };

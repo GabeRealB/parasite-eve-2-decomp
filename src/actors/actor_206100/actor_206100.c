@@ -4436,7 +4436,7 @@ static void func_actor_206100_8014FCD4(Task* task, void* unusedTable)
 /// counter reaches 0x5A and retires the actor four frames later.
 ///
 /// `coord` is a local rather than the inline
-/// `task->extra.tmd->field_8->composeStamp = 0;` because the fused form loads
+/// `task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;` because the fused form loads
 /// `task->extra` *after* the two counter stores, and sched1 will not lift a load
 /// above an earlier store; its address load stays with the stores and both pick
 /// up load-delay nops.  Binding the pointer above the counters frees the two
