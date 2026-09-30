@@ -82,7 +82,7 @@ typedef struct Actor107600Work {
     /* 0x04C */ u16                   field_4C;  // spawn position z
     /* 0x04E */ byte                  pad_4E[0x2];
     /* 0x050 */ u16                   field_50;  // fed to Gfx_RotMatrixX
-    /* 0x052 */ u16                   field_52;  // fed to Gfx_RotMatrixY
+    /* 0x052 */ u16                   field_52;  // fed to gfxRotMatrixY
     /* 0x054 */ u16                   field_54;  // fed to Gfx_RotMatrixZ
     /* 0x056 */ byte                  pad_56[0x2];
     /* 0x058 */ s16                   field_58;  // spin velocity added to field_50 while tumbling
@@ -2118,7 +2118,7 @@ static void func_actor_107600_80134A50(Task* arg0)
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
     Gfx_RotMatrixX(m, (s16)work->field_50, 0);
-    Gfx_RotMatrixY(m, (s16)work->field_52, 0);
+    gfxRotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }

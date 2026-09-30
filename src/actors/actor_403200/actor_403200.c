@@ -2998,7 +2998,7 @@ static __inline__ void Actor403200_StepForward(GfxCoord* coord)
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// Rebuild `coord`'s rotation around the yaw it already faces and rescale it:
-/// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
+/// `ratan2` of the rotation's Z basis gives the yaw, `gfxRotMatrixY` rebuilds
 /// the rotation from it and `ScaleMatrix` applies `xz` on both horizontal axes
 /// and `y` on the vertical one. The working matrix lives in a frame carved off
 /// the scratch stack, handed back once the rotation has been copied onto the
@@ -3013,7 +3013,7 @@ static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = xz;
     sc->scale.vy = y;
     sc->scale.vz = xz;
@@ -3044,7 +3044,7 @@ static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x800;
     sc->scale.vy = 0x800;
     sc->scale.vz = 0x800;
@@ -3083,7 +3083,7 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
     ScaleMatrix(&sc->m, &sc->scale);
 
@@ -4454,7 +4454,7 @@ static void func_actor_403200_8013509C(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]   = vec.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
     Gp_UpdateCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
@@ -4544,7 +4544,7 @@ static void func_actor_403200_801354A4(Enemy* enemy, Task* task)
         Gp_ClearRec18Occupied(&work->rec0);
 
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
@@ -4561,7 +4561,7 @@ static void func_actor_403200_801354A4(Enemy* enemy, Task* task)
         }
     } else {
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
@@ -4922,7 +4922,7 @@ static void func_actor_403200_8013669C(Enemy* enemy, Task* task)
     SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
 
     vec.vx = vec.vy = vec.vz = 0;
 
@@ -5231,7 +5231,7 @@ static void func_actor_403200_8013709C(Enemy* enemy, Task* task)
     mtx->ident.m11_m12 = 0x1000;
     mtx->ident.m20_m21 = 0;
     mtx->ident.m22     = 0x1000;
-    Gfx_RotMatrixY(&mtx->mat, 0, 1);
+    gfxRotMatrixY(&mtx->mat, 0, 1);
 
     actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
     work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -5317,7 +5317,7 @@ static void func_actor_403200_80137788(Enemy* enemy, Task* task)
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     coord.ident.m20_m21    = 0;
     mtx->m[2][2]           = 0x1000;
-    Gfx_RotMatrixY(mtx, 0, 1);
+    gfxRotMatrixY(mtx, 0, 1);
 
     coord.c.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
     coord.c.coord.t[1]   = 0;
@@ -5446,7 +5446,7 @@ static void func_actor_403200_80137CCC(Enemy* enemy, Task* task)
     work->field_96 = 0;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -5501,10 +5501,10 @@ static void func_actor_403200_80137EB4(Enemy* enemy, Task* task)
         work->spin = spin;
         phase      = work->spin;
         if ((phase & 3) == 1) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
         }
         if ((work->spin & 3) == 3) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(task->extra.tmd->coords);
@@ -5547,7 +5547,7 @@ static void func_actor_403200_80137EB4(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]  += step.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, 0);
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, work->field_96, 0);
 }
@@ -7762,7 +7762,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         work->field_EF4 = 0;
         work->field_EFA = 1;
         work->field_EF8 = 1;
-        Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
+        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
         work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&work->field_E3C.c);
         work->field_E96 = 0xC80;
@@ -8169,7 +8169,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[0] = pos.vx;
             D_actor_403200_8015F920.coord.t[1] = pos.vy;
             D_actor_403200_8015F920.coord.t[2] = pos.vz;
-            Gfx_RotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
+            gfxRotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
             Gfx_RotMatrixX(&D_actor_403200_8015F920.coord, -0x80, 0);
             Gfx_MatrixCol2(&D_actor_403200_8015F920.coord, &pos);
 

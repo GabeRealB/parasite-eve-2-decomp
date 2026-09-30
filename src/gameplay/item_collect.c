@@ -386,7 +386,7 @@ static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
             coord->coord.t[2]   = arg1->field_C;
             coord->param.rot.vy = arg1->field_E;
             if (coord->param.rot.vy != 0) {
-                Gfx_RotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
+                gfxRotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }

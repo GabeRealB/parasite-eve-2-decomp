@@ -4392,7 +4392,7 @@ void func_acropolis_bridge_80182694(Task* task)
                 work->scale = 0x40;
                 work->angle = task->spawnArg1.halves.low & 0xFFF;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+                gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 task->state         = 1;
                 /* fallthrough */
@@ -5136,7 +5136,7 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
             diff = ((u16)s->angle[s->i] - (u16)s->face) +
                    ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
             s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
+            gfxRotMatrixY(&s->m, diff, 1);
             Gfx_MatrixCol2(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
@@ -5207,7 +5207,7 @@ static void func_acropolis_bridge_80185104(OverlayWalker* work, SVECTOR3* pos)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
+    gfxRotMatrixY(&work->coord->coord, s->angle, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
@@ -6088,7 +6088,7 @@ void func_acropolis_bridge_80186618(Task* task)
         amount  -= height;
         scale.vx = scale.vy = scale.vz = amount;
     }
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
     if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
         work->field_104 != 4) {
@@ -6180,7 +6180,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
         amount  -= height;
         scale.vx = scale.vy = scale.vz = amount;
     }
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
     if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
         work->field_104 != 4) {
@@ -6252,7 +6252,7 @@ void func_acropolis_bridge_80187078(Task* task)
         work->field_104               = 3;
         work->field_108               = 0x10;
         Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_1F8 > 0) {
@@ -6267,7 +6267,7 @@ void func_acropolis_bridge_80187078(Task* task)
         d      = &dir;
         d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
         d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
         VectorNormalSS(d, d);
         gte_lddp(-0x10);
         gte_ldsv(d);
@@ -6303,7 +6303,7 @@ void func_acropolis_bridge_80187310(Task* task)
         work->field_104               = 5;
         work->field_108               = 0x10;
         Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {

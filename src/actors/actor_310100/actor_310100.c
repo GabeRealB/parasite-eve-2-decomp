@@ -803,7 +803,7 @@ void func_actor_310100_801620FC(Task* task)
             coord->coord.t[0] = place->x;
             coord->coord.t[1] = place->y;
             coord->coord.t[2] = place->z;
-            Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
+            gfxRotMatrixY(&coord->coord, place->yaw, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             taskKill(task);
@@ -867,7 +867,7 @@ void func_actor_310100_80162284(Task* task)
             coord->coord.t[0] = place->x;
             coord->coord.t[1] = place->y;
             coord->coord.t[2] = place->z;
-            Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
+            gfxRotMatrixY(&coord->coord, place->yaw, 0);
             display            = (Actor310100Work*)work->field_4E4->work;
             display->field_4F0 = 0;
             taskKill(task);
@@ -1047,7 +1047,7 @@ void func_actor_310100_801627BC(Task* task)
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
                 coord->coord.t[2] = place->z;
-                Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
+                gfxRotMatrixY(&coord->coord, place->yaw, 0);
                 task->state++;
             }
             break;
@@ -1125,7 +1125,7 @@ void func_actor_310100_801629FC(Task* task)
                 coord->coord.t[0] = place->x;
                 coord->coord.t[1] = place->y;
                 coord->coord.t[2] = place->z;
-                Gfx_RotMatrixY(&coord->coord, place->yaw, 0);
+                gfxRotMatrixY(&coord->coord, place->yaw, 0);
                 task->state++;
             }
             break;
@@ -1258,7 +1258,7 @@ void func_actor_310100_80162EC8(Task* task, s32 msgId, ActorTransform* placement
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&coord->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&coord->coord, placement->rot.vy, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

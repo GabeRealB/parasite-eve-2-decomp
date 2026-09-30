@@ -35,7 +35,7 @@
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_2` is the brightness cap state 1
 /// grows `EffectWork.scale` toward (and the starting radius in
 /// `func_healing_8012F5E4`). `field_4` is the per-frame radius step and the
-/// yaw passed to `Gfx_RotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
+/// yaw passed to `gfxRotMatrixY` as `-(field_4 * 2)`. `field_6` is both the
 /// `Gp_SpawnEff` spawn arg and the radius at which state 1 advances to 2.
 typedef struct HealingScale {
     /* 0x0 */ s16 unk0;
@@ -122,7 +122,7 @@ void func_healing_8012EF34(Task* arg0)
             }
             mem->scale = bright;
             mem->angle = mem->angle + (u16)D_healing_8012FC1C[mem->index].field_4;
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             rng          = Gp_LcgState * 5 + 0x71357911;
@@ -145,7 +145,7 @@ void func_healing_8012EF34(Task* arg0)
             }
             goto draw;
         case 2:
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->scale = mem->scale - 0x10;
@@ -174,7 +174,7 @@ void func_healing_8012EF34(Task* arg0)
             }
             return;
         case 3:
-            Gfx_RotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[mem->index].field_4 * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->period = mem->period + 1;

@@ -785,7 +785,7 @@ void func_actor_341300_80162878(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -947,7 +947,7 @@ void func_actor_341300_801631D4(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -575,7 +575,7 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = task->extra.tmd->coords;

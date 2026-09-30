@@ -111,7 +111,7 @@ STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 
 /// 0x40-byte scratch from the scratch stack used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
-/// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
+/// holds `0x640000` then the yaw passed to `gfxRotMatrixY`. `saved` is a
 /// copy of `GfxCoord.coord` around that rotate. `vec` is the matrix
 /// column from `Gfx_MatrixCol2` / `VectorNormalSS`, later the Manhattan
 /// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
@@ -1320,7 +1320,7 @@ void Gp_EffSprTask46(Task* arg0)
     switch (arg0->state) {
         case 0:
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+            gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             mem->angle          = arg0->spawnArg1.halves.low & 0xFFF;
             param               = arg0->spawnArg1.halves.high;
@@ -3145,7 +3145,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 temp        = arg0->spawnArg1.value;
                 mem->period = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
                 mem->step   = arg0->spawnArg1.value * 24 + 0xC0;
-                Gfx_RotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
+                gfxRotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 Gp_UpdateCoord(coord);
                 arg0->state = 1;
@@ -4831,7 +4831,7 @@ void Gp_UpdatePlayerMove(void)
         mat              = &actor->field_3D4.workm;
         if (Player_Status.weapon != 0x17) {
             Gfx_RotMatrixX(mat, -0x400, 0);
-            Gfx_RotMatrixY(mat, -0x20, 0);
+            gfxRotMatrixY(mat, -0x20, 0);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
@@ -4969,7 +4969,7 @@ void Gp_StepPlayerMove(Task* arg0)
             s->vec.vx += abs(coord->coord.t[2] - s->lock.vz);
             s->angle   = 0x640000;
             s->angle   = (0x800 - s->angle / (s->vec.vx * 0x274)) >> 1;
-            Gfx_RotMatrixY(&coord->coord, s->angle, 0);
+            gfxRotMatrixY(&coord->coord, s->angle, 0);
             Gfx_MatrixCol2(&coord->coord, &s->vec);
             actor->field_0 = s->vec.vx * actor->field_975 / s->scale;
             actor->field_4 = 0;
@@ -5048,7 +5048,7 @@ void Gp_TurnPlayer(Task* arg0)
     RotMatrixZ(actor->field_64, m);
     MatrixNormal(m, m);
     m = _gpRebuildCoordMatrix(arg0, 4);
-    Gfx_RotMatrixY(m, actor->field_6A, 0);
+    gfxRotMatrixY(m, actor->field_6A, 0);
     MatrixNormal(m, m);
     m = _gpRebuildCoordMatrix(arg0, 6);
     Gfx_RotMatrixX(m, actor->field_70, 0);

@@ -1315,7 +1315,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gfx_RotMatrixY(&coord->coord, D_dryfield_water_tank_801868BC >> 8, 1);
+    gfxRotMatrixY(&coord->coord, D_dryfield_water_tank_801868BC >> 8, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

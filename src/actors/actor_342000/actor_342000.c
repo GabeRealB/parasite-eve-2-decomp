@@ -64,7 +64,7 @@
 /// `task->extra.tmd->coords->parent`.
 ///
 /// `coord` is the actor's own rotation node. `func_actor_342000_801628C8`
-/// builds `coord.coord` from the euler angles below it (`Gfx_RotMatrixY` of
+/// builds `coord.coord` from the euler angles below it (`gfxRotMatrixY` of
 /// `field_278`, then `X` of `field_274`, then `Z` of `field_27C`, word loads),
 /// scales each of its columns by the matching `field_264` component through
 /// `gpf 12` and clears `coord.composeStamp`; `func_actor_342000_801640C0` writes all of
@@ -723,7 +723,7 @@ void func_actor_342000_801628C8(Task* arg0)
             mtx->ident.m20_m21 = 0;
             mtx->ident.m22     = 0x1000;
             ang                = &work->field_274;
-            Gfx_RotMatrixY(&mtx->mat, ang[1], 1);
+            gfxRotMatrixY(&mtx->mat, ang[1], 1);
             Gfx_RotMatrixX(&mtx->mat, ang[0], 0);
             Gfx_RotMatrixZ(&mtx->mat, ang[2], 0);
             gfxScaleMatrixColumns(&mtx->mat, &work->field_264);

@@ -147,7 +147,7 @@ void func_metabolism_8012EF34(Task* arg0)
                     Gp_LcgState = rng;
                     mem->step   = ((u32)rng >> 16) & 0xFFF;
                     Gp_LcgState = rng2;
-                    Gfx_RotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
+                    gfxRotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
                     gte_SetRotMatrix(&coord->coord);
                     gte_ldv0(&mem->move);
                     gte_rtv0();

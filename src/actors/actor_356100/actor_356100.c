@@ -168,7 +168,7 @@ typedef struct Actor356100Work {
     /// normalise-then-scale pair `Actor01900_MoveForward` runs.
     /* 0xB40 */ SVECTOR field_B40;
     /// The yaw pair `func_actor_356100_801653F4` walks: `field_B48` is the
-    /// angle fed to `Gfx_RotMatrixY` and slewed 0x89 at a time toward
+    /// angle fed to `gfxRotMatrixY` and slewed 0x89 at a time toward
     /// `field_B4A`, the target it re-derives each entry as the root's facing
     /// plus twice the wrapped turn. Same slots as `Actor01900Work.field_C20` /
     /// `field_C22`.
@@ -1364,7 +1364,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
     }
     coord       = arg0->extra.tmd->coords;
     aim->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
@@ -1556,7 +1556,7 @@ static void func_actor_356100_80164158(Task* arg0)
         aim->angle = -0x40;
     }
     aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_97E == 3) {
@@ -1668,7 +1668,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     }
     facing     = arg0->extra.tmd->coords;
     s->facing += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, s->facing, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->facing, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
     work->field_98E                       = actorNormalizeYaw(ratan2(s->delta.vx, s->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -1789,7 +1789,7 @@ static void func_actor_356100_801653F4(Task* arg0)
             work->field_B48 = work->field_B4A;
         }
     }
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, work->field_B48, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, work->field_B48, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_97A == 0) {
@@ -1867,7 +1867,7 @@ static void func_actor_356100_80165B30(Task* arg0)
         work->field_982 = 0xC;
         work->field_97A = 0;
         func_actor_356100_80163508(arg0);
-        Gfx_RotMatrixY(&mat, aim->angle, 1);
+        gfxRotMatrixY(&mat, aim->angle, 1);
         dir = &work->field_B40;
         Gfx_MatrixCol2(&mat, dir);
         VectorNormalSS(dir, dir);
@@ -1938,7 +1938,7 @@ static void func_actor_356100_80166018(Task* arg0)
         work->field_982               = 0x10;
         work->field_97E               = 4;
         func_actor_356100_80163508(arg0);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &pos, config), 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &pos, config), 0);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         pos.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy                                = 0;
@@ -2226,7 +2226,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
         aim->angle = -0x40;
     }
     aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_97A == 0) {
@@ -2471,7 +2471,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
         turn->angle = -0x20;
     }
     turn->angle = (u16)turn->angle + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     if (work->field_97A == 0) {
         Actor356100_MoveForward(arg0->extra.tmd->coords, 10);
@@ -2525,7 +2525,7 @@ static void func_actor_356100_8016804C(Task* arg0)
     }
     coord        = arg0->extra.tmd->coords;
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     Actor356100_PushRecords(arg0->extra.tmd->coords, &work->field_A58, 3, 0x10);
     actorMoveForwardNonzero(arg0->extra.tmd->coords, work->field_B4C);
     if (work->field_B4C > 0) {
@@ -2678,7 +2678,7 @@ static void func_actor_356100_801684F0(Task* arg0)
         aim->angle = aim->angle >> 1;
     }
     aim->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_97E == 0x11) {
@@ -2695,9 +2695,9 @@ static void func_actor_356100_801684F0(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if ((s16)work->field_6 >= 0x13) {
             if (work->field_98E <= 0) {
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x4B0, 0);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x4B0, 0);
             } else {
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x4B0, 0);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x4B0, 0);
             }
             work->field_0 = 7;
         }
@@ -2754,7 +2754,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
     }
     coord      = arg0->extra.tmd->coords;
     aim->angle = (u16)aim->angle + ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
@@ -2809,7 +2809,7 @@ static void func_actor_356100_80168E44(Task* arg0)
     }
     coord      = arg0->extra.tmd->coords;
     aim->angle = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     work->field_978 = 2;
     func_actor_356100_80163508(arg0);
@@ -2846,7 +2846,7 @@ static void func_actor_356100_80169180(Task* arg0)
         ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->field_97E             = 1;
         work->field_978             = 2;
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
         coord                                 = arg0->extra.tmd->coords;
         coord->coord.t[2]                     = 0;
         coord->coord.t[1]                     = 0;

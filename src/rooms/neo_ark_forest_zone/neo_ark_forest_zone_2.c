@@ -44,7 +44,7 @@
 
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
-/// `Gfx_RotMatrixY`. The halfword after `x` is not read.
+/// `gfxRotMatrixY`. The halfword after `x` is not read.
 typedef struct NeoArkForestZoneSpawnPos {
     s16 x;
     s16 pad_2;
@@ -756,8 +756,8 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].z;
                     Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                   D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].rotY, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                  D_neo_ark_forest_zone_80182D8C[D_neo_ark_forest_zone_80182D66 - 1].rotY, 1);
                 }
                 break;
             }
@@ -802,8 +802,8 @@ s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, TaskMessageArg msg, 
                         D_neo_ark_forest_zone_80182E54[0] = 0;
                         obj->reactionFlags                = 0;
                     }
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
-                                   0x400, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
+                                  0x400, 1);
                     D_neo_ark_forest_zone_80182D62 = 0x5A;
                 }
                 return result;
@@ -935,31 +935,31 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[0].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_forest_zone_80182DE8[0].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_forest_zone_80182DE8[0].rotY, 1);
                             break;
                         case 1:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[1].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[1].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_forest_zone_80182DE8[1].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_forest_zone_80182DE8[1].rotY, 1);
                             break;
                         case 2:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[2].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[2].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_forest_zone_80182DE8[2].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_forest_zone_80182DE8[2].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[3].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[3].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_forest_zone_80182DE8[3].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_forest_zone_80182DE8[3].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
@@ -967,8 +967,8 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[4].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[4].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_forest_zone_80182DE8[4].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_forest_zone_80182DE8[4].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }

@@ -4381,7 +4381,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         work->yaw   = (slot & 1) << 11;
         task->state = task->state + 1;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     blk            = SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaBeamScratch);
@@ -4601,7 +4601,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         work->yaw   = yawInit;
         task->state = task->state + 1;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaFlareScratch);

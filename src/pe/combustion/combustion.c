@@ -104,7 +104,7 @@ void func_combustion_8012EF34(Task* arg0)
             coord->coord.t[0]     = 0;
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
-            Gfx_RotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
+            gfxRotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
             mem->move.vz = 0x200;
@@ -144,7 +144,7 @@ void func_combustion_8012EF34(Task* arg0)
                 Gp_ReleaseState1CMem(mem, arg0);
                 return;
             }
-            Gfx_RotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
+            gfxRotMatrixY(&coord->coord, -(arg0->spawnArg1.value * 80), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }

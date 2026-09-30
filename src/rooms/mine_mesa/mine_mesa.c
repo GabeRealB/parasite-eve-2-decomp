@@ -3542,8 +3542,8 @@ static void func_mine_mesa_80181358(Task* arg0)
             tmdProcessStream(tmd);
             tmdProcessStream(tmd);
         }
-        Gfx_RotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
-                       pt->yaw, 1);
+        gfxRotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
+                      pt->yaw, 1);
         coords               = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
         MineMesaCooldown     = 0x50;
         coords->composeStamp = GRAPHICS_COORD_DIRTY;

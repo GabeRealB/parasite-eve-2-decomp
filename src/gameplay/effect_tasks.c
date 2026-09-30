@@ -2857,7 +2857,7 @@ void Gp_EffSprTask9E(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     if (arg0->state == 0) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+        gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         if (arg0->spawnArg1.value & 0xFFF) {
             scale = arg0->spawnArg1.halves.low & 0xFFF;

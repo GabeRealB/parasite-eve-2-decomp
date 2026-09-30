@@ -353,7 +353,7 @@ void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag)
     SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
-void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
+void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace)
 {
     _GfxAxisRotationScratch* block;
 
@@ -362,7 +362,10 @@ void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
     block->angleSin = rsin(angle);
     block->angleCos = rcos(angle);
 
-    if (flag != 0) {
+    // Nonzero replace writes the caller's rotation in place. Zero builds the
+    // same rotation in scratch and right-multiplies; its translation stays
+    // unset because the multiply reads only the 3x3.
+    if (replace != 0) {
         matrix->m[0][0] = block->angleCos;
         matrix->m[0][1] = 0;
         matrix->m[0][2] = block->angleSin;

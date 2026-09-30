@@ -1830,7 +1830,7 @@ static void func_actor_136100_80133238(Task* arg0)
                     work->field_4C6++;
                     return;
                 case 1:
-                    Gfx_RotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4EA, 1);
+                    gfxRotMatrixY(&arg0->extra.tmd->coords[4].coord, work->field_4EA, 1);
                     if (work->field_4EA >= 0xD56) {
                         work->field_4EA -= 0x40;
                     }
@@ -1843,7 +1843,7 @@ static void func_actor_136100_80133238(Task* arg0)
                 work->field_4EA = 0;
                 work->field_4CC = 0;
             }
-            Gfx_RotMatrixY(&coords[4].coord, work->field_4EA, 1);
+            gfxRotMatrixY(&coords[4].coord, work->field_4EA, 1);
             return;
         case 8:
             func_actor_136100_ResetSlots(arg0, 3);
@@ -2007,7 +2007,7 @@ void func_actor_136100_8013379C(s32 arg0)
     Gp_DispatchMsgPtr(work->field_4C0, 0x3E9, &D_actor_136100_8013F40C, 0);
 
     if (arg0 == 1) {
-        Gfx_RotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
     }
 }
 

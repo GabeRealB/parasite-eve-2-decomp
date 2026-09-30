@@ -2927,7 +2927,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                                 coord->coord.t[1]   = placement->y;
                                 coord->coord.t[2]   = placement->z;
                                 coord->param.rot.vy = placement->yaw;
-                                Gfx_RotMatrixY(&coord->coord, placement->yaw, 1);
+                                gfxRotMatrixY(&coord->coord, placement->yaw, 1);
                             } else {
                                 const AreaSavedEnemyPose* savedPose;
 
@@ -3718,7 +3718,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                     coord->coord.t[2]   = place->field_C;
                     coord->param.rot.vy = place->field_E;
                     if (coord->param.rot.vy != 0) {
-                        Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                        gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }

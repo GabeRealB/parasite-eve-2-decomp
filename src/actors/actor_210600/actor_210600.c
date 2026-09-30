@@ -466,7 +466,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;

@@ -177,7 +177,7 @@ typedef struct Actor401000Work {
     /* 0xBEC */ s16  field_BEC;
     /* 0xBEE */ byte pad_BEE[2];
     /// Forward direction `func_actor_401000_801374D4` rebuilds from the wrapped
-    /// turn toward the player: `Gfx_RotMatrixY` on the turn then its second
+    /// turn toward the player: `gfxRotMatrixY` on the turn then its second
     /// column, normalised, and finally scaled by the `field_C0A` draw. The same
     /// slot `Actor401300Work` keeps at +0xC8C.
     /* 0xBF0 */ SVECTOR field_BF0;
@@ -187,7 +187,7 @@ typedef struct Actor401000Work {
     /* 0xBF8 */ SVECTOR field_BF8;
     /// Turn angle `func_actor_401000_80136E20` rebuilds the facing from, and
     /// the yaw it is driven to: each entry nudges `field_C00` by 0x89 toward
-    /// `field_C02` and stops once they meet, and `Gfx_RotMatrixY` /
+    /// `field_C02` and stops once they meet, and `gfxRotMatrixY` /
     /// `actorRescaleYaw` turn that angle into the root rotation. The
     /// same pair `Actor401300Work` keeps at +0xC94 / +0xC96.
     /* 0xC00 */ s16 field_C00;
@@ -2046,7 +2046,7 @@ static void func_actor_401000_80133D50(Task* arg0)
             state           = work->field_0;
             if (state != 0x13 && state != 0x14 && state != 0x11 && state != 0x1F && state != 0x20 && state != 0xF && state != 0x10 && state != 4) {
                 s->m = arg0->extra.tmd->coords->coord;
-                Gfx_RotMatrixY(&s->m, s->yaw, 0);
+                gfxRotMatrixY(&s->m, s->yaw, 0);
                 dir = &s->dir;
                 Gfx_MatrixCol2(&s->m, dir);
                 VectorNormalSS(dir, dir);
@@ -2439,7 +2439,7 @@ static void func_actor_401000_80134F98(Task* arg0)
     }
     coord      = arg0->extra.tmd->coords;
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
@@ -2722,7 +2722,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
         chase->turn = -0x40;
     }
     chase->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 3) {
@@ -2842,7 +2842,7 @@ static void func_actor_401000_801365C8(Task* arg0)
     }
     facing        = arg0->extra.tmd->coords;
     chase->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, chase->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     coord                                 = arg0->extra.tmd->coords;
     work->field_8AE                       = actorNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2897,7 +2897,7 @@ static void func_actor_401000_801365C8(Task* arg0)
 /// comes off the wrapped yaw toward the player, the yaw itself out of the
 /// root's own rotation, and the pair (`field_C00` / `field_C02`) is what the
 /// per-frame arm then walks: the turn swings the facing 0x89 a frame until it
-/// reaches the seeded yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and
+/// reaches the seeded yaw, `gfxRotMatrixY` rebuilds the rotation from it and
 /// `actorRescaleYaw` re-scales the root by 0x1194. When the two have
 /// met the actor re-arms (`field_0` 8 or 0xB) off `field_C24`, the obstacle
 /// range and the `field_C1B` cooldown, and the arm is then slid forward along
@@ -2963,7 +2963,7 @@ static void func_actor_401000_80136E20(Task* arg0)
             work->field_C00 = work->field_C02;
         }
     }
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, work->field_C00, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, work->field_C00, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89A == 0) {
@@ -2990,7 +2990,7 @@ static void func_actor_401000_80136E20(Task* arg0)
 /// (`field_C08`) is drawn from `Gp_LcgState` on the first entry, and each entry
 /// swings the facing toward the player by `field_C12` plus a 0x171 bias until
 /// `field_C26` has been counted once. The forward direction `field_BF0` comes
-/// out of the turn angle through `Gfx_RotMatrixY`, and the `field_C0A` draw
+/// out of the turn angle through `gfxRotMatrixY`, and the `field_C0A` draw
 /// scales it onto the scratch vector; the actor is then slid along its obstacle
 /// table, halving that draw while it overlaps. Counts the entry in `field_6`
 /// and keys state 7 once 0x1E of them have run.
@@ -3057,7 +3057,7 @@ static void func_actor_401000_801374D4(Task* arg0)
         work->field_8A2 = 0xC;
         work->field_89A = 0;
         func_actor_401000_80132EF0(arg0);
-        Gfx_RotMatrixY(&mat, aim->turn, 1);
+        gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->field_BF0;
         Gfx_MatrixCol2(&mat, dir);
         VectorNormalSS(dir, dir);
@@ -3134,7 +3134,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->field_BF8.vz                    = arg0->extra.tmd->coords->coord.t[2];
         work->field_8D0.radius                = 0x1AE;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &delta, config), 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &delta, config), 0);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         delta.vx                              = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         delta.vy                              = 0;
@@ -3693,7 +3693,7 @@ static void func_actor_401000_801394EC(Task* arg0)
             turn->angle = -0x20;
         }
         turn->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         if (work->field_89A == 0 && (detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0xA) << 16) != 0) {
             actorMoveForward(arg0->extra.tmd->coords, 0xA);
@@ -3780,7 +3780,7 @@ static void func_actor_401000_80139D10(Task* arg0)
     }
     coord        = arg0->extra.tmd->coords;
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_A30, 0xC) != 1) {
         func_actor_401000_80135704(arg0, work->field_8F0, 0xC);
     }
@@ -3849,7 +3849,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
         aim->turn = aim->turn >> 1;
     }
     aim->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 0x11) {
@@ -3863,9 +3863,9 @@ static void func_actor_401000_8013A0C8(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if ((s16)work->field_6 >= 0x13) {
             if (work->field_8AE <= 0) {
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x4B0, 0);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x4B0, 0);
             } else {
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x4B0, 0);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x4B0, 0);
             }
             work->field_0 = 7;
         }
@@ -3920,7 +3920,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
     }
     coord      = arg0->extra.tmd->coords;
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
@@ -3979,7 +3979,7 @@ static void func_actor_401000_8013A930(Task* arg0)
     }
     coord     = arg0->extra.tmd->coords;
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
     if (work->field_6 < 0x32) {
@@ -4025,7 +4025,7 @@ static void func_actor_401000_8013A930(Task* arg0)
         }
         coord      = arg0->extra.tmd->coords;
         aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
@@ -4198,7 +4198,7 @@ static void func_actor_401000_8013B61C(Task* arg0)
 /// State-2 aim body, the 401000 twin of `func_actor_401300_8013CBAC` and
 /// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
 /// the first clip and seeds the animation slots, then walks both obstacle tables
-/// and aims the actor at the player with `Gfx_RotMatrixY` / `actorRescaleYaw`.
+/// and aims the actor at the player with `gfxRotMatrixY` / `actorRescaleYaw`.
 /// `field_6` and `field_8` then count up under the `detectSightBlocked`
 /// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
@@ -4303,7 +4303,7 @@ static void func_actor_401000_8013C46C(Task* arg0)
     }
     facing   = arg0->extra.tmd->coords;
     s->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, s->turn, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, s->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_89E == 2) {
@@ -4695,7 +4695,7 @@ s32 func_actor_401000_8013D958(Task* arg0, s32 arg1, u16* arg2)
                 arg0->extra.tmd->coords->coord.t[0] = -0x595;
                 arg0->extra.tmd->coords->coord.t[1] = 0;
                 arg0->extra.tmd->coords->coord.t[2] = -0x5B1;
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
                 arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 return 1;
             default:

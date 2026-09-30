@@ -47,7 +47,18 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag);
 
 void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag);
 
-void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag);
+/// Rotates `matrix` about Y and leaves its translation unchanged.
+///
+/// `angle` is signed, with 4096 units per turn, and is passed to `rsin` and
+/// `rcos`. Those results are stored directly as matrix elements. The pure
+/// rotation has `cos` at `m[0][0]` and `m[2][2]`, `sin` at `m[0][2]`, `-sin`
+/// at `m[2][0]`, and the identity along Y.
+///
+/// Nonzero `replace` overwrites the nine rotation elements with that rotation.
+/// Zero right-multiplies the current rotation by it. For a local-to-parent
+/// matrix, overwriting yaws in the parent frame and right-multiplying turns
+/// about the matrix's own Y.
+void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace);
 
 void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag);
 

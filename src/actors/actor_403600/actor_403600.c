@@ -1955,7 +1955,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
     heightBase      = heights;
     do {
         scratch->matrix = arg1->workm;
-        Gfx_RotMatrixY(matrix, (j << 12) / 12, 0);
+        gfxRotMatrixY(matrix, (j << 12) / 12, 0);
         gte_SetTransMatrix(&arg1->workm);
         gte_SetRotMatrix(matrix);
         scale        = 0x14;

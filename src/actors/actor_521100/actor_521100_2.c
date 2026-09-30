@@ -567,7 +567,7 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
         case 0:
             work->field_486 = 0;
             work->field_488 = 0x1000;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->field_48C.yaw, 1);
+            gfxRotMatrixY(&coord->coord, (s16)work->field_48C.yaw, 1);
             work->field_48C.mat = coord->coord;
             work->field_484     = 1;
             break;
@@ -854,7 +854,7 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
 
 /// Message 0x7D4 handler in `D_actor_521100_8016A358`, placing the actor: only
 /// the yaw of the argument block's angles is used, cached in the work block's
-/// `field_48C.yaw` and applied with `Gfx_RotMatrixY`, then the position becomes
+/// `field_48C.yaw` and applied with `gfxRotMatrixY`, then the position becomes
 /// the root coordinate's translation and `composeStamp` is cleared.
 s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement)
 {
@@ -863,7 +863,7 @@ s32 func_actor_521100_80136A64(Task* task, s32 arg1, ActorTransform* placement)
 
     coord                                  = task->extra.tmd->coords;
     D_actor_521100_8016A3D8->field_48C.yaw = yaw = placement->rot.vy;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;
@@ -925,7 +925,7 @@ s32 func_actor_521100_80136BE8(Task* task, s32 arg1, ActorTransform* target)
     dz                                     = target->pos.vz - coord->coord.t[2];
     yaw                                    = ratan2(dx, dz);
     D_actor_521100_8016A3D8->field_48C.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     D_actor_521100_8016A3D8->field_48C.travel = SquareRoot0(dx * dx + dz * dz) / 20;
     return 0;
 }

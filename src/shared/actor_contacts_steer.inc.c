@@ -78,7 +78,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
             diff = ((u16)s->angle[s->i] - (u16)s->face) +
                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
             s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
+            gfxRotMatrixY(&s->m, diff, 1);
             Gfx_MatrixCol2(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);

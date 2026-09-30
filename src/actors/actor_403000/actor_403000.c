@@ -5105,7 +5105,7 @@ static __inline__ void Actor403000_FaceScale(GfxCoord* coord, s16 sy)
     scratch                                    = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = scratch;
     scratch->angle                             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&scratch->m, scratch->angle, 1);
+    gfxRotMatrixY(&scratch->m, scratch->angle, 1);
     scratch->scale.vx = 0x1000;
     scratch->scale.vy = sy;
     scratch->scale.vz = 0x1000;
@@ -5505,7 +5505,7 @@ static void func_actor_403000_80137084(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         if (ABS(work->field_AD8) < 0x80) {
             work->field_AC6 = 2;
             work->field_AC0 = 1;
@@ -5589,7 +5589,7 @@ static void func_actor_403000_80137084(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000ChaseScratch);
 }
@@ -6021,7 +6021,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     }
     recs = work->recordsE98;
     if ((s16)work->field_6 == 0x17) {
@@ -6154,7 +6154,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         }
         scratch->angle  = angle;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         t2                                    = &scratch->target;
         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, t2);
@@ -6226,7 +6226,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         }
         scratch->angle  = angle;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if ((s16)work->field_6 == 0x29) {
@@ -6451,7 +6451,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
         scratch->angle = -0x30;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6571,7 +6571,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         scratch->angle = -0x40;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6730,7 +6730,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         scratch->angle = -0x40;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6826,7 +6826,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         scratch->angle  = angle;
         work->field_AD8 = 0;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         work->field_6           = 0;
         work->field_8           = 0;
         work->field_FC2         = 0;
@@ -6965,7 +6965,7 @@ static void func_actor_403000_8013B238(Task* arg0)
     work->field_6++;
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->angle = work->field_FC8 + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->coord.t[0]  += work->field_FB0.vx;
     arg0->extra.tmd->coords->coord.t[1]  += work->field_FB0.vy;
     arg0->extra.tmd->coords->coord.t[2]  += work->field_FB0.vz;
@@ -7030,18 +7030,18 @@ static void func_actor_403000_8013B74C(Task* arg0)
         scratch->base                       = b;
         switch (scratch->base) {
             case 0:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
                 break;
 
             case 1:
             case 2:
             case 3:
             case 4:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
                 break;
 
             case 5:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
                 break;
 
             case 6:
@@ -7049,7 +7049,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
             case 8:
             case 9:
             default:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
                 break;
         }
 
@@ -7332,7 +7332,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         scratch->angle = -8;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x16);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -7676,7 +7676,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

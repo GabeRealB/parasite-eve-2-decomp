@@ -578,7 +578,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                 coord = arg0->extra.tmd->coords;
                 sy    = 0x1000 - (cur - 0x14) * 0xA;
                 ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                Gfx_RotMatrixY(&mtx, ang, 1);
+                gfxRotMatrixY(&mtx, ang, 1);
                 scale.vx = 0x1000;
                 scale.vy = (s16)sy;
                 scale.vz = 0x1000;

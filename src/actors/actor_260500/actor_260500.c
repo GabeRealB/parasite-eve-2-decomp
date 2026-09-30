@@ -1647,7 +1647,7 @@ static void func_actor_260500_8014A110(Task* task)
         }
         if (work->st.animId == 3 && work->turnFrames != 0) {
             work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
+            gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
@@ -1797,7 +1797,7 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (D_actor_260500_80159E54 == 1) {
         work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (D_actor_260500_80159E54) {
         case 0:

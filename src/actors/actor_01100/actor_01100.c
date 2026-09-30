@@ -1860,21 +1860,21 @@ static void Actor01100_Fn01D98(Enemy* enemy, Task* task, ActorsShared80138efcWor
     }
     if ((u32)(walk + 0x2FF) < 0x5FFU) {
         rest = walk / 3;
-        Gfx_RotMatrixY(&part->coord, walk - rest, 0);
+        gfxRotMatrixY(&part->coord, walk - rest, 0);
         part->composeStamp = GRAPHICS_COORD_DIRTY;
     } else if (walk > 0) {
-        Gfx_RotMatrixY(&part->coord, 0x200, 0);
+        gfxRotMatrixY(&part->coord, 0x200, 0);
         part->composeStamp = GRAPHICS_COORD_DIRTY;
         rest               = walk - 0x200;
     } else {
-        Gfx_RotMatrixY(&part->coord, -0x200, 0);
+        gfxRotMatrixY(&part->coord, -0x200, 0);
         part->composeStamp = GRAPHICS_COORD_DIRTY;
         rest               = walk + 0x200;
     }
     rest >>= 1;
-    Gfx_RotMatrixY(&part->parent->coord, rest, 0);
+    gfxRotMatrixY(&part->parent->coord, rest, 0);
     part->parent->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gfx_RotMatrixY(&part->parent->parent->coord, rest, 0);
+    gfxRotMatrixY(&part->parent->parent->coord, rest, 0);
     part->parent->parent->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if (work->field_B9A != 0) {
@@ -2408,13 +2408,13 @@ static void Actor01100_Fn0389C(Enemy* enemy, Task* task, ActorsShared80138efcWor
     if (work->field_B8C > 0) {
         angle              = ((u16)pose->param.rot.vy - 0x10) & 0xFFF;
         pose->param.rot.vy = angle;
-        Gfx_RotMatrixY(&pose->coord, angle, 1);
+        gfxRotMatrixY(&pose->coord, angle, 1);
         pose->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_B8C    = (u16)work->field_B8C - 0x10;
     } else {
         angle              = ((u16)pose->param.rot.vy + 0x10) & 0xFFF;
         pose->param.rot.vy = angle;
-        Gfx_RotMatrixY(&pose->coord, angle, 1);
+        gfxRotMatrixY(&pose->coord, angle, 1);
         pose->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_B8C    = (u16)work->field_B8C + 0x10;
     }
@@ -2570,7 +2570,7 @@ static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, ActorsShared80138efcWor
             self->param.rot.vy += yaw;
         }
         self->param.rot.vy &= 0xFFF;
-        Gfx_RotMatrixY(&self->coord, self->param.rot.vy, 1);
+        gfxRotMatrixY(&self->coord, self->param.rot.vy, 1);
         self->composeStamp = GRAPHICS_COORD_DIRTY;
 
         if ((u16)(work->field_B90 + 0x7F) < 0xFF) {
@@ -2630,7 +2630,7 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, ActorsShared80138efcWor
     }
     angle             = yaw->param.rot.vy & 0xFFF;
     yaw->param.rot.vy = angle;
-    Gfx_RotMatrixY(&yaw->coord, angle, 1);
+    gfxRotMatrixY(&yaw->coord, angle, 1);
     yaw->composeStamp = GRAPHICS_COORD_DIRTY;
 
     if (work->field_B90 > -0x80 && work->field_B90 < 0x80) {
@@ -2742,7 +2742,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, ActorsShared80138efcWor
     }
     angle              = (u16)pose->param.rot.vy & 0xFFF;
     pose->param.rot.vy = angle;
-    Gfx_RotMatrixY(&pose->coord, angle, 1);
+    gfxRotMatrixY(&pose->coord, angle, 1);
     pose->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_B8C == 0x16) {
         obj         = &work->objs[1];
@@ -2883,7 +2883,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, ActorsShared80138efcWor
     }
     angle              = (u16)pose->param.rot.vy & 0xFFF;
     pose->param.rot.vy = angle;
-    Gfx_RotMatrixY(&pose->coord, angle, 1);
+    gfxRotMatrixY(&pose->coord, angle, 1);
     pose->composeStamp = GRAPHICS_COORD_DIRTY;
     work->field_B8C    = (u16)work->field_B8C + 1;
     Actor01100_Fn039D0(enemy, task, work, arg);
@@ -3170,7 +3170,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, ActorsShared80138efcWor
         }
         angle              = (u16)pose->param.rot.vy & 0xFFF;
         pose->param.rot.vy = angle;
-        Gfx_RotMatrixY(&pose->coord, angle, 1);
+        gfxRotMatrixY(&pose->coord, angle, 1);
         pose->composeStamp = GRAPHICS_COORD_DIRTY;
         frame              = work->field_BAD;
         scale              = ((frame - 13) * 900) / 33 - ((frame - 14) * 900) / 33;

@@ -257,7 +257,7 @@ void func_lifedrain_8012EF48(Task* arg0)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             mem->step   = ((u32)Gp_LcgState >> 16) & 0xFFF;
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 0);
+            gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 0);
             gte_SetRotMatrix(&coord->coord);
             gte_ldv0(&mem->move);
             gte_rtv0();

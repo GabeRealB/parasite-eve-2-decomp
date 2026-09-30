@@ -1248,7 +1248,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
                         arg0->extra.tmd->coords->coord.t[0] = -0x3AC;
                         arg0->extra.tmd->coords->coord.t[1] = -0xF0;
                         arg0->extra.tmd->coords->coord.t[2] = 0x166C;
-                        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x3E8, 1);
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x3E8, 1);
                         Gp_ArmStateF0(1);
                         break;
                     case 1:
@@ -1256,7 +1256,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
                         arg0->extra.tmd->coords->coord.t[0] = 0x2A8;
                         arg0->extra.tmd->coords->coord.t[1] = -0x7D0;
                         arg0->extra.tmd->coords->coord.t[2] = 0x189C;
-                        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
                         break;
                 }
                 break;
@@ -1277,14 +1277,14 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
                         arg0->extra.tmd->coords->coord.t[1]   = -0x384;
                         arg0->extra.tmd->coords->coord.t[2]   = 0xFE6;
                         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
                         work->field_0 = 0x11;
                         break;
                     case 1:
                         arg0->extra.tmd->coords->coord.t[0] = 0xA1E;
                         arg0->extra.tmd->coords->coord.t[1] = -0x384;
                         arg0->extra.tmd->coords->coord.t[2] = 0x1590;
-                        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x7D0, 1);
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x7D0, 1);
                         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->field_0                         = 0x12;
                         break;
@@ -1292,7 +1292,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
                         arg0->extra.tmd->coords->coord.t[0] = 0x1A4;
                         arg0->extra.tmd->coords->coord.t[1] = -0x4C4;
                         arg0->extra.tmd->coords->coord.t[2] = 0x1194;
-                        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x3E8, 1);
+                        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x3E8, 1);
                         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->field_0                         = 0x12;
                         break;
@@ -1626,7 +1626,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
                     sc->d.vy                             = -sc->d.vy;
                     sc->d.vz                             = -sc->d.vz;
                     sc->yaw                              = ratan2(sc->d.vx, sc->d.vz);
-                    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->yaw, 1);
+                    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->yaw, 1);
                     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
             }
@@ -1646,7 +1646,7 @@ static __inline__ void Actor204000_FaceScale(GfxCoord* coord, s16 s)
     sc                                         = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
     sc->angle                                  = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&sc->m, sc->angle, 1);
+    gfxRotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
     coord->coord.m[0][0] = head[-1].m.m[0][0];
@@ -1891,7 +1891,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
         sc->angle = -0x10;
     }
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8);
     if (overlayOutOfRange(&sc->delta, 1000)) {
@@ -2360,7 +2360,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         sc->angle = -0x20;
     }
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
     if (ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8)) {
         work->field_6++;
@@ -2444,7 +2444,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
         sc->angle = -0x10;
     }
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8);
     if (!overlayOutOfRange(&sc->delta, 80)) {
@@ -2585,7 +2585,7 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
             work->field_176 = 8;
             break;
     }
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
     Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, 0);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     animDriverTick(arg1);
@@ -3197,7 +3197,7 @@ static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
         animDriverTick(arg1);
         angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, 1);
-        Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
+        gfxRotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }

@@ -60,7 +60,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                     coord->coord.t[2]   = place->field_C;
                     coord->param.rot.vy = place->field_E;
                     if (coord->param.rot.vy != 0) {
-                        Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                        gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
@@ -286,7 +286,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
                             coord->coord.t[2]   = place->field_C;
                             coord->param.rot.vy = place->field_E;
                             if (coord->param.rot.vy != 0) {
-                                Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                                gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                             }
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }

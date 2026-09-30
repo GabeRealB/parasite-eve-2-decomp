@@ -2390,7 +2390,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&coord->coord, placement->rot.vy, 1);
+    gfxRotMatrixY(&coord->coord, placement->rot.vy, 1);
     Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2509,7 +2509,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             c2->coord.t[0] += work->velX;
             c2->coord.t[1] += work->velY + work->fall;
             c2->coord.t[2] += work->velZ;
-            Gfx_RotMatrixY(&c2->coord, (s16)work->rotY, 1);
+            gfxRotMatrixY(&c2->coord, (s16)work->rotY, 1);
             Gfx_RotMatrixX(&c2->coord, (s16)work->rotX, 0);
             c2->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
@@ -3127,7 +3127,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

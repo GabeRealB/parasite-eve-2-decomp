@@ -1081,7 +1081,7 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[2] = 0x960;
                 break;
         }
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0, 1);
         work->field_174 = 2;
         work->field_170 = 2;
         animDriverTick(task);
@@ -1109,7 +1109,7 @@ static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
     }
     turn->yaw += ratan2(-task->extra.tmd->coords->coord.m[2][0],
                         task->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, turn->yaw, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, turn->yaw, 1);
     Actor223600_MoveForward(task->extra.tmd->coords, 5);
     animDriverTick(task);
     SCRATCH_STACK_RELEASE_BLOCK(Actor223600Turn);
@@ -1157,7 +1157,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[0] = 0xA1E;
                 task->extra.tmd->coords->coord.t[1] = -0x384;
                 task->extra.tmd->coords->coord.t[2] = 0x1590;
-                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, 1);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x7D0, 1);
                 work->field_6   = -0xA;
                 work->field_212 = 0xB4;
                 work->field_174 = 2;
@@ -1167,7 +1167,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[0] = 0x12C;
                 task->extra.tmd->coords->coord.t[1] = -0x4C4;
                 task->extra.tmd->coords->coord.t[2] = 0x1194;
-                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, 1);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x3E8, 1);
                 work->field_212 = 0xBE;
                 work->field_6   = 0;
                 work->field_174 = 2;
@@ -1177,7 +1177,7 @@ static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
                 task->extra.tmd->coords->coord.t[0] = 0x104A;
                 task->extra.tmd->coords->coord.t[1] = -0x384;
                 task->extra.tmd->coords->coord.t[2] = 0xFE6;
-                Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x400, 1);
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x400, 1);
                 Actor223600_MoveForward(task->extra.tmd->coords, 0x15E);
                 work->field_6   = 0x3C;
                 work->field_212 = 0x50;

@@ -893,7 +893,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     }
     part      = arg1->extra.tmd->coords;
     s->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->rootContacts, 5);
     if (overlayOutOfRange(&s->delta, 1000)) {
@@ -932,7 +932,7 @@ static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s)
     sc                                         = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
     sc->angle                                  = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&sc->m, sc->angle, 1);
+    gfxRotMatrixY(&sc->m, sc->angle, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = s;
     ScaleMatrix(&sc->m, &head[-1].scale);
     coord->coord.m[0][0] = head[-1].m.m[0][0];
@@ -1389,7 +1389,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
         sc->angle = -0x20;
     }
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
     if (ActorContact_PushContact(arg1->extra.tmd->coords, work->rootContacts, 5)) {
         work->field_6++;
@@ -1474,7 +1474,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     }
     facing    = arg1->extra.tmd->coords;
     s->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
+    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, s->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
     ActorContact_PushContact(arg1->extra.tmd->coords, work->rootContacts, 5);
     work->field_6++;

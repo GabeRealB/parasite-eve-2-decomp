@@ -1232,7 +1232,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             work->angle  = 0;
             work->period = 0xB00;
         }
-        Gfx_RotMatrixY(&coord->coord, work->scale, 0);
+        gfxRotMatrixY(&coord->coord, work->scale, 0);
         task->state++;
         return;
     }
@@ -1318,7 +1318,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     rot->m11_m12 = 0x1000;
     rot->m20_m21 = 0;
     rot->m22     = 0x1000;
-    Gfx_RotMatrixY(&coord->coord, work->scale, 0);
+    gfxRotMatrixY(&coord->coord, work->scale, 0);
     gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
     work->move.vx       = (work->move.vx * work->angle) >> 16;
     work->move.vy       = (work->move.vy * work->angle) >> 16;

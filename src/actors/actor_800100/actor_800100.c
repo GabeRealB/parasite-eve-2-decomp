@@ -1734,7 +1734,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     }
 
     d4->coord = *arg0->extra.tmd->coords;
-    Gfx_RotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
+    gfxRotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
 
     objs[0] = (WorldCollisionBody*)actor->field_AC;
     objs[1] = (WorldCollisionBody*)actor->field_EC;

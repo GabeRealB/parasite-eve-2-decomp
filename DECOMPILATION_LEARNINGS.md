@@ -962,7 +962,7 @@ same thing, but only the second compiles to the target's tail in
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
 
 Both bodies push `0x34` bytes of `ActorScaleRotScratch`, rebuild the yaw with
-`Gfx_RotMatrixY` / `ScaleMatrix`, copy nine halfwords back over `coord->coord.m`
+`gfxRotMatrixY` / `ScaleMatrix`, copy nine halfwords back over `coord->coord.m`
 and pop. They differ in how the pop is spelled:
 
 ```c
@@ -1033,7 +1033,7 @@ What worked, in each case:
   `setminus:` label instead (no inline store) makes phase 2 pair the two arms
   and the merge eats the whole RotMatrixY/Gp_UpdateCoord tail: `delete=27` and
   83%.
-* **case 2** - the same effect needs the whole tail (Gfx_RotMatrixY, composeStamp,
+* **case 2** - the same effect needs the whole tail (gfxRotMatrixY, composeStamp,
   Gp_UpdateCoord, Gp_SetLightMode, field_4C, field_40, the state write) written
   **in each arm** with the angle as a literal. Sharing the tail and passing a
   computed `angle` variable puts the walk's first difference 17 insns above the
@@ -2140,7 +2140,7 @@ assembly `cc92dcc0a02e4a854ddffbcc551f4934fb6c4b196b3520df4e34096972a318b7`.
 ## Hoist `PLAYSTATION_SCRATCHPAD_BASE` before a call-containing region to swap `$s3`/`$s4`
 
 A scale constant (`0x1194`) and the scratch-head pointer compete for `$s3`/`$s4`
-after `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix`. Loading `PLAYSTATION_SCRATCHPAD_BASE` inside
+after `ratan2` / `gfxRotMatrixY` / `ScaleMatrix`. Loading `PLAYSTATION_SCRATCHPAD_BASE` inside
 the matrix block gives the pointer `$s3`. Assigning it to a local *before* a
 switch that contains calls lengthens that range so the constant outranks it and
 takes `$s3`:
@@ -21282,7 +21282,7 @@ p->angleCos = cos;
 gte_MulMatrix0(arg0, &p->rotation, arg0);   /* gtemac.h, real words via gte.h */
 ```
 
-`Gfx_RotMatrixY` is the pure example (Y-axis rotate; siblings X/Z match the same
+`gfxRotMatrixY` is the pure example (Y-axis rotate; siblings X/Z match the same
 shape).
 
 ## Separate scratch-head temps: `lui v0` prologue vs `lui v1` free
@@ -21336,7 +21336,7 @@ documented under RotMatrixX scratch blocks.
 
 ## RotMatrixZ: early cos in `$v1`, and barrier before sin/cos reloads
 
-Y-axis `Gfx_RotMatrixY` loads **sin** early into `$v1` so it pairs with
+Y-axis `gfxRotMatrixY` loads **sin** early into `$v1` so it pairs with
 `li v0,ONE` and is stored after the zero/ONE block. Z-axis `Gfx_RotMatrixZ`
 does the same shape but with **cos** — the flag≠0 path ends with
 `m[2][2]=ONE` / `m[1][1]=cos` in the `j` delay, so:
@@ -21406,7 +21406,7 @@ vmat->m[1][1] = cos_u;
 
 Flag≠0 path is non-volatile and uses load-then-zero before `-sin` into
 `m[1][2]` (same delay-fill as Y-axis `m[2][0]`). `Gfx_RotMatrixX` is the pure
-example (X-axis; siblings `Gfx_RotMatrixY` Y / `Gfx_RotMatrixZ` Z).
+example (X-axis; siblings `gfxRotMatrixY` Y / `Gfx_RotMatrixZ` Z).
 
 ## Duplicate `setlen` in both branches for delayed-slot tpage if/else
 
@@ -40156,7 +40156,7 @@ angle    = 0x640000 / (s->vec.vx * 0x274);
 flag     = 0;
 asm volatile("" : "+r"(flag) : "r"(lockz));
 angle    = (0x800 - angle) >> 1;
-Gfx_RotMatrixY(mat, angle, flag); /* move a0,s2 after sw a1 */
+gfxRotMatrixY(mat, angle, flag); /* move a0,s2 after sw a1 */
 ```
 
 `$a0` stays occupied through the dividend, `0x640000` colors as `$a1`,
@@ -64189,7 +64189,7 @@ redistributed across three files.
 ## `g->f = x = expr;` orders the global's address ahead of the RHS load
 
 `func_actor_151000_80132810` reads a placement's yaw, stashes it in a global
-work block and then passes the same value to `Gfx_RotMatrixY`. Written as two
+work block and then passes the same value to `gfxRotMatrixY`. Written as two
 statements the value load ran first and filled the load-delay slot of the
 preceding pointer chase, leaving the global's `%lo` load one slot too late
 (98%, `reorder=1`):
@@ -64211,7 +64211,7 @@ slot itself.
 ```c
 coord                        = ((TmdObject*)task->extra)->coords;
 D_actor_151000_8013D37C->yaw = yaw = placement->yaw;
-Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
 ```
 
 That is 100%. Reach for the chained form whenever a value is both stored to a
@@ -74547,9 +74547,9 @@ side of that call. That in turn changes which instruction the delay-slot filler
 finds last in the pre-call block.
 
 `func_actor_444000_80135448` squashes seven coordinates through one helper whose
-body is `ratan2` / `Gfx_RotMatrixY` / `ScaleMatrix` around a scratchpad frame.
+body is `ratan2` / `gfxRotMatrixY` / `ScaleMatrix` around a scratchpad frame.
 The target fills each `jal ratan2` delay slot with the *subtraction* that
-finishes the scale, and does the `sll`/`sra` pair after `Gfx_RotMatrixY`, next
+finishes the scale, and does the `sll`/`sra` pair after `gfxRotMatrixY`, next
 to `sw $s0, 0x24($s1)`:
 
 ```
@@ -74558,7 +74558,7 @@ to `sw $s0, 0x24($s1)`:
     jal   ratan2
      subu $s0, $s3, $s0      # 0x1000 - (step << 12) / 40
     ...
-    jal   Gfx_RotMatrixY
+    jal   gfxRotMatrixY
     ...
     sll   $s0, $s0, 16
     sra   $s0, $s0, 16
@@ -81630,7 +81630,7 @@ argument naming:
 -lw    v0,8(a2)        +lw    v0,8(a1)
 -lh    a1,0x12(a2)     +lh    a1,0x12(a1)
 -addiu a0,s0,4         +move  a2,zero
- jal    Gfx_RotMatrixY
+ jal    gfxRotMatrixY
 -move   a2,zero        +addiu a0,s0,4
 ```
 
@@ -87597,7 +87597,7 @@ sat between them in the source.
 
 ### A pointer reloaded in both arms before a shared call is one call per arm, cross-jumped
 
-`Actor01900_Fn07BA8` picks a turn of `±0x4B0` for `Gfx_RotMatrixY(&obj->field_8->coord, turn, 0)`.
+`Actor01900_Fn07BA8` picks a turn of `±0x4B0` for `gfxRotMatrixY(&obj->field_8->coord, turn, 0)`.
 The target loads `lw v0, 0x2C(s4)` *twice* - once in each arm - and only the
 `lw a0, 8(v0)` / `jal` tail is shared. A variable assigned in an `if`/`else`
 (or a ternary) loads the pointer once after the join. Write the call in each arm;
@@ -97337,7 +97337,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
     coord = ((TmdObject*)task->extra)->coords;
     blk   = (ActorScaleRotScratch*)(head - 0x34);
     *(ActorScaleRotScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
-    ... ratan2 / Gfx_RotMatrixY / ScaleMatrix / nine matrix shorts ...
+    ... ratan2 / gfxRotMatrixY / ScaleMatrix / nine matrix shorts ...
     m22 = *(u16*)&blk->m.m[2][2];
     coord->composeStamp = 0;
     coord->coord.m[2][2] = m22;
@@ -106840,16 +106840,16 @@ preprocessed
 The halfword-load-width entries above all ask what the *field* is. This case
 asks what the *use* is: `Actor521100Work::yaw` is `u16` (the matched
 `func_actor_521100_80134C38` stores a `u16` `ratan2` result into it), and
-`func_actor_521100_801360C4` passes it to `Gfx_RotMatrixY(MATRIX*, s32, s32)`,
+`func_actor_521100_801360C4` passes it to `gfxRotMatrixY(MATRIX*, s32, s32)`,
 where the target loads `lh $a1,0x4AE($s0)`. The sign extension is requested by
 the call site, not by the field:
 
 ```c
-Gfx_RotMatrixY(&coord->coord, (s16)work->yaw, 1);
+gfxRotMatrixY(&coord->coord, (s16)work->yaw, 1);
 ```
 
 and the overlay's own matched sibling spells the identical call the same way
-off a `u16` local (`actor_521100_7.c:60`: `Gfx_RotMatrixY(&coord->coord,
+off a `u16` local (`actor_521100_7.c:60`: `gfxRotMatrixY(&coord->coord,
 (s16)yaw, 1);`). So a lone `lhu`/`lh` swap - `insert=1 delete=1`, 98.3% with the
 structure otherwise identical - is the fourth case beside the three listed
 under "A halfword that is incremented before its signed compare": check the
@@ -107909,12 +107909,12 @@ where the target has it in `$v0`.
 The uses are not one live range. In both arms of the `func_actor_401800_80133918`
 test the pointer survives two `ratan2` calls, so global alloc must home it in a
 callee-saved register — `$s0`, and the target has `$s0` there as well. In the
-tail it dies at the call, because the `Gfx_RotMatrixY` that follows reloads the
+tail it dies at the call, because the `gfxRotMatrixY` that follows reloads the
 coordinate from `index` instead of reusing the pointer:
 
 ```c
 s->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, s->turn, 1);
+gfxRotMatrixY(&arg0->field_2C->field_8->coord, s->turn, 1);
 ```
 
 Written as one `coord` variable the three uses are a single allocno and the tail
@@ -109131,7 +109131,7 @@ The router itself produced no discovery; this is an independent controlled fix.
 `func_actor_401000_8013B61C` reached 99.543% with the structure already matching
 (37/37 blocks, `916/917` instructions, `branch=4 regs=23 insert=2 delete=1`).
 Every penalty sat in the single block that rebuilds the root coordinate from the
-model yaw -- `ratan2` -> `Gfx_RotMatrixY` -> `ScaleMatrix` over the 0x34-byte
+model yaw -- `ratan2` -> `gfxRotMatrixY` -> `ScaleMatrix` over the 0x34-byte
 rotation scratch. There, `k = 0x1194` was rematerialised (`li v0,0x1194`) after
 `ScaleMatrix` instead of staying live in `$s3`, and `head` had taken `$s3`, the
 register `work` had held; the target has `$s3` for `k` and `$s4` (freed by
@@ -110838,7 +110838,7 @@ rather than `M2C_UNK`, removed a second `sll` and a `lw`-for-`lb`: 93.08% ->
 ## A body repeated in both arms that *shares its tail* is two inlined calls, not a shared tail (func_actor_421600_801366F4, 2026-09-16)
 
 The shrink tick's two arms each carry a 20-instruction body (scratch setup,
-`ratan2`, `Gfx_RotMatrixY`, three scale stores, `ScaleMatrix`), but the 9-store
+`ratan2`, `gfxRotMatrixY`, three scale stores, `ScaleMatrix`), but the 9-store
 copy into the coordinate appears **once**, after a label that sits in the middle
 of the else-arm, with the if-arm jumping to it. That shape is not source: it is
 the last jump pass, `jump_optimize (insns, 1, 1, 0)` in `toplev.c`, which runs
@@ -113825,9 +113825,9 @@ the function to 96.08% in one build:
 
 ```c
 if (((rng >> 16) & 0xF) < 0xA) {
-    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, 0x32, 0);
+    gfxRotMatrixY(&arg0->field_2C->field_8->coord, 0x32, 0);
 } else {
-    Gfx_RotMatrixY(&arg0->field_2C->field_8->coord, -0x78, 0);
+    gfxRotMatrixY(&arg0->field_2C->field_8->coord, -0x78, 0);
 }
 ```
 
@@ -129351,14 +129351,14 @@ so the store keeps its place and `dbr` has a thread candidate for the slot.
 
 The tail rebuilds the root coordinate: `ScaleMatrix(&mtx, &scale)` needs
 `scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA)`, and the target computes the
-`* 0xA` chain *before* `ratan2` and `Gfx_RotMatrixY` while storing all three
+`* 0xA` chain *before* `ratan2` and `gfxRotMatrixY` while storing all three
 `scale` words after them. Written as one expression the value stays live across
 the two calls, so the allocno crosses calls: `global.c` can only give it a
 call-saved register and the arithmetic cannot be hoisted --
 
 ```c
             ang   = ratan2(...);
-            Gfx_RotMatrixY(&mtx, ang, 1);
+            gfxRotMatrixY(&mtx, ang, 1);
             scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA);   /* 74.3% */
 ```
 
@@ -129368,7 +129368,7 @@ call-saved register and the arithmetic cannot be hoisted --
 ```c
             sy    = 0x1000 - (cur - 0x14) * 0xA;   /* before the calls */
             ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            Gfx_RotMatrixY(&mtx, ang, 1);
+            gfxRotMatrixY(&mtx, ang, 1);
             scale.vy = (s16)sy;                    /* after them */
 ```
 
@@ -135331,7 +135331,7 @@ only allocation can remove" for `func_actor_110600_80136B20`. In the rebuilt
 addressing in final assembly.
 
 A controlled permuter follow-up, base_4, introduces a `void** release` computed
-from `pad + 0x3FC` before Gfx_RotMatrixY and uses it for the final scratch bump.
+from `pad + 0x3FC` before gfxRotMatrixY and uses it for the final scratch bump.
 CSE removes that assignment and substitutes the equivalent full-address pseudo
 for the bump. This leaves pad r86 with one use, the initial store UID323. Flow
 marks it dead there; combine deletes its definition UID320 and folds the store

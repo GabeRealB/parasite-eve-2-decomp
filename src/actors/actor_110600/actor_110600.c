@@ -1531,7 +1531,7 @@ static void func_actor_110600_80132FE0(OverlayWalker* work)
             diff = ((u16)s->angle[s->i] - (u16)s->face) +
                    ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
             s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
+            gfxRotMatrixY(&s->m, diff, 1);
             Gfx_MatrixCol2(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);
@@ -1604,7 +1604,7 @@ static void func_actor_110600_80133550(OverlayWalker* work, SVECTOR3* pos)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
+    gfxRotMatrixY(&work->coord->coord, s->angle, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
@@ -1631,7 +1631,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     work->nav->field_4[0]    = 0;
     blk->m                   = work->coord->coord;
     for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
-        Gfx_RotMatrixY(&blk->m, angle, 0);
+        gfxRotMatrixY(&blk->m, angle, 0);
         Gfx_MatrixCol2(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);
@@ -1786,7 +1786,7 @@ static void func_actor_110600_80133A94(OverlayWalker* walker)
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
-/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `scale` on all three axes. The working matrix lives in a frame carved off
 /// the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
@@ -1806,7 +1806,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
@@ -1843,7 +1843,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     Actor110600_ScaleRotation(task, (s16)work->walker.scale);
     work->field_8 = ratan2(-task->extra.tmd->coords->coord.m[2][0],
@@ -3167,7 +3167,7 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
     y                                         -= (work->field_BE0 - 0x12C) * 2;
     ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle                                 = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = page;
     blk->scale.vy = y;
     blk->scale.vz = page;
@@ -3433,7 +3433,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
     ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle                                 = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = (s16)scale;
     blk->scale.vy = (s16)scale;
     blk->scale.vx = (s16)scale;
@@ -3561,9 +3561,9 @@ static void func_actor_110600_80137684(Task* arg0)
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
         if (((rng >> 16) & 0xF) < 0xA) {
-            Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
         } else {
-            Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x78, 0);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x78, 0);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if ((work->field_892 == 0x16) && (work->field_894 >= 0x1F)) {
@@ -4102,7 +4102,7 @@ static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = sx;
     blk->scale.vy = sy;
     blk->scale.vz = sz;

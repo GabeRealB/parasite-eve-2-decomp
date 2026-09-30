@@ -77,7 +77,7 @@ extern GpEvsCmd D_dryfield_night_water_tank_8017DDD8[];
 extern GpEvsCmd D_dryfield_night_water_tank_8017DEE0[];
 
 /// The tank's wobble spring: `8017EE40` is the accumulated yaw handed to
-/// `Gfx_RotMatrixY` (`>> 8`), `8017EE44` its velocity, `8017EE48` the yaw it
+/// `gfxRotMatrixY` (`>> 8`), `8017EE44` its velocity, `8017EE48` the yaw it
 /// steps toward and `8017EE4C` the target that step chases.
 extern s32 D_dryfield_night_water_tank_8017EE40;
 extern s32 D_dryfield_night_water_tank_8017EE44;
@@ -858,7 +858,7 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
-    Gfx_RotMatrixY(&coord->coord, D_dryfield_night_water_tank_8017EE40 >> 8, 1);
+    gfxRotMatrixY(&coord->coord, D_dryfield_night_water_tank_8017EE40 >> 8, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

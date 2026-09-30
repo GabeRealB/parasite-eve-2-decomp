@@ -143,7 +143,7 @@ extern s16 D_neo_ark_woodland_path_80184994;
 
 /// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
 /// into the task's coordinate translation (y is always zero) and the Y
-/// rotation it hands `Gfx_RotMatrixY`. The halfword after `x` is not read.
+/// rotation it hands `gfxRotMatrixY`. The halfword after `x` is not read.
 typedef struct NeoArkWoodlandPathSpawnPos {
     s16 x;
     s16 pad_2;
@@ -617,8 +617,8 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].z;
                     Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                   D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].rotY, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                  D_neo_ark_woodland_path_801849B8[D_neo_ark_woodland_path_80184992 - 1].rotY, 1);
                 }
                 break;
             }
@@ -665,8 +665,8 @@ s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, TaskMessageArg msg
                         D_neo_ark_woodland_path_80184A60[0] = 0;
                         obj->reactionFlags                  = 0;
                     }
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
-                                   0x400, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
+                                  0x400, 1);
                     D_neo_ark_woodland_path_8018498E = 0x5A;
                 }
                 return result;
@@ -806,31 +806,31 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[0].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[0].rotY, 1);
                             break;
                         case 1:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[1].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[1].rotY, 1);
                             break;
                         case 2:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[2].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[2].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[3].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[3].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
@@ -838,8 +838,8 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[4].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[4].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[4].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }

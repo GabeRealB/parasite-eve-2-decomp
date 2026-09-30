@@ -107,7 +107,7 @@ STATIC_ASSERT_SIZEOF(Actor444000EventWork, 0x34);
 /// model to the player, whose yaw against the model's own facing becomes
 /// `Actor403200Work::field_7C4`, and later the normalised, GPF-scaled step the
 /// turn adds to the coordinate; `m` is the working copy of the model's root
-/// coordinate and `angle` the yaw `Gfx_RotMatrixY` rebuilds it from.
+/// coordinate and `angle` the yaw `gfxRotMatrixY` rebuilds it from.
 typedef struct Actor444000RunScratch {
     /* 0x00 */ SVECTOR    dir;
     /* 0x08 */ OverlayMat m;
@@ -3867,7 +3867,7 @@ static void func_actor_444000_8013482C(Task* task)
                 sc->m.mat.t[1] += sc->dir.vy;
                 sc->m.mat.t[2] += sc->dir.vz;
 
-                Gfx_RotMatrixY(&sc->m.mat, sc->angle, 1);
+                gfxRotMatrixY(&sc->m.mat, sc->angle, 1);
                 task->extra.tmd->coords->coord = sc->m.mat;
 
                 Gfx_MatrixCol2(&sc->m.mat, &sc->dir);
@@ -3884,7 +3884,7 @@ static void func_actor_444000_8013482C(Task* task)
 
                 if (0x800 - ABS(sc->angle) < 0xD) {
                     sc->angle = 0x800;
-                    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x800, 1);
+                    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x800, 1);
                     work->field_F08++;
                 }
             }
@@ -3972,7 +3972,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x1000;
     sc->scale.vy = y;
     sc->scale.vz = 0x1000;
@@ -4526,7 +4526,7 @@ static void func_actor_444000_80137594(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]   = vec.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
     Gp_UpdateCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;
@@ -4614,7 +4614,7 @@ static void func_actor_444000_8013799C(Enemy* enemy, Task* task)
         Gp_ClearRec18Occupied(&work->rec0);
 
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
@@ -4631,7 +4631,7 @@ static void func_actor_444000_8013799C(Enemy* enemy, Task* task)
         }
     } else {
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
@@ -4649,7 +4649,7 @@ static void func_actor_444000_8013799C(Enemy* enemy, Task* task)
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
-/// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
+/// the yaw, `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
 /// applies 0.5 on all three axes. The working matrix lives in a frame carved
 /// off the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
@@ -4664,7 +4664,7 @@ static __inline__ void Actor444000_ShrinkRotation(GfxCoord* coord)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x800;
     sc->scale.vy = 0x800;
     sc->scale.vz = 0x800;
@@ -4818,7 +4818,7 @@ static void func_actor_444000_801381B0(Enemy* enemy, Task* task)
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it: `ratan2` of the rotation's Z basis gives the yaw,
-/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `xz` on both horizontal axes and `y` on the vertical one. The working
 /// matrix lives in a frame carved off the scratch stack, which is handed back
 /// once the rotation has been copied onto the coordinate. Written as an inline
@@ -4834,7 +4834,7 @@ static __inline__ void Actor444000_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = xz;
     sc->scale.vy = y;
     sc->scale.vz = xz;
@@ -5047,7 +5047,7 @@ static void func_actor_444000_80138B94(Enemy* enemy, Task* task)
     SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
 
     vec.vx = vec.vy = vec.vz = 0;
 
@@ -5384,7 +5384,7 @@ static void func_actor_444000_80139594(Enemy* enemy, Task* task)
     mtx->ident.m11_m12 = 0x1000;
     mtx->ident.m20_m21 = 0;
     mtx->ident.m22     = 0x1000;
-    Gfx_RotMatrixY(&mtx->mat, 0, 1);
+    gfxRotMatrixY(&mtx->mat, 0, 1);
 
     actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
     work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -5470,7 +5470,7 @@ static void func_actor_444000_80139C80(Enemy* enemy, Task* task)
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     coord.ident.m20_m21    = 0;
     mtx->m[2][2]           = 0x1000;
-    Gfx_RotMatrixY(mtx, 0, 1);
+    gfxRotMatrixY(mtx, 0, 1);
 
     coord.c.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
     coord.c.coord.t[1]   = 0;
@@ -5619,7 +5619,7 @@ static void func_actor_444000_8013A1C4(Enemy* enemy, Task* task)
     work->field_96 = 0;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -5674,10 +5674,10 @@ static void func_actor_444000_8013A3AC(Enemy* enemy, Task* task)
         work->spin = spin;
         phase      = work->spin;
         if ((phase & 3) == 1) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
         }
         if ((work->spin & 3) == 3) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(task->extra.tmd->coords);
@@ -5720,7 +5720,7 @@ static void func_actor_444000_8013A3AC(Enemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]  += step.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, 0);
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, work->field_96, 0);
 }
@@ -5932,7 +5932,7 @@ s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2)
 }
 
 /// Rebuilds the host's root coordinate around the yaw it is already facing:
-/// `ratan2` of the rotation's Z basis gives the yaw, `Gfx_RotMatrixY` rebuilds
+/// `ratan2` of the rotation's Z basis gives the yaw, `gfxRotMatrixY` rebuilds
 /// the rotation from it, and `ScaleMatrix` widens it to 1.0 / 0.0 / 1.0 so the
 /// model flattens vertically. The working matrix lives in a frame carved off
 /// the scratch stack, which is handed back before the coordinate is refreshed.
@@ -5947,7 +5947,7 @@ static __inline__ void Actor444000_RebuildRotation(Task* task)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x1000;
     sc->scale.vy = 0;
     sc->scale.vz = 0x1000;
@@ -6055,7 +6055,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, Actor403200Work* wo
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
     ScaleMatrix(&sc->m, &sc->scale);
 
@@ -7177,7 +7177,7 @@ static __inline__ void Actor444000_ReleaseRotScratch(void)
 
 /// Rebuilds one model's root coordinate around the yaw it already faces and
 /// flattens it vertically: `ratan2` of the rotation's Z basis gives the yaw,
-/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// 1.0 / `vy` / 1.0. The working matrix lives in a frame carved off
 /// the scratch stack; the caller releases it with
 /// `Actor444000_ReleaseRotScratch` once it has cleared the coordinate again.
@@ -7191,7 +7191,7 @@ static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x1000;
     sc->scale.vy = vy;
     sc->scale.vz = 0x1000;
@@ -7939,7 +7939,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
         work->field_EF4 = 0;
         work->field_EFA = 1;
         work->field_EF8 = 1;
-        Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
+        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
         work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&work->field_E3C.c);
         work->field_E96 = 0xC80;
@@ -7956,7 +7956,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     if (work->field_7B3 == 4 && (frame = work->slots0[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->field_7AC != frame) {
-        Gfx_RotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
+        gfxRotMatrixY(&work->field_E3C.c.coord, work->field_7C8, 1);
         work->field_E3C.c.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         work->field_EAC  = 3;
@@ -8215,7 +8215,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[0] = pos.vx;
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[1] = pos.vy;
             D_actor_444000_80161948.value[D_actor_444000_80161850].coord.t[2] = pos.vz;
-            Gfx_RotMatrixY(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, 0x80, 0);
+            gfxRotMatrixY(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, 0x80, 0);
             Gfx_RotMatrixX(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, -0x80, 0);
             Gfx_MatrixCol2(&D_actor_444000_80161948.value[D_actor_444000_80161850].coord, &pos);
 
@@ -9907,7 +9907,7 @@ s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement)
     arg0->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     if ((u32)((u16)work->field_0 - 0x12) >= 2U) {
         Gfx_RotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, 1);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
         Gfx_RotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, 0);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -2757,7 +2757,7 @@ s32 func_actor_460200_80133580(Task* task, s32 arg1, ActorTransform* target)
     dz           = target->pos.vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);
     work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     work->st.travel = SquareRoot0(dx * dx + dz * dz) / 30;
     return 0;
 }

@@ -1679,7 +1679,7 @@ typedef struct Actor403200Work {
     /* 0xDFC */ MATRIX lightMtx;
     /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the swipe tick clears and pushes through
-    /// `Gp_UpdateCoord` every step; `coord` is the matrix `Gfx_RotMatrixY`
+    /// `Gp_UpdateCoord` every step; `coord` is the matrix `gfxRotMatrixY`
     /// rebuilds from `field_7C8`. The spawn state seeds it with the identity
     /// through the word view.
     /* 0xE3C */ Actor403200DropCoord field_E3C;
@@ -2255,7 +2255,7 @@ static __inline__ void actorRescaleYaw(GfxCoord* coord, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
@@ -2371,7 +2371,7 @@ static __inline__ void actorResetYaw(GfxCoord* coord)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = 1;
     blk->scale.vy = 1;
     blk->scale.vx = 1;
@@ -2406,7 +2406,7 @@ static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = scale;
     blk->scale.vy = scaleY;
     blk->scale.vz = scale;

@@ -9,7 +9,7 @@
 Task_Reparent = 0x8002D14C; // absolute:True
 gameGetPtrSlot = 0x8002D22C; // absolute:True
 memCalloc = 0x8002D978; // absolute:True
-Gfx_RotMatrixY = 0x8003C98C; // absolute:True
+gfxRotMatrixY = 0x8003C98C; // absolute:True
 Gfx_RotMatrixZ = 0x8003CB80; // absolute:True
 rsin = 0x8003D038; // absolute:True
 rcos = 0x8003D108; // absolute:True

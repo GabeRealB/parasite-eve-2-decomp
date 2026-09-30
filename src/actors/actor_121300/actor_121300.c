@@ -1978,7 +1978,7 @@ void func_actor_121300_8013293C(Task* arg0)
             work->rotX        += work->spinX * D_actor_121300_8013CC04 / 100;
             work->rotY        += work->spinY * D_actor_121300_8013CC04 / 100;
             work->rotZ        += work->spinZ * D_actor_121300_8013CC04 / 100;
-            Gfx_RotMatrixY(&coord->coord, work->rotY, 1);
+            gfxRotMatrixY(&coord->coord, work->rotY, 1);
             Gfx_RotMatrixX(&coord->coord, work->rotX, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rotZ, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

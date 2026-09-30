@@ -14,7 +14,7 @@ void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement)
     coord->coord.t[1] = placement->pos.vy;
     mtx               = &coord->coord;
     coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(mtx, placement->rot.vy, 1);
+    gfxRotMatrixY(mtx, placement->rot.vy, 1);
     Gfx_RotMatrixX(mtx, placement->rot.vx, 0);
     Gfx_RotMatrixZ(mtx, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

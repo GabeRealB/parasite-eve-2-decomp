@@ -15,7 +15,7 @@
 /// `field_0 | (field_4 << 8)`, spawns the room's `GpEnemyDesc` whose id is
 /// `field_2` and copies `field_2` to `Enemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
 /// (`GfxCoord.coord.t`) and `field_E` the yaw stored at coord +0x46 and passed to
-/// `Gfx_RotMatrixY` when non-zero.
+/// `gfxRotMatrixY` when non-zero.
 typedef struct _GpBit2Rec {
     /* 0x00 */ u16 field_0;
     /* 0x02 */ u16 field_2;

@@ -3370,7 +3370,7 @@ static void func_shelter_r48_80181C14(GfxCoord* coord, s16 size, s32 yaw, s32 co
     block->tip.vy = 0x800;
     block->tip.vx = 0;
     block->tip.vz = 0x1400;
-    Gfx_RotMatrixY(&m, (s16)yaw, 1);
+    gfxRotMatrixY(&m, (s16)yaw, 1);
     ang = color;
     gte_SetRotMatrix(&m);
     gte_ldv0(&block->tip);
