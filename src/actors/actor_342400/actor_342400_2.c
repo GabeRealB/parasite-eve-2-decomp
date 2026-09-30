@@ -807,7 +807,7 @@ TaskDesc D_actor_342400_80173A54[2] = {
     { (TASK_BODY_TMD | 0x100), 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
 };
 
-TaskDesc D_actor_342400_80173A6C = { 2, 96, taskKill, { .model = NULL } };
+TaskDesc D_actor_342400_80173A6C = { TASK_BODY_COORD, 96, taskKill, { .model = NULL } };
 
 TaskDesc D_actor_342400_80173A78 = { TASK_BODY_TMD, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
 

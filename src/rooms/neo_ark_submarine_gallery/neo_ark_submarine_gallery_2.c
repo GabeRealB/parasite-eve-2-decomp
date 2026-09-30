@@ -84,7 +84,7 @@ TaskDesc D_neo_ark_submarine_gallery_801818AC = { 0, 32, func_neo_ark_submarine_
 s16 D_neo_ark_submarine_gallery_801818B8 = 0;
 
 TaskDesc D_neo_ark_submarine_gallery_801818BC[1] = {
-    { 2, 96, func_neo_ark_submarine_gallery_8017EF94, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_neo_ark_submarine_gallery_8017EF94, { .model = NULL } },
 };
 
 SVECTOR D_neo_ark_submarine_gallery_801818C8[40] = {

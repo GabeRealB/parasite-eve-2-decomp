@@ -52,7 +52,7 @@ void taskNoopCallback(Task* unusedTask);
 
 /// Task callback that counts a task's `killCountdown` down and releases the body
 /// it owns when the count reaches zero: a TMD model comes off the model list and
-/// has its buffer and object freed, a 2D display is freed, and a task owning
+/// has its buffer and object freed, a coordinate body is freed, and a task owning
 /// neither is only marked. The mark is `bodyKind` 0xFF, which the next exec pass
 /// collects the task on.
 void taskCountdownCallback(Task* task);

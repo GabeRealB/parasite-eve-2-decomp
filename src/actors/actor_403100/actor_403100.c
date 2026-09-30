@@ -3066,10 +3066,10 @@ GpImgRec D_actor_403100_801555EC[2] = {
 
 TaskDesc D_actor_403100_8015560C[2] = {
     { (TASK_BODY_TMD | 0x100), 96, func_actor_403100_8013E0FC, { .model = &D_actor_403100_801475F0 } },
-    { 2, 96, func_actor_403100_8013E04C, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_403100_8013E04C, { .model = NULL } },
 };
 
-TaskDesc D_actor_403100_80155624 = { 2, 96, func_actor_403100_8013E0A4, { .model = NULL } };
+TaskDesc D_actor_403100_80155624 = { TASK_BODY_COORD, 96, func_actor_403100_8013E0A4, { .model = NULL } };
 
 GpEffArg D_actor_403100_80155630 = { NULL, 1536, 3 };
 

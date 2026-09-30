@@ -219,7 +219,7 @@ AnimationSet D_actor_341300_801651E0 = {
 };
 
 TaskDesc D_actor_341300_80165208[2] = {
-    { 2, 192, func_actor_341300_80162478, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_341300_80162478, { .model = NULL } },
     { 0, 192, func_actor_341300_80162278, { .model = NULL } },
 };
 
@@ -364,9 +364,9 @@ void func_actor_341300_801631D4(Task*);
 
 TaskDesc D_actor_341300_80165A68[4] = {
     { 0, 192, func_actor_341300_80162698, { .model = NULL } },
-    { 2, 192, func_actor_341300_80162878, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_341300_80162878, { .model = NULL } },
     { 0, 192, func_actor_341300_80163028, { .model = NULL } },
-    { 2, 192, func_actor_341300_801631D4, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_341300_801631D4, { .model = NULL } },
 };
 
 TaskDesc D_actor_341300_80165A98 = { 0, 192, func_actor_341300_80163A10, { .model = NULL } };

@@ -2710,8 +2710,8 @@ u8 D_actor_403200_8015E840[3][8] = {
 
 TaskDesc D_actor_403200_8015E858[5] = {
     { TASK_BODY_TMD, 96, func_actor_403200_80141564, { .model = &D_actor_403200_8014C1AC } },
-    { 2, 96, func_actor_403200_80141778, { .model = NULL } },
-    { 2, 96, func_actor_403200_801414E8, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_403200_80141778, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_403200_801414E8, { .model = NULL } },
     { TASK_BODY_TMD, 96, func_actor_403200_80141670, { .model = &D_actor_403200_8014E048 } },
     { TASK_BODY_TMD, 96, func_actor_403200_80141868, { .model = &D_actor_403200_8014B588 } },
 };

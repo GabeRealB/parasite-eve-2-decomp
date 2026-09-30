@@ -223,7 +223,7 @@ void func_actor_361100_80161E3C(Task*);
 void func_actor_361100_801627D4(Task*);
 void func_actor_361100_80162A54(Task*);
 
-TaskDesc D_actor_361100_801637C8 = { 2, 192, func_actor_361100_80161E3C, { .model = NULL } };
+TaskDesc D_actor_361100_801637C8 = { TASK_BODY_COORD, 192, func_actor_361100_80161E3C, { .model = NULL } };
 
 AnimationPackedPose D_actor_361100_801637D4[6] = {
 #include "assets/actor_361100_animation_01C90_bank1.inc"

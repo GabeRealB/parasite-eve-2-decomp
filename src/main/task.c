@@ -114,7 +114,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
             }
             extra.tmd = Gp_AttachTmdFlags(task, desc->arg.model, attachFlags);
             break;
-        case TASK_BODY_DISP2D:
+        case TASK_BODY_COORD:
             extra.coordBody = gpAttachDisp2d(task);
             break;
         case TASK_BODY_NONE:
@@ -208,10 +208,10 @@ void taskKill(Task* task)
         if (type == TASK_BODY_TMD) {
             goto case1;
         }
-        if (type < TASK_BODY_DISP2D) {
+        if (type < TASK_BODY_COORD) {
             goto def_case;
         }
-        if (type == TASK_BODY_DISP2D) {
+        if (type == TASK_BODY_COORD) {
             goto case2;
         }
         goto def_case;
@@ -252,7 +252,7 @@ void taskKill(Task* task)
         if (task->bodyKind == TASK_BODY_TMD) {
             goto cu1;
         }
-        if (task->bodyKind == TASK_BODY_DISP2D) {
+        if (task->bodyKind == TASK_BODY_COORD) {
             goto cu2;
         }
         goto cu_def;
@@ -275,7 +275,7 @@ void taskKill(Task* task)
     if (t == TASK_BODY_TMD) {
         goto imm1;
     }
-    if (t == TASK_BODY_DISP2D) {
+    if (t == TASK_BODY_COORD) {
         goto imm2;
     }
     goto imm_unlink;
@@ -685,7 +685,7 @@ void taskCountdownCallback(Task* task)
             gpFreeTmd(model);
             task->bodyKind = TASK_BODY_RELEASED;
             break;
-        case TASK_BODY_DISP2D:
+        case TASK_BODY_COORD:
             gpFreeDisp2d(task->extra.coordBody);
             task->bodyKind = TASK_BODY_RELEASED;
             break;

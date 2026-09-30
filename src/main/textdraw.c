@@ -149,7 +149,7 @@ static TaskDesc D_8005EDA0[] = {
     { 0x0, 0x10, Mc_DispatchStateTable26 },
     { 0x0, 0xC0, McMenu_NoOpTask },
     { 0x0, 0x10, Text_BootTask },
-    { 0x2, 0x2F, func_800A8654 },
+    { TASK_BODY_COORD, 0x2F, func_800A8654 },
     { 0x0, 0x2F, Gp_ApplyViewTask },
     { 0x0, 0x40, func_800AD50C },
     { 0x0, 0x28, func_800AC0F0 },

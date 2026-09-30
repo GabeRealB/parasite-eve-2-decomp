@@ -357,7 +357,7 @@ AnimationSet D_actor_335800_80164DB8 = {
 };
 
 TaskDesc D_actor_335800_80164DE0[4] = {
-    { 2, 192, func_actor_335800_80161E88, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_335800_80161E88, { .model = NULL } },
     { 0, 192, func_actor_335800_801624DC, { .model = NULL } },
     { 0, 192, func_actor_335800_80162364, { .model = NULL } },
     { 0, 192, func_actor_335800_80162588, { .model = NULL } },

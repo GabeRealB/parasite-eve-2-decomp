@@ -293,7 +293,7 @@ s16 Actor02400_D0463C[16] = {
 
 TaskDesc Actor02400_D0465C[2] = {
     { TASK_BODY_TMD, 96, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
-    { 2, 96, Actor02400_Fn03358, { .model = NULL } },
+    { TASK_BODY_COORD, 96, Actor02400_Fn03358, { .model = NULL } },
 };
 
 static void Actor02400_Fn00064(GfxCoord* coord, s16 size);

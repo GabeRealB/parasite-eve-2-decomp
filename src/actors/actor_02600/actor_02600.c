@@ -693,7 +693,7 @@ s16 Actor02600_D08A98[14] = {
 
 TaskDesc Actor02600_D08AB4 = { TASK_BODY_TMD, 96, Actor02600_Fn03F80, { .model = &Actor02600_D0576C } };
 
-TaskDesc Actor02600_D08AC0 = { 2, 96, Actor02600_Fn03DD0, { .model = NULL } };
+TaskDesc Actor02600_D08AC0 = { TASK_BODY_COORD, 96, Actor02600_Fn03DD0, { .model = NULL } };
 
 AnimationSet* Actor02600_D08ACC[15] = {
     NULL,

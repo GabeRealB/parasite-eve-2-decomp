@@ -199,8 +199,8 @@ TaskDesc D_actor_205200_8014CA44[2] = {
 s32 D_actor_205200_8014CA5C = 256;
 
 TaskDesc D_actor_205200_8014CA60[2] = {
-    { 2, 96, func_actor_205200_8014B8C0, { .model = NULL } },
-    { 2, 96, func_actor_205200_8014B978, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_205200_8014B8C0, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_205200_8014B978, { .model = NULL } },
 };
 
 Actor205200MessageEntry D_actor_205200_8014CA78[2] = {

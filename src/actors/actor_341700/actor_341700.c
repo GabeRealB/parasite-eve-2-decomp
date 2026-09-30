@@ -877,7 +877,7 @@ TaskDesc D_actor_341700_80174D58 = { TASK_BODY_TMD, 96, func_actor_341700_801685
 
 TaskDesc D_actor_341700_80174D64 = { (TASK_BODY_TMD | 0x100), 96, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
 
-TaskDesc D_actor_341700_80174D70 = { 2, 96, taskKill, { .model = NULL } };
+TaskDesc D_actor_341700_80174D70 = { TASK_BODY_COORD, 96, taskKill, { .model = NULL } };
 
 TaskDesc D_actor_341700_80174D7C = { TASK_BODY_TMD, 96, func_actor_341700_801684A8, { .model = &D_actor_341700_80171864 } };
 

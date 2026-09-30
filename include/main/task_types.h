@@ -18,14 +18,24 @@ enum {
     /// The model owns its part coordinates and any primitive buffer, while
     /// borrowing its `TmdSource`. A missing buffer does not change this kind.
     /// Teardown unlinks the model and releases its owned storage.
-    TASK_BODY_TMD    = 1,
-    TASK_BODY_DISP2D = 2
+    TASK_BODY_TMD = 1,
+    /// Body kind for an owned single-coordinate body in `Task::extra.coordBody`.
+    ///
+    /// Value 2 occupies the low byte of `TaskDesc::flags` at spawn and is
+    /// stored in the byte-sized `Task::bodyKind` after successful attachment.
+    /// The body embeds one `GfxCoord`, refreshed by the model draw passes;
+    /// it supplies a transform without a TMD source or primitive buffer.
+    /// Descriptor attachment failure aborts spawning and releases the task.
+    /// Unlink before freeing the body. Normal teardown releases it immediately
+    /// and marks the task for later collection, leaving `Task::extra` unchanged;
+    /// immediate teardown also frees the task.
+    TASK_BODY_COORD = 2
 };
 
 /// One owned body allocation, interpreted according to `Task::bodyKind`.
 ///
 /// `TASK_BODY_TMD` selects `tmd`, whose coordinates have `partCount` elements;
-/// `TASK_BODY_DISP2D` selects `coordBody`, which owns exactly one coordinate.
+/// `TASK_BODY_COORD` selects `coordBody`, which owns exactly one coordinate.
 /// Their coordinate extents and release paths differ.
 /// `allocation` is the kind-independent pointer view used to test attachment
 /// success; NULL denotes no attached body at spawn time.
@@ -36,7 +46,7 @@ enum {
 /// (`bodyKind` 0xFF) must not be dereferenced even when non-NULL.
 typedef union {
     TmdObject*                   tmd;        // TASK_BODY_TMD: model with owned part coordinates and optional primitive buffer
-    struct ModelObjectCoordBody* coordBody;  // TASK_BODY_DISP2D: single transform for tasks that emit their own primitives
+    struct ModelObjectCoordBody* coordBody;  // TASK_BODY_COORD: single transform for tasks that emit their own primitives
     void*                        allocation; // Kind-independent allocation pointer; NULL for no body at spawn time
 } TaskBody;
 STATIC_ASSERT_SIZEOF(TaskBody, 4);

@@ -922,7 +922,7 @@ Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
 
 TaskDesc Actor07000_D0D7D0[2] = {
     { TASK_BODY_TMD, 96, Actor07000_Fn05E6C, { .model = &Actor07000_D0A6C8 } },
-    { 2, 96, Actor07000_Fn06338, { .model = NULL } },
+    { TASK_BODY_COORD, 96, Actor07000_Fn06338, { .model = NULL } },
 };
 
 TaskDesc Actor07000_D0D7E8 = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };

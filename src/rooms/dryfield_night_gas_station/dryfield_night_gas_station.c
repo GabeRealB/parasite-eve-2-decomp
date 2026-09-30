@@ -814,9 +814,9 @@ void func_dryfield_night_gas_station_80180B5C(Task*);
 
 TaskDesc D_dryfield_night_gas_station_801888A0[4] = {
     { 0, 192, func_dryfield_night_gas_station_80180828, { .model = NULL } },
-    { 2, 192, func_dryfield_night_gas_station_80180998, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_dryfield_night_gas_station_80180998, { .model = NULL } },
     { 0, 192, func_dryfield_night_gas_station_80180A60, { .model = NULL } },
-    { 2, 192, func_dryfield_night_gas_station_80180B5C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_dryfield_night_gas_station_80180B5C, { .model = NULL } },
 };
 
 AnimationSet* D_dryfield_night_gas_station_801888D0[6] = {

@@ -256,7 +256,7 @@ TaskDesc D_dryfield_factory_80186E28[8] = {
     { 0, 192, func_dryfield_factory_80180920, { .model = NULL } },
     { 0, 192, func_dryfield_factory_8017FDDC, { .model = NULL } },
     { TASK_BODY_TMD, 192, func_dryfield_factory_8018072C, { .model = &D_dryfield_factory_801867B0 } },
-    { 2, 192, func_dryfield_factory_8018001C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_dryfield_factory_8018001C, { .model = NULL } },
     { 0, 192, func_dryfield_factory_80180964, { .model = NULL } },
     { TASK_BODY_TMD, 192, func_dryfield_factory_80180784, { .model = &D_dryfield_factory_80186BD0 } },
 };

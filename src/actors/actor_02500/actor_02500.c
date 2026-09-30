@@ -539,7 +539,7 @@ s16 Actor02500_D05B78[8] = {
 
 TaskDesc Actor02500_D05B88[2] = {
     { TASK_BODY_TMD, 96, Actor02500_Fn01E04, { .model = &Actor02500_D03F20 } },
-    { 2, 96, Actor02500_Fn02574, { .model = NULL } },
+    { TASK_BODY_COORD, 96, Actor02500_Fn02574, { .model = NULL } },
 };
 
 AnimationSet* Actor02500_D05BA0[12] = {

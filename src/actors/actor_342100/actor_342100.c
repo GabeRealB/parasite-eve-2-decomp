@@ -375,7 +375,7 @@ TaskDesc D_actor_342100_80164B78[5] = {
     { 0, 192, taskKill, { .model = NULL } },
     { 0, 192, func_actor_342100_80162748, { .model = NULL } },
     { 0, 192, func_actor_342100_80162DDC, { .model = NULL } },
-    { 2, 192, func_actor_342100_80162AB0, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_342100_80162AB0, { .model = NULL } },
 };
 
 OverlayWaveCtx* D_actor_342100_80164BB4 = NULL;

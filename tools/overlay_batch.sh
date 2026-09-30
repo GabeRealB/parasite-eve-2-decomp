@@ -373,7 +373,7 @@ The slot borrows the table; its receiver-specific handler signatures vary.
 
 `Task::extra` is a `TaskBody` union: `extra.tmd` selects a `TmdObject*` for
 `TASK_BODY_TMD`, and `extra.coordBody` selects the single-coordinate body for
-`TASK_BODY_DISP2D`. Check `Task::bodyKind` before choosing a view.
+`TASK_BODY_COORD`. Check `Task::bodyKind` before choosing a view.
 
 ## The matching loop — use it, do not read raw asm
 

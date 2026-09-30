@@ -327,7 +327,7 @@ ModelObjectCoordBody* gpAttachDisp2d(Task* task)
         node->link.prev       = last;
         list->prev            = &node->link;
         task->extra.coordBody = node;
-        task->bodyKind        = TASK_BODY_DISP2D;
+        task->bodyKind        = TASK_BODY_COORD;
     } else {
         printf("new_disp_2d ----> NULL\n");
     }
@@ -460,7 +460,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
                         coord++;
                     }
                     break;
-                case TASK_BODY_DISP2D:
+                case TASK_BODY_COORD:
                     coord = task->extra.coordBody->coord;
                     if (coord == targetCoord) {
                         found = 1;

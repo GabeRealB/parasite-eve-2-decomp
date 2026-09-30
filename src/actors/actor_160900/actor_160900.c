@@ -943,7 +943,7 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
-    { 2, 192, func_actor_160900_80132E80, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_160900_80132E80, { .model = NULL } },
 };
 
 OverlayWaveCtx* D_actor_160900_8013FBB0;

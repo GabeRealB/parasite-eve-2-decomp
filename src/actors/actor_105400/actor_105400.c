@@ -272,7 +272,7 @@ Actor05300Clip D_actor_105400_8013CE90[4] = {
 
 TaskDesc D_actor_105400_8013CEA0[2] = {
     { TASK_BODY_TMD, 96, func_actor_105400_801339A4, { .model = &D_actor_105400_8013C46C } },
-    { 2, 96, func_actor_105400_801337DC, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_105400_801337DC, { .model = NULL } },
 };
 
 AnimationSet* D_actor_105400_8013CEB8[4] = {

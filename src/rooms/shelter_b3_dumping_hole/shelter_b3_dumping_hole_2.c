@@ -726,10 +726,10 @@ TaskDesc D_shelter_b3_dumping_hole_80188BC8[5] = {
 };
 
 TaskDesc D_shelter_b3_dumping_hole_80188C04[4] = {
-    { 2, 192, func_shelter_b3_dumping_hole_8017DCFC, { .model = NULL } },
-    { 2, 192, func_shelter_b3_dumping_hole_8017DF90, { .model = NULL } },
-    { 2, 192, NULL, { .model = NULL } },
-    { 2, 192, func_shelter_b3_dumping_hole_8017E440, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017DCFC, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017DF90, { .model = NULL } },
+    { TASK_BODY_COORD, 192, NULL, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8017E440, { .model = NULL } },
 };
 
 TmdBone D_shelter_b3_dumping_hole_80188C34[4] = {
@@ -827,7 +827,7 @@ GpEvsCmd D_shelter_b3_dumping_hole_801899A4[13] = {
 
 TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
     { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_dumping_hole_80181560, { .model = &D_shelter_b3_dumping_hole_80189638 } },
-    { 2, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_shelter_b3_dumping_hole_8018005C, { .model = NULL } },
 };
 
 AnimationPackedPose D_shelter_b3_dumping_hole_80189AF4[6] = {

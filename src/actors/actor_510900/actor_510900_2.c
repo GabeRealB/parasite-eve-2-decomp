@@ -405,7 +405,7 @@ TaskDesc D_actor_510900_80167A18[7] = {
     { TASK_BODY_TMD, 96, func_actor_510900_8013C090, { .model = &D_actor_510900_80142480 } },
     { TASK_BODY_TMD, 96, func_actor_510900_8013C190, { .model = &D_actor_510900_801427AC } },
     { TASK_BODY_TMD, 96, func_actor_510900_8013C1EC, { .model = &D_actor_510900_8014313C } },
-    { 2, 96, func_actor_510900_8013C3DC, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_510900_8013C3DC, { .model = NULL } },
 };
 
 Actor510900MessageEntry D_actor_510900_80167A6C[7] = {

@@ -2661,8 +2661,8 @@ u8 D_actor_444000_801617C4[3][8] = {
 
 TaskDesc D_actor_444000_801617DC[4] = {
     { TASK_BODY_TMD, 96, func_actor_444000_80143960, { .model = &D_actor_444000_8014E220 } },
-    { 2, 96, func_actor_444000_80143B74, { .model = NULL } },
-    { 2, 96, func_actor_444000_801438E4, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_444000_80143B74, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_444000_801438E4, { .model = NULL } },
     { TASK_BODY_TMD, 96, func_actor_444000_80143A6C, { .model = &D_actor_444000_801528DC } },
 };
 

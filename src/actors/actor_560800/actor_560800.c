@@ -4099,7 +4099,7 @@ Actor560800MessageEntry D_actor_560800_80175744[3] = {
 };
 
 TaskDesc D_actor_560800_8017575C[4] = {
-    { 2, 192, func_actor_560800_801386D4, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_560800_801386D4, { .model = NULL } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_560800_80137820, { .model = &D_actor_560800_80172788 } },
     { (TASK_BODY_TMD | 0x100), 192, func_actor_560800_80138FC8, { .model = &D_actor_560800_80173D48 } },
     { TASK_BODY_TMD, 192, func_actor_560800_80137BEC, { .model = &D_actor_560800_8017359C } },

@@ -16840,7 +16840,7 @@ u8 D_actor_303600_8016A408[16480] = {
 };
 
 TaskDesc D_actor_303600_8016E468[2] = {
-    { 2, 192, func_actor_303600_80162A7C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_303600_80162A7C, { .model = NULL } },
     { TASK_BODY_TMD, 192, func_actor_303600_801628E4, { .model = &D_actor_303600_8016A3E4 } },
 };
 

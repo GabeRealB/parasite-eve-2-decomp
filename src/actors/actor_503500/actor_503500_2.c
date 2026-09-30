@@ -382,7 +382,7 @@ AnimationSet D_actor_503500_8014B930 = {
 TaskDesc D_actor_503500_8014B958 = { 0, 192, func_actor_503500_80132D20, { .model = NULL } };
 
 TaskDesc D_actor_503500_8014B964[2] = {
-    { 2, 192, func_actor_503500_80132778, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_80132778, { .model = NULL } },
     { 0, 192, func_actor_503500_80132990, { .model = NULL } },
 };
 
@@ -1644,15 +1644,15 @@ TaskDesc D_actor_503500_8016E924[17] = {
     { TASK_BODY_TMD, 96, func_actor_503500_801384D4, { .model = &D_actor_503500_80154C38 } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80157A78 } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80156358 } },
-    { 2, 96, func_actor_503500_8013BE8C, { .model = NULL } },
-    { 2, 96, func_actor_503500_8013BE8C, { .model = NULL } },
-    { 2, 96, func_actor_503500_8013CA8C, { .model = NULL } },
-    { 2, 96, func_actor_503500_8013DBF4, { .model = NULL } },
-    { 2, 96, func_actor_503500_8013DBF4, { .model = NULL } },
-    { 2, 96, func_actor_503500_8013EC64, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013BE8C, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013BE8C, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013CA8C, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013DBF4, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013DBF4, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013EC64, { .model = NULL } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015D758 } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015F3FC } },
-    { 2, 96, func_actor_503500_8013FA1C, { .model = NULL } },
+    { TASK_BODY_COORD, 96, func_actor_503500_8013FA1C, { .model = NULL } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_80159A08 } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_80158A38 } },
     { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_8015B998 } },
@@ -1660,11 +1660,11 @@ TaskDesc D_actor_503500_8016E924[17] = {
 };
 
 TaskDesc D_actor_503500_8016E9F0[5] = {
-    { 2, 192, func_actor_503500_80144890, { .model = NULL } },
-    { 2, 192, func_actor_503500_80144E34, { .model = NULL } },
-    { 2, 192, func_actor_503500_8014554C, { .model = NULL } },
-    { 2, 192, func_actor_503500_801459D4, { .model = NULL } },
-    { 2, 192, func_actor_503500_80145F84, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_80144890, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_80144E34, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_8014554C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_801459D4, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_503500_80145F84, { .model = NULL } },
 };
 
 /// Player-facing flag byte in the main executable; no module header owns it yet.

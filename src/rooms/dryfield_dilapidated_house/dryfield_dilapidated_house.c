@@ -928,8 +928,8 @@ SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
 TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
     { TASK_BODY_TMD, 192, func_dryfield_dilapidated_house_80180F04, { .model = &D_dryfield_dilapidated_house_80186000 } },
     { TASK_BODY_TMD, 192, func_dryfield_dilapidated_house_80181134, { .model = &D_dryfield_dilapidated_house_80186578 } },
-    { 2, 192, func_dryfield_dilapidated_house_801812E8, { .model = NULL } },
-    { 2, 192, func_dryfield_dilapidated_house_8018145C, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_dryfield_dilapidated_house_801812E8, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_dryfield_dilapidated_house_8018145C, { .model = NULL } },
 };
 
 SVECTOR D_dryfield_dilapidated_house_80186884[24] = {

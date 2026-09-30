@@ -537,8 +537,8 @@ SVECTOR D_actor_141000_801348A8[6] = {
 
 TaskDesc D_actor_141000_801348D8[3] = {
     { TASK_BODY_TMD, 192, func_actor_141000_80132C24, { .model = &D_actor_141000_80134204 } },
-    { 2, 192, func_actor_141000_801331AC, { .model = NULL } },
-    { 2, 192, func_actor_141000_801330C0, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_141000_801331AC, { .model = NULL } },
+    { TASK_BODY_COORD, 192, func_actor_141000_801330C0, { .model = NULL } },
 };
 
 TmdBone D_actor_141000_801348FC[19] = {
