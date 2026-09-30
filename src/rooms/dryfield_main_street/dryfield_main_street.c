@@ -63,7 +63,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+#define ROOM_EVENT_ACTIVE  gRoomEventActive[0]
+#define ROOM_EVENT_LATCHED gRoomEventLatched.value
 #include "../../shared/room_events.h"
 
 #define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
@@ -120,11 +121,11 @@ extern SVECTOR D_dryfield_main_street_80181BA4;
 /// reached by its own name.
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern RoomFadeStorage D_dryfield_main_street_8018560C;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg D_dryfield_main_street_80185614;
+extern RoomEventMsg gRoomEventStagedMsg;
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -134,7 +135,7 @@ typedef struct {
 } DryfieldMainStreetStorage5634;
 STATIC_ASSERT_SIZEOF(DryfieldMainStreetStorage5634, 16);
 
-extern DryfieldMainStreetStorage5634 D_dryfield_main_street_80185634;
+extern DryfieldMainStreetStorage5634 gRoomEventLatched;
 
 /// Set by the message handler when its last 0xB/0xC message latched an event
 /// and spawned the room's event task; every such message clears it first.
@@ -186,12 +187,11 @@ s32                                      func_dryfield_main_street_8017DEF0(Task
 s32                                      func_dryfield_main_street_8017DFC8(Task*, s32, s32, TaskMessageArg);
 s32                                      func_dryfield_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                                      func_dryfield_main_street_8017E05C(Task*, s32, DirectionActionRequest* msg, s32);
-void                                     func_dryfield_main_street_8017D600(Task*);
 void                                     func_dryfield_main_street_8017DE78(Task*);
 void                                     func_dryfield_main_street_8017E1C0(Task*);
 void                                     func_dryfield_main_street_8017E3A8(Task*);
 
-TaskDesc D_dryfield_main_street_80180E7C = { 0, 32, func_dryfield_main_street_8017D600, { .model = NULL } };
+TaskDesc D_dryfield_main_street_80180E7C = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
@@ -958,9 +958,9 @@ GpRoomParamRec* D_dryfield_main_street_801855EC[8] = {
     D_dryfield_main_street_801855C4,
 };
 
-RoomFadeStorage D_dryfield_main_street_8018560C = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_dryfield_main_street_80185614 = { 0 };
+RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 DryfieldMainStreetStorage561C D_dryfield_main_street_8018561C = { 0 };
 
@@ -975,60 +975,11 @@ u8 gRoomEventActive[4] = {
 
 Task* D_dryfield_main_street_80185630 = NULL;
 
-DryfieldMainStreetStorage5634 D_dryfield_main_street_80185634 = { { 0 }, { 0 } };
+DryfieldMainStreetStorage5634 gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
-/// The room's own event task, spawned by its message handler. State 0 runs
-/// the latched event's CAP command; state 1 waits for it to finish and, when
-/// the event asks for it, starts helper task 0x31; states 2 and 3 play the
-/// event's stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void func_dryfield_main_street_8017D600(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_main_street_80185634.value.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_dryfield_main_street_80185634.value.fade != 0) {
-                    D_dryfield_main_street_8018560C.fade.blend      = SCREEN_FADE_SUBTRACT;
-                    D_dryfield_main_street_8018560C.fade.phase      = SCREEN_FADE_RUNNING;
-                    D_dryfield_main_street_8018560C.fade.rampFrames = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_dryfield_main_street_8018560C.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_dryfield_main_street_80185634.value.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_main_street_80185634.value.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_main_street_80185634.value.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_dryfield_main_street_80185614.areaId;
-            Mc_SaveData[0].state.location.loc.warp = D_dryfield_main_street_80185614.warp;
-            Mc_SaveData[0].state.location.loc.room = D_dryfield_main_street_80185614.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -1094,8 +1045,8 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         D_dryfield_main_street_8018561C.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_main_street_80185614       = *out;
-                D_dryfield_main_street_80185634.value = ev;
+                gRoomEventStagedMsg     = *out;
+                gRoomEventLatched.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -1114,8 +1065,8 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         D_dryfield_main_street_8018561C.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_main_street_80185614       = *out;
-                D_dryfield_main_street_80185634.value = ev;
+                gRoomEventStagedMsg     = *out;
+                gRoomEventLatched.value = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }

@@ -28,7 +28,6 @@ extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3];
 extern SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_eve_access_tunnel_8017D810(Task*);
 
 void func_neo_ark_eve_access_tunnel_8017D980(Task*);
 

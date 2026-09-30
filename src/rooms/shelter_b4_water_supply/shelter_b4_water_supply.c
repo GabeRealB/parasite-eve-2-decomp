@@ -60,6 +60,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
+#include "../../shared/room_events.h"
 
 #define D_shelter_b4_water_supply_801826A0 (D_shelter_b4_water_supply_80182690 + 2)
 #define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
@@ -124,7 +125,7 @@ extern RoomFadeStorage D_shelter_b4_water_supply_80184E34;
 extern RoomEventMsg D_shelter_b4_water_supply_80184E3C;
 
 /// The staged event block, read by the departure task.
-extern RoomDeparture D_shelter_b4_water_supply_80184E44;
+extern RoomDeparture gRoomDeparture;
 
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b4_water_supply_80184E50;
@@ -138,7 +139,6 @@ static void func_shelter_b4_water_supply_8017E5D8(Task* task);
 static void func_shelter_b4_water_supply_8017ED90(Task* arg0);
 static void func_shelter_b4_water_supply_8017EDD0(Task* task);
 
-void func_shelter_b4_water_supply_8017D650(Task*);
 void func_shelter_b4_water_supply_8017D7C0(Task*);
 s32  func_shelter_b4_water_supply_8017D970(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -150,7 +150,7 @@ void func_shelter_b4_water_supply_8017ED28(Task*);
 
 extern TaskDesc D_80147E48;
 
-TaskDesc D_shelter_b4_water_supply_801825E4 = { 0, 32, func_shelter_b4_water_supply_8017D650, { .model = NULL } };
+TaskDesc D_shelter_b4_water_supply_801825E4 = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b4_water_supply_801825F0[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
@@ -774,66 +774,11 @@ RoomFadeStorage D_shelter_b4_water_supply_80184E34 = { 0 };
 
 RoomEventMsg D_shelter_b4_water_supply_80184E3C = { 0 };
 
-RoomDeparture D_shelter_b4_water_supply_80184E44 = { 0 };
+RoomDeparture gRoomDeparture = { 0 };
 
 u8* D_shelter_b4_water_supply_80184E50;
 
-/// The task the staged event block `D_shelter_b4_water_supply_80184E44`
-/// spawns. State 0 sends the block's `facing` to the slot-3 game pointer as
-/// message 0x3EE, skipping to state 2 when it is -1; state 1 waits until
-/// that pointer answers 0x3F0 with 0. States 2 and 3 play the block's sound
-/// event `sndEvent`, if any, and wait for its voice to go quiet. State 4 queues
-/// type-7 sound event 0x80000000, commits the save location in the block's
-/// first four bytes (stage, area, warp, room), re-spawns the player task as
-/// type 0x11 and kills itself.
-void func_shelter_b4_water_supply_8017D650(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_shelter_b4_water_supply_80184E44.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_shelter_b4_water_supply_80184E44.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_shelter_b4_water_supply_80184E44.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_shelter_b4_water_supply_80184E44.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_shelter_b4_water_supply_80184E44.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_shelter_b4_water_supply_80184E44.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_shelter_b4_water_supply_80184E44.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_shelter_b4_water_supply_80184E44.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 /// The room task's state table, dispatched by
 /// `func_shelter_b4_water_supply_8017DDA4` from a stack copy: install the
@@ -982,10 +927,10 @@ static void func_shelter_b4_water_supply_8017DB18(void)
     param.room      = wp->room;
     param.queryOnly = ROOM_EVENT_EXECUTE;
     resolve(&param, &param);
-    wp->area                           = param.areaId;
-    wp->warp                           = param.warp;
-    wp->room                           = param.room;
-    D_shelter_b4_water_supply_80184E44 = work;
+    wp->area       = param.areaId;
+    wp->warp       = param.warp;
+    wp->room       = param.room;
+    gRoomDeparture = work;
     Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
     if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
         GameFlag_SetNibble(0x4C, 6);
@@ -1012,10 +957,10 @@ void func_shelter_b4_water_supply_8017DC28(Task* arg0)
         param.room      = work.room;
         param.queryOnly = ROOM_EVENT_EXECUTE;
         resolve(&param, &param);
-        work.area                          = param.areaId;
-        work.warp                          = param.warp;
-        work.room                          = param.room;
-        D_shelter_b4_water_supply_80184E44 = work;
+        work.area      = param.areaId;
+        work.warp      = param.warp;
+        work.room      = param.room;
+        gRoomDeparture = work;
         Task_SpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
         if (gameGetPtrSlot(0xA) != NULL && GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0x4C, 6);

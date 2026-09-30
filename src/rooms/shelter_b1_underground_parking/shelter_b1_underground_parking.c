@@ -75,6 +75,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -98,7 +99,7 @@ typedef struct SbupExamineWork {
 } SbupExamineWork;
 
 /// The departure the departure task carries out.
-extern RoomDeparture D_shelter_b1_underground_parking_8018D77C;
+extern RoomDeparture gRoomDeparture;
 
 /// The cutscene task's descriptor table; entry 0 runs a scene record, entry 1
 /// is the scene's sub-task.
@@ -389,7 +390,6 @@ s32                               func_shelter_b1_underground_parking_80182A60(T
 s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, TaskMessageArg);
 s32                               func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, TaskMessageArg);
-void                              func_shelter_b1_underground_parking_80181FE4(Task*);
 void                              func_shelter_b1_underground_parking_80182154(Task*);
 void                              func_shelter_b1_underground_parking_80182DB4(Task*);
 void                              func_shelter_b1_underground_parking_80182FC8(Task*);
@@ -422,7 +422,7 @@ extern SpriteSource D_shelter_b1_underground_parking_80189C14[32];
 
 ShelterB1UndergroundParkingStorage71F0 D_shelter_b1_underground_parking_801871F0 = { { 0, 192, Shop_SessionTask, { .model = NULL } }, { 0 } };
 
-TaskDesc D_shelter_b1_underground_parking_80187200 = { 0, 32, func_shelter_b1_underground_parking_80181FE4, { .model = NULL } };
+TaskDesc D_shelter_b1_underground_parking_80187200 = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 TaskDesc D_shelter_b1_underground_parking_8018720C[3] = {
     { 0, 32, func_shelter_b1_underground_parking_80182154, { .model = NULL } },
@@ -1652,7 +1652,7 @@ s32 D_shelter_b1_underground_parking_8018D758 = 0;
 
 ShelterB1UndergroundParkingStorageD75C D_shelter_b1_underground_parking_8018D75C = { { 0 }, { 0 } };
 
-RoomDeparture D_shelter_b1_underground_parking_8018D77C = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
+RoomDeparture gRoomDeparture = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
 u8 D_shelter_b1_underground_parking_8018D788 = 0;
 
@@ -1681,62 +1681,7 @@ void func_shelter_b1_underground_parking_8017EDE8(Task* task)
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
-/// The departure task, carrying out `D_shelter_b1_underground_parking_8018D77C`.
-/// State 0 sends the departure's halfword to the slot-3 game pointer as message
-/// 0x3EE, or skips to state 2 when it is 0xFFFF; state 1 polls the pointer with
-/// 0x3F0 until it answers 0. States 2 and 3 play the departure's sound event and
-/// wait for the voice to go quiet (0 skips both). State 4 commits the save
-/// location the departure names, re-spawns the player task as type 0x11 and
-/// kills itself.
-void func_shelter_b1_underground_parking_80181FE4(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            /* Read unsigned, though the staging code stores it signed. */
-            msg.rot.vy = (u16)D_shelter_b1_underground_parking_8018D77C.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_shelter_b1_underground_parking_8018D77C.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_shelter_b1_underground_parking_8018D77C.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_shelter_b1_underground_parking_8018D77C.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_shelter_b1_underground_parking_8018D77C.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_shelter_b1_underground_parking_8018D77C.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_shelter_b1_underground_parking_8018D77C.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_shelter_b1_underground_parking_8018D77C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 /// The room's cutscene runner: suppresses the player and ally HUD, loads and
 /// starts the scene's caption slot, lets confirm or cancel cut the sub-task
@@ -2156,7 +2101,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 
 /// Task body that waits for the caption to finish, then on caption key 0xB
 /// spawns the 0x31 task and after 30 frames publishes
-/// `D_shelter_b1_underground_parking_8018D77C` and spawns entry 0 of
+/// `gRoomDeparture` and spawns entry 0 of
 /// `D_shelter_b1_underground_parking_80187200`. Any other key restores the
 /// weapon and ends the task.
 void func_shelter_b1_underground_parking_80182DB4(Task* task)
@@ -2208,10 +2153,10 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                 msg.room      = p->room;
                 msg.queryOnly = ROOM_EVENT_EXECUTE;
                 handler(&msg, &msg);
-                p->area                                   = msg.areaId;
-                p->warp                                   = msg.warp;
-                p->room                                   = msg.room;
-                D_shelter_b1_underground_parking_8018D77C = rec;
+                p->area        = msg.areaId;
+                p->warp        = msg.warp;
+                p->room        = msg.room;
+                gRoomDeparture = rec;
                 Task_SpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);
             }

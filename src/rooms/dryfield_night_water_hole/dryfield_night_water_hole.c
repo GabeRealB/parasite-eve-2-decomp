@@ -61,6 +61,7 @@
 #include "rooms/room.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -121,7 +122,7 @@ extern TaskDesc D_801351FC[];
 
 /// Descriptor the room's event task is spawned from, index 0 of the table
 /// `func_dryfield_night_water_hole_8017DC28` hands `Task_SpawnFromTable`. Its
-/// callback is that same task, `func_dryfield_night_water_hole_8017D7E8`.
+/// callback is that same task, `roomDepartureTask`.
 extern TaskDesc D_dryfield_night_water_hole_801805EC;
 /// The room's message table, the `GpMsgEntry` list the room task publishes in
 /// `Task::msgTable` for `Gp_DispatchMsg` to walk: 0x13EE, 0x13F1, 0x13EF and
@@ -157,7 +158,7 @@ extern DnwhParamOverride D_dryfield_night_water_hole_801835D8[];
 extern u8* D_dryfield_night_water_hole_80183628;
 /// Frame counter the water surface's wave is phased by.
 /// The staged event descriptor, read by the room's event task.
-extern RoomDeparture D_dryfield_night_water_hole_80183630;
+extern RoomDeparture gRoomDeparture;
 
 static void func_dryfield_night_water_hole_8017DE20(Task* task);
 static void func_dryfield_night_water_hole_8017DE88(DnwhParamOverride* list);
@@ -185,11 +186,10 @@ extern GpRoomParamRec D_dryfield_night_water_hole_801835B0[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835B8[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835C0[1];
 
-s32  func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
-s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-void func_dryfield_night_water_hole_8017D7E8(Task*);
+s32 func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
+s32 func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 AnimationPackedPose D_dryfield_night_water_hole_80180220[6] = {
 #include "assets/dryfield_night_water_hole_animation_03004_bank1.inc"
@@ -213,7 +213,7 @@ AnimationSet D_dryfield_night_water_hole_801805C4 = {
     { NULL, D_dryfield_night_water_hole_80180220, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_night_water_hole_801805EC = { 0, 32, func_dryfield_night_water_hole_8017D7E8, { .model = NULL } };
+TaskDesc D_dryfield_night_water_hole_801805EC = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_water_hole_8017DADC },
@@ -1070,7 +1070,7 @@ s16 D_dryfield_night_water_hole_8018362C[2] = {
     -0x3000,
 };
 
-RoomDeparture D_dryfield_night_water_hole_80183630;
+RoomDeparture gRoomDeparture;
 
 static s32  func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilParam* out);
 static void func_dryfield_night_water_hole_8017D958(Task* arg0);
@@ -1172,62 +1172,7 @@ static s32 func_dryfield_night_water_hole_8017D6AC(DnwhUtilParam* in, DnwhUtilPa
     return 1;
 }
 
-/// The room's event task, run on the descriptor staged in
-/// `D_dryfield_night_water_hole_80183630`. State 0 sends the
-/// descriptor's `facing` to the slot-3 game pointer as message 0x3EE, skipping
-/// to state 2 when it is -1; state 1 waits until that pointer answers 0x3F0
-/// with 0. States 2 and 3 play the sound event `sndEvent`, if any, and wait for
-/// its voice to go quiet. State 4 queues type-7 sound event 0x80000000, commits
-/// the save location in the descriptor's first four bytes (stage, area, warp,
-/// room), re-spawns the player task as type 0x11 and kills itself.
-void func_dryfield_night_water_hole_8017D7E8(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_dryfield_night_water_hole_80183630.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_dryfield_night_water_hole_80183630.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_dryfield_night_water_hole_80183630.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_dryfield_night_water_hole_80183630.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_dryfield_night_water_hole_80183630.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_dryfield_night_water_hole_80183630.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_dryfield_night_water_hole_80183630.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_dryfield_night_water_hole_80183630.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 /// Room entry task tick: publish the room's message table in `Task::msgTable`
 /// and claim game pointer slot 7. Progress nibble 0xB8 then picks the opening
@@ -1335,7 +1280,7 @@ s32 func_dryfield_night_water_hole_8017DADC(Task* arg0, s32 arg1, RoomEventMsg* 
 /// With progress nibble 0xB8 set the room's event task is spawned: this stages
 /// a `RoomDeparture` for it, hands the code in `area` to the room's resolver
 /// for one last say over `room`, publishes the descriptor to
-/// `D_dryfield_night_water_hole_80183630` and spawns the task from
+/// `gRoomDeparture` and spawns the task from
 /// `D_dryfield_night_water_hole_801805EC`. The code staged is 0x2E, past the end
 /// of the resolver's jump table, so the byte comes back as it went in.
 ///
@@ -1364,10 +1309,10 @@ s32 func_dryfield_night_water_hole_8017DC28(Task* task, s32 msgId, s32 arg2, s32
             param.field_3 = wp->room;
             param.field_5 = 0;
             resolve(&param, &param);
-            wp->area                             = param.field_0;
-            wp->warp                             = param.field_2;
-            wp->room                             = param.field_3;
-            D_dryfield_night_water_hole_80183630 = work;
+            wp->area       = param.field_0;
+            wp->warp       = param.field_2;
+            wp->room       = param.field_3;
+            gRoomDeparture = work;
             Task_SpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
         } else {
             Gp_RunCapCmd1(2);

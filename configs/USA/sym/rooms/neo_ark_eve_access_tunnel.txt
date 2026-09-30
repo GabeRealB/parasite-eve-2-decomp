@@ -11,7 +11,7 @@ D_neo_ark_eve_access_tunnel_80180768 = 0x80180768; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_80180770 = 0x80180770; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_80180778 = 0x80180778; // size:0x8 defined:True
 D_neo_ark_eve_access_tunnel_80180780 = 0x80180780; // size:0x20 defined:True
-D_neo_ark_eve_access_tunnel_801807A8 = 0x801807A8; // size:0xC defined:True
+gRoomDeparture = 0x801807A8; // size:0xC defined:True
 D_map_neo_ark_8017B030 = 0x8017B030; // absolute:True
 D_map_neo_ark_8017B080 = 0x8017B080; // absolute:True
 D_neo_ark_eve_access_tunnel_8017EB78 = 0x8017EB78; // size:0x10 defined:True
@@ -52,3 +52,4 @@ D_neo_ark_eve_access_tunnel_8017EAC4 = 0x8017EAC4; // size:0x24 defined:True
 
 func_neo_ark_eve_access_tunnel_8017E15C = 0x8017E15C; // type:func
 glowDrawCapsule = 0x8017E244; // type:func
+roomDepartureTask = 0x8017D810; // type:func

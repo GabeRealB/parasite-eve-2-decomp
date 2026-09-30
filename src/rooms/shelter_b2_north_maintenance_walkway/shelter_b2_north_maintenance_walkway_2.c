@@ -42,6 +42,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define ROOM_EVENT_LATCHED gRoomEventLatched.value
 #include "../../shared/room_events.h"
 
 /// Anchor points of the glows the room task draws.
@@ -57,7 +58,7 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 /// Offsets from the anchor of the two points the smoke trail follows. The
 /// second is also reached under its own name.
 
-TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D61C, { .model = NULL } };
+TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 

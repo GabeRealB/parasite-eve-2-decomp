@@ -65,6 +65,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
 #define ROOM_EVENT_LATCHED gRoomEventLatched.value
+#define ROOM_DEPARTURE     gRoomDeparture.value
 #include "../../shared/room_events.h"
 
 // Unreferenced leading zero word immediately before the independently addressed task descriptor. It does not align the descriptor, whose address is only word aligned. Preserve the word with the neighboring descriptor; original ownership remains unresolved.
@@ -102,7 +103,7 @@ typedef struct {
 } ShelterB2MainCorridorStorage9664;
 STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9664, 16);
 
-extern ShelterB2MainCorridorStorage9664 D_shelter_b2_main_corridor_80189664;
+extern ShelterB2MainCorridorStorage9664 gRoomDeparture;
 
 /// The exit being taken, read by the exit task.
 // Only the leading value has established accesses. Preserve the following
@@ -175,12 +176,11 @@ s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, DirectionActionRequest* 
 s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
-void func_shelter_b2_main_corridor_8017D6BC(Task*);
 void func_shelter_b2_main_corridor_8017DEB0(Task*);
 void func_shelter_b2_main_corridor_8017E210(Task*);
 void func_shelter_b2_main_corridor_8017EB8C(Task*);
 
-ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, func_shelter_b2_main_corridor_8017D6BC, { .model = NULL } } };
+ShelterB2MainCorridorTaskStorage D_shelter_b2_main_corridor_801828E0 = { 0, { 0, 32, roomDepartureTask, { .model = NULL } } };
 
 AnimationPackedPose D_shelter_b2_main_corridor_801828F0[2] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_bank1.inc"
@@ -1593,68 +1593,13 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
 
 u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
-ShelterB2MainCorridorStorage9664 D_shelter_b2_main_corridor_80189664 = { 0 };
+ShelterB2MainCorridorStorage9664 gRoomDeparture = { 0 };
 
 ShelterB2MainCorridorStorage9674 gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
-/// Carries out a staged event once the message handler has passed it through
-/// `func_shelter_b2_main_corridor_8017E0FC`, from the copy in
-/// `D_shelter_b2_main_corridor_80189664.value`. State 0 sends the event's `facing`
-/// to the slot-3 game pointer as message 0x3EE, unless it is -1, in which case
-/// it skips to state 2; state 1 polls that pointer with message 0x3F0 until it
-/// answers 0. States 2 and 3 queue the event's sound `sndEvent`, if any, and
-/// wait for its voice to end. State 4 copies the event's stage, area, warp and
-/// room into the save location and spawns the room-load task 0x11.
-void func_shelter_b2_main_corridor_8017D6BC(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_shelter_b2_main_corridor_80189664.value.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_shelter_b2_main_corridor_80189664.value.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_shelter_b2_main_corridor_80189664.value.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_shelter_b2_main_corridor_80189664.value.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_shelter_b2_main_corridor_80189664.value.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_shelter_b2_main_corridor_80189664.value.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_shelter_b2_main_corridor_80189664.value.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_shelter_b2_main_corridor_80189664.value.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -1860,10 +1805,10 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             param.room      = D_shelter_b2_main_corridor_80189684.room;
             param.queryOnly = ROOM_EVENT_EXECUTE;
             resolve(&param, &param);
-            D_shelter_b2_main_corridor_80189684.area  = param.areaId;
-            D_shelter_b2_main_corridor_80189684.warp  = param.warp;
-            D_shelter_b2_main_corridor_80189684.room  = param.room;
-            D_shelter_b2_main_corridor_80189664.value = D_shelter_b2_main_corridor_80189684;
+            D_shelter_b2_main_corridor_80189684.area = param.areaId;
+            D_shelter_b2_main_corridor_80189684.warp = param.warp;
+            D_shelter_b2_main_corridor_80189684.room = param.room;
+            gRoomDeparture.value                     = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
             taskKill(arg0);
             break;

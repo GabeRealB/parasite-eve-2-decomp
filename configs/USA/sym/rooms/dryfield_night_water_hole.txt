@@ -111,7 +111,7 @@ D_dryfield_night_water_hole_80180620 = 0x80180620; // size:0x4 defined:True
 D_dryfield_night_water_hole_80183618 = 0x80183618; // size:0x10 defined:True
 D_dryfield_night_water_hole_80183628 = 0x80183628; // size:0x4 defined:True
 D_dryfield_night_water_hole_8018362C = 0x8018362C; // size:0x4 defined:True
-D_dryfield_night_water_hole_80183630 = 0x80183630; // size:0xC defined:True
+gRoomDeparture = 0x80183630; // size:0xC defined:True
 
 func_dryfield_night_water_hole_8017F6DC = 0x8017F6DC; // type:func
 
@@ -120,3 +120,4 @@ func_dryfield_night_water_hole_8017F254 = 0x8017F254; // type:func
 func_dryfield_night_water_hole_8017E6D0 = 0x8017E6D0; // type:func
 glowDrawShaft = 0x8017EA6C; // type:func
 waterDrawSplash = 0x8017F3A8; // type:func
+roomDepartureTask = 0x8017D7E8; // type:func

@@ -65,7 +65,7 @@ D_8013F5F0 = 0x8013F5F0; // absolute:True
 D_80147E48 = 0x80147E48; // absolute:True
 D_80153EC8 = 0x80153EC8; // absolute:True
 D_shelter_b4_water_supply_80184E3C = 0x80184E3C; // size:0x8 defined:True
-D_shelter_b4_water_supply_80184E44 = 0x80184E44; // size:0xC defined:True
+gRoomDeparture = 0x80184E44; // size:0xC defined:True
 D_shelter_b4_water_supply_80184E50 = 0x80184E50; // size:0x4 defined:True
 
 func_shelter_b4_water_supply_8017EE54 = 0x8017EE54; // type:func
@@ -88,3 +88,4 @@ glowDrawCone = 0x80180260; // type:func
 waterDrawSplash = 0x8017F3A0; // type:func
 waterDrawSpin = 0x8017FB90; // type:func
 waterDrawTile = 0x8017FF7C; // type:func
+roomDepartureTask = 0x8017D650; // type:func

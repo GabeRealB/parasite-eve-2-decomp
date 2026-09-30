@@ -53,6 +53,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #define ROOM_EVENT_FADE gRoomEventFade
+#define ROOM_DEPARTURE  gRoomDeparture.value
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
@@ -84,7 +85,7 @@ typedef struct {
 } Shelter1fParkingGarageStorage1988;
 STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
 
-extern Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
+extern Shelter1fParkingGarageStorage1988 gRoomDeparture;
 extern RoomLatchedEvent                  gRoomEventLatched;
 
 static s32  func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMsg* out);
@@ -102,10 +103,9 @@ s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, TaskMessageArg, TaskMes
 s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
-void func_shelter_1f_parking_garage_8017D7E8(Task*);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
 
-TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, func_shelter_1f_parking_garage_8017D7E8, { .model = NULL } };
+TaskDesc D_shelter_1f_parking_garage_80180BA0 = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 TaskDesc D_shelter_1f_parking_garage_80180BAC = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
@@ -366,7 +366,7 @@ u8 D_shelter_1f_parking_garage_80181984[4] = {
     75,
 };
 
-Shelter1fParkingGarageStorage1988 D_shelter_1f_parking_garage_80181988;
+Shelter1fParkingGarageStorage1988 gRoomDeparture;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -491,68 +491,13 @@ static s32 func_shelter_1f_parking_garage_8017D6AC(RoomEventMsg* in, RoomEventMs
     return 1;
 }
 
-/// The room's exit task, run on the record published in
-/// `D_shelter_1f_parking_garage_80181988.value`. State 0 sends the record's
-/// `facing` to the slot-3 game pointer as message 0x3EE, going straight to
-/// state 2 when it is -1; state 1 waits until that pointer answers 0x3F0
-/// with 0. States 2 and 3 play the record's sound event, if any, and wait for
-/// it to go quiet. State 4 queues type-7 sound event 0x80000000, commits the
-/// record's stage, area, warp and room to the save data, spawns task type
-/// 0x11 and kills itself.
-void func_shelter_1f_parking_garage_8017D7E8(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_shelter_1f_parking_garage_80181988.value.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_shelter_1f_parking_garage_80181988.value.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_shelter_1f_parking_garage_80181988.value.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_shelter_1f_parking_garage_80181988.value.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_shelter_1f_parking_garage_80181988.value.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_shelter_1f_parking_garage_80181988.value.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_shelter_1f_parking_garage_80181988.value.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_shelter_1f_parking_garage_80181988.value.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 #include "../../shared/room_event_staged_task.inc.c"
 
 /// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
-/// 0x4B from 9 to 0xA, publishes `D_shelter_1f_parking_garage_80181988.value` and
+/// 0x4B from 9 to 0xA, publishes `gRoomDeparture.value` and
 /// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
 /// clears `Gp_StateF0.field_4`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
@@ -602,10 +547,10 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 msg.room      = p->room;
                 msg.queryOnly = ROOM_EVENT_EXECUTE;
                 handler(&msg, &msg);
-                p->area                                    = msg.areaId;
-                p->warp                                    = msg.warp;
-                p->room                                    = msg.room;
-                D_shelter_1f_parking_garage_80181988.value = rec;
+                p->area              = msg.areaId;
+                p->warp              = msg.warp;
+                p->room              = msg.room;
+                gRoomDeparture.value = rec;
                 Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
             }

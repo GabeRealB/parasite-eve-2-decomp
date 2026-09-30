@@ -31,6 +31,7 @@
 
 #include "overlay.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// Live emitters for the tunnel's views, in the shared data blob at the end of
 /// the overlay. `D_..._8017EB48` doubles as case 2's three-entry run and case 6's
@@ -42,7 +43,7 @@ extern SVECTOR D_neo_ark_eve_access_tunnel_8017EB48[];
 
 extern GpGridParams D_neo_ark_eve_access_tunnel_8017F05C[1];
 
-TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { 0, 32, func_neo_ark_eve_access_tunnel_8017D810, { .model = NULL } };
+TaskDesc D_neo_ark_eve_access_tunnel_8017EA88 = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_eve_access_tunnel_8017EA94[6] = {
     { 5102, func_neo_ark_eve_access_tunnel_8017DC6C },

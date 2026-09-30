@@ -38,6 +38,7 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room.h"
+#include "../../shared/room_events.h"
 
 /// Parameter block of `func_neo_ark_eve_access_tunnel_8017D6D4`, the room-local
 /// resolver `func_neo_ark_eve_access_tunnel_8017D980` calls with one pointer as
@@ -66,7 +67,7 @@ STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 /// The staged event descriptor, read by the task spawned above.
-extern RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
+extern RoomDeparture gRoomDeparture;
 
 static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
 static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
@@ -416,7 +417,7 @@ GpRoomParamRec* D_neo_ark_eve_access_tunnel_80180780[8] = {
 
 RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
-RoomDeparture D_neo_ark_eve_access_tunnel_801807A8;
+RoomDeparture gRoomDeparture;
 
 static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtilParam* arg1);
 
@@ -515,62 +516,7 @@ static s32 func_neo_ark_eve_access_tunnel_8017D6D4(NaetUtilParam* arg0, NaetUtil
     return 1;
 }
 
-/// The tunnel's outgoing task, run on the descriptor staged in
-/// `D_neo_ark_eve_access_tunnel_801807A8`. State 0 sends the descriptor's
-/// `facing` to the task in pointer slot 3 as message 0x3EE, skipping to state 2
-/// when it is -1; state 1 waits until that task answers 0x3F0 with 0. States
-/// 2 and 3 queue the sound event `sndEvent`, if any, and wait for its voice to go
-/// quiet. State 4 queues type-7 sound event 0x80000000, commits the save
-/// location in the descriptor's first four bytes (stage, area, warp, room) to
-/// `Mc_SaveData`, spawns task type 0x11 and ends the task.
-void func_neo_ark_eve_access_tunnel_8017D810(Task* arg0)
-{
-    ActorTransform msg;
-    Task*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_neo_ark_eve_access_tunnel_801807A8.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_neo_ark_eve_access_tunnel_801807A8.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_neo_ark_eve_access_tunnel_801807A8.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_neo_ark_eve_access_tunnel_801807A8.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_neo_ark_eve_access_tunnel_801807A8.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_neo_ark_eve_access_tunnel_801807A8.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_neo_ark_eve_access_tunnel_801807A8.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_neo_ark_eve_access_tunnel_801807A8.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 /// The room task's three states: install the message table, adjust the views
 /// each frame, and end the task. `func_neo_ark_eve_access_tunnel_8017E038` runs
@@ -585,10 +531,10 @@ static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
 /// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
 /// countdown at 0xA and waits for the event key it answers with - 0xC kills the
 /// sequence and messages the player weapon - and step 3 falls through to the
-/// shared advance. Step 4 stages `D_neo_ark_eve_access_tunnel_801807A8` (the
+/// shared advance. Step 4 stages `gRoomDeparture` (the
 /// message halfword 0x800 and the code in the task's `spawnArg1`, run once more
 /// through the room's resolver, and no sound) and spawns the tunnel's outgoing
-/// task, whose callback is `func_neo_ark_eve_access_tunnel_8017D810`.
+/// task, whose callback is `roomDepartureTask`.
 void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
 {
     switch (task->state) {
@@ -631,10 +577,10 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
             param.field_3 = wp->room;
             param.field_5 = 0;
             resolve(&param, &param);
-            wp->area                             = param.field_0;
-            wp->warp                             = param.field_2;
-            wp->room                             = param.field_3;
-            D_neo_ark_eve_access_tunnel_801807A8 = work;
+            wp->area       = param.field_0;
+            wp->warp       = param.field_2;
+            wp->room       = param.field_3;
+            gRoomDeparture = work;
             Task_SpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
             taskKill(task);
             break;

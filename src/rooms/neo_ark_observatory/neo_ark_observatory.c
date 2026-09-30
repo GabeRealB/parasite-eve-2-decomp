@@ -57,6 +57,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -136,7 +137,7 @@ extern SVECTOR      D_neo_ark_observatory_80181574[];
 extern SVECTOR      D_neo_ark_observatory_8018157C[];
 
 extern GpAreaApplyRec D_neo_ark_observatory_80187A28[];
-extern RoomDeparture  D_neo_ark_observatory_80187A30;
+extern RoomDeparture  gRoomDeparture;
 extern s16            D_neo_ark_observatory_80187A3C;
 
 /// Defines the reflection scale at the shared implementation's include position.
@@ -163,7 +164,6 @@ s32                                     func_neo_ark_observatory_8017FBE0(Task*,
 s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, TaskMessageArg);
 
-void func_neo_ark_observatory_8017F588(Task*);
 void func_neo_ark_observatory_8017FB1C(Task*);
 
 #include "../../shared/planar_reflection_data.inc.c"
@@ -178,7 +178,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
     return D_neo_ark_observatory_80180DBC;
 }
 
-TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, func_neo_ark_observatory_8017F588, { .model = NULL } };
+TaskDesc D_neo_ark_observatory_80180DD4 = { 0, 32, roomDepartureTask, { .model = NULL } };
 
 AnimationPackedPose D_neo_ark_observatory_80180DE0[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
@@ -1572,7 +1572,7 @@ GpAreaApplyRec D_neo_ark_observatory_80187A28[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomDeparture D_neo_ark_observatory_80187A30;
+RoomDeparture gRoomDeparture;
 
 s16 D_neo_ark_observatory_80187A3C;
 
@@ -1684,62 +1684,7 @@ static s32 func_neo_ark_observatory_8017F44C(MapMarkerRec* arg0, MapMarkerOut* a
     return 1;
 }
 
-/// Departure task. State 0 stages the descriptor's halfword into an `ActorTransform`
-/// record and sends it to the slot-3 game pointer as message 0x3EE - the
-/// all-ones halfword is the "nothing staged" marker, and the task skips to
-/// state 2 rather than sending it. State 1 polls that same pointer with 0x3F0,
-/// states 2 and 3 queue the descriptor's sound event and wait for the voice to
-/// go quiet, and each of them advances the state once its call reports 0.
-/// State 4 commits the save location the descriptor names, re-spawns the
-/// player task as type 0x11 and kills itself.
-void func_neo_ark_observatory_8017F588(Task* arg0)
-{
-    ActorTransform msg;
-    void*          slot;
-
-    slot = gameGetPtrSlot(3);
-    switch (arg0->state) {
-        case 0:
-            msg.rot.vy = D_neo_ark_observatory_80187A30.facing;
-            if (msg.rot.vy == -1) {
-                arg0->state = 2;
-                break;
-            }
-            Gp_DispatchMsgPtr(slot, 0x3EE, &msg, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 1:
-            if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 2:
-            if (D_neo_ark_observatory_80187A30.sndEvent == 0) {
-                arg0->state = 4;
-                break;
-            }
-            SndEvt_EnqueueType6(D_neo_ark_observatory_80187A30.sndEvent, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(D_neo_ark_observatory_80187A30.sndEvent) == 0) {
-                arg0->state = (s32)(arg0->state + 1);
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = D_neo_ark_observatory_80187A30.stage;
-            Mc_SaveData[0].state.location.loc.area  = D_neo_ark_observatory_80187A30.area;
-            Mc_SaveData[0].state.location.loc.warp  = D_neo_ark_observatory_80187A30.warp;
-            Mc_SaveData[0].state.location.loc.room  = D_neo_ark_observatory_80187A30.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-        default:
-            break;
-    }
-}
+#include "../../shared/room_event_departure_task.inc.c"
 
 /// Copies the area, warp and room of `desc` into a resolver record, lets
 /// `resolve` rewrite the record in place, and copies the result back.
@@ -1782,7 +1727,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
                 resolve       = func_neo_ark_observatory_8017F44C;
                 Gp_MsgPlayerWeapon(0);
                 _neoArkObservatoryStageMarker(&desc, resolve);
-                D_neo_ark_observatory_80187A30 = desc;
+                gRoomDeparture = desc;
                 Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
                 return 0;
             }
@@ -1796,7 +1741,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
         resolve       = func_neo_ark_observatory_8017F44C;
         Gp_MsgPlayerWeapon(0);
         _neoArkObservatoryStageMarker(&desc, resolve);
-        D_neo_ark_observatory_80187A30 = desc;
+        gRoomDeparture = desc;
         Task_SpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
     }
     if (request->actionId == 1 && GameFlag_GetNibble(0xD7) == 0) {
