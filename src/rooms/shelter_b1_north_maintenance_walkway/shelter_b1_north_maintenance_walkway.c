@@ -225,8 +225,8 @@ void func_shelter_b1_north_maintenance_walkway_8017D918(Task* arg0)
     switch (arg0->state) {
         case 0:
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                gGameSession->flowFlags |= 0x80;
-                gGameSession->flowFlags |= 0x40;
+                gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+                gGameSession->flowFlags |= GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON;
                 arg0->state++;
             }
             break;
@@ -269,7 +269,7 @@ static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 2) {
+    if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
         if (GameFlag_GetNibble(0x157) == 0) {
             GameFlag_SetNibble(0x157, 1);
@@ -302,7 +302,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task)
 
 static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       rec;
     SpriteBatch*     batches;
     s32              mode;
@@ -334,7 +334,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DBC8(Task* arg0)
         arg0->state = 1;
     }
 
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2: {
             SVECTOR* p;
             p = D_shelter_b1_north_maintenance_walkway_80184B18;

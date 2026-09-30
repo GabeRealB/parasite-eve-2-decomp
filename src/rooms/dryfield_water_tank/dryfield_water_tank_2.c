@@ -947,7 +947,7 @@ void func_dryfield_water_tank_8017E568(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            key          = gGameSession->at4;
+            key          = gGameSession->location;
             key.loc.view = 0x64;
             slot         = Stream_FindSlot((u8*)&key, 0, 0);
             slotParam[0] = slot;
@@ -1304,7 +1304,7 @@ void func_dryfield_water_tank_8017EDF4(Task* arg0)
             D_dryfield_water_tank_801868BC += D_dryfield_water_tank_801868C0;
             break;
     }
-    if (gGameSession->at4.loc.view == 7) {
+    if (gGameSession->location.loc.view == 7) {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;
@@ -1329,7 +1329,7 @@ void func_dryfield_water_tank_8017EFF4(s32 arg0)
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     if (sess->stage == 2) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if (!(arg0 & 0xFF)) {

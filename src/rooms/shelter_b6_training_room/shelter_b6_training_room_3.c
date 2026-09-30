@@ -1872,7 +1872,7 @@ void func_shelter_b6_training_room_8018294C(Task* task)
 
 void func_shelter_b6_training_room_80182A14(s32 arg0, s32 arg1)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;

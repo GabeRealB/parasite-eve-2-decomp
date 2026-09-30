@@ -1038,15 +1038,15 @@ s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in
     if (in->areaId == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gGameSession->at4.loc.stage == 2) {
-                    if (gGameSession->at4.loc.variant == 1) {
+                if (gGameSession->location.loc.stage == 2) {
+                    if (gGameSession->location.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(D_dryfield_night_driveway_8017F34C, 1, 0, 0);
                             return 0;
                         }
                     }
                 }
-                if (gGameSession->at4.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant) {
+                if (gGameSession->location.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);
@@ -1133,7 +1133,7 @@ void func_dryfield_night_driveway_8017DB8C(Task* arg0)
             /* fallthrough */
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4(&gGameSession->at4.loc);
+                Gp_ClearAreaFlag4(&gGameSession->location.loc);
                 taskKill(arg0);
             }
             return;
@@ -1199,7 +1199,7 @@ static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
 {
     arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
     Game_SetPtrSlot(arg0, 7);
-    if ((gameGetPtrSlot(0xA) != 0) && (gGameSession->at4.loc.warp == 4)) {
+    if ((gameGetPtrSlot(0xA) != 0) && (gGameSession->location.loc.warp == 4)) {
         func_800E8634(D_dryfield_night_driveway_8017FB00, 0, D_dryfield_night_driveway_8017F998);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -1348,12 +1348,12 @@ static void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
 }
 
 /// Room draw hook: sets the effect mode to 2, then draws the beams the current
-/// view (`gGameSession->at4.loc.view`) shows - views 2 and 9 the first pair, 4
+/// view (`gGameSession->location.loc.view`) shows - views 2 and 9 the first pair, 4
 /// and 7 the second, 5 the third, and 3 and 10 both the first and second.
 void func_dryfield_night_driveway_8017E5CC(Task* unused)
 {
     Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
         case 9:
             func_dryfield_night_driveway_8017DDE4(&D_dryfield_night_driveway_801805B0[0], 0x180);

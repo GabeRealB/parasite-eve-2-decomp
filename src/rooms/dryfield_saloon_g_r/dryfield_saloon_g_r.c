@@ -930,7 +930,7 @@ void func_dryfield_saloon_g_r_8017DA18(Task* task)
 
 /// Draws the room's light effects under the task's coordinate in
 /// `arg0->extra.coordBody->coord`, each only when its mask in `D_dryfield_saloon_g_r_8017ED84`
-/// includes the current view `gGameSession->at4.loc.view`: sprites at
+/// includes the current view `gGameSession->location.loc.view`: sprites at
 /// positions 0-5 with frame 0 and 6-10 with frame 2, the two light shafts,
 /// and the beam from position 13 to position 12.
 void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
@@ -940,7 +940,7 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
     s32       i;
 
     coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
             func_dryfield_saloon_g_r_8017DBB4(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 0, 0x200);

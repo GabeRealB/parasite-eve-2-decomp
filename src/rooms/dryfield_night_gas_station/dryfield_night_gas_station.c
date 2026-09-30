@@ -2600,8 +2600,8 @@ s32 func_dryfield_night_gas_station_8017F544(s32 arg0, s32 arg1, RoomEventMsg* i
         out->room = val;
     }
     if (in->areaId == 3) {
-        if ((gGameSession->at4.loc.stage == in->areaId) && (gGameSession->at4.loc.variant == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant)) {
+        if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant)) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x15);
             }
@@ -2719,7 +2719,7 @@ s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
         }
         Gp_StartCapSlot(0x12, 1, var_a2);
     }
-    if ((arg2 == 0x17) && (gGameSession->at4.loc.room == 4)) {
+    if ((arg2 == 0x17) && (gGameSession->location.loc.room == 4)) {
         if (Gp_HasCollectedBit(0x11E) != 0) {
             if (GameFlag_GetNibble(0xD4) == 0) {
                 GameFlag_SetNibble(0xD4, 1);
@@ -2754,7 +2754,7 @@ s32 func_dryfield_night_gas_station_8017F9E8(void)
     if (GameFlag_GetNibble(0x63) == 0) {
         GameFlag_SetNibble(0x63, 1);
         func_800E8614(D_dryfield_night_gas_station_80188B64, 1);
-        gGameSession->flowFlags |= 0x80;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Gp_ApplyAreaRecs(D_dryfield_night_gas_station_801907A0);
         GameFlag_SetNibble(0x62, 0);
         GameFlag_SetNibble(0x45, 0);
@@ -3072,7 +3072,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
     GfxCoord*  coord;
     SVECTOR    offset;
 
-    work = Gp_FindWorkById(gGameSession->at4.loc.area | ((gGameSession->at4.loc.stage << 8) | 0x2000));
+    work = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x2000));
     if (work != NULL) {
         coord = (work->field_0)->extra.tmd->coords;
         switch (arg0) {
@@ -3348,7 +3348,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
     SpriteBatch*     batches;
     s32              flag;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     flag = arg0 & 0xFF;
 
@@ -3390,7 +3390,7 @@ void func_dryfield_night_gas_station_80180C3C(s32 arg0)
 /// the flag both write is command 6's.
 static void func_dryfield_night_gas_station_80180D1C(void)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       view = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     s32              flag = GameFlag_GetNibble(0x8D);
 
@@ -3413,7 +3413,7 @@ static void func_dryfield_night_gas_station_80180D1C(void)
 /// blinking-light table, whose own exit passes 0.
 static void func_dryfield_night_gas_station_80180DC8(s16 arg0)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       rec =
         Gp_SprtTables[sess->stage - 1][0]
             .field_0[sess->area - 1];

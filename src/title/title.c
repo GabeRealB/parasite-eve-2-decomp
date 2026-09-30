@@ -427,7 +427,7 @@ void Title_DemoStreamTask(Task* task)
             task->state++;
             break;
         case 1:
-            key = gGameSession->at4;
+            key = gGameSession->location;
             if (Wip_SysFlags.field_0 == 2) {
                 key.loc.view = 0x65;
             } else {

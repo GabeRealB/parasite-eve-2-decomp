@@ -334,7 +334,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     for (i = 1; i < 12; i++) {
         child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
-            sessionKey = &gGameSession->at4.loc;
+            sessionKey = &gGameSession->location.loc;
             raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
             model      = child->task->extra.tmd;
             key.stage  = sessionKey->stage;
@@ -1742,7 +1742,7 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 
     enemy = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
     if (enemy != NULL) {
-        sessionKey = &gGameSession->at4.loc;
+        sessionKey = &gGameSession->location.loc;
         raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
         model      = enemy->task->extra.tmd;
         key.stage  = sessionKey->stage;

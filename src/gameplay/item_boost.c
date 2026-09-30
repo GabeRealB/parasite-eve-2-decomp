@@ -1072,7 +1072,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    stage = gGameSession->at4.loc.stage;
+    stage = gGameSession->location.loc.stage;
     p     = &Gp_Bit2Banks[stage].field_4[arg0 >> 4];
     shift = (arg0 & 0xF) * 2;
     word  = *p;

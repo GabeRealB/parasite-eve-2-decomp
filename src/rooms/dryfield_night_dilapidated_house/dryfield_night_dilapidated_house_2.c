@@ -2411,7 +2411,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            key = gGameSession->at4;
+            key = gGameSession->location;
             if (Wip_SysFlags.field_0 == 2) {
                 key.loc.view = 0x65;
             } else {
@@ -2601,7 +2601,7 @@ static void func_dryfield_night_dilapidated_house_8017DD30(GfxCoord* coord, s16 
 
 /// Per-frame draw of the room's coordinate task: recomputes the task's composed
 /// matrix, then draws up to three prisms, from corner sets 0, 8 and 0x10.
-/// Each is gated on `gGameSession->at4.loc.view` taken as a bit index into a
+/// Each is gated on `gGameSession->location.loc.view` taken as a bit index into a
 /// fixed mask; the second mask is contained in the other two, so a view in it
 /// draws all three.
 void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
@@ -2610,7 +2610,7 @@ void func_dryfield_night_dilapidated_house_8017E670(Task* arg0)
     s32       mask;
 
     coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x99C) {
         func_dryfield_night_dilapidated_house_8017DD30(coord, 0);

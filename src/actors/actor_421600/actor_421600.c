@@ -4273,12 +4273,12 @@ static void func_actor_421600_801369A0(Task* arg0)
     found = NULL;
     switch (ctx->placeKey >> 0xC) {
         case 0:
-            hi    = gGameSession->at4.loc.stage << 8;
-            id    = gGameSession->at4.loc.area | 0x1000;
+            hi    = gGameSession->location.loc.stage << 8;
+            id    = gGameSession->location.loc.area | 0x1000;
             found = (GpEnemy*)Gp_FindWorkById(id | hi);
             break;
         case 1:
-            stageAreaId = (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
+            stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
             found       = (GpEnemy*)Gp_FindWorkById(stageAreaId);
             break;
     }
@@ -7095,7 +7095,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
             nextAction = work->field_E80;
             switch (nextAction) {
                 case 1:
-                    if (((((GAME_LOCATION_WORD(gGameSession->at4.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->field_8B4 != 0x38)) && (config->hp > 0)) {
+                    if (((((GAME_LOCATION_WORD(gGameSession->location.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->field_8B4 != 0x38)) && (config->hp > 0)) {
                         nextMessage     = &work->field_E7C;
                         work->field_E84 = 0;
                         work->field_E88 = 0;

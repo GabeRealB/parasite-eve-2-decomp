@@ -648,7 +648,7 @@ void func_8010A670(Task* arg0)
             }
         }
     }
-    if (gGameSession->pad & 0xF000) {
+    if (gGameSession->padHeld & 0xF000) {
         inner->field_962 |= inner->field_970;
     }
 }

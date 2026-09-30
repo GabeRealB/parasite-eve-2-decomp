@@ -957,7 +957,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->at4.loc.room        = 1;
+            gGameSession->location.loc.room   = 1;
             gGameSession->roomObjsDirty       = 1;
             gGameSession->viewDirty           = 1;
             task->state                       = task->state + 1;

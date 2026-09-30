@@ -71,7 +71,7 @@ extern GpObj4C D_dryfield_water_tower_80186A84[24];
 /// The first three fields are the tasks the room's script dispatches its
 /// messages to: `field_0` is the slot-3 game pointer (`gameGetPtrSlot(3)`),
 /// and `field_4` / `field_8` are `Gp_FindWorkById(...)->field_0` for two ids
-/// built from the session's `at4.loc.area` / `at4.loc.stage` bytes (the second id has
+/// built from the session's `location.loc.area` / `location.loc.stage` bytes (the second id has
 /// 0x1000 OR'd in). `func_dryfield_water_tower_80180220` sends the 0x7D4 pair
 /// to `field_8` / `field_4` and the 0x3F3 / 0x3E9 messages to `field_0`.
 ///
@@ -1944,7 +1944,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
 /// latch that puts a floor quad under the cap, mirrored to `-y - 0xC8` of the
 /// cap's own coordinate.
 ///
-/// `gGameSession->field_65` is the session's overlay-wait gate: while it is set
+/// `gGameSession->sceneUpdatesPaused` is the session's overlay-wait gate: while it is set
 /// the prop only raises the model's skip-draw bit 0x80 and returns, leaving the
 /// script's states alone.
 ///
@@ -1966,7 +1966,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     obj   = arg0->extra.tmd;
     state = (DryfieldWaterTowerState*)arg0->work;
     coord = obj->coords;
-    if (gGameSession->field_65 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
@@ -2177,7 +2177,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 
 /// The other cap prop's task, entry 1 of the room's task table and the
 /// counterpart of `func_dryfield_water_tower_8017E1DC`. It shares that prop's
-/// gating -- while `gGameSession->field_65` is set it only raises the model's
+/// gating -- while `gGameSession->sceneUpdatesPaused` is set it only raises the model's
 /// skip-draw bit 0x80, and while `Gp_StateC08.field_9` is non-zero it clears
 /// the bit and does nothing else -- and its spawn tick is the same: allocate
 /// the 0x7C-byte `DryfieldWaterTowerState` into `Task::work`, park the slot-3
@@ -2205,7 +2205,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
     VECTOR                   vec;
 
     obj = arg0->extra.tmd;
-    if (gGameSession->field_65 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
@@ -2420,8 +2420,8 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
     switch (state->field_58) {
         case 0:
             if (state->field_64 == 0) {
-                msg0.context.loc.stage = gGameSession->at4.loc.stage;
-                msg0.context.loc.area  = gGameSession->at4.loc.area;
+                msg0.context.loc.stage = gGameSession->location.loc.stage;
+                msg0.context.loc.area  = gGameSession->location.loc.area;
                 msg0.command           = 9;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
                 state->field_68 = Gp_FindViewIndex(7);
@@ -2459,8 +2459,8 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             break;
 
         case 2:
-            msg2.context.loc.stage = gGameSession->at4.loc.stage;
-            msg2.context.loc.area  = gGameSession->at4.loc.area;
+            msg2.context.loc.stage = gGameSession->location.loc.stage;
+            msg2.context.loc.area  = gGameSession->location.loc.area;
             msg2.command           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg2, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
@@ -2484,7 +2484,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             }
             if (D_dryfield_water_tower_801876AA < D_dryfield_water_tower_801876A8) {
                 state->field_72++;
-                state->field_68 = gGameSession->at4.loc.view;
+                state->field_68 = gGameSession->location.loc.view;
                 func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
                 state->field_66 = 1;
                 state->field_58++;
@@ -2506,8 +2506,8 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 return 0;
             }
             if (state->field_66 != 2) {
-                msg4.context.loc.stage = gGameSession->at4.loc.stage;
-                msg4.context.loc.area  = gGameSession->at4.loc.area;
+                msg4.context.loc.stage = gGameSession->location.loc.stage;
+                msg4.context.loc.area  = gGameSession->location.loc.area;
                 msg4.command           = 3;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg4, ACTOR_COMMAND_MESSAGE_APPLY);
             }
@@ -2532,8 +2532,8 @@ static inline u16 _dryfieldWaterTowerState7Step(Task* arg0)
 
     switch (work->field_58) {
         case 0:
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             work->field_58++;
@@ -2582,7 +2582,7 @@ static inline u16 _dryfieldWaterTowerState8Step(Task* arg0)
 }
 
 /// The cap script, the task entry 0 of `D_dryfield_water_tower_80182384`
-/// runs. It does nothing while the session's `field_65` or `Gp_StateC08.field_9` is set
+/// runs. It does nothing while the session's `sceneUpdatesPaused` or `Gp_StateC08.field_9` is set
 /// or `Player_Status.hp` is zero. State 0 allocates the 0x7C-byte
 /// `DryfieldWaterTowerState`, publishes the task and its message table, and
 /// restores the room's three pairs of script-table blocks; state 1 spawns
@@ -2618,7 +2618,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
     GpObj4A*                 p3;
     GpObj4A*                 p14;
 
-    if (gGameSession->field_65 != 0 || Gp_StateC08.field_9 != 0 || Player_Status.hp == 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Player_Status.hp == 0) {
         return;
     }
 
@@ -2735,7 +2735,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
         case 9:
             break;
     }
-    state->field_74 = gGameSession->at4.loc.view;
+    state->field_74 = gGameSession->location.loc.view;
     func_dryfield_water_tower_8017E93C(arg0);
 }
 
@@ -2822,8 +2822,8 @@ void func_dryfield_water_tower_8017F82C(void)
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
     if (state->field_76 == 0) {
-        gGameSession->flowFlags |= 0x80;
-        gGameSession->flowFlags &= 0xBF;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
+        gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON);
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 1);
         state->field_76 = 1;
     }
@@ -3019,7 +3019,7 @@ static void func_dryfield_water_tower_8017FBE8(Task* task)
 /// State 1 starts the room's cutscene pair and state 2 kills the task once the
 /// scene is over, exactly as the actors' `func_actor_560800_80135D54` pairs
 /// them; the task runs only while the session is not paused
-/// (`GameSession::field_65`) and no cutscene is active (`Gp_StateC08.field_9`,
+/// (`GameSession::sceneUpdatesPaused`) and no cutscene is active (`Gp_StateC08.field_9`,
 /// a signed byte), and every path that is not a kill ends in the room's
 /// per-frame body `func_dryfield_water_tower_8017FBE8`.
 void func_dryfield_water_tower_8017FD64(Task* task)
@@ -3030,7 +3030,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
     s32                  weaponId;
     s32                  anim;
 
-    if (gGameSession->field_65 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
     if ((s8)Gp_StateC08.field_9 != 0) {
@@ -3057,9 +3057,9 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 Mem_Set(work, 0, 0x18);
                 work->field_0                   = gameGetPtrSlot(3);
                 D_dryfield_water_tower_801876AC = task;
-                id                              = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
+                id                              = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                   = Gp_FindWorkById(id)->field_0;
-                id                              = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
+                id                              = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
                 work->field_8                   = Gp_FindWorkById(id)->field_0;
             }
             task->state++;
@@ -3196,8 +3196,8 @@ void func_dryfield_water_tower_80180194(void)
 
     if (work->field_14 == 0) {
         Gp_ArmStateF0(1);
-        msg.context.loc.stage = gGameSession->at4.loc.stage;
-        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.context.loc.stage = gGameSession->location.loc.stage;
+        msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_14 = 1;
@@ -3232,7 +3232,7 @@ void func_dryfield_water_tower_801802D8(u8 arg0)
     GameLocationKey* sess;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     if (sess->stage == 2) {
         batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][18].field_4;
         if (!(arg0 & 0xFF)) {

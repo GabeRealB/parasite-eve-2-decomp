@@ -1421,7 +1421,7 @@ void func_actor_450200_80132538(Task* task)
     s32  state;
     s32  level;
 
-    if (gGameSession->at4.loc.view == 8) {
+    if (gGameSession->location.loc.view == 8) {
         taskKill(task);
         return;
     }
@@ -1471,6 +1471,6 @@ void func_actor_450200_80132880(s32 arg0)
 
 void func_actor_450200_801328A0(u8 arg0)
 {
-    gGameSession->at4.loc.room        = arg0;
+    gGameSession->location.loc.room   = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
 }

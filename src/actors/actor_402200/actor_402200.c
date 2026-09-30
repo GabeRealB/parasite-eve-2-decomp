@@ -2062,7 +2062,7 @@ static void func_actor_402200_8013314C(Task* arg0)
                 work->field_6CE                       = 7;
                 work->field_6D4                       = 0;
                 gGameSession->deathRestartDelay       = 0x5A;
-                gGameSession->areaBgmCountdown        = 0x7F;
+                gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
                 sc->in.vy                             = -0x96;
                 sc->in.vx                             = 0;
                 sc->in.vz                             = 0xC8;
@@ -3601,7 +3601,7 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
             arg0->recs       = work->field_49C;
             arg0->hp         = D_actor_402200_80153BFC.hpMax;
             for (i = 0; D_actor_402200_80153C78[i].field_0 != 0; i++) {
-                if (gGameSession->at4.loc.stage == D_actor_402200_80153C78[i].field_2 && gGameSession->at4.loc.area == D_actor_402200_80153C78[i].field_4) {
+                if (gGameSession->location.loc.stage == D_actor_402200_80153C78[i].field_2 && gGameSession->location.loc.area == D_actor_402200_80153C78[i].field_4) {
                     work->field_6B4 = D_actor_402200_80153FA8[D_actor_402200_80153C78[i].field_0];
                     work->field_6FA = D_actor_402200_80153C78[i].field_6;
                 }
@@ -3609,9 +3609,9 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
             work->field_6CC = 0xB;
             (Gp_IncStateF0Ref)(0);
             work->field_716 = 0x16;
-            cues            = D_actor_402200_80154144[gGameSession->at4.loc.stage];
+            cues            = D_actor_402200_80154144[gGameSession->location.loc.stage];
             if (cues != NULL) {
-                work->field_712 = cues[gGameSession->at4.loc.area];
+                work->field_712 = cues[gGameSession->location.loc.area];
             }
             if (work->field_712 != 0) {
                 param1[3] = 0;

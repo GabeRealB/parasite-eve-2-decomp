@@ -2026,7 +2026,7 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// starts the streamed scene named by the two blocks `func_800E8634` takes,
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
-/// message (`gGameSession->field_126`), and state 7 -- reached once the save
+/// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
 /// has not already banked this clear (`Mc_SaveData[0].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
@@ -2056,7 +2056,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             task->state += 1;
             return;
         case 6:
-            if (gGameSession->field_126 == 0) {
+            if (gGameSession->battleResetPending == 0) {
                 return;
             }
         advance:
@@ -2154,7 +2154,7 @@ s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, TaskMessageA
 /// `room`, returning 0 when the message was consumed and 1 when it was not.
 ///
 /// The copy is the `RoomEventMsg` assignment; the rest is two independent id
-/// checks. While the session is in the room (`gGameSession->at4.loc.stage` is 2), a
+/// checks. While the session is in the room (`gGameSession->location.loc.stage` is 2), a
 /// type-7 record with no sub-id answers 1, or the session's own value when flag
 /// nibble 0x3C is set. A type-7 record in play (`Gp_StateF0.prefix.bytes.field_0` is 1) runs
 /// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
@@ -2164,7 +2164,7 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     u8 s1;
 
     *out = *in;
-    s1   = gGameSession->at4.loc.stage;
+    s1   = gGameSession->location.loc.stage;
     if (s1 == 2) {
         if (in->areaId == 7) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -2397,7 +2397,7 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     D_dryfield_dilapidated_house_80189C94.state = 2;
     D_dryfield_dilapidated_house_80189B7C =
         Task_SpawnFromTable(D_dryfield_dilapidated_house_80183EB4, 2, 0, 0);
-    gGameSession->flowFlags = 0x83;
+    gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     arg0->state            += 1;
 }
 
@@ -4104,7 +4104,7 @@ void func_dryfield_dilapidated_house_80183BF8(Task* arg0)
     GfxCoord* coord;
     s32       mask;
 
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     coord = arg0->extra.coordBody->coord;
     if (mask & 0x84A9C) {
         func_dryfield_dilapidated_house_801815E8(coord, 0);

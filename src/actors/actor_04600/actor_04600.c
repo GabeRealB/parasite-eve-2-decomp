@@ -1468,7 +1468,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
     word = request->command & 0xFF;
     if ((word & 0xFF) == 1) {
         if ((u32)(arg0->state - 1) >= 2U) {
-            if (gGameSession->at4.loc.area == 0x27) {
+            if (gGameSession->location.loc.area == 0x27) {
                 rot.vx            = 0;
                 rot.vy            = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
                 rot.vz            = 0;
@@ -1478,7 +1478,7 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
                 sound             = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
-            } else if (gGameSession->at4.loc.area == 0x28) {
+            } else if (gGameSession->location.loc.area == 0x28) {
                 rot.vx            = 0;
                 rot.vy            = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
                 rot.vz            = 0;

@@ -2541,7 +2541,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
     blackout = 0;
     switch (task->state) {
         case 0:
-            gGameSession->flowFlags = 3;
+            gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             func_800E8634(D_acropolis_cafeteria_80182E74, 1, D_acropolis_cafeteria_801831BC);
             task->state += 1;
             break;
@@ -2551,10 +2551,10 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
         case 2:
-            blackout                   = 1;
-            gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->roomObjsDirty                                    = 1;
-            task->state                                                   += 1;
+            blackout                        = 1;
+            gGameSession->location.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
+            gGameSession->roomObjsDirty                                         = 1;
+            task->state                                                        += 1;
             break;
         case 3:
             blackout = 1;
@@ -2629,7 +2629,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 21:
             Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0xA);
-            gGameSession->flowFlags        |= 0x80;
+            gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             Gp_StateF0.prefix.bytes.field_1 = 3;
             D_acropolis_cafeteria_80184164  = 2;
             task->state                    += 1;

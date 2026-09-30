@@ -653,7 +653,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
 
 /// Per-frame effect on the room's coordinate task: recomputes the task's composed
 /// matrix and then draws the room geometry. The current visit is the stage-visit byte
-/// `gGameSession->at4.loc.view` taken as a bit index, and each pose is gated on that
+/// `gGameSession->location.loc.view` taken as a bit index, and each pose is gated on that
 /// bit being one of a fixed set of visits.
 void func_dryfield_night_warehouse_8017E778(Task* arg0)
 {
@@ -661,7 +661,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     s32       mask;
 
     coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x24C) {
         func_dryfield_night_warehouse_8017D6B4(coord, 8);

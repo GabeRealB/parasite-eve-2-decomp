@@ -1043,7 +1043,7 @@ static void Gp_StartStageLoad(Task* task)
         } while ((u8)i < 0x32);
 
         fileId = 0xA;
-        if (gGameSession->restartMode != 0xFF) {
+        if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {
             param1[2] = 4;
             param1[0] = 0x62;
             param1[3] = 0;
@@ -1064,7 +1064,7 @@ static void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-        if (gGameSession->restartMode == 0xFF) {
+        if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             taskKill(task);
         } else {
@@ -3660,7 +3660,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4[arg0 >> 4];
+    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].field_4[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;
@@ -3708,7 +3708,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 
 /// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.at4.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
-/// `Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4` is non-zero, spawns that
+/// `Gp_Bit2Banks[gGameSession->location.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).
 
 /// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon

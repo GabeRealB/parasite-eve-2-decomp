@@ -1956,7 +1956,7 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
     task  = gameGetPtrSlot(3);
     actor = (GameActor*)task->work;
     coord = task->extra.tmd->coords;
-    if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (gGameSession->at4.loc.room >= 7) &&
+    if ((actor->field_954 != 2) && (Gp_CapBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
         (coord->coord.t[0] < -0x1266)) {
         z = coord->coord.t[2];
         if (z < 0x7D0) {
@@ -1995,17 +1995,17 @@ static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
 /// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
 s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, TaskMessageArg arg3)
 {
-    if (msg->warp == 1 && gGameSession->at4.loc.variant == 0x15) {
+    if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
         func_80131E38();
     }
     if (msg->warp == 0xA) {
-        if ((u8)msg->room == 1 && gGameSession->at4.loc.room < 7) {
+        if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) {
             Gp_StartCapSlot(0xA, 1, 0);
             GameFlag_SetNibble(0x1B4, 2);
         }
     }
     if (msg->warp == 0xB) {
-        switch (gGameSession->at4.loc.room) {
+        switch (gGameSession->location.loc.room) {
             case 2:
                 Gp_RunCapCmd1(8);
                 break;
@@ -2028,7 +2028,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
         }
     }
     if (msg->warp == 0xC) {
-        switch (gGameSession->at4.loc.room) {
+        switch (gGameSession->location.loc.room) {
             case 6:
                 Gp_StartCapSlot(0xB, 1, 0);
                 break;
@@ -2057,7 +2057,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
 
     switch (arg2) {
         case 1:
-            if (gGameSession->at4.loc.room < 6) {
+            if (gGameSession->location.loc.room < 6) {
                 if (GameFlag_GetNibble(0xC7) == 0) {
                     Gp_RunCapCmd1(1);
                 } else if (GameFlag_GetNibble(0xE7) == 0) {
@@ -2078,7 +2078,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             }
             break;
         case 7:
-            switch (gGameSession->at4.loc.room) {
+            switch (gGameSession->location.loc.room) {
                 case 1:
                     Gp_RunCapCmd1(7);
                     break;
@@ -2099,7 +2099,7 @@ s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2
             }
             break;
         case 4:
-            switch (gGameSession->at4.loc.room) {
+            switch (gGameSession->location.loc.room) {
                 case 1:
                 case 2:
                 case 3:
@@ -2229,7 +2229,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
 }
 
 /// Keeps the room's looping ambience in step with the area the session is in:
-/// `gGameSession->at4.loc.view` selects an entry of the ambience table, and
+/// `gGameSession->location.loc.view` selects an entry of the ambience table, and
 /// state 0 starts the loop with `SndEvt_EnqueueType6`. Once
 /// `D_shelter_b1_underground_parking_8018D758` is clear, state 1 queues a
 /// `SndEvt_EnqueueType7` event for the loop and ends the task; otherwise it waits for the session's view to stop matching `Mc_SaveData[0].state.at4.loc.view`,
@@ -2241,7 +2241,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
     s32 vol;
     u8  idx;
 
-    idx = gGameSession->at4.loc.view;
+    idx = gGameSession->location.loc.view;
     if (idx < 9) {
         pan = D_shelter_b1_underground_parking_8018761C[idx].pan;
         vol = D_shelter_b1_underground_parking_8018761C[idx].vol / 2;
@@ -2262,7 +2262,7 @@ void func_shelter_b1_underground_parking_80182FC8(Task* task)
                 taskKill(task);
                 break;
             }
-            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;
@@ -2381,7 +2381,7 @@ s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2,
     s32      found;
 
     if (arg2 == 0x121 || arg2 == 0x122) {
-        if (gGameSession->at4.loc.room == 6) {
+        if (gGameSession->location.loc.room == 6) {
             node = Gp_PendingObj4C;
             while (node != NULL) {
                 if (node->field_46 == 5 && node->field_48 == 0xFF && node->field_4B != 0) {
@@ -2479,7 +2479,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
             return;
         case 1:
             if (Gp_GetCapEventKey() == 0xB) {
-                gGameSession->at4.loc.room        = 6;
+                gGameSession->location.loc.room   = 6;
                 Mc_SaveData[0].state.at4.loc.room = 6;
                 gGameSession->roomObjsDirty       = state;
                 func_800E8614(D_shelter_b1_underground_parking_801872D8, 1);
@@ -2541,7 +2541,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
 
 void func_shelter_b1_underground_parking_801837D8(u8 arg0)
 {
-    gGameSession->at4.loc.room        = arg0;
+    gGameSession->location.loc.room   = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
     gGameSession->roomObjsDirty       = 1;
     gGameSession->viewDirty           = 1;
@@ -2558,7 +2558,7 @@ static void func_shelter_b1_underground_parking_80183810(Task* arg0)
     arg0->msgTable = D_shelter_b1_underground_parking_80187230;
     Game_SetPtrSlot(arg0, 7);
     func_shelter_b1_underground_parking_801848A4();
-    if (gGameSession->at4.loc.variant == 0x15) {
+    if (gGameSession->location.loc.variant == 0x15) {
         Gp_MsgSlot4Chain(0, 1);
     }
     if ((GameFlag_GetNibble(0x7A) >= 6) && (GameFlag_GetNibble(0x123) == 0)) {
@@ -2969,7 +2969,7 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
         if (work->field_C == 0x10) {
             SndEvt_EnqueueType6(0x54140004, 0, 0);
             if (D_shelter_b1_underground_parking_8018D788 != D_shelter_b1_underground_parking_8018D789) {
-                if (gGameSession->at4.loc.room == 1) {
+                if (gGameSession->location.loc.room == 1) {
                     SndEvt_EnqueueType6(0x54140006, 0, 0);
                 } else {
                     SndEvt_EnqueueType6(0x54140005, 0, 0);
@@ -3073,7 +3073,7 @@ static void func_shelter_b1_underground_parking_801848BC(Task* task)
 static void func_shelter_b1_underground_parking_8018491C(void)
 {
     Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
-    gGameSession->at4.loc.room        = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
+    gGameSession->location.loc.room   = D_shelter_b1_underground_parking_801876C4[D_shelter_b1_underground_parking_8018D788 & 0xF];
     gGameSession->roomObjsDirty       = 1;
 }
 

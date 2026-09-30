@@ -68,7 +68,7 @@ typedef struct _GpRoomParamRec {
 STATIC_ASSERT_SIZEOF(GpRoomParamRec, 8);
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
-/// Indexed 1-based by `GameSession.at4.loc.room` / `GameLocationKey.room`.
+/// Indexed 1-based by `GameSession.location.loc.room` / `GameLocationKey.room`.
 /// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&gGfxViewCoord` and
 /// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpRoomObjRec {
@@ -80,7 +80,7 @@ typedef struct _GpRoomObjRec {
 STATIC_ASSERT_SIZEOF(GpRoomObjRec, 0x10);
 
 /// Per-stage wrapper. `field_0` is an array of `GpRoomObjRec*`, indexed
-/// 1-based by `GameSession.at4.loc.area` / `GameLocationKey.area`.
+/// 1-based by `GameSession.location.loc.area` / `GameLocationKey.area`.
 typedef struct _GpRoomObjTbl {
     /* 0x0 */ GpRoomObjRec** field_0;
 } GpRoomObjTbl;

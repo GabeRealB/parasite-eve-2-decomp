@@ -66,7 +66,7 @@ void Gp_AreaEnterTask(Task* arg0)
 
     if (arg0->state == 0) {
         work = arg0->spawnArg2.pointer;
-        key  = GAME_LOCATION_WORD(gGameSession->at4.loc);
+        key  = GAME_LOCATION_WORD(gGameSession->location.loc);
         key &= GAME_LOCATION_STAGE_AREA_MASK;
         Stage_InitPrimBufOnce();
         for (i = 0; i < 2; i++) {
@@ -84,10 +84,10 @@ void Gp_AreaEnterTask(Task* arg0)
             if (arg0->spawnArg1.value == 0) {
                 work->field_4 = 0;
                 work->field_0 = 0;
-                Gp_SetAreaFlag2(1, &gGameSession->at4.loc);
-                gGameSession->field_126 = 1;
+                Gp_SetAreaFlag2(1, &gGameSession->location.loc);
+                gGameSession->battleResetPending = 1;
                 if (!((key == GAME_LOCATION_KEY(5, 11, 0, 0) || key == GAME_LOCATION_KEY(5, 29, 0, 0)) &&
-                      gGameSession->at4.loc.variant - 1 < 3U)) {
+                      gGameSession->location.loc.variant - 1 < 3U)) {
                     if (Mc_SaveData[0].state.field_6CC < 0x270FU) {
                         Mc_SaveData[0].state.field_6CC++;
                     }
@@ -112,12 +112,12 @@ void Gp_AreaEnterTask(Task* arg0)
         arg0->state++;
     } else if (arg0->state == 1) {
         session = gGameSession;
-        if (!(session->flowFlags & 2)) {
+        if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
             session->viewReady     = 1;
             pair                   = &gStageMusicParams;
             pair->fadeFrames       = 0;
             pair->unusedCommandArg = 0;
-            if (!(gGameSession->flowFlags & 8)) {
+            if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY)) {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
             } else {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);

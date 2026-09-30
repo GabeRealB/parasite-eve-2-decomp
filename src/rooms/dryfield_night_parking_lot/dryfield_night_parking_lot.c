@@ -281,7 +281,7 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, Tas
 /// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
 s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
-    if ((request->actionId == 1) && (gGameSession->at4.loc.variant == 3) && (GameFlag_GetNibble(0x79) == 0)) {
+    if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(0x79) == 0)) {
         GameFlag_SetNibble(0x79, 1);
         Gp_MsgPlayerWeapon(0);
         func_800E8614(D_dryfield_night_parking_lot_8017ECB4, 1);
@@ -305,7 +305,7 @@ static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
 {
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     Game_SetPtrSlot(task, 7);
-    if ((gGameSession->at4.loc.variant == 3) && (GameFlag_GetNibble(0x79) != 0)) {
+    if ((gGameSession->location.loc.variant == 3) && (GameFlag_GetNibble(0x79) != 0)) {
         Gp_StateF0.field_1C = 2;
     }
     task->state = (s32)(task->state + 1);

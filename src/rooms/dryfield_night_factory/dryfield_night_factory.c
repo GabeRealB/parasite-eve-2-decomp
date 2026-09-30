@@ -280,7 +280,7 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
     coord->coord.t[2] = 0x1AAE;
     func_dryfield_night_factory_8017FB68(task);
     func_dryfield_night_factory_8017D858(task, 1, 0);
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         Task_SpawnFromTable(D_dryfield_factory_80186E28, 7, 0, task);
     } else {
         Task_SpawnFromTable(D_dryfield_night_factory_80186DE0, 7, 0, task);
@@ -314,7 +314,7 @@ static void func_dryfield_night_factory_8017D858(Task* task, s32 remapFaces, s32
     s32           j;
 
     coord = task->extra.tmd->coords;
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         geom = &D_dryfield_factory_80187BF8;
     } else {
         geom = &D_dryfield_night_factory_80187BF0;
@@ -376,7 +376,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
             work->field_16++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -401,7 +401,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
             work->field_10.value += work->field_8;
             if (work->field_10.value <= 0x4000000) {
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -419,7 +419,7 @@ static s32 func_dryfield_night_factory_8017DA54(Task* task)
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -456,7 +456,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
             work->field_16++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -481,7 +481,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
             work->field_10.value += work->field_8;
             if (work->field_10.value >= 0) {
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -499,7 +499,7 @@ static s32 func_dryfield_night_factory_8017DDD4(Task* task)
 
     if ((u8)(work->field_16 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -535,7 +535,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
             work->field_17++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x52170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x53170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -560,7 +560,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
             work->field_C.value += work->field_4;
             if (work->field_C.value >= -0x23A0000) {
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -577,7 +577,7 @@ static s32 func_dryfield_night_factory_8017E13C(Task* task)
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -607,7 +607,7 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
             work->field_17++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x52170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x53170008, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -632,7 +632,7 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
             work->field_C.value += work->field_4;
             if (work->field_C.value <= 0) {
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x52170008, 1);
                     Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -649,7 +649,7 @@ static s32 func_dryfield_night_factory_8017E480(Task* task)
 
     if ((u8)(work->field_17 - 1) < 3 && Pad_CheckButtons(0, 1, 0x800) != 0 && (s16)work->field_14 >= 0xB) {
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x52170008, 1);
             Gp_EnqueueStageSnd6(0x52170010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -678,7 +678,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
             work->field_16++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -692,7 +692,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value > 0x800000) {
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
@@ -713,7 +713,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0;
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -733,7 +733,7 @@ static s32 func_dryfield_night_factory_8017E7A4(Task* task)
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0;
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -769,7 +769,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
             work->field_16++;
             break;
         case 1:
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
                 Gp_EnqueueStageSnd6(0x5317000F, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
@@ -783,7 +783,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
             }
             work->field_10.value += work->field_8;
             if (work->field_10.value < 0x3800000) {
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x52170012, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     Gp_SpawnScript18(D_dryfield_factory_8018A39C, D_dryfield_factory_8018A3A8);
                 } else {
@@ -804,7 +804,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
                 GameFlag_SetNibble(0x49, work->field_0);
                 work->field_10.value = 0x4000000;
                 func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd7(0x5217000F, 1);
                     Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
@@ -824,7 +824,7 @@ static s32 func_dryfield_night_factory_8017EBD4(Task* task)
         GameFlag_SetNibble(0x49, work->field_0);
         work->field_10.value = 0x4000000;
         func_dryfield_night_factory_8017FBC8(*(Task**)task->spawnArg2.pointer);
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             Gp_EnqueueStageSnd7(0x5217000F, 1);
             Gp_EnqueueStageSnd6(0x52170011, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         } else {
@@ -858,7 +858,7 @@ static s32 func_dryfield_night_factory_8017F00C(Task* task)
     switch (work->step) {
         case 0:
             work->field_0 = 0;
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 Gp_EnqueueStageSnd6(0x5217000D, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else {
@@ -925,7 +925,7 @@ static s32 func_dryfield_night_factory_8017F1DC(Task* task)
             }
             work->field_4.value += work->field_0;
             if (work->field_4.value > 0) {
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x5217000E, (s8)Gp_GetObjPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 } else {
@@ -965,7 +965,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
             goto advance;
         case 1:
             if (GameFlag_GetNibble(0x48) <= 0) {
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     func_dryfield_factory_80181B38(0);
                 } else {
                     func_dryfield_night_factory_80181B38(0);
@@ -983,7 +983,7 @@ void func_dryfield_night_factory_8017F330(Task* task)
             if (Gp_GetCapEventKey() == 3) {
                 GameFlag_SetNibble(0x48, 1);
                 GameFlag_SetNibble(0x4A, 1);
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     func_dryfield_factory_80181B38(1);
                     func_dryfield_factory_80181620(1);
                 } else {
@@ -1038,7 +1038,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
         case 2:
             if (Gp_GetCapEventKey() == 1) {
                 task->killCountdown = 0;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     Gp_EnqueueStageSnd6(0x5217000C, 0, 0);
                 }
                 goto advance;
@@ -1054,7 +1054,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
         case 4:
             gGameSession->viewDirty = 1;
             GameFlag_SetNibble(0x47, 1);
-            fade = gGameSession->at4.loc.stage;
+            fade = gGameSession->location.loc.stage;
             if (fade == 2) {
                 Gp_EnqueueStageSnd6(0x5217000B, 0, 0);
             }
@@ -1062,7 +1062,7 @@ void func_dryfield_night_factory_8017F4F4(Task* task)
             goto advance;
         case 5:
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room        = 2;
+            gGameSession->location.loc.room   = 2;
             gGameSession->roomObjsDirty       = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
@@ -1101,7 +1101,7 @@ void func_dryfield_night_factory_8017F734(Task* task)
     GpGridParams* geom;
     s32           i;
 
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         geom = &D_dryfield_factory_80187BF8;
     } else {
         geom = &D_dryfield_night_factory_80187BF0;

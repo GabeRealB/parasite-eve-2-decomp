@@ -278,7 +278,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
         if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
             slot = obj->context.capsule->recs;
             if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-                if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                       [Gp_GridParams->field_C[i].surfaceClass]
                                           ->field_1 == 0) {
                     slot->distance        = 0;
@@ -486,7 +486,7 @@ s32 func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3)
         if (D_80115450[i] == 0) {
             continue;
         }
-        if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
+        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                               [Gp_GridParams->field_C[i].surfaceClass]
                                   ->field_1 != 0) {
             continue;

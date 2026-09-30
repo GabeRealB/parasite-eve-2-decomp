@@ -221,7 +221,7 @@ void func_mist_parking_801837B8(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            key = gGameSession->at4;
+            key = gGameSession->location;
             if (task->spawnArg1.value != 0) {
                 key.loc.view = 0x65;
             } else {

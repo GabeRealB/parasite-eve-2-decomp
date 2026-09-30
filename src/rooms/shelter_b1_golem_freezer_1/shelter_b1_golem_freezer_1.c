@@ -376,7 +376,7 @@ s32 func_shelter_b1_golem_freezer_1_8017D61C(Task* task, s32 msgId, TaskMessageA
 /// and the session's place is 0x15, calls `func_80131E70`. Always answers 0.
 s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, TaskMessageArg arg3)
 {
-    if (msg->warp == 1 && gGameSession->at4.loc.variant == 0x15) {
+    if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
         func_80131E70();
     }
     return 0;
@@ -390,7 +390,7 @@ static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 0x15) {
+    if (gGameSession->location.loc.variant == 0x15) {
         func_80131E24();
     }
     func_shelter_b1_golem_freezer_1_8017D744(0);
@@ -430,7 +430,7 @@ static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
         task = gameGetPtrSlot(3);
     }
     if (slot != NULL) {
-        if (gGameSession->at4.loc.variant == 0x15) {
+        if (gGameSession->location.loc.variant == 0x15) {
             D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0;
         } else {
             D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0x2710;

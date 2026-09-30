@@ -680,7 +680,7 @@ static void func_neo_ark_pyramid_8017DB18(Task* task)
 /// angle while the session's view is 8.
 static void func_neo_ark_pyramid_8017DB5C(Task* task)
 {
-    if (gGameSession->at4.loc.view == 8) {
+    if (gGameSession->location.loc.view == 8) {
         func_neo_ark_pyramid_8017D7F4(D_neo_ark_pyramid_801818A4);
     }
 }

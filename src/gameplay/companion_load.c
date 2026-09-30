@@ -206,7 +206,7 @@ void Gp_ApplyNpcRoomSnd(void)
 
     save  = &Mc_SaveData[0];
     stage = save->state.at4.loc.stage;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
         bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
         if (bytes != NULL) {
             if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
@@ -357,7 +357,7 @@ void Gp_LoadFinishTask(Task* task)
         Gpu_ClearOTag(1);
         Pad_RemapState->field_3 = 0;
         taskKill(task);
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             func_800AA548(1);
         } else {
             func_800AA548(0);
@@ -366,7 +366,7 @@ void Gp_LoadFinishTask(Task* task)
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         Display_AcquireRef();
         Task_Spawn(0, 0x21, 0, 0);
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Task_SpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
             CdCmd_SetupMdecBuffers();
             CdCmd_SelectMdecBuffer();
@@ -462,7 +462,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
     s32              i;
     Task*            spawned;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     recs = Gp_RoomObjTables[sess->stage - 1]->field_0[sess->area - 1];
     if (recs != NULL) {
         grid  = recs[sess->room - 1].field_0;

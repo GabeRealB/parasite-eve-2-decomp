@@ -210,7 +210,7 @@ static void Reflection_UpdatePlayer(Task* task)
             work->coord.coord.m[1][2] = plane->viewRow.vz;
             if (stage == 5) {
                 if (area == 7) {
-                    if (view >= 6 && view < 12 && gGameSession->at4.loc.room == 2) {
+                    if (view >= 6 && view < 12 && gGameSession->location.loc.room == 2) {
                         work->coord.coord.t[1] += 0x9B;
                         extra->flags           &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         work->field_8           = 0;
@@ -506,7 +506,7 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 
     extra->flags = work->field_C;
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->field_65 == 0) {
+    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && gGameSession->sceneUpdatesPaused == 0) {
         parts   = task->extra.tmd->coords;
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];

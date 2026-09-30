@@ -714,15 +714,15 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
     if (in->areaId == 0x20) {
         if (GameFlag_GetNibble(0x3A) != 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gGameSession->at4.loc.stage == 2) {
-                    if (gGameSession->at4.loc.variant == 1) {
+                if (gGameSession->location.loc.stage == 2) {
+                    if (gGameSession->location.loc.variant == 1) {
                         if (GameFlag_GetNibble(0x50) == 0) {
                             Task_SpawnFromTable(D_dryfield_driveway_8017E2FC, 1, 0, 0);
                             return 0;
                         }
                     }
                 }
-                if (gGameSession->at4.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant) {
+                if (gGameSession->location.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant) {
                     return 0;
                 }
                 Gp_RunCapCmd1(1);
@@ -809,7 +809,7 @@ void func_dryfield_driveway_8017DB68(Task* arg0)
             /* fallthrough */
         case 3:
             if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4(&gGameSession->at4.loc);
+                Gp_ClearAreaFlag4(&gGameSession->location.loc);
                 taskKill(arg0);
             }
             return;
@@ -874,9 +874,9 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             if (found != 0) {
                 GameFlag_SetNibble(0x3A, 2);
                 Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
-                gGameSession->at4.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
-                gGameSession->hideHud      = 1;
-                gGameSession->eventState   = 1;
+                gGameSession->location.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
+                gGameSession->hideHud           = 1;
+                gGameSession->eventState        = 1;
                 return 1;
             }
         }

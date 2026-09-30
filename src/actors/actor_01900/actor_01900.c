@@ -1950,7 +1950,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor01900_HasHeightClamp(&gGameSession->at4.loc)) {
+        if (Actor01900_HasHeightClamp(&gGameSession->location.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x180) {
                 s->step.vy = (vy <= 0) ? -0x180 : 0x180;
@@ -1988,8 +1988,8 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
             }
         }
     }
-    if (Actor01900_HasHeightClamp(&gGameSession->at4.loc)) {
-        Actor01900_Fn03C04(&gGameSession->at4.loc, coord);
+    if (Actor01900_HasHeightClamp(&gGameSession->location.loc)) {
+        Actor01900_Fn03C04(&gGameSession->location.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2679,7 +2679,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     }
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
-        (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
+        (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         sound       = 0x51090009;
         if ((u16)((Gp_LcgState >> 16) % 3) == 0) {
@@ -2702,7 +2702,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->field_8B8.coord      = arg0->extra.tmd->coords + 1;
         work->field_8B8.spawnArgLo = 0x200;
         work->field_8B8.spawnArgHi = 2;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 3, 0, 0) || (u8)Gp_GetViewIndex() != 0x10) {
             func_800FDB18((u16)Gp_GetIdParam1(0x1001), arg0->extra.tmd->coords + 5, NULL, &work->field_8B8);
         }
     }

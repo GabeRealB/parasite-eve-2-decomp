@@ -827,7 +827,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
             return;
     }
 
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 8:
             vol = 0x64;
             if (Mc_SaveData[0].state.sceneEvent == 5) {
@@ -928,7 +928,7 @@ static void func_acropolis_fire_escape_8017FE50(Task* task)
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
     if (Mc_SaveData[0].state.sceneEvent == 5) {
-        gGameSession->flowFlags = 8;
+        gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
     task->state = task->state + 1;
 }
@@ -980,25 +980,25 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
             break;
         case 1:
             if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                if (gGameSession->at4.loc.view == 3) {
+                if (gGameSession->location.loc.view == 3) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
                     Gp_SpawnEff(0x6004F, coord, 0x60E, &work->move);
                 }
-                if (gGameSession->at4.loc.view == 8) {
+                if (gGameSession->location.loc.view == 8) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
                     Gp_SpawnEff(0x6004F, coord, 0x8000030E, &work->move);
                 }
-                if (gGameSession->at4.loc.view == 6) {
+                if (gGameSession->location.loc.view == 6) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
                     Gp_SpawnEff(0x6004F, coord, 0x10408, &work->move);
                 }
-                if (gGameSession->at4.loc.view == 9) {
+                if (gGameSession->location.loc.view == 9) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
@@ -1035,7 +1035,7 @@ void func_acropolis_fire_escape_80180154(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     play  = 0;
-    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x46 >> (gGameSession->at4.loc.view - 1)) & 1)) {
+    if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((0x46 >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         block         = SCRATCH_PUSH(AcropolisFireEscapeGlowScratch);
         block->vec.vx = coord->workm.t[0];

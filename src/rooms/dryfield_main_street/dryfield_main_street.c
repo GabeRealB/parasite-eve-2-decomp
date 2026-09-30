@@ -1164,7 +1164,7 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
 
     *out = *msg;
     if (msg->areaId == 0x19) {
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
                     out->room = 2;
@@ -1427,7 +1427,7 @@ void func_dryfield_main_street_8017E1C0(Task* task)
 
     player = gameGetPtrSlot(3);
     actor  = (GameActor*)player->work;
-    work   = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
+    work   = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
     if ((work != NULL) && (gGameSession->eventState != 0)) {
         self      = player->extra.tmd->coords;
         target    = &(work->field_0)->extra.tmd->coords[1];
@@ -1515,7 +1515,7 @@ void func_dryfield_main_street_8017E3A8(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8));
+            work = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
             func_800B0928(gameGetPtrSlot(3), work->field_0, 0x300, 0x200, task->killCountdown);
         } else {
             taskKill(task);

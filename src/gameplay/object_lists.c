@@ -866,7 +866,7 @@ void Gp_LoadRoomParams(void)
     }
 
     session = gGameSession;
-    recs    = Gp_RoomParamTables[session->at4.loc.stage - 1][session->at4.loc.area - 1];
+    recs    = Gp_RoomParamTables[session->location.loc.stage - 1][session->location.loc.area - 1];
     for (i = 0; i < 8; i++) {
         Gp_RoomParams[i] = recs[i]->field_3;
     }
@@ -967,7 +967,7 @@ void Gp_CommitObj4CSave(void)
     for (node = Gp_Obj4CList; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
             node->field_4B = 0;
-            if (gGameSession->at4.loc.view == node->field_48) {
+            if (gGameSession->location.loc.view == node->field_48) {
                 Mc_SaveData[0].state.at4.loc.view = node->field_49;
             }
         }

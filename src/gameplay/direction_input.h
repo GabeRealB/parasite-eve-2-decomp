@@ -39,7 +39,7 @@ extern u16 Gp_DirFadeLevel;
 /// Dual area-id bitmask (1–32 / 33–64), rebuilt from the area bit-2 flags.
 extern s32 Gp_AreaIdBits[2];
 
-/// Per-stage signed counts, indexed by `GameSession.at4.loc.stage - 1`.
+/// Per-stage signed counts, indexed by `GameSession.location.loc.stage - 1`.
 /// `Gp_RebuildAreaIdBits` loops area ids `1..count` when the stage is 1–5.
 extern s8 Gp_AreaIdCounts[];
 

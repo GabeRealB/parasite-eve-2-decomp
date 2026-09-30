@@ -1566,7 +1566,7 @@ static void Actor02400_Fn02AF0(GpEnemy* arg0, Task* arg1)
             Actor02400_Fn00064(coord, 0x100);
             rec = work->field_90.key.value;
             if ((rec != 0) &&
-                (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1]
+                (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                    [func_800E1B24(rec)]
                                        ->field_1 == 0)) {
                 spawn = 1;

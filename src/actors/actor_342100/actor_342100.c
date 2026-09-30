@@ -145,7 +145,7 @@ extern AnimationSet* D_actor_342100_80164900[4];
 extern s16 D_actor_342100_80164910[];
 
 /// Placement tables the overlay's spawn task picks between by
-/// `gGameSession->at4.loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
+/// `gGameSession->location.loc.view`: 0x1D, 0x1E, 0x1F, 0x23 and 0x24 select the 0x80164930
 /// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
 /// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
 /// list of two to three placements -- the terminator is an all-zero entry -- and
@@ -798,7 +798,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     }
 }
 
-/// Spawn the encounter's effect tasks: `gGameSession->at4.loc.view` selects one of
+/// Spawn the encounter's effect tasks: `gGameSession->location.loc.view` selects one of
 /// the overlay's placement tables, and every entry in it rolls the LCG once,
 /// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
 /// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
@@ -808,7 +808,7 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// so a table is as many entries as it has non-zero `vx`s and a table whose
 /// first entry is zero spawns nothing.
 ///
-/// The table pointer is deliberately uninitialised: `gGameSession->at4.loc.view`
+/// The table pointer is deliberately uninitialised: `gGameSession->location.loc.view`
 /// values 0x20..0x22 -- and anything outside the jump table -- leave it holding
 /// whatever the caller left in `$s1`, which is the target's shape.
 ///
@@ -825,7 +825,7 @@ void func_actor_342100_80162C88(void)
     Task*       task;
     u32         rng;
 
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 29:
             pos = D_actor_342100_80164930;
             break;
@@ -983,7 +983,7 @@ void func_actor_342100_801630A4(Task* arg0)
     PlayerStatus*    cfg;
 
     work = (Actor342100Work*)arg0->work;
-    if (gGameSession->field_65 != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0 || D_80114CF8 != 0) {
         return;
     }
     switch (arg0->state) {
@@ -1002,11 +1002,11 @@ void func_actor_342100_801630A4(Task* arg0)
             }
             Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
             SndEvt_EnqueueType6(0x54270007, 0, 0);
-            switch ((u8)gGameSession->spawnPhase[0]) {
-                case 0:
+            switch (gGameSession->spawnPhase[0]) {
+                case GAME_SESSION_SPAWN_IDLE:
                     arg0->state++;
                     break;
-                case 1:
+                case GAME_SESSION_SPAWN_ARMED:
                     work->field_30 = Task_SpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
                 default:
                     arg0->state = 2;
@@ -1130,5 +1130,5 @@ void func_actor_342100_80163454(s32 arg0)
 void func_actor_342100_80163518(void)
 {
     Player_Status.hp          = 0;
-    gGameSession->restartMode = 3;
+    gGameSession->restartMode = GAME_SESSION_RESTART_PRESERVE_DISPLAY;
 }

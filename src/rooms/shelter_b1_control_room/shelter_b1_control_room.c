@@ -179,7 +179,7 @@ static void func_shelter_b1_control_room_8017D600(Task* task, _MirrorCfg* cfg)
     cfg->field_18    = 0;
     switch (stage) {
         case 5:
-            if (area == 7 && (u32)(view - 6) < 6 && gGameSession->at4.loc.room == 2) {
+            if (area == 7 && (u32)(view - 6) < 6 && gGameSession->location.loc.room == 2) {
                 cfg->offset.vy   = 0x9B;
                 cfg->active      = 1;
                 cfg->copyPending = 1;
@@ -649,7 +649,7 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
 {
     arg0->msgTable = D_shelter_b1_control_room_80181B94;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         func_80131FB8();
         if (Mc_SaveData[0].state.demoScene != 9) {
             func_800E8634(&D_80132D70, 0, &D_80133088);

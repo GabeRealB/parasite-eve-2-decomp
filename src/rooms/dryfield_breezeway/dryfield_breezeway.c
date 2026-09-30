@@ -794,8 +794,8 @@ static void func_dryfield_breezeway_8017DDB0(Task* task)
     task->msgTable = D_dryfield_breezeway_80181DE0;
     Game_SetPtrSlot(task, 7);
     if (GameFlag_GetNibble(0x5D) == 0) {
-        msg.context.loc.stage = gGameSession->at4.loc.stage;
-        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.context.loc.stage = gGameSession->location.loc.stage;
+        msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         Task_SpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);

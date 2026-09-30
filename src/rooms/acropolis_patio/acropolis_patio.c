@@ -122,7 +122,7 @@ extern GpEvsCmd                   D_acropolis_patio_80182BE4[];
 /// space. The first three double as the jitter centres for the mist burst.
 extern SVECTOR D_acropolis_patio_80182DDC[14];
 
-/// Per-anchor camera-view mask, one bit per 1-based `GameSession::at4.loc.view`
+/// Per-anchor camera-view mask, one bit per 1-based `GameSession::location.loc.view`
 /// view: anchor `i` only draws while the room is being seen from a view its
 /// mask names.
 extern u16 D_acropolis_patio_80182E4C[14];
@@ -1581,7 +1581,7 @@ u8 D_acropolis_patio_80187065;
 /// actors need for the current point in the story: the first visit
 /// (`GameFlag_GetNibble(0) < 2`) arms the two hotspots and spawns the arrival
 /// cutscene, and the second-visit branches replace them according to
-/// `gGameSession::at4.loc.variant`.
+/// `gGameSession::location.loc.variant`.
 static void func_acropolis_patio_8017D5EC(Task* arg0)
 {
     ActorCommand msg;
@@ -1601,13 +1601,13 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
             Gp_DispatchMsgPtr(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
+    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x21) < 2) && (GameFlag_GetNibble(0x21) < 2)) {
         temp = Gp_LookupSlot4(1);
         if (temp != 0) {
             Gp_DispatchMsgPtr(temp, 0x7DB, &D_acropolis_patio_80180440, 0);
         }
     }
-    if ((gGameSession->at4.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
+    if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0x26) == 0)) {
         msg.context.loc.stage = 1;
         msg.context.loc.area  = 3;
         msg.command           = 0;
@@ -1744,7 +1744,7 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
         GameFlag_SetNibble(0x21, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
         Mc_SaveData[0].state.sceneEvent = 3;
-        gGameSession->flowFlags         = 0xC1;
+        gGameSession->flowFlags         = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
@@ -1854,8 +1854,8 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->roomObjsDirty                                    = 1;
+    gGameSession->location.loc.room = Mc_SaveData[0].state.at4.loc.room = 2;
+    gGameSession->roomObjsDirty                                         = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {
@@ -2005,7 +2005,7 @@ void func_acropolis_patio_8017E324(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
@@ -2104,7 +2104,7 @@ void func_acropolis_patio_8017E730(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
         sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {

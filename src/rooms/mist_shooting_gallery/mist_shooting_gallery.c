@@ -1275,13 +1275,13 @@ void func_mist_shooting_gallery_8017E234(Task* task)
     Ui_DrawText(&(obj)->panel, "Result");
 
     if (task->state == 0) {
-        if (gGameSession->field_126 == 1) {
+        if (gGameSession->battleResetPending == 1) {
             Ui_SetState4(obj, obj->owner);
             obj->field_2E = 6;
             task->state   = 0x100;
             return;
         }
-        gGameSession->field_126 = 1;
+        gGameSession->battleResetPending = 1;
         Ui_UpdateLayoutSize(&(obj)->panel, 0, (rows * 0xB) + 0x21);
         obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
         task->state                      = task->state + 1;
@@ -1851,7 +1851,7 @@ void func_mist_shooting_gallery_8017FAE8(Task* task)
 }
 void func_mist_shooting_gallery_8017FBD8(void)
 {
-    if ((Mc_SaveData[0].state.clearCount > 0) && (gGameSession->at4.loc.warp == 7)) {
+    if ((Mc_SaveData[0].state.clearCount > 0) && (gGameSession->location.loc.warp == 7)) {
         Display_InitModeObj(&D_mist_shooting_gallery_801850D0, 0, 0, 0);
     }
 }
@@ -1871,13 +1871,13 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     func_mist_shooting_gallery_801801E4(var_a0);
     if (Mc_SaveData[0].state.demoScene == 7) {
         Task_SpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
-    } else if (gGameSession->at4.loc.warp == 7) {
+    } else if (gGameSession->location.loc.warp == 7) {
         Task_SpawnFromTable(&D_8014E13C, 0, 0, 0);
     }
-    if ((gGameSession->at4.loc.warp == 6) && (GameFlag_GetNibble(0xED) != 0)) {
+    if ((gGameSession->location.loc.warp == 6) && (GameFlag_GetNibble(0xED) != 0)) {
         Gp_RunCapCmd1(0x16);
     }
-    gGameSession->flowFlags = 2;
+    gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     arg0->state             = arg0->state + 1;
 }
 
@@ -1885,8 +1885,8 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
 {
     u8 temp_v1;
 
-    if ((gGameSession->at4.loc.variant == 1) && (gGameSession->eventState == 0)) {
-        temp_v1 = gGameSession->at4.loc.view;
+    if ((gGameSession->location.loc.variant == 1) && (gGameSession->eventState == 0)) {
+        temp_v1 = gGameSession->location.loc.view;
         if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
             Gp_MsgSlot4Chain(1, 0);
         } else if (GameFlag_GetNibble(0xED) == 0) {
@@ -2323,7 +2323,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
                 task->state  = 1;
                 task->status = 0xFF;
                 if (Gp_IsDebugAttachRoom() == 0) {
-                    gGameSession->flowFlags |= 3;
+                    gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
                 if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
                     obj->field_2E = 6;
@@ -2556,7 +2556,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4;
+    key          = gGameSession->location;
     key.loc.view = 0x64;
     slot         = Stream_FindSlot((u8*)&key, 0, 0);
     slotParam[0] = slot;

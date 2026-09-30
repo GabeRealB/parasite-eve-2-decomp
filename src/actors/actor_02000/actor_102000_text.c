@@ -2431,9 +2431,9 @@ case0:
         work->field_6DA = param * 1000;
     }
 
-    tbl = Actor02000_D15FB8[gGameSession->at4.loc.stage];
+    tbl = Actor02000_D15FB8[gGameSession->location.loc.stage];
     if (tbl != NULL) {
-        work->field_6D6 = tbl[gGameSession->at4.loc.area];
+        work->field_6D6 = tbl[gGameSession->location.loc.area];
     }
     if (work->field_6D6 != 0) {
         param1[3] = 0;

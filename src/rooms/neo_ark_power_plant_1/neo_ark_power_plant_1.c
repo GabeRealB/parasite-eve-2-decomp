@@ -120,17 +120,17 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     }
     if ((Mc_SaveData[0].state.at4.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
-        gGameSession->field_126         = 0;
-        Gp_StateF0.prefix.bytes.field_0 = 0;
+        gGameSession->battleResetPending = 0;
+        Gp_StateF0.prefix.bytes.field_0  = 0;
         func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
-            if (gGameSession->at4.loc.view == 7) {
+            if (gGameSession->location.loc.view == 7) {
                 SndEvt_EnqueueType6(0x5511000A, 0, 0);
                 return;
             }
@@ -231,12 +231,12 @@ static void func_neo_ark_power_plant_1_8017D928(Task* task)
 {
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.variant == 1) {
-        gGameSession->flowFlags = 1;
+    if (gGameSession->location.loc.variant == 1) {
+        gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }
     if (GameFlag_GetNibble(0xFB) == 0) {
-        gGameSession->field_126         = 1;
-        Gp_StateF0.prefix.bytes.field_0 = 2;
+        gGameSession->battleResetPending = 1;
+        Gp_StateF0.prefix.bytes.field_0  = 2;
     }
     task->state = (s32)(task->state + 1);
 }

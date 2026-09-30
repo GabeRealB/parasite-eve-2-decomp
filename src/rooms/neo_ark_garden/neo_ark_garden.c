@@ -195,10 +195,10 @@ void func_neo_ark_garden_8017D64C(Task* task)
     split   = 0;
     splitX  = 0;
     buf     = gDisplayState.otBuffer;
-    area    = gGameSession->at4.loc.area;
+    area    = gGameSession->location.loc.area;
     if (area == 27) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x7F;
                 end    = 0xF0;
@@ -233,7 +233,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
                 return;
         }
     } else if (area == 14) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x77;
                 end    = 0xF0;
@@ -258,7 +258,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
                 return;
         }
     } else if (area == 15) {
-        if (gGameSession->at4.loc.view == 2) {
+        if (gGameSession->location.loc.view == 2) {
             split  = 0x3E8;
             start  = 0x84;
             end    = 0xF0;
@@ -269,7 +269,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         }
     } else if (area == 13) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
             case 4:
                 start = 0x52;
@@ -311,7 +311,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         scale  = 0x800;
         otzOff = -10;
         zoff   = 0x131A;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 xLeft0 = 0x3B;
                 start  = 0xA9;
@@ -349,7 +349,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
         }
     } else if (area == 29) {
         zoff = 0x8C;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 6:
                 start = 0xA5;
                 end   = 0xF0;
@@ -644,7 +644,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     s32              xRight = 0xA0;
     s32              buf    = gDisplayState.otBuffer;
     s32              passes = 1;
-    GameLocationKey* loc    = &gGameSession->at4.loc;
+    GameLocationKey* loc    = &gGameSession->location.loc;
     s32              area   = loc->area;
     s32              start;
     s32              end;
@@ -666,7 +666,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     u16              spare;
 
     if (area == 12) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start = 1;
                 end   = 0x3F;
@@ -695,7 +695,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
                 return;
         }
     } else if (area == 30) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 1;
                 end    = 0x40;
@@ -887,7 +887,7 @@ static void func_neo_ark_garden_8017E9B4(Task* arg0)
     arg0->msgTable = D_neo_ark_garden_801813B0;
     Game_SetPtrSlot(arg0, 7);
     // Match arrival warp 3 and placement variant 2 as one halfword.
-    if (*(u16*)&gGameSession->at4.loc.warp == ((2 << 8) | 3)) {
+    if (*(u16*)&gGameSession->location.loc.warp == ((2 << 8) | 3)) {
         func_800E8634(&D_801334EC, 0, &D_80133954);
         func_800E3FAC(0xA2, 0x34);
     }

@@ -1704,7 +1704,7 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     spawned    = Gp_SpawnEnemyFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
     model      = spawned->task->extra.tmd;
     raw        = enemy->placeKey;
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
@@ -2022,7 +2022,7 @@ static void func_actor_521100_80132958(Task* arg0)
     work->field_6AA      = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
     angle                = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
     work->field_698      = angle;
-    if (gGameSession->at4.loc.view == 2) {
+    if (gGameSession->location.loc.view == 2) {
         work->field_69E = 6;
         work->field_6A0 = 0;
     } else {
@@ -2180,7 +2180,7 @@ static void func_actor_521100_80132DE8(Task* arg0)
 
     switch (work->field_6A0) {
         case 0:
-            if (((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) && (gGameSession->at4.loc.view != 2)) {
+            if (((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->field_6AA < 0x8FC) {
                     if (work->field_6B8 == work->field_6B6) {
                         pairNear    = D_actor_521100_8015F59C;
@@ -2543,7 +2543,7 @@ static void func_actor_521100_801335B4(Task* arg0)
             if ((s16)work->field_68A < 0x5E) {
                 break;
             }
-            if (gGameSession->at4.loc.view == 2) {
+            if (gGameSession->location.loc.view == 2) {
                 work->field_69E = 6;
                 if (coord->coord.t[0] < -0xFA0) {
                     work->field_6A0 = 1;
@@ -2834,7 +2834,7 @@ static void func_actor_521100_801339B0(Task* arg0)
                 work->field_6A0                       = 6;
                 work->field_68E                       = 0;
                 gGameSession->deathRestartDelay       = 0x5A;
-                gGameSession->areaBgmCountdown        = 0x7F;
+                gGameSession->deathSoundCountdown     = GAME_SESSION_DEATH_SOUND_HOLD;
                 sc->vec.vx                            = 0;
                 sc->vec.vy                            = -0x96;
                 sc->vec.vz                            = 0xC8;
@@ -2981,7 +2981,7 @@ static void func_actor_521100_80134774(Task* arg0)
                 if (SquareRoot0((sc2->delta.vx * sc2->delta.vx) + (sc2->delta.vz * sc2->delta.vz)) < 0x3C) {
                     work->field_6A0 = 1;
                 } else {
-                    if (gGameSession->at4.loc.view != 2) {
+                    if (gGameSession->location.loc.view != 2) {
                         work->field_69E = 0;
                         work->field_6A0 = 0;
                         work->field_6BA = 0;
@@ -3020,7 +3020,7 @@ static void func_actor_521100_80134774(Task* arg0)
             work->field_6A0 = 0;
             break;
         game:
-            if (gGameSession->at4.loc.view != 2) {
+            if (gGameSession->location.loc.view != 2) {
                 work->field_6A0 = 2;
                 work->field_6BA = 0;
                 work->field_6BC = 0;
@@ -3041,11 +3041,11 @@ static void func_actor_521100_80134774(Task* arg0)
                 if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x3C) {
                     work->field_69E = 0;
                     work->field_6A0 = 0;
-                } else if (gGameSession->at4.loc.view == state) {
+                } else if (gGameSession->location.loc.view == state) {
                     work->field_6A0 = 0;
                 }
             } else {
-                if (gGameSession->at4.loc.view != state) {
+                if (gGameSession->location.loc.view != state) {
                     work->field_69E = 0;
                 }
                 work->field_6A0 = 0;

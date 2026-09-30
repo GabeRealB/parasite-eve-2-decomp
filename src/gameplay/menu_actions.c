@@ -923,7 +923,7 @@ void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
 void func_800CFD78(Task* arg0)
 {
     if (arg0->state == 0) {
-        D_80114DCC = GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        D_80114DCC = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (D_80114DCC) {
         case 0x1010000:
@@ -975,7 +975,7 @@ void Gp_MapTaskState2(Task* arg0)
     u8        room;
 
     obj   = arg0->spawnArg2.pointer;
-    flags = Gp_MapFlagIds[gGameSession->at4.loc.stage - 1];
+    flags = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
     Gp_DrawMapCursor(arg0);
     func_800D0C34(arg0);
     func_800D0614(arg0);
@@ -991,7 +991,7 @@ void Gp_MapTaskState2(Task* arg0)
             obj->field_2C = 0x101;
             func_800D1F90(arg0);
             obj->field_2E = 6;
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -1000,7 +1000,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -1010,7 +1010,7 @@ void Gp_MapTaskState2(Task* arg0)
             if (flags[Gp_MapRoomId] == 0xFF) {
                 return;
             }
-            for (room = Gp_MapRoomId + 1; room <= D_8010F130[gGameSession->at4.loc.stage - 1]; room++) {
+            for (room = Gp_MapRoomId + 1; room <= D_8010F130[gGameSession->location.loc.stage - 1]; room++) {
                 if (func_800D1434(room, flags[room]) == 1) {
                     if ((s8)Gp_MapRoomId != room) {
                         Gp_MapRoomId = room;
@@ -1056,7 +1056,7 @@ void Gp_MapTaskState2(Task* arg0)
         if (child->field_2E == -1) {
             func_800D1F90(arg0);
             obj->field_2E = -1;
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
                 Gp_LoadViewAndCd(1);
             }
             arg0->state = 3;
@@ -1081,8 +1081,8 @@ static void Gp_DrawMapCursor(Task* arg0)
     obj   = arg0->spawnArg2.pointer;
     cfg   = &Player_Status;
     actor = gameGetPtrSlot(3)->work;
-    rec   = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
-    rec   = rec + gGameSession->at4.loc.area;
+    rec   = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
+    rec   = rec + gGameSession->location.loc.area;
     if (rec->field_C != (s8)Gp_MapRoomId) {
         return;
     }
@@ -1222,7 +1222,7 @@ static void Gp_DrawMapMarks(Task* arg0)
     session   = gGameSession;
     banks     = Gp_FlagBanks;
     markTable = (keep, Gp_MapMarkTables);
-    stage     = session->at4.loc.stage;
+    stage     = session->location.loc.stage;
     obj       = arg0->spawnArg2.pointer;
     stageM1   = stage - 1;
     bank      = banks[stage];
@@ -1233,13 +1233,13 @@ static void Gp_DrawMapMarks(Task* arg0)
     }
     flags[0] = bank->visitedAreas[0];
     flags[1] = bank->visitedAreas[1];
-    if (session->at4.loc.stage == 3) {
+    if (session->location.loc.stage == 3) {
         bank      = banks[2];
         flags[0] |= bank->visitedAreas[0];
         flags[1] |= bank->visitedAreas[1];
     }
     i = 0;
-    if (Gp_MapMarkCounts[session->at4.loc.stage - 1] != 0) {
+    if (Gp_MapMarkCounts[session->location.loc.stage - 1] != 0) {
         one = 1;
         do {
             if (recs[(u8)i].field_4 == (s8)Gp_MapRoomId) {
@@ -1294,7 +1294,7 @@ static void Gp_DrawMapMarks(Task* arg0)
                 }
             }
             i++;
-        } while ((u8)i < Gp_MapMarkCounts[gGameSession->at4.loc.stage - 1]);
+        } while ((u8)i < Gp_MapMarkCounts[gGameSession->location.loc.stage - 1]);
     }
 }
 
@@ -1315,7 +1315,7 @@ static void func_800D0C34(Task* arg0)
     u8              flag;
 
     i        = 0;
-    stage    = gGameSession->at4.loc.stage;
+    stage    = gGameSession->location.loc.stage;
     obj      = arg0->spawnArg2.pointer;
     icons    = D_8010F0E0[stage - 1];
     bank     = Gp_FlagBanks[stage];
@@ -1394,7 +1394,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
     i     = 0;
     ret   = 0;
     obj   = arg0->spawnArg2.pointer;
-    icons = D_8010F0CC[gGameSession->at4.loc.stage - 1];
+    icons = D_8010F0CC[gGameSession->location.loc.stage - 1];
     lum   = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
 
     for (;;) {
@@ -1489,10 +1489,10 @@ static void Gp_EnqueueMapRoomCd(void)
 
     Gp_MapRoomOff             = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->at4.loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
+    if ((gGameSession->location.loc.stage == 4) && ((s8)Gp_MapRoomId == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
         Gp_MapRoomOff = 1;
     }
-    if (gGameSession->at4.loc.stage == 5) {
+    if (gGameSession->location.loc.stage == 5) {
         room = (s8)Gp_MapRoomId;
         if ((room == 1) && (GameFlag_GetNibble(0xD9) == room)) {
             Gp_MapRoomOff = 3;
@@ -1501,7 +1501,7 @@ static void Gp_EnqueueMapRoomCd(void)
     param1[2] = 3;
     param1[3] = 0;
     param1[0] = Gp_MapRoomId + Gp_MapRoomOff;
-    stage     = gGameSession->at4.loc.stage;
+    stage     = gGameSession->location.loc.stage;
     param2[1] = 0;
     param2[3] = 0;
     param2[2] = 0;
@@ -1521,8 +1521,8 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
     s32         one;
     s32         skip;
 
-    bank = Gp_FlagBanks[gGameSession->at4.loc.stage];
-    if (gGameSession->at4.loc.stage != 5) {
+    bank = Gp_FlagBanks[gGameSession->location.loc.stage];
+    if (gGameSession->location.loc.stage != 5) {
         if (flagId != 0xFF) {
             if (flagId == 0x80) {
                 return 0;
@@ -1531,11 +1531,11 @@ static s8 func_800D1434(u32 roomId, u8 flagId)
             if (which && (GameFlag_GetNibble(flagId) != 0)) {
                 return 1;
             }
-            recs     = Gp_MapRecTables[gGameSession->at4.loc.stage - 1];
+            recs     = Gp_MapRecTables[gGameSession->location.loc.stage - 1];
             flags[0] = bank->visitedAreas[0];
             flags[1] = bank->visitedAreas[1];
             i        = 0;
-            if (gGameSession->at4.loc.stage == 3) {
+            if (gGameSession->location.loc.stage == 3) {
                 bank      = Gp_FlagBanks[2];
                 flags[0] |= bank->visitedAreas[0];
                 flags[1] |= bank->visitedAreas[1];
@@ -1579,7 +1579,7 @@ static void func_800D15D0(Task* arg0)
     s8        ret;
     u8        stage;
 
-    stage   = gGameSession->at4.loc.stage;
+    stage   = gGameSession->location.loc.stage;
     obj     = arg0->spawnArg2.pointer;
     flagIds = Gp_MapFlagIds[stage - 1];
     if (stage == 5) {
@@ -1626,7 +1626,7 @@ static void func_800D15D0(Task* arg0)
     }
 
     i = Gp_MapRoomId + 1;
-    while ((u8)i <= D_8010F130[gGameSession->at4.loc.stage - 1]) {
+    while ((u8)i <= D_8010F130[gGameSession->location.loc.stage - 1]) {
         if (flagIds[(u8)i] == 0) {
             return;
         }
@@ -1709,10 +1709,10 @@ void Gp_DrawMapName(Task* arg0)
     s32          width;
 
     session = gGameSession;
-    names   = Gp_MapNameTables[session->at4.loc.stage - 1];
+    names   = Gp_MapNameTables[session->location.loc.stage - 1];
     obj     = arg0->spawnArg2.pointer;
     if (names != NULL) {
-        text = names[session->at4.loc.area - 1].text;
+        text = names[session->location.loc.area - 1].text;
         if (arg0->state == 0) {
             req.x          = 0;
             req.y          = 0;
@@ -1766,8 +1766,8 @@ void Gp_MapPanelInit(Task* arg0)
     Gp_RebuildAreaIdBits();
     session      = gGameSession;
     table        = Gp_MapRecTables;
-    idx          = session->at4.loc.stage - 1;
-    f6           = session->at4.loc.area;
+    idx          = session->location.loc.stage - 1;
+    f6           = session->location.loc.area;
     recs         = table[idx];
     recs         = recs + f6;
     val          = recs->field_C;
@@ -1842,8 +1842,8 @@ static u8 Gp_GetMapRoomId(void)
 
     session = gGameSession;
     table   = Gp_MapRecTables;
-    idx     = session->at4.loc.stage - 1;
-    f6      = session->at4.loc.area;
+    idx     = session->location.loc.stage - 1;
+    f6      = session->location.loc.area;
     recs    = table[idx];
     recs    = recs + f6;
 

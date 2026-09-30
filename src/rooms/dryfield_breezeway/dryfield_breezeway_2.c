@@ -505,8 +505,8 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case 0:
             break;
         case 1:
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
@@ -543,9 +543,9 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = gameGetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
+                id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                 = Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
+                id                            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
                 work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
             arg0->state += 1;
@@ -594,9 +594,9 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 Mem_Set(work, 0, 0x14);
                 work->field_0                 = gameGetPtrSlot(3);
                 D_dryfield_breezeway_801843C0 = arg0;
-                id                            = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
+                id                            = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
                 work->field_4                 = Gp_FindWorkById(id)->field_0;
-                id                            = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
+                id                            = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
                 work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
             id                       = Player_Status.weapon;
@@ -625,8 +625,8 @@ void func_dryfield_breezeway_8017E2D4(void)
     ActorCommand msg;
 
     work                  = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    msg.context.loc.stage = gGameSession->at4.loc.stage;
-    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 2;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
@@ -662,8 +662,8 @@ void func_dryfield_breezeway_8017E390(void)
     Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)&buf, 0);
 
     work                      = (DbwWork*)D_dryfield_breezeway_801843C0->work;
-    buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
-    buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+    buf.msg.context.loc.stage = gGameSession->location.loc.stage;
+    buf.msg.context.loc.area  = gGameSession->location.loc.area;
     buf.msg.command           = 2;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &buf, 0x7DB);
     Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
@@ -1685,7 +1685,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     s32        limit;
     s32        pan;
 
-    mask   = 1 << gGameSession->at4.loc.view;
+    mask   = 1 << gGameSession->location.loc.view;
     eff    = task->spawnArg2.pointer;
     coord  = task->extra.coordBody->coord;
     player = gameGetPtrSlot(3)->extra.tmd->coords;
@@ -1699,7 +1699,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
     }
     Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (GameFlag_GetNibble(0x5D) == 0) {
-        if (gGameSession->at4.loc.view == 2) {
+        if (gGameSession->location.loc.view == 2) {
             limit        = (player->coord.t[0] - 5856) >> 7;
             eff->move.vx = 12000;
             eff->move.vy = -3000;
@@ -1713,7 +1713,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
                 SndEvt_EnqueueType6(0x5216000A, 0, 0);
                 eff->step = 1;
             }
-        } else if (gGameSession->at4.loc.view == 3) {
+        } else if (gGameSession->location.loc.view == 3) {
             eff->scale   = 0x10;
             eff->move.vx = player->coord.t[0] + 0x100;
             eff->move.vy = -3000;

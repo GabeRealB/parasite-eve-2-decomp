@@ -5838,7 +5838,7 @@ static void func_actor_403000_801377C8(Task* arg0)
                     scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 1), 0);
                     if (scratch->ret == 1) {
                         pw                              = (GameActor*)player->work;
-                        gGameSession->field_12E         = 0x28;
+                        gGameSession->deathFadeFrames   = 0x28;
                         gGameSession->deathRestartDelay = 0x28;
                         pw->field_956                   = 0xA;
                     }
@@ -6104,7 +6104,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 0), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
-                gGameSession->field_12E         = 0x1C;
+                gGameSession->deathFadeFrames   = 0x1C;
                 gGameSession->deathRestartDelay = 0x1E;
                 pw->field_956                   = 0xA;
             }
@@ -7128,7 +7128,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
             scratch->ret = Gp_DispatchMsg(task, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (scratch->ret == 1) {
                 pw                              = (GameActor*)player->work;
-                gGameSession->field_12E         = 0x28;
+                gGameSession->deathFadeFrames   = 0x28;
                 gGameSession->deathRestartDelay = 0x28;
                 pw->field_956                   = frame;
             }

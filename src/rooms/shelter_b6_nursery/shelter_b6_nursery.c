@@ -1174,7 +1174,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;
@@ -1184,7 +1184,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
             arg0->state++;
             break;
         case 5:
-            viewDepth = D_shelter_b6_nursery_80185034[gGameSession->at4.loc.view];
+            viewDepth = D_shelter_b6_nursery_80185034[gGameSession->location.loc.view];
             if (viewDepth != -1) {
                 depth = viewDepth;
             }
@@ -1290,7 +1290,7 @@ void func_shelter_b6_nursery_8017FFF4(void)
 /// room in the first stage table. Only low-byte values 0 and 1 change the flag.
 void func_shelter_b6_nursery_80180038(s32 arg0)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
     s32              mode;
 

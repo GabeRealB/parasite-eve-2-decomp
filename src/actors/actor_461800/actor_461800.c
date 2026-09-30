@@ -1037,7 +1037,7 @@ void func_actor_461800_8013223C(s32 arg0)
 
 /// Exit path taken when the player leaves through this actor: two flag awards
 /// first, then one of two endings depending on whether the two event flags have
-/// been seen. With neither seen the session bails out (`field_128` / `field_12E`
+/// been seen. With neither seen the session bails out (`restartMode` / `deathFadeFrames`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
 /// when `Mc_SaveData[0].state.demoScene` (the current screen id) is 9.
@@ -1051,8 +1051,8 @@ void func_actor_461800_8013229C(void)
             Gp_SetCollectedBit(0x12F);
         }
         if (GameFlag_GetNibble(0x112) == 0 && GameFlag_GetNibble(0x113) == 0) {
-            gGameSession->restartMode = 0xFF;
-            gGameSession->field_12E   = 0xF;
+            gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
+            gGameSession->deathFadeFrames = 0xF;
             return;
         }
         Mc_SaveData[0].state.at4.loc.stage = 4;

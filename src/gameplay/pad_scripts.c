@@ -321,7 +321,7 @@ void Gp_Script18Task(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = Gp_Script18States;
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (Gp_PadScriptHalt != 0) {
             arg0->state = 2;
         }
@@ -379,13 +379,13 @@ static void Gp_ScriptBState4(Task* task)
 
 void Gp_PadHoldTask(Task* task)
 {
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (task->spawnArg1.value != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1.value--;
             Pad_PostEvent(0, 0, 1, 1);
-            gGameSession->padScriptFlags |= 1;
+            gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
         } else {
-            gGameSession->padScriptFlags &= ~1;
+            gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE;
             taskKill(task);
         }
     }
@@ -396,14 +396,14 @@ void Gp_PadLerpTask(Task* task)
     GpState0C* state;
 
     state = (GpState0C*)task->work;
-    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (gGameSession->padScriptFlags & GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE)) {
         if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
             state->field_8--;
             Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
             state->field_4.as_s32        += state->field_0;
-            gGameSession->padScriptFlags |= 2;
+            gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
         } else {
-            gGameSession->padScriptFlags &= ~2;
+            gGameSession->padScriptFlags &= ~GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE;
             taskKill(task);
         }
     }

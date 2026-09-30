@@ -86,7 +86,7 @@ extern GpU16Pair  D_neo_ark_woodland_path_80184930[6];
 /// only the low half matters and GCC picks the unsigned load by itself.
 extern s16 D_neo_ark_woodland_path_80184990;
 
-/// How many spawns each slot arms, indexed by `gGameSession->at4.loc.variant` (the
+/// How many spawns each slot arms, indexed by `gGameSession->location.loc.variant` (the
 /// slot the session is in): the byte `func_...80180C6C` adds to
 /// `D_...80184990`, and the gate `func_...80180DDC` tests against zero.
 extern u8 D_neo_ark_woodland_path_80184970[];
@@ -99,7 +99,7 @@ extern GpMsgEntry D_neo_ark_woodland_path_801849F4[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
 /// it against zero and `func_...801806D8` reads the slot's count from it. One
-/// byte per session slot, indexed by `gGameSession->at4.loc.variant`, like
+/// byte per session slot, indexed by `gGameSession->location.loc.variant`, like
 /// `D_...84970` above.
 extern u8 D_neo_ark_woodland_path_80184980[];
 
@@ -952,7 +952,7 @@ static void func_neo_ark_woodland_path_80180568(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_woodland_path_80184980[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -960,10 +960,10 @@ static void func_neo_ark_woodland_path_80180568(Task* task)
     task->msgTable                   = D_neo_ark_woodland_path_80184998;
     D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10C);
     nib                              = GameFlag_GetNibble(0x10D);
-    if (gGameSession->at4.loc.variant != nib) {
-        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184980[gGameSession->at4.loc.variant];
+    if (gGameSession->location.loc.variant != nib) {
+        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant];
         GameFlag_SetNibble(0x10C, D_neo_ark_woodland_path_80184990);
-        GameFlag_SetNibble(0x10D, gGameSession->at4.loc.variant);
+        GameFlag_SetNibble(0x10D, gGameSession->location.loc.variant);
     }
     if (D_neo_ark_woodland_path_80184990 >= 6) {
         D_neo_ark_woodland_path_80184990 = 5;
@@ -996,7 +996,7 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_woodland_path_80184980[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_woodland_path_8018498E > 0) {
@@ -1024,17 +1024,17 @@ static void func_neo_ark_woodland_path_801806D8(Task* task)
             }
         }
         GameFlag_SetNibble(0x10C, count);
-        areaSyncLocationVariant(&gGameSession->at4.loc);
+        areaSyncLocationVariant(&gGameSession->location.loc);
     }
     D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
-    if (gGameSession->field_126 == 1 && D_neo_ark_woodland_path_8018498E == 0) {
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.field_5              = 0;
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.field_8              = 0;
-        Gp_StateF0.field_C              = 0;
-        Gp_StateF0.field_10             = 0;
-        gGameSession->field_126         = 0;
+    if (gGameSession->battleResetPending == 1 && D_neo_ark_woodland_path_8018498E == 0) {
+        Gp_StateF0.prefix.bytes.field_0  = 0;
+        Gp_StateF0.field_5               = 0;
+        Gp_StateF0.field_6               = 0;
+        Gp_StateF0.field_8               = 0;
+        Gp_StateF0.field_C               = 0;
+        Gp_StateF0.field_10              = 0;
+        gGameSession->battleResetPending = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
         D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;
@@ -1135,7 +1135,7 @@ static void func_neo_ark_woodland_path_80180C6C(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -1143,10 +1143,10 @@ static void func_neo_ark_woodland_path_80180C6C(Task* task)
     task->msgTable                   = D_neo_ark_woodland_path_801849F4;
     D_neo_ark_woodland_path_80184990 = GameFlag_GetNibble(0x10A);
     nib                              = GameFlag_GetNibble(0x10B);
-    if (gGameSession->at4.loc.variant != nib) {
-        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.variant];
+    if (gGameSession->location.loc.variant != nib) {
+        D_neo_ark_woodland_path_80184990 = D_neo_ark_woodland_path_80184990 + D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant];
         GameFlag_SetNibble(0x10A, D_neo_ark_woodland_path_80184990);
-        GameFlag_SetNibble(0x10B, gGameSession->at4.loc.variant);
+        GameFlag_SetNibble(0x10B, gGameSession->location.loc.variant);
     }
     if (D_neo_ark_woodland_path_80184990 >= 6) {
         D_neo_ark_woodland_path_80184990 = 5;
@@ -1179,7 +1179,7 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_woodland_path_80184970[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_woodland_path_8018498E > 0) {
@@ -1210,18 +1210,18 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
             }
         }
         GameFlag_SetNibble(0x10A, count);
-        areaSyncLocationVariant(&gGameSession->at4.loc);
+        areaSyncLocationVariant(&gGameSession->location.loc);
         D_neo_ark_woodland_path_8018498E = 0x96;
     }
     D_neo_ark_woodland_path_801849F0 = Gp_StateF0.field_6;
-    if (gGameSession->field_126 == 1 && D_neo_ark_woodland_path_8018498E == 0) {
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.field_5              = 0;
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.field_8              = 0;
-        Gp_StateF0.field_C              = 0;
-        Gp_StateF0.field_10             = 0;
-        gGameSession->field_126         = 0;
+    if (gGameSession->battleResetPending == 1 && D_neo_ark_woodland_path_8018498E == 0) {
+        Gp_StateF0.prefix.bytes.field_0  = 0;
+        Gp_StateF0.field_5               = 0;
+        Gp_StateF0.field_6               = 0;
+        Gp_StateF0.field_8               = 0;
+        Gp_StateF0.field_C               = 0;
+        Gp_StateF0.field_10              = 0;
+        gGameSession->battleResetPending = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_woodland_path_80184992 != 0) {
         D_neo_ark_woodland_path_80184A5C.context.loc.stage = 5;

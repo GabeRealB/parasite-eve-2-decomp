@@ -289,14 +289,14 @@ static void func_dryfield_night_motel_balcony_8017DC30(Task* task)
     task->msgTable = D_dryfield_night_motel_balcony_80182804;
     Game_SetPtrSlot(task, 7);
     func_dryfield_night_motel_balcony_8017E3C8();
-    field9 = gGameSession->at4.loc.variant;
-    if (field9 == 2 && gGameSession->at4.loc.room == field9 && GameFlag_GetNibble(0x61) == 0) {
+    field9 = gGameSession->location.loc.variant;
+    if (field9 == 2 && gGameSession->location.loc.room == field9 && GameFlag_GetNibble(0x61) == 0) {
         func_800E8634(&D_80165060, 0, &D_80165798);
         GameFlag_SetNibble(0x61, 1);
         GameFlag_SetNibble(0x10E, 1);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 1);
-        gGameSession->flowFlags = 0x85;
+        gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     task->state = task->state + 1;
 }

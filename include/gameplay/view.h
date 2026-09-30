@@ -9,7 +9,7 @@
 #include "gameplay/message.h"
 
 /// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
-/// `GameSession.at4.loc.room - 1`. Gp_GetViewCountLo reads prefix.bytes.field_0;
+/// `GameSession.location.loc.room - 1`. Gp_GetViewCountLo reads prefix.bytes.field_0;
 /// Gp_FindViewIndex reads prefix.packed as its search limit. This limit is not
 /// the camera-array extent: mappings also select images, and the shared identity
 /// map can be indexed beyond a room's search limit.
@@ -25,13 +25,13 @@ typedef struct _GpViewCountRec {
 STATIC_ASSERT_SIZEOF(GpViewCountRec, 2);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewCountRec*`, indexed by
-/// `GameSession.at4.loc.area - 1`.
+/// `GameSession.location.loc.area - 1`.
 typedef struct _GpViewCountTbl {
     /* 0x0 */ GpViewCountRec** field_0;
 } GpViewCountTbl;
 
 /// Per-stage wrapper. `field_0` is a 3-level table of bytes, indexed
-/// 1-based by `GameSession.at4.loc.area` / `at4.loc.room` / `at4.loc.view`.
+/// 1-based by `GameSession.location.loc.area` / `location.loc.room` / `location.loc.view`.
 /// `Gp_GetViewIndex` returns the innermost byte (camera / view index).
 typedef struct _GpViewIndexTbl {
     /* 0x0 */ u8*** field_0;
@@ -60,7 +60,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
 
 /// Per-stage wrapper. `field_0` is an array of `GpViewRec*`, indexed by
-/// `GameSession.at4.loc.area - 1` / `GameLocationKey.area - 1`.
+/// `GameSession.location.loc.area - 1` / `GameLocationKey.area - 1`.
 typedef struct _GpViewTbl {
     /* 0x0 */ GpViewRec** field_0;
 } GpViewTbl;

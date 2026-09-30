@@ -178,7 +178,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
 /// returns 0.
 s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
 {
-    if ((in->warp == 3) && (gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
+    if ((in->warp == 3) && (gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
         GameFlag_SetNibble(0x9F, 1);
         func_800E8614(D_dryfield_night_junk_yard_801805A4, 0);
     }
@@ -189,12 +189,12 @@ s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* i
 /// main-executable byte `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_junk_yard_8017D894(u8 arg0)
 {
-    gGameSession->at4.loc.room        = arg0;
+    gGameSession->location.loc.room   = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 
 /// Room entry task tick: publish the message table, claim game pointer slot 7,
-/// and, on the visit whose sub-id (`gGameSession::at4.loc.variant`) is 1 and that has
+/// and, on the visit whose sub-id (`gGameSession::location.loc.variant`) is 1 and that has
 /// already latched nibble 0x9F, announce the room to the slot-4 task with
 /// message 0x7DA. The nibble is then applied to the current sprite-table entry
 /// either way, and the state advances.
@@ -204,7 +204,7 @@ static void func_dryfield_night_junk_yard_8017D8B0(Task* task)
 
     task->msgTable = D_dryfield_night_junk_yard_8018055C;
     Game_SetPtrSlot(task, 7);
-    subId = gGameSession->at4.loc.variant;
+    subId = gGameSession->location.loc.variant;
     if (subId == 1 && GameFlag_GetNibble(0x9F) == subId) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_night_junk_yard_801805A0, 0x7DB);
     }
@@ -237,7 +237,7 @@ void func_dryfield_night_junk_yard_8017D960(Task* task)
 /// hides it (`Gp_LinkViewSprts` skips OT-linking when `field_4` is set).
 void func_dryfield_night_junk_yard_8017D9B8(u8 arg0)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
     batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][6].field_4;

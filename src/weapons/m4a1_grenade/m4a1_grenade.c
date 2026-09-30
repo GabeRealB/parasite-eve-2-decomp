@@ -338,7 +338,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     func_800E0FEC(work->rec1, &blk->delta, 1, &idx);
     idx = func_800E1ACC((u8*)&idx);
 check:
-    param = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx];
+    param = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
     if (param->field_1 == 0) {
         if (param->field_2 != 0) {
             goto explode;

@@ -692,7 +692,7 @@ void Game_ClearPtrSlots(void)
 {
     s32 i;
 
-    for (i = 0xF; i >= 0; i--) {
+    for (i = (s32)ARRAY_SIZE(gGameSession->ptrSlots) - 1; i >= 0; i--) {
         gGameSession->ptrSlots[i] = NULL;
     }
 }

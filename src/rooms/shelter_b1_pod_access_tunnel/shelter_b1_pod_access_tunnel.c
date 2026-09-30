@@ -1431,8 +1431,8 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
     GpViewRec* view;
     VECTOR     vec;
 
-    if (task->killCountdown < task->spawnArg1.value && gGameSession->at4.loc.view == 0xB) {
-        view   = Gp_GetStageView(&gGameSession->at4.loc);
+    if (task->killCountdown < task->spawnArg1.value && gGameSession->location.loc.view == 0xB) {
+        view   = Gp_GetStageView(&gGameSession->location.loc);
         vec.vx = 0;
         vec.vy = 0x10;
         vec.vz = 0;
@@ -1471,7 +1471,7 @@ static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
 {
     _ShelterB1PodAccessTunnelWork* work;
 
-    if (gGameSession->at4.loc.view != 0xB) {
+    if (gGameSession->location.loc.view != 0xB) {
         taskKill(task);
         return;
     }

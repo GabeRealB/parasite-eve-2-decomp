@@ -379,7 +379,7 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 /// record to the outgoing one and answers by editing `room` of the copy; a
 /// non-zero `queryOnly` suppresses the side effects.
 ///
-/// On stage 2 (`gGameSession->at4.loc.stage`), message 7 answers 1 while event
+/// On stage 2 (`gGameSession->location.loc.stage`), message 7 answers 1 while event
 /// nibble 0x3C is clear and the stage byte, read once into a local, when it is
 /// set. Message 9 with nibble 0x3F clear runs CAP command 2 on stage 2 (9
 /// otherwise), sets nibble 2 of the record's flag index and returns 0. Any
@@ -390,7 +390,7 @@ s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, R
     u8 s1;
 
     *out = *in;
-    s1   = gGameSession->at4.loc.stage;
+    s1   = gGameSession->location.loc.stage;
     if (s1 == 2) {
         if (in->areaId == 7) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -406,7 +406,7 @@ s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, R
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             s32 cmd = 9;
 
-            if (gGameSession->at4.loc.stage == 2) {
+            if (gGameSession->location.loc.stage == 2) {
                 cmd = 2;
             }
             Gp_RunCapCmd1(cmd);
@@ -415,7 +415,7 @@ s32 func_dryfield_back_street_8017D748(Task* arg0, s32 arg1, RoomEventMsg* in, R
         return 0;
     }
     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             SndEvt_EnqueueType7(0x52050006, 0xF);
         }
     }

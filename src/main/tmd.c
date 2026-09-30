@@ -120,7 +120,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
 
     stream = (TmdStreamWord*)src->stream;
     if (src->handlersResolved == TMD_SOURCE_HANDLERS_UNRESOLVED) {
-        tmp  = GAME_LOCATION_WORD(gGameSession->at4.loc);
+        tmp  = GAME_LOCATION_WORD(gGameSession->location.loc);
         tmp  = (tmp & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(2, 16, 0, 0);
         flag = tmp < 1;
         goto read_id;
@@ -357,7 +357,7 @@ void tmdProcessStream(TmdObject* obj)
     src                              = obj->source;
     tmp                              = SCRATCH_HEAD(TmdStreamWorkspace);
     stream                           = src->stream;
-    hi                               = GAME_LOCATION_WORD(gGameSession->at4.loc);
+    hi                               = GAME_LOCATION_WORD(gGameSession->location.loc);
     head                             = tmp - 1;
     hi                              &= GAME_LOCATION_STAGE_AREA_MASK;
     SCRATCH_HEAD(TmdStreamWorkspace) = head;

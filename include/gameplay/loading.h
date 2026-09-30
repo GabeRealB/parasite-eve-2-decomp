@@ -26,13 +26,13 @@ void Gp_LoadWaitDispatch(Task* task);
 
 void Gp_SetupSprtDisplay(Task* task);
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 /// Each entry is an array of `GpRoomParamRec**`, indexed by `field_6 - 1`.
 /// Each of those is an 8-entry array of `GpRoomParamRec*` copied into
 /// `Gp_RoomParams` by `Gp_LoadRoomParams`.
 extern GpRoomParamRec*** Gp_RoomParamTables[];
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpSprtTbl* Gp_SprtTables[];
 
 void Gp_LinkViewSprts(void);

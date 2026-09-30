@@ -109,7 +109,7 @@ s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, TaskMessageArg ar
 /// consumes the message.
 s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if ((in->warp == 1) && (gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
+    if ((in->warp == 1) && (gGameSession->location.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         GameFlag_SetNibble(0xCA, 1);
         Task_SpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
     }
@@ -124,7 +124,7 @@ static void func_acropolis_observatory_8017D834(Task* task)
 {
     task->msgTable = D_acropolis_observatory_8017E7B8;
     Game_SetPtrSlot(task, 7);
-    if ((gGameSession->at4.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
+    if ((gGameSession->location.loc.room == 2) && (GameFlag_GetNibble(0xCA) == 0)) {
         Gp_StateF0.field_1A = 1;
     }
     task->state = (s32)(task->state + 1);
@@ -135,11 +135,11 @@ static void func_acropolis_observatory_8017D834(Task* task)
 /// or 0), once per visit.
 static void func_acropolis_observatory_8017D8AC(Task* task)
 {
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->at4.loc.warp == 3)) {
+    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == 3)) {
         D_acropolis_observatory_8017E7D8 = 1;
         Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 1, 0, 0);
     }
-    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->at4.loc.warp == 4)) {
+    if ((D_acropolis_observatory_8017E7D8 == 0) && (gGameSession->location.loc.warp == 4)) {
         D_acropolis_observatory_8017E7D8 = 1;
         Task_SpawnFromTable(D_acropolis_observatory_8017E7DC, 0, 0, 0);
     }

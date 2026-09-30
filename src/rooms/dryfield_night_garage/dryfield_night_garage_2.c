@@ -1040,7 +1040,7 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
     GpWorkObj* work;
     Task*      task;
 
-    work = Gp_FindWorkById(gGameSession->at4.loc.area | ((arg0 << 12) | (gGameSession->at4.loc.stage << 8)));
+    work = Gp_FindWorkById(gGameSession->location.loc.area | ((arg0 << 12) | (gGameSession->location.loc.stage << 8)));
     task = NULL;
     if (work != NULL) {
         task = work->field_0;
@@ -1077,7 +1077,7 @@ void func_dryfield_night_garage_80180B20(Task* arg0)
             task->state++;
             return;
         case 1:
-            key = gGameSession->at4;
+            key = gGameSession->location;
             if (Wip_SysFlags.field_0 == 2) {
                 if (task->spawnArg1.value != 0) {
                     key.loc.view = 0x67;
@@ -1290,13 +1290,13 @@ static void func_dryfield_night_garage_80180D9C(SVECTOR* arg0, s32 arg1, s32 arg
 }
 
 /// Garage room draw: sweeps the glowing strip the current visit
-/// (`gGameSession->at4.loc.view`) selects. Visits 3 and 15 sweep all four of the
+/// (`gGameSession->location.loc.view`) selects. Visits 3 and 15 sweep all four of the
 /// room's run, 7 and 14 only its first pair, and 11 the last pair of the run
 /// with its own blend (`arg2` 0x800 instead of 0). Each case names its own last
 /// draw, which `jump.c` cross-jumps into one tail block after the last case.
 void func_dryfield_night_garage_80181518(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 3:
         case 15: {
             SVECTOR* p = D_dryfield_night_garage_801833A4;

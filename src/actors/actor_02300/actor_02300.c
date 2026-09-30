@@ -63,7 +63,7 @@ extern Actor02300Storage7918 Actor02300_D15AF8;
 
 /// The `GpPairSrcE` the enemy parks in its own `field_50` slot.
 extern GpPairSrcE Actor02300_D159D8;
-/// Per-room voice-stream sector tables, indexed by `GameSession::at4.loc.stage` then
+/// Per-room voice-stream sector tables, indexed by `GameSession::location.loc.stage` then
 /// `field_6`; a NULL row means this room has no cue.
 extern u16* Actor02300_D15C80[];
 /// The overlay's own spawn table: entry 0 is this enemy, 1 and 2 the two
@@ -2644,9 +2644,9 @@ static void Actor02300_Fn028AC(GpEnemy* enemy, Task* actor)
                 work->field_6DA = param * 1000;
             }
 
-            tbl = Actor02300_D15C80[gGameSession->at4.loc.stage];
+            tbl = Actor02300_D15C80[gGameSession->location.loc.stage];
             if (tbl != NULL) {
-                work->field_6D6 = tbl[gGameSession->at4.loc.area];
+                work->field_6D6 = tbl[gGameSession->location.loc.area];
             }
             if (work->field_6D6 != 0) {
                 param1[3] = 0;

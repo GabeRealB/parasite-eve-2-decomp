@@ -113,7 +113,7 @@ void Gp_DrawTargetCursor(void)
     }
     Gp_UpdateLockSlots();
     sess = gGameSession;
-    if (sess->field_65 == 1) {
+    if (sess->sceneUpdatesPaused == 1) {
         return;
     }
     if (Gp_StateC08.field_A == 2 || Gp_StateC08.field_A == 3) {
@@ -785,7 +785,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
     u8               sub;
 
     ret   = 0;
-    loc   = &gGameSession->at4.loc;
+    loc   = &gGameSession->location.loc;
     stage = loc->stage;
     area  = loc->area;
     sub   = loc->variant;
@@ -960,7 +960,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
             p->prefix.bytes.field_2         = 0;
             p->prefix.bytes.field_3         = 0;
             p->prefix.bytes.field_1         = 0x3C;
-            if (!(gGameSession->flowFlags & 2)) {
+            if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
@@ -989,7 +989,7 @@ void Gp_ReleaseStateF0Clear(Task* unusedTask, s32 unusedArg)
             p->field_8                      = 0;
             p->field_C                      = 0;
             p->field_10                     = 0;
-            if (!(gGameSession->flowFlags & 2)) {
+            if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
@@ -1008,7 +1008,7 @@ void Gp_ReleaseStateF0(Task* arg0, s32 arg1)
             p->prefix.bytes.field_2         = 0;
             p->prefix.bytes.field_3         = 0;
             p->prefix.bytes.field_1         = 0x3C;
-            if (!(gGameSession->flowFlags & 2)) {
+            if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }

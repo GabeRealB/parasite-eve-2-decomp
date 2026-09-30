@@ -520,13 +520,13 @@ s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, TaskMessageArg ar
 
 /// First state of the room task: publishes the room's message table and claims
 /// pointer slot 7. When game nibble 0xAF is still clear and the session's place
-/// (`gGameSession->at4.loc.variant`) is 1, it sets the nibble to 1 and spawns
+/// (`gGameSession->location.loc.variant`) is 1, it sets the nibble to 1 and spawns
 /// entry 0 of `D_8013E51C`. Advances to the next state either way.
 static void func_dryfield_night_toilet_8017D690(Task* task)
 {
     task->msgTable = D_dryfield_night_toilet_8017DA70;
     Game_SetPtrSlot(task, 7);
-    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->at4.loc.variant == 1) {
+    if (GameFlag_GetNibble(0xAF) == 0 && gGameSession->location.loc.variant == 1) {
         GameFlag_SetNibble(0xAF, 1);
         Task_SpawnFromTable(D_8013E51C, 0, 0, 0);
     }
@@ -598,12 +598,12 @@ static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg
 }
 
 /// Draws the room's glow sprite (texture cell 1, half-extent 0x200) at the
-/// point the current camera view (`gGameSession->at4.loc.view`) shows: view 4
+/// point the current camera view (`gGameSession->location.loc.view`) shows: view 4
 /// uses the second point, views 5 and 9 the first, and every other view draws
 /// nothing.
 void func_dryfield_night_toilet_8017D9F8(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 4:
             func_dryfield_night_toilet_8017D77C(&D_dryfield_night_toilet_8017DAA8[0], 1, 0x200);
             break;

@@ -1411,13 +1411,13 @@ static void func_dryfield_night_motel_room_3_8017D738(SVECTOR* arg0, s32 arg1, s
 }
 
 /// Per-frame effect: queues the room's glowing discs for the visit
-/// `gGameSession->at4.loc.view` selects - visit 3 the second point, visit 4 the
+/// `gGameSession->location.loc.view` selects - visit 3 the second point, visit 4 the
 /// second point then the first, visits 10 and 11 the first alone, visit 8 the
 /// third with a wider UV column and half-extent. Visits outside those draw
 /// nothing.
 void func_dryfield_night_motel_room_3_8017D9B4(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 3:
             func_dryfield_night_motel_room_3_8017D738(&D_dryfield_night_motel_room_3_8017DA8C, 1, 0x240);
             break;

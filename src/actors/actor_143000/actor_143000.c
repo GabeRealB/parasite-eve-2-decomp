@@ -1176,7 +1176,7 @@ void func_actor_143000_80133CF0(Task* arg0)
     RECT*                   rp;
     s32                     bottom;
 
-    if (gGameSession->at4.loc.view != 0xE) {
+    if (gGameSession->location.loc.view != 0xE) {
         taskKill(arg0);
         return;
     }

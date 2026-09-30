@@ -3224,7 +3224,7 @@ static void func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 inde
     gte_gpf12();
     gte_stsv(normal);
 
-    if (gGameSession->at4.loc.area == 0x27) {
+    if (gGameSession->location.loc.area == 0x27) {
         face.surfaceClass = 3;
     } else {
         face.surfaceClass = 2;
@@ -5050,7 +5050,7 @@ static void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
         work->vel.vx = 0;
     }
 
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -5104,7 +5104,7 @@ static void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
 
     work->field_1AC++;
 
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -7671,8 +7671,8 @@ static void func_actor_403200_8013C84C(Task* arg0)
             Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(enemy, 3), 0);
             if (cfg->hp <= 0) {
                 ((GameActor*)task->work)->field_956 = 0xA;
-                gGameSession->areaBgmCountdown      = 0x1E;
-                gGameSession->field_12E             = 0x36;
+                gGameSession->deathSoundCountdown   = 0x1E;
+                gGameSession->deathFadeFrames       = 0x36;
                 gGameSession->deathRestartDelay     = 0x5A;
             }
         }
@@ -8729,7 +8729,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                     if (work->field_EE8[sc->i] != NULL) {
                         work->field_F1B++;
                         model      = work->field_EE8[sc->i]->task->extra.tmd;
-                        sessionKey = &gGameSession->at4.loc;
+                        sessionKey = &gGameSession->location.loc;
                         key.stage  = sessionKey->stage;
                         key.area   = sessionKey->area;
                         key.room   = sessionKey->room;
@@ -9705,7 +9705,7 @@ static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
     model      = task->extra.tmd;
     key.stage  = sessionKey->stage;

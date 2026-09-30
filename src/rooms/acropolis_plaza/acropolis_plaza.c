@@ -3011,7 +3011,7 @@ void func_acropolis_plaza_8017DBFC(Task* task)
             task->state++;
             break;
         case 1:
-            key          = gGameSession->at4;
+            key          = gGameSession->location;
             key.loc.view = 0x64;
             slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
             CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
@@ -3281,7 +3281,7 @@ L_case0:
     q->movieReady         = 0;
     q->continueMovie      = 0;
     if (((AcropolisPlazaSceneArg*)task->spawnArg2.pointer)->noStream == 0) {
-        slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->plazaStreamSubId, 0);
+        slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
         frameOfs  = (q->movieFrame - 1) * 10;
         openFrame = frameOfs & 0xFFFF;
         slot[1]   = openFrame >> 8;
@@ -3377,7 +3377,7 @@ L_case2:
         }
     }
 L_enqueue:
-    slot[0]   = Stream_FindSlot((u8*)&gGameSession->at4.loc, q->plazaStreamSubId, 0);
+    slot[0]   = Stream_FindSlot((u8*)&gGameSession->location.loc, q->plazaStreamSubId, 0);
     seekFrame = frameOfs & 0xFFFF;
     slot[1]   = seekFrame >> 8;
     slot[2]   = seekFrame;
@@ -3578,7 +3578,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 2;
-            buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->at4.loc, 2, 0);
+            buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 2, 0);
             buf.slot[1]         = 0;
             buf.slot[2]         = 0;
             CdCmd_Enqueue(0x72, 0, buf.slot);
@@ -3644,7 +3644,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
 /// State 6 releases slot 3 (msg 0x3F1), re-places the player at
 /// (0x3DE, 0, 0x439E) and hands the room a 0x7D3 record; state 8 sends it 0x7D7
 /// and rebuilds the graphics state (`Gpu_ResetGraphAndOt`, the aux heap from
-/// `GameSession::at4.loc.stage` / `at4.loc.area`, `Tmd_AllocMissingBuffers`). State 7
+/// `GameSession::location.loc.stage` / `location.loc.area`, `Tmd_AllocMissingBuffers`). State 7
 /// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
 /// 7 at the end.
 ///
@@ -3707,7 +3707,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 4;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 4, 0);
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 4, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3734,7 +3734,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 5;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 5, 0);
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 5, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3756,11 +3756,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             roomRec.blend                = ANIMATION_BLEND_RESET;
             roomRec.blendFrames          = 0xA;
             roomRec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            sessionKey                   = &gGameSession->at4.loc;
+            sessionKey                   = &gGameSession->location.loc;
             buf.key.stage                = sessionKey->stage;
             buf.key.area                 = sessionKey->area;
-            buf.key.room                 = gGameSession->sprtVariant;
-            buf.key.view                 = gGameSession->at4.loc.view;
+            buf.key.room                 = gGameSession->spriteVariant;
+            buf.key.view                 = gGameSession->location.loc.view;
             buf.key.variant              = sessionKey->variant;
             entry                        = Gp_GetNestedAreaRec(&buf.key)->field_0;
             idx                          = 0;
@@ -3801,11 +3801,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 8:
             if (CdCmd_IsIdle() != 0) {
-                sessionKey      = &gGameSession->at4.loc;
+                sessionKey      = &gGameSession->location.loc;
                 buf.key.stage   = sessionKey->stage;
                 buf.key.area    = sessionKey->area;
-                buf.key.room    = gGameSession->sprtVariant;
-                buf.key.view    = gGameSession->at4.loc.view;
+                buf.key.room    = gGameSession->spriteVariant;
+                buf.key.view    = gGameSession->location.loc.view;
                 buf.key.variant = sessionKey->variant;
                 entry           = Gp_GetNestedAreaRec(&buf.key)->field_0;
                 idx             = 0;
@@ -3829,7 +3829,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                     0x7D7, 1, 0);
                 Gp_DispatchMsg(work->slot3, 0x3F3, 2, 0);
                 Gpu_ResetGraphAndOt();
-                Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
+                Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Mem_SetActiveAuxHeap(1);
                 Tmd_AllocMissingBuffers();
                 SndEvt_EnqueueTypeB(0x51050005, 0x26);
@@ -3842,7 +3842,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             q->sceneFrame       = 1;
             q->movieFrame       = 1;
             q->plazaStreamSubId = 3;
-            slot[0]             = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
+            slot[0]             = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
             slot[1]             = 0;
             slot[2]             = 0;
             CdCmd_Enqueue(0x72, 0, slot);
@@ -3883,7 +3883,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 q->sceneFrame       = 1;
                 q->movieFrame       = 1;
                 q->plazaStreamSubId = 3;
-                buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->at4.loc, 3, 0);
+                buf.slot[0]         = Stream_FindSlot((u8*)&gGameSession->location.loc, 3, 0);
                 buf.slot[1]         = 0;
                 buf.slot[2]         = 0;
                 CdCmd_Enqueue(0x71, 0, buf.slot);

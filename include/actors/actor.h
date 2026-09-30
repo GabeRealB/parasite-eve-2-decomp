@@ -2478,7 +2478,7 @@ static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
     GameLocationKey  key;
     GameLocationKey* sessionKey;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
@@ -2516,7 +2516,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     TmdObject*       model;
     s32              idx;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     idx        = enemy->placeKey >> 12;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;

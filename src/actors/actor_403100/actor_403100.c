@@ -5120,7 +5120,7 @@ static void func_actor_403100_80136610(Task* arg0)
 
     obj   = arg0->extra.tmd;
     coord = obj->coords;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(3, 29, 2, 0) ||
         (arg0->work = memCalloc(0x678U, false)) == NULL) {
         Gp_DestroyEnemy(D_actor_403100_8015580C, arg0);
         return;
@@ -5132,7 +5132,7 @@ static void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808             = work;
     obj->colorMtx                       = &work->field_0.matrices.color;
     arg0->msgTable                      = D_actor_403100_801556EC;
-    work->field_622                     = (s16)gGameSession->at4.loc.view;
+    work->field_622                     = (s16)gGameSession->location.loc.view;
     enemy->field_48                     = 0;
     enemy->field_4                      = &coord->coord;
     D_actor_403100_8015580C->bodyPos.vx = 0;
@@ -5452,7 +5452,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     D_actor_403100_80155808->field_618     = 0x1400;
                     gGameSession->suppressDeathChecks      = 0;
                     Gp_StateC08.field_6                    = (u8)(Gp_StateC08.field_6 | 1);
-                    gGameSession->field_12C                = 0;
+                    gGameSession->suppressViewTriggers     = 0;
                     D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
                     D_actor_403100_8015580C->node.state.b.flags = 9;
@@ -6576,7 +6576,7 @@ static void func_actor_403100_80139818(Task* arg0)
             pan2   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
             depth2 = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
             SndEvt_EnqueueType6(sound2, pan2, (s8)(depth2 / 2));
-            gGameSession->areaBgmCountdown    = 0x7F;
+            gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             work                              = D_actor_403100_80155808;
             work->pad_670[0]                  = 1;
             work->field_654                   = 0;
@@ -6949,7 +6949,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
         func_actor_403100_8013D0B8(D_actor_403100_80155808->field_90, D_actor_403100_80155808->field_92, (s16)((u16)D_actor_403100_80155808->field_94 + 0xBB8), 0x800);
         D_actor_403100_80155808->field_668.b.field_668 = 0;
         D_actor_403100_80155808->field_5EC             = 0;
-        gGameSession->field_12C                        = 1;
+        gGameSession->suppressViewTriggers             = 1;
         D_actor_403100_80155808->field_5FA            += 1;
         return;
     }
@@ -6996,7 +6996,7 @@ static void func_actor_403100_8013AC04(Task* task)
         task                              = gameGetPtrSlot(3);
         if (Gp_DispatchMsg(task, 0x3F9, Gp_PackPair(D_actor_403100_80147614, 2), 0) != 0) {
             gGameSession->suppressDeathChecks   = 1;
-            gGameSession->areaBgmCountdown      = 0x7F;
+            gGameSession->deathSoundCountdown   = GAME_SESSION_DEATH_SOUND_HOLD;
             D_actor_403100_80155808->pad_670[0] = 1U;
         }
         func_actor_403100_8013D0B8(-0x1928, -0xC7C, 0x29D6, 0x800);
@@ -7065,7 +7065,7 @@ static void func_actor_403100_8013AE28(Task* task)
             if (D_actor_403100_8015580C->hp > 0) {
                 Mc_SaveData[0].state.at4.loc.view = 4;
             }
-            gGameSession->field_12C             = 0;
+            gGameSession->suppressViewTriggers  = 0;
             D_actor_403100_80155808->pad_670[3] = 0;
             D_actor_403100_80155808->pad_670[1] = 0;
             D_actor_403100_80155808->field_5F8  = 1;
@@ -7090,7 +7090,7 @@ static void func_actor_403100_8013B128(Task* arg0)
 
     model                                  = arg0->extra.tmd;
     coords                                 = model->coords;
-    gGameSession->field_12C                = 0;
+    gGameSession->suppressViewTriggers     = 0;
     model->otOffset                        = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
@@ -7114,7 +7114,7 @@ static void func_actor_403100_8013B128(Task* arg0)
         obj = &(PARENT_OF(obj, Actor403100Entry, obj) + 1)->obj;
     }
     SndEvt_EnqueueType7(0x401F0004, 1);
-    D_actor_403100_80155808->field_622              = (s16)gGameSession->at4.loc.view;
+    D_actor_403100_80155808->field_622              = (s16)gGameSession->location.loc.view;
     D_actor_403100_80155808->field_0.matrices.coord = coords->coord;
     D_actor_403100_80155808->savedRotation          = *(SVECTOR*)&D_actor_403100_80155808->field_80;
     Mc_SaveData[0].state.at4.loc.view               = 0x18;
@@ -7612,7 +7612,7 @@ static void func_actor_403100_8013C214(Task* arg0)
                     pan   = (s8)Gp_GetObjPan(playerTask->extra.tmd->coords + 1);
                     depth = gpGetObjDepth(playerTask->extra.tmd->coords + 1);
                     SndEvt_EnqueueType6(sound, (s32)pan, (s8)(depth / 2));
-                    gGameSession->areaBgmCountdown    = 0x7F;
+                    gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
                     work                              = D_actor_403100_80155808;
                     work->pad_670[0]                  = 1;
                     work->field_654                   = 0;
@@ -8218,7 +8218,7 @@ static void func_actor_403100_8013D8F4(Task* arg0)
     D_actor_403100_80155808->field_658     = -1;
     D_actor_403100_80155808->field_618     = 0x1400;
     Gp_StateC08.field_6                    = Gp_StateC08.field_6 | 1;
-    gGameSession->field_12C                = 0;
+    gGameSession->suppressViewTriggers     = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
     SndEvt_EnqueueType7(0x401F0004, 0xA);
@@ -8810,12 +8810,12 @@ static void func_actor_403100_8013F0A8(Task* arg0)
 {
     TmdObject* obj;
 
-    obj                           = arg0->extra.tmd;
-    obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    D_actor_403100_8014762C.bp    = 0;
-    D_actor_403100_8014762C.mp    = 0;
-    D_actor_403100_8014762C.exp >>= 1;
-    gGameSession->at4.loc.variant = 4;
+    obj                                = arg0->extra.tmd;
+    obj->flags                        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    D_actor_403100_8014762C.bp         = 0;
+    D_actor_403100_8014762C.mp         = 0;
+    D_actor_403100_8014762C.exp      >>= 1;
+    gGameSession->location.loc.variant = 4;
     Gp_ReleaseStateF0Add(arg0, 0);
     arg0->state                        = 5;
     D_actor_403100_80155808->field_5F8 = 0;

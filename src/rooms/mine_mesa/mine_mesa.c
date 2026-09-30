@@ -2644,7 +2644,7 @@ static void func_mine_mesa_8017D808(Task* task)
     u8  field9;
     s32 nibble;
 
-    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->at4.loc.variant, field9 == 1)) {
+    if ((gGameSession->eventState == 0) && (Gp_StateC08.field_A != 1) && (field9 = gGameSession->location.loc.variant, field9 == 1)) {
         if (GameFlag_GetNibble(0x90) == 0) {
             if (gameGetPtrSlot(0xA) != NULL) {
                 func_800E8634(D_mine_mesa_8018578C, 0, D_mine_mesa_801861DC);
@@ -2702,7 +2702,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     if (in->areaId != 3) {
         return 1;
     }
-    field9 = gGameSession->at4.loc.variant;
+    field9 = gGameSession->location.loc.variant;
     if (field9 == 1 && Gp_StateF0.prefix.bytes.field_0 == field9) {
         return 0;
     }
@@ -2754,7 +2754,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     u8 field9;
 
-    field9 = gGameSession->at4.loc.variant;
+    field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
         if (GameFlag_GetNibble(0xCD) == 0) {
             if (gameGetPtrSlot(0xA) != NULL) {
@@ -2851,7 +2851,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4;
+    key          = gGameSession->location;
     key.loc.view = 0x64;
     slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
     CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
@@ -3248,7 +3248,7 @@ void func_mine_mesa_8017E8FC(s32 arg0)
 
 void func_mine_mesa_8017E91C(void)
 {
-    gGameSession->flowFlags |= 3;
+    gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
 }
 
 void func_mine_mesa_8017E93C(u8 arg0)
@@ -4184,11 +4184,11 @@ static void func_mine_mesa_80181358(Task* arg0)
         D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord.t[1] = pt->y;
         D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord.t[2] = pt->z;
         tmd                                                          = D_mine_mesa_80189B74[i]->task->extra.tmd;
-        loc                                                          = &gGameSession->at4.loc;
+        loc                                                          = &gGameSession->location.loc;
         key.stage                                                    = loc->stage;
         key.area                                                     = loc->area;
         key.room                                                     = loc->room;
-        key.view                                                     = gGameSession->at4.loc.view;
+        key.view                                                     = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
         place                  = Gp_GetNestedAreaRec(&key)->field_0;
         tmd->texturePageOffset = place->texturePageOffset;
@@ -4220,13 +4220,13 @@ end:
 }
 
 /// Picks the height the room's terrain updater subtracts from its mesh
-/// vertices: 0x7D0 while `gGameSession->at4.loc.variant` says the session is in area 1
+/// vertices: 0x7D0 while `gGameSession->location.loc.variant` says the session is in area 1
 /// or 7, 0x190 otherwise, then hands that to `func_mine_mesa_801811C4`.
 static void func_mine_mesa_801817BC(void)
 {
     s32 offset;
 
-    if (gGameSession->at4.loc.variant == 1 || gGameSession->at4.loc.variant == 7) {
+    if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 7) {
         offset = 0x7D0;
     } else {
         offset = 0x190;

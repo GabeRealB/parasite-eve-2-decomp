@@ -2519,7 +2519,7 @@ static void func_actor_443500_80132078(Task* task)
     work->field_4C0    = task->extra.tmd->flags;
     spawned            = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
-        sessionKey = &gGameSession->at4.loc;
+        sessionKey = &gGameSession->location.loc;
         raw        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
         model      = spawned->extra.tmd;
         key.stage  = sessionKey->stage;
@@ -2569,7 +2569,7 @@ static void func_actor_443500_801321F0(Task* task)
     work  = (Actor443500Work*)task->work;
     if (gGameSession->viewReady != 0 && gGameSession->eventState == 0 &&
         gGameSession->cutsceneHold == 0) {
-        view = gGameSession->at4.loc.view;
+        view = gGameSession->location.loc.view;
         if (view < 4) {
             work->field_4C0 = extra->flags;
             extra->flags    = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2592,7 +2592,7 @@ static void func_actor_443500_801321F0(Task* task)
     if (work->model.animId == 0x1C) {
         work->field_4BA++;
         if (work->field_4BA == 0xF) {
-            switch (gGameSession->at4.loc.view) {
+            switch (gGameSession->location.loc.view) {
                 case 5:
                     SndEvt_EnqueueType6(0x542F0001, 9, 0);
                     break;
@@ -2604,7 +2604,7 @@ static void func_actor_443500_801321F0(Task* task)
                     break;
             }
         } else if (gGameSession->viewReady != 0) {
-            switch (gGameSession->at4.loc.view) {
+            switch (gGameSession->location.loc.view) {
                 case 5:
                     SndEvt_EnqueueTypeA(0x542F0001, 9, 0);
                     break;

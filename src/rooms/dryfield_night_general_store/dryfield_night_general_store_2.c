@@ -1578,13 +1578,13 @@ static void func_dryfield_night_general_store_8017DEE0(SVECTOR* arg0, s32 arg1)
 }
 
 /// Draws the store's light beams for the current camera view
-/// `gGameSession->at4.loc.view`. Each beam is a pair of world points handed to
+/// `gGameSession->location.loc.view`. Each beam is a pair of world points handed to
 /// `func_dryfield_night_general_store_8017DEE0` with a radius of 0x100: views
 /// 2, 3, 12 and 13 draw one beam each, and views 4 and 8 draw the beams of
 /// views 2 and 3 together.
 void func_dryfield_night_general_store_8017E6C8(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
             func_dryfield_night_general_store_8017DEE0(&D_dryfield_night_general_store_8017E7EC[0], 0x100);
             break;

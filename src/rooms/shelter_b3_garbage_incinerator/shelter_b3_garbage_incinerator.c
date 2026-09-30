@@ -123,7 +123,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
             return 0;
         }
         Gp_StateF0.field_4 = 1;
-        if (gGameSession->at4.loc.room < 4) {
+        if (gGameSession->location.loc.room < 4) {
             Gp_SpawnIfCapIdle(3, 1);
             return 0;
         }
@@ -140,7 +140,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
         return 2;
     }
     if (in->areaId == 0x27 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = gGameSession->field_133 + 1;
+        out->room = gGameSession->incineratorRoomGroup + 1;
     }
     return 1;
 }
@@ -152,10 +152,10 @@ s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task* task, s32 msgId, TaskMess
 
 s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
-    if (in->warp == 2 && gGameSession->field_135 == 0) {
-        if (gGameSession->field_132 == 3) {
+    if (in->warp == 2 && gGameSession->incineratorExitPhase == GAME_SESSION_INCINERATOR_EXIT_NONE) {
+        if (gGameSession->incineratorDescentPhase == GAME_SESSION_INCINERATOR_DESCENT_COMPLETE) {
             Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_801855E0, 0, 0, 0);
-            gGameSession->field_135 = 1;
+            gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
         } else if (D_shelter_b3_garbage_incinerator_801855DC >= 0x3D) {
             SndEvt_EnqueueType6(0x5428000D, 0, 0);
             func_shelter_b3_garbage_incinerator_80180FE4(0x16, 0, 0x3C);
@@ -203,10 +203,10 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
     Game_SetPtrSlot(task, 7);
     func_shelter_b3_garbage_incinerator_8018108C(0x180, 0, 0);
     D_shelter_b3_garbage_incinerator_801855D8 = Task_SpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
-    if (gGameSession->at4.loc.room >= 4) {
+    if (gGameSession->location.loc.room >= 4) {
         Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);
     }
-    if (gGameSession->at4.loc.variant == 2) {
+    if (gGameSession->location.loc.variant == 2) {
         Task_SpawnFromTable(&D_8016BFE0, 0, 0, 0);
     }
     task->state = task->state + 1;

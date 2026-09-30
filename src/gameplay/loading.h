@@ -61,22 +61,22 @@ void Gp_EnqueueStageCd(void);
 
 void Gp_EnqueueCompanionCd(u8 type, u8 variant);
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpViewCountTbl* Gp_ViewCountTables[];
 
 /// Per-stage pointer table. Index is `GameLocationKey.stage - 1`.
 /// Each entry is an array of `GpRoomCoordRec*`, indexed by `field_2 - 1`.
 extern GpRoomCoordRec** Gp_RoomCoordTables[];
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpViewIndexTbl* Gp_ViewIndexTables[];
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpRoomObjTbl* Gp_RoomObjTables[];
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`. Each
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`. Each
 /// entry is an array of `GpWarpRec*`, indexed 1-based by
-/// `GameSession.at4.loc.area` / `GameLocationKey.area`.
+/// `GameSession.location.loc.area` / `GameLocationKey.area`.
 extern GpWarpRec** Gp_WarpTables[];
 
 void func_800AA548(s32 arg0);
@@ -99,7 +99,7 @@ void Gp_FadeGrayHold(Task* task);
 
 void Gp_RoomObjState1(Task* task);
 
-/// Per-stage pointer table. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern GpViewTbl* Gp_ViewTables[];
 
 extern DR_STP D_80114C50;

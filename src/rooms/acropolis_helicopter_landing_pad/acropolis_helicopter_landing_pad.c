@@ -64,7 +64,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadMessageEntry, 8);
 
 extern _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[];
 extern GsF_LIGHT                                  D_acropolis_helicopter_landing_pad_80182340[3];
-/// Per-camera-view visibility table indexed by `(u8)gGameSession->at4.loc.view`:
+/// Per-camera-view visibility table indexed by `(u8)gGameSession->location.loc.view`:
 /// a non-zero byte keeps the enemy model visible in that view.
 extern s8 D_acropolis_helicopter_landing_pad_80182370[];
 
@@ -212,7 +212,7 @@ static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
         work->field_50 = 0;
     }
     if (gGameSession->viewReady != 0) {
-        if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->at4.loc.view] != 0) {
+        if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->location.loc.view] != 0) {
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -325,7 +325,7 @@ void func_acropolis_helicopter_landing_pad_8017D9BC(Task* task)
             }
         }
     }
-    if (gGameSession->at4.loc.view == 5) {
+    if (gGameSession->location.loc.view == 5) {
         D_acropolis_helicopter_landing_pad_80184E0C = 1;
     }
     if (gGameSession->eventState == 0) {

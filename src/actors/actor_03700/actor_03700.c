@@ -1738,7 +1738,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     if (eff == NULL) {
         return;
     }
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     raw        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;

@@ -284,7 +284,7 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -507,7 +507,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -618,7 +618,7 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     u8*           table;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -660,7 +660,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -706,7 +706,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
         lvl = 1;
     } else {
         p = &Player_Status;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -772,7 +772,7 @@ static s32 func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2)
     gGameSession->uiOpen = 1;
     cfg                  = &Player_Status;
     count                = 0;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = cfg->field_26 == 4;
@@ -1015,7 +1015,7 @@ static __inline__ u8* getAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -1163,7 +1163,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         }
     }
     if (Gp_StateC08.field_A == 1) {
-        if (gGameSession->padPrev & 0x50) {
+        if (gGameSession->padPressed & 0x50) {
             work = gameGetPtrSlot(3);
             if (work != NULL) {
                 ((GameActor*)work->work)->field_962 |= 0x40;
@@ -1181,7 +1181,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
 
     if (Gp_StateC08.field_A == 0 && Gp_StateC08.field_E == 0) {
         ok = hudSwapReady();
-        if ((ok != 0 && (gGameSession->padPrev & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
+        if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.field_6 & 1)) ||
             (Gp_StateC08.field_6 & 0x10)) {
             Gp_StateC08.field_9  = 1;
@@ -1258,7 +1258,7 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
         }
 
         if ((Gp_StateC08.field_6 & 1) ||
-            (Gp_StateC08.field_5 < 0xC && (gGameSession->padPrev & 0x40))) {
+            (Gp_StateC08.field_5 < 0xC && (gGameSession->padPressed & 0x40))) {
             gGameSession->loadedSndId = 0;
             CdCmd_EnqueueLoadFile(0, 0, 4);
             if (Gp_StateC08.field_A >= 2) {
@@ -1284,12 +1284,12 @@ static void Gp_UseItemTask(GpIdMapC* arg0)
     if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.field_E != 0) {
         if (cdIdleIfF0Active_()) {
-            pad                    = &Pad_States[0];
-            mask                   = Pad_MaskConfirm;
-            pad->pressedButtons   &= ~mask;
-            gGameSession->padPrev &= ~mask;
-            gGameSession->pad     &= ~mask;
-            gGameSession->padTrig &= ~mask;
+            pad                        = &Pad_States[0];
+            mask                       = Pad_MaskConfirm;
+            pad->pressedButtons       &= ~mask;
+            gGameSession->padPressed  &= ~mask;
+            gGameSession->padHeld     &= ~mask;
+            gGameSession->padReleased &= ~mask;
             if (Gp_StateC08.field_E != 0) {
                 Gp_StateC08.field_5 = Gp_StateC08.field_E;
                 Gp_StateC08.field_B = Gp_StateC08.field_E;
@@ -1333,7 +1333,7 @@ void Gp_HudTask(GpIdMapC* arg0)
     s32           b;
 
     bad   = 0;
-    kind  = GAME_LOCATION_WORD(gGameSession->at4.loc);
+    kind  = GAME_LOCATION_WORD(gGameSession->location.loc);
     kind &= GAME_LOCATION_STAGE_AREA_MASK;
     cfg   = &Player_Status;
     ds    = &gDisplayState;
@@ -1492,7 +1492,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 s32           cond;
 
                 p = &Player_Status;
-                if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                     cond = 0;
                 } else {
                     cond = p->field_26 == 4;
@@ -1528,7 +1528,7 @@ after:
             if (bad != 0) {
                 goto tail;
             }
-            k             = GAME_LOCATION_WORD(gGameSession->at4.loc);
+            k             = GAME_LOCATION_WORD(gGameSession->location.loc);
             k            &= GAME_LOCATION_STAGE_AREA_MASK;
             arg0->field_8 = 0;
             if (k != GAME_LOCATION_KEY(1, 20, 0, 0)) {
@@ -1564,12 +1564,12 @@ after:
                 c08->field_8 = 0;
                 Gp_PulseState1C80();
                 Gp_ClearSlotNodeFlags();
-                if ((gGameSession->flowFlags & 0x80) == 0) {
+                if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                     goto inc1;
                 }
                 work = gameGetPtrSlot(3);
                 func_80106350(work, Player_Status.weapon, 0);
-                if (gGameSession->flowFlags & 0x40) {
+                if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                     Gp_MsgPlayerWeapon(0);
                 }
                 arg0->field_4 = arg0->field_4 + 2;
@@ -1581,12 +1581,12 @@ after:
                     goto tail;
                 }
                 session = gGameSession;
-                if (session->field_126 == 0) {
+                if (session->battleResetPending == 0) {
                     goto tail;
                 }
-                f0->prefix.bytes.field_0 = 0;
-                f0->field_6              = 0;
-                session->field_126       = 0;
+                f0->prefix.bytes.field_0    = 0;
+                f0->field_6                 = 0;
+                session->battleResetPending = 0;
                 if (c08->field_A >= 2) {
                     c08->field_3 = 2;
                 }
@@ -1645,7 +1645,7 @@ after:
                 }
             }
             flags = gGameSession->flowFlags;
-            if ((flags & 0x80) == 0) {
+            if ((flags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                 if (w != NULL) {
                     if (hit == 0) {
                         goto tail;
@@ -1653,7 +1653,7 @@ after:
                 }
                 func_80108874(w);
             } else {
-                if (flags & 0x40) {
+                if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                     Gp_DispatchMsg(w, 0x3F1, 2, 0);
                 }
             }
@@ -1661,13 +1661,13 @@ after:
             item = p->weapon + 0x7F;
             Gp_FillRelated(item, 0);
             Gp_FillRelated(item, 1);
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
             }
             if (cond != 0) {
-                if (gGameSession->field_126 != 0) {
+                if (gGameSession->battleResetPending != 0) {
                     goto inc1;
                 }
             }
@@ -1683,13 +1683,13 @@ after:
             GpStateC08*   q;
 
             p = &Player_Status;
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
                 cond = 0;
             } else {
                 cond = p->field_26 == 4;
             }
             if (cond != 0) {
-                if (gGameSession->field_126 != 0) {
+                if (gGameSession->battleResetPending != 0) {
                     goto zero;
                 }
             }
@@ -1719,7 +1719,7 @@ tail:
         if (gGameSession->hideHud == 0) {
             func_800A57B0(arg0);
             if (func_800B9D80(0x100000) != 0) {
-                if (gGameSession->field_65 == 0) {
+                if (gGameSession->sceneUpdatesPaused == 0) {
                     Gp_DrawHudSprites(arg0);
                 }
             }
@@ -1773,7 +1773,7 @@ end:
 
                 session = gGameSession;
                 if (session->hideHud == 0) {
-                    if (session->field_65 == 0) {
+                    if (session->sceneUpdatesPaused == 0) {
                         Gp_HudTrackSlot0(&arg0->field_1C);
                     }
                 }

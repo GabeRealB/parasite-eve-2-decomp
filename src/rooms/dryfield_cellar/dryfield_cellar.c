@@ -934,7 +934,7 @@ static void func_dryfield_cellar_8017D7DC(GfxCoord* arg0, SVECTOR* arg1, s32 arg
 
 /// Per-frame effect on a coordinate task: once event nibble 0x52 is 1, draws a glow
 /// sprite on each of the two points belonging to the current camera view
-/// (`gGameSession->at4.loc.view`), 2 or 3, placed in the task's coordinate
+/// (`gGameSession->location.loc.view`), 2 or 3, placed in the task's coordinate
 /// space. Every other view draws nothing.
 void func_dryfield_cellar_8017DAEC(Task* arg0)
 {
@@ -942,10 +942,10 @@ void func_dryfield_cellar_8017DAEC(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     if (GameFlag_GetNibble(0x52) == 1) {
-        if (gGameSession->at4.loc.view == 2) {
+        if (gGameSession->location.loc.view == 2) {
             func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
             func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
-        } else if (gGameSession->at4.loc.view == 3) {
+        } else if (gGameSession->location.loc.view == 3) {
             func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBCC, 1, 0x280);
             func_dryfield_cellar_8017D7DC(coord, D_dryfield_cellar_8017DBCC + 1, 1, 0x280);
         }

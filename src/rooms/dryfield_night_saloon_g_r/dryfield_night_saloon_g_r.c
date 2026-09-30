@@ -2142,14 +2142,14 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, DirectionActi
         func_800E8634(D_dryfield_night_saloon_g_r_80183C94, 0, D_dryfield_night_saloon_g_r_801847A4);
         GameFlag_SetNibble(0x59, 1);
     }
-    temp_s0 = gGameSession->at4.loc.variant;
+    temp_s0 = gGameSession->location.loc.variant;
     if (temp_s0 == 2 && GameFlag_GetNibble(0xB0) == 0) {
         if (request->actionId == 1) {
             Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
             SndEvt_EnqueueType6(0x5312000C, 0, 0);
         } else if (request->actionId == temp_s0) {
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             GameFlag_SetNibble(0xB0, 1);
@@ -2169,9 +2169,9 @@ static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.variant == 2 && GameFlag_GetNibble(0xB0) == 0) {
-        msg.context.loc.stage = gGameSession->at4.loc.stage;
-        msg.context.loc.area  = gGameSession->at4.loc.area;
+    if (gGameSession->location.loc.variant == 2 && GameFlag_GetNibble(0xB0) == 0) {
+        msg.context.loc.stage = gGameSession->location.loc.stage;
+        msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 0;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     }
@@ -2202,7 +2202,7 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
     Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->at4.loc.room        = arg0;
+    gGameSession->location.loc.room   = arg0;
 }
 
 /// Row callback of the jukebox list: draws the row's track name, and on
@@ -2337,7 +2337,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
                 task->state  = 1;
                 task->status = 0xFF;
                 if (Gp_IsDebugAttachRoom() == 0) {
-                    gGameSession->flowFlags |= 3;
+                    gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
                 if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
                     obj->field_2E = 6;
@@ -2411,7 +2411,7 @@ static s32 func_dryfield_night_saloon_g_r_8017E698(s32 arg0)
 
 /// Per-frame effect on the room's coordinate task: recomputes the task's composed
 /// matrix, then draws every effect whose view mask includes the current view
-/// `gGameSession->at4.loc.view`. Positions 0-5 and 20-22 are drawn with UV
+/// `gGameSession->location.loc.view`. Positions 0-5 and 20-22 are drawn with UV
 /// column 0 and half-extent 0x200, 6-10 with column 1 and 0x1C0, and 23-27
 /// with column 0 and 0x300; the two helpers in between take the task's coord.
 void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
@@ -2421,7 +2421,7 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     s32       i;
 
     coord = arg0->extra.coordBody->coord;
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {

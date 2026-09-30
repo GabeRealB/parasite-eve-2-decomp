@@ -2638,7 +2638,7 @@ static void func_actor_450800_80131E2C(void)
     s32 temp_v0;
     s32 n;
 
-    if (gGameSession->at4.loc.view == 4) {
+    if (gGameSession->location.loc.view == 4) {
         if (GameFlag_GetNibble(0xC7) == 1) {
             temp_v0                 = D_actor_450800_8013930C + 1;
             D_actor_450800_8013930C = temp_v0;
@@ -2758,13 +2758,13 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     TmdObject*       model;
     u32              idx;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     idx        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 12;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
-    key.view   = gGameSession->at4.loc.view;
+    key.view   = gGameSession->location.loc.view;
     areaSyncLocationVariant(&key);
     entry                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
     model->texturePageOffset = entry->texturePageOffset;

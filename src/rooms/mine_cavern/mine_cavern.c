@@ -229,7 +229,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
                 return 0;
             }
             Gp_SetNibbleIf(in->flagId, 2);
-            if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->at4.loc.variant == Gp_StateF0.prefix.bytes.field_0) {
+            if (Gp_StateF0.prefix.bytes.field_0 == 1 && gGameSession->location.loc.variant == Gp_StateF0.prefix.bytes.field_0) {
                 Gp_RunCapCmd1(9);
                 return 0;
             }
@@ -248,7 +248,7 @@ s32 func_mine_cavern_8017D908(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     }
 
     if (in->areaId == 5) {
-        if (gGameSession->at4.loc.variant == 1 || gGameSession->at4.loc.variant == 4) {
+        if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 4) {
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_RunCapCmd1(0xB);
@@ -271,7 +271,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
             return 0;
         }
         if (Gp_StateF0.prefix.bytes.field_0 == arg2) {
-            temp = gGameSession->at4.loc.variant;
+            temp = gGameSession->location.loc.variant;
             if (temp == arg2 || temp == 4) {
                 cmd = 0xA;
                 goto cap_only;
@@ -300,7 +300,7 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         Gp_RunCapCmd1(cmd);
     }
 rest:
-    temp = gGameSession->at4.loc.variant;
+    temp = gGameSession->location.loc.variant;
     if (temp == 1 || temp == 4) {
         switch (arg2) {
             case 8:
@@ -380,7 +380,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
 {
     arg0->msgTable = D_mine_cavern_80183C6C;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0x10F) == 0)) {
         func_800E8634(D_mine_cavern_80187C74, 0, D_mine_cavern_8018804C);
         func_mine_cavern_8017E394();
         GameFlag_SetNibble(0x10F, 1);
@@ -429,7 +429,7 @@ void func_mine_cavern_8017DFAC(s32 arg0)
         (GameFlag_GetNibble(0xE6) == 2 && D_mine_cavern_8018EB54 == 1)) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x1E);
         Gp_StateF0.prefix.bytes.field_1 = arg0;
-        gGameSession->flowFlags        |= 0x80;
+        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         D_mine_cavern_8018EB54         += 1;
         return;
     }
@@ -455,11 +455,11 @@ void func_mine_cavern_8017E0B4(void)
 void func_mine_cavern_8017E0F4(s32 arg0)
 {
     if (arg0 != 0) {
-        gGameSession->flowFlags &= 0xFD;
+        gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
         return;
     }
-    gGameSession->flowFlags |= 2;
-    gGameSession->flowFlags |= 8;
+    gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
+    gGameSession->flowFlags |= GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
 }
 
 /// Room script callback: stores its argument into `Mc_SaveData[0].state.sceneEvent`.

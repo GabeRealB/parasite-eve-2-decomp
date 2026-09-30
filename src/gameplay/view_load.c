@@ -56,7 +56,7 @@ void Gp_ViewBeginLoad(Task* task)
     u8               param1[8];
     u8               param2[8];
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     q    = &CdCmd_Queue;
     if (task->spawnArg1.value != 0) {
         gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -68,10 +68,10 @@ void Gp_ViewBeginLoad(Task* task)
         DrawPrim(&D_80114C50);
         ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
         if (q->scenePayloadAvailable != 0) {
-            Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
+            Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
             task->state = 5;
         } else {
-            D_80114C40 = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 1);
+            D_80114C40 = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 1);
             if (D_80114C40 >= 0) {
                 Gp_FreeSlot4TmdBuffers();
                 q->viewMovieSelected = 1;

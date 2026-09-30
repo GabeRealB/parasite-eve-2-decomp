@@ -714,7 +714,7 @@ void Gp_EnqueueViewCd(Task* task)
     u8               param1[8];
     u8               param2[8];
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     if (CdCmd_IsIdle() & 0xFFFF) {
         param1[3] = sess->stage;
         param1[2] = sess->area;
@@ -815,7 +815,7 @@ static void Gp_ReloadFromSave(void)
     ResetGraph(1);
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
-    gGameSession->at4.loc.view = save->state.at4.loc.view;
+    gGameSession->location.loc.view = save->state.at4.loc.view;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(2);
     gGameSession->viewReady = 0;
@@ -828,7 +828,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
 
     slot                              = gameGetPtrSlot(1);
     Mc_SaveData[0].state.at4.loc.view = arg0;
-    gGameSession->at4.loc.view        = arg0;
+    gGameSession->location.loc.view   = arg0;
     slot->spawnArg1.value             = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
@@ -842,7 +842,7 @@ void Gp_CommitSpawnLoc(Task* task)
 
     val                               = (u8)task->spawnArg1.value;
     Mc_SaveData[0].state.at4.loc.view = val;
-    gGameSession->at4.loc.view        = val;
+    gGameSession->location.loc.view   = val;
     taskKill(task);
 }
 
@@ -887,8 +887,8 @@ void Gp_LoadViewAndCd(u8 arg0)
         }
     }
     session   = gGameSession;
-    param1[3] = session->at4.loc.stage;
-    param1[2] = session->at4.loc.area;
+    param1[3] = session->location.loc.stage;
+    param1[2] = session->location.loc.area;
     param1[0] = Gp_GetViewIndex();
     param2[0] = 1;
     if (arg0 != 0) {
@@ -953,10 +953,10 @@ void Gp_EnqueueStageCd(void)
     u8 param1[8];
     u8 param2[8];
 
-    CdCmd_Enqueue(0x54, (u8*)&gGameSession->at4.loc, NULL);
+    CdCmd_Enqueue(0x54, (u8*)&gGameSession->location.loc, NULL);
     param1[3] = 0;
     param1[2] = 0x5A;
-    param1[0] = gGameSession->at4.loc.stage;
+    param1[0] = gGameSession->location.loc.stage;
     param2[3] = 0;
     param2[2] = 0;
     param2[1] = 0;

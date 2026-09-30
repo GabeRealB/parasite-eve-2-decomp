@@ -107,7 +107,7 @@ void func_800AA548(s32 arg0)
     session                    = gGameSession;
     session->deathVariant      = 0;
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-    sess                       = &session->at4.loc;
+    sess                       = &session->location.loc;
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
@@ -130,10 +130,10 @@ void func_800AA548(s32 arg0)
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
-        if (((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->at4.loc.warp == 2)) {
-            Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = 2;
+        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->location.loc.warp == 2)) {
+            Mc_SaveData[0].state.at4.loc.view = gGameSession->location.loc.view = 2;
         } else {
-            Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view = rec.field_34;
+            Mc_SaveData[0].state.at4.loc.view = gGameSession->location.loc.view = rec.field_34;
         }
     }
     Gp_ActorSlots[0] = NULL;
@@ -179,7 +179,7 @@ void func_800AA548(s32 arg0)
     stage = sess->stage;
     warp  = sess->warp;
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
-    if ((u8)gGameSession->areaSetupDone != 0) {
+    if (gGameSession->areaSetupDone != 0) {
         if (rec.field_28 != 0) {
             SndEvt_EnqueueType6(rec.field_28, 0, 0);
         }
@@ -209,8 +209,8 @@ void Gp_BeginSessionTask(Task* arg0)
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();
-    gGameSession->at4                = Mc_SaveData[0].state.at4;
-    gGameSession->sprtVariant        = ds->spriteVariant;
+    gGameSession->location           = Mc_SaveData[0].state.at4;
+    gGameSession->spriteVariant      = ds->spriteVariant;
     queue->suppressMoviePresentation = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {
         MoveImage(
@@ -253,14 +253,14 @@ void Gp_LoadWaitBoot(Task* task)
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
         save    = &Mc_SaveData[0];
-        if (session->loadedWeaponFamily != save->state.characterId || session->loadedConfigSet != Player_Status.field_26) {
+        if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != Player_Status.field_26) {
             GameSession* sess;
 
             Gp_EnqueueConfigCd(0);
             Gp_EnqueueHeldWeaponCd();
-            sess                     = gGameSession;
-            sess->loadedWeaponFamily = save->state.characterId;
-            sess->loadedConfigSet    = Player_Status.field_26;
+            sess                    = gGameSession;
+            sess->loadedCharacterId = save->state.characterId;
+            sess->loadedConfigSet   = Player_Status.field_26;
         }
         Gp_EnqueueAttach7Cd();
         task->state++;
@@ -322,9 +322,9 @@ void Gp_LoadWaitStage(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        if (gGameSession->at4.loc.stage != gGameSession->loadedStage) {
+        if (gGameSession->location.loc.stage != gGameSession->loadedStage) {
             Gp_EnqueueStageCd();
-            gGameSession->loadedStage = gGameSession->at4.loc.stage;
+            gGameSession->loadedStage = gGameSession->location.loc.stage;
         }
         task->state++;
     }
@@ -375,18 +375,18 @@ void Gp_LoadState2(Task* task)
         }
         Mem_InitAux();
         Gp_ApplyNpcRoomSnd();
-        Snd_InitFromStage(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
-        if (gGameSession->at4.loc.stage == 3 && GameFlag_GetNibble(0x7A) >= 4) {
+        Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+        if (gGameSession->location.loc.stage == 3 && GameFlag_GetNibble(0x7A) >= 4) {
             gStageSceneMusicEntry = 1;
         } else {
             gStageSceneMusicEntry = 0;
         }
-        gGameSession->areaBgmCountdown  = 1;
-        *(s8*)&gGameSession->field_12E  = -0x80;
-        gGameSession->deathRestartDelay = 0x1E;
-        pair                            = &gStageMusicParams;
-        pair->fadeFrames                = 0x3C;
-        pair->unusedCommandArg          = 0;
+        gGameSession->deathSoundCountdown = 1;
+        gGameSession->deathFadeFrames     = GAME_SESSION_DEATH_FADE_DEFAULT;
+        gGameSession->deathRestartDelay   = 0x1E;
+        pair                              = &gStageMusicParams;
+        pair->fadeFrames                  = 0x3C;
+        pair->unusedCommandArg            = 0;
         Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
         task->state++;
     }
@@ -428,9 +428,9 @@ void Gp_LoadWaitCompanion(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        param1[3] = gGameSession->at4.loc.stage;
-        param1[2] = gGameSession->at4.loc.area;
-        param1[1] = gGameSession->at4.loc.room;
+        param1[3] = gGameSession->location.loc.stage;
+        param1[2] = gGameSession->location.loc.area;
+        param1[1] = gGameSession->location.loc.room;
         param1[0] = 0;
         param1[4] = 0;
         param2[0] = 1;
@@ -487,11 +487,11 @@ void Gp_LoadWaitSave(Task* task)
         GameSession* session;
 
         session = gGameSession;
-        if ((GAME_LOCATION_WORD(session->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 1, 0, 0)) {
-            if (session->at4.loc.room >= 4) {
-                Snd_InitFromStage(session->at4.loc.stage, session->at4.loc.area);
-                param1[3] = gGameSession->at4.loc.stage;
-                param1[2] = gGameSession->at4.loc.area;
+        if ((GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 1, 0, 0)) {
+            if (session->location.loc.room >= 4) {
+                Snd_InitFromStage(session->location.loc.stage, session->location.loc.area);
+                param1[3] = gGameSession->location.loc.stage;
+                param1[2] = gGameSession->location.loc.area;
                 param1[0] = 0x16;
                 param2[0] = 1;
                 param2[1] = 0;
@@ -502,13 +502,13 @@ void Gp_LoadWaitSave(Task* task)
         }
         sess = gGameSession;
         if (sess->applySaveVariant == 1) {
-            areaSetPlacementVariant(&sess->at4.loc, Mc_SaveData[0].state.at4.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            areaSetPlacementVariant(&sess->location.loc, Mc_SaveData[0].state.at4.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
             gGameSession->applySaveVariant = 0;
         }
         saveKey = &Mc_SaveData[0].state.at4.loc;
         Gp_MarkAreaVisited(saveKey);
         areaSyncLocationVariant(saveKey);
-        gGameSession->at4.loc.variant = saveKey->variant;
+        gGameSession->location.loc.variant = saveKey->variant;
         CdCmd_BuildVlcIfStream();
         D_80114C74 = 0;
         task->state++;

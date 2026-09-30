@@ -255,7 +255,7 @@ case0:
     SetDispMask(0);
     Stage_Ctx->field_24        = gDisplayState.frameBuffer;
     gDisplayState.keepGraphics = 1;
-    Gfx_LoadImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, gDisplayState.frameBuffer);
+    Gfx_LoadImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     Stage_Ctx->field_28                  = Stage_Ctx->field_28 + 1;
     goto end;
@@ -267,7 +267,7 @@ case1:
     goto end;
 case2:
     if ((CdCmd_IsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != Stage_Ctx->field_24)) {
-        Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, gDisplayState.frameBuffer, 0x10000);
+        Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer, 0x10000);
         Mem_InitAux();
         rect.x = 0;
         rect.w = 0x140;
@@ -348,7 +348,7 @@ static Task* Display_SpawnFromMode(void)
     goto block_end;
 
 block_default:
-    ed = &gGameSession->at4.loc;
+    ed = &gGameSession->location.loc;
     Gpu_ResetGraphAndOt();
     Gfx_StoreImageSlot(ed->stage, ed->area, gDisplayState.drawBuffer, 0x10000);
     if (Stage_Ctx->field_C == 0x100) {
@@ -389,17 +389,17 @@ static void Display_TransitionTask(Task* task)
         switch (state) {
             case 0:
                 Stage_Ctx->field_24                  = gDisplayState.frameBuffer;
-                gGameSession->at4.loc.view           = Stage_Ctx->field_20;
+                gGameSession->location.loc.view      = Stage_Ctx->field_20;
                 Stage_Ctx->field_C                   = 0;
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-                Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
+                Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    (gameGetPtrSlot(1))->spawnArg1.value = gGameSession->at4.loc.view;
+                    (gameGetPtrSlot(1))->spawnArg1.value = gGameSession->location.loc.view;
                     ResetGraph(1);
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
                     Mem_InitAux();
-                    Mc_SaveData[0].state.at4.loc.view = gGameSession->at4.loc.view;
+                    Mc_SaveData[0].state.at4.loc.view = gGameSession->location.loc.view;
                     Pad_SetCooldown(0);
                     Gp_SpawnCurView(2);
                     gGameSession->viewReady = 0;
@@ -442,7 +442,7 @@ static void Display_TransitionTask(Task* task)
                 task->killCountdown                  = task->killCountdown - 1;
                 if (task->killCountdown == 0) {
                     Gpu_ResetGraphAndOt();
-                    Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area,
+                    Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area,
                                        gDisplayState.frameBuffer, 0x10000);
                     Mem_InitAux();
                     Stage_Ctx->field_12 = 0;
@@ -471,7 +471,7 @@ static void Display_TransitionTask(Task* task)
         task->state = task->state + 1;
         Display_TaskLoadStep(task);
     } else if (flags & 0x20000000) {
-        Gfx_StoreImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, gDisplayState.frameBuffer,
+        Gfx_StoreImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
                            0x10000);
         Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
     }
@@ -597,7 +597,7 @@ s32 Stage_BeginTransition(s32 arg0, s32 arg1)
         temp->field_11  = arg1;
         temp->field_1c |= mask;
     }
-    return gGameSession->at4.loc.view;
+    return gGameSession->location.loc.view;
 }
 
 s32 Stage_BeginTransitionKind7(s32 arg0)
@@ -616,7 +616,7 @@ s32 Stage_BeginTransitionKind7(s32 arg0)
         temp->field_28       = 0;
         temp->field_11       = 7;
         temp->field_1c      |= mask;
-        ret                  = gGameSession->at4.loc.view;
+        ret                  = gGameSession->location.loc.view;
         Stage_Ctx->field_1c |= 0x80000000;
     }
     return ret;
@@ -734,7 +734,7 @@ static s32 Stage_BeginTransitionKind3(void)
     flags = temp->field_1c;
     if (!(flags & 0x40000000)) {
         temp->field_1c = flags | 0x50000000;
-        val            = gGameSession->at4.loc.view;
+        val            = gGameSession->location.loc.view;
         temp->field_24 = 0;
         temp->field_28 = 0;
         temp->field_11 = 3;
@@ -759,7 +759,7 @@ Task* Display_InitModeObj(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, s32
     temp->field_8 = arg2;
     temp->field_C = arg3;
     if (arg3 == 0) {
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             temp->field_C = 1;
         }
     }
@@ -826,7 +826,7 @@ static void Display_TaskLoadStep(Task* task)
         }
     } else {
     block_3:
-        Mem_ConfigureAuxHeap(gGameSession->at4.loc.stage, gGameSession->at4.loc.area);
+        Mem_ConfigureAuxHeap(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         Tmd_AllocMissingBuffers();
         Gp_AllocSprtLists();
     }
@@ -980,7 +980,7 @@ static void Mdec_ProcessDecode(void)
     p = &CdCmd_Queue;
     switch ((s16)p->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
-            Mdec_ResolveStreamBuffer(&gGameSession->at4.loc.view);
+            Mdec_ResolveStreamBuffer(&gGameSession->location.loc.view);
             if ((u32)++D_8007A358 >= 0x5B) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();

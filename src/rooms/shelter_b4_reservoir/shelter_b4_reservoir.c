@@ -1199,7 +1199,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
         case 4:
             if (gGameSession->eventState == 0) {
                 Mc_SaveData[0].state.at4.loc.room = 2;
-                gGameSession->at4.loc.room        = 2;
+                gGameSession->location.loc.room   = 2;
                 gGameSession->roomObjsDirty       = 1;
                 GameFlag_SetNibble(0xB7, 1);
                 GameFlag_SetNibble(0x1BF, 2);
@@ -1496,7 +1496,7 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task)
     } else {
         D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
     }
-    if (gGameSession->at4.loc.view != 0xA) {
+    if (gGameSession->location.loc.view != 0xA) {
         p->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
         func_shelter_b4_reservoir_8017EA00(task);
         func_shelter_b4_reservoir_8017EE04(task);

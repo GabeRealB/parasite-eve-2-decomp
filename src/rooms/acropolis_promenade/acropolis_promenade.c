@@ -1530,7 +1530,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task);
 /// it spawns the streamed-scene task (entry 2 of the task table), once. While
 /// the location's place is 1 it keeps `flowFlags` at 0xA and runs a latch on
 /// `Gp_StateF0.prefix.bytes.field_0`: when that flag drops after having been 1, a sound
-/// event is queued, and once the session's `field_126` is then non-zero,
+/// event is queued, and once the session's `battleResetPending` is then non-zero,
 /// `func_800E8634` is called with the room's two data blocks.
 static void func_acropolis_promenade_8017D5E4(Task* task)
 {
@@ -1538,7 +1538,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     u8 f0;
 
     if (D_acropolis_promenade_80181140 == 0) {
-        if (gGameSession->at4.loc.warp == 4) {
+        if (gGameSession->location.loc.warp == 4) {
             D_acropolis_promenade_80181140 = 1;
             Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
@@ -1546,9 +1546,9 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
     if (Mc_SaveData[0].state.sceneEvent == 6) {
         Mc_SaveData[0].state.sceneEvent = 5;
     }
-    temp = gGameSession->at4.loc.variant;
+    temp = gGameSession->location.loc.variant;
     if (temp == 1) {
-        gGameSession->flowFlags = 0xA;
+        gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY);
         f0                      = Gp_StateF0.prefix.bytes.field_0;
         if (f0 == temp) {
             D_acropolis_promenade_80181144 = f0;
@@ -1557,7 +1557,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
             D_acropolis_promenade_80181144 = 2;
             SndEvt_EnqueueType2(0, 0x3C);
         }
-        if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->field_126 != 0)) {
+        if ((D_acropolis_promenade_80181144 == 2) && (gGameSession->battleResetPending != 0)) {
             D_acropolis_promenade_80181144 = 0;
             func_800E8634(D_acropolis_promenade_80180F00, 0, D_acropolis_promenade_80181068);
         }
@@ -1797,7 +1797,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_promenade_80186224,
                                                                  D_acropolis_promenade_8018623C);
-                gGameSession->padScriptFlags |= 0x80;
+                gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -1842,7 +1842,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 Mc_SaveData[0].state.at4.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
-                gGameSession->padScriptFlags &= 0x7F;
+                gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
                 taskKill(task);
             }
             break;

@@ -961,7 +961,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
 {
     u8 subId = in->warp;
 
-    if (subId == 1 && GameFlag_GetNibble(0x84) == 0 && gGameSession->at4.loc.variant == subId) {
+    if (subId == 1 && GameFlag_GetNibble(0x84) == 0 && gGameSession->location.loc.variant == subId) {
         func_800E8634(&D_80165354, 0, &D_80165834);
         func_800E3FAC(0xA2, 0x20);
         GameFlag_SetNibble(0x84, 1);
@@ -982,7 +982,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
 {
     task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == 1) {
         func_8016268C();
     }
     task->state = task->state + 1;

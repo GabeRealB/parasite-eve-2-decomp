@@ -280,10 +280,10 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
     split   = 0;
     splitX  = 0;
     buf     = gDisplayState.otBuffer;
-    area    = gGameSession->at4.loc.area;
+    area    = gGameSession->location.loc.area;
     if (area == 27) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x7F;
                 end    = 0xF0;
@@ -318,7 +318,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
                 return;
         }
     } else if (area == 14) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x77;
                 end    = 0xF0;
@@ -343,7 +343,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
                 return;
         }
     } else if (area == 15) {
-        if (gGameSession->at4.loc.view == 2) {
+        if (gGameSession->location.loc.view == 2) {
             split  = 0x3E8;
             start  = 0x84;
             end    = 0xF0;
@@ -354,7 +354,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
         }
     } else if (area == 13) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
             case 4:
                 start = 0x52;
@@ -396,7 +396,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
         scale  = 0x800;
         otzOff = -10;
         zoff   = 0x131A;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 xLeft0 = 0x3B;
                 start  = 0xA9;
@@ -434,7 +434,7 @@ void func_neo_ark_submarine_tunnel_8017D634(Task* task)
         }
     } else if (area == 29) {
         zoff = 0x8C;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 6:
                 start = 0xA5;
                 end   = 0xF0;
@@ -727,7 +727,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     s32              xRight = 0xA0;
     s32              buf    = gDisplayState.otBuffer;
     s32              passes = 1;
-    GameLocationKey* loc    = &gGameSession->at4.loc;
+    GameLocationKey* loc    = &gGameSession->location.loc;
     s32              area   = loc->area;
     s32              start;
     s32              end;
@@ -749,7 +749,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
     u16              spare;
 
     if (area == 12) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start = 1;
                 end   = 0x3F;
@@ -778,7 +778,7 @@ void func_neo_ark_submarine_tunnel_8017E288(Task* task)
                 return;
         }
     } else if (area == 30) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 1;
                 end    = 0x40;
@@ -1090,7 +1090,7 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     u8 temp_s0_4;
 
     temp_s0 = arg2->warp;
-    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->at4.loc.variant == 3)) {
+    if ((temp_s0 == 1) && (GameFlag_GetNibble(0xFF) == temp_s0) && (gGameSession->location.loc.variant == 3)) {
         func_800E3FAC(0xA2, 0x35);
         GameFlag_SetNibble(0xFF, 2);
         GameFlag_SetNibble(0x11F, 1);
@@ -1098,26 +1098,26 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
         func_800E8634(&D_80135220, 0, &D_80135FD0);
     }
     if ((arg2->warp == 2) && (GameFlag_GetNibble(0xBC) == 0)) {
-        temp_s0_2 = gGameSession->at4.loc.variant;
+        temp_s0_2 = gGameSession->location.loc.variant;
         if (temp_s0_2 == 1) {
             func_800E8614(D_neo_ark_submarine_tunnel_80181AF0, 0);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_2;
         }
     }
     temp_s0_3 = arg2->warp;
-    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->at4.loc.variant == temp_s0_3)) {
+    if ((temp_s0_3 == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2) && (GameFlag_GetNibble(0xFF) == 0) && (gGameSession->location.loc.variant == temp_s0_3)) {
         GameFlag_SetNibble(0xFF, 1);
         func_800E8614(&D_80136108, 0);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
     if ((arg2->warp == 2) && (D_neo_ark_submarine_tunnel_80181DF0 == 0)) {
-        temp_s0_4 = gGameSession->at4.loc.warp;
+        temp_s0_4 = gGameSession->location.loc.warp;
         if (temp_s0_4 == 1) {
             Gp_MsgPlayerWeapon(1);
             D_neo_ark_submarine_tunnel_80181DF0 = temp_s0_4;
         }
     }
-    if ((arg2->warp == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->at4.loc.warp == 2)) {
+    if ((arg2->warp == 3) && (D_neo_ark_submarine_tunnel_80181DF0 == 0) && (gGameSession->location.loc.warp == 2)) {
         Gp_MsgPlayerWeapon(1);
         D_neo_ark_submarine_tunnel_80181DF0 = 1;
     }
@@ -1145,7 +1145,7 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 {
     if (arg2 < 6) {
         if (arg2 >= 4) {
-            if (gGameSession->at4.loc.variant == 1) {
+            if (gGameSession->location.loc.variant == 1) {
                 Gp_SpawnIfCapIdle(arg2, 0);
             }
         }

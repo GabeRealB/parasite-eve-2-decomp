@@ -962,7 +962,7 @@ static void func_acropolis_west_elevator_hall_8017F354(Task* task)
     u8  sessionState;
 
     if (D_acropolis_west_elevator_hall_801849C8 == 0) {
-        sessionState = gGameSession->at4.loc.warp;
+        sessionState = gGameSession->location.loc.warp;
         if (sessionState == 1) {
             D_acropolis_west_elevator_hall_801849C8 = sessionState;
             func_800E8634(D_acropolis_west_elevator_hall_80184620, 0, D_acropolis_west_elevator_hall_80184890);
@@ -1093,7 +1093,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
         work->field_0 = 0x2D0;
     }
     coord->coord.t[0] = (work->field_0 * task->spawnArg2.value) - 1000;
-    if (gGameSession->at4.loc.view == 5) {
+    if (gGameSession->location.loc.view == 5) {
         extra->flags = 0;
     } else {
         extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1124,7 +1124,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            if (gGameSession->at4.loc.view == 2) {
+            if (gGameSession->location.loc.view == 2) {
                 pos = D_acropolis_west_elevator_hall_8017D5EC;
                 Gp_SpawnEff(0x6001F, coord, 0x1804, &pos);
                 pos.vx = -0x1800;
@@ -1136,7 +1136,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
                 pos.vz = -0x2C0;
                 Gp_SpawnEff(0x6001F, coord, 0x803, &pos);
             }
-            if (gGameSession->at4.loc.view == 5) {
+            if (gGameSession->location.loc.view == 5) {
                 altPos = D_acropolis_west_elevator_hall_8017D5F4;
                 Gp_SpawnEff(0x60025, coord, 0, &altPos);
             }
@@ -1175,7 +1175,7 @@ void func_acropolis_west_elevator_hall_8017F990(Task* task)
         Gp_LoadImages(D_acropolis_west_elevator_hall_80185004);
     }
 
-    if (gGameSession->at4.loc.view != 5) {
+    if (gGameSession->location.loc.view != 5) {
         for (i = 0; i < 0x100; i += 0x10) {
             Gp_BlendRgb555Clut(&D_acropolis_west_elevator_hall_80184C04[i],
                                &D_acropolis_west_elevator_hall_80184A04[i], 0,

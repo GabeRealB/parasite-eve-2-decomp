@@ -412,7 +412,7 @@ s32 func_shelter_b6_training_room_8017D75C(Task* task, s32 msgId, TaskMessageArg
 
 s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
-    gGameSession->flowFlags |= 0x80;
+    gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     func_800E8634(D_shelter_b6_training_room_80183BB4, 0, D_shelter_b6_training_room_80184124);
     Gp_DispatchMsgPtr(Gp_LookupSlot4(3), 0x7DB, &D_shelter_b6_training_room_80182B24, 0);
     D_shelter_b6_training_room_80185C58 = 1;
@@ -445,7 +445,7 @@ static void func_shelter_b6_training_room_8017D874(Task* task)
     u8 place;
 
     CdCmd_Queue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    place                     = gGameSession->at4.loc.variant;
+    place                     = gGameSession->location.loc.variant;
     if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
         func_800E8614(D_shelter_b6_training_room_80184274, 0);
         D_shelter_b6_training_room_80185C58 = 2;
@@ -515,7 +515,7 @@ void func_shelter_b6_training_room_8017D9C8(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            work = Gp_FindWorkById(gGameSession->at4.loc.area | ((gGameSession->at4.loc.stage << 8) | 0x1000));
+            work = Gp_FindWorkById(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x1000));
             func_800B0928(gameGetPtrSlot(3), work->field_0, 0x200, 0x100, task->killCountdown);
         } else {
             taskKill(task);
@@ -531,7 +531,7 @@ void func_shelter_b6_training_room_8017DAC8(void)
 
 void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 {
-    gGameSession->flowFlags |= 0x80;
+    gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     if (arg0 != 0) {
         Gp_StateF0.prefix.bytes.field_1 = arg0;
     }

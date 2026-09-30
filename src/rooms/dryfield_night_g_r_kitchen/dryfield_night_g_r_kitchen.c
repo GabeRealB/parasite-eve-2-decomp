@@ -591,13 +591,13 @@ static void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
 }
 
 /// Picks the pair of light shafts `func_dryfield_night_g_r_kitchen_8017D9FC`
-/// draws from the current view index (`gGameSession->at4.loc.view`, 2 or 3);
+/// draws from the current view index (`gGameSession->location.loc.view`, 2 or 3);
 /// any other view draws nothing.
 void func_dryfield_night_g_r_kitchen_8017E1E4(Task* unused)
 {
     u8 view;
 
-    view = gGameSession->at4.loc.view;
+    view = gGameSession->location.loc.view;
     if (view == 2) {
         func_dryfield_night_g_r_kitchen_8017D9FC(&D_dryfield_night_g_r_kitchen_8017E27C[0], 0x100);
         func_dryfield_night_g_r_kitchen_8017D9FC(&D_dryfield_night_g_r_kitchen_8017E27C[2], 0x100);

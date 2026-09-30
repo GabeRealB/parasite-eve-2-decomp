@@ -55,7 +55,7 @@ extern GpPairSrcE D_neo_ark_forest_zone_80182D1C;
 extern GpU16Pair  D_neo_ark_forest_zone_80182D04[6];
 
 /// How many spawns each session slot arms, indexed by
-/// `gGameSession->at4.loc.variant`, for the second and the first arming task
+/// `gGameSession->location.loc.variant`, for the second and the first arming task
 /// respectively; zero disables that task's work in the slot.
 extern u8 D_neo_ark_forest_zone_80182D44[];
 extern u8 D_neo_ark_forest_zone_80182D54[];
@@ -645,7 +645,7 @@ static void func_neo_ark_forest_zone_801804B0(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_forest_zone_80182D54[gGameSession->location.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -653,10 +653,10 @@ static void func_neo_ark_forest_zone_801804B0(Task* task)
     task->msgTable                 = D_neo_ark_forest_zone_80182D6C;
     D_neo_ark_forest_zone_80182D64 = GameFlag_GetNibble(0x10C);
     nib                            = GameFlag_GetNibble(0x10D);
-    if (gGameSession->at4.loc.variant != nib) {
-        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant];
+    if (gGameSession->location.loc.variant != nib) {
+        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D54[gGameSession->location.loc.variant];
         GameFlag_SetNibble(0x10C, D_neo_ark_forest_zone_80182D64);
-        GameFlag_SetNibble(0x10D, gGameSession->at4.loc.variant);
+        GameFlag_SetNibble(0x10D, gGameSession->location.loc.variant);
     }
     if (D_neo_ark_forest_zone_80182D64 >= 6) {
         D_neo_ark_forest_zone_80182D64 = 5;
@@ -689,7 +689,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_forest_zone_80182D54[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_forest_zone_80182D54[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_forest_zone_80182D62 > 0) {
@@ -717,17 +717,17 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
             }
         }
         GameFlag_SetNibble(0x10C, count);
-        areaSyncLocationVariant(&gGameSession->at4.loc);
+        areaSyncLocationVariant(&gGameSession->location.loc);
     }
     D_neo_ark_forest_zone_80182DC4 = Gp_StateF0.field_6;
-    if (gGameSession->field_126 == 1 && D_neo_ark_forest_zone_80182D62 == 0) {
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.field_5              = 0;
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.field_8              = 0;
-        Gp_StateF0.field_C              = 0;
-        Gp_StateF0.field_10             = 0;
-        gGameSession->field_126         = 0;
+    if (gGameSession->battleResetPending == 1 && D_neo_ark_forest_zone_80182D62 == 0) {
+        Gp_StateF0.prefix.bytes.field_0  = 0;
+        Gp_StateF0.field_5               = 0;
+        Gp_StateF0.field_6               = 0;
+        Gp_StateF0.field_8               = 0;
+        Gp_StateF0.field_C               = 0;
+        Gp_StateF0.field_10              = 0;
+        gGameSession->battleResetPending = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
         D_neo_ark_forest_zone_80182E44.context.loc.stage = 5;
@@ -824,7 +824,7 @@ static void func_neo_ark_forest_zone_80180BB4(Task* task)
     s16 i;
     s16 nib;
 
-    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_forest_zone_80182D44[gGameSession->location.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -832,10 +832,10 @@ static void func_neo_ark_forest_zone_80180BB4(Task* task)
     task->msgTable                 = D_neo_ark_forest_zone_80182DC8;
     D_neo_ark_forest_zone_80182D64 = GameFlag_GetNibble(0x10A);
     nib                            = GameFlag_GetNibble(0x10B);
-    if (gGameSession->at4.loc.variant != nib) {
-        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant];
+    if (gGameSession->location.loc.variant != nib) {
+        D_neo_ark_forest_zone_80182D64 = D_neo_ark_forest_zone_80182D64 + D_neo_ark_forest_zone_80182D44[gGameSession->location.loc.variant];
         GameFlag_SetNibble(0x10A, D_neo_ark_forest_zone_80182D64);
-        GameFlag_SetNibble(0x10B, gGameSession->at4.loc.variant);
+        GameFlag_SetNibble(0x10B, gGameSession->location.loc.variant);
     }
     if (D_neo_ark_forest_zone_80182D64 >= 6) {
         D_neo_ark_forest_zone_80182D64 = 5;
@@ -862,7 +862,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     s16      k;
 
     gameGetPtrSlot(3);
-    if (D_neo_ark_forest_zone_80182D44[gGameSession->at4.loc.variant] == 0) {
+    if (D_neo_ark_forest_zone_80182D44[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (D_neo_ark_forest_zone_80182D62 > 0) {
@@ -893,18 +893,18 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
             }
         }
         GameFlag_SetNibble(0x10A, count);
-        areaSyncLocationVariant(&gGameSession->at4.loc);
+        areaSyncLocationVariant(&gGameSession->location.loc);
         D_neo_ark_forest_zone_80182D62 = 0x96;
     }
     D_neo_ark_forest_zone_80182DC4 = Gp_StateF0.field_6;
-    if (gGameSession->field_126 == 1 && D_neo_ark_forest_zone_80182D62 == 0) {
-        Gp_StateF0.prefix.bytes.field_0 = 0;
-        Gp_StateF0.field_5              = 0;
-        Gp_StateF0.field_6              = 0;
-        Gp_StateF0.field_8              = 0;
-        Gp_StateF0.field_C              = 0;
-        Gp_StateF0.field_10             = 0;
-        gGameSession->field_126         = 0;
+    if (gGameSession->battleResetPending == 1 && D_neo_ark_forest_zone_80182D62 == 0) {
+        Gp_StateF0.prefix.bytes.field_0  = 0;
+        Gp_StateF0.field_5               = 0;
+        Gp_StateF0.field_6               = 0;
+        Gp_StateF0.field_8               = 0;
+        Gp_StateF0.field_C               = 0;
+        Gp_StateF0.field_10              = 0;
+        gGameSession->battleResetPending = 0;
     }
     if (Gp_StateF0.prefix.bytes.field_0 != 2 && D_neo_ark_forest_zone_80182D66 != 0) {
         D_neo_ark_forest_zone_80182E44.context.loc.stage = 5;

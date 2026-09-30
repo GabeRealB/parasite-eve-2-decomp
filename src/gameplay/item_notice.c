@@ -118,7 +118,7 @@ void func_800B65B0(Task* task)
                     case 1:
                         if (ui->field_2C == 0x33) {
                             id      = work->field_0;
-                            current = Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4 + (id >> 4);
+                            current = Gp_Bit2Banks[gGameSession->location.loc.stage].field_4 + (id >> 4);
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {

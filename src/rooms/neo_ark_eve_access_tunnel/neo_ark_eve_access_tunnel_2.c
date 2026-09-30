@@ -158,7 +158,7 @@ SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2] = {
 /// any other value changes nothing.
 void func_neo_ark_eve_access_tunnel_8017E090(s32 arg0, s32 arg1)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;

@@ -553,7 +553,7 @@ static void func_actor_213000_80149E54(Task* task)
 
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
         model      = spawned1->extra.tmd;
-        sessionKey = &gGameSession->at4.loc;
+        sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
@@ -577,7 +577,7 @@ static void func_actor_213000_80149E54(Task* task)
 
         model      = spawned2->extra.tmd;
         idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
-        sessionKey = &gGameSession->at4.loc;
+        sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;

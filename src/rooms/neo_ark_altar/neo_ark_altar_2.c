@@ -502,7 +502,7 @@ void func_neo_ark_altar_8017DA40(Task* task)
             task->state++;
             break;
         case 1:
-            key = gGameSession->at4;
+            key = gGameSession->location;
             if (task->spawnArg1.value == 0) {
                 key.loc.view = 0x64;
             } else if (task->spawnArg1.value == 1) {
@@ -570,7 +570,7 @@ void func_neo_ark_altar_8017DC40(s32 arg0)
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    sess  = &gGameSession->at4.loc;
+    sess  = &gGameSession->location.loc;
     rec   = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     arg0 &= 0xFF;
     if (arg0 == 0) {
@@ -802,7 +802,7 @@ static void func_neo_ark_altar_8017E148(void)
     SpriteBatch*     batches;
     s32              i;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1];
     if (GameFlag_GetNibble(0xD9) == 0) {
         batches                  = rec[3].field_4;
@@ -1209,7 +1209,7 @@ static void func_neo_ark_altar_8017EF00(Task* arg0)
     viewDirty                         = &gGameSession->viewDirty;
     *viewDirty                        = 1;
     Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->at4.loc.room        = 2;
+    gGameSession->location.loc.room   = 2;
     arg0->state                       = (s32)(arg0->state + 1);
 }
 

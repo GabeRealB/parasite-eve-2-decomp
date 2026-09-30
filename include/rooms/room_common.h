@@ -345,7 +345,7 @@ typedef struct _RoomDraw03Scratch {
 STATIC_ASSERT_SIZEOF(RoomDraw03Scratch, 0x3C);
 
 /// One entry of a room's ambience table: the table holds one entry per area and
-/// is indexed by `gGameSession->at4.loc.view`. A room's ambience task passes
+/// is indexed by `gGameSession->location.loc.view`. A room's ambience task passes
 /// `pan` to `SndEvt_EnqueueType6` / `SndEvt_EnqueueTypeA` as the event's pan,
 /// and derives the event's attenuation from `vol` - some rooms pass it as is,
 /// others halve it first.

@@ -1768,21 +1768,21 @@ void func_acropolis_square_801823DC(Task* task)
             task->state++;
             return;
         case 1:
-            if ((0x268 >> (gGameSession->at4.loc.view - 1)) & 1) {
+            if ((0x268 >> (gGameSession->location.loc.view - 1)) & 1) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8DE;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x10000218 + 0x10E08,
                             &work->move);
             }
-            if (gGameSession->at4.loc.view == 0xE) {
+            if (gGameSession->location.loc.view == 0xE) {
                 work->move.vx = 0x18D2;
                 work->move.vy = -0x100B;
                 work->move.vz = 0x8AB;
                 Gp_SpawnEff(0x60047, coord, D_acropolis_square_80183B98 * 0x218 + 0x10010608,
                             &work->move);
             }
-            if (gGameSession->at4.loc.view == 9) {
+            if (gGameSession->location.loc.view == 9) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8E8;

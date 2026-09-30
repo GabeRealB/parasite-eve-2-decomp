@@ -2754,7 +2754,7 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
         Mc_SaveData[0].state.at4.loc.view = 6;
         Mc_SaveData[0].state.at4.loc.room = 2;
-        gGameSession->at4.loc.room        = 2;
+        gGameSession->location.loc.room   = 2;
         gGameSession->roomObjsDirty       = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
@@ -2792,7 +2792,7 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
 
 L_case0:
     queue->movieFrame = 1;
-    slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
+    slotParam[0]      = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
     CdCmd_Enqueue(0x61, 0, slotParam);
     goto advance;
 
@@ -2849,10 +2849,10 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     task->work              = work;
     work->field_0           = 0x14;
     work->field_4           = 0xFFF;
-    sess                    = &gGameSession->at4.loc;
+    sess                    = &gGameSession->location.loc;
     task->state++;
     view                                 = Gp_GetViewIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1];
     rec[(u8)view - 1].field_4[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
     Gp_MsgPlayer3F3(0);
@@ -2942,14 +2942,14 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     RoomActionPrompt*          prompt = D_80114D28;
     OverlayHotspot*            hs     = D_acropolis_bridge_8018983C;
     AcropolisBridgePromptWork* work   = (AcropolisBridgePromptWork*)task->work;
-    GameLocationKey*           sess   = &gGameSession->at4.loc;
+    GameLocationKey*           sess   = &gGameSession->location.loc;
     GpSprtRec*                 rec;
     s32                        view;
     s16                        tick;
     s32                        step;
 
     view                                 = Gp_GetViewIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1];
+    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1];
     rec[(u8)view - 1].field_4[35].hidden = 0;
 
     tick = work->field_A;
@@ -3039,7 +3039,7 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
 /// Command 34 is always hidden; `hidePrompt` also hides command 35.
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
     s32              i;
     u8               hi;
@@ -3047,7 +3047,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     u8               lo;
 
     Gp_GetViewIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1][7].field_4;
 
     if ((s16)hidePrompt != 0) {
         batches[35].hidden = 1;
@@ -3114,12 +3114,12 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
 /// each of the first ten frames of a pass.
 static void func_acropolis_bridge_8017E81C(void)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
     s32              i;
 
     Gp_GetViewIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->sprtVariant - 1].field_0[sess->area - 1][7].field_4;
+    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].field_0[sess->area - 1][7].field_4;
 
     for (i = 0x15; i < 0x1F; i++) {
         batches[i].hidden = 1;
@@ -3200,13 +3200,13 @@ static void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
 static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 {
     GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->at4.loc;
+    GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
     GpSprtElem*      el;
     SpriteBatch*     batches;
     s32              mode;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     batches = rec[9].field_4;
     el      = rec[9].field_0.elements;
     mode    = state & 0xFF;
@@ -3451,11 +3451,11 @@ void func_acropolis_bridge_8017F280(Task* task)
 void func_acropolis_bridge_8017F2D0(s32 flags)
 {
     GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->at4.loc;
+    GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
 
     batches = rec[1].field_4;
     if ((flags & 0xFF) == 0) {
@@ -3479,12 +3479,12 @@ void func_acropolis_bridge_8017F2D0(s32 flags)
 void func_acropolis_bridge_8017F358(s32 state)
 {
     GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->at4.loc;
+    GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
     SpriteBatch*     batches;
     s32              mode;
 
-    rec     = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec     = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     batches = rec[9].field_4;
     mode    = state & 0xFF;
 
@@ -5955,7 +5955,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 /// arena -- the same block is then reused for the world position handed to
 /// `func_800D7A9C` before it is released. `field_1F8` is the 0x5DC entry
 /// offset the model root is raised by, remembered in `field_1FA`. In the
-/// third visit (`gGameSession->at4.loc.room == 2`) the three known variants start
+/// third visit (`gGameSession->location.loc.room == 2`) the three known variants start
 /// in state 8 at a fixed position instead of state 1.
 static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
 {
@@ -6072,7 +6072,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     if (Gp_StateF0.field_6 < 3) {
         Gp_IncStateF0Ref(0);
     }
-    if (gGameSession->at4.loc.room == 2) {
+    if (gGameSession->location.loc.room == 2) {
         variant = enemy->placeKey >> 12;
         switch (variant) {
             case 0:

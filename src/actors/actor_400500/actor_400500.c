@@ -1859,7 +1859,7 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             poly->tpage = 0x48;
             poly->clut  = 0x4283;
-            room        = gGameSession->at4.loc.room;
+            room        = gGameSession->location.loc.room;
             if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
                 poly->r0 = col;
                 poly->g0 = col;
@@ -3017,7 +3017,7 @@ static void func_actor_400500_80135414(Task* arg0)
         work4->field_9D0.vz = (u16)player->coord.t[2];
     }
     work5  = (Actor400500Work*)arg0->work;
-    mode   = gGameSession->at4.loc.room;
+    mode   = gGameSession->location.loc.room;
     extra2 = arg0->extra.tmd;
     if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
         work5->field_A20 = 0xFF;
@@ -3271,7 +3271,7 @@ static void func_actor_400500_80135770(Task* arg0)
             color_part = extra->coords + 1;
             color      = push_color(color_part);
             Gp_UpdateActorColor(arg0->spawnArg2.pointer, color, 0, 0);
-            mode = gGameSession->at4.loc.room;
+            mode = gGameSession->location.loc.room;
             if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
                 trans_obj = extra2;
                 trans     = 0x200;
@@ -3283,7 +3283,7 @@ static void func_actor_400500_80135770(Task* arg0)
             }
             Gp_SetObjTrans(trans_obj, trans, trans_y, trans);
             pop_scratch(0x10);
-            if (gGameSession->field_65 != 0) {
+            if (gGameSession->sceneUpdatesPaused != 0) {
                 func_actor_400500_80132AB0(arg0, -0xFA0, (u8)work->field_A28);
                 return;
             }
@@ -5765,7 +5765,7 @@ static inline void _actor400500UpdateColor(Task* arg0, GfxCoord* coord, TmdObjec
     block->vz            = coord->workm.t[2];
     SCRATCH_HEAD(VECTOR) = block;
     Gp_UpdateActorColor(arg0->spawnArg2.pointer, block, 0, 0);
-    room = gGameSession->at4.loc.room;
+    room = gGameSession->location.loc.room;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
         Gp_SetObjTrans(obj, 0x200, 0x200, 0x200);
     } else {
@@ -6219,7 +6219,7 @@ static void func_actor_400500_8013B4A4(Task* arg0)
     u8               mode;
 
     work  = (Actor400500Work*)arg0->work;
-    mode  = gGameSession->at4.loc.room;
+    mode  = gGameSession->location.loc.room;
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     if ((mode == 1) || (mode == 3) || (mode == 5) || (mode == 6)) {
         s16 hp;

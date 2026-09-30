@@ -647,10 +647,10 @@ static s16 func_neo_ark_shrine_8017E254(void)
         D_neo_ark_shrine_8018686A = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = flag;
-            gGameSession->at4.loc.room        = flag;
+            gGameSession->location.loc.room   = flag;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 4;
-            gGameSession->at4.loc.room        = 4;
+            gGameSession->location.loc.room   = 4;
         }
         gGameSession->roomObjsDirty = 1;
         SndEvt_EnqueueType6(0x5515000A, 0, 0);

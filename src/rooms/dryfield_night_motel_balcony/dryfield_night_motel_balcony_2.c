@@ -65,7 +65,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             task->state = task->state + 1;
             return;
         case 1:
-            introKey = gGameSession->at4;
+            introKey = gGameSession->location;
             if (Wip_SysFlags.field_0 == 2) {
                 introKey.loc.view = 0x67;
             } else {
@@ -98,7 +98,7 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task* task)
             return;
         case 4:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                loopKey = gGameSession->at4;
+                loopKey = gGameSession->location;
                 if (Wip_SysFlags.field_0 == 2) {
                     loopKey.loc.view = 0x66;
                 } else {

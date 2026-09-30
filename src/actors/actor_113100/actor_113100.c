@@ -72,7 +72,7 @@ typedef GpSpawnAnimArg Actor113100SpawnAnim;
 
 /// Child task table the setup handler `func_actor_113100_80131E58` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
-/// `gGameSession->at4.loc.variant == 2` and its task lands in
+/// `gGameSession->location.loc.variant == 2` and its task lands in
 /// `Actor113100Work::field_534`; indices 2 and 3 are the two modelled parts the
 /// handler re-dresses from the area record.
 extern TaskDesc D_actor_113100_80144308[];
@@ -1177,7 +1177,7 @@ Actor113100MsgEntry D_actor_113100_80144338[6] = {
 /// Setup handler (state 0): allocates the 0x540-byte work block, clears the
 /// three "no id yet" sentinels and spawns the actor's children from
 /// `D_actor_113100_80144308` -- index 1 only in arena mode
-/// (`gGameSession->at4.loc.variant == 2`), then indices 2 and 3, whose models get the
+/// (`gGameSession->location.loc.variant == 2`), then indices 2 and 3, whose models get the
 /// texture page and CLUT of the area record the actor's own location key
 /// resolves to. It then builds the work block's display node: `field_C` points
 /// at the `WorldCollisionContact` table that follows it, the position triple is zeroed, the
@@ -1215,19 +1215,19 @@ static void func_actor_113100_80131E58(Task* task)
     work->walk.acc[0].w = 0;
     work->walk.acc[1].w = 0;
     work->walk.acc[2].w = 0;
-    if (gGameSession->at4.loc.variant == 2) {
+    if (gGameSession->location.loc.variant == 2) {
         work->field_534 = Task_SpawnFromTable(D_actor_113100_80144308, 1, 8, task);
     }
 
     child2 = Task_SpawnFromTable(D_actor_113100_80144308, 2, 4, task);
     if (child2 != NULL) {
-        sessionKey2 = &gGameSession->at4.loc;
+        sessionKey2 = &gGameSession->location.loc;
         raw2        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
         model2      = child2->extra.tmd;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
         key.room    = sessionKey2->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
@@ -1242,13 +1242,13 @@ static void func_actor_113100_80131E58(Task* task)
 
     child3 = Task_SpawnFromTable(D_actor_113100_80144308, 3, 2, task);
     if (child3 != NULL) {
-        sessionKey3 = &gGameSession->at4.loc;
+        sessionKey3 = &gGameSession->location.loc;
         raw3        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
         model3      = child3->extra.tmd;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
         key.room    = sessionKey3->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
@@ -1336,12 +1336,12 @@ static void func_actor_113100_80132104(Task* task)
             if (rec != NULL) {
                 if (rec->flags & ANIMATION_RECORD_CUE_2) {
                     snd = 0x5113000F;
-                    if (gGameSession->at4.loc.view == 0x10) {
+                    if (gGameSession->location.loc.view == 0x10) {
                         snd = 0x51130013;
                     }
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
-                if ((rec->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->at4.loc.view != 0x10)) {
+                if ((rec->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.loc.view != 0x10)) {
                     SndEvt_EnqueueType6(0x51130010, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -1710,7 +1710,7 @@ static void func_actor_113100_80132BDC(Task* task)
     index = task->spawnArg1.value;
     node  = task->extra.tmd->coords;
     part  = &((Task*)task->spawnArg2.pointer)->extra.tmd->coords[index];
-    view  = &Gp_GetStageView(&gGameSession->at4.loc)->mtx;
+    view  = &Gp_GetStageView(&gGameSession->location.loc)->mtx;
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);
     TransposeMatrix(view, &sp10);

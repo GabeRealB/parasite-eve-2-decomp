@@ -2178,7 +2178,7 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task);
 void func_mine_cavern_8017E330(void)
 {
     Mc_SaveData[0].state.at4.loc.room = 2;
-    gGameSession->at4.loc.room        = 2;
+    gGameSession->location.loc.room   = 2;
     gGameSession->roomObjsDirty       = 1;
 }
 
@@ -2188,13 +2188,13 @@ void func_mine_cavern_8017E358(void)
 
 void func_mine_cavern_8017E360(void)
 {
-    gGameSession->at4.loc.variant   = 4;
-    Gp_StateF0.prefix.bytes.field_0 = 0;
-    Gp_StateF0.field_5              = 0;
-    Gp_StateF0.field_6              = 0;
-    Gp_StateF0.field_8              = 0;
-    Gp_StateF0.field_C              = 0;
-    Gp_StateF0.field_10             = 0;
+    gGameSession->location.loc.variant = 4;
+    Gp_StateF0.prefix.bytes.field_0    = 0;
+    Gp_StateF0.field_5                 = 0;
+    Gp_StateF0.field_6                 = 0;
+    Gp_StateF0.field_8                 = 0;
+    Gp_StateF0.field_C                 = 0;
+    Gp_StateF0.field_10                = 0;
 }
 
 void func_mine_cavern_8017E394(void)
@@ -2208,7 +2208,7 @@ void func_mine_cavern_8017E3A0(s32 arg0)
     GpSprtRec*       rec;
     s32              v;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 
@@ -4006,7 +4006,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     blk                                 = (_MineCavernHitScratch*)(head - 0x28);
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
-        (gGameSession->at4.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->at4.loc.variant != 4)) {
+        (gGameSession->location.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->location.loc.variant != 4)) {
         arg0->node.state.b.flags = 1;
     } else {
         arg0->node.state.b.flags = 0;
@@ -4040,7 +4040,7 @@ found:
     if (key & 0x8000) {
         blk->key = 0;
     }
-    if (gGameSession->at4.loc.variant != 1 && gGameSession->at4.loc.variant != 4) {
+    if (gGameSession->location.loc.variant != 1 && gGameSession->location.loc.variant != 4) {
         blk->key = 0;
     }
 

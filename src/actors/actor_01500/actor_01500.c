@@ -1565,13 +1565,13 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = &Actor01500_D0458C;
     effect1       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect1 != NULL) {
-        sessionKey1 = &gGameSession->at4.loc;
+        sessionKey1 = &gGameSession->location.loc;
         raw1        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
         model1      = effect1->task->extra.tmd;
         key.stage   = sessionKey1->stage;
         key.area    = sessionKey1->area;
         key.room    = sessionKey1->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
@@ -1587,13 +1587,13 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = &Actor01500_D046D0;
     effect2       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect2 != NULL) {
-        sessionKey2 = &gGameSession->at4.loc;
+        sessionKey2 = &gGameSession->location.loc;
         raw2        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
         model2      = effect2->task->extra.tmd;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
         key.room    = sessionKey2->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
@@ -1609,13 +1609,13 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = &Actor01500_D048BC;
     effect3       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect3 != NULL) {
-        sessionKey3 = &gGameSession->at4.loc;
+        sessionKey3 = &gGameSession->location.loc;
         raw3        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
         model3      = effect3->task->extra.tmd;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;
         key.room    = sessionKey3->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
@@ -1631,13 +1631,13 @@ static void Actor01500_Fn01AB0(Task* arg0)
     D_80067704[0] = &Actor01500_D04A94;
     effect4       = Gp_SpawnEff(0x40007, &arg0->extra.tmd->coords[1], 0x100, NULL);
     if (effect4 != NULL) {
-        sessionKey4 = &gGameSession->at4.loc;
+        sessionKey4 = &gGameSession->location.loc;
         raw4        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
         model4      = effect4->task->extra.tmd;
         key.stage   = sessionKey4->stage;
         key.area    = sessionKey4->area;
         key.room    = sessionKey4->room;
-        areaByte0   = gGameSession->at4.loc.view;
+        areaByte0   = gGameSession->location.loc.view;
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);

@@ -858,14 +858,14 @@ void func_dryfield_underpass_8017D5D0(Task* task)
                     }
                     session                           = gGameSession;
                     room                              = dst.room;
-                    session->at4.loc.room             = room;
+                    session->location.loc.room        = room;
                     Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;
             return;
         case 3:
-            if (gGameSession->at4.loc.room >= 5) {
+            if (gGameSession->location.loc.room >= 5) {
                 gGameSession->viewDirty = 1;
             }
             taskKill(task);
@@ -941,7 +941,7 @@ s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     u8 temp_v1;
 
     temp_v1 = in->warp;
-    if ((temp_v1 == 1) && (gGameSession->at4.loc.variant == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (GameFlag_GetNibble(0xC9) == 0)) {
         GameFlag_SetNibble(0xC9, 1);
         func_800E8614(D_dryfield_underpass_8017E8D8, 0);
     }
@@ -956,7 +956,7 @@ static void func_dryfield_underpass_8017D970(Task* arg0)
 {
     arg0->msgTable = D_dryfield_underpass_8017E830;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC9) == 0)) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_dryfield_underpass_8017E89C, 0x7DB);
     }
     arg0->state = arg0->state + 1;
@@ -1005,7 +1005,7 @@ void func_dryfield_underpass_8017DA08(void)
     }
     session                           = gGameSession;
     room                              = dst.room;
-    session->at4.loc.room             = room;
+    session->location.loc.room        = room;
     Mc_SaveData[0].state.at4.loc.room = room;
     gGameSession->roomObjsDirty       = 1;
 }
@@ -1118,7 +1118,7 @@ static void func_dryfield_underpass_8017DB20(GfxCoord* arg0, SVECTOR* arg1, s32 
 
 /// Per-frame effect on a coordinate task: draws the glow sprites the current visit
 /// lights, one per point in `D_...EAD0` (in the task's local space) whose
-/// `D_...EB10` bitmask contains the visit's bit (`gGameSession->at4.loc.view`).
+/// `D_...EB10` bitmask contains the visit's bit (`gGameSession->location.loc.view`).
 /// The whole effect is skipped unless nibble 0x53 is clear.
 void func_dryfield_underpass_8017DE30(Task* task)
 {
@@ -1129,7 +1129,7 @@ void func_dryfield_underpass_8017DE30(Task* task)
     s16*      flags;
 
     coord = task->extra.coordBody->coord;
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     if (GameFlag_GetNibble(0x53) == 0) {
         i     = 0;
         vec   = D_dryfield_underpass_8017EAD0;

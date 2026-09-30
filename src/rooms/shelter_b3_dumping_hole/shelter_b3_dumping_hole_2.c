@@ -2595,8 +2595,8 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 5:
             switch (work->field_32) {
                 case 0:
-                    msg.loc.context.loc.stage = gGameSession->at4.loc.stage;
-                    area                      = gGameSession->at4.loc.area;
+                    msg.loc.context.loc.stage = gGameSession->location.loc.stage;
+                    area                      = gGameSession->location.loc.area;
                     msg.loc.command           = 1;
                     msg.loc.context.loc.area  = area;
                     Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &msg, 0x7DB);
@@ -2674,8 +2674,8 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
                         return;
                     }
                     Gp_DispatchMsg(((DumpingHoleEntity*)D_shelter_b3_dumping_hole_8018F4A8->work)->field_28, 0x7D5, 1, 0);
-                    msg.context.loc.stage = gGameSession->at4.loc.stage;
-                    area                  = gGameSession->at4.loc.area;
+                    msg.context.loc.stage = gGameSession->location.loc.stage;
+                    area                  = gGameSession->location.loc.area;
                     msg.command           = 2;
                     msg.context.loc.area  = area;
                     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -2686,15 +2686,15 @@ static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0)
             break;
         case 2:
             Gp_DispatchMsgPtr(work->field_28, 0x7D4, work, 0);
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            area                  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            area                  = gGameSession->location.loc.area;
             msg.command           = 3;
             msg.context.loc.area  = area;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case 4:
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            area                  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            area                  = gGameSession->location.loc.area;
             msg.command           = 5;
             msg.context.loc.area  = area;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -2775,8 +2775,8 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 Mem_Set(work, 0, 0x50);
                 work->field_24                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4A8 = arg0;
-                work->field_28                     = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
-                work->field_2C                     = Gp_FindWorkById((gGameSession->at4.loc.stage << 8) | (u16)(gGameSession->at4.loc.area | 0x1000))->field_0;
+                work->field_28                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
+                work->field_2C                     = Gp_FindWorkById((gGameSession->location.loc.stage << 8) | (u16)(gGameSession->location.loc.area | 0x1000))->field_0;
                 work->field_42                     = 0;
                 work->field_40                     = 0;
                 work->field_4A                     = 0;
@@ -2842,7 +2842,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
 
 s16 func_shelter_b3_dumping_hole_8017FB70(void)
 {
-    if (gGameSession->at4.loc.room == 2) {
+    if (gGameSession->location.loc.room == 2) {
         return 0;
     }
     return D_shelter_b3_dumping_hole_8018809C;
@@ -2893,8 +2893,8 @@ void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
 {
     ActorCommand msg;
 
-    msg.context.loc.stage = gGameSession->at4.loc.stage;
-    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = arg0;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -3191,8 +3191,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             buf.words[4]         = 0;
             /* The message ABI carries this object address in one 32-bit word. */
             Gp_DispatchMsg(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, (s32)buf.words, 0);
-            buf.loc.context.loc.stage = gGameSession->at4.loc.stage;
-            buf.loc.context.loc.area  = gGameSession->at4.loc.area;
+            buf.loc.context.loc.stage = gGameSession->location.loc.stage;
+            buf.loc.context.loc.area  = gGameSession->location.loc.area;
             buf.loc.command           = 0xA;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.loc, ACTOR_COMMAND_MESSAGE_APPLY);
             work->state = 0;
@@ -3331,8 +3331,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             D_shelter_b3_dumping_hole_8018F4B0_value = 0;
             work->field_96                           = 1;
             Gp_PulseState1C();
-            buf2.loc.context.loc.stage = gGameSession->at4.loc.stage;
-            buf2.loc.context.loc.area  = gGameSession->at4.loc.area;
+            buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
+            buf2.loc.context.loc.area  = gGameSession->location.loc.area;
             command3                   = &buf2.loc;
             command3->command          = 0xB;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command3, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -3348,8 +3348,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;
             Gp_PulseState1C();
-            buf2.loc.context.loc.stage = gGameSession->at4.loc.stage;
-            buf2.loc.context.loc.area  = gGameSession->at4.loc.area;
+            buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
+            buf2.loc.context.loc.area  = gGameSession->location.loc.area;
             command5                   = &buf2.loc;
             command5->command          = 0xC;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command5, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -3422,8 +3422,8 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_PulseState1C();
 
     D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-    request.context.loc.stage                = gGameSession->at4.loc.stage;
-    request.context.loc.area                 = gGameSession->at4.loc.area;
+    request.context.loc.stage                = gGameSession->location.loc.stage;
+    request.context.loc.area                 = gGameSession->location.loc.area;
     request.command                          = 0x13;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
@@ -3463,14 +3463,14 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 Mem_Set(work, 0, 0xA0);
                 work->field_80                     = gameGetPtrSlot(3);
                 D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->field_84                     = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                work->field_84                     = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
                 func_shelter_b3_dumping_hole_80183218(0);
             }
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
-            ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->at4.loc.view;
+            ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->location.loc.view;
             Gp_MsgPlayerWeapon(0);
             desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
@@ -3547,7 +3547,7 @@ void func_shelter_b3_dumping_hole_801818E0(void)
     if (p->field_9C == 0) {
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(0), 0x20);
         Gp_StateF0.field_6       = 0;
-        gGameSession->flowFlags |= 0x80;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         p->field_9C              = 1;
     }
 }
@@ -3638,7 +3638,7 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 /// `SpriteBatch::hidden`: 0 hides both, 1 shows command 2 and 2 shows command 1.
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
-    GameLocationKey* g4      = &gGameSession->at4.loc;
+    GameLocationKey* g4      = &gGameSession->location.loc;
     SpriteBatch*     batches = Gp_SprtTables[g4->stage - 1]->field_0[g4->area - 1][13].field_4;
 
     if (arg0 == 0) {
@@ -3820,7 +3820,7 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
     OverlayEncounterCtrlWork* work;
     s32                       i;
 
-    if ((u8)gGameSession->spawnPhase[0] == 2) {
+    if (gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_COMPLETE) {
         taskKill(arg0);
         return;
     }
@@ -3857,7 +3857,7 @@ static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
     OverlayEncounterCtrlWork* ent = (OverlayEncounterCtrlWork*)arg0->work;
     if ((s16)(ent->frames += 1) == 0xF) {
         (Gp_IncStateF0Ref)(0);
-        gGameSession->spawnPhase[0] = 1;
+        gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_ARMED;
         Gp_ArmStateF0(1);
         arg0->state += 1;
     }
@@ -3878,7 +3878,7 @@ static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
         }
         if (count == 0x10) {
             Gp_ReleaseStateF0Clear(arg0, 0);
-            gGameSession->spawnPhase[0] = 2;
+            gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_COMPLETE;
             taskKill(arg0);
         }
     }

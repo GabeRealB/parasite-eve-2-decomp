@@ -1819,7 +1819,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
-    if (request->actionId == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->at4.loc.view == 2) {
+    if (request->actionId == 3 && gameGetPtrSlot(0xA) != NULL && gGameSession->location.loc.view == 2) {
         func_80132220();
     }
     if (request->actionId == 4 && GameFlag_GetNibble(0xDE) != 0 && GameFlag_GetNibble(0x16E) == 0) {
@@ -1912,7 +1912,7 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_observatory_801811B8;
     Game_SetPtrSlot(arg0, 7);
-    if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.variant == 1)) {
+    if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->location.loc.variant == 1)) {
         func_801322F8();
     } else {
         func_neo_ark_observatory_8017FA98(0);

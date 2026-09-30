@@ -357,7 +357,7 @@ void func_actor_120500_80131E58(Task* arg0)
             Mem_AllocAuxWithImages(1);
             goto advance;
         case 1:
-            key          = gGameSession->at4;
+            key          = gGameSession->location;
             key.loc.view = 0x64;
             slot         = Stream_FindSlot((u8*)&key, 0, 0);
             slotParam[0] = slot;
@@ -541,7 +541,7 @@ static void func_actor_120500_801322A0(Task* task)
     tmd->lightMtx           = &work->field_474;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->field_494;
-    place                   = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place                   = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {

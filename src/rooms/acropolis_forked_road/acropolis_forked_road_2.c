@@ -86,7 +86,7 @@ extern GpScriptRec D_acropolis_forked_road_80185050[2];
 /// 0..13 by the first-frame burst below.
 extern SVECTOR D_acropolis_forked_road_80182178[14];
 
-/// One bit per in-game day (shifted by `GameSession::at4.loc.view - 1`) for each of
+/// One bit per in-game day (shifted by `GameSession::location.loc.view - 1`) for each of
 /// the sixteen ambient-effect slots: which of the room's lamps are lit today.
 extern u16 D_acropolis_forked_road_801821E8[14];
 
@@ -1263,7 +1263,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
 
         case 2:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
-                slot = Stream_FindSlot((u8*)&gGameSession->at4.loc, 0, 0);
+                slot = Stream_FindSlot((u8*)&gGameSession->location.loc, 0, 0);
                 CdCmd_Enqueue(0x61, 0, &slot);
                 task->state = task->state + 1;
             }
@@ -1273,7 +1273,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185058,
                                                                  D_acropolis_forked_road_80185070);
-                gGameSession->padScriptFlags |= 0x80;
+                gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -1298,7 +1298,7 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Mc_SaveData[0].state.at4.loc.room  = 1;
             gDisplayState.spriteVariant        = 1;
             Task_Spawn(0, 0x11, 0, 0);
-            gGameSession->padScriptFlags &= 0x7F;
+            gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;
     }
@@ -1363,7 +1363,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 work->mtx->t[2]               = D_acropolis_forked_road_80180F80[0x3B - queue->movieFrame].vz;
                 work->script                  = Gp_SpawnScript18(D_acropolis_forked_road_80185038,
                                                                  D_acropolis_forked_road_80185050);
-                gGameSession->padScriptFlags |= 0x80;
+                gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 Task_Reparent(task, work->script);
                 SetDispMask(0);
                 task->killCountdown = 0;
@@ -1412,7 +1412,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
-                gGameSession->padScriptFlags &= 0x7F;
+                gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
                 taskKill(task);
             }
             break;
@@ -1520,7 +1520,7 @@ void func_acropolis_forked_road_8017E410(Task* task)
     work  = (GpEffWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->at4.loc.view - 1)) & 1)) {
+        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
         Gp_UpdateCoord(coord);
         scratch = SCRATCH_STACK_CURSOR_SLOT;
         SCRATCH_PUSH_BYTES_AT(scratch, 0x14);

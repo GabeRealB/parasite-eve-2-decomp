@@ -2822,7 +2822,7 @@ static void func_actor_444000_80132054(Task* task)
 
 /// Bring the room's presentation up to date for an enter (0), a first entry
 /// (1) or a re-entry (2): pick the view set from the current disc/scenario
-/// stage in `GameSession::field_132`, republish the area-record id, and on a
+/// stage in `GameSession::incineratorDescentPhase`, republish the area-record id, and on a
 /// first entry spawn the accompanying task. Any other `arg0` does nothing.
 void func_actor_444000_801321FC(s32 arg0)
 {
@@ -2836,25 +2836,25 @@ void func_actor_444000_801321FC(s32 arg0)
             break;
         case 1:
         case 2:
-            switch (gGameSession->field_132) {
-                case 0:
-                    gGameSession->at4.loc.room        = 4;
+            switch (gGameSession->incineratorDescentPhase) {
+                case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
+                    gGameSession->location.loc.room   = 4;
                     Mc_SaveData[0].state.at4.loc.room = 4;
                     break;
-                case 1:
-                    gGameSession->at4.loc.room        = 5;
+                case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
+                    gGameSession->location.loc.room   = 5;
                     Mc_SaveData[0].state.at4.loc.room = 5;
                     break;
-                case 2:
-                case 3:
-                    gGameSession->at4.loc.room        = 6;
+                case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
+                case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
+                    gGameSession->location.loc.room   = 6;
                     Mc_SaveData[0].state.at4.loc.room = 6;
                     break;
             }
-            gGameSession->eventRoomIndex      = gGameSession->at4.loc.room - 1;
-            gGameSession->field_133           = 1;
-            gGameSession->roomObjsDirty       = 1;
-            Mc_SaveData[0].state.at4.loc.view = work->field_28.b;
+            gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
+            gGameSession->incineratorRoomGroup = 1;
+            gGameSession->roomObjsDirty        = 1;
+            Mc_SaveData[0].state.at4.loc.view  = work->field_28.b;
             Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
                 work->field_24 = Task_Spawn(1, 0x2D, 0x10, 0);
@@ -2865,7 +2865,7 @@ void func_actor_444000_801321FC(s32 arg0)
 }
 
 /// Task body of the overlay's event/controller task, run once per frame while
-/// the session is not paused (`GameSession::field_65`), no cutscene is active
+/// the session is not paused (`GameSession::sceneUpdatesPaused`), no cutscene is active
 /// (`Gp_StateC08.field_9`) and the battle state is not frozen
 /// (`Gp_StateF0.field_4`).
 ///
@@ -2884,7 +2884,7 @@ void func_actor_444000_80132358(Task* task)
     s32                   state;
     s16                   timer;
 
-    if (gGameSession->field_65 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0) {
         return;
     }
     if (Gp_StateC08.field_9 != 0) {
@@ -2914,7 +2914,7 @@ void func_actor_444000_80132358(Task* task)
             }
             if (task->spawnArg1.value != 0) {
                 work             = (Actor444000EventWork*)task->work;
-                work->field_28.h = gGameSession->at4.loc.view;
+                work->field_28.h = gGameSession->location.loc.view;
                 Gp_MsgPlayerWeapon(0);
                 func_800E8634(D_actor_444000_80144634, 0, D_actor_444000_8014488C);
                 task->state = 3;
@@ -2934,7 +2934,7 @@ void func_actor_444000_80132358(Task* task)
                     Gp_StateF0.prefix.bytes.field_0 = 0;
                     Gp_StateF0.prefix.bytes.field_2 = 0;
                     Gp_StateF0.prefix.bytes.field_3 = 0;
-                    gGameSession->flowFlags        |= 0x80;
+                    gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
                     Mc_SaveData[0].state.sceneEvent = 0xD;
                     other->field_30                 = state;
                 }
@@ -2946,7 +2946,7 @@ void func_actor_444000_80132358(Task* task)
             timer               = (u16)task->killCountdown + 1;
             task->killCountdown = timer;
             if (timer >= 0x15) {
-                work->field_28.h = gGameSession->at4.loc.view;
+                work->field_28.h = gGameSession->location.loc.view;
                 func_800E8634(D_actor_444000_8014431C, 0, D_actor_444000_801444E4);
                 task->state += 1;
             }
@@ -3010,8 +3010,8 @@ void func_actor_444000_80132724(s16 arg0)
 {
     ActorCommand msg;
 
-    msg.context.loc.stage = gGameSession->at4.loc.stage;
-    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = arg0;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -3029,7 +3029,7 @@ void func_actor_444000_80132778(void)
         Gp_StateF0.prefix.bytes.field_0 = 0;
         Gp_StateF0.prefix.bytes.field_2 = 0;
         Gp_StateF0.prefix.bytes.field_3 = 0;
-        gGameSession->flowFlags        |= 0x80;
+        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Mc_SaveData[0].state.sceneEvent = 0xD;
         work->field_30                  = 1;
     }
@@ -3166,7 +3166,7 @@ static void func_actor_444000_80132CB8(Task* task, s16 scale, s16 drop, s16 inde
     gte_gpf12();
     gte_stsv(normal);
 
-    if (gGameSession->at4.loc.area == 0x27) {
+    if (gGameSession->location.loc.area == 0x27) {
         face.surfaceClass = 3;
     } else {
         face.surfaceClass = 2;
@@ -4049,7 +4049,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 ///
 /// A reset request re-arms the block on animation 0x12, clears the enemy's link
 /// state, the model's flag word and the four counters, marks the session
-/// (`gGameSession::at4.loc.variant` 3) and plays the death cue at half depth.
+/// (`gGameSession::location.loc.variant` 3) and plays the death cue at half depth.
 ///
 /// The rest of the tick splits on bit 0x100 of the second animation slot --
 /// whether the collapse animation is still running or has finished.
@@ -4103,9 +4103,9 @@ static void func_actor_444000_80135448(Task* task)
 
         func_actor_444000_8013441C(task);
 
-        gGameSession->at4.loc.variant = 3;
-        id                            = (((u16)enemy->placeKey >> 12) << 8) | 0x54280007;
-        pan                           = (s8)Gp_GetObjPan(task->extra.tmd->coords);
+        gGameSession->location.loc.variant = 3;
+        id                                 = (((u16)enemy->placeKey >> 12) << 8) | 0x54280007;
+        pan                                = (s8)Gp_GetObjPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
         return;
     }
@@ -5168,7 +5168,7 @@ static void func_actor_444000_80138FC4(GpEnemy* enemy, Task* task)
         work->vel.vx = 0;
     }
 
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -5253,7 +5253,7 @@ static void func_actor_444000_8013928C(GpEnemy* enemy, Task* task)
 
     work->field_1AC++;
 
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
         work->vel.vx = 0;
     }
@@ -7829,8 +7829,8 @@ static void func_actor_444000_8013EC84(Task* arg0)
                 Gp_DispatchMsg(target, 0x3F9, Gp_PackObjPair(enemy, 3), 0);
                 if (cfg->hp <= 0) {
                     ((GameActor*)player->work)->field_956 = 0xA;
-                    gGameSession->areaBgmCountdown        = 0x1E;
-                    gGameSession->field_12E               = 0x36;
+                    gGameSession->deathSoundCountdown     = 0x1E;
+                    gGameSession->deathFadeFrames         = 0x36;
                     gGameSession->deathRestartDelay       = 0x5A;
                 }
             }
@@ -8699,7 +8699,7 @@ static void func_actor_444000_80141618(Task* task)
                 if (work->field_EE8[sc->i] != NULL) {
                     work->field_F1B++;
                     model      = work->field_EE8[sc->i]->task->extra.tmd;
-                    sessionKey = &gGameSession->at4.loc;
+                    sessionKey = &gGameSession->location.loc;
                     key.stage  = sessionKey->stage;
                     key.area   = sessionKey->area;
                     key.room   = sessionKey->room;
@@ -8858,7 +8858,7 @@ static inline void _actor444000TintEscort(TmdObject* model)
     GameLocationKey* sessionKey;
     AreaPlacement*   entry;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
@@ -9723,7 +9723,7 @@ static void func_actor_444000_801436CC(GpEnemy* enemy, Task* task)
     s32              idx;
     u32              raw;
 
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     raw        = ((GpWorkObj*)task->parent->spawnArg2.pointer)->field_8.as_u16;
     model      = task->extra.tmd;
     key.stage  = sessionKey->stage;

@@ -1051,7 +1051,7 @@ static void Actor05500_Fn00A94(Task* actor)
     coord                                                                     = actor->extra.tmd->coords;
     work                                                                      = actor->work;
     state                                                                     = work->field_39C;
-    sessionFlags                                                              = GAME_LOCATION_WORD(gGameSession->at4.loc);
+    sessionFlags                                                              = GAME_LOCATION_WORD(gGameSession->location.loc);
     value                                                                     = 0;
     switch (state) {
         case 0:
@@ -2526,7 +2526,7 @@ static void Actor05500_Fn03C54(Task* actor)
     if (eff == NULL) {
         return;
     }
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     raw        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;

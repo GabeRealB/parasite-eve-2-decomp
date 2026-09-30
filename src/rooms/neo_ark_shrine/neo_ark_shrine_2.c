@@ -1449,10 +1449,10 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room        = 2;
+            gGameSession->location.loc.room   = 2;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 5;
-            gGameSession->at4.loc.room        = 5;
+            gGameSession->location.loc.room   = 5;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -1533,7 +1533,7 @@ static void func_neo_ark_shrine_8017F274(Task* task)
 {
     Gp_StateF0.field_20               = 2;
     Mc_SaveData[0].state.at4.loc.room = 6;
-    gGameSession->at4.loc.room        = 6;
+    gGameSession->location.loc.room   = 6;
     gGameSession->roomObjsDirty       = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
@@ -1576,10 +1576,10 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
             Mc_SaveData[0].state.at4.loc.room = 1;
-            gGameSession->at4.loc.room        = 1;
+            gGameSession->location.loc.room   = 1;
         } else {
             Mc_SaveData[0].state.at4.loc.room = 4;
-            gGameSession->at4.loc.room        = 4;
+            gGameSession->location.loc.room   = 4;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;

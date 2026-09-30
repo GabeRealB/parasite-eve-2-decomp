@@ -276,7 +276,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 {
     Task* out;
 
-    arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
+    arg0 = (arg0 << 12) | (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
     Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D0, arg0, &out);
     if (out != 0) {
         Gp_DispatchMsg(out, 0x7D5, arg1, 0);
@@ -318,7 +318,7 @@ void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->at4.loc.stage << 24;
+        arg0 |= gGameSession->location.loc.stage << 24;
     }
     SndEvt_EnqueueType6(arg0, (s8)arg1, (s8)arg2);
 }
@@ -327,7 +327,7 @@ s32 Gp_PackStageSndId(s32 arg0)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->at4.loc.stage << 24;
+        arg0 |= gGameSession->location.loc.stage << 24;
     }
     return arg0;
 }
@@ -336,7 +336,7 @@ void Gp_EnqueueStageSnd7(s32 arg0, s32 arg1)
 {
     if (arg0 & 0xF000000) {
         arg0 &= 0xF0FFFFFF;
-        arg0 |= gGameSession->at4.loc.stage << 24;
+        arg0 |= gGameSession->location.loc.stage << 24;
     }
     SndEvt_EnqueueType7(arg0, arg1 & 0xFFFF);
 }

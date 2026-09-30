@@ -165,7 +165,7 @@ s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, DirectionActionRe
     u8 temp;
 
     if (request->actionId == 1 && (GameFlag_GetNibble(9) & 2)) {
-        temp = gGameSession->at4.loc.variant;
+        temp = gGameSession->location.loc.variant;
         if (((temp == 4) || (temp == 8)) && (GameFlag_GetNibble(0xCC) == 0)) {
             func_800E8614(D_acropolis_forked_road_801820B8, 1);
             GameFlag_SetNibble(0xCC, 1);
@@ -188,7 +188,7 @@ static void func_acropolis_forked_road_8017D92C(Task* task)
 /// `D_acropolis_forked_road_80180F3C.value` so that happens only once.
 static void func_acropolis_forked_road_8017D970(Task* task)
 {
-    if ((D_acropolis_forked_road_80180F3C.value == 0) && (gGameSession->at4.loc.warp == 2)) {
+    if ((D_acropolis_forked_road_80180F3C.value == 0) && (gGameSession->location.loc.warp == 2)) {
         D_acropolis_forked_road_80180F3C.value = 1;
         Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 2, 0, 0);
     }

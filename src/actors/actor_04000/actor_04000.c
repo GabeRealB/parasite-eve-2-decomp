@@ -2687,7 +2687,7 @@ static void Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1)
     work->field_198                     += work->field_19A;
     arg1->extra.tmd->coords->coord.t[1] += (s16)work->field_198;
     if (arg1->extra.tmd->coords->coord.t[1] >= -0x12B) {
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 16, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 16, 0, 0)) {
             id  = ((arg0->placeKey >> 12) << 8) | 0x53100006;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));

@@ -242,7 +242,7 @@ typedef struct Actor100400Work {
 
 /// One 0x14-byte row of `Actor00400_D15F20`, the per-room spawn table the entry
 /// state walks until `area` reads 0xFF. A row matches when its `area` / `room`
-/// equal `GameSession.at4.loc.stage` / `at4.loc.area`; `flags` bit 1 rejects the actor
+/// equal `GameSession.location.loc.stage` / `location.loc.area`; `flags` bit 1 rejects the actor
 /// outright and bit 2 hides its root coordinate. The three pointers are
 /// optional overrides taken from the room overlay: `waypointSets` is indexed by
 /// the spawn argument's second nibble, `records` becomes
@@ -2507,20 +2507,20 @@ static void Actor00400_Fn02D48(Task* arg0)
             n = func_800E0C10(work->recs, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
-                    if (gGameSession->at4.loc.stage == 4 &&
-                        (gGameSession->at4.loc.area == 0x21 || gGameSession->at4.loc.area == 0x2B ||
-                         gGameSession->at4.loc.area == 0x2C || gGameSession->at4.loc.area == 0x2D ||
-                         gGameSession->at4.loc.area == 0x22)) {
+                    if (gGameSession->location.loc.stage == 4 &&
+                        (gGameSession->location.loc.area == 0x21 || gGameSession->location.loc.area == 0x2B ||
+                         gGameSession->location.loc.area == 0x2C || gGameSession->location.loc.area == 0x2D ||
+                         gGameSession->location.loc.area == 0x22)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->at4.loc.stage == 5 &&
-                               (gGameSession->at4.loc.area == 0xD || gGameSession->at4.loc.area == 0xE ||
-                                gGameSession->at4.loc.area == 0x1B)) {
+                    } else if (gGameSession->location.loc.stage == 5 &&
+                               (gGameSession->location.loc.area == 0xD || gGameSession->location.loc.area == 0xE ||
+                                gGameSession->location.loc.area == 0x1B)) {
                         if ((mask & 2) == 0) {
                             hidden = 1;
                         }
-                    } else if (gGameSession->at4.loc.area == 0x1E && gGameSession->at4.loc.stage == 5) {
+                    } else if (gGameSession->location.loc.area == 0x1E && gGameSession->location.loc.stage == 5) {
                         if ((mask & 8) == 0) {
                             hidden = 1;
                         }
@@ -2729,7 +2729,7 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
     u16                    flags;
 
     work = arg0->work;
-    ses  = &gGameSession->at4.loc;
+    ses  = &gGameSession->location.loc;
     cfg  = Actor00400_D15F20;
     while (cfg->area != 0xFF) {
         if ((ses->stage == cfg->area) && (ses->area == cfg->room)) {
@@ -2938,7 +2938,7 @@ static void Actor00400_Fn03920(Task* arg0)
             }
             break;
         case 1:
-            if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
                 if (GameFlag_GetNibble(0xB7) == 0) {
                     work->field_666 = 1;
                     w               = arg0->work;
@@ -3613,9 +3613,9 @@ static void Actor00400_Fn04E18(Task* arg0)
             ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     ctx3 = arg0->extra.tmd;
-    if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->at4.loc.view - 0xA) < 2U) {
+    if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->location.loc.view - 0xA) < 2U) {
         ctx3->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }

@@ -2215,7 +2215,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     if (eff == NULL) {
         return;
     }
-    sessionKey = &gGameSession->at4.loc;
+    sessionKey = &gGameSession->location.loc;
     raw        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;

@@ -1363,7 +1363,7 @@ s32 func_dryfield_water_hole_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
     *out = *in;
     if (in->areaId == 0x19) {
-        temp = gGameSession->at4.loc.stage;
+        temp = gGameSession->location.loc.stage;
         if (temp == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
@@ -1651,7 +1651,7 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
     u32                       rnd;
 
     ctl       = gameGetPtrSlot(3);
-    mask      = 1 << gGameSession->at4.loc.view;
+    mask      = 1 << gGameSession->location.loc.view;
     splash    = arg0->spawnArg2.pointer;
     coord     = arg0->extra.coordBody->coord;
     ctlCoords = ctl->extra.tmd->coords;

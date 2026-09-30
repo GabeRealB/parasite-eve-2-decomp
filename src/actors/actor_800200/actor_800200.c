@@ -2609,7 +2609,7 @@ static s32 func_actor_800200_80165104(Task* arg0)
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                param  = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][actor->field_930];
+                param  = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->field_930];
                 sounds = param->field_4;
                 if (sounds != NULL) {
                     if ((u16)actor->field_958 - 5 < 2U) {
@@ -2785,7 +2785,7 @@ static void func_actor_800200_80165580(Task* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v1 = gGameSession->at4.loc.area;
+    temp_v1 = gGameSession->location.loc.area;
     switch (temp_v1) {
         case 26:
             func_actor_800200_80162990(arg0);
@@ -2810,7 +2810,7 @@ static void func_actor_800200_80165644(Task* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v1 = gGameSession->at4.loc.area;
+    temp_v1 = gGameSession->location.loc.area;
     switch (temp_v1) {
         case 25:
             func_actor_800200_8016599C(arg0);
@@ -2835,7 +2835,7 @@ static void func_actor_800200_80165708(Task* arg0)
         func_actor_800200_801654EC(arg0, 0);
         return;
     }
-    temp_v0 = gGameSession->at4.loc.area;
+    temp_v0 = gGameSession->location.loc.area;
     switch (temp_v0) {
         case 1:
             func_actor_800200_80163A54(arg0);

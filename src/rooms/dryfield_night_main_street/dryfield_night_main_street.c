@@ -87,7 +87,7 @@
         idx     = GameFlag_GetNibble(nibble);                              \
         tbl     = table;                                                   \
         p       = tbl[idx];                                                \
-        sess    = &gGameSession->at4.loc;                                  \
+        sess    = &gGameSession->location.loc;                             \
         rec     = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1]; \
         batches = rec[p[0]].field_4;                                       \
         if (p[0] != 0xFF) {                                                \
@@ -1816,7 +1816,7 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
 
     *out = *msg;
     if (msg->areaId == 0x19) {
-        if (gGameSession->at4.loc.stage == 2) {
+        if (gGameSession->location.loc.stage == 2) {
             if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
                     out->room = 2;

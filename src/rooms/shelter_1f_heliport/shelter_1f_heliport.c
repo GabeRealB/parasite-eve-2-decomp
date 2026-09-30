@@ -704,7 +704,7 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
         SndEvt_EnqueueType7(0x55040007, 1);
     }
     if (src->areaId == 3) {
-        if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->at4.loc.variant == 1) {
+        if (GameFlag_GetNibble(0xE3) == 0 && gGameSession->location.loc.variant == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x2B);
             }
@@ -780,7 +780,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, TaskMessag
             break;
         case 0x22:
             need = 1;
-            if (gGameSession->at4.loc.variant == 1) {
+            if (gGameSession->location.loc.variant == 1) {
                 need = 2;
             }
             Gp_SpawnIfCapIdle(GameFlag_GetNibble(0x104) >= need ? 0x22 : 0x25, 0);
@@ -793,10 +793,10 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ta
 {
     switch (in->warp) {
         case 1:
-            if (gGameSession->at4.loc.variant == 1) {
+            if (gGameSession->location.loc.variant == 1) {
                 func_80149EBC();
             }
-            if (gGameSession->at4.loc.variant == 2) {
+            if (gGameSession->location.loc.variant == 2) {
                 func_80149E38();
             }
             break;
@@ -848,10 +848,10 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
 {
     arg0->msgTable = D_shelter_1f_heliport_801811A0;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == 1) {
         func_80149E80();
     }
-    if (gGameSession->at4.loc.variant == 2) {
+    if (gGameSession->location.loc.variant == 2) {
         func_80149FA4();
     }
     if (gameGetPtrSlot(0xA) != NULL) {
@@ -886,7 +886,7 @@ static void func_shelter_1f_heliport_801807C0(void)
     s32 i;
     s32 idx = Mc_SaveData[0].state.at4.loc.view;
 
-    if (gGameSession->at4.loc.variant < 3 && idx < 12) {
+    if (gGameSession->location.loc.variant < 3 && idx < 12) {
         if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {
             for (i = 0; i < 4; i++) {
                 Gp_MsgSlot4Chain(i, D_shelter_1f_heliport_801811D4[idx][i]);

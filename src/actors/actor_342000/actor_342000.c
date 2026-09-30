@@ -591,7 +591,7 @@ static void func_actor_342000_80162158(Task* arg0)
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_342000_801648E8;
-    rec             = (Gp_GetNestedAreaRec(&gGameSession->at4.loc))->field_0;
+    rec             = (Gp_GetNestedAreaRec(&gGameSession->location.loc))->field_0;
     for (; rec->entryId != AREA_PLACEMENT_END; rec++) {
         if (rec->entryId == 0x20) {
             break;
@@ -1013,7 +1013,7 @@ static void func_actor_342000_80162F28(Task* arg0)
                 work->field_7E = 1;
                 work->field_72++;
             }
-            if (gGameSession->at4.loc.view == 0xF) {
+            if (gGameSession->location.loc.view == 0xF) {
                 Gp_DispatchMsg(work->field_5C, 0x7D5, 0, 0);
                 Gp_DispatchMsg(work->field_60, 0x7D5, 0, 0);
             } else {
@@ -1101,11 +1101,11 @@ static inline void Actor342000_SetMode(s16 arg0)
 
 static inline void Actor342000_EnterArea(void)
 {
-    gGameSession->at4.loc.room        = 7;
-    Mc_SaveData[0].state.at4.loc.room = 7;
-    gGameSession->eventRoomIndex      = 6;
-    gGameSession->field_133           = 1;
-    gGameSession->roomObjsDirty       = 1;
+    gGameSession->location.loc.room    = 7;
+    Mc_SaveData[0].state.at4.loc.room  = 7;
+    gGameSession->eventRoomIndex       = 6;
+    gGameSession->incineratorRoomGroup = 1;
+    gGameSession->roomObjsDirty        = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1129,7 +1129,7 @@ void func_actor_342000_8016382C(Task* arg0)
     s16                   timer;
 
     work = (Actor342000EventWork*)arg0->work;
-    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->field_65 != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0) {
+    if (D_shelter_b3_garbage_incinerator_801855DE != 0 || gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.field_9 != 0 || Gp_StateF0.field_4 != 0) {
         return;
     }
     if (gGameSession->enemyCullZone != 0) {
@@ -1149,12 +1149,12 @@ void func_actor_342000_8016382C(Task* arg0)
                 Mem_Set(alloc, 0U, 0x80U);
                 alloc->field_48         = gameGetPtrSlot(3);
                 D_actor_342000_80165070 = arg0;
-                alloc->field_4C         = Gp_FindWorkById(gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))->field_0;
+                alloc->field_4C         = Gp_FindWorkById(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->field_0;
             }
             work = (Actor342000EventWork*)arg0->work;
-            if ((u8)gGameSession->skipEventIntro == 0) {
-                msg.context.loc.stage = gGameSession->at4.loc.stage;
-                msg.context.loc.area  = gGameSession->at4.loc.area;
+            if (gGameSession->skipEventIntro == 0) {
+                msg.context.loc.stage = gGameSession->location.loc.stage;
+                msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->field_5C = Task_SpawnFromTable(D_actor_342000_80164FF8, 8, 0, arg0);
@@ -1186,7 +1186,7 @@ void func_actor_342000_8016382C(Task* arg0)
             if (gGameSession->eventState == 0) {
                 gGameSession->sceneClock = D_shelter_b3_garbage_incinerator_8018FBC8[0];
                 Task_SpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
-                gGameSession->field_135 = 2;
+                gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 Task_RequestKill(arg0, 0);
                 return;
             }
@@ -1204,7 +1204,7 @@ void func_actor_342000_8016382C(Task* arg0)
             timer               = (u16)arg0->killCountdown + 1;
             arg0->killCountdown = timer;
             if (timer >= 0x1A5) {
-                work->field_78 = gGameSession->at4.loc.view;
+                work->field_78 = gGameSession->location.loc.view;
                 Actor342000_SetAction(7);
                 Actor342000_SetMode(6);
                 arg0->killCountdown = 0;
@@ -1232,8 +1232,8 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_KillFx();
                 Actor342000_SetMode(7);
                 Actor342000_EnterArea();
-                msg.context.loc.stage = gGameSession->at4.loc.stage;
-                msg.context.loc.area  = gGameSession->at4.loc.area;
+                msg.context.loc.stage = gGameSession->location.loc.stage;
+                msg.context.loc.area  = gGameSession->location.loc.area;
                 msg.command           = 0;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->killCountdown = 0;
@@ -1248,7 +1248,7 @@ void func_actor_342000_8016382C(Task* arg0)
                 Actor342000_SetMode(9);
                 func_shelter_b3_garbage_incinerator_8018507C();
                 Gp_DispatchMsg(work->field_48, 0x3F1, 0, 0);
-                gGameSession->field_135 = 2;
+                gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 goto next;
             }
             break;
@@ -1386,11 +1386,11 @@ void func_actor_342000_80164110(Task* arg0, s32 arg1, ActorCommand* request, Act
 
 void func_actor_342000_80164154(void)
 {
-    gGameSession->at4.loc.room        = 7;
-    Mc_SaveData[0].state.at4.loc.room = 7;
-    gGameSession->eventRoomIndex      = 6;
-    gGameSession->field_133           = 1;
-    gGameSession->roomObjsDirty       = 1;
+    gGameSession->location.loc.room    = 7;
+    Mc_SaveData[0].state.at4.loc.room  = 7;
+    gGameSession->eventRoomIndex       = 6;
+    gGameSession->incineratorRoomGroup = 1;
+    gGameSession->roomObjsDirty        = 1;
     Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
@@ -1460,7 +1460,7 @@ void func_actor_342000_801642F4(void)
         Gp_StateF0.prefix.bytes.field_0 = 0;
         Gp_StateF0.prefix.bytes.field_2 = 0;
         Gp_StateF0.prefix.bytes.field_3 = 0;
-        gGameSession->flowFlags        |= 0x80;
+        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Mc_SaveData[0].state.sceneEvent = 0xD;
         work->field_7C                  = 1;
     }

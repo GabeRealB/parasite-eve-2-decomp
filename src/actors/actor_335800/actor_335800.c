@@ -1032,8 +1032,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->at4.loc.room = Mc_SaveData[0].state.at4.loc.room = arg0;
-    gGameSession->roomObjsDirty                                    = 1;
+    gGameSession->location.loc.room = Mc_SaveData[0].state.at4.loc.room = arg0;
+    gGameSession->roomObjsDirty                                         = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -1085,7 +1085,7 @@ void func_actor_335800_801621B4(s32 arg0)
 static inline void _actor335800SetView(s32 view)
 {
     Mc_SaveData[0].state.at4.loc.view = view;
-    gGameSession->at4.loc.view        = view;
+    gGameSession->location.loc.view   = view;
     gGameSession->viewDirty           = 1;
     gGameSession->roomObjsDirty       = 1;
 }
@@ -1116,8 +1116,8 @@ void func_actor_335800_801622C0(s32 arg0)
     SpriteBatch*     batches;
 
     g    = gGameSession;
-    sess = &g->at4.loc;
-    rec  = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    sess = &g->location.loc;
+    rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
     switch (arg0) {
         case 0:
             batches           = rec[38].field_4;
@@ -1187,7 +1187,7 @@ void func_actor_335800_801624DC(Task* arg0)
 {
     Task* slot;
 
-    if (gGameSession->field_126 != 0) {
+    if (gGameSession->battleResetPending != 0) {
         slot = gameGetPtrSlot(3);
         Gp_PlayerWeaponId(&D_actor_335800_80164E7C.source.index);
         Gp_DispatchMsgPtr(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
@@ -1209,11 +1209,11 @@ void func_actor_335800_80162588(Task* arg0)
     if ((gGameSession->eventState != 0) && (gGameSession->evtSkipped == 0)) {
         temp_v1 = gGameSession->padScriptFlags;
         var_a0  = 0;
-        if (temp_v1 & 1) {
+        if (temp_v1 & GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE) {
             count  = (u16)arg0->killCountdown;
             var_a0 = count & 1;
         }
-        if ((temp_v1 & 2) && !(arg0->killCountdown & 1)) {
+        if ((temp_v1 & GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE) && !(arg0->killCountdown & 1)) {
             var_a0 = -1;
         }
         displaySetShakeY(var_a0);
@@ -1254,7 +1254,7 @@ static void func_actor_335800_80162640(Task* arg0)
         work->child0 = spawned;
         model        = spawned->extra.tmd;
         idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
-        sessionKey   = &gGameSession->at4.loc;
+        sessionKey   = &gGameSession->location.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
         key.room     = sessionKey->room;
@@ -1279,11 +1279,11 @@ static void func_actor_335800_80162640(Task* arg0)
         work->child1 = spawned;
         model        = spawned->extra.tmd;
         idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
-        sessionKey   = (keyAddr = &gGameSession->at4.loc);
+        sessionKey   = (keyAddr = &gGameSession->location.loc);
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
         key.room     = keyAddr->room;
-        key.view     = gGameSession->at4.loc.view;
+        key.view     = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
         rec                      = Gp_GetNestedAreaRec(&key);
         place                    = gpAreaPlaceAt(rec->field_0, idx);

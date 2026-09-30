@@ -853,7 +853,7 @@ void func_dryfield_night_trailer_coach_80182924(Task* unused)
     SVECTOR* r;
     u8       view;
 
-    view = gGameSession->at4.loc.view;
+    view = gGameSession->location.loc.view;
     switch (view) {
         case 3:
             p = D_dryfield_night_trailer_coach_80189400;

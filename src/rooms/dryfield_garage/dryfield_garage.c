@@ -807,7 +807,7 @@ s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg
 /// value.
 s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, TaskMessageArg arg3)
 {
-    if ((msg->warp == 2) && (gGameSession->at4.loc.variant != 1)) {
+    if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
         Gp_SpawnIfCapIdle(0x13, 0);
     }
 }
@@ -842,14 +842,14 @@ static void func_dryfield_garage_8017DB18(Task* arg0)
 {
     arg0->msgTable = D_dryfield_garage_8017DC7C;
     Game_SetPtrSlot(arg0, 7);
-    if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->at4.loc.warp == 2)) {
+    if ((gameGetPtrSlot(0xA) != NULL) && (gGameSession->location.loc.warp == 2)) {
         Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
     }
     if (GameFlag_GetNibble(0x155) == 1) {
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 2);
     }
-    if (gGameSession->at4.loc.variant != 1) {
+    if (gGameSession->location.loc.variant != 1) {
         D_dryfield_garage_8017FD1C[0].field_4A &= 0xBF;
     }
     arg0->state = arg0->state + 1;

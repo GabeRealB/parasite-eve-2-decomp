@@ -128,7 +128,7 @@ static void Task_AllocIdMap(Task* task)
     s32        ret;
     s32        field34;
 
-    temp_s4 = Stage_MusicRowLengths[gGameSession->at4.loc.stage - 1];
+    temp_s4 = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
     temp_v0 = memCalloc(8, 0);
     if (temp_v0 != NULL) {
         task->work = temp_v0;
@@ -136,7 +136,7 @@ static void Task_AllocIdMap(Task* task)
             SndEvt_EnqueueType2(0, 1);
             gStageRoomSong = 0;
         }
-        temp_a0                    = gGameSession->at4.loc.stage;
+        temp_a0                    = gGameSession->location.loc.stage;
         ret                        = TaskIdMap_RemapIndex(temp_a0, Mc_SaveData[0].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
         field34                    = task->spawnArg1.value;
         gStageMusicRow             = ret;
@@ -145,7 +145,7 @@ static void Task_AllocIdMap(Task* task)
             s32         f7;
             TaskIdPair* p;
             u16         v;
-            f7                         = gGameSession->at4.loc.stage;
+            f7                         = gGameSession->location.loc.stage;
             Stage_MusicCountdownActive = 0xFF;
             p                          = Stage_CountdownMusicTables[f7 - 1];
             v                          = gStageSceneMusicEntry;
@@ -153,10 +153,10 @@ static void Task_AllocIdMap(Task* task)
             temp_v0->index             = v;
             temp_v0->table             = p;
         } else {
-            temp_v0->table = Stage_MusicTables[gGameSession->at4.loc.stage - 1];
+            temp_v0->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
             temp_v0->index =
-                gStageMusicRow + (gGameSession->at4.loc.area * (temp_s4 & 0xFF));
-            if ((temp_v0->table[gGameSession->at4.loc.area * (temp_s4 & 0xFF)].id != 0x80) &&
+                gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
+            if ((temp_v0->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].id != 0x80) &&
                 (gStageAmbientOn != 0)) {
                 SndEvt_EnqueueType7(0x60010001, 0x1E);
                 gStageAmbientOn = 0;
@@ -204,7 +204,7 @@ static void Stage_LoadOrCountdownTask(Task* task)
         param1[3] = 0;
         param1[2] = 4;
         param1[0] = temp->table[temp->index].id;
-        param2[0] = gGameSession->sprtVariant;
+        param2[0] = gGameSession->spriteVariant;
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
@@ -270,8 +270,8 @@ void Stage_RequestFromAreaTable(s32 arg0)
     s32          temp;
 
     g       = gGameSession;
-    idx     = g->at4.loc.stage - 1;
-    product = g->at4.loc.area * Stage_MusicRowLengths[idx];
+    idx     = g->location.loc.stage - 1;
+    product = g->location.loc.area * Stage_MusicRowLengths[idx];
     temp    = (gStageMusicRow + product) & 0xFFFF;
     entry   = Stage_MusicTables[idx];
     if (entry[temp].id != 0xFF) {
@@ -292,8 +292,8 @@ void Stage_RequestMidiFromMap(s32 arg0)
     s32          temp;
 
     g       = gGameSession;
-    idx     = g->at4.loc.stage - 1;
-    product = g->at4.loc.area * Stage_MusicRowLengths[idx];
+    idx     = g->location.loc.stage - 1;
+    product = g->location.loc.area * Stage_MusicRowLengths[idx];
     temp    = (gStageMusicRow + product) & 0xFFFF;
     entry   = Stage_MusicTables[idx];
     if (entry[temp].id != 0xFF) {
@@ -328,8 +328,8 @@ void Stage_RequestSpecialFlag(s32 unused)
     s32          one;
 
     g       = gGameSession;
-    idx     = g->at4.loc.stage - 1;
-    product = g->at4.loc.area * Stage_MusicRowLengths[idx];
+    idx     = g->location.loc.stage - 1;
+    product = g->location.loc.area * Stage_MusicRowLengths[idx];
     base    = Stage_MusicTables[idx];
     if (base[product].id == 0x80) {
         if (GameFlag_GetNibble(0x108) == 1) {

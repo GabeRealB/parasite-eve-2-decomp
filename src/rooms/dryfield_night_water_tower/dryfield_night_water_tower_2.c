@@ -917,12 +917,12 @@ GpRoomParamRec* D_dryfield_night_water_tower_80182C30[8] = {
 
 /// The room's effect draw: sets the room effect mode to 2, then draws the
 /// glow sprites and light shafts at the tower's anchor points that the current
-/// view (`gGameSession->at4.loc.view`) shows. Views 3 and 4 also draw the
+/// view (`gGameSession->location.loc.view`) shows. Views 3 and 4 also draw the
 /// light shaft between the two lower rungs.
 void func_dryfield_night_water_tower_8017DB80(Task* unused)
 {
     Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
             func_dryfield_night_water_tower_8017E458(&D_dryfield_night_water_tower_8017E71C[4], 2, 0x400);
             break;

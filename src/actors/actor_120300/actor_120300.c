@@ -1421,7 +1421,7 @@ void func_actor_120300_80132004(Task* task)
             taskKill(task);
             return;
         }
-        place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+        place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
         id    = place->entryId;
         while (id != AREA_PLACEMENT_END) {
             if (id == 0x6A) {
@@ -1989,7 +1989,7 @@ static void func_actor_120300_801335D8(Task* task)
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-    place         = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place         = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
     entryId       = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {

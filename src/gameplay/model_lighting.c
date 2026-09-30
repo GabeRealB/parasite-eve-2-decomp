@@ -2661,7 +2661,7 @@ void Gp_TickPlayClock(Task* task)
         func_800A7DE0();
         Gp_PulseState1C80();
         session = gGameSession;
-        if (session->restartMode != 3) {
+        if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             Gp_LcgState           = Gp_LcgState * 5 + 0x71357911;
             session->deathVariant = ((u32)Gp_LcgState >> 16 & 1) + 1;
             SndEvt_EnqueueType7(0x20000000, 8);
@@ -2691,7 +2691,7 @@ void Gp_TickPlayClock(Task* task)
                 companion = p->state.companionType;
             }
             if (companion == 3) {
-                gGameSession->restartMode = 4;
+                gGameSession->restartMode = GAME_SESSION_RESTART_COMPANION_3_DOWN;
             }
         }
     }
@@ -2703,7 +2703,7 @@ void Gp_TickPlayClock(Task* task)
     }
 
 block_normal:
-    if (gGameSession->restartMode == 0xFF) {
+    if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
         Display_AcquireRef();
         gGameSession->deathVariant = 1;
         task->state++;
@@ -2726,7 +2726,7 @@ void Gp_RestartSessionTask(Task* arg0)
     if (arg0->spawnArg1.value < 0x100) {
         return;
     }
-    if (gGameSession->restartMode != 3) {
+    if (gGameSession->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
         SetDispMask(0);
     }
     SndEvt_EnqueueType2(0, 8);
@@ -2745,7 +2745,7 @@ void Gp_RestartSessionTask(Task* arg0)
     CdCmd_ActivatePhase1();
     session                          = gGameSession;
     queue->suppressMoviePresentation = 1;
-    if (session->restartMode != 3) {
+    if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
         rect.w = 0x140;
         rect.y = 0;
         rect.x = 0;
@@ -2754,7 +2754,7 @@ void Gp_RestartSessionTask(Task* arg0)
         DrawSync(0);
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
-    memset(&gGameSession->at4, 0, sizeof(gGameSession->at4));
+    memset(&gGameSession->location, 0, sizeof(gGameSession->location));
     Mem_ConfigureAuxHeap(0, 0);
     if (gGameSession->restartMode == flag) {
         Gpu_PrimHeapSize   = 0xB000;

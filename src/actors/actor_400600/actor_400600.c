@@ -1721,7 +1721,7 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->obj_4B4.pos.vy           = 0x96;
     work->obj_4B4.pos.vz           = 0x110;
     work->obj_4B4.key              = 0x30006;
-    if (gGameSession->at4.loc.stage == 3 && (gGameSession->at4.loc.area == 0x1F || gGameSession->at4.loc.area == 0x1D)) {
+    if (gGameSession->location.loc.stage == 3 && (gGameSession->location.loc.area == 0x1F || gGameSession->location.loc.area == 0x1D)) {
         work->obj_4B4.radius = 0x260;
     } else {
         work->obj_4B4.radius = 0x200;
@@ -2251,7 +2251,7 @@ static void func_actor_400600_80133434(Task* arg0)
         return;
     }
     func_actor_400600_8013B640();
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 20, 0, 0)) {
         work->field_76E = 1;
     }
     model->lightMtx   = &work->matrix_40;
@@ -4270,7 +4270,7 @@ static s32 func_actor_400600_80137C34(Task* arg0)
             work->field_76D = 0;
             dist            = func_actor_400600_801376EC(arg0);
             if ((u16)(dist - 0x7D1) < 0x3E8) {
-                if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0)) {
                     y = -0x9C4;
                 } else {
                     y = coord->coord.t[1] - dist;
@@ -4687,7 +4687,7 @@ static void func_actor_400600_80139110(Task* arg0)
     func_actor_400600_80138AA4(arg0);
     if ((s16)func_actor_400600_80136FA8(arg0) == 0) {
         fns[(s16)work->field_71E](arg0);
-        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->field_768 != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
+        if ((s16)func_actor_400600_80137C34(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->field_768 != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
             Actor400600Work* cur = (Actor400600Work*)arg0->work;
 
             cur->field_71C = 0xD;
@@ -5808,7 +5808,7 @@ static void func_actor_400600_8013B640(void)
     if (Gp_StateF0.field_25 == 0) {
         /* Same shape as ActorsShared801692e8: each branch makes its own call
          * and jump2's cross-jumping merges the identical tails. */
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0) && gGameSession->at4.loc.variant == 1) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0) && gGameSession->location.loc.variant == 1) {
             param1[2] = 0x28;
             param1[0] = 2;
             param1[3] = 0;

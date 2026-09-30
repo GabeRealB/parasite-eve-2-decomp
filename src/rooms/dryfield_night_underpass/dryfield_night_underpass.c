@@ -762,14 +762,14 @@ void func_dryfield_night_underpass_8017D5D0(Task* task)
                     }
                     session                           = gGameSession;
                     room                              = dst.room;
-                    session->at4.loc.room             = room;
+                    session->location.loc.room        = room;
                     Mc_SaveData[0].state.at4.loc.room = room;
                 }
             }
             task->state = task->state + 1;
             return;
         case 3:
-            if (gGameSession->at4.loc.room >= 5) {
+            if (gGameSession->location.loc.room >= 5) {
                 gGameSession->viewDirty = 1;
             }
             taskKill(task);
@@ -930,7 +930,7 @@ static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 
 
 /// Per-frame effect: draws the glow anchors the current visit lights, one per
 /// offset in `D_...DD20` whose `D_...DD60` bitmask contains the visit's bit
-/// (`gGameSession->at4.loc.view`). The whole effect is skipped unless the room flag
+/// (`gGameSession->location.loc.view`). The whole effect is skipped unless the room flag
 /// (`GameFlag_GetNibble(0x53)`) is clear.
 void func_dryfield_night_underpass_8017DC3C(Task* unused)
 {
@@ -939,7 +939,7 @@ void func_dryfield_night_underpass_8017DC3C(Task* unused)
     SVECTOR* vec;
     s16*     flags;
 
-    mask = 1 << gGameSession->at4.loc.view;
+    mask = 1 << gGameSession->location.loc.view;
     if (GameFlag_GetNibble(0x53) == 0) {
         i     = 0;
         vec   = D_dryfield_night_underpass_8017DD20;

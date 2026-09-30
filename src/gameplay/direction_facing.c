@@ -211,7 +211,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
     s8               mode;
 
     apply = 0;
-    sess  = &gGameSession->at4.loc;
+    sess  = &gGameSession->location.loc;
     for (i = 0; recs[i].field_0 != 0xFF; i++) {
         stage     = recs[i].field_0;
         tbl       = Gp_AreaTables[stage];

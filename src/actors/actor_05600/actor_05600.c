@@ -59,8 +59,8 @@ extern GpU16Pair Actor05600_D161BC[5];
 /// becomes the enemy's `field_40`.
 extern GpPairSrcE Actor05600_D161D0[];
 
-/// Per-stage tables of streaming cue ids, indexed by `GameSession::at4.loc.stage`
-/// and then `GameSession::at4.loc.area`.
+/// Per-stage tables of streaming cue ids, indexed by `GameSession::location.loc.stage`
+/// and then `GameSession::location.loc.area`.
 extern u16* Actor05600_D16478[];
 
 /// Spawn table the approach cycle starts its companion enemy from, index 1.
@@ -2821,7 +2821,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
 
     if (work->recD0[0].key.value != 0) {
         idx = func_800E1B24(work->recD0[0].key.value);
-        if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx]->field_1 == 0) {
+        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_1 == 0) {
             found = 1;
         }
         Gp_ClearRec18Occupied(work->recD0);
@@ -2915,9 +2915,9 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
                 work->field_6DA = param * 1000;
             }
 
-            tbl = Actor05600_D16478[gGameSession->at4.loc.stage];
+            tbl = Actor05600_D16478[gGameSession->location.loc.stage];
             if (tbl != NULL) {
-                work->field_6D6 = tbl[gGameSession->at4.loc.area];
+                work->field_6D6 = tbl[gGameSession->location.loc.area];
             }
             if (work->field_6D6 != 0) {
                 param1[3] = 0;

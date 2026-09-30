@@ -618,7 +618,7 @@ static void func_dryfield_night_water_tank_8017D94C(Task* task);
 /// state 1 advances to 2 as soon as the halfword at `Gp_StateF0.field_6` clears; state
 /// 2 runs the room's ending -- apply the area records, set flags 0x7B, 0x83,
 /// 0x155 and 3, spawn the script `func_800E8634` is handed -- and kills the
-/// task, or, while `gGameSession::field_126` is still clear, just ticks
+/// task, or, while `gGameSession::battleResetPending` is still clear, just ticks
 /// `Task::killCountdown` down and waits for another frame.
 void func_dryfield_night_water_tank_8017D5D0(Task* task)
 {
@@ -627,7 +627,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
     switch (task->state) {
         case 0:
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
-                gGameSession->flowFlags = gGameSession->flowFlags | 0x80;
+                gGameSession->flowFlags = gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON;
                 task->state             = task->state + 1;
                 return;
             }
@@ -639,7 +639,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
             }
             break;
         case 2:
-            if (gGameSession->field_126 != 0) {
+            if (gGameSession->battleResetPending != 0) {
                 Gp_ApplyAreaRecs(D_dryfield_night_water_tank_801808B0);
                 GameFlag_SetNibble(0x7B, 2);
                 GameFlag_SetNibble(0x83, 1);
@@ -681,7 +681,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 {
     u8 temp_v1;
 
-    if ((gGameSession->at4.loc.variant != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
+    if ((gGameSession->location.loc.variant != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
         if (in->warp == 3) {
             func_800E8614(D_dryfield_night_water_tank_8017DDD8, 0);
         }
@@ -690,7 +690,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
         }
     }
     if (in->warp == 5) {
-        temp_v1 = gGameSession->at4.loc.variant;
+        temp_v1 = gGameSession->location.loc.variant;
         if ((u32)(temp_v1 - 0xA) < 2U) {
             if ((temp_v1 != 0xA) || (GameFlag_GetNibble(0x7B) >= 2)) {
                 Gp_MsgPlayerWeapon(0);
@@ -707,7 +707,7 @@ s32 func_dryfield_night_water_tank_8017D76C(Task* arg0, s32 arg1, RoomEventMsg* 
 /// publish the message table the room's handlers hang off (0x13EE..0x13F1) in
 /// `Task::msgTable`, claim game pointer slot 7, spawn the tank model's task
 /// from `8017EE28`, then branch on the visit sub-id
-/// (`gGameSession::at4.loc.variant`).
+/// (`gGameSession::location.loc.variant`).
 ///
 /// Sub-ids 0xA and 0xB -- the two visits that reach this room -- both run the
 /// prop updater `func_dryfield_night_water_tank_8017D9DC` on its zero argument;
@@ -719,13 +719,13 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
     task->msgTable = D_dryfield_night_water_tank_8017DFE8;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_dryfield_night_water_tank_8017EE28, 0, 0, 0);
-    if ((u32)(gGameSession->at4.loc.variant - 0xA) < 2U) {
+    if ((u32)(gGameSession->location.loc.variant - 0xA) < 2U) {
         func_dryfield_night_water_tank_8017D9DC(0);
     }
-    if (gGameSession->at4.loc.variant == 0xA) {
+    if (gGameSession->location.loc.variant == 0xA) {
         Task_SpawnFromTable(D_dryfield_night_water_tank_8017E010, 0, 0, 0);
     }
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         func_8013224C();
     }
     task->state = task->state + 1;
@@ -735,7 +735,7 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
 /// the play time while the visit sub-id is 0xB.
 static void func_dryfield_night_water_tank_8017D94C(Task* task)
 {
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         Gp_MarkPlayTime();
     }
 }
@@ -848,7 +848,7 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
             D_dryfield_night_water_tank_8017EE40 += D_dryfield_night_water_tank_8017EE44;
             break;
     }
-    if (gGameSession->at4.loc.view == 7) {
+    if (gGameSession->location.loc.view == 7) {
         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         obj->flags = 0;

@@ -433,7 +433,7 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
     task->msgTable = D_shelter_b3_incinerator_control_room_80181838;
     Game_SetPtrSlot(task, 7);
     task->state++;
-    if (gGameSession->at4.loc.warp == 4) {
+    if (gGameSession->location.loc.warp == 4) {
         func_800E3FAC(0xA2, 0x23);
         Gp_ApplyAreaRecs(D_shelter_b3_incinerator_control_room_80182A40);
         Gp_FillAllyHp();

@@ -2681,7 +2681,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401000_HasHeightClamp(&gGameSession->at4.loc)) {
+        if (Actor401000_HasHeightClamp(&gGameSession->location.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) <= 0x12C) {
                 goto addStep;
@@ -2727,8 +2727,8 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
             }
         }
     }
-    if (Actor401000_HasHeightClamp(&gGameSession->at4.loc)) {
-        func_actor_401000_801352DC(&gGameSession->at4.loc, coord);
+    if (Actor401000_HasHeightClamp(&gGameSession->location.loc)) {
+        func_actor_401000_801352DC(&gGameSession->location.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {

@@ -332,9 +332,9 @@ void GameFlow_DispatchTable5(Task* task)
 
 static void GameFlow_CopySaveIds(Task* task)
 {
-    gGameSession->at4 = Mc_SaveData[0].state.at4;
-    D_8007A394        = 0;
-    task->state       = task->state + 1;
+    gGameSession->location = Mc_SaveData[0].state.at4;
+    D_8007A394             = 0;
+    task->state            = task->state + 1;
 }
 
 static void GameFlow_EnqueueDefaultLoad(Task* task)
@@ -343,7 +343,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* task)
     u8 param2[8];
 
     if ((u8)LoadUi_PollDiskSwap() == 0) {
-        Fs_BeginBootLoad((u8*)&gGameSession->at4.loc, 0);
+        Fs_BeginBootLoad((u8*)&gGameSession->location.loc, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;

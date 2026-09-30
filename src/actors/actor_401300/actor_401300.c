@@ -1612,7 +1612,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
         s->step.vx = head[-1].delta.vx.w >> 16;
         s->step.vy = s->delta.vy.w >> 16;
         s->step.vz = s->delta.vz.w >> 16;
-        if (Actor401300_HasHeightClamp(&gGameSession->at4.loc)) {
+        if (Actor401300_HasHeightClamp(&gGameSession->location.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x15E) {
                 s->step.vy = (vy <= 0) ? -0x15E : 0x15E;
@@ -1650,8 +1650,8 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
             }
         }
     }
-    if (Actor401300_HasHeightClamp(&gGameSession->at4.loc)) {
-        func_actor_401300_80132BE4(&gGameSession->at4.loc, coord);
+    if (Actor401300_HasHeightClamp(&gGameSession->location.loc)) {
+        func_actor_401300_80132BE4(&gGameSession->location.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
@@ -2253,7 +2253,7 @@ static void func_actor_401300_80133A3C(Task* arg0)
                 Actor401300_SpawnEffVar(&D_8011574C, &arg0->extra.tmd->coords[15], 0x40, 0, 0x1C2, -100);
             }
         }
-        if (snd != 0 && (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if (snd != 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             switch (snd) {
                 case 0x400D0001:
                 case 0x400D0003:
@@ -3054,7 +3054,7 @@ static void func_actor_401300_80136238(Task* arg0)
     aim                                   = SCRATCH_HEAD(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->field_6C & 0x100) {
-        if (func_actor_401300_80132FF4(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if (func_actor_401300_80132FF4(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;
@@ -5320,7 +5320,7 @@ static void func_actor_401300_8013F628(Task* arg0)
     SCRATCH_HEAD_AT(scratch, SVECTOR) = head - 3;
     if (work->field_6 < 0x12) {
         Actor401300_ScaleMatrix(&work->field_C48, (work->field_6 << 12) / 30);
-        if (gGameSession->at4.loc.area == 0xB) {
+        if (gGameSession->location.loc.area == 0xB) {
             if ((work->field_6 & 7) == 0) {
                 Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 3, 0, NULL);
                 Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 16, 0, NULL);
@@ -5345,7 +5345,7 @@ static void func_actor_401300_8013F628(Task* arg0)
                     Gp_SpawnEff(0x600FB, arg0->extra.tmd->coords + 18, 0, NULL);
                 }
             }
-        } else if (gGameSession->at4.loc.area == 0x1D) {
+        } else if (gGameSession->location.loc.area == 0x1D) {
             if ((work->field_6 & 7) == 0) {
                 Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 3, 0, NULL);
                 Gp_SpawnEff(0x601C1, arg0->extra.tmd->coords + 16, 0, NULL);
@@ -6194,7 +6194,7 @@ static void func_actor_401300_80141C88(Task* arg0)
     }
     func_actor_401300_80133A3C(arg0);
     if (work->field_6C & 0x100) {
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->field_0 = 8;
         } else {
             work->field_0 = 7;

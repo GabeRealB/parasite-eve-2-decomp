@@ -273,7 +273,7 @@ s32 func_dryfield_water_tower_8017DAF8(Task* task, s32 msgId, RoomEventMsg* msg,
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 7) {
             GameFlag_SetNibble(0x4B, 0);
         }
-        if (gGameSession->at4.loc.stage == 3) {
+        if (gGameSession->location.loc.stage == 3) {
             return 1;
         }
         if (GameFlag_GetNibble(0x32) != 2) {

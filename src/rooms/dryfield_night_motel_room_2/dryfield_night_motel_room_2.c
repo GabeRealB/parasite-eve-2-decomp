@@ -48,7 +48,7 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMotelRoom2SpotLightStorage, 432);
 extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. The
-/// visit the pair belongs to is `gGameSession->at4.loc.view`.
+/// visit the pair belongs to is `gGameSession->location.loc.view`.
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
@@ -1176,12 +1176,12 @@ static void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s
 }
 
 /// Night motel room 2 draw: queues the room's glowing discs for the visit
-/// `gGameSession->at4.loc.view` selects - visits 2 and 3 a pair at one point,
+/// `gGameSession->location.loc.view` selects - visits 2 and 3 a pair at one point,
 /// 5 and 6 a single one at another. Visits outside those ranges draw nothing.
 /// `jump.c` cross-jumps the two trailing disc-draw calls into one tail.
 void func_dryfield_night_motel_room_2_8017D990(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_2_8017DA44;

@@ -29,7 +29,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &Gp_Bit2Banks[gGameSession->at4.loc.stage].field_4[arg0 >> 4];
+    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].field_4[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;

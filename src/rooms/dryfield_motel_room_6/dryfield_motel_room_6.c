@@ -2031,7 +2031,7 @@ s32 func_dryfield_motel_room_6_80181740(Task* arg0, s32 arg1, s32 arg2, s32 arg3
         D_dryfield_motel_room_6_80186830.field_1 = 1;
         switch (GameFlag_GetNibble(0x7A)) {
             case 0 ... 3:
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     count                                     = 4;
                     D_dryfield_motel_room_6_80186830.field_14 = 0x3C0;
                     D_dryfield_motel_room_6_80186830.field_3  = 1;

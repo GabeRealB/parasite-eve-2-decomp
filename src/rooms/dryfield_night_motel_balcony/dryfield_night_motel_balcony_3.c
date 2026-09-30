@@ -1084,11 +1084,11 @@ void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 void func_dryfield_night_motel_balcony_8017E128(u8 arg0)
 {
     GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->at4.loc;
+    GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
 
     switch (sess->view) {
         case 17:
@@ -1138,7 +1138,7 @@ void func_dryfield_night_motel_balcony_8017E250(s16 arg0, s16 arg1)
     u8*              p;
 
     p       = D_dryfield_night_motel_balcony_80182C3C[arg0][arg1];
-    sess    = &gGameSession->at4.loc;
+    sess    = &gGameSession->location.loc;
     rec     = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     batches = rec[p[0]].field_4;
     if (p[0] != 0xFF) {
@@ -1198,11 +1198,11 @@ void func_dryfield_night_motel_balcony_8017E3C8(void)
 void func_dryfield_night_motel_balcony_8017E4B8(void)
 {
     GameSession*     g    = gGameSession;
-    GameLocationKey* sess = &g->at4.loc;
+    GameLocationKey* sess = &g->location.loc;
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    rec = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1];
+    rec = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1];
 
     batches           = rec[16].field_4;
     batches[2].hidden = 0;

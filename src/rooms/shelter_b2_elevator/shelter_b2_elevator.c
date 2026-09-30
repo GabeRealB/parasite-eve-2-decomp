@@ -423,7 +423,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 car->travel = 0x1F4;
             }
             coord->coord.t[2] = car->travel * task->spawnArg2.value - 0x1F4;
-            if (gGameSession->at4.loc.view == 2) {
+            if (gGameSession->location.loc.view == 2) {
                 obj->flags = 0;
             } else {
                 obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;

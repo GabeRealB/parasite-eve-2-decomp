@@ -513,7 +513,7 @@ GpRoomParamRec* D_neo_ark_substation_80180328[8] = {
 };
 
 /// Keeps the substation's looping ambience in step with the area the session is
-/// in: `gGameSession->at4.loc.view` selects one of the room's nine `(pan, vol)`
+/// in: `gGameSession->location.loc.view` selects one of the room's nine `(pan, vol)`
 /// entries, and state 0 starts that loop with `SndEvt_EnqueueType6`. States 1
 /// through 4 then watch for the session's index to stop matching the area
 /// `Mc_SaveData[0].state.at4.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
@@ -525,7 +525,7 @@ void func_neo_ark_substation_8017D608(Task* task)
     s32 vol;
     u8  idx;
 
-    idx = gGameSession->at4.loc.view;
+    idx = gGameSession->location.loc.view;
     if (idx < 9) {
         pan = D_neo_ark_substation_8017E2C8[idx].pan;
         vol = D_neo_ark_substation_8017E2C8[idx].vol;
@@ -540,7 +540,7 @@ void func_neo_ark_substation_8017D608(Task* task)
             task->state = task->state + 1;
             break;
         case 1:
-            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;

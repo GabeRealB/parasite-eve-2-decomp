@@ -712,7 +712,7 @@ static void func_shelter_1f_parking_garage_8017DE9C(Task* task)
 {
     task->msgTable = D_shelter_1f_parking_garage_80180BB8;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.warp == 1) {
+    if (gGameSession->location.loc.warp == 1) {
         Gp_RunCapCmd1(5);
     }
     task->state = task->state + 1;

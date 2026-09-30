@@ -197,7 +197,7 @@ void Gp_EndingTask(Task* arg0)
         work                = arg0->spawnArg2.pointer;
         work->field_4       = 1;
         arg0->killCountdown = 0x1E;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
             arg0->killCountdown = 0x5A;
         }
         SndEvt_EnqueueType6(0xB, 0, 0);
@@ -205,11 +205,11 @@ void Gp_EndingTask(Task* arg0)
         Gp_SetCurAreaFlag4();
     } else if (arg0->state == 1) {
         session = gGameSession;
-        if (!(session->flowFlags & 1)) {
+        if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_ENDING_MUSIC)) {
             pair                   = &gStageMusicParams;
             pair->fadeFrames       = 0;
             pair->unusedCommandArg = 0;
-            if ((session->flowFlags & 4) == 0) {
+            if ((session->flowFlags & GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY) == 0) {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);
             } else {
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);

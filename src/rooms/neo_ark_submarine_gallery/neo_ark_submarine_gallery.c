@@ -144,10 +144,10 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
     split   = 0;
     splitX  = 0;
     buf     = gDisplayState.otBuffer;
-    area    = gGameSession->at4.loc.area;
+    area    = gGameSession->location.loc.area;
     if (area == 27) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x7F;
                 end    = 0xF0;
@@ -182,7 +182,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
                 return;
         }
     } else if (area == 14) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 0x77;
                 end    = 0xF0;
@@ -207,7 +207,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
                 return;
         }
     } else if (area == 15) {
-        if (gGameSession->at4.loc.view == 2) {
+        if (gGameSession->location.loc.view == 2) {
             split  = 0x3E8;
             start  = 0x84;
             end    = 0xF0;
@@ -218,7 +218,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         }
     } else if (area == 13) {
         otzOff = 10;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
             case 4:
                 start = 0x52;
@@ -260,7 +260,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         scale  = 0x800;
         otzOff = -10;
         zoff   = 0x131A;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 xLeft0 = 0x3B;
                 start  = 0xA9;
@@ -298,7 +298,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
         }
     } else if (area == 29) {
         zoff = 0x8C;
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 6:
                 start = 0xA5;
                 end   = 0xF0;
@@ -590,7 +590,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     s32              xRight = 0xA0;
     s32              buf    = gDisplayState.otBuffer;
     s32              passes = 1;
-    GameLocationKey* loc    = &gGameSession->at4.loc;
+    GameLocationKey* loc    = &gGameSession->location.loc;
     s32              area   = loc->area;
     s32              start;
     s32              end;
@@ -612,7 +612,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
     u16              spare;
 
     if (area == 12) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start = 1;
                 end   = 0x3F;
@@ -641,7 +641,7 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task* task)
                 return;
         }
     } else if (area == 30) {
-        switch (gGameSession->at4.loc.view) {
+        switch (gGameSession->location.loc.view) {
             case 2:
                 start  = 1;
                 end    = 0x40;
@@ -880,7 +880,7 @@ s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, Task
             }
             break;
         case 3:
-            if (gGameSession->at4.loc.variant == 4) {
+            if (gGameSession->location.loc.variant == 4) {
                 Gp_SpawnIfCapIdle(5, 0);
             } else if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 Gp_SpawnIfCapIdle(3, 0);
@@ -901,7 +901,7 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_submarine_gallery_80181884;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 4) {
+    if (gGameSession->location.loc.variant == 4) {
         Task_SpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
     arg0->state = (s32)(arg0->state + 1);
@@ -983,7 +983,7 @@ static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
 
 static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
 {
-    if (gGameSession->at4.loc.variant != 4) {
+    if (gGameSession->location.loc.variant != 4) {
         arg0->killCountdown = 0;
     } else {
         arg0->killCountdown = 0x780;
@@ -996,8 +996,8 @@ static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
     s32 mode;
     if (Gp_ActorSlots[0] != NULL) {
         mode = 4;
-        if (gGameSession->at4.loc.variant != mode && gGameSession->field_126 != 0) {
-            gGameSession->at4.loc.variant = mode;
+        if (gGameSession->location.loc.variant != mode && gGameSession->battleResetPending != 0) {
+            gGameSession->location.loc.variant = mode;
         }
         if (arg0->killCountdown < 0x780) {
             arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);

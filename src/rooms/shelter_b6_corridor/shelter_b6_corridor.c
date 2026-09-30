@@ -811,10 +811,10 @@ static void func_shelter_b6_corridor_8017E064(Task* arg0)
         ptr += 1;
     } while (i <= 0x12BFF);
     D_shelter_b6_corridor_801851B0.value = 2;
-    if (gGameSession->at4.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == 1) {
         gStageSceneMusicEntry    = 2;
-        gGameSession->flowFlags |= 1;
-        gGameSession->flowFlags |= 2;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     }
     arg0->state = (s32)(arg0->state + 1);
 }
@@ -843,8 +843,8 @@ void func_shelter_b6_corridor_8017E144(Task* task)
 
 void func_shelter_b6_corridor_8017E19C(s32 arg0)
 {
-    if (!(gGameSession->flowFlags & 0x80)) {
-        gGameSession->flowFlags        |= 0x80;
+    if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON)) {
+        gGameSession->flowFlags        |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
         Gp_StateF0.prefix.bytes.field_1 = arg0;
         Gp_ReleaseStateF0Add(Gp_LookupSlot4(1), 0x31);
         Task_CallExit(Gp_LookupSlot4(1));
@@ -1094,7 +1094,7 @@ void func_shelter_b6_corridor_8017ECA8(Task* task)
 
 void func_shelter_b6_corridor_8017EE08(s32 arg0, s32 arg1)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     GpSprtRec*       rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     SpriteBatch*     batches;
     s32              run = arg0 & 0xFF;

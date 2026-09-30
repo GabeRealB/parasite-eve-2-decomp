@@ -1020,7 +1020,7 @@ static void func_shelter_b4_upper_sewer_8017DC88(Task* task)
     gGameSession->waterY = w;
     h                    = w;
     c                    = (-h * 16) / 225;
-    if (gGameSession->at4.loc.view != 0xC) {
+    if (gGameSession->location.loc.view != 0xC) {
         func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186448, h, c);
     } else {
         func_shelter_b4_upper_sewer_8017DD98(task, D_shelter_b4_upper_sewer_80186454, h, c);
@@ -1172,7 +1172,7 @@ static void func_shelter_b4_upper_sewer_8017E55C(Task* arg0)
 /// anything else sets it to 1).
 static void func_shelter_b4_upper_sewer_8017E59C(s32 arg0)
 {
-    GameLocationKey* sess = &gGameSession->at4.loc;
+    GameLocationKey* sess = &gGameSession->location.loc;
     SpriteBatch*     batches;
 
     batches = Gp_SprtTables[sess->stage - 1][0].field_0[sess->area - 1][12].field_4;

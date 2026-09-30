@@ -130,7 +130,7 @@ STATIC_ASSERT_SIZEOF(AreaSavedEnemyPose, 0xC);
 /// stock. The header block and the data block each carry a checksum pair.
 typedef struct {
     byte                unknown_0[0x4];
-    GameLoc             at4;               // Place the save was made at, as `GameSession.at4`
+    GameLoc             at4;               // Place the save was made at, as `GameSession.location`
     u16                 playTime;          // Played time in minutes (capped at 0xEA5F)
     s8                  clearCount;        // Times the game has been completed (0 never, capped at 99)
     s8                  gameMode;          // Mode the run is played in (0..2); the stat, cost and item-grant tables have one variant per mode

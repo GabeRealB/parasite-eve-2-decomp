@@ -941,7 +941,7 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
             if (Gp_GetCapEventKey() == 1) {
                 func_800E8634(D_shelter_b1_sterilization_room_80188C94, 0, D_shelter_b1_sterilization_room_80188E14);
                 GameFlag_SetNibble(0x77, 1);
-                gGameSession->restartMode = 0;
+                gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {
                 gGameSession->eventState = 0;
                 Gp_MsgPlayerWeapon(1);
@@ -974,7 +974,7 @@ void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
             break;
         case 1:
             Mc_SaveData[0].state.at4.loc.room = 2;
-            gGameSession->at4.loc.room        = 2;
+            gGameSession->location.loc.room   = 2;
             gGameSession->roomObjsDirty       = state;
             arg0->state                      += 1;
             break;

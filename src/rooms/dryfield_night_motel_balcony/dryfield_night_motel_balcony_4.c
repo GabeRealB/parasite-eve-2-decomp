@@ -2901,10 +2901,10 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     coord                         = task->extra.coordBody->coord;
     Gp_State1C->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE;
     hi                            = 0;
-    if (gGameSession->at4.loc.view < 0x20) {
-        mask = 1 << gGameSession->at4.loc.view;
+    if (gGameSession->location.loc.view < 0x20) {
+        mask = 1 << gGameSession->location.loc.view;
     } else {
-        mask = 1 << (gGameSession->at4.loc.view - 0x20);
+        mask = 1 << (gGameSession->location.loc.view - 0x20);
         hi   = 1;
     }
     if (mask & D_dryfield_night_motel_balcony_80182D40[hi][0]) {
@@ -2943,7 +2943,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
     }
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 17:
             if (++work->angle == 0x5C) {
                 Gp_SpawnEff(0x60095, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
@@ -3733,7 +3733,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
         }
         goto release;
     }
-    if (gGameSession->at4.loc.view == 0x27) {
+    if (gGameSession->location.loc.view == 0x27) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;

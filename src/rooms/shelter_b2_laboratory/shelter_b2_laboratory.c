@@ -1445,7 +1445,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->at4.loc.view) {
+            if (Mc_SaveData[0].state.at4.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;
@@ -1455,7 +1455,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
             arg0->state++;
             break;
         case 5:
-            vol = 0x7F - D_shelter_b2_laboratory_80182A90[gGameSession->at4.loc.view] * 0x7F / 100;
+            vol = 0x7F - D_shelter_b2_laboratory_80182A90[gGameSession->location.loc.view] * 0x7F / 100;
             if (vol >= 0x80) {
                 vol = 0x7F;
             }
@@ -1570,7 +1570,7 @@ void func_shelter_b2_laboratory_80180350(Task* task)
 
     switch (task->state) {
         case 0:
-            if (gGameSession->at4.loc.view == 0xD) {
+            if (gGameSession->location.loc.view == 0xD) {
                 task->state = 1;
             }
             return;

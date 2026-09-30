@@ -730,7 +730,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_80183480,
                                                                  D_acropolis_observatory_80183498);
-                gGameSession->padScriptFlags |= 0x80;
+                gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -780,7 +780,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
-            gGameSession->padScriptFlags &= 0x7F;
+            gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;
     }
@@ -840,7 +840,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             if (queue->movieReady != 0) {
                 work->script                  = Gp_SpawnScript18(D_acropolis_observatory_801834A0,
                                                                  D_acropolis_observatory_801834B8);
-                gGameSession->padScriptFlags |= 0x80;
+                gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 Task_Reparent(task, work->script);
                 task->state = task->state + 1;
             }
@@ -890,7 +890,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
             func_800E9BDC(2, 0x9FF);
             Gp_StateF0.field_4            = 0;
-            gGameSession->padScriptFlags &= 0x7F;
+            gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
             break;
     }

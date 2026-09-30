@@ -1789,7 +1789,7 @@ void func_shelter_r48_8017D660(Task* arg0)
 
     tmd   = arg0->extra.tmd;
     otBuf = gDisplayState.otBuffer;
-    view  = gGameSession->at4.loc.view;
+    view  = gGameSession->location.loc.view;
     if (GameFlag_GetNibble(0x100) == 0) {
         return;
     }
@@ -2204,7 +2204,7 @@ void func_shelter_r48_8017E224(Task* task)
 
 void func_shelter_r48_8017E27C(u8 arg0)
 {
-    GameLocationKey* loc = &gGameSession->at4.loc;
+    GameLocationKey* loc = &gGameSession->location.loc;
     GpSprtRec*       rec = Gp_SprtTables[loc->stage - 1]->field_0[loc->area - 1];
     SpriteBatch*     batches;
 

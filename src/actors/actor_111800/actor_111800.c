@@ -402,7 +402,7 @@ static void func_actor_111800_80132390(Task* task)
         i += 1;
     } while ((u32)(i & 0xFFFF) < 0x13U);
     work->field_494 = 0x155;
-    place           = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+    place           = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x13) {
         place++;
     }

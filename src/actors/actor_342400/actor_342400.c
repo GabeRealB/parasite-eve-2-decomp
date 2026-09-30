@@ -540,7 +540,7 @@ static void func_actor_342400_801628F0(Task* arg0)
     OverlayEncounterCtrlWork* work;
     s32                       i;
 
-    if ((u8)gGameSession->spawnPhase[1] == 2 || (u8)gGameSession->spawnPhase[0] == 0 ||
+    if (gGameSession->spawnPhase[1] == GAME_SESSION_SPAWN_COMPLETE || gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_IDLE ||
         (work = memCalloc(6, 0)) == NULL) {
         taskKill(arg0);
         return;
@@ -574,7 +574,7 @@ static void func_actor_342400_80162A34(Task* arg0)
 
     if (++work->frames == 15) {
         (Gp_IncStateF0Ref)(0);
-        gGameSession->spawnPhase[1] = 1;
+        gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_ARMED;
         Gp_ArmStateF0(1);
         arg0->state++;
     }
@@ -596,7 +596,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
         }
         if (count == 17) {
             Gp_ReleaseStateF0Clear(arg0, 0);
-            gGameSession->spawnPhase[1] = 2;
+            gGameSession->spawnPhase[1] = GAME_SESSION_SPAWN_COMPLETE;
             taskKill(arg0);
         }
     }

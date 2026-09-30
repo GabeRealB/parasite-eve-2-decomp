@@ -240,7 +240,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     slot = gameGetPtrSlot(4);
                     if (st->pc->arg1.value != -1) {
                         Gp_DispatchMsgReply(slot, 0x7D0,
-                                            (st->pc->arg1.value << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area,
+                                            (st->pc->arg1.value << 12) | (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area,
                                             &slot);
                     }
                 } else if (st->pc->arg0.value == -1) {
@@ -700,7 +700,7 @@ Task* Gp_LookupSlot4(s32 arg0)
 {
     Task* out;
 
-    arg0 = (arg0 << 12) | (gGameSession->at4.loc.stage << 8) | gGameSession->at4.loc.area;
+    arg0 = (arg0 << 12) | (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
     Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D0, arg0, &out);
     return out;
 }

@@ -64,7 +64,7 @@ void Gp_LinkViewSprts(void)
     SpriteBatch*     batch;
     GpSprtElem*      base;
 
-    sess          = &gGameSession->at4.loc;
+    sess          = &gGameSession->location.loc;
     view          = Gp_GetViewIndex();
     table         = Gp_SprtLists;
     ds            = &gDisplayState;
@@ -147,7 +147,7 @@ static void Gp_SetSprtShadeBits(s32 arg0)
     SpriteBatch*     batch;
     u32              i;
 
-    sess          = &gGameSession->at4.loc;
+    sess          = &gGameSession->location.loc;
     view          = Gp_GetViewIndex();
     Gp_SprtCursor = Gp_SprtLists[gDisplayState.drawBuffer];
     tbl           = Gp_SprtTables[sess->stage - 1];
@@ -192,7 +192,7 @@ void Gp_AllocSprtLists(void)
     GpSpritePacket* sprt;
     u32             tpage;
 
-    sess          = &gGameSession->at4.loc;
+    sess          = &gGameSession->location.loc;
     count.address = 0;
     view          = Gp_GetViewIndex();
     recs          = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
@@ -262,7 +262,7 @@ static void Gp_LinkRoomObjects(Task* task)
     GpObj3A*         list3;
     s32              i;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     Gp_LoadStageView();
     Gp_GridParams = NULL;
     Gp_ClearObj4AList(1);
@@ -320,7 +320,7 @@ s8 Gp_FindViewIndex(s32 arg0)
     u8*              bytes;
 
     idx   = 0;
-    sess  = &gGameSession->at4.loc;
+    sess  = &gGameSession->location.loc;
     limit = Gp_ViewCountTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1].prefix.packed;
     bytes = Gp_ViewIndexTables[sess->stage - 1]->field_0[sess->area - 1][sess->room - 1];
     if (limit > 0) {
@@ -351,7 +351,7 @@ static s32 Gp_ViewSprtCmdEmpty(void)
 
     session = gGameSession;
     tbl68   = Gp_SprtTables;
-    sess    = &session->at4.loc;
+    sess    = &session->location.loc;
     i       = sess->stage - 1;
     tbl68   = &tbl68[i];
     tbl     = Gp_ViewIndexTables[i];
@@ -382,7 +382,7 @@ static void func_800AD024(void)
     DR_AREA*         prim;
 
     session = gGameSession;
-    sess    = &session->at4.loc;
+    sess    = &session->location.loc;
     tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
     inner   = mid[sess->area - 1];
@@ -428,7 +428,7 @@ s32 Gp_GetViewIndex(void)
     u8*              bytes;
 
     session = gGameSession;
-    sess    = &session->at4.loc;
+    sess    = &session->location.loc;
     tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
     inner   = mid[sess->area - 1];
@@ -450,7 +450,7 @@ void* Gp_GetViewSprtExtra(void)
     GpSprtRec*       recs;
 
     session = gGameSession;
-    sess    = &session->at4.loc;
+    sess    = &session->location.loc;
     tbl     = Gp_ViewIndexTables[sess->stage - 1];
     mid     = tbl->field_0;
     inner   = mid[sess->area - 1];
@@ -464,10 +464,10 @@ void* Gp_GetViewSprtExtra(void)
 
 void Gp_RoomObjState1(Task* task)
 {
-    if (task->spawnArg1.value != gGameSession->at4.loc.view) {
+    if (task->spawnArg1.value != gGameSession->location.loc.view) {
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&gGfxViewCoord);
-        task->spawnArg1.value = gGameSession->at4.loc.view;
+        task->spawnArg1.value = gGameSession->location.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {
         Gp_LinkRoomObjects(task);

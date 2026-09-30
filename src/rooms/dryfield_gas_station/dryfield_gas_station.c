@@ -396,8 +396,8 @@ s32 func_dryfield_gas_station_8017FA20(s32 arg0, s32 arg1, RoomEventMsg* in, Roo
         out->room = val;
     }
     if (in->areaId == 3) {
-        if ((gGameSession->at4.loc.stage == in->areaId) && (gGameSession->at4.loc.variant == 1) &&
-            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->at4.loc.variant)) {
+        if ((gGameSession->location.loc.stage == in->areaId) && (gGameSession->location.loc.variant == 1) &&
+            (Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant)) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 Gp_RunCapCmd1(0x15);
             }

@@ -104,7 +104,7 @@ u16 Gp_GetAttachParam(s32 arg0)
         ret = 1;
     } else {
         p = &Player_Status;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;

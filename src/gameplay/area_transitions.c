@@ -361,12 +361,12 @@ void Gp_RebuildAreaIdBits(void)
     s32              i;
     u8               stage;
 
-    sess      = &gGameSession->at4.loc;
+    sess      = &gGameSession->location.loc;
     stage     = sess->stage;
     key.room  = 1;
     key.view  = 2;
     key.stage = stage;
-    if (gGameSession->at4.loc.stage - 1 < 5) {
+    if (gGameSession->location.loc.stage - 1 < 5) {
         count = Gp_AreaIdCounts[sess->stage - 1];
         for (i = 1; i <= count; i++) {
             key.area = i;
@@ -437,7 +437,7 @@ static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
 
 s16 Gp_LookupStageFlag(s16 idx)
 {
-    switch (gGameSession->at4.loc.stage) {
+    switch (gGameSession->location.loc.stage) {
         case 1:
             if (idx >= 0xE) {
                 break;
@@ -545,8 +545,8 @@ static u8 Gp_GetViewCountLo(void)
     GpViewCountTbl* tbl;
 
     session = gGameSession;
-    tbl     = Gp_ViewCountTables[session->at4.loc.stage - 1];
-    return tbl->field_0[session->at4.loc.area - 1][session->at4.loc.room - 1].prefix.bytes.field_0;
+    tbl     = Gp_ViewCountTables[session->location.loc.stage - 1];
+    return tbl->field_0[session->location.loc.area - 1][session->location.loc.room - 1].prefix.bytes.field_0;
 }
 
 static void Gp_DirAction0(void)
@@ -711,7 +711,7 @@ void Gp_SetCurAreaFlag4(void)
     GpAreaRec*       rec;
     GpAreaObj*       obj;
 
-    key = &gGameSession->at4.loc;
+    key = &gGameSession->location.loc;
     rec = Gp_AreaTables[key->stage];
     if (rec != NULL) {
         obj = rec[key->area].field_4;

@@ -918,7 +918,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4;
+    key          = gGameSession->location;
     key.loc.view = 0x64;
     slotParam[0] = Stream_FindSlot((u8*)&key, 0, 0);
     CdCmd_Enqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
@@ -1051,7 +1051,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
         Gp_ReleaseState1CMem(work, task);
         return;
     }
-    mode = gGameSession->at4.loc.view;
+    mode = gGameSession->location.loc.view;
     if (mode == 9) {
         count = 0x28;
         if (work->scale != mode) {
@@ -1076,7 +1076,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
             Gp_SpawnEff(0x60061, coord, (rnd & 0xFF) + spawnArg, &work->move);
         }
     }
-    work->scale = gGameSession->at4.loc.view;
+    work->scale = gGameSession->location.loc.view;
 }
 
 /// While the room's effect gate is set and the session view is mode 9, draws
@@ -1101,7 +1101,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC != 0) {
-        mode = gGameSession->at4.loc.view;
+        mode = gGameSession->location.loc.view;
         if (mode == 9) {
             Gp_UpdateCoord(coord);
             head = SCRATCH_HEAD(OverlaySpriteScratch);

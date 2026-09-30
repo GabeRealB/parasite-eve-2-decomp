@@ -489,7 +489,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
             if (Mc_SaveData[0].state.at4.loc.room != 2) {
                 Mc_SaveData[0].state.at4.loc.room = 2;
-                gGameSession->at4.loc.room        = 2;
+                gGameSession->location.loc.room   = 2;
                 D_dryfield_warehouse_801821C4     = 1;
                 return;
             }
@@ -620,7 +620,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             switch (work->field_6) {
                 case 0:
                     Mc_SaveData[0].state.at4.loc.room = 2;
-                    gGameSession->at4.loc.room        = 2;
+                    gGameSession->location.loc.room   = 2;
                     work->field_8                     = 0;
                     work->field_6++;
                     break;
@@ -1018,7 +1018,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
 /// current stage visit, then publishes variant 2 as the room's
 /// `Gp_State1C->roomEffectMode` index. `Task::extra.coordBody->coord` is the
 /// coordinate every draw shares. The stage-visit byte
-/// `gGameSession->at4.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
+/// `gGameSession->location.loc.view` is used as a bit index: bits 2, 3, 6 and 9 (`0x24C`)
 /// pose through `func_dryfield_warehouse_8017E414`, bit 2 (`4`) also drives
 /// `func_dryfield_warehouse_8017ED34` to step 0, those same `0x24C` visits also
 /// drive it to step 2, and bits 2, 3, 4 and 6-9 (`0x3DC`) drive it to steps 4
@@ -1029,7 +1029,7 @@ void func_dryfield_warehouse_8017F494(Task* arg0)
     s32       poseMask;
     GfxCoord* coord;
 
-    mask     = 1 << gGameSession->at4.loc.view;
+    mask     = 1 << gGameSession->location.loc.view;
     poseMask = mask & 0x24C;
     coord    = arg0->extra.coordBody->coord;
     if (poseMask != 0) {

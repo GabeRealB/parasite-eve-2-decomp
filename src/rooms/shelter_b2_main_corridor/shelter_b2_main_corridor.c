@@ -2081,10 +2081,10 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
 
     e     = D_shelter_b2_main_corridor_80182DEC;
     phase = -(gDisplayState.animFrame * 16);
-    k     = &gGameSession->at4.loc;
+    k     = &gGameSession->location.loc;
     if (k->stage == 4) {
         if (k->area == 0x21) {
-            if ((u32)(gGameSession->at4.loc.view - 0xA) < 2) {
+            if ((u32)(gGameSession->location.loc.view - 0xA) < 2) {
                 return;
             }
         }

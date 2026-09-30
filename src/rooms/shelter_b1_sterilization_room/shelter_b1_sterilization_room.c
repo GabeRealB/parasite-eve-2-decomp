@@ -716,7 +716,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
+    if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 0) {
         GameFlag_SetNibble(0xF4, 3);
         Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetPtrSlot(0xA) != NULL) {
@@ -724,7 +724,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
             GameFlag_SetNibble(0xEA, 2);
             GameFlag_SetNibble(0x4B, 8);
             func_800E8634(&D_80135D78, 0, &D_80136258);
-            areaSetPlacementVariant(&gGameSession->at4.loc, 6, AREA_VARIANT_RESET_ALWAYS);
+            areaSetPlacementVariant(&gGameSession->location.loc, 6, AREA_VARIANT_RESET_ALWAYS);
         } else {
             GameFlag_SetNibble(0x116, 2);
             GameFlag_SetNibble(0xEA, 1);
@@ -732,7 +732,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
         }
     }
     func_shelter_b1_sterilization_room_80180340(0);
-    if (gGameSession->at4.loc.variant == 5) {
+    if (gGameSession->location.loc.variant == 5) {
         target = Gp_LookupSlot4(0);
         if (target != NULL) {
             Gp_DispatchMsgPtr(target, 0x7DB, &D_shelter_b1_sterilization_room_80184E7C, 0);
@@ -741,7 +741,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     if (GameFlag_GetNibble(0xEA) != 1) {
         (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].field_4A &= 0xBF;
     }
-    if (gGameSession->at4.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == 1) {
         Task_SpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);
     }
     task->state++;
@@ -886,7 +886,7 @@ s32 func_shelter_b1_sterilization_room_8017FF80(s32 arg0, s32 arg1, s32 arg2)
         }
     }
     if (arg2 == 0xC || arg2 == 0xD) {
-        if (gGameSession->at4.loc.room == 3) {
+        if (gGameSession->location.loc.room == 3) {
             Gp_MsgPlayerWeapon(0);
             Task_SpawnFromTable(&D_shelter_b1_sterilization_room_80184E70, 0, arg2, 0);
         }
@@ -970,7 +970,7 @@ static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
         task = gameGetPtrSlot(3);
     }
     if (slot != NULL) {
-        if (gGameSession->at4.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 1) {
+        if (gGameSession->location.loc.variant == 5 && GameFlag_GetNibble(0xEA) == 1) {
             D_shelter_b1_sterilization_room_80184E80[1] = 0;
         } else {
             D_shelter_b1_sterilization_room_80184E80[1] = 0x2710;
@@ -1005,7 +1005,7 @@ s32 func_shelter_b1_sterilization_room_80180430(s32 arg0, s32 arg1, s32 arg2)
 
 static void func_shelter_b1_sterilization_room_80180464(Task* task)
 {
-    if (gGameSession->at4.loc.variant == 5) {
+    if (gGameSession->location.loc.variant == 5) {
         func_shelter_b1_sterilization_room_8018049C();
     }
 }
@@ -1014,7 +1014,7 @@ static void func_shelter_b1_sterilization_room_8018049C(void)
 {
     s32 view;
 
-    view = gGameSession->at4.loc.view;
+    view = gGameSession->location.loc.view;
     if ((GameFlag_GetNibble(0xEA) == 1) && (gGameSession->eventState == 0)) {
         if (view == 2 || view == 3) {
             Gp_MsgSlot4Chain(0, 1);
@@ -1253,7 +1253,7 @@ void func_shelter_b1_sterilization_room_80180D74(Task* task)
             break;
         case 2:
             Mc_SaveData[0].state.at4.loc.view = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
-            gGameSession->at4.loc.view        = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
+            gGameSession->location.loc.view   = D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].view;
             gGameSession->viewDirty           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3E9,
                               &D_shelter_b1_sterilization_room_80188668[D_shelter_b1_sterilization_room_80188728[task->spawnArg1.value].msg],

@@ -165,7 +165,7 @@ s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, TaskMessageArg arg2, Task
 
 /// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
 /// direction record `Gp_PostMsg13EF` posts. When the record's `field_2` is 1 and
-/// agrees with the current view (`GameSession.at4.loc.room`) the altar runs CAP
+/// agrees with the current view (`GameSession.location.loc.room`) the altar runs CAP
 /// command 3; on any other view the same byte starts the overlay's
 /// cutscene-driver task through `D_neo_ark_altar_8017EF8C`. Any other byte is
 /// ignored, and the outgoing record is never written - this handler only
@@ -173,7 +173,7 @@ s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, TaskMessageArg arg2, Task
 s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     if (in->warp == 1) {
-        if (gGameSession->at4.loc.room == in->warp) {
+        if (gGameSession->location.loc.room == in->warp) {
             Gp_RunCapCmd1(3);
         } else {
             Task_SpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);

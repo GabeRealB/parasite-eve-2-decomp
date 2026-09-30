@@ -345,7 +345,7 @@ static void func_dryfield_night_back_street_8017D780(Task* task);
 /// record to the outgoing one and answers by editing `room` of the copy; a
 /// non-zero `queryOnly` suppresses the side effects, as for every handler.
 ///
-/// The response byte is the session's stage (`gGameSession.at4.loc.stage`), read once
+/// The response byte is the session's stage (`gGameSession.location.loc.stage`), read once
 /// into a local and reused: the stage-2-only message 7 keeps that byte when
 /// event nibble 0x3C is set and answers 1 when it is clear.
 ///
@@ -362,7 +362,7 @@ s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg*
     u8           response;
 
     *out     = *in;
-    response = session->at4.loc.stage;
+    response = session->location.loc.stage;
     if (response == 2) {
         if (in->areaId == 7 && in->queryOnly == ROOM_EVENT_EXECUTE) {
             if (GameFlag_GetNibble(0x3C) == 0) {
@@ -374,12 +374,12 @@ s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg*
     }
     if (in->areaId == 9 && GameFlag_GetNibble(0x3F) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(gGameSession->at4.loc.stage == 2 ? 2 : 9);
+            Gp_RunCapCmd1(gGameSession->location.loc.stage == 2 ? 2 : 9);
             Gp_SetNibbleIf(in->flagId, 2);
         }
         return 0;
     }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE && gGameSession->at4.loc.stage == 2) {
+    if (in->queryOnly == ROOM_EVENT_EXECUTE && gGameSession->location.loc.stage == 2) {
         SndEvt_EnqueueType7(0x52050006, 0xF);
     }
     return 1;
@@ -438,7 +438,7 @@ void func_dryfield_night_back_street_8017D788(Task* task)
 /// Per-frame room task. On its first run it stores the effect ids 0x6000A,
 /// 0x60097 and 0x600E4 in three gameplay globals. Each run it sets
 /// `roomEffectMode` to 2 and draws the lights of the current camera view
-/// (`gGameSession->at4.loc.view`): view 2 draws a sprite on each of its two
+/// (`gGameSession->location.loc.view`): view 2 draws a sprite on each of its two
 /// glow points with `func_dryfield_night_back_street_8017E108` and a shaft
 /// between each pair of shaft ends with
 /// `func_dryfield_night_back_street_8017D920`; view 3 adds its own two glows
@@ -452,7 +452,7 @@ void func_dryfield_night_back_street_8017D7E0(Task* arg0)
         D_80115750 = 0x600E4;
     }
     Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 3:
             func_dryfield_night_back_street_8017E108(&D_dryfield_night_back_street_8018037C[0], 1, 0x300);
             func_dryfield_night_back_street_8017E108(&D_dryfield_night_back_street_8018037C[1], 1, 0x300);

@@ -634,12 +634,12 @@ void Gp_StartAreaBgm(s16* arg0)
     if (mode == 3 || mode == 0xFF || !CdCmd_IsIdle() || *arg0 != 0) {
         return;
     }
-    if (gGameSession->areaBgmCountdown == 0x7F) {
+    if (gGameSession->deathSoundCountdown == GAME_SESSION_DEATH_SOUND_HOLD) {
         *arg0 = 1;
         return;
     }
-    gGameSession->areaBgmCountdown--;
-    if (gGameSession->areaBgmCountdown >= 0) {
+    gGameSession->deathSoundCountdown--;
+    if (gGameSession->deathSoundCountdown >= 0) {
         return;
     }
     if (cfg->hp <= 0) {
@@ -662,7 +662,7 @@ u8* Gp_GetAttachLevels(void)
     s32           cond;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -678,7 +678,7 @@ s32 Gp_IsDebugAttachRoom(void)
     PlayerStatus* p;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         return 0;
     }
     return p->field_26 == 4;
@@ -724,7 +724,7 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     p->field_16                           = 0;
     p->field_17                           = 0;
     p->field_A                            = 0;
-    gGameSession->field_126               = 0;
+    gGameSession->battleResetPending      = 0;
     Gp_ItemGrantCooldown                  = 0;
     gDisplayState.suppressDisconnectPause = 1;
     p->field_6                           &= ~2;
@@ -764,11 +764,11 @@ void Gp_PlayClockState2(Task* arg0)
         Gp_StartAreaBgm(&arg0->killCountdown);
         session             = gGameSession;
         Gp_StateC08.field_3 = 0;
-        if (session->restartMode != 3) {
+        if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             p          = &D_80114BD8;
             p->field_0 = 0;
             p->field_1 = 0;
-            p->field_2 = (s8)session->field_12E;
+            p->field_2 = session->deathFadeFrames;
             Task_SpawnPtr(1, 0x31, 0, p);
         }
         arg0->spawnArg1.value = 0;
@@ -781,7 +781,7 @@ void Gp_PlayClockState3(Task* arg0)
     Gp_StartAreaBgm(&arg0->killCountdown);
     arg0->spawnArg1.value++;
     if (arg0->spawnArg1.value == 0x40) {
-        if (gGameSession->restartMode == 3) {
+        if (gGameSession->restartMode == GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             gDisplayState.skipDraw = 1;
         }
         arg0->spawnArg1.value = 0;
@@ -881,7 +881,7 @@ void Gp_TriggerPeIfArmed(void)
 
     state = Gp_StateF0.prefix.bytes.field_0;
     if ((state == 1) || (state == 3)) {
-        if (gGameSession->field_126 == 0) {
+        if (gGameSession->battleResetPending == 0) {
             Gp_TriggerPeState(1, 0xFF);
             Gp_PulseState1C80();
             gDisplayState.suppressDisconnectPause = 0;
@@ -905,7 +905,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
     ret = 1;
     if (arg0 < 0xC) {
         p = &Player_Status;
-        if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
             cond = 0;
         } else {
             cond = p->field_26 == 4;
@@ -936,7 +936,7 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
     u8*           table;
 
     p = &Player_Status;
-    if ((GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {
         cond = p->field_26 == 4;
@@ -1285,7 +1285,7 @@ void Gp_LoadStageView(void)
     VECTOR3*         trans;
     u8               idx;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -1404,7 +1404,7 @@ void Gp_SpawnViewTasks(void)
     GpViewRec*       rec;
     u8               idx;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -1487,7 +1487,7 @@ void Gp_SpawnCurView(s32 arg0)
     GpViewRec*       rec;
     u8               idx;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     tbl  = Gp_ViewTables[sess->stage - 1];
     recs = tbl->field_0[sess->area - 1];
     idx  = Gp_GetViewIndex();
@@ -1520,11 +1520,11 @@ void Gp_ViewGateTask(Task* task)
     if (sess->viewDirty != 0) {
         q = &CdCmd_Queue;
         if ((q->scenePayloadAvailable == 0) || (q->scenePayloadLoading == 0)) {
-            sess->at4.loc.view = save->state.at4.loc.view;
+            sess->location.loc.view = save->state.at4.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
             if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
-                loc                   = gGameSession->at4.loc.view;
+                loc                   = gGameSession->location.loc.view;
                 task->killCountdown   = 2;
                 task->spawnArg1.value = loc;
                 if (task->state == 3) {

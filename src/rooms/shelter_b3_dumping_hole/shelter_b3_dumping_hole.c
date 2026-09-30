@@ -243,7 +243,7 @@ s32 func_shelter_b3_dumping_hole_8017D760(s32 arg0, s32 arg1, RoomEventMsg* in, 
             return 0;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = (u8)gGameSession->eventRoomIndex + 1;
+            out->room = gGameSession->eventRoomIndex + 1;
         }
         return 1;
     }
@@ -276,8 +276,8 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     func_shelter_b3_dumping_hole_80183198(0x180, 0, 0);
     if (GameFlag_GetNibble(0x78) == 0) {
-        if (gGameSession->at4.loc.variant == 1) {
-            if (gGameSession->at4.loc.warp == 3) {
+        if (gGameSession->location.loc.variant == 1) {
+            if (gGameSession->location.loc.warp == 3) {
                 func_800E8634(D_shelter_b3_dumping_hole_8018B080, 0,
                               D_shelter_b3_dumping_hole_8018B428);
             }
@@ -285,7 +285,7 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
             GameFlag_SetNibble(0x78, 1);
         }
     }
-    if (gGameSession->at4.loc.room >= 2) {
+    if (gGameSession->location.loc.room >= 2) {
         Task_SpawnFromTable(&D_80164B78, 0, 0, 0);
     }
     arg0->state                             += 1;

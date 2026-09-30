@@ -75,10 +75,10 @@ void func_800E31E8(Task* arg0)
     flag                     = GameFlag_GetNibble(0x11F);
     switch (flag) {
         case 1:
-            if (gGameSession->at4.loc.stage == 3) {
+            if (gGameSession->location.loc.stage == 3) {
                 gStageSceneMusicEntry = 1;
             } else {
-                gGameSession->flowFlags = 3;
+                gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             }
             break;
         case 2:
@@ -86,9 +86,9 @@ void func_800E31E8(Task* arg0)
             break;
     }
     index = 0;
-    base  = gGameSession->at4.loc.stage * 10000 + gGameSession->at4.loc.area * 100;
-    room  = base + gGameSession->at4.loc.room;
-    table = D_8010FABC[gGameSession->at4.loc.stage];
+    base  = gGameSession->location.loc.stage * 10000 + gGameSession->location.loc.area * 100;
+    room  = base + gGameSession->location.loc.room;
+    table = D_8010FABC[gGameSession->location.loc.stage];
     area  = base;
     desc  = table;
     kind  = 0x200000;

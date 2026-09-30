@@ -4765,7 +4765,7 @@ static inline void _gpCaptureActorPad(Task* arg0)
     actor->field_974 = actor->field_973;
     actor->field_976 = actor->field_975;
     actor->field_964 = actor->field_962;
-    buttons          = gGameSession->pad;
+    buttons          = gGameSession->padHeld;
     actor->field_978 = actor->field_977;
     actor->field_962 = buttons;
     actor->field_966 = actor->field_962 & ~actor->field_964;
@@ -5593,7 +5593,7 @@ static void Gp_CaptureActorPad(Task* arg0)
     actor->field_974 = actor->field_973;
     actor->field_976 = actor->field_975;
     actor->field_964 = actor->field_962;
-    buttons          = gGameSession->pad;
+    buttons          = gGameSession->padHeld;
     actor->field_978 = actor->field_977;
     actor->field_962 = buttons;
     actor->field_966 = actor->field_962 & ~actor->field_964;
@@ -6931,7 +6931,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
             if (dist < minDist) {
                 func_800E0FEC(rec, &block->delta, 1, &idx);
                 idx = func_800E1ACC((u8*)&idx);
-                if (Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][idx]->field_2 != 0) {
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->field_2 != 0) {
                     minDist = dist;
                     bestIdx = i;
                 }
@@ -6989,7 +6989,7 @@ s32 func_80105ED4(Task* arg0)
         switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                sounds = Gp_RoomParamTables[gGameSession->at4.loc.stage - 1][gGameSession->at4.loc.area - 1][actor->field_930]->field_4;
+                sounds = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->field_930]->field_4;
                 if (sounds != NULL) {
                     if (*(s32*)&actor->field_954 == 0x30002) {
                         sound = sounds[2];

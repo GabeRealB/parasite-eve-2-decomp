@@ -195,9 +195,9 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3
             if (found != 0) {
                 GameFlag_SetNibble(0xA4, 1);
                 Task_SpawnOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
-                gGameSession->at4.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
-                gGameSession->hideHud      = (gGameSession->roomObjsDirty = 1);
-                gGameSession->eventState   = 1;
+                gGameSession->location.loc.room = (Mc_SaveData[0].state.at4.loc.room = 2);
+                gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
+                gGameSession->eventState        = 1;
                 return 1;
             }
         }
@@ -242,7 +242,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* requ
 {
     u8 actionId = request->actionId;
 
-    if (actionId == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->at4.loc.variant == actionId) {
+    if (actionId == 1 && GameFlag_GetNibble(0xC5) == 0 && gGameSession->location.loc.variant == actionId) {
         GameFlag_SetNibble(0xC5, 1);
         func_800E8614(D_mine_gorge_8017E610, 0);
     }
@@ -297,7 +297,7 @@ static void func_mine_gorge_8017D8D4(Task* arg0)
 {
     arg0->msgTable = D_mine_gorge_8017E280;
     Game_SetPtrSlot(arg0, 7);
-    if ((gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
+    if ((gGameSession->location.loc.variant == 1) && (GameFlag_GetNibble(0xC5) != 0)) {
         Gp_StateF0.field_1A = 0x15;
     }
     if ((GameFlag_GetNibble(0xBE) == 2) && (GameFlag_GetNibble(0x166) == 0)) {

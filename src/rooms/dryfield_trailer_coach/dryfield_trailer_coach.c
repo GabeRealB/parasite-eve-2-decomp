@@ -2290,7 +2290,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
 }
 
 /// Picks the trailer's shaft drawer for the current camera view. The
-/// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: views 2
+/// stage-visit byte `gGameSession->location.loc.view` is used as a bit index: views 2
 /// and 8 (bits 2 and 8, `0x104`) take `func_dryfield_trailer_coach_801829A8`
 /// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
 /// with 0x30. `Task::extra` is the task's `TmdObject`, so `coords` is the
@@ -2300,7 +2300,7 @@ void func_dryfield_trailer_coach_801838DC(Task* arg0)
     s32       mask;
     GfxCoord* coord;
 
-    mask  = 1 << gGameSession->at4.loc.view;
+    mask  = 1 << gGameSession->location.loc.view;
     coord = arg0->extra.coordBody->coord;
     if (mask & 0x104) {
         func_dryfield_trailer_coach_801829A8(coord, &D_dryfield_trailer_coach_801871C4, 0x60, 0xC0);

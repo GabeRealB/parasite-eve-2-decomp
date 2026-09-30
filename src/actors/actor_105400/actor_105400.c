@@ -450,8 +450,8 @@ static void func_actor_105400_8013222C(Task* arg0)
     }
     func_actor_105400_801336D4(arg0, &work->field_2FC, scale, 1);
     if (gGameSession->viewReady == 1) {
-        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
-                            D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
+        SndEvt_EnqueueTypeA(work->field_31C, D_actor_105400_8013CE64[gGameSession->location.loc.view].field_0,
+                            D_actor_105400_8013CE64[gGameSession->location.loc.view].field_2);
     }
 }
 
@@ -676,7 +676,7 @@ static void func_actor_105400_8013246C(GpEnemy* arg0, Task* arg1)
     if ((s16)work->field_330 == 0) {
         Gp_ReleaseStateF0Add(arg1, D_actor_105400_80133A2C[work->field_334]);
         work->field_330 = 1;
-        Gp_ClearAreaFlag4(&gGameSession->at4.loc);
+        Gp_ClearAreaFlag4(&gGameSession->location.loc);
     }
     _actor105400PoseTick(arg1);
     tmp    = arg1->extra.tmd->coords;
@@ -934,7 +934,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     work->node1.flags = (u16)(work->node1.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     model             = Gp_SpawnEnemyFromTable(D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra.tmd;
     idx               = arg0->placeKey >> 12;
-    sessionKey        = &gGameSession->at4.loc;
+    sessionKey        = &gGameSession->location.loc;
     key.stage         = sessionKey->stage;
     key.area          = sessionKey->area;
     key.room          = sessionKey->room;
@@ -950,8 +950,8 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     }
     sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8);
     work->field_31C = sound;
-    SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_0,
-                        D_actor_105400_8013CE64[gGameSession->at4.loc.view].field_2);
+    SndEvt_EnqueueType6(sound, D_actor_105400_8013CE64[gGameSession->location.loc.view].field_0,
+                        D_actor_105400_8013CE64[gGameSession->location.loc.view].field_2);
     arg1->msgTable = D_actor_105400_80133A00;
     arg1->state    = 1;
 }

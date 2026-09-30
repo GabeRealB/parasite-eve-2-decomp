@@ -6,7 +6,7 @@
 #include "main/tmd_types.h"
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
-/// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area`.
+/// Indexed by `GameSession.location.loc.stage - 1` then `GameSession.location.loc.area`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,
 /// field_8/field_A signed scales (`Gp_DrawMapCursor`); field_C is the
 /// room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`).
@@ -22,7 +22,7 @@ typedef struct _GpMapRec {
 STATIC_ASSERT_SIZEOF(GpMapRec, 0xE);
 
 /// 0x20-byte per-room name string in tables pointed to by `Gp_MapNameTables`.
-/// Indexed by `GameSession.at4.loc.stage - 1` then `GameSession.at4.loc.area - 1`.
+/// Indexed by `GameSession.location.loc.stage - 1` then `GameSession.location.loc.area - 1`.
 typedef struct _GpMapName {
     /* 0x00 */ u8 text[0x20];
 } GpMapName;

@@ -1556,7 +1556,7 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
         if ((GameFlag_GetNibble(0x39) == 0) && (GameFlag_GetNibble(0x28) >= 2)) {
             GameFlag_SetNibble(0x39, 1);
             func_800E8634(D_dryfield_junk_yard_8017E490, 0, D_dryfield_junk_yard_8017E658);
-        } else if (gGameSession->at4.loc.warp == 2) {
+        } else if (gGameSession->location.loc.warp == 2) {
             Gp_DispatchMsgPtr(gameGetPtrSlot(0xA), 0x3E9, &D_dryfield_junk_yard_8017DE30, 0);
         }
     }

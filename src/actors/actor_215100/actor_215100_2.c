@@ -1790,7 +1790,7 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
-/// leave (`gGameSession->at4.loc.view == 0x12`) drops the `func_mist_shooting_gallery_80180390` hold and
+/// leave (`gGameSession->location.loc.view == 0x12`) drops the `func_mist_shooting_gallery_80180390` hold and
 /// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
 /// `Gp_StateC08.field_A` start the 0x3C-frame cooldown in
 /// `D_actor_215100_8014D044`, and while that cooldown runs the function only
@@ -1816,7 +1816,7 @@ static void func_actor_215100_8014A398(void)
     coord = task->extra.tmd->coords;
     if (D_actor_215100_8014D038 != 0) {
         if (D_actor_215100_8015E670.value >= 3) {
-            if (gGameSession->at4.loc.view == 0x12) {
+            if (gGameSession->location.loc.view == 0x12) {
                 func_mist_shooting_gallery_80180390(0);
                 D_actor_215100_8014D03C = 0;
             }
@@ -1894,8 +1894,8 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 if (GameFlag_GetNibble(0xED) != 0) {
                     Gp_RunCapCmd1(0x17);
                 }
-                gGameSession->field_126 = 1;
-                arg0->state            += 1;
+                gGameSession->battleResetPending = 1;
+                arg0->state                     += 1;
                 break;
             }
             if (D_actor_215100_8015E670.value == 3) {
@@ -1905,8 +1905,8 @@ void func_actor_215100_8014A5C0(Task* arg0)
             func_mist_shooting_gallery_80180390(1);
             D_actor_215100_8014D03C = 1;
             Task_CallExit(D_mist_shooting_gallery_8018E0C4);
-            gGameSession->field_126  = 1;
-            gGameSession->flowFlags |= 0x80;
+            gGameSession->battleResetPending = 1;
+            gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             SndEvt_EnqueueType2(0, 0x1E);
             Gp_MsgPlayerWeapon(1);
             Gp_StateF0.field_4 = 0;
@@ -1961,8 +1961,8 @@ void func_actor_215100_8014A7C4(Task* arg0)
             arg0->state++;
             break;
         case 2:
-            gGameSession->field_126  = 1;
-            gGameSession->flowFlags |= 0x80;
+            gGameSession->battleResetPending = 1;
+            gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             SndEvt_EnqueueType2(0, 0x1E);
             actor->field_97B        = 0;
             D_actor_215100_8014D038 = 0;
@@ -1997,10 +1997,10 @@ static void func_actor_215100_8014A9A0(void)
     if (D_actor_215100_8015E670.value == 5) {
         D_actor_215100_8014D038 = 0;
         func_mist_shooting_gallery_80180390(1);
-        D_actor_215100_8014D03C = 1;
-        gGameSession->field_126 = 1;
+        D_actor_215100_8014D03C          = 1;
+        gGameSession->battleResetPending = 1;
         SndEvt_EnqueueType2(0, 0x1E);
-        gGameSession->flowFlags |= 0x80;
+        gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
     if (D_actor_215100_8015E670.value < 3) {
         Gp_RunCapCmd(0x1D, 3);

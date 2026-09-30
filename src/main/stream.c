@@ -340,7 +340,7 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
             rect.h = 0x100;
             MoveImage2(&rect, 0x140, 0x100);
         }
-        Mem_ConfigureAuxHeap((s32)gGameSession->at4.loc.stage, (s32)gGameSession->at4.loc.area);
+        Mem_ConfigureAuxHeap((s32)gGameSession->location.loc.stage, (s32)gGameSession->location.loc.area);
         if ((arg0 & 0xFFFF) == 1) {
             Mem_SetActiveAuxHeap(1);
         }
@@ -352,12 +352,12 @@ u16 Stream_RestoreAfterLoad(s32 arg0, s32 arg1)
         D_8006AC28 = D_8006AC28 + 1;
         if (arg1 & 0xFFFF) {
             g         = gGameSession;
-            f7        = g->at4.loc.stage;
+            f7        = g->location.loc.stage;
             param1[3] = f7;
-            f6        = g->at4.loc.area;
+            f6        = g->location.loc.area;
             param1[0] = 0;
             param1[2] = f6;
-            f74       = g->sprtVariant;
+            f74       = g->spriteVariant;
             param2[1] = 5;
             param2[2] = 0;
             param2[3] = 0;
@@ -430,7 +430,7 @@ u32 Stream_InitializePlayback(u32 slotIndex)
         DecDCTvlcBuild(D_8006AC38);
         return 0U;
     }
-    Mdec_SetupBuffers((u8*)&gGameSession->at4.loc);
+    Mdec_SetupBuffers((u8*)&gGameSession->location.loc);
     return 0U;
 }
 

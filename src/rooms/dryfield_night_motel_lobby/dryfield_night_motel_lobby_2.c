@@ -1107,7 +1107,7 @@ static void func_dryfield_night_motel_lobby_80181298(Task* task)
 
 void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
             func_dryfield_night_motel_lobby_80181404(&D_dryfield_night_motel_lobby_801828E0[0], 0x60, 0x60);
             func_dryfield_night_motel_lobby_80182200(&D_dryfield_night_motel_lobby_801828E0[1], 2, 0x300);

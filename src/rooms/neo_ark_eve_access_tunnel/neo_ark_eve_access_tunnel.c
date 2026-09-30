@@ -733,7 +733,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
 
 s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         switch (arg2) {
             case 6:
                 if (GameFlag_GetNibble(0x142) == 0) {
@@ -804,7 +804,7 @@ static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
 {
     arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
     Game_SetPtrSlot(arg0, 7);
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         u16* ptr = (u16*)Fs_ImgBuffers;
         s32  i   = 0;
 
@@ -813,7 +813,7 @@ static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
             i   += 1;
             ptr += 1;
         } while (i <= 0x12BFF);
-        gGameSession->flowFlags = 1;
+        gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }
     arg0->state = (s32)(arg0->state + 1);
 }
@@ -825,11 +825,11 @@ static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
 {
     CdCmdQueue* queue = &CdCmd_Queue;
 
-    if (gGameSession->at4.loc.variant < 4U) {
+    if (gGameSession->location.loc.variant < 4U) {
         func_neo_ark_eve_access_tunnel_8017E090(0, 0);
         func_neo_ark_eve_access_tunnel_8017E090(1, 0);
     }
-    if (gGameSession->at4.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == 0xB) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     }
 }

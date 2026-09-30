@@ -4449,7 +4449,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request)
             break;
         case 9:
             Gp_ReleaseStateF0Add(arg0, 0x24);
-            gGameSession->flowFlags         = (u8)(gGameSession->flowFlags | 0x80);
+            gGameSession->flowFlags         = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
             Gp_StateF0.prefix.bytes.field_1 = 5;
             break;
     }

@@ -299,7 +299,7 @@ void Gp_UpdateRoomCoords(Task* task)
     s32             i;
     s32             j;
 
-    set = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     if (set == NULL) {
         taskKill(task);
         return;
@@ -388,7 +388,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
 
     base = &light->head;
     room = base->u.at.room;
-    if (room != 0 && gGameSession->at4.loc.view != room) {
+    if (room != 0 && gGameSession->location.loc.view != room) {
         return 0;
     }
     block          = SCRATCH_PUSH(GpAttnScratch);
@@ -483,7 +483,7 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
     light  = &spot->head;
     result = 0;
     if (light->u.at.room != 0) {
-        if (gGameSession->at4.loc.view != light->u.at.room) {
+        if (gGameSession->location.loc.view != light->u.at.room) {
             return result;
         }
     }
@@ -575,7 +575,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     u32             dist;
     s32             i;
 
-    set           = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
     arg1->kind    = -1;
     arg1->field_4 = 0;
@@ -715,7 +715,7 @@ static __inline__ s32 solve_luma(GpLight* arg0)
     s16 val;
 
     val = arg0->u.at.room;
-    if (val != 0 && gGameSession->at4.loc.view != val) {
+    if (val != 0 && gGameSession->location.loc.view != val) {
         return 0;
     }
     {
@@ -760,7 +760,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     GpPointLight* light;
 
     startr   = start;
-    set      = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+    set      = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     colorMtx = extra->colorMtx;
     nOcc     = 0;
     if (set == NULL) {
@@ -986,7 +986,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     } else {
         WorldCoordRoomAmbientEntry* ambientEntry;
 
-        ambientEntry = Gp_GetRoomBound(&gGameSession->at4.loc);
+        ambientEntry = Gp_GetRoomBound(&gGameSession->location.loc);
         if (colorMtx->t[0] < ambientEntry->color.r) {
             colorMtx->t[0] = ambientEntry->color.r;
         }
@@ -1280,7 +1280,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
-    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
+    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
         block = SCRATCH_PUSH(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
@@ -1530,7 +1530,7 @@ static s32 Gp_GetObjLuma(GpLight* arg0)
     s16 val;
 
     val = arg0->u.at.room;
-    if (val != 0 && gGameSession->at4.loc.view != val) {
+    if (val != 0 && gGameSession->location.loc.view != val) {
         return 0;
     }
     arg0->u.at.scale = 0x1000;
@@ -1709,7 +1709,7 @@ static void Gp_BindDefaultMtx(Task* arg0)
     slot  = gameGetPtrSlot(3);
     extra = slot->extra.tmd;
     if (slot != NULL) {
-        result = Gp_GetRoomCoordSet(&gGameSession->at4.loc);
+        result = Gp_GetRoomCoordSet(&gGameSession->location.loc);
         i      = 0;
         if (result == 0) {
             taskKill(arg0);

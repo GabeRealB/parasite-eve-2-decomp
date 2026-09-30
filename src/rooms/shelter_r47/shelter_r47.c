@@ -737,7 +737,7 @@ static void func_shelter_r47_8017FB94(Task* task)
 
 static void func_shelter_r47_8017FCC0(Task* task)
 {
-    u8 place = gGameSession->at4.loc.variant;
+    u8 place = gGameSession->location.loc.variant;
 
     if (place != 1 || Gp_StateC08.field_A == place) {
         return;
@@ -790,7 +790,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, T
     GpObj4A* p;
     GpObj4A* q;
 
-    field9 = gGameSession->at4.loc.variant;
+    field9 = gGameSession->location.loc.variant;
     if (field9 == 1) {
         switch (arg2->warp) {
             case 2:
@@ -963,7 +963,7 @@ static void func_shelter_r47_80180324(Task* task)
     switch (task->state) {
         case 0:
             SndEvt_EnqueueType6(0x542F0010, 0, 0);
-            task->spawnArg1.value = gGameSession->at4.loc.view;
+            task->spawnArg1.value = gGameSession->location.loc.view;
             task->killCountdown   = gGameSession->eventState;
             task->state++;
             break;
@@ -972,7 +972,7 @@ static void func_shelter_r47_80180324(Task* task)
                 if (gGameSession->eventState != 0) {
                     SndEvt_EnqueueType7(0x542F0010, 0x3C);
                 } else {
-                    switch (gGameSession->at4.loc.view) {
+                    switch (gGameSession->location.loc.view) {
                         case 2:
                         case 3:
                             SndEvt_EnqueueType6(0x542F0010, 0, 0);
@@ -984,7 +984,7 @@ static void func_shelter_r47_80180324(Task* task)
                 }
             } else {
                 if (gGameSession->eventState == 0 && gGameSession->viewReady != 0) {
-                    switch (gGameSession->at4.loc.view) {
+                    switch (gGameSession->location.loc.view) {
                         case 2:
                         case 3:
                             SndEvt_EnqueueTypeA(0x542F0010, 0, 0);
@@ -1001,7 +1001,7 @@ static void func_shelter_r47_80180324(Task* task)
                             break;
                     }
                 }
-                task->spawnArg1.value = gGameSession->at4.loc.view;
+                task->spawnArg1.value = gGameSession->location.loc.view;
             }
             task->killCountdown = gGameSession->eventState;
             break;
@@ -1080,7 +1080,7 @@ static void func_shelter_r47_80180714(Task* task)
     if (Task_PollKill(D_shelter_r47_8018A690, &out) != 0) {
         Gp_MsgPlayer3F3(1);
         Gp_MsgPlayerWeapon(1);
-        if (gGameSession->at4.loc.variant == 1) {
+        if (gGameSession->location.loc.variant == 1) {
             Gp_MsgSlot4Chain(0, 1);
         }
         if (gameGetPtrSlot(0xA) != NULL) {
@@ -1297,7 +1297,7 @@ void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
     POLY_FT4*             p;
 
     g = D_shelter_r47_8018729C[id];
-    if (gGameSession->at4.loc.view == 0x12 && (u16)(id - 1) < 2) {
+    if (gGameSession->location.loc.view == 0x12 && (u16)(id - 1) < 2) {
         return;
     }
     while (g->clutX != 0xFFFF) {

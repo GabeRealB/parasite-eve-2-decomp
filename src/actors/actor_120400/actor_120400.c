@@ -896,7 +896,7 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
 /// two children `D_actor_120400_8013E748` holds -- table entries 1 and 2. Each
 /// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT
 /// row of the `AreaPlacement` that entry selects, reached through the area key
-/// `&gGameSession->at4.loc` and indexed by the model id the child's own
+/// `&gGameSession->location.loc` and indexed by the model id the child's own
 /// `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
 /// texture stream processed twice when it has a buffer. The body ends by
 /// pointing the parent's model at its light/colour matrices
@@ -931,7 +931,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
 
         model      = spawned->extra.tmd;
         idx        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
-        sessionKey = &gGameSession->at4.loc;
+        sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = sessionKey->room;
@@ -956,11 +956,11 @@ static void func_actor_120400_80131E5C(Task* arg0)
         model = spawned->extra.tmd;
         idx   = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
         // Keep this block's key address separate across the spawn calls.
-        sessionKey = (keyAddr = &gGameSession->at4.loc);
+        sessionKey = (keyAddr = &gGameSession->location.loc);
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
         key.room   = keyAddr->room;
-        key.view   = gGameSession->at4.loc.view;
+        key.view   = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
         rec                      = Gp_GetNestedAreaRec(&key);
         place                    = gpAreaPlaceAt(rec->field_0, idx);

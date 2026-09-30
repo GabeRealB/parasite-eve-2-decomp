@@ -1709,7 +1709,7 @@ static void func_mist_r18_8017E8B8(Task* task)
     if ((s16)fade >= 0x40) {
         task->killCountdown = 0x40;
     }
-    if ((gGameSession->viewReady != 0) || (gGameSession->at4.loc.view != 2)) {
+    if ((gGameSession->viewReady != 0) || (gGameSession->location.loc.view != 2)) {
         task->killCountdown = 0x80;
         task->state++;
     }

@@ -452,7 +452,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -472,7 +472,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -492,7 +492,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -520,7 +520,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -528,7 +528,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -536,7 +536,7 @@ static void func_dryfield_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -732,7 +732,7 @@ static void func_dryfield_factory_80181538(s32 x, s32 y, s32 variant)
 
 /// Sets the skip-link byte on the second sprite command of view 9 for the
 /// current room. `arg0` zero skips OT-linking (`field_4` = 1); non-zero draws
-/// it. No-op unless `GameSession.loc.stage` is 2.
+/// it. No-op unless `GameSession.location.loc.stage` is 2.
 void func_dryfield_factory_80181620(s32 arg0)
 {
     GameSession*     g;
@@ -740,9 +740,9 @@ void func_dryfield_factory_80181620(s32 arg0)
     SpriteBatch*     batches;
 
     g    = gGameSession;
-    sess = &g->at4.loc;
+    sess = &g->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][8].field_4;
         if (!(arg0 & 0xFF)) {
             batches[1].hidden = 1;
             return;
@@ -916,7 +916,7 @@ static void func_dryfield_factory_80181AB8(Task* task)
 
 /// Sets the skip-link byte on the second sprite command of view 11 for the
 /// current room. `arg0` zero skips OT-linking (`field_4` = 1); non-zero draws
-/// it. No-op unless `GameSession.loc.stage` is 2.
+/// it. No-op unless `GameSession.location.loc.stage` is 2.
 void func_dryfield_factory_80181B38(s32 arg0)
 {
     GameSession*     g;
@@ -924,9 +924,9 @@ void func_dryfield_factory_80181B38(s32 arg0)
     SpriteBatch*     batches;
 
     g    = gGameSession;
-    sess = &g->at4.loc;
+    sess = &g->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][10].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][10].field_4;
         if (!(arg0 & 0xFF)) {
             batches[1].hidden = 1;
             return;
@@ -1116,14 +1116,14 @@ static void func_dryfield_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2)
 
 /// Per-frame effect: draws up to three glowing discs at fixed points in the
 /// room. The draw set is selected by the stage-visit byte
-/// `gGameSession->at4.loc.view` taken as a bit index, and each group also gates on a
+/// `gGameSession->location.loc.view` taken as a bit index, and each group also gates on a
 /// story flag, so a disc only appears on the visits and after the event that
 /// the flag records.
 void func_dryfield_factory_801825F0(Task* task)
 {
     s32 state;
 
-    state = 1 << gGameSession->at4.loc.view;
+    state = 1 << gGameSession->location.loc.view;
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
         func_dryfield_factory_80181C14(&D_dryfield_factory_80186EF8, 0x100, 0x3660);
     }

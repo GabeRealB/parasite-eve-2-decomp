@@ -66,7 +66,7 @@ L_case0:
     goto advance;
 
 L_case1:
-    key          = gGameSession->at4;
+    key          = gGameSession->location;
     key.loc.view = 0x64;
     slot         = Stream_FindSlot((u8*)&key, 0, 0);
     slotParam[0] = slot;

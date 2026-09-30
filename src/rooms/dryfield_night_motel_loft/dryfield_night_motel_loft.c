@@ -280,7 +280,7 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
 /// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].state.at4.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
-    gGameSession->at4.loc.room        = arg0;
+    gGameSession->location.loc.room   = arg0;
     Mc_SaveData[0].state.at4.loc.room = arg0;
 }
 

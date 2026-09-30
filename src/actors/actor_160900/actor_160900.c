@@ -1276,7 +1276,7 @@ void func_actor_160900_80132A14(Task* arg0)
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1.value < 2) {
-            place = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+            place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
             id    = place->entryId;
             while (id != AREA_PLACEMENT_END) {
                 if (id == 0x65) {
@@ -1348,7 +1348,7 @@ void func_actor_160900_80132C08(Task* task)
             obj->colorMtx  = &work->color;
             obj->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             task->msgTable = D_actor_160900_8013F200;
-            place          = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
+            place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->field_0;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x65) {
                 place++;
             }
@@ -1364,7 +1364,7 @@ void func_actor_160900_80132C08(Task* task)
         task->state++;
     }
     func_actor_160900_80132844(task);
-    if (gGameSession->at4.loc.view == 0x2E) {
+    if (gGameSession->location.loc.view == 0x2E) {
         Gfx_RotMatrixZ(&task->extra.tmd->coords[18].coord, 0x800, 1);
     } else {
         Gfx_RotMatrixX(&task->extra.tmd->coords[18].coord, 0x79C, 1);

@@ -733,7 +733,7 @@ static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s
 }
 
 /// Per-frame effect: queues the room's flickering sprites for the view
-/// `gGameSession->at4.loc.view` selects - views 2 and 3 the first two points,
+/// `gGameSession->location.loc.view` selects - views 2 and 3 the first two points,
 /// view 4 the point at `D_dryfield_night_motel_room_4_8017DA88`, view 5 the
 /// first point plus the third, drawn from texture cell 2 with a smaller
 /// half-width. Other views draw nothing.
@@ -743,7 +743,7 @@ static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s
 /// group.
 void func_dryfield_night_motel_room_4_8017D990(Task* unused)
 {
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_4_8017DA70;

@@ -1647,11 +1647,11 @@ static void func_actor_510900_801373B8(Task* arg0)
         work->field_5BA = 1;
         model           = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra.tmd;
         idx             = (u16)enemy->placeKey >> 0xC;
-        sessionKey      = &gGameSession->at4.loc;
+        sessionKey      = &gGameSession->location.loc;
         key.stage       = sessionKey->stage;
         key.area        = sessionKey->area;
         key.room        = sessionKey->room;
-        key.view        = gGameSession->at4.loc.view;
+        key.view        = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
@@ -1837,8 +1837,8 @@ static void func_actor_510900_80137868(Task* arg0)
                 work->obj4E4.key    = pair;
                 work->obj504.key    = pair;
 
-                gGameSession->deathRestartDelay = 0x80;
-                gGameSession->areaBgmCountdown  = 0x7F;
+                gGameSession->deathRestartDelay   = 0x80;
+                gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             }
             if (work->field_58A == 0x53) {
                 if (work->field_594 == 1) {

@@ -16908,32 +16908,32 @@ static void func_actor_303600_80161F40(Task* arg0)
             break;
         case 1:
             w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 1;
             break;
         case 2:
             w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 2;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 2;
             break;
         case 3:
             w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 3;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 3;
             break;
         case 4:
             w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 4;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 4;
@@ -16945,8 +16945,8 @@ static void func_actor_303600_80161F40(Task* arg0)
             break;
         case 5:
             w                     = (Actor303600Work*)D_actor_303600_8016E4C0->work;
-            msg.context.loc.stage = gGameSession->at4.loc.stage;
-            msg.context.loc.area  = gGameSession->at4.loc.area;
+            msg.context.loc.stage = gGameSession->location.loc.stage;
+            msg.context.loc.area  = gGameSession->location.loc.area;
             msg.command           = 5;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             w->field_C = 5;
@@ -17111,8 +17111,8 @@ void func_actor_303600_801624B0(void)
     ActorCommand     msg;
 
     if (work->field_E == 0) {
-        msg.context.loc.stage = gGameSession->at4.loc.stage;
-        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.context.loc.stage = gGameSession->location.loc.stage;
+        msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;
@@ -17138,8 +17138,8 @@ void func_actor_303600_8016253C(void)
 
     work = (Actor303600Work*)D_actor_303600_8016E4C0->work;
     if (work->field_E == 0) {
-        msg.context.loc.stage = gGameSession->at4.loc.stage;
-        msg.context.loc.area  = gGameSession->at4.loc.area;
+        msg.context.loc.stage = gGameSession->location.loc.stage;
+        msg.context.loc.area  = gGameSession->location.loc.area;
         msg.command           = 9;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
         work->field_C = 9;

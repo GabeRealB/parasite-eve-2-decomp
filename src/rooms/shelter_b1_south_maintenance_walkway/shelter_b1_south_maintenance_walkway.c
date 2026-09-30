@@ -620,7 +620,7 @@ void func_shelter_b1_south_maintenance_walkway_8017DA8C(Task* task)
         task->state = 1;
     }
 
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 2:
             func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[0], 0x200, 0);
             func_shelter_b1_south_maintenance_walkway_8017DC88(&D_shelter_b1_south_maintenance_walkway_80182330[6], 0x200, 0x400);

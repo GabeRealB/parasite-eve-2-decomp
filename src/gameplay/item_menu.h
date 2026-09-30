@@ -51,33 +51,33 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
 
 void Gp_ItemMenuTask(Task* arg0);
 
-/// Per-stage table of `GpMapRec` arrays. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage table of `GpMapRec` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapRec* Gp_MapRecTables[];
 
-/// Per-stage table of `GpMapName` arrays. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage table of `GpMapName` arrays. Index is `GameSession.location.loc.stage - 1`.
 /// A NULL entry skips the name draw (`Gp_DrawMapName`).
 extern GpMapName* Gp_MapNameTables[];
 
-/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapMark* Gp_MapMarkTables[];
 
-/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapIcon* D_8010F0CC[];
 
-/// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage table of `GpMapFlagIcon` arrays. Index is `GameSession.location.loc.stage - 1`.
 extern GpMapFlagIcon* D_8010F0E0[];
 
 /// Per-stage table of GameFlag nibble ids, indexed by room (`Gp_MapRoomId`).
-/// Index is `GameSession.at4.loc.stage - 1`.
+/// Index is `GameSession.location.loc.stage - 1`.
 extern u8* Gp_MapFlagIds[];
 
-/// Highest selectable map room id per stage. Index is `GameSession.at4.loc.stage - 1`.
+/// Highest selectable map room id per stage. Index is `GameSession.location.loc.stage - 1`.
 extern u8 D_8010F130[];
 
 /// Map-screen child prompt spawned by `Gp_MapTaskState2`.
 extern UiObjectDesc D_8010F15C;
 
-/// Per-stage `GpMapMark` counts. Index is `GameSession.at4.loc.stage - 1`.
+/// Per-stage `GpMapMark` counts. Index is `GameSession.location.loc.stage - 1`.
 extern u8 Gp_MapMarkCounts[];
 
 /// Current room id copied from `GpMapRec.field_C` by `Gp_GetMapRoomId`.

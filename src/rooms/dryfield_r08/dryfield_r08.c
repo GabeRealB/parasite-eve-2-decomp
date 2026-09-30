@@ -1058,7 +1058,7 @@ void func_dryfield_r08_8017F340(u8 arg0, u8 arg1)
     GameLocationKey* sess;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 0xBU) {
         batches = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1][3].field_4;
         if (arg1 & 0xFF) {
@@ -1075,7 +1075,7 @@ static void func_dryfield_r08_8017F3B8(u8 arg0, u8 arg1)
     GpSprtRec*       rec;
     SpriteBatch*     batches;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     if ((u32)(arg0 & 0xFF) < 3U) {
         rec = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
         if ((u32)(arg0 & 0xFF) == 0U) {

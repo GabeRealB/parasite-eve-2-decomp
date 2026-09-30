@@ -596,7 +596,7 @@ static void func_actor_341900_80162330(Task* arg0)
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_341900_80163A78;
-    rec             = (Gp_GetNestedAreaRec(&gGameSession->at4.loc))->field_0;
+    rec             = (Gp_GetNestedAreaRec(&gGameSession->location.loc))->field_0;
     for (; rec->entryId != AREA_PLACEMENT_END; rec++) {
         if (rec->entryId == 0x20) {
             break;
@@ -952,11 +952,11 @@ void func_actor_341900_80162EFC(Task* arg0)
                 work->field_0           = gameGetPtrSlot(3);
                 D_actor_341900_80164208 = arg0;
                 work->field_4           = Gp_FindWorkById(
-                                    gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8))
+                                    gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))
                                     ->field_0;
             }
-            request.context.loc.stage = gGameSession->at4.loc.stage;
-            sessionIdLo               = gGameSession->at4.loc.area;
+            request.context.loc.stage = gGameSession->location.loc.stage;
+            sessionIdLo               = gGameSession->location.loc.area;
             request.command           = 0;
             request.context.loc.area  = sessionIdLo;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -968,7 +968,7 @@ void func_actor_341900_80162EFC(Task* arg0)
             }
             seqWork->field_C         = Task_SpawnFromTable(D_actor_341900_80164190, 8, 0, arg0);
             seqWork->field_10        = Task_SpawnFromTable(D_actor_341900_80164190, 9, 0, arg0);
-            gGameSession->flowFlags |= 3;
+            gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             goto next;
         case 1:
             gStageSceneMusicEntry           = 4;
@@ -1078,8 +1078,8 @@ void func_actor_341900_80163334(s16 arg0)
 {
     ActorCommand msg;
 
-    msg.context.loc.stage = gGameSession->at4.loc.stage;
-    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = arg0;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }

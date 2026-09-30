@@ -953,7 +953,7 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     SpriteBatch*     batches;
     s32              v;
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     rec  = Gp_SprtTables[sess->stage - 1]->field_0[sess->area - 1];
     v    = arg0 & 0xFF;
 

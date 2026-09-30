@@ -1305,11 +1305,11 @@ void Gp_ItemPickupTilt(Task* arg0)
     extra   = arg0->extra.tmd;
     obj     = arg0->spawnArg2.pointer;
     session = gGameSession;
-    mapId   = GAME_LOCATION_WORD(session->at4.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
+    mapId   = GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
     item    = obj->field_A;
     coord   = extra->coords;
     rot     = coord + 2;
-    room    = *&session->at4.loc.view;
+    room    = *&session->location.loc.view;
     if (Gp_StateF0.field_4 == 2) {
         extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {

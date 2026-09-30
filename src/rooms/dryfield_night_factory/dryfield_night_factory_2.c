@@ -978,19 +978,19 @@ static void func_dryfield_night_factory_80180438(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     slot       = (D_dryfield_night_factory_8018A7E8 = memCalloc(4, 0));
     arg0->work = slot;
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_factory_80186E28;
     } else {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_night_factory_80186DE0;
     }
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186E94;
     } else {
         D_dryfield_night_factory_8018A7E0 = D_dryfield_night_factory_80186EA0;
     }
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 4, 0, D_dryfield_night_factory_8018A7E8);
     Task_SpawnFromTable(D_dryfield_night_factory_8018A7E4, 5, 0, 0);
-    if (gGameSession->at4.loc.stage == 2) {
+    if (gGameSession->location.loc.stage == 2) {
         func_dryfield_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
     } else {
         func_dryfield_night_factory_80181620(GameFlag_GetNibble(0x48) & 0xFF);
@@ -1011,7 +1011,7 @@ s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg* in,
 
     *out = *in;
     if (in->areaId == 0x19) {
-        variant = gGameSession->at4.loc.stage;
+        variant = gGameSession->location.loc.stage;
         if (variant == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (GameFlag_GetNibble(0x3A) >= 2) {
@@ -1325,7 +1325,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1345,7 +1345,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1365,7 +1365,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1393,7 +1393,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
         switch (step) {
             case 0:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1401,7 +1401,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 1:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1409,7 +1409,7 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
                 break;
             case 2:
                 id = 0x53170000;
-                if (gGameSession->at4.loc.stage == 2) {
+                if (gGameSession->location.loc.stage == 2) {
                     id = 0x52170000;
                 }
                 SndEvt_EnqueueType6(id | 9, 0, 0);
@@ -1611,9 +1611,9 @@ void func_dryfield_night_factory_80181620(s32 show)
     SpriteBatch*     batches;
 
     g    = gGameSession;
-    sess = &g->at4.loc;
+    sess = &g->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][8].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][8].field_4;
         if (!(show & 0xFF)) {
             batches[1].hidden = 1;
             return;
@@ -1797,9 +1797,9 @@ void func_dryfield_night_factory_80181B38(s32 show)
     SpriteBatch*     batches;
 
     g    = gGameSession;
-    sess = &g->at4.loc;
+    sess = &g->location.loc;
     if (sess->stage == 2) {
-        batches = Gp_SprtTables[sess->stage - 1][g->sprtVariant - 1].field_0[sess->area - 1][10].field_4;
+        batches = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].field_0[sess->area - 1][10].field_4;
         if (!(show & 0xFF)) {
             batches[1].hidden = 1;
             return;
@@ -1982,14 +1982,14 @@ static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 ar
 
 /// Per-frame effect: refreshes the task's composed matrix, then draws
 /// one of three glowing discs at fixed points in the room. The draw set is
-/// selected by the stage-visit byte `gGameSession->at4.loc.view` taken as a bit
+/// selected by the stage-visit byte `gGameSession->location.loc.view` taken as a bit
 /// index, and each of the three groups also gates on a story flag, so a disc
 /// only appears on the visits and after the event that the flag records.
 void func_dryfield_night_factory_801825F0(Task* task)
 {
     s32 state;
 
-    state = 1 << gGameSession->at4.loc.view;
+    state = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(task->extra.coordBody->coord);
     if (GameFlag_GetNibble(0x48) != 0 && (state & 0x15068) != 0) {
         func_dryfield_night_factory_80181C14(&D_dryfield_night_factory_80186F04, 0x100, 0x3660);

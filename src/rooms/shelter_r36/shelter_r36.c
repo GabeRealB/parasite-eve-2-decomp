@@ -605,7 +605,7 @@ static void func_shelter_r36_8017D9CC(Task* task);
 /// event nibble 0x113 is clear it starts CAP slot 1; otherwise it loads CAP
 /// file 3 and starts slot 2, then passes the first pair of event blocks to
 /// `func_800E8634`. Once `eventState` is back to 0 it either sets restart mode
-/// 0xFF and session `field_12E` to 1 and ends (nibble still clear), or resets
+/// 0xFF and session `deathFadeFrames` to 1 and ends (nibble still clear), or resets
 /// the CAP state and passes the second pair before ending.
 void func_shelter_r36_8017D5E8(Task* task)
 {
@@ -630,8 +630,8 @@ void func_shelter_r36_8017D5E8(Task* task)
         case 1:
             if (gGameSession->eventState == 0) {
                 if (GameFlag_GetNibble(0x113) == 0) {
-                    gGameSession->restartMode = 0xFF;
-                    gGameSession->field_12E   = state;
+                    gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
+                    gGameSession->deathFadeFrames = state;
                     taskKill(task);
                 } else {
                     Gp_ResetCap();
@@ -664,7 +664,7 @@ void func_shelter_r36_8017D738(void)
 
 /// Entry 1 of `D_shelter_r36_8017DF14`, spawned on arrival by warp 2: spawns
 /// entry 0 of `D_shelter_r36_8017E9A4`, which starts the stream, and two frames
-/// later sets restart mode 0xFF and session `field_12E` to 1 and ends.
+/// later sets restart mode 0xFF and session `deathFadeFrames` to 1 and ends.
 void func_shelter_r36_8017D7B4(Task* task)
 {
     switch (task->state) {
@@ -678,8 +678,8 @@ void func_shelter_r36_8017D7B4(Task* task)
             task->state++;
             break;
         case 2:
-            gGameSession->restartMode = 0xFF;
-            gGameSession->field_12E   = 1;
+            gGameSession->restartMode     = GAME_SESSION_RESTART_ENDING;
+            gGameSession->deathFadeFrames = 1;
             taskKill(task);
             break;
     }
@@ -739,10 +739,10 @@ static void func_shelter_r36_8017D924(Task* task)
 {
     task->msgTable = D_shelter_r36_8017E97C;
     Game_SetPtrSlot(task, 7);
-    if (gGameSession->at4.loc.warp == 1) {
+    if (gGameSession->location.loc.warp == 1) {
         Task_SpawnFromTable(D_shelter_r36_8017DF14, 0, 0, 0);
     }
-    if (gGameSession->at4.loc.warp == 2) {
+    if (gGameSession->location.loc.warp == 2) {
         Task_SpawnFromTable(D_shelter_r36_8017DF14, 1, 0, 0);
     }
     task->state++;

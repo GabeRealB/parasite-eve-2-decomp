@@ -2593,7 +2593,7 @@ static void func_actor_511000_801329C4(Task* task)
         extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
-    if (gGameSession->at4.loc.view == 0x18) {
+    if (gGameSession->location.loc.view == 0x18) {
         coord->param.rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
         coord->param.rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
         coord->param.rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
@@ -2819,7 +2819,7 @@ static void func_actor_511000_801330F0(Task* task)
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C((Actor511000Work*)task->work);
     }
-    if (gGameSession->at4.loc.view == 0x18) {
+    if (gGameSession->location.loc.view == 0x18) {
         frame               = task->killCountdown + 1;
         task->killCountdown = frame;
         if (frame >= 0x78) {
@@ -3156,14 +3156,14 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     // Child models inherit the texture relocation of the parent's placement.
     // Reusing the spawn result preserves its register preference at the task load.
     spawned       = (GpEnemy*)spawned->task;
-    sessionKey    = &session->at4.loc;
+    sessionKey    = &session->location.loc;
     placementWord = enemy->placeKey;
     stage         = sessionKey->stage;
     model         = ((Task*)spawned)->extra.tmd;
     key.stage     = stage;
     key.area      = sessionKey->area;
     key.room      = sessionKey->room;
-    view          = session->at4.loc.view;
+    view          = session->location.loc.view;
     placementWord = placementWord >> 12;
     key.view      = view;
     areaSyncLocationVariant(&key);
@@ -3179,14 +3179,14 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     spawned       = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session       = gGameSession;
     spawned       = (GpEnemy*)spawned->task;
-    sessionKey    = &session->at4.loc;
+    sessionKey    = &session->location.loc;
     placementWord = enemy->placeKey;
     stage         = sessionKey->stage;
     model         = ((Task*)spawned)->extra.tmd;
     key.stage     = stage;
     key.area      = sessionKey->area;
     key.room      = sessionKey->room;
-    view          = session->at4.loc.view;
+    view          = session->location.loc.view;
     placementWord = placementWord >> 12;
     key.view      = view;
     areaSyncLocationVariant(&key);

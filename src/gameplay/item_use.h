@@ -46,11 +46,11 @@ extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].state.gameMode` is 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].state.gameMode` is 0 or 2. Indexed by `GameSession.location.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].state.gameMode` is not 0 or 2. Indexed by `GameSession.at4.loc.stage`.
+/// `Mc_SaveData[0].state.gameMode` is not 0 or 2. Indexed by `GameSession.location.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers

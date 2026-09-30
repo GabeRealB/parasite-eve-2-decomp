@@ -130,7 +130,7 @@ extern ActorTransform D_dryfield_motel_room_1_8017E100[2];
 /// weapon record as message 0x3E8 and hands the cutscene's two script blocks to
 /// `func_800E8634`. States 0 and 1 then advance the state and step the driver;
 /// state 1 does that only while the session is still up, and state 2 only once
-/// the session's `at4.loc.view` has reached 2, which is where the task kills itself.
+/// the session's `location.loc.view` has reached 2, which is where the task kills itself.
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 
 /// Install the player's weapon animation set on slot 3 (message 0x3E8: the
@@ -971,16 +971,16 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 
     switch (work->field_2C) {
         case 1:
-            buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
-            buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+            buf.msg.context.loc.stage = gGameSession->location.loc.stage;
+            buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 1;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[0], 0);
             Gp_DispatchMsgPtr(work->field_8, 0x7D4, &D_dryfield_motel_room_1_8017E0D0[1], 0);
             break;
         case 2:
-            buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
-            buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+            buf.msg.context.loc.stage = gGameSession->location.loc.stage;
+            buf.msg.context.loc.area  = gGameSession->location.loc.area;
             buf.msg.command           = 2;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
             Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
@@ -1134,13 +1134,13 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     Mem_Set(work, 0, 0x38);
     work->field_0                    = gameGetPtrSlot(3);
     D_dryfield_motel_room_1_8018159C = arg0;
-    id                               = gGameSession->at4.loc.area | (gGameSession->at4.loc.stage << 8);
+    id                               = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
     work->field_4                    = Gp_FindWorkById(id)->field_0;
-    id                               = ((gGameSession->at4.loc.stage << 8) | 0x1000) | gGameSession->at4.loc.area;
+    id                               = ((gGameSession->location.loc.stage << 8) | 0x1000) | gGameSession->location.loc.area;
     work->field_8                    = Gp_FindWorkById(id)->field_0;
-    id                               = ((gGameSession->at4.loc.stage << 8) | 0x2000) | gGameSession->at4.loc.area;
+    id                               = ((gGameSession->location.loc.stage << 8) | 0x2000) | gGameSession->location.loc.area;
     work->field_C                    = Gp_FindWorkById(id)->field_0;
-    id                               = ((gGameSession->at4.loc.stage << 8) | 0x3000) | gGameSession->at4.loc.area;
+    id                               = ((gGameSession->location.loc.stage << 8) | 0x3000) | gGameSession->location.loc.area;
     work->field_10                   = Gp_FindWorkById(id)->field_0;
 }
 void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
@@ -1169,8 +1169,8 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             return;
         case 1:
             if (gGameSession->eventState == 0) {
-                buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
-                buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+                buf.msg.context.loc.stage = gGameSession->location.loc.stage;
+                buf.msg.context.loc.area  = gGameSession->location.loc.area;
                 buf.msg.command           = 4;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 arg0->state = arg0->state + 1;
@@ -1178,9 +1178,9 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             }
             break;
         case 2:
-            if (gGameSession->at4.loc.view == arg0->state) {
-                buf.msg.context.loc.stage = gGameSession->at4.loc.stage;
-                buf.msg.context.loc.area  = gGameSession->at4.loc.area;
+            if (gGameSession->location.loc.view == arg0->state) {
+                buf.msg.context.loc.stage = gGameSession->location.loc.stage;
+                buf.msg.context.loc.area  = gGameSession->location.loc.area;
                 buf.msg.command           = 3;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &buf.msg, ACTOR_COMMAND_MESSAGE_APPLY);
                 taskKill(arg0);
@@ -1197,8 +1197,8 @@ void func_dryfield_motel_room_1_8017DF08(void)
     ActorCommand msg;
 
     Gp_ArmStateF0(1);
-    msg.context.loc.stage = gGameSession->at4.loc.stage;
-    msg.context.loc.area  = gGameSession->at4.loc.area;
+    msg.context.loc.stage = gGameSession->location.loc.stage;
+    msg.context.loc.area  = gGameSession->location.loc.area;
     msg.command           = 3;
     Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
     Gp_DispatchMsgPtr(work->field_C, 0x7D4, &D_dryfield_motel_room_1_8017E130[0], 0);

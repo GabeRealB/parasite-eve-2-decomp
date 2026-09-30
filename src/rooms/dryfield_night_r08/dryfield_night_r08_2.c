@@ -311,7 +311,7 @@ void func_dryfield_night_r08_8017D718(Task* arg0)
         arg0->state = 1;
     }
 
-    switch (gGameSession->at4.loc.view) {
+    switch (gGameSession->location.loc.view) {
         case 3:
             func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[0], 0x200, 0x800, 0x10);
             func_dryfield_night_r08_8017DB4C(&D_dryfield_night_r08_801805BC[2], 0x200, 0, 0x10);

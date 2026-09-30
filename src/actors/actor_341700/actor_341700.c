@@ -2827,7 +2827,7 @@ static void func_actor_341700_80166114(Task* arg0)
             obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         enemy->node.state.b.flags = 0;
-        map                       = GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        map                       = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
         if (map == 0x4270000) {
             // The 7C store follows 7A here; written first, it schedules
             // ahead of the heading load.
@@ -3596,7 +3596,7 @@ static void func_actor_341700_80168004(void)
         /* Each branch makes its own call; jump2's cross-jumping merges the
          * identical tails after sched2, which is why the argument setup is
          * duplicated per branch in the target. */
-        if (gGameSession->at4.loc.stage == 4 && (u32)(gGameSession->at4.loc.area - 0x27) < 2 && gGameSession->at4.loc.variant == 1) {
+        if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 1) {
             param1[2] = 0xA;
             param1[0] = 2;
             param1[3] = 0;
@@ -3605,7 +3605,7 @@ static void func_actor_341700_80168004(void)
             param2[2] = 0;
             param2[1] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
-        } else if (gGameSession->at4.loc.stage == 4 && (u32)(gGameSession->at4.loc.area - 0x27) < 2 && gGameSession->at4.loc.variant == 2) {
+        } else if (gGameSession->location.loc.stage == 4 && (u32)(gGameSession->location.loc.area - 0x27) < 2 && gGameSession->location.loc.variant == 2) {
             param1[2] = 0xA;
             param1[0] = 3;
             param1[3] = 0;
@@ -4513,7 +4513,7 @@ static void func_actor_341700_801697D4(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x24) {
-        if ((gGameSession->at4.loc.stage == 4) && ((u32)(gGameSession->at4.loc.area - 0x27) < 2U) && (gGameSession->at4.loc.variant == 1)) {
+        if ((gGameSession->location.loc.stage == 4) && ((u32)(gGameSession->location.loc.area - 0x27) < 2U) && (gGameSession->location.loc.variant == 1)) {
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 1, 0);
         }
         Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);

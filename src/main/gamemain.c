@@ -216,7 +216,7 @@ void Display_FlipDraw(s32 bufferIndex)
         } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             Display_LoadImageStrips(bufferIndex);
         } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
-            Gfx_LoadImageSlot(gGameSession->at4.loc.stage, gGameSession->at4.loc.area, bufferIndex);
+            Gfx_LoadImageSlot(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
         }
         if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
             DrawOTag(Gpu_OrderingTables[bufferIndex].tag);

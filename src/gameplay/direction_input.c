@@ -119,14 +119,14 @@ void func_800AD6BC(void)
                 flags       = Gp_DirFlags;
                 mask        = flags & 0x8000;
                 if (Gp_StateF0.prefix.bytes.field_1 == 0) {
-                    if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPrev & 0x10)) {
+                    if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & 0x10)) {
                         if (!(flags & 0x4000)) {
                             D_80114CF8 = 1;
                         } else if (Gp_StateF0.prefix.bytes.field_0 != 1) {
                             D_80114CF8 = 1;
                         }
                     } else if (cfg->field_24 != 0) {
-                        if (!(gGameSession->padPrev & 0x10)) {
+                        if (!(gGameSession->padPressed & 0x10)) {
                             if (!(Gp_DirFlags & 0x4000)) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;
@@ -185,7 +185,7 @@ void Gp_SetupDirWarp(void)
     s32              room;
     s16              ret;
 
-    sess  = &gGameSession->at4.loc;
+    sess  = &gGameSession->location.loc;
     stage = sess->stage;
     room  = sess->area;
     slot7 = gameGetPtrSlot(7);
@@ -335,7 +335,7 @@ void Gp_CommitWarp(void)
     cfg   = &Player_Status;
     slot7 = gameGetPtrSlot(7);
 
-    sess = &gGameSession->at4.loc;
+    sess = &gGameSession->location.loc;
     rec  = Gp_WarpTables[sess->stage - 1][sess->area - 1][(Gp_DirNibble >> 4) - 1];
 
     if (*(s16*)&Gp_DirFadeLevel != 0) {
