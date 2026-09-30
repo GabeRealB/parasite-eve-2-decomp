@@ -676,12 +676,12 @@ static void Gp_EnqueueWeaponCd(void)
             }
             break;
         case 0x1B: {
-            McItemSlot* slot;
+            EquipmentWeaponLoad* slot;
 
             param1[0] = 0x10;
             slot      = Gp_GetItemSlot(item + 0x7F);
-            if (slot->attachId != 0 && slot->attachId != 0xFF) {
-                attach = slot->attachId - 0x9F;
+            if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                attach = slot->secondaryItemId - 0x9F;
                 if (attach == 0xB) {
                     param1[0] = 0x11;
                 }

@@ -40,8 +40,8 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 /// in its colour.
 static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 mode);
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
-/// or attachment loaded in the equipped weapon.
+/// Whether item `id` is the equipped weapon, the equipped armour, or a
+/// consumable selected in either firing mode of the equipped weapon.
 static inline s32 _gpIsEquippedItem(s32 id);
 
 static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1);
@@ -178,8 +178,8 @@ static inline void _gpDrawItemName(UiList* prompt, UiObject* obj, s32 item, s32 
         Gp_SetPreviewItem((item), 0);                              \
     } while (0)
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
-/// or attachment loaded in the equipped weapon.
+/// Whether item `id` is the equipped weapon, the equipped armour, or a
+/// consumable selected in either firing mode of the equipped weapon.
 static inline s32 _gpIsEquippedItem(s32 id)
 {
     s32           ret;
@@ -190,8 +190,8 @@ static inline s32 _gpIsEquippedItem(s32 id)
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id)))) {
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;
     }
     return ret;

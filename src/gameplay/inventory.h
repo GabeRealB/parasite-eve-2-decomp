@@ -46,9 +46,9 @@ static inline InventoryItemRow* gpItemRowAt(InventoryItemRow* rows, s32 index)
 
 /// Inline form of `Gp_GetItemSlot`: weapon `item`'s entry in the save's
 /// per-weapon equipment table.
-static inline McItemSlot* gpItemSlot(s32 item)
+static inline EquipmentWeaponLoad* gpItemSlot(s32 item)
 {
-    return &Mc_SaveData[0].state.weaponItems[item - 0x80];
+    return &Mc_SaveData[0].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
 #endif // GAMEPLAY_PRIVATE_INVENTORY_H

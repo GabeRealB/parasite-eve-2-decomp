@@ -106,15 +106,15 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
 }
 static inline void _gpClearEquipSlot(s32 item)
 {
-    McItemSlot* slot;
-    s32         found = 0;
-    s32         i;
+    EquipmentWeaponLoad* slot;
+    s32                  found = 0;
+    s32                  i;
 
     if ((u32)(item - 0x80) >= 0x20) {
         return;
     }
 
-    slot = &Mc_SaveData[0].state.weaponItems[item - 0x80];
+    slot = &Mc_SaveData[0].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < 8; i++) {
         if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -123,15 +123,15 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->ammoId  = 0;
-        slot->ammoQty = 0;
+        slot->primaryItemId = INVENTORY_ITEM_NONE;
+        slot->primaryQty    = 0;
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->attachId != 0xFF) {
-            slot->attachId = 0;
+        if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
-        slot->attachQty = 0;
+        slot->secondaryQty = 0;
     }
 }
 static inline void _gpConsumeScanQty(InventoryItemRange* scan, s32 item, s32 n)
@@ -689,7 +689,7 @@ void Gp_InitModeEquip(void)
     }
     if (cfg->weapon == 2) {
         item     = 0x81;
-        slotItem = gpItemSlot(item)->ammoId;
+        slotItem = gpItemSlot(item)->primaryItemId;
         if ((slotItem == 0) || (slotItem == 0xA0)) {
             Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, 0x81, 0xA0, -1);
         }
@@ -881,19 +881,19 @@ s32 Gp_CountScanItems(InventoryItemRange* arg0)
     return ret;
 }
 
-McItemSlot* Gp_GetItemSlot(s32 arg0)
+EquipmentWeaponLoad* Gp_GetItemSlot(s32 arg0)
 {
-    return &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
+    return &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
 s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
 {
-    InventoryItemRow* table;
-    McItemSlot*       slot;
-    s32               count;
-    s32               i;
-    s32               end;
-    s32               itemId;
+    InventoryItemRow*    table;
+    EquipmentWeaponLoad* slot;
+    s32                  count;
+    s32                  i;
+    s32                  end;
+    s32                  itemId;
 
     table = Gp_GetItemTable(arg0);
     count = 0;
@@ -905,11 +905,11 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
                 itemId = table[i].itemId;
                 if ((u32)(itemId - 0x80) < 0x20) {
                     slot = gpItemSlot(itemId);
-                    if (slot->ammoId == arg1) {
-                        count += slot->ammoQty;
+                    if (slot->primaryItemId == arg1) {
+                        count += slot->primaryQty;
                     }
-                    if (slot->attachId == arg1) {
-                        count += slot->attachQty;
+                    if (slot->secondaryItemId == arg1) {
+                        count += slot->secondaryQty;
                     }
                 }
             }
@@ -921,15 +921,15 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
 
 void Gp_ClearEquipSlot(s32 arg0)
 {
-    McItemSlot* slot;
-    s32         found = 0;
-    s32         i;
+    EquipmentWeaponLoad* slot;
+    s32                  found = 0;
+    s32                  i;
 
     if ((u32)(arg0 - 0x80) >= 0x20) {
         return;
     }
 
-    slot = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
+    slot = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < 8; i++) {
         if (arg0 == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -938,29 +938,29 @@ void Gp_ClearEquipSlot(s32 arg0)
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->ammoId  = 0;
-        slot->ammoQty = 0;
+        slot->primaryItemId = INVENTORY_ITEM_NONE;
+        slot->primaryQty    = 0;
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->attachId != 0xFF) {
-            slot->attachId = 0;
+        if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
-        slot->attachQty = 0;
+        slot->secondaryQty = 0;
     }
 }
 
 void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
 {
-    McItemSlot* slot;
-    s32         found = 0;
-    s32         i;
+    EquipmentWeaponLoad* slot;
+    s32                  found = 0;
+    s32                  i;
 
     if ((u32)(arg0 - 0x80) >= 0x20) {
         return;
     }
 
-    slot = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
+    slot = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < 8; i++) {
         if (arg0 == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -970,17 +970,17 @@ void Gp_ClearEquipSlotSel(s32 arg0, s32 arg1)
 
     if (arg1 != 2) {
         if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-            slot->ammoId  = 0;
-            slot->ammoQty = 0;
+            slot->primaryItemId = INVENTORY_ITEM_NONE;
+            slot->primaryQty    = 0;
         }
     }
 
     if (arg1 != 1) {
         if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-            if (slot->attachId != 0xFF) {
-                slot->attachId = 0;
+            if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                slot->secondaryItemId = INVENTORY_ITEM_NONE;
             }
-            slot->attachQty = 0;
+            slot->secondaryQty = 0;
         }
     }
 }
@@ -1035,32 +1035,32 @@ void Gp_ConsumeScanQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 
 s32 Gp_FillRelated(s32 arg0, s32 arg1)
 {
-    McItemSlot* slot;
-    McItemSlot* alt;
-    s32         ret;
+    EquipmentWeaponLoad* slot;
+    const u8*            primaryItemId;
+    s32                  ret;
 
-    slot = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
-    alt  = slot;
+    slot          = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    primaryItemId = &slot->primaryItemId;
     if (arg1 != 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, slot->attachId, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, slot->secondaryItemId, -1);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, alt->ammoId, -1);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, *primaryItemId, -1);
     }
     return ret;
 }
 
 s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
 {
-    McItemSlot* slot;
-    McItemSlot* alt;
-    s32         ret;
+    EquipmentWeaponLoad*       slot;
+    const EquipmentWeaponLoad* secondaryLoad;
+    s32                        ret;
 
-    slot = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
-    alt  = slot;
+    slot          = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
+    secondaryLoad = slot;
     if (arg1 == 0) {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, slot->ammoId, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, slot->primaryItemId, 0);
     } else {
-        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, alt->attachId, 0);
+        ret = Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, secondaryLoad->secondaryItemId, 0);
     }
     return ret == 0;
 }

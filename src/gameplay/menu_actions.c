@@ -404,8 +404,8 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
         (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
         (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != 0) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == arg0) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == arg0)))) {
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == arg0) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == arg0)))) {
         ret = 1;
     }
     return ret;
@@ -2082,8 +2082,8 @@ void Gp_DiscardWarnTask(Task* arg0)
             parentObj = arg0->parent->spawnArg2.pointer;
             if (childObj->field_2C == 0x33) {
                 if ((u32)(id - 0x80) < 0x20U) {
-                    McItemSlot*   slot;
-                    PlayerStatus* cfg;
+                    EquipmentWeaponLoad* slot;
+                    PlayerStatus*        cfg;
 
                     slot = Gp_GetItemSlot(id);
                     cfg  = &Player_Status;
@@ -2093,19 +2093,19 @@ void Gp_DiscardWarnTask(Task* arg0)
                         cfg->weapon = 0;
                     }
                 } else if ((u32)(id - 0xA0) < 0x20U) {
-                    s32         i;
-                    McItemSlot* slot;
+                    s32                  i;
+                    EquipmentWeaponLoad* slot;
 
                     i = 0x80;
                     do {
                         slot = Gp_GetItemSlot(i);
-                        if (slot->ammoId == id) {
-                            slot->ammoId  = 0;
-                            slot->ammoQty = 0;
+                        if (slot->primaryItemId == id) {
+                            slot->primaryItemId = INVENTORY_ITEM_NONE;
+                            slot->primaryQty    = 0;
                         }
-                        if (slot->attachId == id) {
-                            slot->attachId  = 0;
-                            slot->attachQty = 0;
+                        if (slot->secondaryItemId == id) {
+                            slot->secondaryItemId = INVENTORY_ITEM_NONE;
+                            slot->secondaryQty    = 0;
                         }
                         i += 1;
                     } while (i < 0xA0);

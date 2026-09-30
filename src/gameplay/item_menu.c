@@ -145,7 +145,7 @@ void func_800BDF6C(Task* task);
 
 /// List-item callback for All / Select / Discard / End. Draws
 /// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
-/// Discard strips 0x80–0x9F attachments missing from
+/// Discard zeroes loaded ammunition quantities whose item is absent from
 /// `Mc_SaveData[0].state.carriedItems` and sets `field_2E = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
@@ -172,7 +172,7 @@ static inline InventoryItemRange* _gpItemPaneScan(Task* task);
 /// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
 static void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
 
-/// For each carried weapon, empties the loaded ammunition and attachment
+/// For each carried weapon, empties its primary and secondary ammunition
 /// counts when the carried items no longer include any of that item.
 static inline void _gpDropOrphanedWeaponLoads(void);
 
@@ -1189,15 +1189,15 @@ static const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_St
 /// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
-/// For each carried weapon, empties the loaded ammunition and attachment
+/// For each carried weapon, empties its primary and secondary ammunition
 /// counts when the carried items no longer include any of that item.
 static inline void _gpDropOrphanedWeaponLoads(void)
 {
-    InventoryItemRange* scan;
-    InventoryItemRow*   rec;
-    McItemSlot*         slot;
-    s32                 i;
-    s32                 attach;
+    InventoryItemRange*  scan;
+    InventoryItemRow*    rec;
+    EquipmentWeaponLoad* slot;
+    s32                  i;
+    s32                  loadedItemId;
 
     scan = &Mc_SaveData[0].state.carriedItems;
     rec  = Gp_GetItemTable(scan);
@@ -1206,18 +1206,18 @@ static inline void _gpDropOrphanedWeaponLoads(void)
     if (scan->rowCount != 0) {
         do {
             if ((u8)(rec->itemId + 0x80) < 0x20) {
-                slot   = Gp_GetItemSlot(rec->itemId);
-                attach = slot->ammoId;
-                if ((attach != 0) && (attach != 0xB9)) {
-                    if (Gp_SumScanQty(scan, attach) == 0) {
-                        slot->ammoQty = 0;
+                slot         = Gp_GetItemSlot(rec->itemId);
+                loadedItemId = slot->primaryItemId;
+                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != 0xB9)) {
+                    if (Gp_SumScanQty(scan, loadedItemId) == 0) {
+                        slot->primaryQty = 0;
                     }
                 }
-                attach = slot->attachId;
-                if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
-                    (attach != 0xBD) && (attach != 0xBE)) {
-                    if (Gp_SumScanQty(scan, attach) == 0) {
-                        slot->attachQty = 0;
+                loadedItemId = slot->secondaryItemId;
+                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (loadedItemId != 0xB5) && (loadedItemId != 0xBB) &&
+                    (loadedItemId != 0xBD) && (loadedItemId != 0xBE)) {
+                    if (Gp_SumScanQty(scan, loadedItemId) == 0) {
+                        slot->secondaryQty = 0;
                     }
                 }
             }

@@ -342,7 +342,7 @@ void func_800C5F70(Task* arg0)
             func_800C7AE8(obj, obj->panel.field_1C.s + 2, (s16)obj->panel.field_18.u + 2, flags);
             if ((u32)(item - 0x80) < 0x20U) {
                 spriteCount = 1;
-                if ((Gp_GetItemSlot(item)->attachId != 0xFF) || (item == 0x8F) || (item == 0x93) ||
+                if ((Gp_GetItemSlot(item)->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) || (item == 0x8F) || (item == 0x93) ||
                     (item == 0x94) || (item == 0x96) || (item == 0x99) || (item == 0x81)) {
                     spriteCount = 2;
                 }

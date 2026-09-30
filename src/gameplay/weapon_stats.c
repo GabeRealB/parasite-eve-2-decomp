@@ -34,7 +34,7 @@ static inline u16* gpWeaponStats(s32 itemId)
     return Gp_WeaponStats[itemId - 0x7F];
 }
 
-/// Ammo/attachment comparison rows share the low-id combat parameter table.
+/// Primary and secondary consumable comparisons use the low-id combat parameter table.
 static inline u16* gpAmmoStats(s32 itemId)
 {
     return Gp_IdParamLo[itemId - 0x9F].params;
@@ -134,35 +134,35 @@ static inline void _gpDrawItemNameAt(UiObject* obj, s32 x, s32 y, s32 color, s32
 
 void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    u8            buf[8];
-    u16           selStats[3];
-    u16           eqStats[3];
-    TextDrawReq   nameReq;
-    TextDrawReq   valReq;
-    s32           xOff;
-    s32           yBase;
-    s32           y;
-    s32           xCopy;
-    s32           nx;
-    s32           ot;
-    u16*          itemRow;
-    u16*          eqRow;
-    u16*          pItem;
-    u16*          pEq;
-    UiList*       list;
-    SPRT*         p;
-    GpItemAttr*   attr;
-    McItemSlot*   slot;
-    PlayerStatus* cfg;
-    s16           field18;
-    s32           color;
-    s32           swap;
-    s32           i;
-    s32           count;
-    s32           two;
-    u32           selVal;
-    u32           itemVal;
-    s32           val;
+    u8                   buf[8];
+    u16                  selStats[3];
+    u16                  eqStats[3];
+    TextDrawReq          nameReq;
+    TextDrawReq          valReq;
+    s32                  xOff;
+    s32                  yBase;
+    s32                  y;
+    s32                  xCopy;
+    s32                  nx;
+    s32                  ot;
+    u16*                 itemRow;
+    u16*                 eqRow;
+    u16*                 pItem;
+    u16*                 pEq;
+    UiList*              list;
+    SPRT*                p;
+    GpItemAttr*          attr;
+    EquipmentWeaponLoad* slot;
+    PlayerStatus*        cfg;
+    s16                  field18;
+    s32                  color;
+    s32                  swap;
+    s32                  i;
+    s32                  count;
+    s32                  two;
+    u32                  selVal;
+    u32                  itemVal;
+    s32                  val;
 
     field18 = (s16)arg0->panel.field_18.u;
     xOff    = arg0->panel.field_1C.s + 0x60;
@@ -182,16 +182,16 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         list    = &D_8010E9CC;
         itemRow = gpAmmoStats(arg1);
         if (Gp_ReloadMode == 2) {
-            if (slot->attachId == 0) {
+            if (slot->secondaryItemId == INVENTORY_ITEM_NONE) {
                 eqRow = gpAmmoStats(0x9F);
             } else {
-                eqRow = gpAmmoStats(slot->attachId);
+                eqRow = gpAmmoStats(slot->secondaryItemId);
             }
         } else {
-            if (slot->ammoId == 0) {
+            if (slot->primaryItemId == INVENTORY_ITEM_NONE) {
                 eqRow = gpAmmoStats(0x9F);
             } else {
-                eqRow = gpAmmoStats(slot->ammoId);
+                eqRow = gpAmmoStats(slot->primaryItemId);
             }
         }
         D_80114D80 = D_8010E990;
@@ -384,15 +384,15 @@ static inline void _gpSetPreviewItemWalk(s32 item, u8 slot)
 
 void Gp_EquipSummaryTask(Task* arg0)
 {
-    PlayerStatus* cfg;
-    UiObject*     obj;
-    McItemSlot*   slotp;
-    s32*          stored;
-    s32           mode;
-    s32           item;
-    s32           skip;
-    s32           slot;
-    s32           flags;
+    PlayerStatus*        cfg;
+    UiObject*            obj;
+    EquipmentWeaponLoad* slotp;
+    s32*                 stored;
+    s32                  mode;
+    s32                  item;
+    s32                  skip;
+    s32                  slot;
+    s32                  flags;
 
     item   = 0;
     skip   = 0;
@@ -410,9 +410,9 @@ void Gp_EquipSummaryTask(Task* arg0)
     } else if (mode == 1) {
         Ui_DrawText(&(obj)->panel, Gp_StrAmmoCaps);
         slotp = Gp_GetItemSlot(cfg->weapon + 0x7F);
-        item  = slotp->ammoId;
+        item  = slotp->primaryItemId;
         if (Gp_ReloadMode == 2) {
-            item = slotp->attachId;
+            item = slotp->secondaryItemId;
         }
     } else if (mode == 2) {
         Ui_DrawText(&(obj)->panel, Gp_StrArmor);
@@ -711,12 +711,12 @@ draw:
 
 void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 {
-    s32               item;
-    s32               spawnArg;
-    s32               status;
-    InventoryItemRow* rec;
-    s32               qty;
-    McItemSlot*       attach;
+    s32                  item;
+    s32                  spawnArg;
+    s32                  status;
+    InventoryItemRow*    rec;
+    s32                  qty;
+    EquipmentWeaponLoad* load;
     union {
         struct {
             u8          buf[0x20];
@@ -745,11 +745,11 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
         rec = Gp_FindItemById(item);
         qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
-            attach = Gp_GetItemSlot(spawnArg);
-            if (attach->ammoId == item) {
-                qty += attach->ammoQty;
-            } else if (attach->attachId == item) {
-                qty += attach->attachQty;
+            load = Gp_GetItemSlot(spawnArg);
+            if (load->primaryItemId == item) {
+                qty += load->primaryQty;
+            } else if (load->secondaryItemId == item) {
+                qty += load->secondaryQty;
             }
         }
         {
@@ -830,14 +830,14 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
 void Gp_BuildAttachList(UiList* arg0, s32 arg1)
 {
-    InventoryItemRange* scan;
-    McItemSlot*         slot;
-    s32                 mode;
-    s32                 count;
-    s32                 n;
-    s32                 i;
-    s32                 item;
-    s32                 qty;
+    InventoryItemRange*  scan;
+    EquipmentWeaponLoad* slot;
+    s32                  mode;
+    s32                  count;
+    s32                  n;
+    s32                  i;
+    s32                  item;
+    s32                  qty;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     mode  = Gp_ReloadMode;
@@ -852,8 +852,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
-                if (mode == 0 && slot->ammoId == item) {
-                    qty += slot->ammoQty;
+                if (mode == 0 && slot->primaryItemId == item) {
+                    qty += slot->primaryQty;
                 }
                 if (qty > 0) {
                     Gp_AttachListIds[count++] = item;
@@ -869,8 +869,8 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
             if (item != 0) {
                 qty  = Gp_ScanStackQty(scan, item);
                 qty -= Gp_CountEquippedRelated(scan, item);
-                if (mode == 0 && slot->attachId == item) {
-                    qty += slot->attachQty;
+                if (mode == 0 && slot->secondaryItemId == item) {
+                    qty += slot->secondaryQty;
                 }
                 if (qty > 0) {
                     Gp_AttachListIds[count++] = item;

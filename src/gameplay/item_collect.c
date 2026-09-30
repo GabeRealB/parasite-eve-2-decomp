@@ -521,18 +521,19 @@ s32 Gp_HasMappedItem(void)
 
 static void Gp_ResetAuxSlots(void)
 {
-    McItemSlot* p;
-    s32         i;
+    EquipmentWeaponLoad* p;
+    s32                  i;
 
     p = Mc_SaveData[0].state.weaponItems;
-    for (i = 0; i < 0x20; i++) {
-        p->ammoId    = 0;
-        p->ammoQty   = 0;
-        p->attachId  = 0xFF;
-        p->attachQty = 0;
-        if (i == 0x1A) {
-            p->attachId  = 0;
-            p->attachQty = 0;
+    for (i = 0; i < (s32)ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); i++) {
+        p->primaryItemId   = INVENTORY_ITEM_NONE;
+        p->primaryQty      = 0;
+        p->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;
+        p->secondaryQty    = 0;
+        // The M4A1 grenade launcher has a reloadable secondary slot.
+        if (i == 0x9A - EQUIPMENT_WEAPON_ITEM_FIRST) {
+            p->secondaryItemId = INVENTORY_ITEM_NONE;
+            p->secondaryQty    = 0;
         }
         p->field_4 = 0;
         p++;
@@ -570,7 +571,7 @@ void Gp_SyncHeldRelated(void)
         p->weaponSlotItem = 0;
     } else {
         idx  = p->weapon + 0x7F;
-        item = gpItemSlot(idx)->ammoId;
+        item = gpItemSlot(idx)->primaryItemId;
         if (item == 0) {
             p->weaponSlotItem = 0;
         } else {

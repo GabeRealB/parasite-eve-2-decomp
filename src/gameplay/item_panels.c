@@ -680,8 +680,8 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     GpUseCreatePair*          p;
     GpUseCreatePair*          q;
     GpUseCreatePair*          start;
-    McItemSlot*               slotSrc;
-    McItemSlot*               slotDst;
+    EquipmentWeaponLoad*      slotSrc;
+    EquipmentWeaponLoad*      slotDst;
     InventoryItemRow*         rec;
     PlayerStatus*             cfg;
 
@@ -776,10 +776,10 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
             rec->itemId = result;
             Gp_ClearEquipSlotSel(result, 0);
-            slotDst->ammoId = slotSrc->ammoId;
-            Gp_EquipRelatedItem(scanInit, result, slotDst->ammoId, slotSrc->ammoQty);
-            if ((extra == 0) && (slotDst->attachId == slotSrc->attachId)) {
-                slotDst->attachQty = slotSrc->attachQty;
+            slotDst->primaryItemId = slotSrc->primaryItemId;
+            Gp_EquipRelatedItem(scanInit, result, slotDst->primaryItemId, slotSrc->primaryQty);
+            if ((extra == 0) && (slotDst->secondaryItemId == slotSrc->secondaryItemId)) {
+                slotDst->secondaryQty = slotSrc->secondaryQty;
             }
             Gp_ClearEquipSlotSel(src, 0);
             if (cfg->weapon == (src - 0x7F)) {

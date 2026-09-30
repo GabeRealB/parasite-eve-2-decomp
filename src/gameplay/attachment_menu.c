@@ -194,18 +194,18 @@ const u8 Gp_StrWrongAmmo2[] = "You do not have the correct ammo.";
 
 void Gp_AttachListTask(Task* task)
 {
-    UiList*     menu;
-    UiObject*   obj;
-    s32         val;
-    s32         one;
-    s32         state;
-    McItemSlot* slot;
-    u8          temp;
-    Task*       child;
-    Task*       next;
-    Task*       head;
-    UiObject*   childObj;
-    s32         flag;
+    UiList*              menu;
+    UiObject*            obj;
+    s32                  val;
+    s32                  one;
+    s32                  state;
+    EquipmentWeaponLoad* slot;
+    u8                   temp;
+    Task*                child;
+    Task*                next;
+    Task*                head;
+    UiObject*            childObj;
+    s32                  flag;
 
     obj           = task->spawnArg2.pointer;
     val           = (u16)task->spawnArg1.value;
@@ -229,13 +229,13 @@ void Gp_AttachListTask(Task* task)
                     if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
                         task->state = 3;
                     } else if (val == 0x95) {
-                        if (slot->ammoQty != 0) {
+                        if (slot->primaryQty != 0) {
                             task->state = 3;
                         }
                     } else {
-                        temp = slot->attachId;
-                        if ((temp != 0xFF) && (temp != 0)) {
-                            if (slot->attachQty != 0) {
+                        temp = slot->secondaryItemId;
+                        if ((temp != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (temp != INVENTORY_ITEM_NONE)) {
+                            if (slot->secondaryQty != 0) {
                                 task->state = 3;
                             }
                         }
@@ -518,16 +518,16 @@ draw:
 
 void Gp_ReloadPromptTask(Task* arg0)
 {
-    UiObject*   obj;
-    u8*         text;
-    s32         lo;
-    s32         hi;
-    s32         width;
-    s32         other;
-    s32         rows;
-    s32         color;
-    s32         one;
-    McItemSlot* slot;
+    UiObject*            obj;
+    u8*                  text;
+    s32                  lo;
+    s32                  hi;
+    s32                  width;
+    s32                  other;
+    s32                  rows;
+    s32                  color;
+    s32                  one;
+    EquipmentWeaponLoad* slot;
 
     obj           = arg0->spawnArg2.pointer;
     lo            = arg0->spawnArg1.value & 0xFF;
@@ -539,17 +539,17 @@ void Gp_ReloadPromptTask(Task* arg0)
             slot        = Gp_GetItemSlot(hi);
             arg0->state = 0x10;
             if (Gp_ReloadMode == 1) {
-                if (slot->ammoId != 0) {
-                    arg0->spawnArg1.value |= slot->ammoId;
-                    text                   = Gp_GetItemText(slot->ammoId, 0, 0);
+                if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
+                    arg0->spawnArg1.value |= slot->primaryItemId;
+                    text                   = Gp_GetItemText(slot->primaryItemId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;
                 }
             } else if (Gp_ReloadMode == 2) {
-                if (slot->attachId != 0) {
-                    arg0->spawnArg1.value |= slot->attachId;
-                    text                   = Gp_GetItemText(slot->attachId, 0, 0);
+                if (slot->secondaryItemId != INVENTORY_ITEM_NONE) {
+                    arg0->spawnArg1.value |= slot->secondaryItemId;
+                    text                   = Gp_GetItemText(slot->secondaryItemId, 0, 0);
                 } else {
                     arg0->state = 0x20;
                     text        = Gp_StrRemovedAmmo;

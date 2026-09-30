@@ -404,7 +404,7 @@ void Gp_MenuRootTask(Task* arg0)
             D_80114DE8 = cfg->weapon;
             D_80114DE4 = cfg->weaponSlotItem;
             if (cfg->weapon != 0) {
-                D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
+                D_80114DE0 = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             Gp_AgeFlag119Void();
             arg0->killCountdown = 1;
@@ -508,7 +508,7 @@ void Gp_MenuRootTask(Task* arg0)
         case 0x32: {
             DisplayState* disp;
             PlayerStatus* cfg;
-            s32           attach;
+            s32           secondaryItemId;
             s32           old;
             TaskNode*     list;
             TaskNode*     prev;
@@ -537,15 +537,15 @@ void Gp_MenuRootTask(Task* arg0)
             if (D_80114D88 == 1) {
                 Gp_LoadViewAndCd(1);
             }
-            attach = -1;
+            secondaryItemId = -1;
             Mem_InitAux();
             cfg = &Player_Status;
             Gp_SyncHeldRelated();
             if (cfg->weapon != 0) {
-                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
+                secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 == cfg->weapon) && (D_80114DE4 == cfg->weaponSlotItem) &&
-                (D_80114DE0 == attach)) {
+                (D_80114DE0 == secondaryItemId)) {
                 break;
             }
             prev = Task_GetActiveList();
@@ -566,20 +566,20 @@ void Gp_MenuRootTask(Task* arg0)
         }
         case 0x3C: {
             PlayerStatus* cfg;
-            s32           attach;
+            s32           secondaryItemId;
             TaskNode*     prev;
             s32*          flag;
 
             if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
                 return;
             }
-            cfg    = &Player_Status;
-            attach = -1;
+            cfg             = &Player_Status;
+            secondaryItemId = -1;
             if (cfg->weapon != 0) {
-                attach = Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId;
+                secondaryItemId = Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId;
             }
             if ((D_80114DE8 != cfg->weapon) || (D_80114DE4 != cfg->weaponSlotItem) ||
-                (D_80114DE0 != attach)) {
+                (D_80114DE0 != secondaryItemId)) {
                 prev = Task_GetActiveList();
                 Task_SetActiveList(&gTaskDefaultList);
                 flag  = &D_8005ED8C;

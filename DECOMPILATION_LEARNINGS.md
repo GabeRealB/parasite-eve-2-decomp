@@ -28504,10 +28504,10 @@ instead. The pointer then falls into `$a2` and keeps the `$v1` sequence:
 
 ```c
 register s32 found asm("a3");
-GpItemSlot*  slot;
+EquipmentWeaponLoad*  slot;
 
 found = 0;
-slot  = &((GpItemSlot*)((s32)Mc_SaveData.weaponItems - 0x400))[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
+slot  = &((EquipmentWeaponLoad*)((s32)Mc_SaveData[0].state.weaponItems - 0x400))[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
 ```
 
 `Gp_ClearEquipSlot` is the example. Pinning `slot` to `$a2` stuck at 99.6%
@@ -30157,12 +30157,12 @@ is also `$a0` of a later call.
 ## Reuse the id `$s0` as the lookup pointer; compare the next field first
 
 An item id that later becomes the `Gp_GetItemSlot` result wants to stay
-in `$s0`. A separate `GpItemSlot* slot` takes `$s2` and parks the id
+in `$s0`. A separate `EquipmentWeaponLoad* slot` takes `$s2` and parks the id
 fields in `$s0`. Assign the pointer back into the same `s32`:
 
 ```c
 item   = (s32)Gp_GetItemSlot(item);
-attach = ((GpItemSlot*)item)->ammoId;
+loadedItemId = ((EquipmentWeaponLoad*)item)->primaryItemId;
 ```
 
 A second byte compared against a non-zero constant then assigned to the
@@ -30178,9 +30178,9 @@ beq   v1, v0, skip
 ```
 
 ```c
-if (slot->attachId != 0xFF) {
-    attach = slot->attachId;
-    count  = slot->attachQty;
+if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+    loadedItemId = slot->secondaryItemId;
+    count  = slot->secondaryQty;
 }
 ```
 
@@ -32030,7 +32030,7 @@ slot. Pin the pointer to `$a0` and force the subtract source through a
 temp:
 
 ```c
-register GpItemSlot* slot asm("a0");
+register EquipmentWeaponLoad* slot asm("a0");
 
 slot = Gp_GetItemSlot(item + 0x7F);
 asm volatile("" : "+r"(slot));
@@ -32672,8 +32672,8 @@ To get `move a0, id` *before* `move s0, v0` after a prior `jal`, keep
 the return in a `$v0`-pinned temp and copy it after reloading `$a0`:
 
 ```c
-register GpItemSlot* ret asm("v0");
-register GpItemSlot* slot asm("s0");
+register EquipmentWeaponLoad* ret asm("v0");
+register EquipmentWeaponLoad* slot asm("s0");
 register s32         a0id asm("a0");
 PlayerStatus*        cfg;
 
@@ -35156,7 +35156,7 @@ before `slti` with `asm volatile("" : "+r"(slot))`, then assign the compare
 into the count so they share `$v0`:
 
 ```c
-register GpItemSlot* slot asm("v1");
+register EquipmentWeaponLoad* slot asm("v1");
 register s32         n asm("v0");
 
 slot = func(id);
@@ -145912,9 +145912,9 @@ together; they do not establish that the remaining constraints are redundant.
 
 ## Re-reading a guarded byte field can preserve both a pointer copy and a value copy (Gp_EnqueueWeaponCd, 2026-09-27)
 
-Replacing a cached attachment value with
-`if (slot->attachId != 0 && slot->attachId != 0xFF)` followed by
-`attach = slot->attachId - 0x9F` removes an `a0` pointer pin and two
+Replacing a cached secondary consumable id with
+`if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE)` followed by
+`attach = slot->secondaryItemId - 0x9F` removes an `a0` pointer pin and two
 `TOUCH_REG` sites while retaining a 100.000% match. Caching the byte in an
 `s32` before the guard instead scores 98.441%, missing two copies.
 

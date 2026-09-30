@@ -903,24 +903,24 @@ static void Shop_NoticeTask(Task* task)
 }
 
 /// The charge panel: steps through the mapped item slots, refilling each
-/// slot's ammo or attachment quantity to its related quantity and animating a
+/// slot's primary or secondary supply to its capacity and animating a
 /// bar from the old value up to the new one for at most 0xBC frames. Confirm
 /// or cancel (or the timer running out) moves to the next slot; running out of
 /// slots reports 6 to the parent.
 static void Shop_ChargeTask(Task* task)
 {
-    UiObject*   obj;
-    GpItemMap*  map;
-    McItemSlot* slot;
-    s32         slotId;
-    s32         itemId;
-    s32         curItem;
-    s32         relItem;
-    s32         qty;
-    s32         y;
-    s32         h;
-    s32         status;
-    s16         countdown;
+    UiObject*            obj;
+    GpItemMap*           map;
+    EquipmentWeaponLoad* slot;
+    s32                  slotId;
+    s32                  itemId;
+    s32                  curItem;
+    s32                  relItem;
+    s32                  qty;
+    s32                  y;
+    s32                  h;
+    s32                  status;
+    s16                  countdown;
 
     obj           = task->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -941,11 +941,11 @@ static void Shop_ChargeTask(Task* task)
             itemId             = map->field_1;
             slot               = Gp_GetItemSlot(itemId);
             if (Shop_Data_8018762C->field_0 == 0) {
-                Shop_Data_80187628 = slot->ammoQty;
-                slot->ammoQty      = Gp_GetRelatedQty(itemId, 0);
+                Shop_Data_80187628 = slot->primaryQty;
+                slot->primaryQty   = Gp_GetRelatedQty(itemId, 0);
             } else {
-                Shop_Data_80187628 = slot->attachQty;
-                slot->attachQty    = Gp_GetRelatedQty(itemId, 1);
+                Shop_Data_80187628 = slot->secondaryQty;
+                slot->secondaryQty = Gp_GetRelatedQty(itemId, 1);
             }
             task->killCountdown  = 0xBC;
             Shop_Data_80187628 <<= 8;

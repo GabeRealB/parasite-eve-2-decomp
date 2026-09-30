@@ -21,8 +21,9 @@ STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 /// `related` holds the item ids the weapon accepts, searched in order
 /// (`Gp_BuildAttachList` / `Gp_NthRelatedId` / `Gp_NthStockRelated` /
 /// `Gp_EquipRelatedBank` / `Gp_EquipRelatedItem`).
-/// `Gp_RelatedQty0` is the first `McItemSlot` pair (arg0 == 0);
-/// `Gp_RelatedQty1` is the second.
+/// `Gp_RelatedQty0` describes `EquipmentWeaponLoad::primaryItemId` and
+/// `primaryQty` (arg0 == 0); `Gp_RelatedQty1` describes `secondaryItemId` and
+/// `secondaryQty`.
 /// `Gp_QtyById0` / `Gp_QtyById1` are the same tables indexed by raw item id
 /// (`Gp_RelatedQty0` is `Gp_QtyById0 + 0x200`).
 typedef struct _GpItemQty {

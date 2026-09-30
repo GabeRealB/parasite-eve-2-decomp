@@ -73,7 +73,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
     GfxCoord*              coord;
     GfxCoord*              spot;
     const AnimationRecord* rec;
-    McItemSlot*            slot;
+    EquipmentWeaponLoad*   slot;
     s32                    anim;
     s32                    delay;
     s32                    sfx;
@@ -87,7 +87,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
        two uses in separate registers. */
     SCRATCH_PUSH_BYTES(0x50);
     spot = SCRATCH_HEAD(GfxCoord);
-    sfx  = slot->attachId - 0x9F;
+    sfx  = slot->secondaryItemId - 0x9F;
     if (sfx < 0) {
         sfx = 0xA;
     }
@@ -294,16 +294,16 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
 /// clear detonates on `field_2` and otherwise hands the task to state 3.
 static void func_m4a1_grenade_8011D994(Task* arg0)
 {
-    M4a1GrenadeScratch* blk;
-    WeaponGrenadeWork*  work;
-    GfxCoord*           coord;
-    McItemSlot*         slot;
-    GpRoomParamRec*     param;
-    s32                 idx;
-    s32                 clip;
-    s32                 step;
-    s32                 sfxbase;
-    s32                 sfxarg;
+    M4a1GrenadeScratch*  blk;
+    WeaponGrenadeWork*   work;
+    GfxCoord*            coord;
+    EquipmentWeaponLoad* slot;
+    GpRoomParamRec*      param;
+    s32                  idx;
+    s32                  clip;
+    s32                  step;
+    s32                  sfxbase;
+    s32                  sfxarg;
 
     work                = (WeaponGrenadeWork*)arg0->work;
     coord               = arg0->extra.tmd->coords;
@@ -312,7 +312,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (Gp_CountRec18Hi(work->rec0, 0x30000) != 0) {
     explode:
-        blk->sfx = slot->attachId - 0x9F;
+        blk->sfx = slot->secondaryItemId - 0x9F;
         if (blk->sfx < 0) {
             blk->sfx = 0xA;
         }

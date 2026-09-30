@@ -881,7 +881,7 @@ void func_800B8014(void)
     McSaveData*          save;
     GpItemDesc*          desc;
     u8*                  str;
-    McItemSlot*          slots;
+    EquipmentWeaponLoad* slots;
     InventoryItemRange*  scan;
     InventoryItemRange** scans;
     PlayerStatus*        cfg;
@@ -923,14 +923,15 @@ void func_800B8014(void)
     } while (i < 0x180);
     Gp_ClearCollectedBits();
     slots = Mc_SaveData[0].state.weaponItems;
-    for (j = 0; j < 0x20; j++) {
-        slots->ammoId    = 0;
-        slots->ammoQty   = 0;
-        slots->attachId  = 0xFF;
-        slots->attachQty = 0;
-        if (j == 0x1A) {
-            slots->attachId  = 0;
-            slots->attachQty = 0;
+    for (j = 0; j < (s32)ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); j++) {
+        slots->primaryItemId   = INVENTORY_ITEM_NONE;
+        slots->primaryQty      = 0;
+        slots->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;
+        slots->secondaryQty    = 0;
+        // The M4A1 grenade launcher has a reloadable secondary slot.
+        if (j == 0x9A - EQUIPMENT_WEAPON_ITEM_FIRST) {
+            slots->secondaryItemId = INVENTORY_ITEM_NONE;
+            slots->secondaryQty    = 0;
         }
         slots->field_4 = 0;
         slots++;

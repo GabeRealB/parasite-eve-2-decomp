@@ -396,20 +396,20 @@ void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 
 static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 {
-    u8            buf[0x10];
-    UiObject      obj;
-    TextDrawReq   req;
-    TextDrawReq   req2;
-    RECT          rect;
-    PlayerStatus* cfg;
-    McItemSlot*   slot;
-    s32           item;
-    s32           count2;
-    s32           count1;
-    s32           height;
-    s32           flag;
-    s32           xBase;
-    s32           y;
+    u8                   buf[0x10];
+    UiObject             obj;
+    TextDrawReq          req;
+    TextDrawReq          req2;
+    RECT                 rect;
+    PlayerStatus*        cfg;
+    EquipmentWeaponLoad* slot;
+    s32                  item;
+    s32                  count2;
+    s32                  count1;
+    s32                  height;
+    s32                  flag;
+    s32                  xBase;
+    s32                  y;
 
     cfg    = &Player_Status;
     slot   = Gp_GetItemSlot(cfg->weapon + 0x7F);
@@ -430,9 +430,9 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (item == 0x92) {
         return;
     }
-    count1 = slot->ammoQty;
-    if (slot->attachId != 0 && slot->attachId != 0xFF) {
-        count2 = slot->attachQty;
+    count1 = slot->primaryQty;
+    if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+        count2 = slot->secondaryQty;
     }
     height               = 0xE;
     flag                 = 0;
@@ -441,7 +441,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     obj.panel.field_14.s = -3;
     obj.panel.field_8    = 0;
     xBase                = 0x5F;
-    if (slot->attachId != 0xFF) {
+    if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         height = 0x18;
     }
     y = 0x64 - height;
@@ -459,13 +459,13 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
             DRAW_PROMPT_LABEL(req, 6, y, 0x506030, D_80093898);
         }
     }
-    if (slot->ammoId != 0) {
+    if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
         DRAW_PROMPT_COUNT(req, y, count1);
     } else {
         flag = 1;
     }
     Ui_LayoutWithMode0(&obj, 0x79, (y + 4), 0x1B, 7, 0x102010);
-    if (slot->attachId != 0xFF) {
+    if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         flag = 0;
         y   += 0xA;
         if (Mc_SaveData[0].state.buttonLayout != 2) {
@@ -473,7 +473,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
         } else {
             DRAW_PROMPT_LABEL(req2, 6, y, 0x506030, D_80093898);
         }
-        if (slot->attachId != 0) {
+        if (slot->secondaryItemId != INVENTORY_ITEM_NONE) {
             DRAW_PROMPT_COUNT(req2, y, count2);
         } else {
             flag = 1;

@@ -78,42 +78,42 @@ GpItemMap          Gp_ItemMaps[8] = {
 
 void Gp_ApplyItemMap(void)
 {
-    s32         i;
-    GpItemMap*  map;
-    McItemSlot* slot;
-    s32         id;
+    s32                  i;
+    GpItemMap*           map;
+    EquipmentWeaponLoad* slot;
+    s32                  id;
 
     for (i = 0; i < 8; i++) {
         map  = &Gp_ItemMaps[i];
         id   = map->field_1;
         slot = gpItemSlot(id);
         if (map->field_0 == 0) {
-            slot->ammoId  = map->field_2;
-            slot->ammoQty = _gpRelatedQty(id, 0);
+            slot->primaryItemId = map->field_2;
+            slot->primaryQty    = _gpRelatedQty(id, 0);
         } else {
-            slot->attachId  = map->field_2;
-            slot->attachQty = _gpRelatedQty(id, 1);
+            slot->secondaryItemId = map->field_2;
+            slot->secondaryQty    = _gpRelatedQty(id, 1);
         }
     }
 }
 
 s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 {
-    McItemSlot* slot;
-    s32*        counter;
-    McSaveData* save;
-    s32         count;
+    EquipmentWeaponLoad* slot;
+    s32*                 counter;
+    McSaveData*          save;
+    s32                  count;
 
-    slot    = &Mc_SaveData[0].state.weaponItems[arg0 - 0x80];
+    slot    = &Mc_SaveData[0].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
     counter = &Mc_SaveData[0].state.weaponUseCounts[arg0 - 0x80];
 
     if (arg1 == 1) {
-        if (slot->ammoId != 0) {
-            count = slot->ammoQty;
+        if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
+            count = slot->primaryQty;
             if (count != 0) {
                 if (Mc_SaveData[0].state.cheatMode == 0) {
-                    slot->ammoQty = count - 1;
-                    Gp_ConsumeScanQty(&Mc_SaveData[0].state.carriedItems, slot->ammoId, 1);
+                    slot->primaryQty = count - 1;
+                    Gp_ConsumeScanQty(&Mc_SaveData[0].state.carriedItems, slot->primaryItemId, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -124,15 +124,15 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
         }
     }
     if (arg1 == 0x101) {
-        count = slot->attachId;
+        count = slot->secondaryItemId;
         if (count != 0) {
-            if (count != 0xFF) {
-                count = slot->attachQty;
+            if (count != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                count = slot->secondaryQty;
                 if (count != 0) {
                     save = &Mc_SaveData[0];
                     if (save->state.cheatMode == 0) {
-                        slot->attachQty = count - 1;
-                        Gp_ConsumeScanQty(&save->state.carriedItems, slot->attachId, 1);
+                        slot->secondaryQty = count - 1;
+                        Gp_ConsumeScanQty(&save->state.carriedItems, slot->secondaryItemId, 1);
                         count = *counter;
                         if (count <= 0xF423E) {
                             *counter = count + 1;
@@ -145,21 +145,21 @@ s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 
 done:
     if (!(arg1 & 0x100)) {
-        return slot->ammoQty;
+        return slot->primaryQty;
     }
-    return slot->attachQty;
+    return slot->secondaryQty;
 }
 
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32                 index;
-    InventoryItemRow*   table;
-    InventoryItemRange* scan;
-    McItemSlot*         slot;
-    GpItemQty*          row;
-    s32                 maxQty;
-    s32                 have;
-    s32                 i;
+    s32                  index;
+    InventoryItemRow*    table;
+    InventoryItemRange*  scan;
+    EquipmentWeaponLoad* slot;
+    GpItemQty*           row;
+    s32                  maxQty;
+    s32                  have;
+    s32                  i;
 
     scan  = &Mc_SaveData[0].state.carriedItems;
     table = Gp_GetItemTable(scan);
@@ -191,15 +191,15 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = scan->firstRow;
-    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
     have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
     have -= Gp_CountEquippedRelated(scan, arg2);
     if (arg0 == 0) {
-        if (slot->ammoId == arg2) {
-            have += slot->ammoQty;
+        if (slot->primaryItemId == arg2) {
+            have += slot->primaryQty;
         }
-    } else if (slot->attachId == arg2) {
-        have += slot->attachQty;
+    } else if (slot->secondaryItemId == arg2) {
+        have += slot->secondaryQty;
     }
     if (have <= 0) {
         return -1;
@@ -209,11 +209,11 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             arg3 = have;
         }
         if (arg0 == 0) {
-            slot->ammoId  = arg2;
-            slot->ammoQty = arg3;
-        } else if (slot->attachId != 0xFF) {
-            slot->attachId  = arg2;
-            slot->attachQty = arg3;
+            slot->primaryItemId = arg2;
+            slot->primaryQty    = arg3;
+        } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            slot->secondaryItemId = arg2;
+            slot->secondaryQty    = arg3;
         } else {
             arg3 = -1;
         }
@@ -224,14 +224,14 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32               index;
-    InventoryItemRow* table;
-    McItemSlot*       slot;
-    GpItemQty*        row;
-    s32               maxQty;
-    s32               have;
-    s32               useSecond;
-    s32               i;
+    s32                  index;
+    InventoryItemRow*    table;
+    EquipmentWeaponLoad* slot;
+    GpItemQty*           row;
+    s32                  maxQty;
+    s32                  have;
+    s32                  useSecond;
+    s32                  i;
 
     table     = Gp_GetItemTable(arg0);
     useSecond = 0;
@@ -268,14 +268,14 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = maxQty;
     }
     index = arg0->firstRow;
-    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - 0x80];
+    slot  = &Mc_SaveData[0].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
     have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
     have -= Gp_CountEquippedRelated(arg0, arg2);
-    if (slot->ammoId == arg2) {
-        have += slot->ammoQty;
+    if (slot->primaryItemId == arg2) {
+        have += slot->primaryQty;
     }
-    if (slot->attachId == arg2) {
-        have += slot->attachQty;
+    if (slot->secondaryItemId == arg2) {
+        have += slot->secondaryQty;
     }
     if (have <= 0) {
         return -1;
@@ -285,11 +285,11 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
             arg3 = have;
         }
         if (useSecond == 0) {
-            slot->ammoId  = arg2;
-            slot->ammoQty = arg3;
-        } else if (slot->attachId != 0xFF) {
-            slot->attachId  = arg2;
-            slot->attachQty = arg3;
+            slot->primaryItemId = arg2;
+            slot->primaryQty    = arg3;
+        } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            slot->secondaryItemId = arg2;
+            slot->secondaryQty    = arg3;
         }
     } else {
         asm volatile("" : "=r"(arg3));

@@ -100,31 +100,31 @@ GpEdgePair Gp_FaceEdgePairs[5] = {
 
 static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 {
-    PlayerStatus*       cfg;
-    GameActor*          actor;
-    InventoryItemRange* scanEquip;
-    InventoryItemRange* scanQty;
-    InventoryItemRange* scanRel;
-    InventoryItemRange* scanFree;
-    InventoryItemRange* scanId;
-    McItemSlot*         slot;
-    InventoryItemRow*   table;
-    InventoryItemRow*   rec;
-    InventoryItemRow*   found;
-    s32                 id;
-    s32                 ret;
-    s32                 flag;
-    s32                 i;
-    u8                  count;
-    s32                 held;
-    s32                 prevId;
-    s32                 relId;
-    s32                 qty;
-    s32                 k;
-    s32                 avail;
-    s32                 slotNum;
-    s32                 attachmentSlot;
-    InventoryItemRow*   hit;
+    PlayerStatus*        cfg;
+    GameActor*           actor;
+    InventoryItemRange*  scanEquip;
+    InventoryItemRange*  scanQty;
+    InventoryItemRange*  scanRel;
+    InventoryItemRange*  scanFree;
+    InventoryItemRange*  scanId;
+    EquipmentWeaponLoad* slot;
+    InventoryItemRow*    table;
+    InventoryItemRow*    rec;
+    InventoryItemRow*    found;
+    s32                  id;
+    s32                  ret;
+    s32                  flag;
+    s32                  i;
+    u8                   count;
+    s32                  held;
+    s32                  prevId;
+    s32                  relId;
+    s32                  qty;
+    s32                  k;
+    s32                  avail;
+    s32                  slotNum;
+    s32                  attachmentSlot;
+    InventoryItemRow*    hit;
 
     ret   = 0;
     flag  = 1;
@@ -165,27 +165,27 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
             if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
                 Gp_PendingRelatedId = id;
                 Gp_RelatedPending   = flag;
-                relId               = slot->ammoId;
+                relId               = slot->primaryItemId;
                 if (relId != id) {
                     cfg->weaponSlotItem = id + 0x61;
-                    slot->ammoId        = id;
-                    slot->ammoQty       = 0;
+                    slot->primaryItemId = id;
+                    slot->primaryQty    = 0;
                 }
                 Gp_SetItemSeenBit(id, 1);
                 ret = 1;
             } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
                 Gp_PendingRelatedId = -id;
                 Gp_RelatedPending   = flag;
-                relId               = slot->attachId;
+                relId               = slot->secondaryItemId;
                 if (relId != id) {
-                    slot->attachId  = id;
-                    slot->attachQty = 0;
+                    slot->secondaryItemId = id;
+                    slot->secondaryQty    = 0;
                 }
                 Gp_SetItemSeenBit(id, 1);
                 ret = 1;
             }
 
-            if (relId != 0 && relId != 0xFF) {
+            if (relId != INVENTORY_ITEM_NONE && relId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
                 scanQty = &Mc_SaveData[0].state.carriedItems;
                 qty     = Gp_ScanStackQty(scanQty, relId);
                 qty    -= Gp_CountEquippedRelated(scanQty, relId);

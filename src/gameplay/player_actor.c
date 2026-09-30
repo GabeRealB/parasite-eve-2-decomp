@@ -7675,7 +7675,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
             if (rec != NULL && rec != actor->field_92C) {
                 actor->field_92C = rec;
                 if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->attachId;
+                    item = Gp_GetItemSlot(Player_Status.weapon + 0x7F)->secondaryItemId;
                     if (item - 0x9F > 0) {
                         variant = ((item - 0xA0) % 3) << 24;
                     }
@@ -8930,7 +8930,7 @@ static void func_801095BC(s32* arg0)
 
     p = &Player_Status;
     if (p->weapon == 0x1B) {
-        *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->attachId - 0x9F;
+        *arg0 = Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId - 0x9F;
         if (*arg0 < 0) {
             *arg0 = 0xA;
         }

@@ -84,7 +84,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 /// the save and always count as seen. Inline form of `Gp_HasItemSeenBit`.
 static inline s32 _gpHasItemSeenBit(s32 item);
 
-/// Empties the ammunition and attachment of weapon item `item`, the same clear
+/// Empties the removable consumable loads of weapon item `item`, the same clear
 /// `Gp_ClearEquipSlot` performs.
 static inline void _gpClearEquipSlot(s32 item);
 
@@ -862,19 +862,19 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     return table[idx].itemId;
 }
 
-/// Empties the ammunition and attachment of weapon item `item`, the same clear
+/// Empties the removable consumable loads of weapon item `item`, the same clear
 /// `Gp_ClearEquipSlot` performs.
 static inline void _gpClearEquipSlot(s32 item)
 {
-    McItemSlot* slot;
-    s32         found = 0;
-    s32         i;
+    EquipmentWeaponLoad* slot;
+    s32                  found = 0;
+    s32                  i;
 
     if ((u32)(item - 0x80) >= 0x20) {
         return;
     }
 
-    slot = &Mc_SaveData[0].state.weaponItems[item - 0x80];
+    slot = &Mc_SaveData[0].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < 8; i++) {
         if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -883,15 +883,15 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 0)) {
-        slot->ammoId  = 0;
-        slot->ammoQty = 0;
+        slot->primaryItemId = INVENTORY_ITEM_NONE;
+        slot->primaryQty    = 0;
     }
 
     if ((found == 0) || (Gp_ItemMaps[i].field_0 != 1)) {
-        if (slot->attachId != 0xFF) {
-            slot->attachId = 0;
+        if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+            slot->secondaryItemId = INVENTORY_ITEM_NONE;
         }
-        slot->attachQty = 0;
+        slot->secondaryQty = 0;
     }
 }
 

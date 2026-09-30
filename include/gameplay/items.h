@@ -58,7 +58,7 @@ void Gp_ClearScanItems(InventoryItemRange* arg0);
 
 s32 Gp_CountScanItems(InventoryItemRange* arg0);
 
-McItemSlot* Gp_GetItemSlot(s32 arg0);
+EquipmentWeaponLoad* Gp_GetItemSlot(s32 arg0);
 
 s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1);
 

@@ -60,14 +60,15 @@ static inline void _gpSetSpawnOffset(UiObject* obj, s32 x, s32 y);
 
 /// Sets the weapon menu's row count from the current weapon's item: one row
 /// for weapon index 0 and for item 0x92, otherwise three when the item's
-/// slot has an attachment (`attachId` != 0xFF) and two when it does not.
+/// load supports a secondary consumable slot (`secondaryItemId` !=
+/// `EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE`) and two when it does not.
 static inline void _gpWeaponMenuSetRows(UiList* menu);
 
 /// Keeps the armor attachment selection within the visible rows and item count.
 static inline void _gpClampArmorRow(UiList* menu, s32 end);
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
-/// or attachment loaded in the equipped weapon.
+/// Whether item `id` is the equipped weapon, the equipped armour, or a
+/// consumable selected in either firing mode of the equipped weapon.
 static inline s32 _gpIsEquippedItem(s32 id);
 
 char Gp_StrEmpty[]     = "";
@@ -951,12 +952,12 @@ void Gp_PeGridPanelTask(Task* arg0)
 
 void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    TextDrawReq req;
-    McItemSlot* slot;
-    s32         item;
-    s32         color;
-    s32         attach;
-    s32         count;
+    TextDrawReq          req;
+    EquipmentWeaponLoad* slot;
+    s32                  item;
+    s32                  color;
+    s32                  loadedItemId;
+    s32                  count;
 
     item = Player_Status.weapon;
     if (item > 0) {
@@ -977,21 +978,21 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     arg2 += 0x13;
     if (item > 0) {
         if (item != 0x92) {
-            slot   = Gp_GetItemSlot(item);
-            attach = slot->ammoId;
-            count  = slot->ammoQty;
-            if (attach != 0) {
+            slot         = Gp_GetItemSlot(item);
+            loadedItemId = slot->primaryItemId;
+            count        = slot->primaryQty;
+            if (loadedItemId != 0) {
                 Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
             }
-            Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
-            if (slot->attachId != 0xFF) {
-                attach = slot->attachId;
-                count  = slot->attachQty;
-                arg2  += 0x10;
-                if (attach != 0) {
+            Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
+            if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+                loadedItemId = slot->secondaryItemId;
+                count        = slot->secondaryQty;
+                arg2        += 0x10;
+                if (loadedItemId != 0) {
                     Gp_DrawQty(PARENT_OF(arg0, UiObject, panel), arg1, arg2, count, color);
                 }
-                Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, attach, color, 0);
+                Gp_DrawItemNameRow(PARENT_OF(arg0, UiObject, panel), arg1, arg2, loadedItemId, color, 0);
             }
         }
     }
@@ -999,15 +1000,15 @@ void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
-    u8            buf[2];
-    TextDrawReq   req;
-    s32           equipped;
-    s32           hasMod;
-    PlayerStatus* cfg;
-    McItemSlot*   slot;
-    s32           color;
-    s32           x;
-    s32           y;
+    u8                   buf[2];
+    TextDrawReq          req;
+    s32                  equipped;
+    s32                  hasMod;
+    PlayerStatus*        cfg;
+    EquipmentWeaponLoad* slot;
+    s32                  color;
+    s32                  x;
+    s32                  y;
 
     equipped = 0;
     cfg      = &Player_Status;
@@ -1016,8 +1017,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->weapon == (arg3 - 0x7F))) ||
         (((u32)(arg3 - 0x60) < 0x20U) && (cfg->armor == (arg3 - 0x5F))) ||
         (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->weapon != 0) &&
-         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->ammoId == arg3) ||
-          (Gp_GetItemSlot(cfg->weapon + 0x7F)->attachId == arg3)))) {
+         ((Gp_GetItemSlot(cfg->weapon + 0x7F)->primaryItemId == arg3) ||
+          (Gp_GetItemSlot(cfg->weapon + 0x7F)->secondaryItemId == arg3)))) {
         equipped = 1;
     }
     if (equipped != 0) {
@@ -1037,8 +1038,8 @@ void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         hasMod = 0;
         if ((u32)(arg3 - 0x80) < 0x20U) {
             slot = Gp_GetItemSlot(arg3);
-            if (((slot->ammoQty != 0) && (Gp_FindItemById(slot->ammoId) != NULL)) ||
-                ((slot->attachQty != 0) && (Gp_FindItemById(slot->attachId) != NULL))) {
+            if (((slot->primaryQty != 0) && (Gp_FindItemById(slot->primaryItemId) != NULL)) ||
+                ((slot->secondaryQty != 0) && (Gp_FindItemById(slot->secondaryItemId) != NULL))) {
                 hasMod = 1;
             }
         }
@@ -1715,17 +1716,17 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         } qty;
         TextDrawReq name;
     } draw;
-    s32               item;
-    s32               count;
-    s32               weapon;
-    s32               status;
-    s32               rowState;
-    s32               mode;
-    McItemSlot*       slot;
-    InventoryItemRow* rec;
-    UiObject*         child;
-    Task*             parent;
-    UiObject*         parentObj;
+    s32                  item;
+    s32                  count;
+    s32                  weapon;
+    s32                  status;
+    s32                  rowState;
+    s32                  mode;
+    EquipmentWeaponLoad* slot;
+    InventoryItemRow*    rec;
+    UiObject*            child;
+    Task*                parent;
+    UiObject*            parentObj;
 
     item   = 0;
     count  = 0;
@@ -1733,11 +1734,11 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
     if (weapon >= 0x80) {
         slot = Gp_GetItemSlot(weapon);
         if (prompt->field_8 == 1) {
-            item  = slot->ammoId;
-            count = slot->ammoQty;
+            item  = slot->primaryItemId;
+            count = slot->primaryQty;
         } else {
-            item  = slot->attachId;
-            count = slot->attachQty;
+            item  = slot->secondaryItemId;
+            count = slot->secondaryQty;
         }
     }
     status = obj->panel.field_0.w;
@@ -1853,17 +1854,18 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
 
 /// Sets the weapon menu's row count from the current weapon's item: one row
 /// for weapon index 0 and for item 0x92, otherwise three when the item's
-/// slot has an attachment (`attachId` != 0xFF) and two when it does not.
+/// load supports a secondary consumable slot (`secondaryItemId` !=
+/// `EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE`) and two when it does not.
 static inline void _gpWeaponMenuSetRows(UiList* menu)
 {
-    s32         id;
-    McItemSlot* slot;
+    s32                  id;
+    EquipmentWeaponLoad* slot;
 
     id   = Player_Status.weapon + 0x7F;
     slot = Gp_GetItemSlot(id);
     if (id < 0x80 || id == 0x92) {
         menu->field_4 = 1;
-    } else if (slot->attachId != 0xFF) {
+    } else if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
         menu->field_4 = 3;
     } else {
         menu->field_4 = 2;
@@ -2583,8 +2585,8 @@ void Gp_ArmorMenuTask(Task* arg0)
     }
 }
 
-/// Whether item `id` is the equipped weapon, the equipped armour, or the ammo
-/// or attachment loaded in the equipped weapon.
+/// Whether item `id` is the equipped weapon, the equipped armour, or a
+/// consumable selected in either firing mode of the equipped weapon.
 static inline s32 _gpIsEquippedItem(s32 id)
 {
     s32           ret;
@@ -2595,8 +2597,8 @@ static inline s32 _gpIsEquippedItem(s32 id)
     if ((((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F)) ||
         (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0xA0) < 0x20U) && (p->weapon != 0) &&
-         ((Gp_GetItemSlot(p->weapon + 0x7F)->ammoId == id) ||
-          (Gp_GetItemSlot(p->weapon + 0x7F)->attachId == id)))) {
+         ((Gp_GetItemSlot(p->weapon + 0x7F)->primaryItemId == id) ||
+          (Gp_GetItemSlot(p->weapon + 0x7F)->secondaryItemId == id)))) {
         ret = 1;
     }
     return ret;
