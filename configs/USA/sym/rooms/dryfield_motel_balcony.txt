@@ -82,7 +82,7 @@ D_map_dryfield_8017BB24 = 0x8017BB24; // absolute:True
 RoomFx_TrailOffsets = 0x801822C0; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
 D_dryfield_motel_balcony_8018227C = 0x8018227C; // size:0x30 defined:True
-RoomFx_HaloShades = 0x801822AC; // size:0x14 defined:True
+_gRoomEffectHaloShades = 0x801822AC; // size:0x14 defined:True
 gRoomEventActive = 0x8018672C; // size:0x4 defined:True
 gRoomEventReq = 0x80186730; // size:0x14 defined:True
 
