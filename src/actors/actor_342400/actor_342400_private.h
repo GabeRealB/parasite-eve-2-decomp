@@ -20,6 +20,6 @@ extern EnemyParams D_actor_342400_80170588;
 
 extern TaskDesc D_actor_342400_80173A54[2];
 
-extern u16 D_actor_342400_80173AAC;
+extern u16 gHopperWaveEnemyCount;
 
 #endif // SRC_ACTORS_ACTOR_342400_ACTOR_342400_PRIVATE_H

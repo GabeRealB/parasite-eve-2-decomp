@@ -26,6 +26,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/hopper_waves.h"
 
 /// 4-byte record in the table at `D_actor_342400_8016C010`, indexed (1..16)
 /// by `gGameSession->enemyCullZone`. `func_actor_342400_801626CC` compares
@@ -47,7 +48,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor342400MessageEntry, 8);
 
 extern Actor342400MessageEntry D_actor_342400_8016BF48[2]; // stored into `Task::msgTable` by func_actor_342400_801628F0
-extern OverlayEncounterSlot    D_actor_342400_8016BF58[];
+extern OverlayEncounterSlot    gHopperWaveSlots[];
 extern TaskDesc                D_actor_342400_8016BFE0[];
 extern Actor342400Limit        D_actor_342400_8016C010[];
 extern s16                     D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
@@ -57,7 +58,6 @@ extern s16                     D_actor_342400_8016C054[][4]; // spawn variant pe
 static s16  func_actor_342400_801624A4(void);
 static s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
 static void func_actor_342400_801628F0(Task* arg0);
-static void func_actor_342400_8016299C(Task* arg0);
 static void func_actor_342400_80162A34(Task* arg0);
 static void func_actor_342400_80162AB0(Task* arg0);
 static void func_actor_342400_80162B60(Task* arg0);
@@ -65,15 +65,9 @@ static void func_actor_342400_80162C10(Task* arg0);
 static void func_actor_342400_80162CA8(Task* arg0);
 static void func_actor_342400_80162CBC(Task* arg0);
 static void func_actor_342400_80162DA0(Task* arg0);
-static void func_actor_342400_80162E6C(Task* arg0);
 static void func_actor_342400_80162F08(Task* arg0);
 static void func_actor_342400_80162F1C(Task* arg0);
 static void func_actor_342400_80162FFC(Task* arg0);
-static void func_actor_342400_80163010(Task* arg0);
-static void func_actor_342400_801630A4(Task* arg0);
-static void func_actor_342400_80163178(Task* arg0);
-static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2);
-static void func_actor_342400_801632D4(Task* arg0);
 
 void func_actor_342400_80162748(Task*);
 
@@ -84,7 +78,7 @@ Actor342400MessageEntry D_actor_342400_8016BF48[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-OverlayEncounterSlot D_actor_342400_8016BF58[17] = {
+OverlayEncounterSlot gHopperWaveSlots[17] = {
     { 1, 1, { 0, 0 }, 0 },
     { 0, 1, { 0, 0 }, 0 },
     { 2, 1, { 0, 0 }, 0 },
@@ -279,55 +273,12 @@ DamageAttack D_actor_342400_80170584[1] = {
 
 EnemyParams D_actor_342400_80170588 = { D_actor_342400_80170584, 110, 20, 40, 1, 100, 10, 100, 0 };
 
-static void func_actor_342400_80162084(Task* arg0);
-static void func_actor_342400_801621D8(Task* arg0);
 static void func_actor_342400_80162324(Task* arg0);
 static void func_actor_342400_801631DC(s16 arg0);
 
-static void func_actor_342400_80162084(Task* arg0)
-{
-    OverlayEncounterPairWork* work;
-    GpEnemy*                  enemy;
-    Task*                     task;
-    TmdObject*                obj;
+#include "../../shared/hopper_waves_pair_spawn.inc.c"
 
-    work = memCalloc(0xC, 0);
-    if (work == NULL) {
-        goto kill;
-    }
-    arg0->work   = work;
-    work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
-    work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
-    if (work->enemy0 == NULL && work->enemy1 == NULL) {
-    kill:
-        taskKill(arg0);
-        return;
-    }
-    if (work->enemy0 != NULL) {
-        enemy           = work->enemy0;
-        enemy->placeKey = D_actor_342400_80173AAC << 12;
-        D_actor_342400_80173AAC++;
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->hp              = 1;
-    }
-    if (work->enemy1 != NULL) {
-        enemy           = work->enemy1;
-        enemy->placeKey = D_actor_342400_80173AAC << 12;
-        D_actor_342400_80173AAC++;
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->hp              = 1;
-    }
-    D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-    arg0->state++;
-}
-
-static void func_actor_342400_801621D8(Task* arg0)
+void hopperWavePairCull(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
     GpEnemy*                  enemy;
@@ -380,15 +331,15 @@ static void func_actor_342400_80162324(Task* arg0)
 
     count = 0;
     for (i = 0; i < 17; i++) {
-        if (D_actor_342400_8016BF58[i].status == 1) {
+        if (gHopperWaveSlots[i].status == 1) {
             count++;
         }
     }
     if (count < 3) {
         idx = work->nextSlot;
         if (idx < 17 && gGameSession->sceneClock >= 0x3D) {
-            type = D_actor_342400_8016BF58[idx].kind;
-            arg  = D_actor_342400_8016BF58[idx].command;
+            type = gHopperWaveSlots[idx].kind;
+            arg  = gHopperWaveSlots[idx].command;
             switch (type) {
                 case 0:
                     Task_SpawnFromTable(D_actor_342400_8016BFE0, 1, (idx << 16) + arg + (func_actor_342400_801624A4() << 16 >> 8), 0);
@@ -466,7 +417,7 @@ static s16 func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2)
 /// `func_actor_342400_80162748` on `Task::state`.
 static const TaskFuncTable4 D_actor_342400_80161E24 = { {
     func_actor_342400_801628F0,
-    func_actor_342400_8016299C,
+    hopperWaveOpen,
     func_actor_342400_80162A34,
     func_actor_342400_80162AB0,
 } };
@@ -503,7 +454,7 @@ void func_actor_342400_801627C0(Task* arg0)
 /// `func_actor_342400_80162824`.
 static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     func_actor_342400_80162DA0,
-    func_actor_342400_80162E6C,
+    hopperWaveRevealSecond,
     func_actor_342400_80162F08,
     func_actor_342400_80162F1C,
 } };
@@ -520,11 +471,11 @@ void func_actor_342400_80162824(Task* arg0)
 /// The five state handlers `func_actor_342400_80162888` dispatches through by
 /// `Task::state`.
 static const TaskFuncTable5 D_actor_342400_80161E54 = { {
-    func_actor_342400_80162084,
+    hopperWavePairSpawn,
     func_actor_342400_80162FFC,
-    func_actor_342400_80163010,
-    func_actor_342400_801630A4,
-    func_actor_342400_80163178,
+    hopperWavePairRevealFirst,
+    hopperWavePairRevealSecond,
+    hopperWavePairWatch,
 } };
 
 void func_actor_342400_80162888(Task* arg0)
@@ -546,27 +497,15 @@ static void func_actor_342400_801628F0(Task* arg0)
         return;
     }
     for (i = 16; i >= 0; i--) {
-        D_actor_342400_8016BF58[i].status = 0;
+        gHopperWaveSlots[i].status = 0;
     }
-    D_actor_342400_80173AAC = 0;
-    arg0->work              = work;
-    arg0->msgTable          = D_actor_342400_8016BF48;
+    gHopperWaveEnemyCount = 0;
+    arg0->work            = work;
+    arg0->msgTable        = D_actor_342400_8016BF48;
     arg0->state++;
 }
 
-static void func_actor_342400_8016299C(Task* arg0)
-{
-    s32                       i;
-    OverlayEncounterCtrlWork* work = (OverlayEncounterCtrlWork*)arg0->work;
-    OverlayEncounterSlot*     slot;
-
-    for (i = 0; i < 3; i++) {
-        slot = &D_actor_342400_8016BF58[work->nextSlot];
-        func_actor_342400_80163200(work->nextSlot, slot->kind, slot->command);
-        work->nextSlot++;
-    }
-    arg0->state++;
-}
+#include "../../shared/hopper_waves_open.inc.c"
 
 static void func_actor_342400_80162A34(Task* arg0)
 {
@@ -590,7 +529,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
     if (work->stop != 4) {
         func_actor_342400_80162324(arg0);
         for (i = 0; i < 17; i++) {
-            if (D_actor_342400_8016BF58[i].status == 2) {
+            if (gHopperWaveSlots[i].status == 2) {
                 count++;
             }
         }
@@ -612,10 +551,10 @@ static void func_actor_342400_80162B60(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
-            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
-            D_actor_342400_80173AAC++;
+            gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            work->enemy                                                 = enemy;
+            enemy->placeKey                                             = gHopperWaveEnemyCount << 12;
+            gHopperWaveEnemyCount++;
             arg0->state++;
             return;
         }
@@ -663,7 +602,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -672,7 +611,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
         msg.context.loc.area  = 0x2C;
         msg.command           = 5;
         Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -688,10 +627,10 @@ static void func_actor_342400_80162DA0(Task* arg0)
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
-            D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
-            work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
-            D_actor_342400_80173AAC++;
+            gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
+            work->enemy                                                 = enemy;
+            enemy->placeKey                                             = gHopperWaveEnemyCount << 12;
+            gHopperWaveEnemyCount++;
             obj                    = enemy->task->extra.tmd;
             obj->texturePageOffset = 2;
             obj->clutRowOffset     = 4;
@@ -702,28 +641,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_actor_342400_80162E6C(Task* arg0)
-{
-    OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    enemy;
-    Task*                       task;
-    TmdObject*                  obj;
-    ActorCommand                msg;
-
-    enemy = work->enemy;
-    task  = enemy->task;
-    if (++work->frames > 60) {
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 2;
-        obj->clutRowOffset     = 4;
-        enemy->workType        = 0x900;
-        msg.context.loc.stage  = 0;
-        msg.context.loc.area   = 0x2A;
-        msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        arg0->state++;
-    }
-}
+#include "../../shared/hopper_waves_reveal_second.inc.c"
 
 static void func_actor_342400_80162F08(Task* arg0)
 {
@@ -742,7 +660,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
     task  = enemy->task;
     coord = task->extra.tmd->coords;
     if (enemy->hp <= 0) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
         return;
     }
@@ -751,7 +669,7 @@ static void func_actor_342400_80162F1C(Task* arg0)
         msg.context.loc.area  = 0;
         msg.command           = 5;
         Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
+        gHopperWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
         taskKill(arg0);
     }
 }
@@ -761,68 +679,11 @@ static void func_actor_342400_80162FFC(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-static void func_actor_342400_80163010(Task* arg0)
-{
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
-    Task*                     task;
-    TmdObject*                obj;
-    ActorCommand              msg;
+#include "../../shared/hopper_waves_pair_reveal_first.inc.c"
 
-    enemy = work->enemy0;
-    if (enemy != NULL) {
-        task                   = enemy->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->workType        = 0x900;
-        msg.context.loc.stage  = 0;
-        msg.context.loc.area   = 0x2E;
-        msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-    }
-    work->frames = 0;
-    arg0->state++;
-}
+#include "../../shared/hopper_waves_pair_reveal_second.inc.c"
 
-static void func_actor_342400_801630A4(Task* arg0)
-{
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
-    Task*                     task;
-    TmdObject*                obj;
-    ActorCommand              msg;
-
-    enemy = work->enemy1;
-    func_actor_342400_801632D4(arg0);
-    if (work->enemy1 != NULL) {
-        if (++work->frames <= 0x3C) {
-            return;
-        }
-        task                   = work->enemy1->task;
-        obj                    = task->extra.tmd;
-        obj->texturePageOffset = 3;
-        obj->clutRowOffset     = 5;
-        enemy->workType        = 0x900;
-        msg.context.loc.stage  = 0;
-        msg.context.loc.area   = 0x2E;
-        msg.command            = arg0->spawnArg1.value;
-        Gp_DispatchMsgPtr(task, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-    }
-    work->frames = 0;
-    arg0->state++;
-}
-
-static void func_actor_342400_80163178(Task* arg0)
-{
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-
-    func_actor_342400_801621D8(arg0);
-    if (work->goneMask == 3) {
-        D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 2;
-        taskKill(arg0);
-    }
-}
+#include "../../shared/hopper_waves_pair_watch.inc.c"
 
 static void func_actor_342400_801631DC(s16 arg0)
 {
@@ -833,7 +694,7 @@ static void func_actor_342400_801631DC(s16 arg0)
     D_shelter_b3_garbage_incinerator_80187328[1] = 0x11;
 }
 
-static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
+void hopperWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)
 {
     switch (arg1) {
         case 0:
@@ -848,22 +709,4 @@ static void func_actor_342400_80163200(s16 arg0, s16 arg1, s16 arg2)
     }
 }
 
-static void func_actor_342400_801632D4(Task* arg0)
-{
-    OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-
-    if (work->enemy0 != NULL) {
-        if (work->enemy0->hp <= 0) {
-            work->enemy0 = NULL;
-        }
-    } else {
-        work->goneMask |= 1;
-    }
-    if (work->enemy1 != NULL) {
-        if (work->enemy1->hp <= 0) {
-            work->enemy1 = NULL;
-        }
-    } else {
-        work->goneMask |= 2;
-    }
-}
+#include "../../shared/hopper_waves_pair_drop_dead.inc.c"

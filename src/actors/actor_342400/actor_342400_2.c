@@ -60,6 +60,7 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/hopping_enemy.h"
+#include "../../shared/hopper_waves.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
@@ -854,7 +855,7 @@ u8 D_actor_342400_80173A98[20] = {
     1,
 };
 
-u16 D_actor_342400_80173AAC = 0;
+u16 gHopperWaveEnemyCount = 0;
 
 extern void* D_800678F0[1];
 

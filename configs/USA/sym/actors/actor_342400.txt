@@ -3,7 +3,7 @@
 // Referenced in another actor load slot, resident beside this one.
 D_80151E60 = 0x80151E60; // absolute:True
 D_801575F0 = 0x801575F0; // absolute:True
-D_actor_342400_8016BF58 = 0x8016BF58; // size:0x88 defined:True
+gHopperWaveSlots = 0x8016BF58; // size:0x88 defined:True
 D_actor_342400_80173A84 = 0x80173A84; // size:0x14 defined:True
 D_actor_342400_80173A98 = 0x80173A98; // size:0x14 defined:True
 D_actor_342400_8016BFE0 = 0x8016BFE0; // size:0x30 defined:True
@@ -136,7 +136,7 @@ D_actor_342400_8017387C = 0x8017387C; // size:0x78 defined:True
 D_actor_342400_801738F4 = 0x801738F4; // size:0xB8 defined:True
 D_actor_342400_801739AC = 0x801739AC; // size:0x14 defined:True
 D_actor_342400_801739C0 = 0x801739C0; // size:0x28 defined:True
-D_actor_342400_80173AAC = 0x80173AAC; // size:0x2 defined:True
+gHopperWaveEnemyCount = 0x80173AAC; // size:0x2 defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True
 
@@ -148,3 +148,12 @@ hopperLinkBodies = 0x80165E4C; // type:func
 hopperPinPart = 0x80169654; // type:func
 hopperBeginDeath = 0x8016A884; // type:func
 hopperCreepUntilHit = 0x801679D4; // type:func
+hopperWavePairSpawn = 0x80162084; // type:func
+hopperWaveOpen = 0x8016299C; // type:func
+hopperWaveRevealSecond = 0x80162E6C; // type:func
+hopperWavePairRevealFirst = 0x80163010; // type:func
+hopperWavePairRevealSecond = 0x801630A4; // type:func
+hopperWavePairWatch = 0x80163178; // type:func
+hopperWavePairDropDead = 0x801632D4; // type:func
+hopperWaveSpawnSlot = 0x80163200; // type:func
+hopperWavePairCull = 0x801621D8; // type:func
