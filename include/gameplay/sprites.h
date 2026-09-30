@@ -7,7 +7,11 @@
 
 #include "common.h"
 
-/// Value of `SpriteBatch.firstSprite` that terminates a view's batch list.
+/// Sentinel in the 16-bit `SpriteBatch.firstSprite` index ending a view's batch list.
+///
+/// The terminal record contributes no sprites, regardless of `spriteCount`;
+/// a zero-count nonterminal record does not end the list. The first record's
+/// count still selects background presentation, even when that record is terminal.
 enum { SPRITE_BATCH_END = 0xFFFF };
 
 /// A contiguous range of source sprites in a view's drawing list.
