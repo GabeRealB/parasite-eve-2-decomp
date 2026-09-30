@@ -16,7 +16,7 @@ extern GpRoomCoordSet D_dryfield_night_factory_80189C88[1];
 
 extern GpObj4C D_dryfield_night_factory_80189CA0[14];
 
-extern GpRoomBoundVec D_dryfield_night_factory_8018A0C8[20];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_factory_8018A0C8[20];
 
 extern GpObj4C D_dryfield_night_factory_8018A168[19];
 

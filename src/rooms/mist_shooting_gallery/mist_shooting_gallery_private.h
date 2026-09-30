@@ -16,7 +16,7 @@ extern GpRoomCoordSet D_mist_shooting_gallery_8018D1B4;
 
 extern GpRoomCoordSet D_mist_shooting_gallery_8018DF38;
 
-extern GpRoomBoundVec D_mist_shooting_gallery_8018DFD4[19];
+extern WorldCoordRoomAmbientEntry D_mist_shooting_gallery_8018DFD4[19];
 
 extern s32 D_mist_shooting_gallery_8018E0BC;
 

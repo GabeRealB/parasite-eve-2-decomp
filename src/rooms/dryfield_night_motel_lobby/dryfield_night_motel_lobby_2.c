@@ -113,11 +113,11 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
 };
 
 // Indexed views below share one contiguous table.
-extern GpGridParams   D_dryfield_night_motel_lobby_80182DB4[1];
-extern GpObj4C        D_dryfield_night_motel_lobby_80184034[4];
-extern GpObj4C        D_dryfield_night_motel_lobby_80184164[8];
-extern GpRoomBoundVec D_dryfield_night_motel_lobby_8018441C[8];
-extern GpRoomCoordSet D_dryfield_night_motel_lobby_8018401C[1];
+extern GpGridParams               D_dryfield_night_motel_lobby_80182DB4[1];
+extern GpObj4C                    D_dryfield_night_motel_lobby_80184034[4];
+extern GpObj4C                    D_dryfield_night_motel_lobby_80184164[8];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
+extern GpRoomCoordSet             D_dryfield_night_motel_lobby_8018401C[1];
 
 void func_dryfield_night_motel_lobby_80180D08(Task*);
 void func_dryfield_night_motel_lobby_80180D58(Task*);
@@ -482,15 +482,15 @@ GpObj4C D_dryfield_night_motel_lobby_80184164[8] = {
 
 GpAreaVariant D_dryfield_night_motel_lobby_801843C4[11] = { 0 };
 
-GpRoomBoundVec D_dryfield_night_motel_lobby_8018441C[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 287, 398, 383, 354 },
-    { 516, 781, 953, 703 },
-    { 459, 656, 722, 590 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_motel_lobby_8018441C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 287, 398, 383, 354 } },
+    { .color = { 516, 781, 953, 703 } },
+    { .color = { 459, 656, 722, 590 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_motel_lobby_8018445C[3] = {

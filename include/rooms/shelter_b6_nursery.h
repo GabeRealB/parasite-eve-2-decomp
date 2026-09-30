@@ -36,7 +36,7 @@ extern GpObj4A D_shelter_b6_nursery_801872AC[];
 
 extern GpObj4A D_shelter_b6_nursery_8018750C[];
 
-extern GpRoomBoundVec D_shelter_b6_nursery_8018789C[];
+extern WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[];
 
 extern GpRoomParamRec* D_shelter_b6_nursery_80187958[];
 

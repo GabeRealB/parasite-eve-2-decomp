@@ -863,15 +863,15 @@ GpAreaVariant D_shelter_b2_operating_room_80184124[12] = {
     { D_shelter_b2_operating_room_80184094, D_shelter_b2_operating_room_80183F24 },
 };
 
-GpRoomBoundVec D_shelter_b2_operating_room_80184184[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 490, 520, 560, 513 },
-    { 400, 438, 400, 419 },
-    { 380, 758, 617, 598 },
-    { 641, 701, 691, 677 },
-    { 277, 257, 260, 264 },
-    { 620, 630, 690, 633 },
+WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[8] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b2_operating_room_80184184) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 490, 520, 560, 513 } },
+    { .color = { 400, 438, 400, 419 } },
+    { .color = { 380, 758, 617, 598 } },
+    { .color = { 641, 701, 691, 677 } },
+    { .color = { 277, 257, 260, 264 } },
+    { .color = { 620, 630, 690, 633 } },
 };
 
 s32 D_shelter_b2_operating_room_801841C4[3] = {

@@ -217,15 +217,15 @@ static void func_shelter_1f_heliport_8018085C(GfxCoord* coord, SVECTOR* offset);
                                 "2"
 #include "../../shared/shop.h"
 
-extern GpGridParams   D_shelter_1f_heliport_80181974;
-extern GpObj4C        D_shelter_1f_heliport_80182178[12];
-extern GpObj4C        D_shelter_1f_heliport_80182508[21];
-extern GpRoomBoundVec D_shelter_1f_heliport_80182B44[13];
-extern GpRoomCoordSet D_shelter_1f_heliport_80182160[1];
-s32                   func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_1f_heliport_80180334(Task*, s32, s32, GpMessageArg);
-s32                   func_shelter_1f_heliport_8018041C(Task*, s32, s32, GpMessageArg);
-s32                   func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, GpMessageArg);
+extern GpGridParams               D_shelter_1f_heliport_80181974;
+extern GpObj4C                    D_shelter_1f_heliport_80182178[12];
+extern GpObj4C                    D_shelter_1f_heliport_80182508[21];
+extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
+extern GpRoomCoordSet             D_shelter_1f_heliport_80182160[1];
+s32                               func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, GpMessageArg);
+s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, GpMessageArg);
+s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, GpMessageArg);
 
 void func_shelter_1f_heliport_8017FF08(Task*);
 void func_shelter_1f_heliport_80180594(Task*);
@@ -520,20 +520,20 @@ GpObj4C D_shelter_1f_heliport_80182508[21] = {
     { NULL, NULL, NULL, { 3904, -64, 6080, 0 }, { { -1248, 0, -2624, 0 }, { 1248, 0, -2624, 0 }, { -1248, 0, -832, 0 }, { 1248, 0, -832, 0 } }, { 0, 4117, 0, 0 }, { 4096, 0, 0, 0 }, 2896, 5, 255, 0, 132, 0 },
 };
 
-GpRoomBoundVec D_shelter_1f_heliport_80182B44[13] = {
-    { 12, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1838, 1819, 1496, 1785 },
-    { 1854, 1818, 1567, 1800 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_1f_heliport_80182B44) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1838, 1819, 1496, 1785 } },
+    { .color = { 1854, 1818, 1567, 1800 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 GpAreaTmdRec D_shelter_1f_heliport_80182BAC[3] = {

@@ -695,18 +695,18 @@ GpAreaVariant D_neo_ark_woodland_path_8018471C[12] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_neo_ark_woodland_path_8018477C[11] = {
-    { 10, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 413, 412, 413, 412 },
-    { 512, 512, 512, 512 },
-    { 512, 516, 514, 514 },
-    { 512, 512, 516, 512 },
-    { 410, 410, 410, 410 },
-    { 410, 410, 410, 410 },
-    { 410, 410, 410, 410 },
+WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[11] = {
+    { .viewCount = ARRAY_SIZE(D_neo_ark_woodland_path_8018477C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 413, 412, 413, 412 } },
+    { .color = { 512, 512, 512, 512 } },
+    { .color = { 512, 516, 514, 514 } },
+    { .color = { 512, 512, 516, 512 } },
+    { .color = { 410, 410, 410, 410 } },
+    { .color = { 410, 410, 410, 410 } },
+    { .color = { 410, 410, 410, 410 } },
 };
 
 GpObj3A D_neo_ark_woodland_path_801847D4[4] = {

@@ -40,7 +40,7 @@ extern GpObj4A D_shelter_b1_control_room_801834F4[];
 
 extern GpObj4A D_shelter_b1_control_room_80183624[];
 
-extern GpRoomBoundVec D_shelter_b1_control_room_80183B48[];
+extern WorldCoordRoomAmbientEntry D_shelter_b1_control_room_80183B48[];
 
 extern GpRoomParamRec* D_shelter_b1_control_room_80183BC0[];
 

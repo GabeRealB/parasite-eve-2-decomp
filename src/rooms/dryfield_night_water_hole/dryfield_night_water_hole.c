@@ -167,15 +167,15 @@ static void func_dryfield_night_water_hole_8017FF84(GfxCoord* arg0, s32 arg1, s3
 
 void func_dryfield_night_water_hole_8017E630(Task*);
 
-extern GpGridParams   D_dryfield_night_water_hole_80180F50[1];
-extern GpObj3A        D_dryfield_night_water_hole_80182D58[2];
-extern GpObj4C        D_dryfield_night_water_hole_801824BC[12];
-extern GpObj4C        D_dryfield_night_water_hole_8018284C[9];
-extern GpObj4C        D_dryfield_night_water_hole_80182AF8[8];
-extern GpRoomBoundVec D_dryfield_night_water_hole_801834C8[12];
-extern GpRoomBoundVec D_dryfield_night_water_hole_80183528[12];
-extern GpRoomCoordSet D_dryfield_night_water_hole_8018307C[1];
-extern GpRoomCoordSet D_dryfield_night_water_hole_801833A0[1];
+extern GpGridParams               D_dryfield_night_water_hole_80180F50[1];
+extern GpObj3A                    D_dryfield_night_water_hole_80182D58[2];
+extern GpObj4C                    D_dryfield_night_water_hole_801824BC[12];
+extern GpObj4C                    D_dryfield_night_water_hole_8018284C[9];
+extern GpObj4C                    D_dryfield_night_water_hole_80182AF8[8];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_801834C8[12];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_80183528[12];
+extern GpRoomCoordSet             D_dryfield_night_water_hole_8018307C[1];
+extern GpRoomCoordSet             D_dryfield_night_water_hole_801833A0[1];
 
 extern AnimationSet* D_dryfield_night_water_hole_80180620[1];
 
@@ -968,34 +968,34 @@ GpAreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { D_map_dryfield_full_8017CD48, D_dryfield_night_water_hole_80183400 },
 };
 
-GpRoomBoundVec D_dryfield_night_water_hole_801834C8[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 300, 300, 300, 300 },
-    { 509, 508, 509, 508 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_801834C8[12] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_water_hole_801834C8) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 509, 508, 509, 508 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
-GpRoomBoundVec D_dryfield_night_water_hole_80183528[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 118, 117, 118, 117 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_water_hole_80183528[12] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_water_hole_80183528) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 118, 117, 118, 117 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_water_hole_80183588[3] = {

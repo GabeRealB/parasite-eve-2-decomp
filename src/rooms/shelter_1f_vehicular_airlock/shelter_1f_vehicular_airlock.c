@@ -102,11 +102,11 @@ extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
 extern TmdBone D_shelter_1f_vehicular_airlock_80180C50[1];
 extern u32     D_shelter_1f_vehicular_airlock_80181018[1019];
 
-extern GpGridParams   D_shelter_1f_vehicular_airlock_80182438[1];
-extern GpObj4C        D_shelter_1f_vehicular_airlock_80182714[2];
-extern GpObj4C        D_shelter_1f_vehicular_airlock_801827AC[7];
-extern GpRoomBoundVec D_shelter_1f_vehicular_airlock_801829C0[4];
-extern GpRoomCoordSet D_shelter_1f_vehicular_airlock_801826FC[1];
+extern GpGridParams               D_shelter_1f_vehicular_airlock_80182438[1];
+extern GpObj4C                    D_shelter_1f_vehicular_airlock_80182714[2];
+extern GpObj4C                    D_shelter_1f_vehicular_airlock_801827AC[7];
+extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
+extern GpRoomCoordSet             D_shelter_1f_vehicular_airlock_801826FC[1];
 
 TmdBone D_shelter_1f_vehicular_airlock_80180C50[1] = {
 #include "assets/shelter_1f_vehicular_airlock_model_04A44_skeleton.inc"
@@ -277,11 +277,11 @@ GpObj4C D_shelter_1f_vehicular_airlock_801827AC[7] = {
     { NULL, NULL, NULL, { -7312, -64, 1072, 0 }, { { -880, 0, -1080, 0 }, { 880, 0, -696, 0 }, { -880, 0, 840, 0 }, { 880, 0, 936, 0 } }, { 0, 4097, 0, 0 }, { 3166, 0, -2599, 0 }, 1390, 2, 3, 255, 130, 0 },
 };
 
-GpRoomBoundVec D_shelter_1f_vehicular_airlock_801829C0[4] = {
-    { 3, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 700, 700, 700, 700 },
-    { 700, 700, 700, 700 },
+WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_1f_vehicular_airlock_801829C0) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 700, 700, 700, 700 } },
+    { .color = { 700, 700, 700, 700 } },
 };
 
 GpAreaTmdRec D_shelter_1f_vehicular_airlock_801829E0[3] = {

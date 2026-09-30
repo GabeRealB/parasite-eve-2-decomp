@@ -34,7 +34,7 @@ extern GpPointLight D_acropolis_cafeteria_80189E24[15];
 
 extern GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1];
 
-extern GpRoomBoundVec D_acropolis_cafeteria_8018C90C[25];
+extern WorldCoordRoomAmbientEntry D_acropolis_cafeteria_8018C90C[25];
 
 extern GpAreaApplyRec D_acropolis_cafeteria_8018C9D4[3];
 

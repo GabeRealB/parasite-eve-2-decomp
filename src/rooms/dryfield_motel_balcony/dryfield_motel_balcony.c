@@ -100,12 +100,12 @@ static void func_dryfield_motel_balcony_801809AC(GfxCoord* arg0, s16 arg1, u8* a
 static void func_dryfield_motel_balcony_80181230(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
 static void func_dryfield_motel_balcony_801818B0(GfxCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams   D_dryfield_motel_balcony_80182B5C[1];
-extern GpObj3A        D_dryfield_motel_balcony_80186130[2];
-extern GpObj4C        D_dryfield_motel_balcony_80185DA0[8];
-extern GpObj4C        D_dryfield_motel_balcony_80186000[4];
-extern GpRoomBoundVec D_dryfield_motel_balcony_80186600[23];
-extern GpRoomCoordSet D_dryfield_motel_balcony_801865E8[1];
+extern GpGridParams               D_dryfield_motel_balcony_80182B5C[1];
+extern GpObj3A                    D_dryfield_motel_balcony_80186130[2];
+extern GpObj4C                    D_dryfield_motel_balcony_80185DA0[8];
+extern GpObj4C                    D_dryfield_motel_balcony_80186000[4];
+extern WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23];
+extern GpRoomCoordSet             D_dryfield_motel_balcony_801865E8[1];
 
 extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
 
@@ -1062,30 +1062,30 @@ GpRoomCoordSet D_dryfield_motel_balcony_801865E8[1] = {
     { 0, NULL, 9, D_dryfield_motel_balcony_80186288, 0, NULL },
 };
 
-GpRoomBoundVec D_dryfield_motel_balcony_80186600[23] = {
-    { 22, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 823, 820, 838, 823 },
-    { 16, 16, 16, 16 },
-    { 1481, 1461, 1422, 1463 },
-    { 676, 659, 633, 662 },
-    { 558, 480, 533, 515 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_motel_balcony_80186600[23] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_motel_balcony_80186600) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 823, 820, 838, 823 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1481, 1461, 1422, 1463 } },
+    { .color = { 676, 659, 633, 662 } },
+    { .color = { 558, 480, 533, 515 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_motel_balcony_801866B8[3] = {

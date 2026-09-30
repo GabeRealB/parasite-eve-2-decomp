@@ -49,12 +49,12 @@ static void func_mist_parking_80185814(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 static void func_mist_parking_80184A18(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpObj4C        D_mist_parking_80193A8C[12];
-extern GpObj4C        D_mist_parking_80193E1C[13];
-extern GpObj4C        D_mist_parking_801941F8[14];
-extern GpRoomBoundVec D_mist_parking_8019521C[21];
-extern GpRoomCoordSet D_mist_parking_801950A0[1];
-extern GpRoomCoordSet D_mist_parking_80195178[1];
+extern GpObj4C                    D_mist_parking_80193A8C[12];
+extern GpObj4C                    D_mist_parking_80193E1C[13];
+extern GpObj4C                    D_mist_parking_801941F8[14];
+extern WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21];
+extern GpRoomCoordSet             D_mist_parking_801950A0[1];
+extern GpRoomCoordSet             D_mist_parking_80195178[1];
 
 GpEvsCmd D_mist_parking_80191154[8] = {
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_mist_parking_80190870 }, { .value = 0 } },
@@ -763,28 +763,28 @@ GpAreaVariant D_mist_parking_801951B4[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_mist_parking_8019521C[21] = {
-    { 20, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1000, 1000, 1000, 1000 },
-    { 1500, 1500, 1500, 1500 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21] = {
+    { .viewCount = ARRAY_SIZE(D_mist_parking_8019521C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1000, 1000, 1000, 1000 } },
+    { .color = { 1500, 1500, 1500, 1500 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mist_parking_801952C4[3] = {

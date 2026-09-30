@@ -73,11 +73,11 @@ s32 func_dryfield_night_back_street_8017D724(Task*, s32, GpMessageArg, GpMessage
 s32 func_dryfield_night_back_street_8017D72C(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_dryfield_night_back_street_8017D734(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams   D_dryfield_night_back_street_80180B34[1];
-extern GpObj4C        D_dryfield_night_back_street_80180D70[6];
-extern GpObj4C        D_dryfield_night_back_street_80180F38[10];
-extern GpRoomBoundVec D_dryfield_night_back_street_801815C8[6];
-extern GpRoomCoordSet D_dryfield_night_back_street_80181470[1];
+extern GpGridParams               D_dryfield_night_back_street_80180B34[1];
+extern GpObj4C                    D_dryfield_night_back_street_80180D70[6];
+extern GpObj4C                    D_dryfield_night_back_street_80180F38[10];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6];
+extern GpRoomCoordSet             D_dryfield_night_back_street_80181470[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -300,13 +300,13 @@ GpAreaVariant D_dryfield_night_back_street_80181518[22] = {
     { D_map_dryfield_full_8017B1C8, D_dryfield_night_back_street_80181500 },
 };
 
-GpRoomBoundVec D_dryfield_night_back_street_801815C8[6] = {
-    { 5, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 615, 617 },
-    { 616, 618, 617, 617 },
-    { 616, 618, 618, 617 },
-    { 616, 617, 617, 616 },
+WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_back_street_801815C8) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 615, 617 } },
+    { .color = { 616, 618, 617, 617 } },
+    { .color = { 616, 618, 618, 617 } },
+    { .color = { 616, 617, 617, 616 } },
 };
 
 s32 D_dryfield_night_back_street_801815F8[3] = {

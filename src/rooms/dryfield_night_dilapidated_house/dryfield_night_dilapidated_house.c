@@ -110,19 +110,19 @@ GpAreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { D_map_dryfield_full_8017B648, D_dryfield_night_dilapidated_house_80189F8C },
 };
 
-GpRoomBoundVec D_dryfield_night_dilapidated_house_8018A054[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 250, 250, 500, 281 },
-    { 500, 500, 750, 531 },
-    { 250, 250, 500, 281 },
-    { 250, 250, 500, 281 },
-    { 250, 250, 500, 281 },
+WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_dilapidated_house_8018A054) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 250, 250, 500, 281 } },
+    { .color = { 500, 500, 750, 531 } },
+    { .color = { 250, 250, 500, 281 } },
+    { .color = { 250, 250, 500, 281 } },
+    { .color = { 250, 250, 500, 281 } },
 };
 
 s32 D_dryfield_night_dilapidated_house_8018A0B4[3] = {

@@ -63,12 +63,12 @@ static void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2
 #include "../../shared/room_visual_effects.h"
 
 // Indexed views below share one contiguous table.
-extern GpGridParams   D_shelter_b1_storeroom_801850D8[1];
-extern GpObj3A        D_shelter_b1_storeroom_80186D94[1];
-extern GpObj4C        D_shelter_b1_storeroom_801862E0[12];
-extern GpObj4C        D_shelter_b1_storeroom_80186670[15];
-extern GpRoomBoundVec D_shelter_b1_storeroom_80186D4C[9];
-extern GpRoomCoordSet D_shelter_b1_storeroom_801862C8[1];
+extern GpGridParams               D_shelter_b1_storeroom_801850D8[1];
+extern GpObj3A                    D_shelter_b1_storeroom_80186D94[1];
+extern GpObj4C                    D_shelter_b1_storeroom_801862E0[12];
+extern GpObj4C                    D_shelter_b1_storeroom_80186670[15];
+extern WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9];
+extern GpRoomCoordSet             D_shelter_b1_storeroom_801862C8[1];
 
 SVECTOR D_shelter_b1_storeroom_80184998[49] = {
     { -1130, -2290, 1920, 0 },
@@ -584,16 +584,16 @@ GpAreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_shelter_b1_storeroom_80186D4C[9] = {
-    { 8, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 470, 470, 470, 470 },
-    { 650, 650, 650, 650 },
-    { 470, 470, 470, 470 },
-    { 650, 650, 650, 650 },
-    { 350, 350, 350, 350 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b1_storeroom_80186D4C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 470, 470, 470, 470 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 470, 470, 470, 470 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 350, 350, 350, 350 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 GpObj3A D_shelter_b1_storeroom_80186D94[1] = {

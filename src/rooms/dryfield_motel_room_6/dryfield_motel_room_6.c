@@ -184,17 +184,17 @@ void func_dryfield_motel_room_6_80181880(Task*);
 void func_dryfield_motel_room_6_801811D4(Task*);
 void func_dryfield_motel_room_6_80181880(Task*);
 
-extern GpGridParams   D_dryfield_motel_room_6_8018381C[1];
-extern GpObj4C        D_dryfield_motel_room_6_8018575C[10];
-extern GpObj4C        D_dryfield_motel_room_6_80185A54[15];
-extern GpRoomBoundVec D_dryfield_motel_room_6_801866D8[13];
-extern GpRoomCoordSet D_dryfield_motel_room_6_801866C0[1];
-s32                   func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
-s32                   func_dryfield_motel_room_6_80181918(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_motel_room_6_801819A8(Task*, s32, DirectionActionRequest* request, GpMessageArg);
-s32                   func_dryfield_motel_room_6_80181A00(Task*, s32, GpMessageArg, GpMessageArg);
-void                  func_dryfield_motel_room_6_80181A08(Task*);
+extern GpGridParams               D_dryfield_motel_room_6_8018381C[1];
+extern GpObj4C                    D_dryfield_motel_room_6_8018575C[10];
+extern GpObj4C                    D_dryfield_motel_room_6_80185A54[15];
+extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
+extern GpRoomCoordSet             D_dryfield_motel_room_6_801866C0[1];
+s32                               func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
+s32                               func_dryfield_motel_room_6_80181918(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, GpMessageArg, GpMessageArg);
+void                              func_dryfield_motel_room_6_80181A08(Task*);
 
 extern DryfieldMotelRoom6SpotLightStorage D_dryfield_motel_room_6_80186288;
 extern GpPointLight                       D_dryfield_motel_room_6_80185EC8[10];
@@ -1689,20 +1689,20 @@ GpRoomCoordSet D_dryfield_motel_room_6_801866C0[1] = {
     { 0, NULL, 10, D_dryfield_motel_room_6_80185EC8, 2, D_dryfield_motel_room_6_80186288.active },
 };
 
-GpRoomBoundVec D_dryfield_motel_room_6_801866D8[13] = {
-    { 12, 0, 0, 0 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
+WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_motel_room_6_801866D8) - 1 },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_6_80186740[2] = {

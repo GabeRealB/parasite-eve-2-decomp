@@ -312,15 +312,15 @@ GpAreaVariant D_shelter_b1_golem_freezer_1_8017F17C[23] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_shelter_b1_golem_freezer_1_8017F234[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 486, 554, 538, 526 },
-    { 458, 559, 500, 513 },
-    { 16, 16, 16, 16 },
-    { 457, 557, 503, 512 },
-    { 406, 881, 1574, 789 },
-    { 797, 1115, 1678, 1066 },
+WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[8] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b1_golem_freezer_1_8017F234) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 486, 554, 538, 526 } },
+    { .color = { 458, 559, 500, 513 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 457, 557, 503, 512 } },
+    { .color = { 406, 881, 1574, 789 } },
+    { .color = { 797, 1115, 1678, 1066 } },
 };
 
 s32 D_shelter_b1_golem_freezer_1_8017F274[3] = {

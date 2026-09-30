@@ -29,7 +29,7 @@ extern GpObj4C D_dryfield_night_dilapidated_house_80189B78[12];
 
 extern GpObj3A D_dryfield_night_dilapidated_house_80189F08[1];
 
-extern GpRoomBoundVec D_dryfield_night_dilapidated_house_8018A054[12];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_dilapidated_house_8018A054[12];
 
 extern TaskDesc D_dryfield_night_dilapidated_house_8017E6F4;
 

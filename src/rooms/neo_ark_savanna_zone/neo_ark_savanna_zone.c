@@ -75,18 +75,18 @@ static void func_neo_ark_savanna_zone_8017E0DC(GfxCoord* arg0, s16 arg1, u8* rgb
 static void func_neo_ark_savanna_zone_8017E960(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
 static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams   D_neo_ark_savanna_zone_8017FBD0[1];
-extern GpObj3A        D_neo_ark_savanna_zone_801808CC[1];
-extern GpObj4C        D_neo_ark_savanna_zone_801804EC[4];
-extern GpObj4C        D_neo_ark_savanna_zone_8018061C[5];
-extern GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5];
-extern GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1];
-extern TaskDesc       D_8014D8A4;
-s32                   func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_neo_ark_savanna_zone_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_neo_ark_savanna_zone_8017D8F8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_neo_ark_savanna_zone_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
-void                  func_neo_ark_savanna_zone_8017D5E4(Task*);
+extern GpGridParams               D_neo_ark_savanna_zone_8017FBD0[1];
+extern GpObj3A                    D_neo_ark_savanna_zone_801808CC[1];
+extern GpObj4C                    D_neo_ark_savanna_zone_801804EC[4];
+extern GpObj4C                    D_neo_ark_savanna_zone_8018061C[5];
+extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
+extern GpRoomCoordSet             D_neo_ark_savanna_zone_801804D4[1];
+extern TaskDesc                   D_8014D8A4;
+s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, GpMessageArg, GpMessageArg);
+void                              func_neo_ark_savanna_zone_8017D5E4(Task*);
 
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, func_neo_ark_savanna_zone_8017D5E4, { .model = NULL } };
 
@@ -371,12 +371,12 @@ GpObj3A D_neo_ark_savanna_zone_801808CC[1] = {
     { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, { 126, 32 }, 129, 0 },
 };
 
-GpRoomBoundVec D_neo_ark_savanna_zone_80180908[5] = {
-    { 4, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 422, 394, 324, 395 },
-    { 422, 394, 324, 395 },
-    { 422, 394, 324, 395 },
+WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5] = {
+    { .viewCount = ARRAY_SIZE(D_neo_ark_savanna_zone_80180908) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 422, 394, 324, 395 } },
+    { .color = { 422, 394, 324, 395 } },
+    { .color = { 422, 394, 324, 395 } },
 };
 
 s32 D_neo_ark_savanna_zone_80180930[3] = {

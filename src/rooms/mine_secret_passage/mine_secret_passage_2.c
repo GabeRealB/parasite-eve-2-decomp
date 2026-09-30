@@ -78,12 +78,12 @@ static void func_mine_secret_passage_8017FAF4(GfxCoord* coord, s16 size);
 static void func_mine_secret_passage_80180020(GfxCoord* arg0, s32 arg1);
 static void func_mine_secret_passage_80180398(GfxCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams   D_mine_secret_passage_801815E0[1];
-extern GpObj3A        D_mine_secret_passage_801831A8[2];
-extern GpObj4C        D_mine_secret_passage_80182DCC[10];
-extern GpObj4C        D_mine_secret_passage_801830C4[3];
-extern GpRoomBoundVec D_mine_secret_passage_801833A0[9];
-extern GpRoomCoordSet D_mine_secret_passage_80182DB4[1];
+extern GpGridParams               D_mine_secret_passage_801815E0[1];
+extern GpObj3A                    D_mine_secret_passage_801831A8[2];
+extern GpObj4C                    D_mine_secret_passage_80182DCC[10];
+extern GpObj4C                    D_mine_secret_passage_801830C4[3];
+extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
+extern GpRoomCoordSet             D_mine_secret_passage_80182DB4[1];
 
 GpMsgEntry D_mine_secret_passage_80180E8C[6] = {
     { 5102, func_mine_secret_passage_8017D7CC },
@@ -597,16 +597,16 @@ GpAreaVariant D_mine_secret_passage_80183340[12] = {
     { D_mine_secret_passage_80183300, D_mine_secret_passage_80183268 },
 };
 
-GpRoomBoundVec D_mine_secret_passage_801833A0[9] = {
-    { 8, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 680, 750, 500, 692 },
-    { 800, 820, 650, 791 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9] = {
+    { .viewCount = ARRAY_SIZE(D_mine_secret_passage_801833A0) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 680, 750, 500, 692 } },
+    { .color = { 800, 820, 650, 791 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mine_secret_passage_801833E8[3] = {

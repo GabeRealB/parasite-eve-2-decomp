@@ -34,7 +34,7 @@ extern GpObj4A D_shelter_b6_training_room_80185780[];
 
 extern GpObj4A D_shelter_b6_training_room_80185A44[];
 
-extern GpRoomBoundVec D_shelter_b6_training_room_80185BC0[];
+extern WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[];
 
 extern GpRoomParamRec* D_shelter_b6_training_room_80185C38[];
 

@@ -72,7 +72,7 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTankAnimStorage4960, 84);
 
 extern DryfieldWaterTankAnimStorage4960 D_dryfield_water_tank_80184960;
 
-extern GpRoomBoundVec D_dryfield_water_tank_80188C58[11];
+extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
 
 /// Work block of the water-tank room's script-driver task, a
 /// `Mem_Malloc(0x58, 0)` the driver `func_dryfield_water_tank_8017DEA4` hangs
@@ -877,18 +877,18 @@ GpAreaVariant D_dryfield_water_tank_80188BF0[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_water_tank_80188C58[11] = {
-    { 10, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1500, 1500, 1500, 1500 },
-    { 1500, 1500, 1500, 1500 },
-    { 2000, 2000, 2000, 2000 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_water_tank_80188C58) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1500, 1500, 1500, 1500 } },
+    { .color = { 1500, 1500, 1500, 1500 } },
+    { .color = { 2000, 2000, 2000, 2000 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_water_tank_80188CB0[3] = {

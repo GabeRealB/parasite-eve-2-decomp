@@ -38,12 +38,12 @@
 static void func_mine_tunnel_8017D8CC(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpGridParams   D_mine_tunnel_8017E86C[1];
-extern GpObj3A        D_mine_tunnel_8018025C[3];
-extern GpObj4C        D_mine_tunnel_8017FBD8[6];
-extern GpObj4C        D_mine_tunnel_8017FDA0[4];
-extern GpRoomBoundVec D_mine_tunnel_8018022C[6];
-extern GpRoomCoordSet D_mine_tunnel_8017FBC0[1];
+extern GpGridParams               D_mine_tunnel_8017E86C[1];
+extern GpObj3A                    D_mine_tunnel_8018025C[3];
+extern GpObj4C                    D_mine_tunnel_8017FBD8[6];
+extern GpObj4C                    D_mine_tunnel_8017FDA0[4];
+extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
+extern GpRoomCoordSet             D_mine_tunnel_8017FBC0[1];
 
 extern SpriteBatch D_mine_tunnel_8017E944[2];
 extern SpriteBatch D_mine_tunnel_8017EA1C[4];
@@ -498,13 +498,13 @@ GpAreaVariant D_mine_tunnel_801801CC[12] = {
     { D_mine_tunnel_8018015C, D_mine_tunnel_8017FF48 },
 };
 
-GpRoomBoundVec D_mine_tunnel_8018022C[6] = {
-    { 5, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 500, 450, 400, 462 },
-    { 580, 530, 500, 545 },
-    { 530, 530, 480, 523 },
-    { 420, 420, 350, 411 },
+WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6] = {
+    { .viewCount = ARRAY_SIZE(D_mine_tunnel_8018022C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 500, 450, 400, 462 } },
+    { .color = { 580, 530, 500, 545 } },
+    { .color = { 530, 530, 480, 523 } },
+    { .color = { 420, 420, 350, 411 } },
 };
 
 GpObj3A D_mine_tunnel_8018025C[3] = {

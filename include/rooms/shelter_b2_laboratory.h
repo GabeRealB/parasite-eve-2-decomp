@@ -41,7 +41,7 @@ extern GpObj4A D_shelter_b2_laboratory_8018595C[];
 
 extern GpObj4A D_shelter_b2_laboratory_80185D84[];
 
-extern GpRoomBoundVec D_shelter_b2_laboratory_801863B8[];
+extern WorldCoordRoomAmbientEntry D_shelter_b2_laboratory_801863B8[];
 
 extern GpRoomParamRec* D_shelter_b2_laboratory_80186468[];
 

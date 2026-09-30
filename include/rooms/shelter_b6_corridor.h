@@ -33,7 +33,7 @@ extern GpObj4A D_shelter_b6_corridor_80180100[];
 
 extern GpObj4A D_shelter_b6_corridor_8018036C[];
 
-extern GpRoomBoundVec D_shelter_b6_corridor_801804E8[];
+extern WorldCoordRoomAmbientEntry D_shelter_b6_corridor_801804E8[];
 
 extern GpRoomParamRec* D_shelter_b6_corridor_80180548[];
 

@@ -67,8 +67,8 @@ static void func_shelter_b1_sterilization_room_80183718(SVECTOR* arg0, s32 arg1,
 static void func_shelter_b1_sterilization_room_80183B8C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpRoomBoundVec D_shelter_b1_sterilization_room_8018C21C[25];
-extern GpRoomCoordSet D_shelter_b1_sterilization_room_8018B630[1];
+extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
+extern GpRoomCoordSet             D_shelter_b1_sterilization_room_8018B630[1];
 
 void func_shelter_b1_sterilization_room_801814B0(void);
 void func_shelter_b1_sterilization_room_80181698(s32);
@@ -848,32 +848,32 @@ GpObj3A D_shelter_b1_sterilization_room_8018C1A4[2] = {
     { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, { -58, 17 }, 129, 0 },
 };
 
-GpRoomBoundVec D_shelter_b1_sterilization_room_8018C21C[25] = {
-    { 24, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 1006, 1603, 1284, 1339 },
-    { 925, 1526, 1344, 1277 },
-    { 870, 965, 955, 928 },
-    { 866, 959, 962, 924 },
-    { 864, 966, 957, 926 },
-    { 862, 980, 978, 935 },
-    { 1300, 1806, 1517, 1580 },
-    { 1523, 2045, 1610, 1794 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b1_sterilization_room_8018C21C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1006, 1603, 1284, 1339 } },
+    { .color = { 925, 1526, 1344, 1277 } },
+    { .color = { 870, 965, 955, 928 } },
+    { .color = { 866, 959, 962, 924 } },
+    { .color = { 864, 966, 957, 926 } },
+    { .color = { 862, 980, 978, 935 } },
+    { .color = { 1300, 1806, 1517, 1580 } },
+    { .color = { 1523, 2045, 1610, 1794 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_shelter_b1_sterilization_room_8018C2E4[3] = {

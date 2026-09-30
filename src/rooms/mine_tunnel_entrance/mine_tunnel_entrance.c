@@ -70,11 +70,11 @@ s32 func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*)
 s32 func_mine_tunnel_entrance_8017D634(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_mine_tunnel_entrance_8017D63C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams   D_mine_tunnel_entrance_8017E0C0[1];
-extern GpObj4C        D_mine_tunnel_entrance_8017ECEC[8];
-extern GpObj4C        D_mine_tunnel_entrance_8017EF4C[4];
-extern GpRoomBoundVec D_mine_tunnel_entrance_8017F38C[7];
-extern GpRoomCoordSet D_mine_tunnel_entrance_8017ECD4[1];
+extern GpGridParams               D_mine_tunnel_entrance_8017E0C0[1];
+extern GpObj4C                    D_mine_tunnel_entrance_8017ECEC[8];
+extern GpObj4C                    D_mine_tunnel_entrance_8017EF4C[4];
+extern WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7];
+extern GpRoomCoordSet             D_mine_tunnel_entrance_8017ECD4[1];
 
 extern TaskDesc D_8014D8A4;
 
@@ -445,14 +445,14 @@ GpAreaVariant D_mine_tunnel_entrance_8017F32C[12] = {
     { D_mine_tunnel_entrance_8017F2FC, D_mine_tunnel_entrance_8017F0F4 },
 };
 
-GpRoomBoundVec D_mine_tunnel_entrance_8017F38C[7] = {
-    { 6, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 400, 380, 300, 377 },
-    { 560, 530, 500, 537 },
-    { 250, 50, 160, 138 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7] = {
+    { .viewCount = ARRAY_SIZE(D_mine_tunnel_entrance_8017F38C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 400, 380, 300, 377 } },
+    { .color = { 560, 530, 500, 537 } },
+    { .color = { 250, 50, 160, 138 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mine_tunnel_entrance_8017F3C4[3] = {

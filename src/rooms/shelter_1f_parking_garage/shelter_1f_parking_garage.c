@@ -93,11 +93,11 @@ static void func_shelter_1f_parking_garage_8017F2DC(GfxCoord* arg0, s16 arg1, u8
 static void func_shelter_1f_parking_garage_8017FB60(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_1f_parking_garage_801801E0(GfxCoord* arg0, s16 arg1, u8* arg2);
 
-extern GpGridParams   D_shelter_1f_parking_garage_80180FE8[1];
-extern GpObj4C        D_shelter_1f_parking_garage_801815F8[4];
-extern GpObj4C        D_shelter_1f_parking_garage_80181728[5];
-extern GpRoomBoundVec D_shelter_1f_parking_garage_801818A4[5];
-extern GpRoomCoordSet D_shelter_1f_parking_garage_801815E0[1];
+extern GpGridParams               D_shelter_1f_parking_garage_80180FE8[1];
+extern GpObj4C                    D_shelter_1f_parking_garage_801815F8[4];
+extern GpObj4C                    D_shelter_1f_parking_garage_80181728[5];
+extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
+extern GpRoomCoordSet             D_shelter_1f_parking_garage_801815E0[1];
 
 s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -306,12 +306,12 @@ GpObj4C D_shelter_1f_parking_garage_80181728[5] = {
     { NULL, NULL, NULL, { 0x2870, -64, 0, 0 }, { { -576, 0, -2656, 0 }, { 576, 0, -2656, 0 }, { -576, 0, 2656, 0 }, { 576, 0, 2656, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 2709, 2, 4, 0, 130, 0 },
 };
 
-GpRoomBoundVec D_shelter_1f_parking_garage_801818A4[5] = {
-    { 4, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 250, 250, 250, 250 },
-    { 250, 250, 250, 250 },
-    { 250, 250, 250, 250 },
+WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_1f_parking_garage_801818A4) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 250, 250, 250, 250 } },
+    { .color = { 250, 250, 250, 250 } },
+    { .color = { 250, 250, 250, 250 } },
 };
 
 GpAreaTmdRec D_shelter_1f_parking_garage_801818CC[1] = {

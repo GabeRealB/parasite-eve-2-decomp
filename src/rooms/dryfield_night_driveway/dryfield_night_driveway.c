@@ -107,12 +107,12 @@ extern RoomLatchedEvent D_dryfield_night_driveway_80182124;
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 static void func_dryfield_night_driveway_8017DD7C(Task* task);
 
-extern GpGridParams   D_dryfield_night_driveway_80180C0C[1];
-extern GpObj3A        D_dryfield_night_driveway_80181FFC[2];
-extern GpObj4C        D_dryfield_night_driveway_801818E8[6];
-extern GpObj4C        D_dryfield_night_driveway_80181DC8[4];
-extern GpRoomBoundVec D_dryfield_night_driveway_80182074[11];
-extern GpRoomCoordSet D_dryfield_night_driveway_80181DB0[1];
+extern GpGridParams               D_dryfield_night_driveway_80180C0C[1];
+extern GpObj3A                    D_dryfield_night_driveway_80181FFC[2];
+extern GpObj4C                    D_dryfield_night_driveway_801818E8[6];
+extern GpObj4C                    D_dryfield_night_driveway_80181DC8[4];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11];
+extern GpRoomCoordSet             D_dryfield_night_driveway_80181DB0[1];
 
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
@@ -889,18 +889,18 @@ GpObj3A D_dryfield_night_driveway_80181FFC[2] = {
     { NULL, NULL, { 1824, -2160, -2656, 0 }, { { -1648, 3184, 2624, 0 }, { 1648, 3184, -2624, 0 }, { -1648, -3184, 2624, 0 }, { 1648, -3184, -2624, 0 } }, { 3478, 0, 2184, 0 }, { 82, 17 }, 129, 0 },
 };
 
-GpRoomBoundVec D_dryfield_night_driveway_80182074[11] = {
-    { 10, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 616, 617 },
-    { 618, 618, 618, 618 },
-    { 615, 617, 616, 616 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_driveway_80182074[11] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_driveway_80182074) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 616, 617 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 615, 617, 616, 616 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_driveway_801820CC[3] = {

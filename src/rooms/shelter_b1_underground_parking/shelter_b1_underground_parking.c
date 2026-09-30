@@ -373,43 +373,43 @@ static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
 #include "../../shared/shop.h"
 
-extern GpGridParams   D_shelter_b1_underground_parking_80187E50[1];
-extern GpGridParams   D_shelter_b1_underground_parking_801884D4[1];
-extern GpGridParams   D_shelter_b1_underground_parking_80188BC4[1];
-extern GpGridParams   D_shelter_b1_underground_parking_8018912C[1];
-extern GpGridParams   D_shelter_b1_underground_parking_80189754[1];
-extern GpObj4C        D_shelter_b1_underground_parking_8018B094[8];
-extern GpObj4C        D_shelter_b1_underground_parking_8018B2F4[8];
-extern GpObj4C        D_shelter_b1_underground_parking_8018B674[12];
-extern GpObj4C        D_shelter_b1_underground_parking_8018BA04[12];
-extern GpObj4C        D_shelter_b1_underground_parking_8018BD94[12];
-extern GpObj4C        D_shelter_b1_underground_parking_8018C124[12];
-extern GpObj4C        D_shelter_b1_underground_parking_8018C4B4[12];
-extern GpObj4C        D_shelter_b1_underground_parking_8018C844[20];
-extern GpObj4C        D_shelter_b1_underground_parking_8018CE34[16];
-extern GpObj4C        D_shelter_b1_underground_parking_8018D2F4[11];
-extern GpRoomBoundVec D_shelter_b1_underground_parking_8018D638[25];
-extern GpRoomCoordSet D_shelter_b1_underground_parking_8018B07C[1];
-s32                   func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, GpMessageArg);
-s32                   func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
-s32                   func_shelter_b1_underground_parking_80183284(Task*, s32, s32, GpMessageArg);
-s32                   func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, GpMessageArg);
-void                  func_shelter_b1_underground_parking_80181FE4(Task*);
-void                  func_shelter_b1_underground_parking_80182154(Task*);
-void                  func_shelter_b1_underground_parking_80182DB4(Task*);
-void                  func_shelter_b1_underground_parking_80182FC8(Task*);
-void                  func_shelter_b1_underground_parking_801831F4(Task*);
-void                  func_shelter_b1_underground_parking_80183410(Task*);
-void                  func_shelter_b1_underground_parking_801834D4(Task*);
-void                  func_shelter_b1_underground_parking_80183560(Task*);
-void                  func_shelter_b1_underground_parking_8018363C(Task*);
-void                  func_shelter_b1_underground_parking_801836D8(Task*);
-void                  func_shelter_b1_underground_parking_80183714(Task*);
-void                  func_shelter_b1_underground_parking_801837D8(u8);
-void                  func_shelter_b1_underground_parking_80183804(u8);
-void                  func_shelter_b1_underground_parking_80184234(Task*);
-void                  func_shelter_b1_underground_parking_80184284(Task*);
+extern GpGridParams               D_shelter_b1_underground_parking_80187E50[1];
+extern GpGridParams               D_shelter_b1_underground_parking_801884D4[1];
+extern GpGridParams               D_shelter_b1_underground_parking_80188BC4[1];
+extern GpGridParams               D_shelter_b1_underground_parking_8018912C[1];
+extern GpGridParams               D_shelter_b1_underground_parking_80189754[1];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018B094[8];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018B2F4[8];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018B674[12];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018BA04[12];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018BD94[12];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018C124[12];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018C4B4[12];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018C844[20];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018CE34[16];
+extern GpObj4C                    D_shelter_b1_underground_parking_8018D2F4[11];
+extern WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25];
+extern GpRoomCoordSet             D_shelter_b1_underground_parking_8018B07C[1];
+s32                               func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32                               func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
+s32                               func_shelter_b1_underground_parking_80183284(Task*, s32, s32, GpMessageArg);
+s32                               func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_shelter_b1_underground_parking_801833DC(Task*, s32, s32, GpMessageArg);
+void                              func_shelter_b1_underground_parking_80181FE4(Task*);
+void                              func_shelter_b1_underground_parking_80182154(Task*);
+void                              func_shelter_b1_underground_parking_80182DB4(Task*);
+void                              func_shelter_b1_underground_parking_80182FC8(Task*);
+void                              func_shelter_b1_underground_parking_801831F4(Task*);
+void                              func_shelter_b1_underground_parking_80183410(Task*);
+void                              func_shelter_b1_underground_parking_801834D4(Task*);
+void                              func_shelter_b1_underground_parking_80183560(Task*);
+void                              func_shelter_b1_underground_parking_8018363C(Task*);
+void                              func_shelter_b1_underground_parking_801836D8(Task*);
+void                              func_shelter_b1_underground_parking_80183714(Task*);
+void                              func_shelter_b1_underground_parking_801837D8(u8);
+void                              func_shelter_b1_underground_parking_80183804(u8);
+void                              func_shelter_b1_underground_parking_80184234(Task*);
+void                              func_shelter_b1_underground_parking_80184284(Task*);
 
 extern SpriteBatch D_shelter_b1_underground_parking_80189AD8[2];
 extern SpriteBatch D_shelter_b1_underground_parking_80189AE8[2];
@@ -1587,32 +1587,32 @@ GpObj4C D_shelter_b1_underground_parking_8018D2F4[11] = {
     { NULL, NULL, NULL, { 2848, -64, -288, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 272, 0 }, { 496, 0, 272, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 701, 5, 1, 0, 130, 0 },
 };
 
-GpRoomBoundVec D_shelter_b1_underground_parking_8018D638[25] = {
-    { 24, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 2256, 2255, 2255, 2255 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b1_underground_parking_8018D638) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 2256, 2255, 2255, 2255 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_shelter_b1_underground_parking_8018D700[3] = {

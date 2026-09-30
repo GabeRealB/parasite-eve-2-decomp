@@ -66,7 +66,7 @@ static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1);
 
 static InventoryItemRow* Gp_FindItemByKind(s32 arg0);
 
-GpRoomBoundVec Gp_RoomBoundDefault = { 16, 16, 16, 16 };
+WorldCoordRoomAmbientEntry Gp_RoomBoundDefault = { .color = { 16, 16, 16, 16 } };
 
 s32 D_8010F9EC = -0x10000;
 

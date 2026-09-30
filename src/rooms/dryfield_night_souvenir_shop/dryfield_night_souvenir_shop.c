@@ -50,11 +50,11 @@ s32 func_dryfield_night_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEv
 s32 func_dryfield_night_souvenir_shop_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_dryfield_night_souvenir_shop_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams   D_dryfield_night_souvenir_shop_8017E604[1];
-extern GpObj4C        D_dryfield_night_souvenir_shop_8017F190[2];
-extern GpObj4C        D_dryfield_night_souvenir_shop_8017F248[12];
-extern GpRoomBoundVec D_dryfield_night_souvenir_shop_8017F228[4];
-extern GpRoomCoordSet D_dryfield_night_souvenir_shop_8017F178[1];
+extern GpGridParams               D_dryfield_night_souvenir_shop_8017E604[1];
+extern GpObj4C                    D_dryfield_night_souvenir_shop_8017F190[2];
+extern GpObj4C                    D_dryfield_night_souvenir_shop_8017F248[12];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_souvenir_shop_8017F228[4];
+extern GpRoomCoordSet             D_dryfield_night_souvenir_shop_8017F178[1];
 
 GpMsgEntry D_dryfield_night_souvenir_shop_8017E03C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_souvenir_shop_8017D5D8 },
@@ -298,11 +298,11 @@ GpObj4C D_dryfield_night_souvenir_shop_8017F190[2] = {
     { NULL, NULL, NULL, { 3039, -1536, -2017, 0 }, { { -146, -1888, 2191, 0 }, { 147, -1888, -2190, 0 }, { -146, 1888, 2191, 0 }, { 147, 1888, -2190, 0 } }, { -4087, 0, -275, 0 }, { 0, 0, 4096, 0 }, 2884, 0, 2, 3, 129, 0 },
 };
 
-GpRoomBoundVec D_dryfield_night_souvenir_shop_8017F228[4] = {
-    { 3, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 410, 615, 615, 538 },
-    { 410, 615, 615, 538 },
+WorldCoordRoomAmbientEntry D_dryfield_night_souvenir_shop_8017F228[4] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_souvenir_shop_8017F228) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 410, 615, 615, 538 } },
+    { .color = { 410, 615, 615, 538 } },
 };
 
 GpObj4C D_dryfield_night_souvenir_shop_8017F248[12] = {

@@ -178,18 +178,18 @@ void func_mine_refuge_8017F49C(Task*);
 void func_mine_refuge_8017F49C(Task*);
 void func_mine_refuge_8017FB24(Task*);
 
-extern GpGridParams   D_mine_refuge_80181BA4[1];
-extern GpObj4C        D_mine_refuge_80182778[2];
-extern GpObj4C        D_mine_refuge_80182810[6];
-extern GpRoomBoundVec D_mine_refuge_80182A58[8];
-extern GpRoomCoordSet D_mine_refuge_80182760[1];
-s32                   func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
-s32                   func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_mine_refuge_8017FC2C(Task*, s32, s32, GpMessageArg);
-s32                   func_mine_refuge_8017FCD0(Task*, s32, DirectionActionRequest* request, GpMessageArg);
-s32                   func_mine_refuge_8017FD48(Task*, s32, s32, s32);
-void                  func_mine_refuge_8017FA08(Task*);
-void                  func_mine_refuge_8017FDBC(Task*);
+extern GpGridParams               D_mine_refuge_80181BA4[1];
+extern GpObj4C                    D_mine_refuge_80182778[2];
+extern GpObj4C                    D_mine_refuge_80182810[6];
+extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
+extern GpRoomCoordSet             D_mine_refuge_80182760[1];
+s32                               func_mine_refuge_8017FBB4(Task*, s32, s32, s32);
+s32                               func_mine_refuge_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_mine_refuge_8017FC2C(Task*, s32, s32, GpMessageArg);
+s32                               func_mine_refuge_8017FCD0(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32                               func_mine_refuge_8017FD48(Task*, s32, s32, s32);
+void                              func_mine_refuge_8017FA08(Task*);
+void                              func_mine_refuge_8017FDBC(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -500,15 +500,15 @@ GpAreaVariant D_mine_refuge_80182A00[11] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_mine_refuge_80182A58[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 520, 520, 520, 520 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8] = {
+    { .viewCount = ARRAY_SIZE(D_mine_refuge_80182A58) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 520, 520, 520, 520 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mine_refuge_80182A98[3] = {

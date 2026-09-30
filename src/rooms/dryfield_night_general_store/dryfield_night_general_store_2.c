@@ -39,12 +39,12 @@
 
 #include "rooms/room_common.h"
 
-extern GpGridParams   D_dryfield_night_general_store_8017F484[1];
-extern GpObj3A        D_dryfield_night_general_store_801855C4[4];
-extern GpObj4C        D_dryfield_night_general_store_801847D0[28];
-extern GpObj4C        D_dryfield_night_general_store_80185020[19];
-extern GpRoomBoundVec D_dryfield_night_general_store_801857DC[17];
-extern GpRoomCoordSet D_dryfield_night_general_store_801847B8[1];
+extern GpGridParams               D_dryfield_night_general_store_8017F484[1];
+extern GpObj3A                    D_dryfield_night_general_store_801855C4[4];
+extern GpObj4C                    D_dryfield_night_general_store_801847D0[28];
+extern GpObj4C                    D_dryfield_night_general_store_80185020[19];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17];
+extern GpRoomCoordSet             D_dryfield_night_general_store_801847B8[1];
 
 SVECTOR D_dryfield_night_general_store_8017E7EC[4] = {
     { 3240, -2820, 1750, 0 },
@@ -1379,24 +1379,24 @@ GpAreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { D_map_dryfield_full_8017AFE8, D_dryfield_night_general_store_80185708 },
 };
 
-GpRoomBoundVec D_dryfield_night_general_store_801857DC[17] = {
-    { 16, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 499, 580, 618, 554 },
-    { 512, 598, 612, 567 },
-    { 612, 624, 658, 623 },
-    { 554, 563, 561, 559 },
-    { 501, 597, 597, 561 },
-    { 259, 318, 357, 300 },
-    { 399, 445, 457, 429 },
-    { 464, 479, 466, 471 },
-    { 238, 478, 496, 390 },
-    { 257, 497, 515, 409 },
-    { 666, 721, 738, 702 },
-    { 739, 787, 798, 770 },
-    { 857, 942, 939, 909 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_general_store_801857DC[17] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_general_store_801857DC) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 499, 580, 618, 554 } },
+    { .color = { 512, 598, 612, 567 } },
+    { .color = { 612, 624, 658, 623 } },
+    { .color = { 554, 563, 561, 559 } },
+    { .color = { 501, 597, 597, 561 } },
+    { .color = { 259, 318, 357, 300 } },
+    { .color = { 399, 445, 457, 429 } },
+    { .color = { 464, 479, 466, 471 } },
+    { .color = { 238, 478, 496, 390 } },
+    { .color = { 257, 497, 515, 409 } },
+    { .color = { 666, 721, 738, 702 } },
+    { .color = { 739, 787, 798, 770 } },
+    { .color = { 857, 942, 939, 909 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_general_store_80185864[3] = {

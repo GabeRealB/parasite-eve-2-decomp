@@ -79,18 +79,18 @@ static void func_dryfield_garage_8017DC08(Task* task);
 
 extern TaskDesc D_8014D8A4;
 
-extern GpGridParams   D_dryfield_garage_8017E64C[1];
-extern GpObj4C        D_dryfield_garage_8017F69C[14];
-extern GpObj4C        D_dryfield_garage_8017FD1C[11];
-extern GpRoomBoundVec D_dryfield_garage_80180148[16];
-extern GpRoomCoordSet D_dryfield_garage_8017FD04[1];
-s32                   func_dryfield_garage_8017D8BC(Task*, s32, s32, GpMessageArg);
-s32                   func_dryfield_garage_8017D914(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_garage_8017DA18(Task*, s32, s32, GpMessageArg);
-s32                   func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, GpMessageArg);
-void                  func_dryfield_garage_8017D74C(Task*);
-void                  func_dryfield_garage_8017DAA0(Task*);
+extern GpGridParams               D_dryfield_garage_8017E64C[1];
+extern GpObj4C                    D_dryfield_garage_8017F69C[14];
+extern GpObj4C                    D_dryfield_garage_8017FD1C[11];
+extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
+extern GpRoomCoordSet             D_dryfield_garage_8017FD04[1];
+s32                               func_dryfield_garage_8017D8BC(Task*, s32, s32, GpMessageArg);
+s32                               func_dryfield_garage_8017D914(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, GpMessageArg);
+s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, GpMessageArg);
+void                              func_dryfield_garage_8017D74C(Task*);
+void                              func_dryfield_garage_8017DAA0(Task*);
 
 TaskDesc D_dryfield_garage_8017DC70 = { 0, 32, func_dryfield_garage_8017D74C, { .model = NULL } };
 
@@ -542,23 +542,23 @@ GpAreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_garage_80180148[16] = {
-    { 15, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 200, 200, 200, 200 },
-    { 650, 650, 650, 650 },
-    { 300, 300, 300, 300 },
-    { 500, 500, 500, 500 },
-    { 350, 350, 350, 350 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 560, 560, 560, 560 },
+WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_garage_80180148) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 200, 200, 200, 200 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 500, 500, 500, 500 } },
+    { .color = { 350, 350, 350, 350 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 560, 560, 560, 560 } },
 };
 
 s32 D_dryfield_garage_801801C8[3] = {

@@ -47,9 +47,9 @@ s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_neo_ark_r26_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
 s32 func_neo_ark_r26_8017D69C(Task*, s32, GpMessageArg, GpMessageArg);
 
-extern GpGridParams   D_neo_ark_r26_8017E19C[1];
-extern GpRoomBoundVec D_neo_ark_r26_8017E9EC[5];
-extern GpRoomCoordSet D_neo_ark_r26_8017E928[1];
+extern GpGridParams               D_neo_ark_r26_8017E19C[1];
+extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
+extern GpRoomCoordSet             D_neo_ark_r26_8017E928[1];
 
 extern AnimationPlayRequest D_neo_ark_r26_8017D780;
 extern AnimationPlayRequest D_neo_ark_r26_8017D7C4;
@@ -408,12 +408,12 @@ GpAreaVariant D_neo_ark_r26_8017E994[11] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_neo_ark_r26_8017E9EC[5] = {
-    { 4, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 1000, 700, 800, 825 },
-    { 1000, 700, 800, 825 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5] = {
+    { .viewCount = ARRAY_SIZE(D_neo_ark_r26_8017E9EC) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1000, 700, 800, 825 } },
+    { .color = { 1000, 700, 800, 825 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_neo_ark_r26_8017EA14[3] = {

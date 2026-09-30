@@ -542,16 +542,16 @@ GpAreaVariant D_shelter_b1_control_room_80183A98[22] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_shelter_b1_control_room_80183B48[9] = {
-    { 8, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 582, 925, 780, 778 },
-    { 579, 901, 799, 767 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 614, 899, 793, 778 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_shelter_b1_control_room_80183B48[9] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_b1_control_room_80183B48) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 582, 925, 780, 778 } },
+    { .color = { 579, 901, 799, 767 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 614, 899, 793, 778 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_shelter_b1_control_room_80183B90[3] = {

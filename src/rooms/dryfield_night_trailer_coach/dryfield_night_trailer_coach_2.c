@@ -51,11 +51,11 @@ static void func_dryfield_night_trailer_coach_80182AB8(SVECTOR* arg0, s32 arg1, 
 static void func_dryfield_night_trailer_coach_80182F2C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1);
 
-extern GpGridParams   D_dryfield_night_trailer_coach_80189A20[1];
-extern GpObj4C        D_dryfield_night_trailer_coach_8018BBA4[4];
-extern GpObj4C        D_dryfield_night_trailer_coach_8018BD1C[14];
-extern GpRoomBoundVec D_dryfield_night_trailer_coach_8018BCD4[9];
-extern GpRoomCoordSet D_dryfield_night_trailer_coach_8018BB8C[1];
+extern GpGridParams               D_dryfield_night_trailer_coach_80189A20[1];
+extern GpObj4C                    D_dryfield_night_trailer_coach_8018BBA4[4];
+extern GpObj4C                    D_dryfield_night_trailer_coach_8018BD1C[14];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_trailer_coach_8018BCD4[9];
+extern GpRoomCoordSet             D_dryfield_night_trailer_coach_8018BB8C[1];
 
 GpEvsCmd D_dryfield_night_trailer_coach_80188708[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
@@ -754,16 +754,16 @@ GpObj4C D_dryfield_night_trailer_coach_8018BBA4[4] = {
     { NULL, NULL, NULL, { 7806, -1376, -1538, 0 }, { { -7, -2112, -1048, 0 }, { -8, -2112, 1031, 0 }, { -7, 2112, -1048, 0 }, { -8, 2112, 1031, 0 } }, { 4097, 0, 1, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 3, 129, 0 },
 };
 
-GpRoomBoundVec D_dryfield_night_trailer_coach_8018BCD4[9] = {
-    { 8, 0, 0, 0 },
-    { 16, 0, 0, 6 },
-    { 820, 820, 820, 820 },
-    { 820, 820, 820, 820 },
-    { 1230, 1230, 1230, 1230 },
-    { 820, 820, 820, 820 },
-    { 820, 820, 820, 820 },
-    { 820, 820, 820, 820 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_trailer_coach_8018BCD4[9] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_trailer_coach_8018BCD4) - 1 },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 820, 820, 820, 820 } },
+    { .color = { 820, 820, 820, 820 } },
+    { .color = { 1230, 1230, 1230, 1230 } },
+    { .color = { 820, 820, 820, 820 } },
+    { .color = { 820, 820, 820, 820 } },
+    { .color = { 820, 820, 820, 820 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 GpObj4C D_dryfield_night_trailer_coach_8018BD1C[14] = {

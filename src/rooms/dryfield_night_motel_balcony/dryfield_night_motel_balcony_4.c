@@ -90,19 +90,19 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg);
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick);
 
-extern GpGridParams   D_dryfield_night_motel_balcony_80183750[1];
-extern GpGridParams   D_dryfield_night_motel_balcony_80183FE0[1];
-extern GpObj3A        D_dryfield_night_motel_balcony_8018EF70[2];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018E2FC[8];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018E55C[10];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018E854[6];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018EAFC[4];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018EC2C[4];
-extern GpObj4C        D_dryfield_night_motel_balcony_8018ED5C[7];
-extern GpRoomBoundVec D_dryfield_night_motel_balcony_8018EFE8[40];
-extern GpRoomBoundVec D_dryfield_night_motel_balcony_8018F128[40];
-extern GpRoomCoordSet D_dryfield_night_motel_balcony_8018DA8C[1];
-extern GpRoomCoordSet D_dryfield_night_motel_balcony_8018E2E4[1];
+extern GpGridParams               D_dryfield_night_motel_balcony_80183750[1];
+extern GpGridParams               D_dryfield_night_motel_balcony_80183FE0[1];
+extern GpObj3A                    D_dryfield_night_motel_balcony_8018EF70[2];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018E2FC[8];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018E55C[10];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018E854[6];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018EAFC[4];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018EC2C[4];
+extern GpObj4C                    D_dryfield_night_motel_balcony_8018ED5C[7];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018EFE8[40];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018F128[40];
+extern GpRoomCoordSet             D_dryfield_night_motel_balcony_8018DA8C[1];
+extern GpRoomCoordSet             D_dryfield_night_motel_balcony_8018E2E4[1];
 
 extern GpRoomParamRec D_dryfield_night_motel_balcony_8018F28C[1];
 extern GpRoomParamRec D_dryfield_night_motel_balcony_8018F294[1];
@@ -2749,90 +2749,90 @@ GpObj3A D_dryfield_night_motel_balcony_8018EF70[2] = {
     { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, { 60, 23 }, 129, 0 },
 };
 
-GpRoomBoundVec D_dryfield_night_motel_balcony_8018EFE8[40] = {
-    { 39, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 618, 618 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 615, 618, 618, 616 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018EFE8[40] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_motel_balcony_8018EFE8) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 615, 618, 618, 616 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
-GpRoomBoundVec D_dryfield_night_motel_balcony_8018F128[40] = {
-    { 39, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 618, 618 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 615, 618, 618, 616 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 618, 618 },
-    { 618, 618, 618, 618 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_motel_balcony_8018F128[40] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_motel_balcony_8018F128) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 615, 618, 618, 616 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_motel_balcony_8018F268[3] = {

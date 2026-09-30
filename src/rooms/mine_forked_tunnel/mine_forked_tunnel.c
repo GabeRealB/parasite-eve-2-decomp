@@ -185,13 +185,13 @@ s32 func_mine_forked_tunnel_8017E19C(Task*, s32, DirectionActionRequest* request
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
 
-extern GpCopyArg      D_mine_forked_tunnel_8018312C;
-extern GpGridParams   D_mine_forked_tunnel_80183D70;
-extern GpObj4C        D_mine_forked_tunnel_80184F50[6];
-extern GpObj4C        D_mine_forked_tunnel_80185118[6];
-extern GpRoomBoundVec D_mine_forked_tunnel_80185564[8];
-extern GpRoomCoordSet D_mine_forked_tunnel_80184F38[1];
-void                  func_mine_forked_tunnel_8017E2B4(void);
+extern GpCopyArg                  D_mine_forked_tunnel_8018312C;
+extern GpGridParams               D_mine_forked_tunnel_80183D70;
+extern GpObj4C                    D_mine_forked_tunnel_80184F50[6];
+extern GpObj4C                    D_mine_forked_tunnel_80185118[6];
+extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
+extern GpRoomCoordSet             D_mine_forked_tunnel_80184F38[1];
+void                              func_mine_forked_tunnel_8017E2B4(void);
 
 TmdBone D_mine_forked_tunnel_8017E828[1] = {
 #include "assets/mine_forked_tunnel_model_031F4_skeleton.inc"
@@ -1430,15 +1430,15 @@ GpAreaVariant D_mine_forked_tunnel_80185504[12] = {
     { D_mine_forked_tunnel_801854D4, D_mine_forked_tunnel_8018534C },
 };
 
-GpRoomBoundVec D_mine_forked_tunnel_80185564[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 480, 480, 360, 465 },
-    { 16, 16, 16, 16 },
-    { 430, 440, 350, 425 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8] = {
+    { .viewCount = ARRAY_SIZE(D_mine_forked_tunnel_80185564) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 480, 480, 360, 465 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 430, 440, 350, 425 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mine_forked_tunnel_801855A4[3] = {

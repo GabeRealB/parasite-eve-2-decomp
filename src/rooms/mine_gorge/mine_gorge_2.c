@@ -46,13 +46,13 @@ extern SVECTOR D_mine_gorge_8017E798[];
 
 static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
 
-extern GpGridParams   D_mine_gorge_8017F184[1];
-extern GpGridParams   D_mine_gorge_8017F9F0[1];
-extern GpObj4C        D_mine_gorge_80182AD4[8];
-extern GpObj4C        D_mine_gorge_80182D34[8];
-extern GpObj4C        D_mine_gorge_80182F94[5];
-extern GpRoomBoundVec D_mine_gorge_801835A4[12];
-extern GpRoomCoordSet D_mine_gorge_80182ABC[1];
+extern GpGridParams               D_mine_gorge_8017F184[1];
+extern GpGridParams               D_mine_gorge_8017F9F0[1];
+extern GpObj4C                    D_mine_gorge_80182AD4[8];
+extern GpObj4C                    D_mine_gorge_80182D34[8];
+extern GpObj4C                    D_mine_gorge_80182F94[5];
+extern WorldCoordRoomAmbientEntry D_mine_gorge_801835A4[12];
+extern GpRoomCoordSet             D_mine_gorge_80182ABC[1];
 
 u16 D_mine_gorge_8017E760[12] = {
     0,
@@ -1017,19 +1017,19 @@ GpAreaVariant D_mine_gorge_80183544[12] = {
     { D_mine_gorge_80183474, D_mine_gorge_8018317C },
 };
 
-GpRoomBoundVec D_mine_gorge_801835A4[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 500, 530, 350, 496 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 330, 280, 270, 297 },
-    { 400, 400, 370, 396 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_gorge_801835A4[12] = {
+    { .viewCount = ARRAY_SIZE(D_mine_gorge_801835A4) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 500, 530, 350, 496 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 330, 280, 270, 297 } },
+    { .color = { 400, 400, 370, 396 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_mine_gorge_80183604[3] = {

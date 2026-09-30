@@ -88,12 +88,12 @@ extern ActorTransform       D_dryfield_general_store_8017E53C;
 extern s32                  D_dryfield_general_store_8017E560;
 void                        func_dryfield_general_store_8017E130(s32);
 
-extern GpGridParams   D_dryfield_general_store_8017F238[1];
-extern GpObj3A        D_dryfield_general_store_80184F78[4];
-extern GpObj4C        D_dryfield_general_store_801840EC[28];
-extern GpObj4C        D_dryfield_general_store_8018493C[21];
-extern GpRoomBoundVec D_dryfield_general_store_80185500[17];
-extern GpRoomCoordSet D_dryfield_general_store_801854E8[1];
+extern GpGridParams               D_dryfield_general_store_8017F238[1];
+extern GpObj3A                    D_dryfield_general_store_80184F78[4];
+extern GpObj4C                    D_dryfield_general_store_801840EC[28];
+extern GpObj4C                    D_dryfield_general_store_8018493C[21];
+extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
+extern GpRoomCoordSet             D_dryfield_general_store_801854E8[1];
 
 s32  func_dryfield_general_store_8017D8D4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, GpMessageArg);
@@ -1462,24 +1462,24 @@ GpRoomCoordSet D_dryfield_general_store_801854E8[1] = {
     { 0, NULL, 12, D_dryfield_general_store_80185068, 0, NULL },
 };
 
-GpRoomBoundVec D_dryfield_general_store_80185500[17] = {
-    { 16, 0, 0, 0 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 479, 480, 482, 479 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 478, 482, 480, 480 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
-    { 16, 0, 0, 6 },
+WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_general_store_80185500) - 1 },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 479, 480, 482, 479 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 478, 482, 480, 480 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
+    { .color = { 16, 0, 0, 6 } },
 };
 
 GpAreaTmdRec D_dryfield_general_store_80185588[2] = {

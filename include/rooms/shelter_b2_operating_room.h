@@ -35,7 +35,7 @@ extern GpObj3A D_shelter_b2_operating_room_80183A28[];
 
 extern GpObj4A D_shelter_b2_operating_room_80183ADC[];
 
-extern GpRoomBoundVec D_shelter_b2_operating_room_80184184[];
+extern WorldCoordRoomAmbientEntry D_shelter_b2_operating_room_80184184[];
 
 extern GpRoomParamRec* D_shelter_b2_operating_room_801841F4[];
 

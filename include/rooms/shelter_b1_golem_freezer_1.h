@@ -33,7 +33,7 @@ extern GpObj4A D_shelter_b1_golem_freezer_1_8017EE7C[];
 
 extern GpObj4A D_shelter_b1_golem_freezer_1_8017EFAC[];
 
-extern GpRoomBoundVec D_shelter_b1_golem_freezer_1_8017F234[];
+extern WorldCoordRoomAmbientEntry D_shelter_b1_golem_freezer_1_8017F234[];
 
 extern GpRoomParamRec* D_shelter_b1_golem_freezer_1_8017F290[];
 

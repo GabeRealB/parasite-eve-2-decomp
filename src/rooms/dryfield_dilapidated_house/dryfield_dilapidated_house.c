@@ -270,40 +270,40 @@ static void func_dryfield_dilapidated_house_80180738(Task* task, SVECTOR* verts)
 static void func_dryfield_dilapidated_house_801803A4(Task* task, SVECTOR* verts);
 static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags);
 
-extern GpGridParams   D_dryfield_dilapidated_house_801872E4[1];
-extern GpObj3A        D_dryfield_dilapidated_house_80189260[1];
-extern GpObj4C        D_dryfield_dilapidated_house_80188D08[9];
-extern GpObj4C        D_dryfield_dilapidated_house_80188FB4[9];
-extern GpRoomBoundVec D_dryfield_dilapidated_house_801899A0[22];
-extern GpRoomCoordSet D_dryfield_dilapidated_house_801898FC[1];
-extern GpScriptCmd    D_dryfield_dilapidated_house_80189B30[2];
-extern GpScriptCmd    D_dryfield_dilapidated_house_80189B40[4];
-extern GpScriptCmd    D_dryfield_dilapidated_house_80189B5C[2];
-extern GpScriptRec    D_dryfield_dilapidated_house_80189B38[2];
-extern GpScriptRec    D_dryfield_dilapidated_house_80189B50[3];
-extern GpScriptRec    D_dryfield_dilapidated_house_80189B64[2];
-extern SVECTOR        D_dryfield_dilapidated_house_80189CA0[40];
-s32                   func_dryfield_dilapidated_house_8017E56C(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_dilapidated_house_8017E684(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
-void                  func_dryfield_dilapidated_house_8017D64C(Task*);
-void                  func_dryfield_dilapidated_house_8017DE88(Task*);
-void                  func_dryfield_dilapidated_house_8017E144(Task*);
-void                  func_dryfield_dilapidated_house_8017E2B0(Task*);
-void                  func_dryfield_dilapidated_house_8017E6DC(Task*);
-void                  func_dryfield_dilapidated_house_8017E780(Task*);
-void                  func_dryfield_dilapidated_house_8017E858(Task*);
-void                  func_dryfield_dilapidated_house_8017E8A8(s32);
-void                  func_dryfield_dilapidated_house_8017E8C8(void);
-void                  func_dryfield_dilapidated_house_8017E8E8(s32);
-void                  func_dryfield_dilapidated_house_8017E970(s32);
-void                  func_dryfield_dilapidated_house_8017EA10(s32);
-void                  func_dryfield_dilapidated_house_8017EA7C(void);
-void                  func_dryfield_dilapidated_house_80180F04(Task*);
-void                  func_dryfield_dilapidated_house_80181134(Task*);
-void                  func_dryfield_dilapidated_house_801812E8(Task*);
-void                  func_dryfield_dilapidated_house_8018145C(Task*);
+extern GpGridParams               D_dryfield_dilapidated_house_801872E4[1];
+extern GpObj3A                    D_dryfield_dilapidated_house_80189260[1];
+extern GpObj4C                    D_dryfield_dilapidated_house_80188D08[9];
+extern GpObj4C                    D_dryfield_dilapidated_house_80188FB4[9];
+extern WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22];
+extern GpRoomCoordSet             D_dryfield_dilapidated_house_801898FC[1];
+extern GpScriptCmd                D_dryfield_dilapidated_house_80189B30[2];
+extern GpScriptCmd                D_dryfield_dilapidated_house_80189B40[4];
+extern GpScriptCmd                D_dryfield_dilapidated_house_80189B5C[2];
+extern GpScriptRec                D_dryfield_dilapidated_house_80189B38[2];
+extern GpScriptRec                D_dryfield_dilapidated_house_80189B50[3];
+extern GpScriptRec                D_dryfield_dilapidated_house_80189B64[2];
+extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
+s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+void                              func_dryfield_dilapidated_house_8017D64C(Task*);
+void                              func_dryfield_dilapidated_house_8017DE88(Task*);
+void                              func_dryfield_dilapidated_house_8017E144(Task*);
+void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
+void                              func_dryfield_dilapidated_house_8017E6DC(Task*);
+void                              func_dryfield_dilapidated_house_8017E780(Task*);
+void                              func_dryfield_dilapidated_house_8017E858(Task*);
+void                              func_dryfield_dilapidated_house_8017E8A8(s32);
+void                              func_dryfield_dilapidated_house_8017E8C8(void);
+void                              func_dryfield_dilapidated_house_8017E8E8(s32);
+void                              func_dryfield_dilapidated_house_8017E970(s32);
+void                              func_dryfield_dilapidated_house_8017EA10(s32);
+void                              func_dryfield_dilapidated_house_8017EA7C(void);
+void                              func_dryfield_dilapidated_house_80180F04(Task*);
+void                              func_dryfield_dilapidated_house_80181134(Task*);
+void                              func_dryfield_dilapidated_house_801812E8(Task*);
+void                              func_dryfield_dilapidated_house_8018145C(Task*);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
     { 0, 192, func_dryfield_dilapidated_house_8017D64C, { .model = NULL } },
@@ -1539,29 +1539,29 @@ GpAreaVariant D_dryfield_dilapidated_house_80189938[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_dilapidated_house_801899A0[22] = {
-    { 21, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1000, 1000, 1000, 1000 },
-    { 16, 16, 16, 16 },
-    { 0, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 650, 650, 650, 650 },
-    { 650, 650, 650, 650 },
-    { 650, 650, 650, 650 },
-    { 650, 650, 650, 650 },
-    { 3000, 3000, 600, 2700 },
-    { 2000, 750, 550, 1193 },
-    { 650, 650, 650, 650 },
-    { 750, 750, 750, 750 },
+WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_dilapidated_house_801899A0) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1000, 1000, 1000, 1000 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 0, 0, 0, 0 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 3000, 3000, 600, 2700 } },
+    { .color = { 2000, 750, 550, 1193 } },
+    { .color = { 650, 650, 650, 650 } },
+    { .color = { 750, 750, 750, 750 } },
 };
 
 s32 D_dryfield_dilapidated_house_80189A50[3] = {

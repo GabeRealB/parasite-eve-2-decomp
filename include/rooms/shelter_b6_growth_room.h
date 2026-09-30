@@ -33,7 +33,7 @@ extern GpObj4A D_shelter_b6_growth_room_8017FF90[];
 
 extern GpObj4A D_shelter_b6_growth_room_801803A0[];
 
-extern GpRoomBoundVec D_shelter_b6_growth_room_80180730[];
+extern WorldCoordRoomAmbientEntry D_shelter_b6_growth_room_80180730[];
 
 extern GpRoomParamRec* D_shelter_b6_growth_room_801807A8[];
 

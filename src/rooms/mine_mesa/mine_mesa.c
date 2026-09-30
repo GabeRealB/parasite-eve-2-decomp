@@ -262,28 +262,28 @@ extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
 extern GpEvsCmd             D_mine_mesa_8018515C[17];
 
-extern GpObj3A        D_mine_mesa_801899B4[2];
-extern GpObj4C        D_mine_mesa_80188E40[8];
-extern GpRoomBoundVec D_mine_mesa_80189954[12];
-extern GpRoomCoordSet D_mine_mesa_80188E28[1];
-extern ActorTransform D_mine_mesa_801843F4;
-extern ActorTransform D_mine_mesa_80184424;
-extern ActorTransform D_mine_mesa_8018443C;
-extern ActorTransform D_mine_mesa_801845F0;
-extern ActorTransform D_mine_mesa_80184608;
-extern ActorTransform D_mine_mesa_80184620;
-extern ActorTransform D_mine_mesa_80184638;
-void                  func_mine_mesa_8017E600(void);
-void                  func_mine_mesa_8017E650(void);
-void                  func_mine_mesa_8017E684(s32);
-void                  func_mine_mesa_8017E6D8(void);
-void                  func_mine_mesa_8017E70C(s32);
-void                  func_mine_mesa_8017E8B0(s32);
-void                  func_mine_mesa_8017E8FC(s32);
-void                  func_mine_mesa_8017E93C(u8);
-void                  func_mine_mesa_8017EAC0(void);
-void                  func_mine_mesa_8017EB18(void);
-void                  func_mine_mesa_8017EB54(s32);
+extern GpObj3A                    D_mine_mesa_801899B4[2];
+extern GpObj4C                    D_mine_mesa_80188E40[8];
+extern WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12];
+extern GpRoomCoordSet             D_mine_mesa_80188E28[1];
+extern ActorTransform                 D_mine_mesa_801843F4;
+extern ActorTransform                 D_mine_mesa_80184424;
+extern ActorTransform                 D_mine_mesa_8018443C;
+extern ActorTransform                 D_mine_mesa_801845F0;
+extern ActorTransform                 D_mine_mesa_80184608;
+extern ActorTransform                 D_mine_mesa_80184620;
+extern ActorTransform                 D_mine_mesa_80184638;
+void                              func_mine_mesa_8017E600(void);
+void                              func_mine_mesa_8017E650(void);
+void                              func_mine_mesa_8017E684(s32);
+void                              func_mine_mesa_8017E6D8(void);
+void                              func_mine_mesa_8017E70C(s32);
+void                              func_mine_mesa_8017E8B0(s32);
+void                              func_mine_mesa_8017E8FC(s32);
+void                              func_mine_mesa_8017E93C(u8);
+void                              func_mine_mesa_8017EAC0(void);
+void                              func_mine_mesa_8017EB18(void);
+void                              func_mine_mesa_8017EB54(s32);
 
 extern GpPointLight             D_mine_mesa_801887C8[8];
 extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
@@ -2464,19 +2464,19 @@ GpAreaVariant D_mine_mesa_801898F4[12] = {
     { D_mine_mesa_80189884, D_mine_mesa_801896E0 },
 };
 
-GpRoomBoundVec D_mine_mesa_80189954[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 700, 900, 850, 818 },
-    { 200, 300, 320, 265 },
-    { 460, 460, 650, 483 },
-    { 300, 300, 300, 300 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_mine_mesa_80189954[12] = {
+    { .viewCount = ARRAY_SIZE(D_mine_mesa_80189954) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 700, 900, 850, 818 } },
+    { .color = { 200, 300, 320, 265 } },
+    { .color = { 460, 460, 650, 483 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 GpObj3A D_mine_mesa_801899B4[2] = {

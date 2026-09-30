@@ -212,11 +212,11 @@ void func_acropolis_square_80181DD0(Task*);
 void func_acropolis_square_80182148(Task*);
 void func_acropolis_square_80182200(s32);
 
-extern GpGridParams   D_acropolis_square_8018519C[1];
-extern GpObj4C        D_acropolis_square_801851C0[16];
-extern GpObj4C        D_acropolis_square_80185680[26];
-extern GpRoomBoundVec D_acropolis_square_80186480[16];
-extern GpRoomCoordSet D_acropolis_square_80186468[1];
+extern GpGridParams               D_acropolis_square_8018519C[1];
+extern GpObj4C                    D_acropolis_square_801851C0[16];
+extern GpObj4C                    D_acropolis_square_80185680[26];
+extern WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16];
+extern GpRoomCoordSet             D_acropolis_square_80186468[1];
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -488,23 +488,23 @@ GpRoomCoordSet D_acropolis_square_80186468[1] = {
     { 0, NULL, 16, D_acropolis_square_80185E68, 0, NULL },
 };
 
-GpRoomBoundVec D_acropolis_square_80186480[16] = {
-    { 15, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_acropolis_square_80186480[16] = {
+    { .viewCount = ARRAY_SIZE(D_acropolis_square_80186480) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 SpriteBatch D_acropolis_square_80186500[2] = {

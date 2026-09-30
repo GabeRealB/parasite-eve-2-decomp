@@ -49,18 +49,18 @@ static const TaskFuncTable3 D_shelter_1f_guardroom_8017D5C4 = {
     },
 };
 
-extern GpGridParams   D_shelter_1f_guardroom_8017DBF0[1];
-extern GpObj4C        D_shelter_1f_guardroom_8017DE3C[2];
-extern GpObj4C        D_shelter_1f_guardroom_8017DED4[3];
-extern GpRoomBoundVec D_shelter_1f_guardroom_8017DFB8[4];
-extern GpRoomCoordSet D_shelter_1f_guardroom_8017DE24[1];
-s32                   func_shelter_1f_guardroom_8017D73C(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_1f_guardroom_8017D788(Task*, s32, s32, GpMessageArg);
-s32                   func_shelter_1f_guardroom_8017D7E8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, GpMessageArg);
-void                  func_shelter_1f_guardroom_8017D5E8(Task*);
-void                  func_shelter_1f_guardroom_8017D8D8(Task*);
+extern GpGridParams               D_shelter_1f_guardroom_8017DBF0[1];
+extern GpObj4C                    D_shelter_1f_guardroom_8017DE3C[2];
+extern GpObj4C                    D_shelter_1f_guardroom_8017DED4[3];
+extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
+extern GpRoomCoordSet             D_shelter_1f_guardroom_8017DE24[1];
+s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, GpMessageArg);
+s32                               func_shelter_1f_guardroom_8017D7E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, GpMessageArg);
+void                              func_shelter_1f_guardroom_8017D5E8(Task*);
+void                              func_shelter_1f_guardroom_8017D8D8(Task*);
 
 GpMsgEntry D_shelter_1f_guardroom_8017DA30[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
@@ -175,11 +175,11 @@ GpObj4C D_shelter_1f_guardroom_8017DED4[3] = {
     { NULL, NULL, NULL, { -6960, -64, -3728, 0 }, { { -288, 0, -816, 0 }, { 288, 0, -816, 0 }, { -288, 0, 816, 0 }, { 288, 0, 816, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 863, 2, 2, 255, 130, 0 },
 };
 
-GpRoomBoundVec D_shelter_1f_guardroom_8017DFB8[4] = {
-    { 3, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 300, 300, 300, 300 },
-    { 300, 300, 300, 300 },
+WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4] = {
+    { .viewCount = ARRAY_SIZE(D_shelter_1f_guardroom_8017DFB8) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 300, 300, 300, 300 } },
 };
 
 s32 D_shelter_1f_guardroom_8017DFD8[3] = {

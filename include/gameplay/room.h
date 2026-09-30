@@ -9,18 +9,23 @@ struct _GpGridParams;
 struct _GpObj3A;
 struct _GpObj4C;
 
-/// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
-/// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
-/// `&table[GameLocationKey.view]` when that index is in range,
-/// otherwise `(GpRoomBoundVec*)&Gp_RoomBoundDefault`. `func_800D7A9C` reads
-/// `field_0` / `field_2` / `field_4` as signed XYZ minimums.
-typedef struct _GpRoomBoundVec {
-    /* 0x0 */ s16 field_0;
-    /* 0x2 */ s16 field_2;
-    /* 0x4 */ s16 field_4;
-    /* 0x6 */ s16 field_6;
-} GpRoomBoundVec;
-STATIC_ASSERT_SIZEOF(GpRoomBoundVec, 8);
+/// Entry in a room's table of minimum ambient light levels.
+///
+/// Entry zero holds `viewCount`; entries 1..viewCount hold each view's colour.
+/// RGB levels use 16 units per 8-bit colour level, matching the GTE back colour.
+/// Lighting clamps the model colour matrix's ambient term to these minima.
+/// The room overlay owns the table, referenced by `GpRoomCoordRec.field_4`;
+/// a missing table or view beyond its count uses `Gp_RoomBoundDefault`.
+typedef union {
+    struct {
+        s16 r;     // Minimum red ambient level.
+        s16 g;     // Minimum green ambient level.
+        s16 b;     // Minimum blue ambient level.
+        s16 luma;  // Stored weighted brightness (3*r + 4*g + b)/8; unused by lighting.
+    } color;
+    s16 viewCount; // Header only: number of view entries following entry zero.
+} WorldCoordRoomAmbientEntry;
+STATIC_ASSERT_SIZEOF(WorldCoordRoomAmbientEntry, 8);
 
 /// A room view's own lights, returned by `Gp_GetRoomCoordSet`
 /// (`GpRoomCoordRec.field_0`): its directional, point and spot lights.
@@ -40,11 +45,11 @@ STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 /// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
 /// by `GameLocationKey.room`. `Gp_GetRoomCoordRec` returns the record (or NULL).
 /// `Gp_GetRoomCoordSet` returns `field_0`, the room view's lights (or NULL).
-/// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
+/// `Gp_GetRoomBound` walks `field_4` as a `WorldCoordRoomAmbientEntry` table, falling
 /// back to `Gp_RoomBoundDefault`.
 typedef struct _GpRoomCoordRec {
-    /* 0x0 */ GpRoomCoordSet* field_0;
-    /* 0x4 */ GpRoomBoundVec* field_4;
+    /* 0x0 */ GpRoomCoordSet*             field_0;
+    /* 0x4 */ WorldCoordRoomAmbientEntry* field_4;
 } GpRoomCoordRec;
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 

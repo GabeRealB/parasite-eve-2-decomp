@@ -201,8 +201,8 @@ extern GpGridParams D_dryfield_night_main_street_80184540[1];
 extern GpObj4C      D_dryfield_night_main_street_80187704[26];
 extern GpObj4C      D_dryfield_night_main_street_80187EBC[12];
 
-extern GpRoomBoundVec D_dryfield_night_main_street_80188A70[25];
-extern GpRoomCoordSet D_dryfield_night_main_street_8018899C[1];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_main_street_80188A70[25];
+extern GpRoomCoordSet             D_dryfield_night_main_street_8018899C[1];
 
 extern SpriteBatch D_dryfield_night_main_street_801848C4[2];
 extern SpriteBatch D_dryfield_night_main_street_80184CD0[8];
@@ -1543,32 +1543,32 @@ GpAreaVariant D_dryfield_night_main_street_80188A08[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_night_main_street_80188A70[25] = {
-    { 24, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 615, 617, 618, 616 },
-    { 616, 615, 615, 615 },
-    { 617, 618, 617, 617 },
-    { 618, 618, 618, 618 },
-    { 617, 615, 616, 615 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_main_street_80188A70[25] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_main_street_80188A70) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 615, 617, 618, 616 } },
+    { .color = { 616, 615, 615, 615 } },
+    { .color = { 617, 618, 617, 617 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 617, 615, 616, 615 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_main_street_80188B38[3] = {

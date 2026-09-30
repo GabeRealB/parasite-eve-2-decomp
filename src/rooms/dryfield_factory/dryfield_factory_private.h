@@ -19,7 +19,7 @@ extern GpObj4C D_dryfield_factory_80189ABC[20];
 
 extern GpRoomCoordSet D_dryfield_factory_8018A28C[1];
 
-extern GpRoomBoundVec D_dryfield_factory_8018A2A4[20];
+extern WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20];
 
 extern TaskDesc D_dryfield_factory_801826B0;
 

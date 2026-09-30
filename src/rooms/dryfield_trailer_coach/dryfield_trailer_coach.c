@@ -223,7 +223,7 @@ extern ActorCommand                        D_dryfield_trailer_coach_80185198;
 extern GpGridParams                        D_dryfield_trailer_coach_801876B4[1];
 extern GpObj4C                             D_dryfield_trailer_coach_80189254[4];
 extern GpObj4C                             D_dryfield_trailer_coach_80189384[12];
-extern GpRoomBoundVec                      D_dryfield_trailer_coach_80189BAC[12];
+extern WorldCoordRoomAmbientEntry          D_dryfield_trailer_coach_80189BAC[12];
 extern GpRoomCoordSet                      D_dryfield_trailer_coach_80189B94[1];
 extern ActorTransform                      D_dryfield_trailer_coach_80184FD8;
 extern ActorTransform                      D_dryfield_trailer_coach_80184FF0;
@@ -1310,19 +1310,19 @@ GpRoomCoordSet D_dryfield_trailer_coach_80189B94[1] = {
     { 0, NULL, 12, D_dryfield_trailer_coach_80189714, 0, NULL },
 };
 
-GpRoomBoundVec D_dryfield_trailer_coach_80189BAC[12] = {
-    { 11, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 1025, 1025, 1025, 1025 },
-    { 1025, 1025, 1025, 1025 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1025, 1025, 1025, 1025 },
-    { 1025, 1025, 1025, 1025 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_trailer_coach_80189BAC[12] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_trailer_coach_80189BAC) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1025, 1025, 1025, 1025 } },
+    { .color = { 1025, 1025, 1025, 1025 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1025, 1025, 1025, 1025 } },
+    { .color = { 1025, 1025, 1025, 1025 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_trailer_coach_80189C0C[3] = {

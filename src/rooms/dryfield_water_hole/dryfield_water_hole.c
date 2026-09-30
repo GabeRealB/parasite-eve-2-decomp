@@ -112,14 +112,14 @@ static void func_dryfield_water_hole_8017E410(GfxCoord* arg0, SVECTOR* arg1, SVE
 static void func_dryfield_water_hole_8017EDE4(GfxCoord* arg0, s32 arg1, s32 arg2);
 
 // Indexed views below share one contiguous table.
-extern GpGridParams   D_dryfield_water_hole_80180260[1];
-extern GpObj3A        D_dryfield_water_hole_80181F28[2];
-extern GpObj4C        D_dryfield_water_hole_80181724[14];
-extern GpObj4C        D_dryfield_water_hole_80181B4C[7];
-extern GpObj4C        D_dryfield_water_hole_80181D60[6];
-extern GpRoomBoundVec D_dryfield_water_hole_80182824[9];
-extern GpRoomCoordSet D_dryfield_water_hole_80182468[1];
-extern GpRoomCoordSet D_dryfield_water_hole_8018278C[1];
+extern GpGridParams               D_dryfield_water_hole_80180260[1];
+extern GpObj3A                    D_dryfield_water_hole_80181F28[2];
+extern GpObj4C                    D_dryfield_water_hole_80181724[14];
+extern GpObj4C                    D_dryfield_water_hole_80181B4C[7];
+extern GpObj4C                    D_dryfield_water_hole_80181D60[6];
+extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
+extern GpRoomCoordSet             D_dryfield_water_hole_80182468[1];
+extern GpRoomCoordSet             D_dryfield_water_hole_8018278C[1];
 
 s32  func_dryfield_water_hole_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1277,16 +1277,16 @@ GpAreaVariant D_dryfield_water_hole_801827BC[13] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_water_hole_80182824[9] = {
-    { 8, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 300, 300, 300, 300 },
-    { 509, 508, 509, 508 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_water_hole_80182824) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 509, 508, 509, 508 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_water_hole_8018286C[3] = {

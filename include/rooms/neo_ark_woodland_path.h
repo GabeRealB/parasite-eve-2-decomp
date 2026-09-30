@@ -35,7 +35,7 @@ extern GpObj4A D_neo_ark_woodland_path_80183F9C[];
 
 extern GpObj4A D_neo_ark_woodland_path_8018445C[];
 
-extern GpRoomBoundVec D_neo_ark_woodland_path_8018477C[];
+extern WorldCoordRoomAmbientEntry D_neo_ark_woodland_path_8018477C[];
 
 extern GpObj3A D_neo_ark_woodland_path_801847D4[];
 

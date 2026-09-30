@@ -15,7 +15,7 @@
 
 /// Room bound standing in when a lookup fails: what `Gp_GetRoomBound` returns
 /// in place of a table entry, and what `Gp_CopyDefaultBound` copies out.
-extern GpRoomBoundVec Gp_RoomBoundDefault;
+extern WorldCoordRoomAmbientEntry Gp_RoomBoundDefault;
 
 /// Default `MATRIX` installed at `TmdObject.lightMtx` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx;

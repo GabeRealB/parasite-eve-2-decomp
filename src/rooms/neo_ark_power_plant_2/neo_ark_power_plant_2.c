@@ -60,8 +60,8 @@
 
 #include "rooms/room_common.h"
 
-extern GpObj3A        D_neo_ark_power_plant_2_80182E78[1];
-extern GpRoomBoundVec D_neo_ark_power_plant_2_80182EB4[10];
+extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
+extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
 
 extern GpMsgEntry     D_neo_ark_power_plant_2_801801F8[];
 extern GpEvsCmd       D_neo_ark_power_plant_2_801802A8[];
@@ -701,17 +701,17 @@ GpObj3A D_neo_ark_power_plant_2_80182E78[1] = {
     { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, { 106, 13 }, 129, 0 },
 };
 
-GpRoomBoundVec D_neo_ark_power_plant_2_80182EB4[10] = {
-    { 9, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 1639, 1232, 1229, 1384 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {
+    { .viewCount = ARRAY_SIZE(D_neo_ark_power_plant_2_80182EB4) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 1639, 1232, 1229, 1384 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_neo_ark_power_plant_2_80182F04[3] = {

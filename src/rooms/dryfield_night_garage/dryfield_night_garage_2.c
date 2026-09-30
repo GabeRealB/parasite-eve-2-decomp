@@ -78,9 +78,9 @@ extern GpGridParams D_dryfield_night_garage_801843D4[1];
 extern GpObj4C      D_dryfield_night_garage_8018630C[14];
 extern GpObj4C      D_dryfield_night_garage_80186734[12];
 
-extern GpObj4C        D_dryfield_night_garage_8018723C[7];
-extern GpRoomBoundVec D_dryfield_night_garage_8018751C[16];
-extern GpRoomCoordSet D_dryfield_night_garage_80186D64[1];
+extern GpObj4C                    D_dryfield_night_garage_8018723C[7];
+extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
+extern GpRoomCoordSet             D_dryfield_night_garage_80186D64[1];
 
 void func_dryfield_night_garage_80180B20(Task*);
 void func_dryfield_night_garage_80180CEC(Task*);
@@ -937,23 +937,23 @@ GpAreaVariant D_dryfield_night_garage_801874BC[12] = {
     { NULL, NULL },
 };
 
-GpRoomBoundVec D_dryfield_night_garage_8018751C[16] = {
-    { 15, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 200, 200, 200, 200 },
-    { 16, 16, 16, 16 },
-    { 140, 140, 140, 140 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_garage_8018751C) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 200, 200, 200, 200 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 140, 140, 140, 140 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_garage_8018759C[3] = {

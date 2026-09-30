@@ -108,22 +108,22 @@ s32  func_dryfield_junk_yard_8017DA44(Task*, s32, GpMessageArg, GpMessageArg);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, GpMessageArg);
 
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DD60;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DD74;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DD88;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DD9C;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DDB0;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DDC4;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DDEC;
-extern GpGridParams         D_dryfield_junk_yard_8017F4C8[1];
-extern GpObj3A              D_dryfield_junk_yard_80181518[1];
-extern GpObj4C              D_dryfield_junk_yard_80180C7C[10];
-extern GpObj4C              D_dryfield_junk_yard_80180F74[19];
-extern GpRoomBoundVec       D_dryfield_junk_yard_80181BCC[8];
-extern GpRoomCoordSet       D_dryfield_junk_yard_80181BB4[1];
-extern ActorTransform       D_dryfield_junk_yard_8017DE00;
-extern TaskDesc             D_8014D8A4;
-void                        func_dryfield_junk_yard_8017DC54(s8);
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD88;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD9C;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDB0;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDC4;
+extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDEC;
+extern GpGridParams               D_dryfield_junk_yard_8017F4C8[1];
+extern GpObj3A                    D_dryfield_junk_yard_80181518[1];
+extern GpObj4C                    D_dryfield_junk_yard_80180C7C[10];
+extern GpObj4C                    D_dryfield_junk_yard_80180F74[19];
+extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
+extern GpRoomCoordSet             D_dryfield_junk_yard_80181BB4[1];
+extern ActorTransform                 D_dryfield_junk_yard_8017DE00;
+extern TaskDesc                   D_8014D8A4;
+void                              func_dryfield_junk_yard_8017DC54(s8);
 
 extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
 extern GpPointLight                     D_dryfield_junk_yard_80181554[8];
@@ -1457,15 +1457,15 @@ GpRoomCoordSet D_dryfield_junk_yard_80181BB4[1] = {
     { 0, NULL, 8, D_dryfield_junk_yard_80181554, 2, D_dryfield_junk_yard_80181854.active },
 };
 
-GpRoomBoundVec D_dryfield_junk_yard_80181BCC[8] = {
-    { 7, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 400, 400, 400, 400 },
-    { 350, 350, 350, 350 },
-    { 300, 300, 300, 300 },
-    { 400, 400, 400, 400 },
-    { 16, 16, 16, 16 },
-    { 450, 450, 450, 450 },
+WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_junk_yard_80181BCC) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 400, 400, 400, 400 } },
+    { .color = { 350, 350, 350, 350 } },
+    { .color = { 300, 300, 300, 300 } },
+    { .color = { 400, 400, 400, 400 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 450, 450, 450, 450 } },
 };
 
 s32 D_dryfield_junk_yard_80181C0C[3] = {

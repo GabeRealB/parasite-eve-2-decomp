@@ -244,54 +244,54 @@ extern AnimationSet D_dryfield_night_gas_station_80187C58;
 extern AnimationSet D_dryfield_night_gas_station_80187FFC;
 extern AnimationSet D_dryfield_night_gas_station_80188558;
 
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188904;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188918;
-extern AnimationPlayRequest D_dryfield_night_gas_station_8018892C;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188954;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188968;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A18;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A2C;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A40;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A54;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A68;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188A7C;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188AA4;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188AB8;
-extern AnimationPlayRequest D_dryfield_night_gas_station_80188AE0;
-extern GpCopyArg            D_dryfield_night_gas_station_801888E8;
-extern GpCopyArg            D_dryfield_night_gas_station_80188A10;
-extern GpGridParams         D_dryfield_night_gas_station_8018ABBC;
-extern GpGridParams         D_dryfield_night_gas_station_8018B75C[1];
-extern GpObj4C              D_dryfield_night_gas_station_8018FD90[11];
-extern GpObj4C              D_dryfield_night_gas_station_801900D4[16];
-extern GpOverrideArg        D_dryfield_night_gas_station_801889DC;
-extern GpRoomBoundVec       D_dryfield_night_gas_station_80190684[22];
-extern GpRoomCoordSet       D_dryfield_night_gas_station_8018FAC0[1];
-extern GpRoomCoordSet       D_dryfield_night_gas_station_8018FD78[1];
-extern ActorTransform       D_dryfield_night_gas_station_8018897C;
-extern ActorTransform       D_dryfield_night_gas_station_80188994;
-extern ActorTransform       D_dryfield_night_gas_station_801889AC;
-extern ActorTransform       D_dryfield_night_gas_station_801889C4;
-extern ActorTransform       D_dryfield_night_gas_station_80188AF4;
-extern ActorTransform       D_dryfield_night_gas_station_80188B0C;
-extern TaskDesc             D_8014D8A4;
-void                        func_dryfield_night_gas_station_8017FBD4(s32);
-void                        func_dryfield_night_gas_station_80180604(s32);
-void                        func_dryfield_night_gas_station_80180720(void);
-void                        func_dryfield_night_gas_station_80180740(void);
-void                        func_dryfield_night_gas_station_80180760(void);
-void                        func_dryfield_night_gas_station_80180780(void);
-void                        func_dryfield_night_gas_station_801807A0(void);
-void                        func_dryfield_night_gas_station_801807D4(s32);
-void                        func_dryfield_night_gas_station_80180920(s32);
-void                        func_dryfield_night_gas_station_80180940(void);
-void                        func_dryfield_night_gas_station_80180974(void);
-void                        func_dryfield_night_gas_station_80180A00(void);
-void                        func_dryfield_night_gas_station_80180A34(void);
-void                        func_dryfield_night_gas_station_80180B04(void);
-void                        func_dryfield_night_gas_station_80180B38(void);
-void                        func_dryfield_night_gas_station_80180BEC(void);
-void                        func_dryfield_night_gas_station_80180C3C(s32);
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188904;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188918;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_8018892C;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188954;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188968;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A18;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A2C;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A40;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A54;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A68;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188A7C;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188AA4;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188AB8;
+extern AnimationPlayRequest       D_dryfield_night_gas_station_80188AE0;
+extern GpCopyArg                  D_dryfield_night_gas_station_801888E8;
+extern GpCopyArg                  D_dryfield_night_gas_station_80188A10;
+extern GpGridParams               D_dryfield_night_gas_station_8018ABBC;
+extern GpGridParams               D_dryfield_night_gas_station_8018B75C[1];
+extern GpObj4C                    D_dryfield_night_gas_station_8018FD90[11];
+extern GpObj4C                    D_dryfield_night_gas_station_801900D4[16];
+extern GpOverrideArg              D_dryfield_night_gas_station_801889DC;
+extern WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22];
+extern GpRoomCoordSet             D_dryfield_night_gas_station_8018FAC0[1];
+extern GpRoomCoordSet             D_dryfield_night_gas_station_8018FD78[1];
+extern ActorTransform                 D_dryfield_night_gas_station_8018897C;
+extern ActorTransform                 D_dryfield_night_gas_station_80188994;
+extern ActorTransform                 D_dryfield_night_gas_station_801889AC;
+extern ActorTransform                 D_dryfield_night_gas_station_801889C4;
+extern ActorTransform                 D_dryfield_night_gas_station_80188AF4;
+extern ActorTransform                 D_dryfield_night_gas_station_80188B0C;
+extern TaskDesc                   D_8014D8A4;
+void                              func_dryfield_night_gas_station_8017FBD4(s32);
+void                              func_dryfield_night_gas_station_80180604(s32);
+void                              func_dryfield_night_gas_station_80180720(void);
+void                              func_dryfield_night_gas_station_80180740(void);
+void                              func_dryfield_night_gas_station_80180760(void);
+void                              func_dryfield_night_gas_station_80180780(void);
+void                              func_dryfield_night_gas_station_801807A0(void);
+void                              func_dryfield_night_gas_station_801807D4(s32);
+void                              func_dryfield_night_gas_station_80180920(s32);
+void                              func_dryfield_night_gas_station_80180940(void);
+void                              func_dryfield_night_gas_station_80180974(void);
+void                              func_dryfield_night_gas_station_80180A00(void);
+void                              func_dryfield_night_gas_station_80180A34(void);
+void                              func_dryfield_night_gas_station_80180B04(void);
+void                              func_dryfield_night_gas_station_80180B38(void);
+void                              func_dryfield_night_gas_station_80180BEC(void);
+void                              func_dryfield_night_gas_station_80180C3C(s32);
 
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 void                        func_dryfield_night_gas_station_8017FB64(u8);
@@ -2454,29 +2454,29 @@ GpAreaVariant D_dryfield_night_gas_station_80190624[12] = {
     { D_map_dryfield_full_8017ADA8, D_dryfield_night_gas_station_80190600 },
 };
 
-GpRoomBoundVec D_dryfield_night_gas_station_80190684[22] = {
-    { 21, 0, 0, 0 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 618, 618 },
-    { 618, 615, 618, 616 },
-    { 16, 16, 16, 16 },
-    { 618, 618, 618, 618 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
-    { 16, 16, 16, 16 },
+WorldCoordRoomAmbientEntry D_dryfield_night_gas_station_80190684[22] = {
+    { .viewCount = ARRAY_SIZE(D_dryfield_night_gas_station_80190684) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 618, 615, 618, 616 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 618, 618, 618, 618 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
 };
 
 s32 D_dryfield_night_gas_station_80190734[3] = {
