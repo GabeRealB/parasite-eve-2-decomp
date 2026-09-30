@@ -1901,7 +1901,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
 static s32 SndBank_SetupFromLoad(SndLoadState* load)
 {
     SndBank*      bank;
-    SndBankSlot*  obj;
+    SndBankSlot*  bankSlot;
     u16           id;
     s8            slot;
     s32           i;
@@ -1921,22 +1921,22 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     if ((id & 0xF000) == 0x4000) {
         slot = slot - 1 + D_80082122;
     }
-    obj = SndBankSlot_Get(slot);
-    if (obj == NULL) {
+    bankSlot = SndBankSlot_Get(slot);
+    if (bankSlot == NULL) {
         goto fail;
     }
-    obj->bankId  = bank->bankId;
-    obj->bank    = bank;
-    obj->image   = load->imageBuffer;
-    obj->spuAddr = bank->spuAddr;
-    i            = load->payload.header.noteCount;
-    spuAddr      = bank->spuAddr;
-    bankLayer    = bank->layers;
+    bankSlot->bankId  = bank->bankId;
+    bankSlot->bank    = bank;
+    bankSlot->image   = load->imageBuffer;
+    bankSlot->spuAddr = bank->spuAddr;
+    i                 = load->payload.header.noteCount;
+    spuAddr           = bank->spuAddr;
+    bankLayer         = bank->layers;
     for (i--; i != -1; i--) {
         bankLayer->waveAddr += spuAddr;
         bankLayer++;
     }
-    Snd_BuildGroupIndex(obj->bank);
+    Snd_BuildGroupIndex(bankSlot->bank);
     D_800689E4        = 0xFF;
     load->bank        = 0;
     load->imageBuffer = 0;

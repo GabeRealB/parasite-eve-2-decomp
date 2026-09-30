@@ -147,18 +147,26 @@ typedef struct {
 } SndBankHdr;
 STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 
-/// One record of `_gSndBankSlots`, holding the sound bank a slot has loaded.
+/// Sound-script bank slot owning an image and referring to its sample tables.
 ///
-/// The bank is held twice over: the image, which a script reads its entry
-/// offsets and `oneA` chunks from, and the descriptor, which holds the layers a
-/// voice plays. Lookup matches the descriptor's own id, exactly or by its
-/// 0xF000 group; releasing the record hands the image back to the sound heap
-/// and sets `bankId` to -1.
+/// Sixteen stable records are indexed by slot number, 0..15. Bank types select
+/// slots through a map; type 4 uses successive slots 4..6. A completed script
+/// load transfers its sound-heap `hONE` image here and references a separately
+/// managed `SndBank`. MIDI sequence images are held outside these records.
+/// Boot can reserve an image buffer before its contents have been loaded.
+/// Playback requires a completed image and initialized program/layer tables.
+///
+/// Lookup compares `bank->bankId`, exactly or by its high-nibble type.
+/// `bankId` and `spuAddr` are snapshots with no playback readers. Image release
+/// sets `image` to NULL and `bankId` to -1, retaining `bank` and `spuAddr`;
+/// it does not release the descriptor's tables or its SPU samples.
+/// Deferred events, scripts and chunk pointers require the image and tables
+/// to remain loaded until their last use. Reloading replaces their contents.
 typedef struct {
-    SndBankHdr* image;   // Bank image in the sound heap, whose head holds the entry offsets
-    SndBank*    bank;    // Descriptor of the loaded bank, in `Snd_Banks`
-    s32         bankId;  // Id of the bank held here (-1 once the record is free)
-    u32         spuAddr; // SPU RAM address the bank's wave data was transferred to
+    SndBankHdr* image;   // Owned sound-heap script image or boot reservation (NULL after release)
+    SndBank*    bank;    // Borrowed program/layer descriptor; retained after image release
+    s32         bankId;  // Snapshot of the 16-bit bank id (boot id before loading, -1 after release)
+    u32         spuAddr; // SPU sample-pool origin in bytes, before any upload-block offset
 } SndBankSlot;
 STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 

@@ -607,13 +607,13 @@ static s32 SndBank_RemapId(arg0)
 s32        arg0;
 {
     s32          var_s0;
-    SndBankSlot* temp_v0;
+    SndBankSlot* bankSlot;
 
     var_s0 = arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
-        temp_v0 = sndBankSlotFind(0x1000, 1);
-        if (temp_v0 != NULL) {
-            var_s0 = (temp_v0->image->bankId << 0x10) + (var_s0 & 0xFFFF);
+        bankSlot = sndBankSlotFind(0x1000, 1);
+        if (bankSlot != NULL) {
+            var_s0 = (bankSlot->image->bankId << 0x10) + (var_s0 & 0xFFFF);
         }
     }
     return var_s0;
@@ -652,7 +652,7 @@ s32 Snd_InitBanks(u32 unused)
 {
     s32               i;
     s8                slot;
-    SndBankSlot*      obj;
+    SndBankSlot*      bankSlot;
     SndBank*          bank;
     SndBankInitEntry* entry;
     s8*               map;
@@ -670,21 +670,21 @@ s32 Snd_InitBanks(u32 unused)
     banks = Snd_Banks;
     entry = Snd_BankInitTable;
 loop:
-    slot = *(s8*)(entry->field_0 + (s32)map);
-    obj  = SndBankSlot_Get(slot);
-    id   = entry->field_2;
+    slot     = *(s8*)(entry->field_0 + (s32)map);
+    bankSlot = SndBankSlot_Get(slot);
+    id       = entry->field_2;
     // Subtraction preserves the scaled slot first in the address addition.
-    bank         = banks - -slot;
-    obj->bank    = bank;
-    obj->bankId  = id;
-    bank->bankId = entry->field_2;
+    bank             = banks - -slot;
+    bankSlot->bank   = bank;
+    bankSlot->bankId = id;
+    bank->bankId     = entry->field_2;
     i++;
-    obj->bank->heapBlock       = SndHeap_Malloc(entry->field_4);
-    obj->bank->groups          = obj->bank->heapBlock;
-    obj->bank->layers          = obj->bank->heapBlock;
-    obj->bank->groupFirstLayer = obj->bank->heapBlock;
-    obj->image                 = SndHeap_Malloc(entry->field_6);
-    obj->spuAddr               = entry->field_8;
+    bankSlot->bank->heapBlock       = SndHeap_Malloc(entry->field_4);
+    bankSlot->bank->groups          = bankSlot->bank->heapBlock;
+    bankSlot->bank->layers          = bankSlot->bank->heapBlock;
+    bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
+    bankSlot->image                 = SndHeap_Malloc(entry->field_6);
+    bankSlot->spuAddr               = entry->field_8;
     entry++;
     if (i < 2) {
         goto loop;
@@ -698,7 +698,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
     enum { SOUND_BANK_ENTRY_ABSENT = 0 };
     s32              orig;
-    SndBankSlot*     bank;
+    SndBankSlot*     bankSlot;
     SndBankHdr*      header;
     SndVoiceParams*  entry;
     u16              offset;
@@ -715,13 +715,13 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
             return -1;
         }
     }
-    arg0 = SndBank_RemapId(arg0);
-    bank = sndBankSlotFind((u32)arg0 >> 16, 0);
-    if (bank == NULL) {
+    arg0     = SndBank_RemapId(arg0);
+    bankSlot = sndBankSlotFind((u32)arg0 >> 16, 0);
+    if (bankSlot == NULL) {
         return -2;
     }
     index  = (u32)arg0 & 0xFF;
-    header = bank->image;
+    header = bankSlot->image;
     if (index >= header->entryCount) {
         return -2;
     }
@@ -750,7 +750,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     args->id                = arg0;
     args->pan               = arg1;
     args->level.attenuation = arg2;
-    args->bank              = bank;
+    args->bank              = bankSlot;
     args->params            = entry;
     sndEvtEnqueue(temp);
     return orig;
@@ -1726,7 +1726,7 @@ static void SndVoice_Init(void)
         *ptr = 0;
         i++;
         ptr++;
-    } while (i < 0x40U);
+    } while (i < sizeof(_gSndBankSlots) / sizeof(*ptr));
 
     ptr = (s32*)SndScript_Voices;
     i   = 0;
@@ -1948,7 +1948,7 @@ static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
                 }
                 i++;
                 slot++;
-            } while (i < 0x10);
+            } while (i < ARRAY_SIZE(_gSndBankSlots));
             return NULL;
         case 1:
             i    = 0;
@@ -1963,7 +1963,7 @@ static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
                 }
                 i++;
                 slot++;
-            } while (i < 0x10);
+            } while (i < ARRAY_SIZE(_gSndBankSlots));
             break;
     }
     return NULL;
@@ -1971,7 +1971,7 @@ static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
 
 SndBankSlot* SndBankSlot_Get(s32 arg0)
 {
-    if ((u8)arg0 < 0x10) {
+    if ((u8)arg0 < ARRAY_SIZE(_gSndBankSlots)) {
         return &_gSndBankSlots[(s8)arg0];
     }
     return NULL;
@@ -1979,15 +1979,16 @@ SndBankSlot* SndBankSlot_Get(s32 arg0)
 
 void SndBankSlot_Free(s32 arg0)
 {
-    SndBankSlot* temp_s0;
+    enum { SOUND_BANK_SLOT_ID_FREE = -1 };
+    SndBankSlot* slot;
     SndBankSlot* base;
 
-    if ((u8)arg0 < 0x10) {
-        base    = _gSndBankSlots;
-        temp_s0 = &base[(s8)arg0];
-        SndHeap_Free(temp_s0->image);
-        temp_s0->bankId = -1;
-        temp_s0->image  = NULL;
+    if ((u8)arg0 < ARRAY_SIZE(_gSndBankSlots)) {
+        base = _gSndBankSlots;
+        slot = &base[(s8)arg0];
+        SndHeap_Free(slot->image);
+        slot->bankId = SOUND_BANK_SLOT_ID_FREE;
+        slot->image  = NULL;
     }
 }
 
