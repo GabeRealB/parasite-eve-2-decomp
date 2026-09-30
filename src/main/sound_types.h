@@ -175,21 +175,29 @@ typedef struct {
 } SndBankSlot;
 STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
-/// Arguments of the sequence commands, which address a `MidiSong` rather than a
-/// sound-bank voice: initialize a sequence, start and stop its fades, and set
-/// its volume scale.
+/// Sequence selection, gain and fade timing for deferred MIDI commands.
 ///
-/// Every command reads `song`. The two that take a fade length read
-/// `fadeFrames` — initializing a sequence fades it in, and the fade-out command
-/// fades it out — while the one that re-scales a sequence reads `volumeScale`,
-/// so a command leaves any field it does not read holding whatever the slot's
-/// previous occupant wrote. The commands acting on an already-loaded sequence
-/// treat a `song` of 0 as every loaded one; initializing a sequence matches the
-/// id exactly instead.
+/// `sequenceId` is matched against the loaded sequence's id when the event is
+/// processed; it is not a slot index. Zero selects all sequences for stop,
+/// mute, unmute and volume commands, but start matches it exactly. Enqueuers
+/// reject 255, the unloaded-sequence marker.
+///
+/// Start and stop read `fadeTicks`; mute and unmute use fixed ramps and read
+/// only `sequenceId`. Volume commands read `volumeScale`, which multiplies the
+/// sequence's mix-table level; master volume and the fade are applied separately.
+/// Volume commands require a loaded sequence with an id in 0..99, including
+/// when the selector is zero. Sequence 0x5A uses a fixed gain instead of this
+/// requested gain. Enqueuers map gain bytes with bit 7 set to 127.
+/// Unused fields retain the previous event's bytes and must not be read.
+///
+/// Fade timing is in audio updates, including the extra PAL timer updates,
+/// rather than rendered frames. The unsigned 16-bit request sets the ramp step
+/// to 65535 / fadeTicks; rounding can extend the fade. Stop requests clear the
+/// low two bits before queueing. Zero bypasses interpolation.
 typedef struct {
-    u8  song;        // Which loaded sequence the command acts on
-    u8  volumeScale; // Scale applied over the master volume (0 silent, 0x7F full)
-    u16 fadeFrames;  // Length of the fade the command starts, in frames (0 no fade)
+    u8  sequenceId;  // Loaded sequence id (0 all except for start; 255 rejected)
+    u8  volumeScale; // Requested sequence gain (0 silent, 127 full), independent of master volume
+    u16 fadeTicks;   // Requested audio-update count (0 no interpolation)
 } SndEvtMidiArgs;
 STATIC_ASSERT_SIZEOF(SndEvtMidiArgs, 0x4);
 

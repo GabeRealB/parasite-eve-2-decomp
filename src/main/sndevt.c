@@ -18,6 +18,14 @@ enum {
     MIDI_PITCH_BEND_MAX      = 8191
 };
 
+// Sequence selectors and gain limits carried by deferred MIDI events.
+enum {
+    SOUND_EVENT_MIDI_ALL_SEQUENCES    = 0,
+    SOUND_EVENT_MIDI_INVALID_SEQUENCE = 255,
+    SOUND_EVENT_MIDI_VOLUME_SILENT    = 0,
+    SOUND_EVENT_MIDI_VOLUME_FULL      = 127
+};
+
 /// Per-channel controls, indexed by the low nibble of the MIDI status byte.
 typedef struct {
     u8  noteEventsDisabled; // Nonzero suppresses note-on and note-off events
@@ -558,27 +566,27 @@ static void SndEvt_HandleNoOp(SndEvt* unused)
 
 static void SndEvt_HandleInitSequence(SndEvt* event)
 {
-    Midi_InitSequence(event->args.midi.song, event->args.midi.fadeFrames);
+    Midi_InitSequence(event->args.midi.sequenceId, event->args.midi.fadeTicks);
 }
 
 static void SndEvt_HandleStartFadeOut(SndEvt* event)
 {
-    Midi_StartFadeOut(event->args.midi.song, event->args.midi.fadeFrames);
+    Midi_StartFadeOut(event->args.midi.sequenceId, event->args.midi.fadeTicks);
 }
 
 static void SndEvt_HandleFadeOn(SndEvt* event)
 {
-    Midi_FadeVolume(event->args.midi.song, 1);
+    Midi_FadeVolume(event->args.midi.sequenceId, 1);
 }
 
 static void SndEvt_HandleFadeOff(SndEvt* event)
 {
-    Midi_FadeVolume(event->args.midi.song, 0);
+    Midi_FadeVolume(event->args.midi.sequenceId, 0);
 }
 
 static void SndEvt_HandleSetVolume(SndEvt* event)
 {
-    Midi_SetVolumeScale(event->args.midi.song, event->args.midi.volumeScale);
+    Midi_SetVolumeScale(event->args.midi.sequenceId, event->args.midi.volumeScale);
 }
 
 static void SndEvt_HandleAllocVoice(SndEvt* event)
@@ -828,7 +836,7 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
 {
     SndEvt* temp;
 
-    if ((arg0 & 0xFF) == 0xFF) {
+    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
     temp = sndEvtAlloc();
@@ -836,17 +844,19 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
         return -2;
     }
     temp->handlerIdx           = 1;
-    temp->args.midi.song       = arg0;
-    temp->args.midi.fadeFrames = arg1;
+    temp->args.midi.sequenceId = arg0;
+    temp->args.midi.fadeTicks  = arg1;
     sndEvtEnqueue(temp);
     return 0;
 }
 
 s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
 {
+    // Stop fades truncate to 16 bits and round down to a multiple of four ticks.
+    enum { SOUND_EVENT_MIDI_STOP_FADE_TICK_MASK = 0xFFFC };
     SndEvt* temp;
 
-    if ((arg0 & 0xFF) == 0xFF) {
+    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
     temp = sndEvtAlloc();
@@ -854,8 +864,8 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
         return -2;
     }
     temp->handlerIdx           = 2;
-    temp->args.midi.song       = arg0;
-    temp->args.midi.fadeFrames = arg1 & 0xFFFC;
+    temp->args.midi.sequenceId = arg0;
+    temp->args.midi.fadeTicks  = arg1 & SOUND_EVENT_MIDI_STOP_FADE_TICK_MASK;
     sndEvtEnqueue(temp);
     return 0;
 }
@@ -864,15 +874,15 @@ static s32 SndEvt_EnqueueType3(s32 arg0)
 {
     SndEvt* temp;
 
-    if ((arg0 & 0xFF) == 0xFF) {
+    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
     temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
-    temp->handlerIdx     = 3;
-    temp->args.midi.song = arg0;
+    temp->handlerIdx           = 3;
+    temp->args.midi.sequenceId = arg0;
     sndEvtEnqueue(temp);
     return 0;
 }
@@ -881,15 +891,15 @@ static s32 SndEvt_EnqueueType4(s32 arg0)
 {
     SndEvt* temp;
 
-    if ((arg0 & 0xFF) == 0xFF) {
+    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
     temp = sndEvtAlloc();
     if (temp == NULL) {
         return -2;
     }
-    temp->handlerIdx     = 4;
-    temp->args.midi.song = arg0;
+    temp->handlerIdx           = 4;
+    temp->args.midi.sequenceId = arg0;
     sndEvtEnqueue(temp);
     return 0;
 }
@@ -899,7 +909,7 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     SndEvt*         temp;
     SndEvtMidiArgs* args;
 
-    if ((arg0 & 0xFF) == 0xFF) {
+    if ((arg0 & 0xFF) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {
         return -3;
     }
     temp = sndEvtAlloc();
@@ -908,11 +918,11 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     }
     temp->handlerIdx = 5;
     args             = &temp->args.midi;
-    args->song       = arg0;
+    args->sequenceId = arg0;
     if ((s8)arg1 >= 0) {
         args->volumeScale = arg1;
     } else {
-        args->volumeScale = 0x7F;
+        args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
     }
     sndEvtEnqueue(temp);
     D_800820E8 = args->volumeScale;
@@ -1081,8 +1091,8 @@ void SndEvt_EnqueueType5Pending(void)
     if (temp != NULL) {
         args              = &temp->args.midi;
         temp->handlerIdx  = 5;
-        args->song        = 0;
-        args->volumeScale = 0;
+        args->sequenceId  = SOUND_EVENT_MIDI_ALL_SEQUENCES;
+        args->volumeScale = SOUND_EVENT_MIDI_VOLUME_SILENT;
         sndEvtEnqueue(temp);
         D_800820E8 = args->volumeScale;
     }
@@ -1101,11 +1111,11 @@ void SndEvt_FlushType5Pending(void)
         if (temp != NULL) {
             args             = &temp->args.midi;
             temp->handlerIdx = 5;
-            args->song       = 0;
+            args->sequenceId = SOUND_EVENT_MIDI_ALL_SEQUENCES;
             if ((s8)saved >= 0) {
                 args->volumeScale = saved;
             } else {
-                args->volumeScale = 0x7F;
+                args->volumeScale = SOUND_EVENT_MIDI_VOLUME_FULL;
             }
             sndEvtEnqueue(temp);
             D_800820E8 = args->volumeScale;
