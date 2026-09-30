@@ -34,7 +34,13 @@ struct Task;
 #define GAME_LOCATION_KEY(stage, area, roomOrVariant, view) \
     (((u32)(stage) << 24) | ((u32)(area) << 16) | ((u32)(roomOrVariant) << 8) | (u32)(view))
 
-/// Selects the stage and area bytes of a packed location prefix.
+/// Masks a packed location value to identify its stage and area.
+///
+/// The `u32` integer constant expression `0xFFFF0000` retains stage in bits
+/// 31..24 and area in bits 23..16, clearing the room and view bytes. Compare
+/// `GAME_LOCATION_WORD(key) & GAME_LOCATION_STAGE_AREA_MASK` with
+/// `GAME_LOCATION_KEY(stage, area, 0, 0)` to match any room or view in that area.
+/// Warp and placement variant are outside the packed word and do not affect it.
 #define GAME_LOCATION_STAGE_AREA_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0)
 
 /// Selects the area and room-local view bytes of a packed location prefix.
