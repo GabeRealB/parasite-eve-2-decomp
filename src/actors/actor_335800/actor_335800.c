@@ -853,9 +853,9 @@ AnimationSet** D_actor_335800_8016EAD8[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { 257, 192, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
-    { 1, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
-    { 1, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_335800_80162F10, { .model = &D_actor_335800_8016BBF4 } },
+    { TASK_BODY_TMD, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C0CC } },
+    { TASK_BODY_TMD, 192, func_actor_335800_80162E34, { .model = &D_actor_335800_8016C6C0 } },
 };
 
 Actor335800MsgEntry D_actor_335800_8016EB00[6] = {
@@ -930,7 +930,7 @@ AnimationSet** D_actor_335800_80172E98[1] = {
     D_actor_335800_80172E90,
 };
 
-TaskDesc D_actor_335800_80172E9C = { 257, 192, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
+TaskDesc D_actor_335800_80172E9C = { (TASK_BODY_TMD | 0x100), 192, func_actor_335800_80163A34, { .model = &D_actor_335800_80172888 } };
 
 Actor335800MsgEntry D_actor_335800_80172EA8[6] = {
     { 2003, { .call1 = func_actor_335800_80163E20 } },

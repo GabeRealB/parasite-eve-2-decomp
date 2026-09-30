@@ -380,7 +380,7 @@ OverlayHotspot D_dryfield_breezeway_80182E00[2] = {
     { 0, 0, 0, 0, -1, 0, 0 },
 };
 
-TaskDesc D_dryfield_breezeway_80182E18 = { 1, 192, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
+TaskDesc D_dryfield_breezeway_80182E18 = { TASK_BODY_TMD, 192, func_dryfield_breezeway_8017FC38, { .model = &D_dryfield_breezeway_80182D9C } };
 
 u_long D_dryfield_breezeway_80182E24[64] = {
     0,

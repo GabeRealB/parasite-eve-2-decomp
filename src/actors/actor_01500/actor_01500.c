@@ -685,7 +685,7 @@ u16 Actor01500_D09FE8[16] = {
     1600,
 };
 
-TaskDesc Actor01500_D0A008 = { 1, 96, Actor01500_Fn02428, { .model = &Actor01500_D0428C } };
+TaskDesc Actor01500_D0A008 = { TASK_BODY_TMD, 96, Actor01500_Fn02428, { .model = &Actor01500_D0428C } };
 
 AnimationSet* Actor01500_D0A014[15] = {
     NULL,

@@ -839,7 +839,7 @@ Actor223600MessageEntry D_actor_223600_80150B28[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_223600_80150B48 = { 1, 96, func_actor_223600_8014CF6C, { .model = &D_actor_223600_8014E660 } };
+TaskDesc D_actor_223600_80150B48 = { TASK_BODY_TMD, 96, func_actor_223600_8014CF6C, { .model = &D_actor_223600_8014E660 } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

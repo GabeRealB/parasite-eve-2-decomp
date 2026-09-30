@@ -725,7 +725,7 @@ ActorHeightClamp Actor01900_D172CC[3] = {
 
 s16 Actor01900_D172FC = 0;
 
-TaskDesc Actor01900_D17300 = { 1, 96, Actor01900_Fn0ABE4, { .model = &Actor01900_D102C8 } };
+TaskDesc Actor01900_D17300 = { TASK_BODY_TMD, 96, Actor01900_Fn0ABE4, { .model = &Actor01900_D102C8 } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 

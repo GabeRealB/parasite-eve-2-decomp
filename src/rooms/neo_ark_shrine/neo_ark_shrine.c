@@ -176,8 +176,8 @@ OverlayHotspot D_neo_ark_shrine_80182430[18] = {
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
     { 0, 192, func_neo_ark_shrine_8017EAE0, { .model = NULL } },
-    { 1, 192, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
-    { 1, 192, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
+    { TASK_BODY_TMD, 192, func_neo_ark_shrine_8017EB54, { .model = &D_neo_ark_shrine_80182150 } },
+    { TASK_BODY_TMD, 192, func_neo_ark_shrine_8017EBB8, { .model = &D_neo_ark_shrine_801823E0 } },
 };
 
 NeoArkShrineSlot D_neo_ark_shrine_8018252C[16] = {

@@ -803,13 +803,13 @@ Actor3424002MessageEntry D_actor_342400_80173A3C[3] = {
 };
 
 TaskDesc D_actor_342400_80173A54[2] = {
-    { 1, 96, func_actor_342400_80169810, { .model = &D_actor_342400_80170560 } },
-    { 257, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
+    { TASK_BODY_TMD, 96, func_actor_342400_80169810, { .model = &D_actor_342400_80170560 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } },
 };
 
 TaskDesc D_actor_342400_80173A6C = { 2, 96, taskKill, { .model = NULL } };
 
-TaskDesc D_actor_342400_80173A78 = { 1, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
+TaskDesc D_actor_342400_80173A78 = { TASK_BODY_TMD, 96, func_actor_342400_8016978C, { .model = &D_actor_342400_80170560 } };
 
 u8 D_actor_342400_80173A84[20] = {
     0,

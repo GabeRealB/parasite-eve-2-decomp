@@ -30180,7 +30180,7 @@ if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
 
 ## Load `spawnArg2` before the `bodyKind` test so it fills the `lbu` delay
 
-A pointer used only inside `if (iter->bodyKind == 1)` is rematerialized
+A pointer used only inside `if (iter->bodyKind == TASK_BODY_TMD)` is rematerialized
 next to its later dereference, leaving a `nop` after `lbu bodyKind` and
 an extra `lw` after `key->stage`. Assign it *before* the flag test so
 the scheduler fills that delay:
@@ -30194,7 +30194,7 @@ bne   v0, t2, skip
 
 ```c
 work = iter->spawnArg2;
-if (iter->bodyKind == 1) {
+if (iter->bodyKind == TASK_BODY_TMD) {
     /* ... */
     bytes = work->field_3C;
 }
@@ -47026,7 +47026,7 @@ Tmd_Create:  memCalloc(partCount * 0x50 + 0x34, 0)
 That single `memCalloc` says the object is 0x34 bytes followed by
 `partCount` × `GfxCoord` (0x50), and that `obj->coords` points at its own tail.
 `Gp_AttachTmd` stores that pointer into `Task::extra` and sets
-`Task::bodyKind = 1`, and `taskKill`'s type-1 branch pokes `field_C` on the
+`Task::bodyKind = TASK_BODY_TMD`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
 The 0x24 model was simply truncated: `func_actor_400600_80137240` reading
 `field_24` / `field_25` was reading one and two bytes past its end.

@@ -939,10 +939,10 @@ TaskDesc D_actor_160900_8013FB50[8] = {
     { 0, 192, func_actor_160900_8013418C, { .model = NULL } },
     { 0, 192, func_actor_160900_801344D8, { .model = NULL } },
     { 0, 192, func_actor_160900_801343E4, { .model = NULL } },
-    { 257, 192, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
-    { 257, 192, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
-    { 257, 192, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
-    { 257, 192, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132C08, { .model = &D_actor_160900_801393B8 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_801397FC } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_80139C50 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_160900_80132A14, { .model = &D_actor_160900_8013A0A4 } },
     { 2, 192, func_actor_160900_80132E80, { .model = NULL } },
 };
 

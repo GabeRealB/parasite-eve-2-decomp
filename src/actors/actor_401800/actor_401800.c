@@ -1355,7 +1355,7 @@ Actor401800MessageEntry D_actor_401800_80155A80[8] = {
 
 u16 D_actor_401800_80155AC0 = 0;
 
-TaskDesc D_actor_401800_80155AC4 = { 257, 96, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
+TaskDesc D_actor_401800_80155AC4 = { (TASK_BODY_TMD | 0x100), 96, func_actor_401800_8013E68C, { .model = &D_actor_401800_80143918 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 

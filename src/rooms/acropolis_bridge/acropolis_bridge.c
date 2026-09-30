@@ -426,7 +426,7 @@ GpMsgEntry D_acropolis_bridge_80188E4C[6] = {
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
-    { 1, 192, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
+    { TASK_BODY_TMD, 192, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
     { 0, 192, func_acropolis_bridge_8017D8D0, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
@@ -2449,7 +2449,7 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     func_acropolis_bridge_80186BBC,
 };
 
-AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { 1, 96, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
+AcropolisBridgeStorage1780 D_acropolis_bridge_80191780 = { { TASK_BODY_TMD, 96, func_acropolis_bridge_80187D80, { .model = &D_acropolis_bridge_8019119C } }, { 0 } };
 
 Task* D_acropolis_bridge_80191794 = NULL;
 

@@ -692,7 +692,7 @@ s16 Actor05500_D08AA0[14] = {
     0,
 };
 
-TaskDesc Actor05500_D08ABC = { 1, 96, Actor05500_Fn03F88, { .model = &Actor05500_D05774 } };
+TaskDesc Actor05500_D08ABC = { TASK_BODY_TMD, 96, Actor05500_Fn03F88, { .model = &Actor05500_D05774 } };
 
 TaskDesc Actor05500_D08AC8 = { 2, 96, Actor05500_Fn03DD8, { .model = NULL } };
 

@@ -1640,23 +1640,23 @@ u8 D_actor_503500_8016E910[20] = {
 };
 
 TaskDesc D_actor_503500_8016E924[17] = {
-    { 1, 96, func_actor_503500_80137238, { .model = &D_actor_503500_80154624 } },
-    { 1, 96, func_actor_503500_801384D4, { .model = &D_actor_503500_80154C38 } },
-    { 257, 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80157A78 } },
-    { 257, 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80156358 } },
+    { TASK_BODY_TMD, 96, func_actor_503500_80137238, { .model = &D_actor_503500_80154624 } },
+    { TASK_BODY_TMD, 96, func_actor_503500_801384D4, { .model = &D_actor_503500_80154C38 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80157A78 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_8013AD0C, { .model = &D_actor_503500_80156358 } },
     { 2, 96, func_actor_503500_8013BE8C, { .model = NULL } },
     { 2, 96, func_actor_503500_8013BE8C, { .model = NULL } },
     { 2, 96, func_actor_503500_8013CA8C, { .model = NULL } },
     { 2, 96, func_actor_503500_8013DBF4, { .model = NULL } },
     { 2, 96, func_actor_503500_8013DBF4, { .model = NULL } },
     { 2, 96, func_actor_503500_8013EC64, { .model = NULL } },
-    { 257, 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015D758 } },
-    { 257, 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015F3FC } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015D758 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_801442A8, { .model = &D_actor_503500_8015F3FC } },
     { 2, 96, func_actor_503500_8013FA1C, { .model = NULL } },
-    { 257, 96, func_actor_503500_80142370, { .model = &D_actor_503500_80159A08 } },
-    { 257, 96, func_actor_503500_80142370, { .model = &D_actor_503500_80158A38 } },
-    { 257, 96, func_actor_503500_80142370, { .model = &D_actor_503500_8015B998 } },
-    { 257, 96, func_actor_503500_80142370, { .model = &D_actor_503500_8015A9D8 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_80159A08 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_80158A38 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_8015B998 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_503500_80142370, { .model = &D_actor_503500_8015A9D8 } },
 };
 
 TaskDesc D_actor_503500_8016E9F0[5] = {

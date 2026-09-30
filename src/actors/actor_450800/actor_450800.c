@@ -2277,11 +2277,11 @@ Actor450800MsgEntry D_actor_450800_8014AC58[6] = {
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
-    { 1, 192, func_actor_450800_80132790, { .model = &D_actor_450800_80145148 } },
-    { 1, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014A538 } },
-    { 1, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014A048 } },
-    { 257, 192, func_actor_450800_80132790, { .model = &D_actor_450800_80140604 } },
-    { 1, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014AC34 } },
+    { TASK_BODY_TMD, 192, func_actor_450800_80132790, { .model = &D_actor_450800_80145148 } },
+    { TASK_BODY_TMD, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014A538 } },
+    { TASK_BODY_TMD, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014A048 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_450800_80132790, { .model = &D_actor_450800_80140604 } },
+    { TASK_BODY_TMD, 192, func_actor_450800_80132958, { .model = &D_actor_450800_8014AC34 } },
 };
 
 u8 D_actor_450800_8014ACC4[124] = {
@@ -2595,8 +2595,8 @@ Actor450800MsgEntry D_actor_450800_801539AC[6] = {
 };
 
 TaskDesc D_actor_450800_801539DC[2] = {
-    { 257, 96, func_actor_450800_80133264, { .model = &D_actor_450800_80150024 } },
-    { 257, 96, func_actor_450800_80133740, { .model = &D_actor_450800_80150568 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_450800_80133264, { .model = &D_actor_450800_80150024 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_450800_80133740, { .model = &D_actor_450800_80150568 } },
 };
 
 u8 D_actor_450800_801539F4[24] = {

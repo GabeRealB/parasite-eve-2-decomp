@@ -116,7 +116,7 @@ TmdSource D_actor_150400_80132CCC = {
     D_actor_150400_80132A64,
 };
 
-TaskDesc D_actor_150400_80132CF0 = { 257, 32, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
+TaskDesc D_actor_150400_80132CF0 = { (TASK_BODY_TMD | 0x100), 32, func_actor_150400_80131E24, { .model = &D_actor_150400_80132CCC } };
 
 AnimationPlayRequest D_actor_150400_80132CFC = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -345,8 +345,8 @@ Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
 };
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
-    { 1, 96, func_actor_150400_801323E0, { .model = &D_actor_150400_80139A64 } },
-    { 257, 96, func_actor_150400_801328BC, { .model = &D_actor_150400_8013C8A0 } },
+    { TASK_BODY_TMD, 96, func_actor_150400_801323E0, { .model = &D_actor_150400_80139A64 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_150400_801328BC, { .model = &D_actor_150400_8013C8A0 } },
 };
 
 u8 D_actor_150400_8013C90C[24] = {

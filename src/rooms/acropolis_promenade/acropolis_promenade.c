@@ -212,7 +212,7 @@ AcropolisPromenadeMsgEntry D_acropolis_promenade_80180E74[6] = {
 };
 
 TaskDesc D_acropolis_promenade_80180EA4[2] = {
-    { 1, 192, func_acropolis_promenade_8017D988, { .model = &D_acropolis_promenade_80180E50 } },
+    { TASK_BODY_TMD, 192, func_acropolis_promenade_8017D988, { .model = &D_acropolis_promenade_80180E50 } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 

@@ -557,11 +557,11 @@ u8 D_mist_r18_80184EA8[60] = {
 MistR18TextSpawn D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
 
 TaskDesc D_mist_r18_80184F04[8] = {
-    { 1, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F064 } },
-    { 1, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F25C } },
+    { TASK_BODY_TMD, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F064 } },
+    { TASK_BODY_TMD, 192, func_mist_r18_8017E2C8, { .model = &D_mist_r18_8017F25C } },
     { 2, 192, func_mist_r18_8017DA8C, { .model = NULL } },
     { 0, 192, func_mist_r18_8017E854, { .model = NULL } },
-    { 1, 192, func_mist_r18_8017EA98, { .model = &D_mist_r18_8017F25C } },
+    { TASK_BODY_TMD, 192, func_mist_r18_8017EA98, { .model = &D_mist_r18_8017F25C } },
     { 0, 192, func_mist_r18_8017D5EC, { .model = NULL } },
     { 0, 192, func_mist_r18_8017E3A4, { .model = NULL } },
     { 0, 192, func_mist_r18_8017EC98, { .model = NULL } },

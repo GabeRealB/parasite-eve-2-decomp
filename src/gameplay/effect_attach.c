@@ -29,7 +29,7 @@ TaskDesc D_80114B34[6] = {
     { 0, 0xC0, taskKill, { .value = 0 } },
     { 0, 0xC0, taskKill, { .value = 0 } },
     { 0, 0xC0, NULL, { .value = 0 } },
-    { 1, 0x70, Gp_EffAttachTask37, { .model = NULL } },
+    { TASK_BODY_TMD, 0x70, Gp_EffAttachTask37, { .model = NULL } },
 };
 
 /// Unreferenced nonzero tail; its original purpose is unknown.

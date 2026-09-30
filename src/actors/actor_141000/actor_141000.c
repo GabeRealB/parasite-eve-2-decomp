@@ -536,7 +536,7 @@ SVECTOR D_actor_141000_801348A8[6] = {
 };
 
 TaskDesc D_actor_141000_801348D8[3] = {
-    { 1, 192, func_actor_141000_80132C24, { .model = &D_actor_141000_80134204 } },
+    { TASK_BODY_TMD, 192, func_actor_141000_80132C24, { .model = &D_actor_141000_80134204 } },
     { 2, 192, func_actor_141000_801331AC, { .model = NULL } },
     { 2, 192, func_actor_141000_801330C0, { .model = NULL } },
 };
@@ -1881,7 +1881,7 @@ AnimationSet** D_actor_141000_8013D778[1] = {
     D_actor_141000_8013D74C,
 };
 
-TaskDesc D_actor_141000_8013D77C = { 257, 192, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
+TaskDesc D_actor_141000_8013D77C = { (TASK_BODY_TMD | 0x100), 192, func_actor_141000_801338C0, { .model = &D_actor_141000_8013A0B0 } };
 
 Actor141000MsgEntry D_actor_141000_8013D788[7] = {
     { 2003, { .call0 = func_actor_141000_80133CD8 } },

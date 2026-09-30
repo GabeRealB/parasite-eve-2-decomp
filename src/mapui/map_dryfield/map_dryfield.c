@@ -376,12 +376,12 @@ static GpEnemyDesc D_map_dryfield_8017A514[1] = {
 };
 
 static GpEnemyDesc D_map_dryfield_8017A524[2] = {
-    { 0x114, { 0 }, { 1, 0x62, func_dryfield_junk_yard_8017D5F4, { &D_dryfield_junk_yard_8017ECE0 } } },
+    { 0x114, { 0 }, { TASK_BODY_TMD, 0x62, func_dryfield_junk_yard_8017D5F4, { &D_dryfield_junk_yard_8017ECE0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_dryfield_8017A544[2] = {
-    { 0x82, { 0 }, { 1, 0x62, Gp_ItemPickupTilt, { &D_dryfield_trailer_coach_80184554 } } },
+    { 0x82, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_dryfield_trailer_coach_80184554 } } },
     { 0xFFFF },
 };
 

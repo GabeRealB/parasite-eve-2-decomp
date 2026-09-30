@@ -1159,10 +1159,10 @@ extern TmdSource D_actor_113100_80139860;
 extern TmdSource D_actor_113100_80139908;
 
 TaskDesc D_actor_113100_80144308[4] = {
-    { 257, 192, func_actor_113100_80132E98, { .model = &D_actor_113100_80139664 } },
-    { 1, 192, func_actor_113100_80132AD8, { .model = &D_actor_113100_80139B98 } },
-    { 1, 192, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139860 } },
-    { 1, 192, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139908 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_113100_80132E98, { .model = &D_actor_113100_80139664 } },
+    { TASK_BODY_TMD, 192, func_actor_113100_80132AD8, { .model = &D_actor_113100_80139B98 } },
+    { TASK_BODY_TMD, 192, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139860 } },
+    { TASK_BODY_TMD, 192, func_actor_113100_80132C9C, { .model = &D_actor_113100_80139908 } },
 };
 
 Actor113100MsgEntry D_actor_113100_80144338[6] = {

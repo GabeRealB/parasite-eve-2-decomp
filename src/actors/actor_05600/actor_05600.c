@@ -1144,11 +1144,11 @@ s16 Actor05600_D16490[2][4] = {
 };
 
 TaskDesc Actor05600_D164A0[2] = {
-    { 1, 96, Actor05600_Fn04CA0, { .model = &Actor05600_D0A020 } },
-    { 1, 96, Actor05600_Fn04A70, { .model = &Actor05600_D0A46C } },
+    { TASK_BODY_TMD, 96, Actor05600_Fn04CA0, { .model = &Actor05600_D0A020 } },
+    { TASK_BODY_TMD, 96, Actor05600_Fn04A70, { .model = &Actor05600_D0A46C } },
 };
 
-TaskDesc Actor05600_D164B8 = { 1, 96, Actor05600_Fn04BAC, { .model = &Actor05600_D0A798 } };
+TaskDesc Actor05600_D164B8 = { TASK_BODY_TMD, 96, Actor05600_Fn04BAC, { .model = &Actor05600_D0A798 } };
 
 AnimationSet* Actor05600_D164C4[31] = {
     NULL,

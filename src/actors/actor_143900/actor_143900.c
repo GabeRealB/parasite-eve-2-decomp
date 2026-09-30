@@ -709,7 +709,7 @@ Actor143900MsgEntry D_actor_143900_801413BC[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_143900_801413EC = { 1, 192, func_actor_143900_80132324, { .model = &D_actor_143900_80139800 } };
+TaskDesc D_actor_143900_801413EC = { TASK_BODY_TMD, 192, func_actor_143900_80132324, { .model = &D_actor_143900_80139800 } };
 
 u8 D_actor_143900_801413F8[80] = {
     0,
@@ -1122,9 +1122,9 @@ Actor143900MsgEntry D_actor_143900_80149634[6] = {
 };
 
 TaskDesc D_actor_143900_80149664[3] = {
-    { 1, 192, func_actor_143900_80132DEC, { .model = &D_actor_143900_80146F40 } },
-    { 1, 192, func_actor_143900_80132FB0, { .model = &D_actor_143900_801493AC } },
-    { 1, 192, func_actor_143900_80132FB0, { .model = &D_actor_143900_8014960C } },
+    { TASK_BODY_TMD, 192, func_actor_143900_80132DEC, { .model = &D_actor_143900_80146F40 } },
+    { TASK_BODY_TMD, 192, func_actor_143900_80132FB0, { .model = &D_actor_143900_801493AC } },
+    { TASK_BODY_TMD, 192, func_actor_143900_80132FB0, { .model = &D_actor_143900_8014960C } },
 };
 
 u8 D_actor_143900_80149688[48] = {

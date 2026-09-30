@@ -328,7 +328,7 @@ TaskDesc D_actor_120500_80138418[3] = {
 
 TaskDesc D_actor_120500_8013843C = { 0, 192, taskKill, { .model = NULL } };
 
-TaskDesc D_actor_120500_80138448 = { 257, 192, func_actor_120500_8013241C, { .model = &D_actor_120500_8013762C } };
+TaskDesc D_actor_120500_80138448 = { (TASK_BODY_TMD | 0x100), 192, func_actor_120500_8013241C, { .model = &D_actor_120500_8013762C } };
 
 Task* D_actor_120500_80138454 = NULL;
 

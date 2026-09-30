@@ -646,14 +646,14 @@ TaskDesc D_actor_310100_801798F0 = { 0, 192, func_actor_310100_80162284, { .mode
 
 TaskDesc D_actor_310100_801798FC[3] = {
     { 0, 192, func_actor_310100_801627BC, { .model = NULL } },
-    { 257, 192, func_actor_310100_80162F88, { .model = &D_actor_310100_80168C00 } },
-    { 257, 192, func_actor_310100_801631B0, { .model = &D_actor_310100_8016D48C } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_310100_80162F88, { .model = &D_actor_310100_80168C00 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_310100_801631B0, { .model = &D_actor_310100_8016D48C } },
 };
 
 TaskDesc D_actor_310100_80179920[3] = {
     { 0, 192, func_actor_310100_801629FC, { .model = NULL } },
-    { 257, 192, func_actor_310100_8016309C, { .model = &D_actor_310100_801730B0 } },
-    { 257, 192, func_actor_310100_801632B0, { .model = &D_actor_310100_801779AC } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_310100_8016309C, { .model = &D_actor_310100_801730B0 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_310100_801632B0, { .model = &D_actor_310100_801779AC } },
 };
 
 static void func_actor_310100_80161F80(Task* task);

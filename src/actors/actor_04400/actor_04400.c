@@ -914,13 +914,13 @@ Actor04400RecoveredMsgEntry Actor04400_D107CC[3] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor04400_D107E4 = { 1, 96, Actor04400_Fn066DC, { .model = &Actor04400_D0D2F0 } };
+TaskDesc Actor04400_D107E4 = { TASK_BODY_TMD, 96, Actor04400_Fn066DC, { .model = &Actor04400_D0D2F0 } };
 
-TaskDesc Actor04400_D107F0 = { 257, 96, Actor04400_Fn06658, { .model = &Actor04400_D0D2F0 } };
+TaskDesc Actor04400_D107F0 = { (TASK_BODY_TMD | 0x100), 96, Actor04400_Fn06658, { .model = &Actor04400_D0D2F0 } };
 
 TaskDesc Actor04400_D107FC = { 2, 96, taskKill, { .model = NULL } };
 
-TaskDesc Actor04400_D10808 = { 1, 96, Actor04400_Fn06658, { .model = &Actor04400_D0D2F0 } };
+TaskDesc Actor04400_D10808 = { TASK_BODY_TMD, 96, Actor04400_Fn06658, { .model = &Actor04400_D0D2F0 } };
 
 u8 Actor04400_D10814[20] = {
     0,

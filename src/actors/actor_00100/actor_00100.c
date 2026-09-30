@@ -1507,7 +1507,7 @@ Actor00100MessageEntry Actor00100_D1BA54[6] = {
     { 0x7FFFFFFF, { .command = NULL } },
 };
 
-TaskDesc Actor00100_D1BA84 = { 257, 96, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
+TaskDesc Actor00100_D1BA84 = { (TASK_BODY_TMD | 0x100), 96, Actor00100_Fn0BD28, { .model = &Actor00100_D108C0 } };
 
 SVECTOR Actor00100_D1BA90;
 

@@ -251,8 +251,8 @@ Actor110800MsgEntry D_actor_110800_80139EC4[3] = {
 };
 
 TaskDesc D_actor_110800_80139EDC[2] = {
-    { 1, 192, func_actor_110800_801322A0, { .model = &D_actor_110800_80137D94 } },
-    { 1, 192, func_actor_110800_801322FC, { .model = &D_actor_110800_80138048 } },
+    { TASK_BODY_TMD, 192, func_actor_110800_801322A0, { .model = &D_actor_110800_80137D94 } },
+    { TASK_BODY_TMD, 192, func_actor_110800_801322FC, { .model = &D_actor_110800_80138048 } },
 };
 
 u8 D_actor_110800_80139EF4[28] = {

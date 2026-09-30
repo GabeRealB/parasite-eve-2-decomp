@@ -81,7 +81,7 @@ Spawn type (low byte of `flags`, stored as `Task::bodyKind`) is the body:
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
-| 1 | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normally deferred 2 frames) |
+| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normally deferred 2 frames) |
 | 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
 `TaskBody` holds one allocation pointer. Select its typed member using

@@ -275,7 +275,7 @@ TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
 ActorCommand D_shelter_b4_reservoir_8018491C = { { .loc = { 4, 45 } }, 6 };
 
 TaskDesc D_shelter_b4_reservoir_80184920[1] = {
-    { 257, 32, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
+    { (TASK_BODY_TMD | 0x100), 32, func_shelter_b4_reservoir_8017E558, { .model = &D_shelter_b4_reservoir_80184898 } },
 };
 
 Task* D_shelter_b4_reservoir_8018492C = 0;

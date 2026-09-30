@@ -1569,11 +1569,11 @@ Actor400600MessageEntry D_actor_400600_80151AE0[3] = {
 };
 
 TaskDesc D_actor_400600_80151AF8[2] = {
-    { 1, 96, func_actor_400600_8013A3B8, { .model = &D_actor_400600_80144E84 } },
-    { 1, 96, func_actor_400600_8013A3C0, { .model = &D_actor_400600_80144C0C } },
+    { TASK_BODY_TMD, 96, func_actor_400600_8013A3B8, { .model = &D_actor_400600_80144E84 } },
+    { TASK_BODY_TMD, 96, func_actor_400600_8013A3C0, { .model = &D_actor_400600_80144C0C } },
 };
 
-TaskDesc D_actor_400600_80151B10 = { 1, 96, func_actor_400600_8013A0F0, { .model = &D_actor_400600_80141994 } };
+TaskDesc D_actor_400600_80151B10 = { TASK_BODY_TMD, 96, func_actor_400600_8013A0F0, { .model = &D_actor_400600_80141994 } };
 
 u8 D_actor_400600_80151B1C[36] = {
     26,

@@ -249,10 +249,10 @@ TaskDesc D_dryfield_night_factory_80186DE0[8] = {
     { 0, 192, func_dryfield_night_factory_8017FEF4, { .model = NULL } },
     { 0, 192, func_dryfield_night_factory_80180038, { .model = NULL } },
     { 0, 192, func_dryfield_night_factory_8017F4F4, { .model = NULL } },
-    { 1, 192, func_dryfield_night_factory_8017FE44, { .model = &D_dryfield_night_factory_80186768 } },
+    { TASK_BODY_TMD, 192, func_dryfield_night_factory_8017FE44, { .model = &D_dryfield_night_factory_80186768 } },
     { 2, 192, func_dryfield_night_factory_8017F734, { .model = NULL } },
     { 0, 192, func_dryfield_night_factory_8018007C, { .model = NULL } },
-    { 1, 192, func_dryfield_night_factory_8017FE9C, { .model = &D_dryfield_night_factory_80186B88 } },
+    { TASK_BODY_TMD, 192, func_dryfield_night_factory_8017FE9C, { .model = &D_dryfield_night_factory_80186B88 } },
 };
 
 TaskDesc D_dryfield_night_factory_80186E40 = { 0, 32, func_dryfield_night_factory_801802C8, { .model = NULL } };

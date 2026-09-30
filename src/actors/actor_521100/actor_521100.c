@@ -1597,8 +1597,8 @@ s16 D_actor_521100_8015F684[48] = {
 };
 
 TaskDesc D_actor_521100_8015F6E4[2] = {
-    { 1, 96, func_actor_521100_80135378, { .model = &D_actor_521100_80141894 } },
-    { 1, 96, func_actor_521100_80135AE4, { .model = &D_actor_521100_80142098 } },
+    { TASK_BODY_TMD, 96, func_actor_521100_80135378, { .model = &D_actor_521100_80141894 } },
+    { TASK_BODY_TMD, 96, func_actor_521100_80135AE4, { .model = &D_actor_521100_80142098 } },
 };
 
 Actor521100MessageEntry D_actor_521100_8015F6FC[8] = {

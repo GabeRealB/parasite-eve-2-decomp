@@ -803,8 +803,8 @@ SVECTOR D_mine_forked_tunnel_801819C4[54] = {
 void func_mine_forked_tunnel_8017DDE8(Task*);
 
 TaskDesc D_mine_forked_tunnel_80181B74[2] = {
-    { 1, 192, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
-    { 1, 192, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
+    { TASK_BODY_TMD, 192, func_mine_forked_tunnel_8017DBE4, { .model = &D_mine_forked_tunnel_801807B4 } },
+    { TASK_BODY_TMD, 192, func_mine_forked_tunnel_8017DDE8, { .model = &D_mine_forked_tunnel_80180AA0 } },
 };
 
 s32 func_mine_forked_tunnel_8017D8EC(Task*, s32, ActorCommand* msg);

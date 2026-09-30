@@ -563,7 +563,7 @@ Actor01200RecoveredMsgEntry Actor01200_D07058[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor01200_D07078 = { 1, 96, Actor01200_Fn03FD4, { .model = &Actor01200_D05934 } };
+TaskDesc Actor01200_D07078 = { TASK_BODY_TMD, 96, Actor01200_Fn03FD4, { .model = &Actor01200_D05934 } };
 
 SVECTOR Actor01200_D07084 = { 0 };
 

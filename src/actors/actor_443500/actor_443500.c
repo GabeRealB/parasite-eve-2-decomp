@@ -2378,8 +2378,8 @@ void             func_actor_443500_80132738(Task*);
 extern TmdSource D_actor_443500_80149978;
 
 TaskDesc D_actor_443500_8015873C[2] = {
-    { 257, 192, func_actor_443500_80132738, { .model = &D_actor_443500_8014977C } },
-    { 1, 192, func_actor_443500_8013253C, { .model = &D_actor_443500_80149978 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_443500_80132738, { .model = &D_actor_443500_8014977C } },
+    { TASK_BODY_TMD, 192, func_actor_443500_8013253C, { .model = &D_actor_443500_80149978 } },
 };
 
 s32 func_actor_443500_801327E0(Task*, s32, AnimationPlayRequest*, s32);

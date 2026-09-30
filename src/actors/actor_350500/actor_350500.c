@@ -225,7 +225,7 @@ AnimationSet** D_actor_350500_80168EA0[1] = {
     D_actor_350500_80168E8C,
 };
 
-TaskDesc D_actor_350500_80168EA4 = { 257, 192, func_actor_350500_80162360, { .model = &D_actor_350500_8016785C } };
+TaskDesc D_actor_350500_80168EA4 = { (TASK_BODY_TMD | 0x100), 192, func_actor_350500_80162360, { .model = &D_actor_350500_8016785C } };
 
 Actor350500MsgEntry D_actor_350500_80168EB0[6] = {
     { 2003, { .call0 = func_actor_350500_80162828 } },

@@ -3199,9 +3199,9 @@ void Gp_ApplyAreaTmdFlags(void)
                     do {
                         if (id == place->entryId) {
                             flags = entry->field_8->flags;
-                            if (flags == 1) {
+                            if (flags == TASK_BODY_TMD) {
                                 extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            } else if (flags == 0x101) {
+                            } else if (flags == (TASK_BODY_TMD | 0x100)) {
                                 extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;

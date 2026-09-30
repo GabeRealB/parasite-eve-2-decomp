@@ -185,7 +185,7 @@ u16 D_actor_300700_80165B78[8] = {
     36,
 };
 
-TaskDesc D_actor_300700_80165B88 = { 1, 96, func_actor_300700_8016335C, { .model = &D_actor_300700_80165AC4 } };
+TaskDesc D_actor_300700_80165B88 = { TASK_BODY_TMD, 96, func_actor_300700_8016335C, { .model = &D_actor_300700_80165AC4 } };
 
 AnimationSet* D_actor_300700_80165B94[2] = {
     NULL,

@@ -640,7 +640,7 @@ GpU16Pair Actor03800_D05F40[1] = {
 
 GpPairSrcE Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0, 0 };
 
-TaskDesc Actor03800_D05F54 = { 1, 96, Actor03800_Fn0315C, { .model = &Actor03800_D043A0 } };
+TaskDesc Actor03800_D05F54 = { TASK_BODY_TMD, 96, Actor03800_Fn0315C, { .model = &Actor03800_D043A0 } };
 
 AnimationSet* Actor03800_D05F60[12] = {
     NULL,

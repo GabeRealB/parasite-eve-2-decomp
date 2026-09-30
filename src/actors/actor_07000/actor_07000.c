@@ -481,9 +481,9 @@ Actor07000RecoveredMsgEntry Actor07000_D08030[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor07000_D08040 = { 1, 96, Actor07000_Fn02548, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D08040 = { TASK_BODY_TMD, 96, Actor07000_Fn02548, { .model = &Actor07000_D079C8 } };
 
-TaskDesc Actor07000_D0804C = { 257, 96, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
+TaskDesc Actor07000_D0804C = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn02D10, { .model = &Actor07000_D079C8 } };
 
 AnimationSet* Actor07000_D08058[4] = {
     NULL,
@@ -921,11 +921,11 @@ Actor07000RecoveredMsgEntry Actor07000_D0D7C0[2] = {
 };
 
 TaskDesc Actor07000_D0D7D0[2] = {
-    { 1, 96, Actor07000_Fn05E6C, { .model = &Actor07000_D0A6C8 } },
+    { TASK_BODY_TMD, 96, Actor07000_Fn05E6C, { .model = &Actor07000_D0A6C8 } },
     { 2, 96, Actor07000_Fn06338, { .model = NULL } },
 };
 
-TaskDesc Actor07000_D0D7E8 = { 257, 96, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
+TaskDesc Actor07000_D0D7E8 = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn067B4, { .model = &Actor07000_D0A6C8 } };
 
 /// The 0x39C-byte work block the actor's *other* spawn handler
 /// (`Actor07000_Fn05068`) allocates, next to `Actor107000SpawnWork`:

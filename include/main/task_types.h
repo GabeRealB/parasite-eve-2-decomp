@@ -10,7 +10,14 @@ struct Task;
 
 /// Recognized body kinds in `Task::bodyKind`.
 enum {
-    TASK_BODY_NONE   = 0,
+    TASK_BODY_NONE = 0,
+    /// Body kind for an owned runtime TMD model in `Task::extra.tmd`.
+    ///
+    /// Value 1 occupies the low byte of `TaskDesc::flags` at spawn and is
+    /// stored in the byte-sized `Task::bodyKind` after successful attachment.
+    /// The model owns its part coordinates and any primitive buffer, while
+    /// borrowing its `TmdSource`. A missing buffer does not change this kind.
+    /// Teardown unlinks the model and releases its owned storage.
     TASK_BODY_TMD    = 1,
     TASK_BODY_DISP2D = 2
 };

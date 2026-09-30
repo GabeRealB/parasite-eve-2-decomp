@@ -231,7 +231,7 @@ GpEvsCmd D_dryfield_water_tank_8017FEC8[8] = {
 
 TaskDesc D_dryfield_water_tank_8017FF88[2] = {
     { 0, 192, func_dryfield_water_tank_8017DEA4, { .model = NULL } },
-    { 257, 192, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
+    { (TASK_BODY_TMD | 0x100), 192, func_dryfield_water_tank_8017DD20, { .model = &D_dryfield_water_tank_8017FD3C } },
 };
 
 AnimationPackedPose D_dryfield_water_tank_8017FFA0[2] = {

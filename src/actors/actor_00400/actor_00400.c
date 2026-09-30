@@ -1115,7 +1115,7 @@ Actor00400RecoveredMsgEntry Actor00400_D16010[3] = {
 };
 
 TaskDesc Actor00400_D16028[3] = {
-    { 1, 96, Actor00400_Fn08948, { .model = &Actor00400_D0DD54 } },
+    { TASK_BODY_TMD, 96, Actor00400_Fn08948, { .model = &Actor00400_D0DD54 } },
     { 2, 96, Actor00400_Fn08004, { .model = NULL } },
     { 2, 96, Actor00400_Fn076E8, { .model = NULL } },
 };

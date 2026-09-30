@@ -2614,13 +2614,13 @@ extern TmdSource D_actor_444000_8014D5FC;
 extern TmdSource D_actor_444000_80161B50;
 
 TaskDesc D_actor_444000_801616B0[7] = {
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014BE0C } },
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014A650 } },
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_80147D10 } },
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_80148E94 } },
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014D19C } },
-    { 1, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014D5FC } },
-    { 1, 96, func_actor_444000_80143888, { .model = &D_actor_444000_80161B50 } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014BE0C } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014A650 } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_80147D10 } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_80148E94 } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014D19C } },
+    { TASK_BODY_TMD, 96, func_actor_444000_8014382C, { .model = &D_actor_444000_8014D5FC } },
+    { TASK_BODY_TMD, 96, func_actor_444000_80143888, { .model = &D_actor_444000_80161B50 } },
 };
 
 SVECTOR D_actor_444000_80161704[8] = {
@@ -2660,13 +2660,13 @@ u8 D_actor_444000_801617C4[3][8] = {
 };
 
 TaskDesc D_actor_444000_801617DC[4] = {
-    { 1, 96, func_actor_444000_80143960, { .model = &D_actor_444000_8014E220 } },
+    { TASK_BODY_TMD, 96, func_actor_444000_80143960, { .model = &D_actor_444000_8014E220 } },
     { 2, 96, func_actor_444000_80143B74, { .model = NULL } },
     { 2, 96, func_actor_444000_801438E4, { .model = NULL } },
-    { 1, 96, func_actor_444000_80143A6C, { .model = &D_actor_444000_801528DC } },
+    { TASK_BODY_TMD, 96, func_actor_444000_80143A6C, { .model = &D_actor_444000_801528DC } },
 };
 
-TaskDesc D_actor_444000_8016180C = { 1, 96, func_actor_444000_80143C64, { .model = &D_actor_444000_80150A40 } };
+TaskDesc D_actor_444000_8016180C = { TASK_BODY_TMD, 96, func_actor_444000_80143C64, { .model = &D_actor_444000_80150A40 } };
 
 Actor444000MessageEntry D_actor_444000_80161818[7] = {
     { 2005, { .call3 = func_actor_444000_8013A958 } },
@@ -2680,7 +2680,7 @@ Actor444000MessageEntry D_actor_444000_80161818[7] = {
 
 s16 D_actor_444000_80161850 = 0;
 
-TaskDesc D_actor_444000_80161854 = { 1, 96, func_actor_444000_80142F28, { .model = &D_actor_444000_80146F68 } };
+TaskDesc D_actor_444000_80161854 = { TASK_BODY_TMD, 96, func_actor_444000_80142F28, { .model = &D_actor_444000_80146F68 } };
 
 Task* D_actor_444000_80161860 = NULL;
 

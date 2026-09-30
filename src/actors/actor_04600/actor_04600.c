@@ -349,9 +349,9 @@ Actor04600RecoveredMsgEntry Actor04600_D05868[2] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc Actor04600_D05878 = { 1, 96, Actor04600_Fn024A4, { .model = &Actor04600_D05200 } };
+TaskDesc Actor04600_D05878 = { TASK_BODY_TMD, 96, Actor04600_Fn024A4, { .model = &Actor04600_D05200 } };
 
-TaskDesc Actor04600_D05884 = { 257, 96, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
+TaskDesc Actor04600_D05884 = { (TASK_BODY_TMD | 0x100), 96, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
 
 AnimationSet* Actor04600_D05890[4] = {
     NULL,
@@ -444,7 +444,7 @@ AnimationSet Actor04600_D06474 = {
     { NULL, Actor04600_D06248, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
 };
 
-TaskDesc Actor04600_D0649C = { 1, 96, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
+TaskDesc Actor04600_D0649C = { TASK_BODY_TMD, 96, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
 
 AnimationSet* Actor04600_D064A8[3] = {
     NULL,

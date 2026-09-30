@@ -317,7 +317,7 @@ SVECTOR D_actor_205200_801567B4[2] = {
     { 0, -700, 0, 0 },
 };
 
-TaskDesc D_actor_205200_801567C4 = { 1, 96, func_actor_205200_8014C540, { .model = &D_actor_205200_801517EC } };
+TaskDesc D_actor_205200_801567C4 = { TASK_BODY_TMD, 96, func_actor_205200_8014C540, { .model = &D_actor_205200_801517EC } };
 
 Actor2052002MessageEntry D_actor_205200_801567D0[3] = {
     { 2005, { .call1 = func_actor_205200_8014C980 } },

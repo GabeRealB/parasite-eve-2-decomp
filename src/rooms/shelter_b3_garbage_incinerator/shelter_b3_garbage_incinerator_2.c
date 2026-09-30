@@ -242,7 +242,7 @@ ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { 257, 192, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
+TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { (TASK_BODY_TMD | 0x100), 192, func_shelter_b3_garbage_incinerator_8017E158, { .model = &D_shelter_b3_garbage_incinerator_80185B1C } };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
     { 0, 192, func_shelter_b3_garbage_incinerator_8017E7D0, { .model = NULL } },

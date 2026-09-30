@@ -1005,7 +1005,7 @@ AnimationSet Actor01100_D155B8 = {
 };
 
 TaskDesc Actor01100_D155E0[3] = {
-    { 1, 96, Actor01100_Fn06554, { .model = &Actor01100_D0CB28 } },
+    { TASK_BODY_TMD, 96, Actor01100_Fn06554, { .model = &Actor01100_D0CB28 } },
     { 2, 96, Actor01100_Fn065E4, { .model = NULL } },
     { 2, 96, Actor01100_Fn0663C, { .model = NULL } },
 };

@@ -430,14 +430,14 @@ GpEvsCmd D_actor_341900_80163FB0[20] = {
 TaskDesc D_actor_341900_80164190[10] = {
     { 0, 192, func_actor_341900_80162EFC, { .model = NULL } },
     { 0, 192, func_actor_341900_80163148, { .model = NULL } },
-    { 257, 192, func_actor_341900_80162708, { .value = -0x7FEB9098 } },
-    { 257, 192, func_actor_341900_801625B4, { .value = -0x7FEB41F4 } },
-    { 257, 192, func_actor_341900_801625B4, { .value = -0x7FEB59B0 } },
-    { 257, 192, func_actor_341900_801625B4, { .value = -0x7FEB82F0 } },
-    { 257, 192, func_actor_341900_801625B4, { .value = -0x7FEB716C } },
-    { 257, 192, func_actor_341900_801625B4, { .value = -0x7FEB2A04 } },
-    { 257, 192, func_actor_341900_80162200, { .value = -0x7FEB0200 } },
-    { 257, 192, func_actor_341900_80162200, { .value = -0x7FEAFE90 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162708, { .value = -0x7FEB9098 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB41F4 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB59B0 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB82F0 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB716C } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_801625B4, { .value = -0x7FEB2A04 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162200, { .value = -0x7FEB0200 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_341900_80162200, { .value = -0x7FEAFE90 } },
 };
 
 Task* D_actor_341900_80164208;

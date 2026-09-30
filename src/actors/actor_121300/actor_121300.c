@@ -1705,15 +1705,15 @@ GpEvsCmd D_actor_121300_8013D2E8[7] = {
 };
 
 TaskDesc D_actor_121300_8013D390[11] = {
-    { 257, 192, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_80133D98, { .model = &D_actor_121300_80139B80 } },
     { 0, 192, func_actor_121300_801326EC, { .model = NULL } },
     { 0, 192, func_actor_121300_8013400C, { .model = NULL } },
     { 0, 192, func_actor_121300_80133064, { .model = NULL } },
-    { 257, 192, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
-    { 257, 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
-    { 257, 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
-    { 257, 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
-    { 257, 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_80139DE4 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A050 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A2AC } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A494 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_121300_8013293C, { .model = &D_actor_121300_8013A67C } },
     { 0, 192, func_actor_121300_801340F0, { .model = NULL } },
     { 0, 192, func_actor_121300_8013322C, { .model = NULL } },
 };

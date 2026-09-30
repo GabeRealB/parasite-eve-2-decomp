@@ -2143,7 +2143,7 @@ s32 D_actor_421600_801511D4[4][8] = {
     { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
 };
 
-TaskDesc D_actor_421600_80151254 = { 257, 96, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
+TaskDesc D_actor_421600_80151254 = { (TASK_BODY_TMD | 0x100), 96, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
 
 SVECTOR D_actor_421600_80151260;
 

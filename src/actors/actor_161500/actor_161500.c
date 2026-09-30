@@ -1363,8 +1363,8 @@ Actor161500MessageEntry D_actor_161500_80140180[6] = {
 };
 
 TaskDesc D_actor_161500_801401B0[2] = {
-    { 257, 96, func_actor_161500_801326E8, { .model = &D_actor_161500_8013DEC0 } },
-    { 257, 96, func_actor_161500_80132C6C, { .model = &D_actor_161500_80138790 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_161500_801326E8, { .model = &D_actor_161500_8013DEC0 } },
+    { (TASK_BODY_TMD | 0x100), 96, func_actor_161500_80132C6C, { .model = &D_actor_161500_80138790 } },
 };
 
 AnimationSet* D_actor_161500_801401C8[12] = {

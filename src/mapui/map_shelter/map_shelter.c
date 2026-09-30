@@ -518,33 +518,33 @@ static GpEnemyDesc D_map_shelter_8017A888[1] = {
 };
 
 static GpEnemyDesc D_map_shelter_8017A898[2] = {
-    { 0x20D, { 0 }, { 1, 0x62, func_mine_forked_tunnel_8017DBE4, { &D_mine_forked_tunnel_801807B4 } } },
+    { 0x20D, { 0 }, { TASK_BODY_TMD, 0x62, func_mine_forked_tunnel_8017DBE4, { &D_mine_forked_tunnel_801807B4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8B8[2] = {
-    { 0x127, { 0 }, { 1, 0x62, func_shelter_b1_sleeping_quarters_8017D608, { &D_shelter_b1_sleeping_quarters_801804F4 } } },
+    { 0x127, { 0 }, { TASK_BODY_TMD, 0x62, func_shelter_b1_sleeping_quarters_8017D608, { &D_shelter_b1_sleeping_quarters_801804F4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8D8[2] = {
-    { 0x70A, { 0 }, { 1, 0x62, Gp_ItemPickupTilt, { &D_shelter_b2_laboratory_801829E4 } } },
+    { 0x70A, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b2_laboratory_801829E4 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A8F8[2] = {
-    { 0x129, { 0 }, { 1, 0x62, func_shelter_b2_breeding_room_8017D5F8, { &D_shelter_b2_breeding_room_801803F0 } } },
+    { 0x129, { 0 }, { TASK_BODY_TMD, 0x62, func_shelter_b2_breeding_room_8017D5F8, { &D_shelter_b2_breeding_room_801803F0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A918[2] = {
-    { 0x37, { 0 }, { 1, 0x62, Gp_ItemPickupTilt, { &D_shelter_b3_dumping_hole_80187550 } } },
+    { 0x37, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b3_dumping_hole_80187550 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_shelter_8017A938[3] = {
-    { 0x20B, { 0 }, { 1, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147314 } } },
-    { 0x20C, { 0 }, { 1, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147D6C } } },
+    { 0x20B, { 0 }, { TASK_BODY_TMD, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147314 } } },
+    { 0x20C, { 0 }, { TASK_BODY_TMD, 0x62, func_actor_503500_8013270C, { &D_actor_503500_80147D6C } } },
     { 0xFFFF },
 };
 
@@ -553,7 +553,7 @@ static GpEnemyDesc D_map_shelter_8017A968[1] = {
 };
 
 static GpEnemyDesc D_map_shelter_8017A978[2] = {
-    { 0x708, { 0 }, { 1, 0x62, Gp_ItemPickupTilt, { &D_shelter_b1_sterilization_room_80184DF8 } } },
+    { 0x708, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_shelter_b1_sterilization_room_80184DF8 } } },
     { 0xFFFF },
 };
 

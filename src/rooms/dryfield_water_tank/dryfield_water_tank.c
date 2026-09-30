@@ -444,7 +444,7 @@ TmdSource D_dryfield_water_tank_80186880 = {
 };
 
 TaskDesc D_dryfield_water_tank_801868A4[2] = {
-    { 1, 192, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
+    { TASK_BODY_TMD, 192, func_dryfield_water_tank_8017EDF4, { .model = &D_dryfield_water_tank_80186880 } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 

@@ -26,6 +26,6 @@ TaskDesc D_800676A8[] = {
     { 0x0, 0xC0, func_80722624 },
     { 0x0, 0xF0, Gp_TickWorldCollision },
     { 0x0, 0xF0, func_8071E24C },
-    { 0x1, 0x70, Gp_EffAttachTask37 },
+    { TASK_BODY_TMD, 0x70, Gp_EffAttachTask37 },
     { 0x0, 0xC0, func_80723944 },
 };

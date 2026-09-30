@@ -1304,7 +1304,7 @@ ActorHeightClamp D_actor_401000_80154FD0[3] = {
 
 u16 D_actor_401000_80155000 = 0;
 
-TaskDesc D_actor_401000_80155004 = { 257, 96, func_actor_401000_8013E038, { .model = &D_actor_401000_80143614 } };
+TaskDesc D_actor_401000_80155004 = { (TASK_BODY_TMD | 0x100), 96, func_actor_401000_8013E038, { .model = &D_actor_401000_80143614 } };
 
 SVECTOR D_actor_401000_80155010;
 

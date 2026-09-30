@@ -222,7 +222,7 @@ AnimationSet* D_actor_111800_8013A448[8] = {
     NULL,
 };
 
-TaskDesc D_actor_111800_8013A468 = { 257, 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
+TaskDesc D_actor_111800_8013A468 = { (TASK_BODY_TMD | 0x100), 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
 static void           func_actor_111800_80131E40(GfxCoord* coord, s16 yaw);
 static inline void    _actor111800TickAnim(Task* task);

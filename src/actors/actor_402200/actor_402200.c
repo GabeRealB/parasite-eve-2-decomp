@@ -1255,7 +1255,7 @@ s16 D_actor_402200_80154178[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc D_actor_402200_80154188 = { 1, 96, func_actor_402200_80138340, { .model = &D_actor_402200_8013DBD4 } };
+TaskDesc D_actor_402200_80154188 = { TASK_BODY_TMD, 96, func_actor_402200_80138340, { .model = &D_actor_402200_8013DBD4 } };
 
 AnimationSet* D_actor_402200_80154194[22] = {
     NULL,

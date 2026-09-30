@@ -292,7 +292,7 @@ s16 Actor02400_D0463C[16] = {
 };
 
 TaskDesc Actor02400_D0465C[2] = {
-    { 1, 96, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
+    { TASK_BODY_TMD, 96, Actor02400_Fn02DB0, { .model = &Actor02400_D04580 } },
     { 2, 96, Actor02400_Fn03358, { .model = NULL } },
 };
 

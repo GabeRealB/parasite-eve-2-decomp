@@ -1114,7 +1114,7 @@ Actor160600MessageEntry D_actor_160600_8013DF70[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_160600_8013DFA0 = { 1, 96, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };
+TaskDesc D_actor_160600_8013DFA0 = { TASK_BODY_TMD, 96, func_actor_160600_801321B4, { .model = &D_actor_160600_8013BA9C } };
 
 u8 D_actor_160600_8013DFAC[64] = {
     0,

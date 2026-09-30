@@ -1261,7 +1261,7 @@ SVECTOR D_actor_401300_80158A08[2] = {
     { 30, 130, -190, 0 },
 };
 
-TaskDesc D_actor_401300_80158A18 = { 1, 96, func_actor_401300_80141F2C, { .model = &D_actor_401300_80147290 } };
+TaskDesc D_actor_401300_80158A18 = { TASK_BODY_TMD, 96, func_actor_401300_80141F2C, { .model = &D_actor_401300_80147290 } };
 
 SVECTOR D_actor_401300_80158A24 = { 0 };
 

@@ -249,7 +249,7 @@ Actor311500MessageEntry D_actor_311500_80169330[1] = {
     { 2006, { .call0 = func_actor_311500_801636A0 } },
 };
 
-TaskDesc D_actor_311500_80169338 = { 257, 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
+TaskDesc D_actor_311500_80169338 = { (TASK_BODY_TMD | 0x100), 192, func_actor_311500_80163334, { .model = &D_actor_311500_80168BF8 } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
 
 static s32         func_actor_311500_80161E38(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 static s32         func_actor_311500_80162180(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);

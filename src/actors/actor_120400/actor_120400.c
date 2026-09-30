@@ -880,9 +880,9 @@ AnimationSet** D_actor_120400_8013E744[1] = {
 };
 
 TaskDesc D_actor_120400_8013E748[3] = {
-    { 257, 192, func_actor_120400_80132748, { .model = &D_actor_120400_8013783C } },
-    { 1, 192, func_actor_120400_8013254C, { .model = &D_actor_120400_801380E4 } },
-    { 1, 192, func_actor_120400_8013254C, { .model = &D_actor_120400_80137C90 } },
+    { (TASK_BODY_TMD | 0x100), 192, func_actor_120400_80132748, { .model = &D_actor_120400_8013783C } },
+    { TASK_BODY_TMD, 192, func_actor_120400_8013254C, { .model = &D_actor_120400_801380E4 } },
+    { TASK_BODY_TMD, 192, func_actor_120400_8013254C, { .model = &D_actor_120400_80137C90 } },
 };
 
 Actor120400MsgEntry D_actor_120400_8013E76C[6] = {

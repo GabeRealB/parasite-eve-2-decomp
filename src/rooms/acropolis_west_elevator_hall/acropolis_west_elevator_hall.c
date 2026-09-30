@@ -243,8 +243,8 @@ AnimationSet D_acropolis_west_elevator_hall_80184540 = {
 };
 
 TaskDesc D_acropolis_west_elevator_hall_80184568[3] = {
-    { 1, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018050C } },
-    { 1, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018077C } },
+    { TASK_BODY_TMD, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018050C } },
+    { TASK_BODY_TMD, 192, func_acropolis_west_elevator_hall_8017F418, { .model = &D_acropolis_west_elevator_hall_8018077C } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 

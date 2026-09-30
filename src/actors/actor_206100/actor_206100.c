@@ -1185,7 +1185,7 @@ TaskDesc D_actor_206100_80158AF0[2] = {
 s32 D_actor_206100_80158B08 = 256;
 
 TaskDesc D_actor_206100_80158B0C[2] = {
-    { 1, 96, func_actor_206100_8014F428, { .model = &D_actor_206100_801530C8 } },
+    { TASK_BODY_TMD, 96, func_actor_206100_8014F428, { .model = &D_actor_206100_801530C8 } },
     { 2, 96, func_actor_206100_8014F134, { .model = NULL } },
 };
 

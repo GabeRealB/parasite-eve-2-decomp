@@ -92,7 +92,7 @@ void func_mist_parking_8018357C(Task*);
 void func_mist_parking_80183600(void);
 
 TaskDesc D_mist_parking_8018D75C[9] = {
-    { 1, 192, func_mist_parking_80183B40, { .model = &D_mist_parking_80187294 } },
+    { TASK_BODY_TMD, 192, func_mist_parking_80183B40, { .model = &D_mist_parking_80187294 } },
     { 0, 192, func_mist_parking_801832AC, { .model = NULL } },
     { 0, 192, func_mist_parking_8018345C, { .model = NULL } },
     { 0, 192, func_mist_parking_8018357C, { .model = NULL } },

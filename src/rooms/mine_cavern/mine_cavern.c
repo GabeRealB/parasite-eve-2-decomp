@@ -203,8 +203,8 @@ SVECTOR D_mine_cavern_8018EB18[4] = {
 };
 
 TaskDesc D_mine_cavern_8018EB38[2] = {
-    { 1, 96, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
-    { 1, 96, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
+    { TASK_BODY_TMD, 96, func_mine_cavern_80183A68, { .model = &D_mine_cavern_8018E6C0 } },
+    { TASK_BODY_TMD, 96, func_mine_cavern_80183C10, { .model = &D_mine_cavern_8018EABC } },
 };
 
 s32 D_mine_cavern_8018EB54;

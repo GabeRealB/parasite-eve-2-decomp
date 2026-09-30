@@ -733,7 +733,7 @@ void func_actor_105100_8013667C(Task*);
 void func_actor_105100_8013672C(Task*);
 
 TaskDesc D_actor_105100_80141464[3] = {
-    { 1, 96, func_actor_105100_80135DF8, { .model = &D_actor_105100_8013B19C } },
+    { TASK_BODY_TMD, 96, func_actor_105100_80135DF8, { .model = &D_actor_105100_8013B19C } },
     { 2, 96, func_actor_105100_8013667C, { .model = NULL } },
     { 2, 96, func_actor_105100_8013672C, { .model = NULL } },
 };

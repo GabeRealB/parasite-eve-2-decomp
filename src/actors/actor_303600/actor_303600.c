@@ -16841,7 +16841,7 @@ u8 D_actor_303600_8016A408[16480] = {
 
 TaskDesc D_actor_303600_8016E468[2] = {
     { 2, 192, func_actor_303600_80162A7C, { .model = NULL } },
-    { 1, 192, func_actor_303600_801628E4, { .model = &D_actor_303600_8016A3E4 } },
+    { TASK_BODY_TMD, 192, func_actor_303600_801628E4, { .model = &D_actor_303600_8016A3E4 } },
 };
 
 Actor303600MsgEntry D_actor_303600_8016E480[2] = {

@@ -671,7 +671,7 @@ Actor151000MsgEntry D_actor_151000_8013D2B0[6] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_151000_8013D2E0 = { 1, 192, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };
+TaskDesc D_actor_151000_8013D2E0 = { TASK_BODY_TMD, 192, func_actor_151000_801323F4, { .model = &D_actor_151000_80139270 } };
 
 u8 D_actor_151000_8013D2EC[140] = {
     0,

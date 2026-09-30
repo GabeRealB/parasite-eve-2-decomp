@@ -1157,9 +1157,9 @@ u16* Actor02300_D15C80[6] = {
 };
 
 TaskDesc Actor02300_D15C98[3] = {
-    { 1, 96, Actor02300_Fn03EE8, { .model = &Actor02300_D08E50 } },
-    { 1, 96, Actor02300_Fn03BA8, { .model = &Actor02300_D09394 } },
-    { 1, 96, Actor02300_Fn03CE8, { .model = &Actor02300_D096BC } },
+    { TASK_BODY_TMD, 96, Actor02300_Fn03EE8, { .model = &Actor02300_D08E50 } },
+    { TASK_BODY_TMD, 96, Actor02300_Fn03BA8, { .model = &Actor02300_D09394 } },
+    { TASK_BODY_TMD, 96, Actor02300_Fn03CE8, { .model = &Actor02300_D096BC } },
 };
 
 AnimationSet* Actor02300_D15CBC[31] = {

@@ -1712,8 +1712,8 @@ Actor2151002MsgEntry D_actor_215100_8015E5A0[6] = {
 };
 
 TaskDesc D_actor_215100_8015E5D0[2] = {
-    { 1, 96, func_actor_215100_8014CA2C, { .model = &D_actor_215100_8015A7E4 } },
-    { 1, 192, func_actor_215100_8014CEF8, { .model = &D_actor_215100_8015A9E0 } },
+    { TASK_BODY_TMD, 96, func_actor_215100_8014CA2C, { .model = &D_actor_215100_8015A7E4 } },
+    { TASK_BODY_TMD, 192, func_actor_215100_8014CEF8, { .model = &D_actor_215100_8015A9E0 } },
 };
 
 AnimationSet* D_actor_215100_8015E5E8[25] = {

@@ -3015,7 +3015,7 @@ Actor323400MessageEntry D_actor_323400_801711D4[7] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_323400_8017120C = { 257, 96, func_actor_323400_80164CEC, { .model = &D_actor_323400_80169878 } };
+TaskDesc D_actor_323400_8017120C = { (TASK_BODY_TMD | 0x100), 96, func_actor_323400_80164CEC, { .model = &D_actor_323400_80169878 } };
 
 static Actor323400Storage1218 ActorContact_ScratchPosition;
 

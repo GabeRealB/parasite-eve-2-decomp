@@ -126,8 +126,8 @@ TmdSource D_shelter_b2_elevator_8017DF4C = {
 };
 
 TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
-    { 1, 192, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DD50 } },
-    { 1, 192, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DF4C } },
+    { TASK_BODY_TMD, 192, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DD50 } },
+    { TASK_BODY_TMD, 192, func_shelter_b2_elevator_8017D70C, { .model = &D_shelter_b2_elevator_8017DF4C } },
     { 0, 32, func_shelter_b2_elevator_8017D888, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };

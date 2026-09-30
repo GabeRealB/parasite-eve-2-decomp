@@ -109,7 +109,7 @@ TaskDesc  D_80062780[]             = {
     { 0, 0xC0, func_80704BC8 },
     { 0, 0xC0, func_80703FE8 },
     { 0, 0xC0, func_80704A78 },
-    { 1, 0xC0, func_80704AD0, { &D_80725F44 } },
+    { TASK_BODY_TMD, 0xC0, func_80704AD0, { &D_80725F44 } },
 };
 
 static const TaskFuncTable4 Stage_TaskStates = { {

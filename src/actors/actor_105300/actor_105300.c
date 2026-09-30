@@ -264,7 +264,7 @@ Actor05300Clip D_actor_105300_8013D3EC[4] = {
 };
 
 TaskDesc D_actor_105300_8013D3FC[2] = {
-    { 1, 96, func_actor_105300_801339A4, { .model = &D_actor_105300_8013C794 } },
+    { TASK_BODY_TMD, 96, func_actor_105300_801339A4, { .model = &D_actor_105300_8013C794 } },
     { 2, 96, func_actor_105300_801337DC, { .model = NULL } },
 };
 

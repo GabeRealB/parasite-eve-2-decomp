@@ -59,7 +59,7 @@ TaskDesc D_800626EC[6] = {
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
     { 0, 0xC0, taskKill },
-    { 1, 0x70, Gp_EffAttachTask37 },
+    { TASK_BODY_TMD, 0x70, Gp_EffAttachTask37 },
 };
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)

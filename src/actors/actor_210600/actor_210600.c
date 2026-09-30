@@ -269,7 +269,7 @@ Actor210600MessageEntry D_actor_210600_8015A4CC[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_210600_8015A4EC = { 257, 96, func_actor_210600_8014BA3C, { .model = &D_actor_210600_801594D8 } };
+TaskDesc D_actor_210600_8015A4EC = { (TASK_BODY_TMD | 0x100), 96, func_actor_210600_8014BA3C, { .model = &D_actor_210600_801594D8 } };
 
 AnimationPackedPose D_actor_210600_8015A4F8[37] = {
 #include "assets/actor_210600_animation_11F5C_bank1.inc"

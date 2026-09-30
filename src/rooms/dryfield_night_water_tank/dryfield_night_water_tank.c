@@ -204,7 +204,7 @@ TmdSource D_dryfield_night_water_tank_8017EE04 = {
 };
 
 TaskDesc D_dryfield_night_water_tank_8017EE28[2] = {
-    { 1, 192, func_dryfield_night_water_tank_8017DB8C, { .model = &D_dryfield_night_water_tank_8017EE04 } },
+    { TASK_BODY_TMD, 192, func_dryfield_night_water_tank_8017DB8C, { .model = &D_dryfield_night_water_tank_8017EE04 } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 

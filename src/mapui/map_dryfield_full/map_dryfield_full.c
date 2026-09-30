@@ -329,12 +329,12 @@ static GpEnemyDesc D_map_dryfield_full_8017A41C[1] = {
 };
 
 static GpEnemyDesc D_map_dryfield_full_8017A42C[2] = {
-    { 0x82, { 0 }, { 1, 0x62, Gp_ItemPickupTilt, { &D_dryfield_night_trailer_coach_80184CA0 } } },
+    { 0x82, { 0 }, { TASK_BODY_TMD, 0x62, Gp_ItemPickupTilt, { &D_dryfield_night_trailer_coach_80184CA0 } } },
     { 0xFFFF },
 };
 
 static GpEnemyDesc D_map_dryfield_full_8017A44C[2] = {
-    { 0x117, { 0 }, { 1, 0x62, Gp_WaitItemFlag2, { &D_dryfield_night_motel_loft_8017EAF8 } } },
+    { 0x117, { 0 }, { TASK_BODY_TMD, 0x62, Gp_WaitItemFlag2, { &D_dryfield_night_motel_loft_8017EAF8 } } },
     { 0xFFFF },
 };
 

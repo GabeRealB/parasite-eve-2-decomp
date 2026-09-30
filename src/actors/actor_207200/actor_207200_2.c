@@ -556,7 +556,7 @@ AnimationSet D_actor_207200_80153EA0 = {
     { NULL, D_actor_207200_80153E2C, NULL, NULL, D_actor_207200_80153E44, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_80153EC8 = { 1, 96, func_actor_207200_8014D280, { .model = &D_actor_207200_80150A04 } };
+TaskDesc D_actor_207200_80153EC8 = { TASK_BODY_TMD, 96, func_actor_207200_8014D280, { .model = &D_actor_207200_80150A04 } };
 
 AnimationSet* D_actor_207200_80153ED4[13] = {
     NULL,
