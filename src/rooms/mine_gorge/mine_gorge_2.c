@@ -31,6 +31,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// Per-view halfword table, indexed 1-based by `Gp_GetViewIndex()`. The value
 /// the room publishes as its `Gp_State1C->roomEffectMode` variant index.
@@ -43,8 +44,6 @@ extern SVECTOR D_mine_gorge_8017E778[];
 extern SVECTOR D_mine_gorge_8017E788[];
 extern SVECTOR D_mine_gorge_8017E790[];
 extern SVECTOR D_mine_gorge_8017E798[];
-
-static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams               D_mine_gorge_8017F184[1];
 extern GpGridParams               D_mine_gorge_8017F9F0[1];
@@ -1076,7 +1075,7 @@ GpRoomParamRec* D_mine_gorge_80183644[8] = {
 };
 
 /// Publishes the variant index the current camera view maps to, then draws the
-/// gorge's props for that view: one `func_mine_gorge_8017DB88` quad per
+/// gorge's props for that view: one `glowDrawFlare` quad per
 /// position, UV column 1 and half-extent 0x300. Views share runs of the same
 /// table, so `3` and `7` draw five positions from `E778` where `6` draws two,
 /// and `10`/`11` draw the single position at `E790`; every case ends on the
@@ -1087,102 +1086,50 @@ void func_mine_gorge_8017D9F8(Task* unused)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_gorge_8017E798;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[1], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 3:
         case 7: {
             SVECTOR* p = D_mine_gorge_8017E778;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[1], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[2], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[3], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[4], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[3], 1, 0x300);
+            glowDrawFlare(&p[4], 1, 0x300);
             break;
         }
         case 4:
         case 5:
         case 9: {
             SVECTOR* p = D_mine_gorge_8017E788;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[1], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[2], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[3], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_gorge_8017E778;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[1], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_gorge_8017E788;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[2], 1, 0x300);
-            func_mine_gorge_8017DB88(&p[3], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 10:
         case 11: {
             SVECTOR* p = D_mine_gorge_8017E790;
-            func_mine_gorge_8017DB88(&p[0], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
             break;
         }
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
-/// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-static void func_mine_gorge_8017DB88(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                idx;
-    s32                blend;
-    s16                xy;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        blend       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x20;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        xy            = block->sx - (u16)block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + (u16)block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = block->sy - (u16)block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + (u16)block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"

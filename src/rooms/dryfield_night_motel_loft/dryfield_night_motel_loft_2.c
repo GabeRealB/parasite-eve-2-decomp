@@ -35,6 +35,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// Scratch block one triangle is built in: the GTE depth and flag of its
 /// projection, then its three corners in world space.
@@ -67,7 +68,6 @@ typedef struct _DryfieldNightMotelLoftShard {
 extern GpGridParams D_dryfield_night_motel_loft_8017ED54;
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
 
-static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_motel_loft_8017E540(GfxCoord* coord, s16 scale, s16 shade);
 
 extern GpGridParams D_dryfield_night_motel_loft_8017F120;
@@ -482,16 +482,16 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2:
         case 9:
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[0], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
             break;
         case 3:
         case 10: {
             SVECTOR* p = &D_dryfield_night_motel_loft_8017ED78[1];
 
-            func_dryfield_night_motel_loft_8017DE14(&p[0], 0, 0x300);
-            func_dryfield_night_motel_loft_8017DE14(&p[1], 0, 0x300);
-            func_dryfield_night_motel_loft_8017DE14(&p[3], 0, 0x300);
+            glowDrawFlareClipped(&p[0], 0, 0x300);
+            glowDrawFlareClipped(&p[1], 0, 0x300);
+            glowDrawFlareClipped(&p[3], 0, 0x300);
             if (arg0->state == 1) {
                 SVECTOR* pos;
 
@@ -513,15 +513,15 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
             break;
         }
         case 4:
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[2], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[2], 0, 0x300);
             break;
         case 6:
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[3], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[3], 0, 0x300);
             break;
         case 7:
         case 11:
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[4], 0, 0x300);
-            func_dryfield_night_motel_loft_8017DE14(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[4], 0, 0x300);
+            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], 0, 0x300);
             break;
         case 8:
             if (arg0->state == 0) {
@@ -546,47 +546,7 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
     }
 }
 
-/// Queues a flickering sprite at the world point `arg0`: a
-/// semi-transparent `POLY_FT4` square centred on the point's projection, with
-/// half-width `arg2 * 39 / otz`, textured from the 40-texel cell `arg1` of
-/// tpage 0x2B and shaded 0x20 or 0x30 on alternate frames. Points closer than
-/// OTZ 0x11 are skipped.
-static void func_dryfield_night_motel_loft_8017DE14(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 /// Task driving one tumbling triangle, drawn each frame by
 /// `func_dryfield_night_motel_loft_8017E540` at the task's coordinate coordinate.

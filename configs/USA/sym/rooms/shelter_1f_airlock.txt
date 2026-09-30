@@ -43,3 +43,5 @@ D_map_neo_ark_8017AFD0 = 0x8017AFD0; // absolute:True
 D_map_neo_ark_8017AFF0 = 0x8017AFF0; // absolute:True
 
 func_shelter_1f_airlock_8017D6D0 = 0x8017D6D0; // type:func
+glowDrawFactorDisc = 0x8017E0F0; // type:func
+gGlowPrismCorners = 0x801872CC;

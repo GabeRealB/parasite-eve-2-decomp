@@ -47,6 +47,7 @@
 #include "rooms/room_common.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 #define D_dryfield_saloon_g_r_8017ED4C (D_dryfield_saloon_g_r_8017ECE4 + 13)
 #define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
@@ -83,9 +84,7 @@ extern s16 D_dryfield_saloon_g_r_8017ED84[];
 
 static void func_dryfield_saloon_g_r_8017D9CC(Task* task);
 static void func_dryfield_saloon_g_r_8017DA10(Task* task);
-static void func_dryfield_saloon_g_r_8017DBB4(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord);
-static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_saloon_g_r_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -840,114 +839,23 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            func_dryfield_saloon_g_r_8017DBB4(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 0, 0x200);
+            glowDrawFlareLocal(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            func_dryfield_saloon_g_r_8017DBB4(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 2, 0x200);
+            glowDrawFlareLocal(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 2, 0x200);
         }
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[12]) {
         func_dryfield_saloon_g_r_8017DEC4(coord);
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[11]) {
-        func_dryfield_saloon_g_r_8017E430(coord, D_dryfield_saloon_g_r_8017ED4C, D_dryfield_saloon_g_r_8017ED4C - 1, 0x100);
+        glowDrawTaperedBeam(coord, D_dryfield_saloon_g_r_8017ED4C, D_dryfield_saloon_g_r_8017ED4C - 1, 0x100);
     }
 }
 
-/// Queues one flickering, screen-aligned textured sprite at `arg1` in
-/// `arg0`'s local space. The point is rotated by the coordinate's `workm`,
-/// offset by its translation and projected through `GsWSMATRIX`, using a
-/// 0x14-byte block taken from the scratch stack; nothing is drawn when the
-/// projected `otz` is below 0x11.
-///
-/// The primitive is a semi-transparent `POLY_FT4` on tpage 0x2B. `arg2` picks
-/// one of the 40-texel-wide frames along the top row of the texture page (u
-/// `arg2 * 40 .. arg2 * 40 + 39`, v 0..0x27) and the clut
-/// `(arg2 & 0x3F) | 0x4380`. `arg3` is a half-extent: the square reaches
-/// `(s16)arg3 * 39 / otz` from the projected centre in each direction. The
-/// flat colour is 0x20 or 0x30 on the parity of `gDisplayState.animFrame`.
-static void func_dryfield_saloon_g_r_8017DBB4(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3)
-{
-    void**            scratch;
-    u8*               head;
-    RoomShaftScratch* block;
-    POLY_FT4*         prim;
-    DisplayState*     ds;
-    s32               su;
-    s32               sv;
-    s32               u0;
-    s32               u1;
-    s32               flip;
-    s32               rgb;
-    s16               xy;
-
-    scratch  = SCRATCH_STACK_CURSOR_SLOT;
-    head     = *scratch;
-    *scratch = head - 0x14;
-    block    = (RoomShaftScratch*)(head - 0x14);
-
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
-    gte_rtv0();
-    gte_stsv(&((RoomShaftScratch*)(head - 0x14))->vec);
-    block->vec.vx = (u16)block->vec.vx + (u16)arg0->workm.t[0];
-    block->vec.vy = (u16)block->vec.vy + (u16)arg0->workm.t[1];
-    block->vec.vz = (u16)block->vec.vz + (u16)arg0->workm.t[2];
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomShaftScratch*)(head - 0x14))->vec);
-    gte_rtps();
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&((RoomShaftScratch*)(head - 0x14))->sx);
-    gte_stszotz(&block->otz);
-    if (((RoomShaftScratch*)(head - 0x14))->otz >= 0x11) {
-        ds          = &gDisplayState;
-        flip        = (u8)ds->animFrame;
-        su          = (s16)arg2;
-        sv          = (s16)arg3;
-        prim->tpage = 0x2B;
-        prim->clut  = (su & 0x3F) | 0x4380;
-        u0          = su * 0x28;
-        u1          = u0 + 0x27;
-        prim->u1    = u1;
-        prim->u3    = u1;
-        prim->u0    = u0;
-        prim->u2    = u0;
-        prim->v0    = 0;
-        prim->v1    = 0;
-        prim->v2    = 0x27;
-        prim->v3    = 0x27;
-        rgb         = (flip & 1) << 4;
-        rgb        += 0x20;
-        setSemiTrans(prim, 1);
-        prim->r0         = rgb;
-        prim->g0         = rgb;
-        prim->b0         = rgb;
-        block->halfWidth = (sv * 0x27) / block->otz;
-        xy               = block->sx - (u16)block->halfWidth;
-        prim->x2         = xy;
-        prim->x0         = xy;
-        xy               = block->sx + (u16)block->halfWidth;
-        prim->x3         = xy;
-        prim->x1         = xy;
-        xy               = block->sy - (u16)block->halfWidth;
-        prim->y1         = xy;
-        prim->y0         = xy;
-        xy               = block->sy + (u16)block->halfWidth;
-        prim->y3         = xy;
-        prim->y2         = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_flare_local.inc.c"
 
 /// Draws the room's two light shafts as Gouraud quads. Both shafts share the
 /// roots at positions 14 and 17 of `D_dryfield_saloon_g_r_8017ECE4`; each
@@ -1056,142 +964,4 @@ static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(0x24);
 }
 
-/// Draws a flickering tapered beam between `arg1` and `arg2` in `arg0`'s
-/// local space. Both points are rotated by the coordinate's `workm`, offset by
-/// its translation and projected through `GsWSMATRIX`, using a 0x28-byte block
-/// taken from the scratch stack. Nothing is drawn when the far end's `otz` is
-/// below 0x11; the near end's is raised to at least 0x10. The ends get the
-/// screen radii `(s16)arg3 * 64 / otz`.
-///
-/// Two passes, a quarter turn apart, each queue three `POLY_G4`s: a wedge of
-/// the near end's disc, a quad joining the two ends, and a wedge of the far
-/// end's disc walked backwards from a full turn, so the near end covers one
-/// half turn and the far end the other. Centre vertices take a grey of 0x20
-/// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
-/// Each primitive goes into the OT bucket of its own end's `otz` with a
-/// `Gp_AddTpageShift` tpage.
-static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw24Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                rgb;
-    s32                extent;
-    s32                r0;
-    s32                r1;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x28;
-        *scratch = tmp;
-        block    = (RoomDraw24Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
-    gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    (u16) block->vec0.vx = (u16)block->vec0.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec0.vy = (u16)block->vec0.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec0.vz = (u16)block->vec0.vz + (u16)arg0->workm.t[2];
-
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg2);
-    gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    (u16) block->vec1.vx = (u16)block->vec1.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec1.vy = (u16)block->vec1.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec1.vz = (u16)block->vec1.vz + (u16)arg0->workm.t[2];
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx1);
-    gte_stszotz(&((RoomDraw24Scratch*)(head - 0x28))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw24Scratch*)(head - 0x28))->otz0 < 0x10) {
-            ((RoomDraw24Scratch*)(head - 0x28))->otz0 = 0x10;
-        }
-        extent    = (s16)arg3 * 64;
-        r0        = extent / ((RoomDraw24Scratch*)(head - 0x28))->otz0;
-        r1        = extent / block->otz1;
-        ang       = 0;
-        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-            prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang * 2)) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang * 2)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(ang * 2)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(ang * 2)) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(0x1000 - ang)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(0x1000 - ang)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(0xE00 - ang)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(0xE00 - ang)) >> 12);
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
-}
+#include "../../shared/glow_draw_tapered_beam.inc.c"

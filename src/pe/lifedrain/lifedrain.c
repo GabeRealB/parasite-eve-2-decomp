@@ -34,6 +34,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "../../shared/glow_draw.h"
 
 /// Per-level band row. `field_2` is the starting inner radius (also the per-frame
 /// inner/outer step); `field_4` is the starting outer radius; `unk6` is the wedge
@@ -49,7 +50,6 @@ typedef struct LifeDrainScale {
 STATIC_ASSERT_SIZEOF(LifeDrainScale, 0xA);
 
 static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2);
-static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Per-level tuning for the life drain: rows are PE levels 1-3.
 static LifeDrainScale D_lifedrain_80130AB4[] = {
@@ -72,7 +72,7 @@ static s32 D_lifedrain_80130AD4[] = {
 
 /// One yaw per funnel wedge, `LifeDrainScale.unk0` of them, re-rolled as a
 /// block when the cast starts and replayed every frame by
-/// `func_lifedrain_801305C0`.
+/// `glowDrawWedge`.
 static s16 D_lifedrain_80130AEC[16] = { 0 };
 /// The cast's collector task, published by `func_lifedrain_8012EF48`. Every
 /// drain mote reparents itself onto it and adds its own `spawnArg1` to the
@@ -226,7 +226,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 t2 = D_lifedrain_80130AB4;
                 p  = D_lifedrain_80130AEC;
                 do {
-                    func_lifedrain_801305C0(coord, mem->angle, *p, rgb);
+                    glowDrawWedge(coord, mem->angle, *p, rgb);
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
@@ -293,7 +293,7 @@ void func_lifedrain_8012EF48(Task* arg0)
                 t2 = D_lifedrain_80130AB4;
                 p  = D_lifedrain_80130AEC;
                 do {
-                    func_lifedrain_801305C0(coord, mem->angle, *p, rgb);
+                    glowDrawWedge(coord, mem->angle, *p, rgb);
                     p += 1;
                 } while (++i < t2[mem->index].unk0);
             }
@@ -618,60 +618,7 @@ static void func_lifedrain_801301AC(GfxCoord* arg0, s16 arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
-/// is projected once through `GsWSMATRIX`; the two outer corners sit `arg1`
-/// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
-/// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
-/// fading to black. A negative `gte_stflg` drops the wedge.
-static void func_lifedrain_801305C0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    u8*            head;
-    GpRingScratch* block;
-    SVECTOR*       vec;
-    POLY_G3*       prim;
-    s32            ang;
-    s32            ang2;
-    u16            vz;
-
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG3(prim);
-        setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, 0, 0, 0);
-        block->step = ((s16)arg1 * 128) / block->otz;
-        ang         = (s16)arg2;
-        ang2        = ang - 0x20;
-        prim->x0    = (u16)block->sx;
-        prim->y0    = (u16)block->sy;
-        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-        ang        += 0x20;
-        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_wedge.inc.c"
 
 void func_lifedrain_801308C0(Task* arg0)
 {

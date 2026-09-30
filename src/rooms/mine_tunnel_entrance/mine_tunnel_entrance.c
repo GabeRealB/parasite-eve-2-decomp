@@ -39,6 +39,7 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// The room's message table, which the room task answers messages with.
 extern GpMsgEntry D_mine_tunnel_entrance_8017DAF0[];
@@ -54,7 +55,6 @@ extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 static void func_mine_tunnel_entrance_8017D644(Task* arg0);
 static void func_mine_tunnel_entrance_8017D690(Task* task);
 static void func_mine_tunnel_entrance_8017D6B4(Task* task);
-static void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// State handlers of the room task `func_mine_tunnel_entrance_8017D6BC` runs:
 /// set-up, the scene-event state, an idle state and `taskKill`.
@@ -541,7 +541,7 @@ void func_mine_tunnel_entrance_8017D6BC(Task* task)
 }
 
 /// Sets `Gp_State1C->roomEffectMode` to 2, then draws the quads the current
-/// camera view shows, one `func_mine_tunnel_entrance_8017D868` call per
+/// camera view shows, one `glowDrawFlare` call per
 /// position with UV column 0 or 1 and half-extent 0x300 (0x200 for view 6's
 /// second quad). Other views draw nothing.
 void func_mine_tunnel_entrance_8017D720(Task* unused)
@@ -550,82 +550,37 @@ void func_mine_tunnel_entrance_8017D720(Task* unused)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB18;
-            func_mine_tunnel_entrance_8017D868(&p[0], 0, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[1], 0, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[2], 1, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[5], 1, 0x300);
+            glowDrawFlare(&p[0], 0, 0x300);
+            glowDrawFlare(&p[1], 0, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[5], 1, 0x300);
             break;
         }
         case 3: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            func_mine_tunnel_entrance_8017D868(&p[0], 1, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[1], 1, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[2], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB30;
-            func_mine_tunnel_entrance_8017D868(&p[0], 1, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[1], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x300);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB38;
-            func_mine_tunnel_entrance_8017D868(&p[0], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_tunnel_entrance_8017DB48;
-            func_mine_tunnel_entrance_8017D868(&p[0], 1, 0x300);
-            func_mine_tunnel_entrance_8017D868(&p[1], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[1], 1, 0x200);
             break;
         }
     }
 }
 
-/// Draws one screen-aligned textured quad at the world-space point `arg0`: projects
-/// it through `gGfxViewCoord.workm` and, when the projection flag is non-negative,
-/// queues a semi-transparent `POLY_FT4` (tpage 0x2B, clut `(arg1 & 0x3F) |
-/// 0x4380`) into the ordering table at its depth. `arg1` also picks the
-/// 40-texel UV column; `arg2` is the half-extent in world units, scaled to
-/// `(s16)arg2 * 39 / otz` on screen. The colour flickers between 0x20 and 0x30
-/// on alternate frames. A 0x10-byte scratch block holds the projection results.
-static void func_mine_tunnel_entrance_8017D868(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"

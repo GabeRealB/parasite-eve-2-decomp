@@ -37,6 +37,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 extern TaskDesc   D_dryfield_night_underpass_8017DCD8[];
 extern GpMsgEntry D_dryfield_night_underpass_8017DCF0[];
@@ -700,7 +701,6 @@ GpRoomParamRec* D_dryfield_night_underpass_80180374[8] = {
 
 static void func_dryfield_night_underpass_8017D910(Task* task);
 static void func_dryfield_night_underpass_8017D954(Task* task);
-static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Switch task the room's 0x13F0 handler spawns: plays cap command `spawnArg2`,
 /// waits for it to finish, and once its event key reaches 0xA toggles game
@@ -873,60 +873,7 @@ void func_dryfield_night_underpass_8017D95C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws one glow sprite at the world-space point `arg0`: projects it through
-/// `gGfxViewCoord.workm` and, when the GTE flag is non-negative, queues a
-/// semi-transparent `POLY_FT4` centred on the projection (tpage 0x2B, clut
-/// `(arg1 & 0x3F) | 0x4380`, UV column `(s16)arg1 * 40`). `arg2` is a signed
-/// half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. The grey level
-/// alternates between 0x20 and 0x30 with `animFrame`. Works in 0x10 bytes of
-/// scratch, released on exit.
-static void func_dryfield_night_underpass_8017D9B4(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                idx;
-    s32                blend;
-    s16                xy;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        blend       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x20;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        xy            = block->sx - (u16)block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + (u16)block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = block->sy - (u16)block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + (u16)block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// Per-frame effect: draws the glow anchors the current visit lights, one per
 /// offset in `D_...DD20` whose `D_...DD60` bitmask contains the visit's bit
@@ -946,7 +893,7 @@ void func_dryfield_night_underpass_8017DC3C(Task* unused)
         flags = D_dryfield_night_underpass_8017DD60;
         do {
             if (mask & *flags) {
-                func_dryfield_night_underpass_8017D9B4(vec, 0, 0x280);
+                glowDrawFlare(vec, 0, 0x280);
             }
             vec++;
             i++;

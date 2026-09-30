@@ -65,6 +65,7 @@
 #include "rooms/rooms_shared_8018055c.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 #define D_dryfield_night_saloon_g_r_801850DC (D_dryfield_night_saloon_g_r_80185074 + 13)
 #define D_dryfield_night_saloon_g_r_801850E4 (D_dryfield_night_saloon_g_r_80185074[14])
@@ -152,7 +153,6 @@ extern s16 D_dryfield_night_saloon_g_r_80185154[];
 static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
 static void func_dryfield_night_saloon_g_r_8017E040(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
-static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord);
 static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
@@ -2322,12 +2322,12 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 1, 0x1C0);
+            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 1, 0x1C0);
         }
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
@@ -2339,60 +2339,17 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     }
     for (i = 20; i < 23; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
         }
     }
     for (i = 23; i < 28; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            func_dryfield_night_saloon_g_r_8017E8B0(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x300);
+            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x300);
         }
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// it projects, queues one semi-transparent `POLY_FT4` centred on it: tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
-/// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level
-/// follows the frame counter's low bit.
-static void func_dryfield_night_saloon_g_r_8017E8B0(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// Draws the room's two light shafts as Gouraud quads. Both shafts share the
 /// roots at positions 14 and 17 of `D_dryfield_night_saloon_g_r_80185074`;

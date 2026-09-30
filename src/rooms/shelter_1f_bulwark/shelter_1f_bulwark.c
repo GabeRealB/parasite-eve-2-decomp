@@ -60,6 +60,7 @@
 #include "../../shared/room_visual_effects.h"
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -308,7 +309,6 @@ s8 D_shelter_1f_bulwark_80180ECC[4] = {
 RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -555,96 +555,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
     }
 }
 
-/// Draws a flickering glow at the world-space point `worldPoint`: projects it through
-/// the view matrix and, unless it lies too close to the camera, queues four
-/// gouraud wedges around it whose centre vertex carries the colour and whose
-/// rim is black. `radiusScale` is the glow's size, scaled down with depth. `packedColor`
-/// packs the colour as three channel weights (bits 8 up, 4-5 and 0-1), each
-/// multiplied by a brightness that alternates every frame.
-///
-/// `worldPoint` uses world coordinates; `radiusScale` is narrowed to signed 16 bits
-/// before division by camera depth/4. Angles use 4096 units per turn and the
-/// trigonometric coordinates use a 12-bit fractional scale. Colour bytes wrap.
-static void func_shelter_1f_bulwark_8017DF00(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor)
-{
-    enum {
-        ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH       = 17,
-        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE = 0x20,
-        ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP = 8,
-        ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT      = 12,
-        ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN       = 0x1000,
-    };
-
-    u8*                head;
-    RoomDraw25Scratch* block;
-    POLY_G4*           prim;
-    DisplayState*      displayBase;
-    DisplayState*      ds;
-    s32                radius;
-    s32                angle;
-    s32                halfStepAngle;
-    s32                nextAngle;
-    s32                shiftedColor;
-    u8                 brightness;
-    u8                 r;
-    u8                 g;
-    u8                 b;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        head    = *scratch;
-        tmp     = (*scratch = head - sizeof(*block));
-        block   = (RoomDraw25Scratch*)tmp;
-    }
-
-    // Project the world point before allocating its glow packets.
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(worldPoint);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw25Scratch*)(head - sizeof(*block)))->sx);
-    gte_stszotz(&block->otz);
-    if (((RoomDraw25Scratch*)(head - sizeof(*block)))->otz >= ROOM_VISUAL_EFFECTS_GLOW_MIN_DEPTH) {
-        radius        = ((s16)radiusScale * 64) / ((RoomDraw25Scratch*)(head - sizeof(*block)))->otz;
-        displayBase   = &gDisplayState;
-        shiftedColor  = packedColor << 16;
-        brightness    = (((u8)displayBase->animFrame & 1) * ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_STEP) | ROOM_VISUAL_EFFECTS_GLOW_BRIGHTNESS_BASE;
-        r             = brightness * (shiftedColor >> 24);
-        g             = brightness * ((shiftedColor >> 20) & 3);
-        b             = brightness * (packedColor & 3);
-        angle         = 0;
-        ds            = displayBase;
-        block->radius = radius;
-        // Build four glow wedges and quantize their shared camera depth.
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0      = block->sx + ((block->radius * rsin(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            halfStepAngle = angle + 0x200;
-            prim->y0      = block->sy + ((block->radius * rcos(angle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->x1      = block->sx + ((block->radius * rsin(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->y1      = block->sy + ((block->radius * rcos(halfStepAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            nextAngle     = angle + 0x400;
-            prim->x2      = block->sx;
-            prim->y2      = block->sy;
-            prim->x3      = block->sx + ((block->radius * rsin(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            prim->y3      = block->sy + ((block->radius * rcos(nextAngle)) >> ROOM_VISUAL_EFFECTS_GLOW_TRIG_SHIFT);
-            angle         = nextAngle;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (angle < ROOM_VISUAL_EFFECTS_GLOW_FULL_TURN);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(*block));
-}
+#include "../../shared/glow_draw_factor_disc.inc.c"
 
 void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
 {
@@ -661,14 +572,14 @@ void func_shelter_1f_bulwark_8017E2A4(Task* arg0)
     switch (view) {
         case 2: {
             SVECTOR* p = D_shelter_1f_bulwark_80180378;
-            func_shelter_1f_bulwark_8017DF00(&p[0], 0x300, 0x210);
-            func_shelter_1f_bulwark_8017DF00(&p[1], 0x300, 0x210);
-            func_shelter_1f_bulwark_8017DF00(&p[2], 0x300, 0x111);
-            func_shelter_1f_bulwark_8017DF00(&p[3], 0x300, 0x111);
+            glowDrawFactorDisc(&p[0], 0x300, 0x210);
+            glowDrawFactorDisc(&p[1], 0x300, 0x210);
+            glowDrawFactorDisc(&p[2], 0x300, 0x111);
+            glowDrawFactorDisc(&p[3], 0x300, 0x111);
             break;
         }
         case 3:
-            func_shelter_1f_bulwark_8017DF00(&D_shelter_1f_bulwark_80180398[0], 0x200, 0x200);
+            glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], 0x200, 0x200);
             break;
     }
 }

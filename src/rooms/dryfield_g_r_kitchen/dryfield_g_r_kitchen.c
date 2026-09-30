@@ -46,6 +46,7 @@
 #include "rooms/room_common.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 #define D_dryfield_g_r_kitchen_8017EBF0 (D_dryfield_g_r_kitchen_8017EBE8 + 1)
 #define D_dryfield_g_r_kitchen_8017EC08 (D_dryfield_g_r_kitchen_8017EBE8 + 4)
@@ -74,7 +75,6 @@ extern GpMsgEntry D_dryfield_g_r_kitchen_8017EBC0[];
 
 static void func_dryfield_g_r_kitchen_8017D958(Task* task);
 static void func_dryfield_g_r_kitchen_8017D99C(Task* task);
-static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
@@ -365,147 +365,9 @@ void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws a flickering tapered beam between `arg1` and `arg2` in `arg0`'s
-/// local space. Both points are rotated by the coordinate's `workm`, offset by
-/// its translation and projected through `GsWSMATRIX`, using a 0x28-byte block
-/// taken from the scratch stack. Nothing is drawn when the far end's `otz` is
-/// below 0x11; the near end's is raised to at least 0x10. The ends get the
-/// screen radii `(s16)arg3 * 64 / otz`.
-///
-/// Two passes, a quarter turn apart, each queue three `POLY_G4`s: a wedge of
-/// the near end's disc, a quad joining the two ends, and a wedge of the far
-/// end's disc walked backwards from a full turn, so the near end covers one
-/// half turn and the far end the other. Centre vertices take a grey of 0x20
-/// or 0x30 on the parity of `gDisplayState.animFrame`, rim vertices are black.
-/// Each primitive goes into the OT bucket of its own end's `otz` with a
-/// `Gp_AddTpageShift` tpage.
-static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
-{
-    u8*                head;
-    RoomDraw24Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                rgb;
-    s32                extent;
-    s32                r0;
-    s32                r1;
+#include "../../shared/glow_draw_tapered_beam.inc.c"
 
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x28;
-        *scratch = tmp;
-        block    = (RoomDraw24Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg1);
-    gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    (u16) block->vec0.vx = (u16)block->vec0.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec0.vy = (u16)block->vec0.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec0.vz = (u16)block->vec0.vz + (u16)arg0->workm.t[2];
-
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(arg2);
-    gte_rtv0();
-    gte_stsv(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    (u16) block->vec1.vx = (u16)block->vec1.vx + (u16)arg0->workm.t[0];
-    (u16) block->vec1.vy = (u16)block->vec1.vy + (u16)arg0->workm.t[1];
-    (u16) block->vec1.vz = (u16)block->vec1.vz + (u16)arg0->workm.t[2];
-
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec0);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx0);
-    gte_stszotz(&block->otz0);
-    gte_ldv0(&((RoomDraw24Scratch*)(head - 0x28))->vec1);
-    gte_rtps();
-    gte_stsxy(&((RoomDraw24Scratch*)(head - 0x28))->sx1);
-    gte_stszotz(&((RoomDraw24Scratch*)(head - 0x28))->otz1);
-    if (block->otz1 >= 0x11) {
-        if (((RoomDraw24Scratch*)(head - 0x28))->otz0 < 0x10) {
-            ((RoomDraw24Scratch*)(head - 0x28))->otz0 = 0x10;
-        }
-        extent    = (s16)arg3 * 64;
-        r0        = extent / ((RoomDraw24Scratch*)(head - 0x28))->otz0;
-        r1        = extent / block->otz1;
-        ang       = 0;
-        rgb       = (((u8)gDisplayState.animFrame & 1) * 16) | 0x20;
-        block->r0 = r0;
-        block->r1 = r1;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang)) >> 12);
-            prim->x1 = block->sx0 + ((block->r0 * rsin(t)) >> 12);
-            prim->y1 = block->sy0 + ((block->r0 * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx0 + ((block->r0 * rsin(t2)) >> 12);
-            prim->y3 = block->sy0 + ((block->r0 * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, rgb, rgb, rgb);
-            prim->x0 = block->sx0 + ((block->r0 * rsin(ang * 2)) >> 12);
-            prim->y0 = block->sy0 + ((block->r0 * rcos(ang * 2)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(ang * 2)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(ang * 2)) >> 12);
-            prim->x2 = block->sx0;
-            prim->y2 = block->sy0;
-            prim->x3 = block->sx1;
-            prim->y3 = block->sy1;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz0 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz0);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, rgb, rgb, rgb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx1 + ((block->r1 * rsin(0x1000 - ang)) >> 12);
-            prim->y0 = block->sy1 + ((block->r1 * rcos(0x1000 - ang)) >> 12);
-            prim->x1 = block->sx1 + ((block->r1 * rsin(0xE00 - ang)) >> 12);
-            prim->y1 = block->sy1 + ((block->r1 * rcos(0xE00 - ang)) >> 12);
-            prim->x2 = block->sx1;
-            prim->y2 = block->sy1;
-            prim->x3 = block->sx1 + ((block->r1 * rsin(0xC00 - ang)) >> 12);
-            prim->y3 = block->sy1 + ((block->r1 * rcos(0xC00 - ang)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz1 << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz1);
-        } while (ang < 0x800);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
-}
-
-/// The same tapered light beam as `func_dryfield_g_r_kitchen_8017D9FC`,
+/// The same tapered light beam as `glowDrawTaperedBeam`,
 /// between two points of `arg0`'s local space, with every angle turned back a
 /// quarter turn. The two
 /// `RTPS` projections, the drop when the far end's `otz` is below 0x11, the
@@ -516,7 +378,7 @@ static void func_dryfield_g_r_kitchen_8017D9FC(GfxCoord* arg0, SVECTOR* arg1, SV
 /// walked backwards from 0xC00 to 0x400, and the side quads join the two
 /// circles at -0x400 and 0x400. The centre colour is 0x10 or 0x20 on the
 /// parity of `gDisplayState.animFrame`, one step darker than
-/// `func_dryfield_g_r_kitchen_8017D9FC`'s.
+/// `glowDrawTaperedBeam`'s.
 static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     u8*                head;
@@ -644,7 +506,7 @@ static void func_dryfield_g_r_kitchen_8017E27C(GfxCoord* arg0, SVECTOR* arg1, SV
 /// Draws two light beams under the task's coordinate in `arg0->extra.coordBody->coord`,
 /// picked by the current view `gGameSession->location.loc.view`: in view 2 the
 /// beams of `D_dryfield_g_r_kitchen_8017EBF0` through
-/// `func_dryfield_g_r_kitchen_8017D9FC`, in view 3 those of
+/// `glowDrawTaperedBeam`, in view 3 those of
 /// `D_dryfield_g_r_kitchen_8017EC08` through
 /// `func_dryfield_g_r_kitchen_8017E27C`. Any other view draws nothing.
 void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
@@ -653,8 +515,8 @@ void func_dryfield_g_r_kitchen_8017EB04(Task* arg0)
 
     coord = arg0->extra.coordBody->coord;
     if (gGameSession->location.loc.view == 2) {
-        func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
-        func_dryfield_g_r_kitchen_8017D9FC(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
+        glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[0], &D_dryfield_g_r_kitchen_8017EBF0[-1], 0x100);
+        glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBF0[2], &D_dryfield_g_r_kitchen_8017EBF0[1], 0x100);
     } else if (gGameSession->location.loc.view == 3) {
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[0], &D_dryfield_g_r_kitchen_8017EC08[1], 0x100);
         func_dryfield_g_r_kitchen_8017E27C(coord, &D_dryfield_g_r_kitchen_8017EC08[2], &D_dryfield_g_r_kitchen_8017EC08[3], 0x100);

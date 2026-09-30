@@ -98,3 +98,4 @@ D_dryfield_underpass_8017E884 = 0x8017E884; // size:0x14 defined:True
 D_dryfield_underpass_8017E898 = 0x8017E898; // size:0x4 defined:True
 
 func_dryfield_underpass_8017DE30 = 0x8017DE30; // type:func
+glowDrawFlareLocal = 0x8017DB20; // type:func

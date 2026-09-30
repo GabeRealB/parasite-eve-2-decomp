@@ -115,3 +115,4 @@ Telephone_Data_8017D630 = 0x8017D630;
 glowDrawCapsule = 0x8017FFAC; // type:func
 glowDrawDisc = 0x801807F0; // type:func
 glowDrawPulsingDisc = 0x80181010; // type:func
+glowDrawWideDiamond = 0x80180B90; // type:func

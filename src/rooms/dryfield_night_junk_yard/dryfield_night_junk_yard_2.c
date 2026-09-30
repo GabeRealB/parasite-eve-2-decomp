@@ -42,12 +42,12 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
 static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 arg2);
-static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern GpGridParams   D_dryfield_night_junk_yard_801811B8[1];
 extern GpObj3A        D_dryfield_night_junk_yard_80184318[1];
@@ -870,34 +870,34 @@ void func_dryfield_night_junk_yard_8017DA14(Task* task)
         case 8: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
             func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0x400);
-            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[4], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[5], 2, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[6], 1, 0x200);
+            glowDrawFlareClipped(&p[3], 0, 0x300);
+            glowDrawFlareClipped(&p[4], 0, 0x300);
+            glowDrawFlareClipped(&p[5], 2, 0x300);
+            glowDrawFlareClipped(&p[6], 1, 0x200);
             break;
         }
         case 4:
         case 9: {
             SVECTOR* p = D_dryfield_night_junk_yard_80180754;
-            func_dryfield_night_junk_yard_8017E34C(&p[0], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[1], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[3], 1, 0x200);
+            glowDrawFlareClipped(&p[0], 0, 0x300);
+            glowDrawFlareClipped(&p[1], 0, 0x300);
+            glowDrawFlareClipped(&p[3], 1, 0x200);
             break;
         }
         case 5:
         case 10: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
             func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0);
-            func_dryfield_night_junk_yard_8017E34C(&p[2], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[6], 1, 0x200);
+            glowDrawFlareClipped(&p[2], 0, 0x300);
+            glowDrawFlareClipped(&p[3], 0, 0x300);
+            glowDrawFlareClipped(&p[6], 1, 0x200);
             break;
         }
         case 7: {
             SVECTOR* p = D_dryfield_night_junk_yard_8018073C;
             func_dryfield_night_junk_yard_8017DBD0(&p[0], 0x180, 0);
-            func_dryfield_night_junk_yard_8017E34C(&p[2], 0, 0x300);
-            func_dryfield_night_junk_yard_8017E34C(&p[3], 0, 0x300);
+            glowDrawFlareClipped(&p[2], 0, 0x300);
+            glowDrawFlareClipped(&p[3], 0, 0x300);
             break;
         }
     }
@@ -1037,50 +1037,7 @@ static void func_dryfield_night_junk_yard_8017DBD0(SVECTOR* arg0, s32 arg1, s32 
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-/// Projects the world point `arg0` through `gGfxViewCoord.workm` and, when its OTZ
-/// is above 0x10, queues one semi-transparent `POLY_FT4` sprite centred on it:
-/// tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`, and the 40-texel-wide UV cell
-/// `(s16)arg1` selects. `(s16)arg2` is the half-extent; the on-screen radius is
-/// `arg2 * 39 / otz`. All three colour channels take the flickering
-/// `((animFrame & 1) * 16) + 0x20`.
-static void func_dryfield_night_junk_yard_8017E34C(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz > 0x10) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

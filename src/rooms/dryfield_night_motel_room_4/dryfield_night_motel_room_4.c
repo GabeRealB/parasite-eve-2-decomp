@@ -34,6 +34,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_4_8017DA48[];
@@ -617,7 +618,6 @@ GpRoomParamRec* D_dryfield_night_motel_room_4_8018039C[8] = {
 
 static void func_dryfield_night_motel_room_4_8017D670(Task* task);
 static void func_dryfield_night_motel_room_4_8017D6B4(Task* task);
-static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
 s32 func_dryfield_night_motel_room_4_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -688,49 +688,7 @@ void func_dryfield_night_motel_room_4_8017D6BC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Queues a flickering sprite at the world point `arg0`: a semi-transparent
-/// `POLY_FT4` square centred on the point's projection, with half-width
-/// `(s16)arg2 * 39 / otz`, textured from the 40-texel cell `(s16)arg1` of
-/// tpage 0x2B (clut `(arg1 & 0x3F) | 0x4380`) and shaded 0x20 or 0x30 on
-/// alternate frames. Points closer than OTZ 0x11 are skipped.
-static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz > 0x10) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 /// Per-frame effect: queues the room's flickering sprites for the view
 /// `gGameSession->location.loc.view` selects - views 2 and 3 the first two points,
@@ -747,19 +705,19 @@ void func_dryfield_night_motel_room_4_8017D990(Task* unused)
         case 2:
         case 3: {
             SVECTOR* p = D_dryfield_night_motel_room_4_8017DA70;
-            func_dryfield_night_motel_room_4_8017D714(&p[0], 1, 0x200);
-            func_dryfield_night_motel_room_4_8017D714(&p[1], 1, 0x240);
+            glowDrawFlareClipped(&p[0], 1, 0x200);
+            glowDrawFlareClipped(&p[1], 1, 0x240);
             break;
         }
         case 4: {
             SVECTOR* p = D_dryfield_night_motel_room_4_8017DA88;
-            func_dryfield_night_motel_room_4_8017D714(&p[0], 1, 0x200);
+            glowDrawFlareClipped(&p[0], 1, 0x200);
             break;
         }
         case 5: {
             SVECTOR* p = D_dryfield_night_motel_room_4_8017DA70;
-            func_dryfield_night_motel_room_4_8017D714(&p[0], 1, 0x200);
-            func_dryfield_night_motel_room_4_8017D714(&p[2], 2, 0x180);
+            glowDrawFlareClipped(&p[0], 1, 0x200);
+            glowDrawFlareClipped(&p[2], 2, 0x180);
             break;
         }
     }

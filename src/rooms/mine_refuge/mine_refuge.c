@@ -57,6 +57,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -549,7 +550,6 @@ u8 D_mine_refuge_80182ADC[4] = {
 
 RoomCutsceneRec D_mine_refuge_80182AE0;
 
-static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_8018029C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_80180710(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -986,52 +986,7 @@ void func_mine_refuge_8017FFBC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the GTE flag is non-negative, queues one semi-transparent `POLY_FT4` sprite
-/// centred on the projected point (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`).
-/// `arg1` also picks the 40-texel-wide texture column `(s16)arg1 * 40`, rows
-/// 0..0x27. The sprite's on-screen half-extent is `(s16)arg2 * 39 / otz`, and
-/// its grey level alternates between 0x20 and 0x30 with the frame counter.
-/// A 0x10-byte scratch block is taken from the scratch stack and returned.
-static void func_mine_refuge_80180014(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
 /// the GTE flag is non-negative, queues two gouraud `POLY_G4` diamonds and two
@@ -1351,7 +1306,7 @@ void func_mine_refuge_80181454(Task* unused)
     view = Gp_GetViewIndex();
     switch (view) {
         case 2:
-            func_mine_refuge_80180014(&D_mine_refuge_801818D8[0], 1, 0x300);
+            glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);
             func_mine_refuge_8018029C(&D_mine_refuge_801818D8[1], 0x60, 0x40);
             break;
         case 3:

@@ -282,3 +282,4 @@ RoomFx_DrawBurstGlow = 0x801804CC; // type:func
 RoomFx_DrawGroundQuad = 0x801809F8; // type:func
 RoomFx_DrawFlashStar = 0x80180D70; // type:func
 glowDrawCapsule = 0x8017E774; // type:func
+glowDrawFlare = 0x8017EFB8; // type:func

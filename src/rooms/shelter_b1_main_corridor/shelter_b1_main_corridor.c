@@ -124,8 +124,6 @@ extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 /// The two points the beam runs between, relative to its parent coordinate;
 /// the second is also declared on its own.
 
-static void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2);
-
 s32 func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b1_main_corridor_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -905,10 +903,10 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
             p = D_shelter_b1_main_corridor_80183114;
             glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
             glowDrawBeam(&p[4], 0x200, 0, 0x10);
-            func_shelter_b1_main_corridor_8017E858(&p[10], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[11], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[17], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[18], 1, 0x300);
+            glowDrawFlareClipped(&p[10], 1, 0x300);
+            glowDrawFlareClipped(&p[11], 1, 0x300);
+            glowDrawFlareClipped(&p[17], 1, 0x300);
+            glowDrawFlareClipped(&p[18], 1, 0x300);
             break;
         }
         case 5:
@@ -923,10 +921,10 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
             glowDrawBeam(&p[0], 0x200, 0x800, 0x10);
             glowDrawBeam(&p[4], 0x200, 0, 0x10);
             glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
-            func_shelter_b1_main_corridor_8017E858(&p[13], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[14], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[20], 1, 0x300);
-            func_shelter_b1_main_corridor_8017E858(&p[21], 1, 0x300);
+            glowDrawFlareClipped(&p[13], 1, 0x300);
+            glowDrawFlareClipped(&p[14], 1, 0x300);
+            glowDrawFlareClipped(&p[20], 1, 0x300);
+            glowDrawFlareClipped(&p[21], 1, 0x300);
             break;
         }
         case 8: {
@@ -947,46 +945,7 @@ void func_shelter_b1_main_corridor_8017DDF0(Task* arg0)
 
 #include "../../shared/glow_draw_beam.inc.c"
 
-/// Draws one semi-transparent textured sprite centred on the view-space point
-/// `arg0` when its OTZ is at least 0x11. `arg1` picks the 40-texel-wide cell
-/// and its palette; the half-size is `(s16)arg2 * 39` over the OTZ. The grey
-/// level pulses between 0x20 and 0x30 with the frame counter.
-static void func_shelter_b1_main_corridor_8017E858(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

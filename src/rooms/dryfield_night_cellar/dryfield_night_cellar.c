@@ -36,6 +36,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// The room's message table, installed on the room entry task.
 extern GpMsgEntry D_dryfield_night_cellar_8017DAA8[];
@@ -710,7 +711,6 @@ GpRoomParamRec* D_dryfield_night_cellar_801807F4[8] = {
 
 static void func_dryfield_night_cellar_8017D6FC(Task* task);
 static void func_dryfield_night_cellar_8017D740(Task* task);
-static void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// Message-table handler for message 0x13F0. On event 0xD it runs a CAP
 /// command: 0xD while event nibble 0x11B is below 2, otherwise 4 or 0xE
@@ -803,60 +803,7 @@ void func_dryfield_night_cellar_8017D748(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws one glow sprite at the world-space point `arg0`. The point is
-/// projected through `gGfxViewCoord.workm`; when the GTE flag word is
-/// non-negative, one semi-transparent `POLY_FT4` is queued at its OTZ (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `(s16)arg1` also picks the 40-texel
-/// wide texture column, `(s16)arg2` is the half-extent scaled by 39 / OTZ,
-/// and the grey level flickers between 0x20 and 0x30 with bit 0 of the
-/// display's animation frame. Works in a 0x10-byte scratchpad block.
-static void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                idx;
-    s32                blend;
-    s16                xy;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        blend       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x20;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        xy            = block->sx - (u16)block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + (u16)block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = block->sy - (u16)block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + (u16)block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// Per-frame effect: once event nibble 0x52 is 1, draws a glow sprite on each
 /// of the two points belonging to the current camera view
@@ -868,11 +815,11 @@ void func_dryfield_night_cellar_8017DA28(Task* unused)
     if (GameFlag_GetNibble(0x52) == 1) {
         visit = gGameSession->location.loc.view;
         if (visit == 2) {
-            func_dryfield_night_cellar_8017D7A0(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
-            func_dryfield_night_cellar_8017D7A0(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);
+            glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[0], 1, 0x280);
+            glowDrawFlare(&D_dryfield_night_cellar_8017DAD0[1], 1, 0x280);
         } else if (visit == 3) {
-            func_dryfield_night_cellar_8017D7A0(&D_dryfield_night_cellar_8017DAE0[0], 1, 0x280);
-            func_dryfield_night_cellar_8017D7A0(&D_dryfield_night_cellar_8017DAE0[1], 1, 0x280);
+            glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[0], 1, 0x280);
+            glowDrawFlare(&D_dryfield_night_cellar_8017DAE0[1], 1, 0x280);
         }
     }
 }

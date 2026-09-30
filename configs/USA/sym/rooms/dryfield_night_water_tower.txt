@@ -66,3 +66,4 @@ func_dryfield_night_water_tower_8017DB80 = 0x8017DB80; // type:func
 glowDrawShaft = 0x8017DC70; // type:func
 roomEventGate = 0x8017D60C; // type:func
 roomEventTask = 0x8017D770; // type:func
+glowDrawFlare = 0x8017E458; // type:func

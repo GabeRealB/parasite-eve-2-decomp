@@ -104,3 +104,4 @@ glowDrawBeam = 0x8017E070; // type:func
 roomEventGate = 0x8017D620; // type:func
 roomEventTask = 0x8017D784; // type:func
 roomEventStagedTask = 0x8017D8F4; // type:func
+glowDrawFlareClipped = 0x8017E858; // type:func

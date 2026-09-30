@@ -167,7 +167,6 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0);
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0);
 static void func_shelter_b2_main_corridor_8017F860(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32 arg2);
-static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 extern TaskDesc D_80147E48;
 
@@ -2196,8 +2195,8 @@ void func_shelter_b2_main_corridor_8017EC34(Task* arg0)
                     glowDrawBeam(&p[2], 0x200, 0, 0x10);
                     glowDrawBeam(&p[4], 0x200, 0, 0x10);
                     glowDrawBeam(&p[6], 0x200, 0x800, 0x100);
-                    func_shelter_b2_main_corridor_801806D0(&p[14], 1, 0x300);
-                    func_shelter_b2_main_corridor_801806D0(&p[21], 1, 0x300);
+                    glowDrawFlareClipped(&p[14], 1, 0x300);
+                    glowDrawFlareClipped(&p[21], 1, 0x300);
                     break;
                 }
                 case 4: {
@@ -2497,51 +2496,7 @@ static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32
 
 #include "../../shared/glow_draw_beam.inc.c"
 
-/// Draws a flickering glow sprite at the world-space point `arg0`. The point
-/// is projected through the view matrix; unless it is nearer than OTZ 0x11,
-/// one semi-transparent `POLY_FT4` (tpage 0x2B) is queued as an axis-aligned
-/// square of half-side `(s16)arg2 * 39 / otz` centred on it. `arg1` picks the
-/// 40-texel frame at u = `arg1 * 40` and its clut `0x4380 | (arg1 & 0x3F)`.
-/// All three colour channels alternate between 0x20 and 0x30 with the display
-/// frame counter.
-static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz > 0x10) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

@@ -138,3 +138,4 @@ RoomFx_DrawFlashStar = 0x80181598; // type:func
 glowDrawShaft = 0x8017E940; // type:func
 roomEventGate = 0x8017D798; // type:func
 roomEventTask = 0x8017D8FC; // type:func
+glowDrawFlare = 0x8017F128; // type:func

@@ -509,7 +509,6 @@ GpRoomParamRec* D_dryfield_night_breezeway_801804B8[8] = {
 };
 
 static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 arg2);
-static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's 0x13F1 message handler: answers 0 without looking at the
 /// message.
@@ -657,51 +656,7 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
 
 #include "../../shared/glow_draw_shaft.inc.c"
 
-/// Draws a textured, semi-transparent sprite at the world point `arg0`,
-/// projected through `gGfxViewCoord.workm`; nothing is drawn when the projection
-/// flags an error. `arg1` picks the 40-texel column of tpage 0x2B and the clut
-/// `(arg1 & 0x3F) | 0x4380`; the half-size on screen is `(s16)arg2 * 39` over
-/// the depth. The grey tint flickers between 0x20 and 0x30 with the display
-/// frame counter. The work block lives on the scratchpad stack.
-static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// The room's light draw: sets `Gp_State1C->roomEffectMode` to 2, then draws
 /// the lights the current camera view (`gGameSession->location.loc.view`) can see.
@@ -712,7 +667,7 @@ void func_dryfield_night_breezeway_8017E5BC(Task* unused)
     Gp_State1C->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case 2:
-            func_dryfield_night_breezeway_8017E334(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
+            glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], 2, 0x400);
             glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], 0x180);
             break;
         case 3:

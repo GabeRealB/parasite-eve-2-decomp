@@ -109,3 +109,4 @@ D_80165B88 = 0x80165B88; // absolute:True
 D_8016BE28 = 0x8016BE28; // absolute:True
 
 func_mine_forked_tunnel_8017E78C = 0x8017E78C; // type:func
+glowDrawFlare = 0x8017E504; // type:func

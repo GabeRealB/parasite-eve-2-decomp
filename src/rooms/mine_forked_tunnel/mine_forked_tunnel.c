@@ -54,6 +54,7 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 /// The enemy's position / rotation path, one `SVECTOR` per step: `pos` and
 /// `rot` are the halves `func_mine_forked_tunnel_8017D5E8` and
@@ -128,7 +129,7 @@ extern GpGridParams D_mine_forked_tunnel_80181C5C;
 extern GpGridParams D_mine_forked_tunnel_80183D70;
 
 /// The tunnel's per-view effect anchors, projected by
-/// `func_mine_forked_tunnel_8017E78C` with `func_mine_forked_tunnel_8017E504`
+/// `func_mine_forked_tunnel_8017E78C` with `glowDrawFlare`
 /// (half-extent 0x300). Views 2 and 3 share the first anchor, view 4 draws the
 /// second and third (the tunnel fork's two arms) and view 5 the fourth.
 extern SVECTOR D_mine_forked_tunnel_80183614[];
@@ -1466,8 +1467,6 @@ GpRoomParamRec* D_mine_forked_tunnel_801855C0[8] = {
     D_mine_forked_tunnel_801855B0,
 };
 
-static void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2);
-
 static void func_mine_forked_tunnel_8017D5E8(Task* arg0)
 {
     MineForkedTunnelWork* work;
@@ -1986,52 +1985,7 @@ static void func_mine_forked_tunnel_8017E48C(s32 arg0)
     view5Batches[3].hidden = 1;
 }
 
-/// Draws one glow sprite at the world-space point `arg0`: projects it through
-/// `gGfxViewCoord.workm` and, when `gte_stflg` is non-negative, queues one
-/// semi-transparent `POLY_FT4` (tpage 0x2B, clut `(arg1 & 0x3F) | 0x4380`).
-/// `arg1` selects the 40-texel UV column `(s16)arg1 * 40` at v=0..0x27. `arg2`
-/// is a signed half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. RGB
-/// is the frame-counter blend byte `((animFrame & 1) * 16) + 0x20` on all three
-/// channels, so the sprite flickers between two brightnesses.
-static void func_mine_forked_tunnel_8017E504(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 /// Room effect tick. Marks the effect state (`field_A` = 2, the value
 /// `actor_400100_text` and `Gp_EffCtlTaskAC` test) and projects the light
@@ -2047,14 +2001,14 @@ void func_mine_forked_tunnel_8017E78C(Task* unused)
     switch (idx) {
         case 2:
         case 3:
-            func_mine_forked_tunnel_8017E504(D_mine_forked_tunnel_80183614, 1, 0x300);
+            glowDrawFlare(D_mine_forked_tunnel_80183614, 1, 0x300);
             break;
         case 4:
-            func_mine_forked_tunnel_8017E504(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
-            func_mine_forked_tunnel_8017E504(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
+            glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], 1, 0x300);
+            glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], 1, 0x300);
             break;
         case 5:
-            func_mine_forked_tunnel_8017E504(D_mine_forked_tunnel_8018362C, 1, 0x300);
+            glowDrawFlare(D_mine_forked_tunnel_8018362C, 1, 0x300);
             break;
         default:
             return;

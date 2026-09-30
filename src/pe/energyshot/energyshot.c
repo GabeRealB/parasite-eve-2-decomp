@@ -27,6 +27,7 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/glow_draw.h"
 
 /// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the wedge count. `field_2` is
@@ -52,7 +53,6 @@ static EnergyShotScale D_energyshot_801300E4[] = {
 static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
 static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
-static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
 
 /// Sixteen per-vertex texture-frame offsets, refilled once per cast by
 /// `func_energyshot_8012EF34` and consumed by the GTE pass in
@@ -62,7 +62,7 @@ static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb
 static s16 D_energyshot_80130108[16];
 /// Sixteen wedge yaws, refilled once per cast by `func_energyshot_8012EF34`
 /// from `Gp_LcgState`. Entry `i` is `i * (0x1000 / field_0)` plus a 9-bit LCG
-/// draw. States 1 and 2 pass one yaw per frame to `func_energyshot_8012F750`.
+/// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_energyshot_80130128[16];
 
 /// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
@@ -183,7 +183,7 @@ void func_energyshot_8012EF34(Task* arg0)
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
-                        func_energyshot_8012F750(coord, (s16)(mem->scale * 6), *p, rgb);
+                        glowDrawWedge(coord, (s16)(mem->scale * 6), *p, rgb);
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
@@ -245,7 +245,7 @@ void func_energyshot_8012EF34(Task* arg0)
                     t2 = table;
                     p  = D_energyshot_80130128;
                     do {
-                        func_energyshot_8012F750(coord, (s16)(mem->period * 6), *p, rgb);
+                        glowDrawWedge(coord, (s16)(mem->period * 6), *p, rgb);
                         p += 1;
                     } while (++i < t2[mem->index].field_0);
                 }
@@ -276,60 +276,7 @@ void func_energyshot_8012EF34(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-/// Draws one wedge of the drain funnel as a Gouraud triangle. `arg0`'s origin
-/// is projected once through `GsWSMATRIX`; the two outer corners sit `arg1`
-/// screen units away at `arg2 - 0x20` and `arg2 + 0x20`, so the wedge is a
-/// 0x40-wide fan blade about `arg2`. Only the apex carries `rgb`, the rim
-/// fading to black. A negative `gte_stflg` drops the wedge.
-static void func_energyshot_8012F750(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
-{
-    u8*            head;
-    GpRingScratch* block;
-    SVECTOR*       vec;
-    POLY_G3*       prim;
-    s32            ang;
-    s32            ang2;
-    u16            vz;
-
-    head                                    = SCRATCH_STACK_CURSOR(u8);
-    ((GpRingScratch*)(head - 0x18))->vec.vx = (u16)arg0->workm.t[0];
-    block                                   = (GpRingScratch*)(head - 0x18);
-    block->vec.vy                           = (u16)arg0->workm.t[1];
-    vz                                      = (u16)arg0->workm.t[2];
-    SCRATCH_STACK_CURSOR(GpRingScratch)     = block;
-    block->vec.vz                           = vz;
-    vec                                     = &block->vec;
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(vec);
-    gte_rtps();
-    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
-    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        block->otz++;
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG3(prim);
-        setRGB0(prim, rgb[0], rgb[1], rgb[2]);
-        setRGB1(prim, 0, 0, 0);
-        setRGB2(prim, 0, 0, 0);
-        block->step = ((s16)arg1 * 128) / block->otz;
-        ang         = (s16)arg2;
-        ang2        = ang - 0x20;
-        prim->x0    = (u16)block->sx;
-        prim->y0    = (u16)block->sy;
-        prim->x1    = (u16)block->sx + ((block->step * rsin(ang2)) >> 12);
-        prim->y1    = (u16)block->sy + ((block->step * rcos(ang2)) >> 12);
-        ang        += 0x20;
-        prim->x2    = (u16)block->sx + ((block->step * rsin(ang)) >> 12);
-        prim->y2    = (u16)block->sy + ((block->step * rcos(ang)) >> 12);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
-}
+#include "../../shared/glow_draw_wedge.inc.c"
 
 /// Draws the energy shot's beam: an inner ring of radius `arg1 + 0x400` sunk
 /// `arg2` along local Y and an outer ring of radius `arg1 / 2 + 0x100` in the

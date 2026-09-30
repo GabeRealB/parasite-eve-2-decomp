@@ -37,10 +37,10 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 static void func_dryfield_night_warehouse_8017D610(Task* task);
 static void func_dryfield_night_warehouse_8017D654(Task* task);
-static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1);
 static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s16 arg2);
 
 /// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
@@ -48,7 +48,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
 extern GpMsgEntry D_dryfield_night_warehouse_8017E830[];
 
 /// Ring centres in the space of the coordinate drawn under, one per circle.
-extern SVECTOR D_dryfield_night_warehouse_8017E858[];
+extern SVECTOR gGlowPrismCorners[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_night_warehouse_8017E8D8[];
 
@@ -71,7 +71,7 @@ GpMsgEntry D_dryfield_night_warehouse_8017E830[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-SVECTOR D_dryfield_night_warehouse_8017E858[16] = {
+SVECTOR gGlowPrismCorners[16] = {
     { 1190, -2950, -1540, 0 },
     { 310, -510, -180, 0 },
     { 2130, -2950, -3235, 0 },
@@ -421,131 +421,7 @@ void func_dryfield_night_warehouse_8017D65C(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Draws a four-sided prism from `D_dryfield_night_warehouse_8017E858[arg1..]`
-/// as five gouraud `POLY_G4`: four sides joining the lit ring `[0..3]` to the
-/// far ring `[4..7]`, then a cap over the lit ring. Each corner is rotated by
-/// `coord`'s `workm` and moved by its translation before projection through
-/// `GsWSMATRIX`. The lit corners share a pulsing colour whose red is three
-/// quarters of its green and blue; the far corners are black.
-static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1)
-{
-    RoomQuadScratch* blk;
-    POLY_G4*         prim;
-    s32              i;
-    s32              next;
-    s32              far;
-    s32              farNext;
-    s16              pulse;
-    s16              red;
-    s16              blue;
-    s16              green;
-
-    pulse = (rsin(gDisplayState.animFrame << 10) >> 12) + 0x10;
-    SCRATCH_STACK_RESERVE_BLOCK(RoomQuadScratch);
-    blk = SCRATCH_STACK_CURSOR(RoomQuadScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    red   = pulse * 3 / 4;
-    green = pulse;
-    blue  = pulse;
-    for (i = 0; i < 4; i++) {
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + i]);
-        gte_rtv0();
-        gte_stsv(&blk->v[0]);
-        blk->v[0].vx += coord->workm.t[0];
-        blk->v[0].vy += coord->workm.t[1];
-        blk->v[0].vz += coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        next = (i + 1) & 3;
-        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + next]);
-        gte_rtv0();
-        gte_stsv(&blk->v[1]);
-        blk->v[1].vx += coord->workm.t[0];
-        blk->v[1].vy += coord->workm.t[1];
-        blk->v[1].vz += coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        far = i + 4;
-        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + far]);
-        gte_rtv0();
-        gte_stsv(&blk->v[2]);
-        blk->v[2].vx += coord->workm.t[0];
-        blk->v[2].vy += coord->workm.t[1];
-        blk->v[2].vz += coord->workm.t[2];
-        gte_SetRotMatrix(&coord->workm);
-        farNext = next + 4;
-        gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + farNext]);
-        gte_rtv0();
-        gte_stsv(&blk->v[3]);
-        blk->v[3].vx += coord->workm.t[0];
-        blk->v[3].vy += coord->workm.t[1];
-        blk->v[3].vz += coord->workm.t[2];
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&blk->v[0]);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        gte_stsxy(&prim->x0);
-        gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-        gte_rtpt();
-        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&blk->otz);
-        setRGB0(prim, red, green, blue);
-        setRGB1(prim, red, green, blue);
-        setRGB2(prim, 0, 0, 0);
-        setRGB3(prim, 0, 0, 0);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-        Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    }
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1]);
-    gte_rtv0();
-    gte_stsv(&blk->v[0]);
-    blk->v[0].vx += coord->workm.t[0];
-    blk->v[0].vy += coord->workm.t[1];
-    blk->v[0].vz += coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 1]);
-    gte_rtv0();
-    gte_stsv(&blk->v[1]);
-    blk->v[1].vx += coord->workm.t[0];
-    blk->v[1].vy += coord->workm.t[1];
-    blk->v[1].vz += coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 3]);
-    gte_rtv0();
-    gte_stsv(&blk->v[2]);
-    blk->v[2].vx += coord->workm.t[0];
-    blk->v[2].vy += coord->workm.t[1];
-    blk->v[2].vz += coord->workm.t[2];
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_warehouse_8017E858[arg1 + 2]);
-    gte_rtv0();
-    gte_stsv(&blk->v[3]);
-    blk->v[3].vx += coord->workm.t[0];
-    blk->v[3].vy += coord->workm.t[1];
-    blk->v[3].vz += coord->workm.t[2];
-    gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&blk->v[0]);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG4(prim);
-    gte_stsxy(&prim->x0);
-    gte_ldv3(&blk->v[1], &blk->v[2], &blk->v[3]);
-    gte_rtpt();
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-    gte_stszotz(&blk->otz);
-    setRGB0(prim, red, green, blue);
-    setRGB1(prim, red, green, blue);
-    setRGB2(prim, red, green, blue);
-    setRGB3(prim, red, green, blue);
-    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
-    Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
-}
+#include "../../shared/glow_draw_prism.inc.c"
 
 /// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
 /// `POLY_G4` segments, starting at an angle that turns with
@@ -576,10 +452,10 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
     green = pulse;
     blue  = pulse;
     for (angle = start; angle < start + step * arg2; angle = next) {
-        blk->v[0].vx = D_dryfield_night_warehouse_8017E858[arg1].vx +
+        blk->v[0].vx = gGlowPrismCorners[arg1].vx +
                        ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        blk->v[0].vy = D_dryfield_night_warehouse_8017E858[arg1].vy;
-        blk->v[0].vz = D_dryfield_night_warehouse_8017E858[arg1].vz +
+        blk->v[0].vy = gGlowPrismCorners[arg1].vy;
+        blk->v[0].vz = gGlowPrismCorners[arg1].vz +
                        ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[0]);
@@ -590,10 +466,10 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
         next          = angle + step;
         blk->v[0].vz += coord->workm.t[2];
 
-        blk->v[1].vx = D_dryfield_night_warehouse_8017E858[arg1].vx +
+        blk->v[1].vx = gGlowPrismCorners[arg1].vx +
                        ((rsin(next) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
-        blk->v[1].vy = D_dryfield_night_warehouse_8017E858[arg1].vy;
-        blk->v[1].vz = D_dryfield_night_warehouse_8017E858[arg1].vz +
+        blk->v[1].vy = gGlowPrismCorners[arg1].vy;
+        blk->v[1].vz = gGlowPrismCorners[arg1].vz +
                        ((rcos(next) * D_dryfield_night_warehouse_8017E8D8[arg1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[1]);
@@ -603,10 +479,10 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
         blk->v[1].vy += coord->workm.t[1];
         blk->v[1].vz += coord->workm.t[2];
 
-        blk->v[2].vx = D_dryfield_night_warehouse_8017E858[arg1 + 1].vx +
+        blk->v[2].vx = gGlowPrismCorners[arg1 + 1].vx +
                        ((rsin(angle) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        blk->v[2].vy = D_dryfield_night_warehouse_8017E858[arg1 + 1].vy;
-        blk->v[2].vz = D_dryfield_night_warehouse_8017E858[arg1 + 1].vz +
+        blk->v[2].vy = gGlowPrismCorners[arg1 + 1].vy;
+        blk->v[2].vz = gGlowPrismCorners[arg1 + 1].vz +
                        ((rcos(angle) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[2]);
@@ -616,10 +492,10 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
         blk->v[2].vy += coord->workm.t[1];
         blk->v[2].vz += coord->workm.t[2];
 
-        blk->v[3].vx = D_dryfield_night_warehouse_8017E858[arg1 + 1].vx +
+        blk->v[3].vx = gGlowPrismCorners[arg1 + 1].vx +
                        ((rsin(next) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
-        blk->v[3].vy = D_dryfield_night_warehouse_8017E858[arg1 + 1].vy;
-        blk->v[3].vz = D_dryfield_night_warehouse_8017E858[arg1 + 1].vz +
+        blk->v[3].vy = gGlowPrismCorners[arg1 + 1].vy;
+        blk->v[3].vz = gGlowPrismCorners[arg1 + 1].vz +
                        ((rcos(next) * D_dryfield_night_warehouse_8017E8D8[arg1 + 1]) >> 12);
         gte_SetRotMatrix(&coord->workm);
         gte_ldv0(&blk->v[3]);
@@ -664,7 +540,7 @@ void func_dryfield_night_warehouse_8017E778(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     Gp_UpdateCoord(coord);
     if (mask & 0x24C) {
-        func_dryfield_night_warehouse_8017D6B4(coord, 8);
+        glowDrawPrism(coord, 8);
     }
     if (mask & 4) {
         func_dryfield_night_warehouse_8017DFF4(coord, 0, 8);

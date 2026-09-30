@@ -42,6 +42,7 @@
 #include "rooms/room_common.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 /// The room's per-view table: `Gp_State1C->roomEffectMode` latches the entry the
 /// current camera index selects, and the room's effect tasks read it back.
@@ -55,7 +56,6 @@ extern SVECTOR D_dryfield_night_parking_lot_8017EDE4[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDEC[];
 extern SVECTOR D_dryfield_night_parking_lot_8017EDFC[];
 
-static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_dryfield_night_parking_lot_8017E08C(SVECTOR* arg0, SVECTOR* arg1, s32 arg2);
 
 extern GpGridParams   D_dryfield_night_parking_lot_8017FAD0[1];
@@ -630,83 +630,42 @@ void func_dryfield_night_parking_lot_8017DC88(Task* unused)
     switch (gGameSession->location.loc.view) {
         case 2: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDCC;
-            func_dryfield_night_parking_lot_8017DE10(&p[0], 0, 0x300);
-            func_dryfield_night_parking_lot_8017DE10(&p[1], 0, 0x300);
-            func_dryfield_night_parking_lot_8017DE10(&p[2], 0, 0x330);
-            func_dryfield_night_parking_lot_8017DE10(&p[6], 1, 0x380);
-            func_dryfield_night_parking_lot_8017DE10(&p[7], 1, 0x380);
+            glowDrawFlareClipped(&p[0], 0, 0x300);
+            glowDrawFlareClipped(&p[1], 0, 0x300);
+            glowDrawFlareClipped(&p[2], 0, 0x330);
+            glowDrawFlareClipped(&p[6], 1, 0x380);
+            glowDrawFlareClipped(&p[7], 1, 0x380);
             break;
         }
         case 3: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDFC;
-            func_dryfield_night_parking_lot_8017DE10(&p[0], 1, 0x380);
+            glowDrawFlareClipped(&p[0], 1, 0x380);
             break;
         }
         case 4: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDEC;
             func_dryfield_night_parking_lot_8017E08C(&p[0], &p[1], 0x180);
-            func_dryfield_night_parking_lot_8017DE10(&p[2], 1, 0x380);
-            func_dryfield_night_parking_lot_8017DE10(&p[3], 1, 0x380);
+            glowDrawFlareClipped(&p[2], 1, 0x380);
+            glowDrawFlareClipped(&p[3], 1, 0x380);
             break;
         }
         case 5: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDDC;
-            func_dryfield_night_parking_lot_8017DE10(&p[0], 0, 0x300);
-            func_dryfield_night_parking_lot_8017DE10(&p[1], 0, 0x300);
-            func_dryfield_night_parking_lot_8017DE10(&p[5], 1, 0x380);
-            func_dryfield_night_parking_lot_8017DE10(&p[6], 1, 0x380);
+            glowDrawFlareClipped(&p[0], 0, 0x300);
+            glowDrawFlareClipped(&p[1], 0, 0x300);
+            glowDrawFlareClipped(&p[5], 1, 0x380);
+            glowDrawFlareClipped(&p[6], 1, 0x380);
             break;
         }
         case 6: {
             SVECTOR* p = D_dryfield_night_parking_lot_8017EDE4;
-            func_dryfield_night_parking_lot_8017DE10(&p[0], 0, 0x300);
+            glowDrawFlareClipped(&p[0], 0, 0x300);
             break;
         }
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// the OTZ is at least 0x11, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`) centred on it. `(s16)arg1` also selects
-/// the 40-texel UV column `arg1 * 40`, rows 0..0x27. `arg2` is a signed
-/// half-extent; the on-screen radius is `(s16)arg2 * 39 / otz`. All three
-/// colour channels take the flickering grey `((animFrame & 1) * 16) + 0x20`.
-static void func_dryfield_night_parking_lot_8017DE10(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw25Scratch* block;
-    POLY_FT4*          prim;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw25Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyFT4(prim);
-    gte_stsxy(&block->sx);
-    gte_stszotz(&block->otz);
-    if (block->otz >= 0x11) {
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
-}
+#include "../../shared/glow_draw_flare_clipped.inc.c"
 
 /// Projects `arg0` and `arg1` through the view matrix and, when the far point is
 /// past the near clip, queues gouraud wedges: a fan around the first point, a

@@ -56,3 +56,4 @@ D_80151B10 = 0x80151B10; // absolute:True
 D_80165B88 = 0x80165B88; // absolute:True
 
 func_mine_tunnel_entrance_8017D720 = 0x8017D720; // type:func
+glowDrawFlare = 0x8017D868; // type:func

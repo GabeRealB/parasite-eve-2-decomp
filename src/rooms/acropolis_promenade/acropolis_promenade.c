@@ -68,6 +68,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/glow_draw.h"
 
 #define D_acropolis_promenade_80181AFC (D_acropolis_promenade_80181AF4 + 1)
 
@@ -133,7 +134,6 @@ extern u16 D_acropolis_promenade_80181B78[];
 static void func_acropolis_promenade_8017D9E0(Task* arg0);
 static void func_acropolis_promenade_8017DAA4(Task* task);
 static void func_acropolis_promenade_8017DB48(Task* task);
-static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_acropolis_promenade_8017DB9C(Task*);
 void func_acropolis_promenade_8017DF74(Task*);
@@ -1913,7 +1913,7 @@ void func_acropolis_promenade_8017E03C(Task* task)
         Gp_SpawnEff(0x8006004B, coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[0]);
         Gp_SpawnEff(0x8006004B, coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[1]);
         Gp_SpawnEff(0x60057, coord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
-        func_acropolis_promenade_8017F434(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
+        glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
     }
     for (i = 0; i < 3; i++) {
         if (D_acropolis_promenade_80181B78[i] & mask) {
@@ -2290,162 +2290,4 @@ void func_acropolis_promenade_8017F0BC(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-/// Draws a radial glow at the world-space point `arg0`: the point is
-/// projected through `gGfxViewCoord.workm` and, when the GTE flag is
-/// non-negative, sixteen gouraud wedges (eight at the outer radius in the
-/// half-brightness colour, eight at half that radius in the full colour) plus
-/// four cross wedges reaching out from the inner radius are queued around the
-/// projected centre, each fading to black at its rim. `arg1` is a signed
-/// half-extent: the radii are `(s16)arg1 * 64 / otz` (outer) and
-/// `(s16)arg1 * 8 / otz` (inner). `arg2` packs the colour one nibble per
-/// channel - bits 8..11 red, 4..7 green, 0..3 blue, each scaled by 16 - with
-/// bits 12..15 the shift of a `gDisplayState.animFrame & 1` flicker added to
-/// every channel.
-static void func_acropolis_promenade_8017F434(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw05Scratch* block;
-    POLY_G4*           prim;
-    s32                ang;
-    s32                t;
-    s32                t2;
-    s32                ua;
-    s32                ub;
-    s32                uc;
-    s32                frame;
-    s32                packed;
-    s32                blend;
-    s32                r;
-    s32                g;
-    s32                b;
-    s32                outer;
-    s32                inner;
-    s32                hr;
-    s32                hg;
-    s32                hb;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch = SCRATCH_STACK_CURSOR_SLOT;
-        tmp     = SCRATCH_PUSH_BYTES_AT(scratch, 0x14);
-        block   = (RoomDraw05Scratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        arg1        <<= 16;
-        arg1        >>= 16;
-        outer         = (arg1 * 64) / block->otz;
-        frame         = gDisplayState.animFrame;
-        block->rOuter = outer;
-        inner         = (arg1 * 8) / block->otz;
-        ang           = 0;
-        packed        = arg2 << 16;
-        blend         = (frame & 1) << (packed >> 28);
-        r             = blend + ((packed >> 20) & 0xF0);
-        g             = blend + ((packed >> 16) & 0xF0);
-        b             = blend + ((arg2 & 0xF) << 4);
-        block->rInner = inner;
-        do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            hr = (u8)r >> 1;
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            hg = (u8)g >> 1;
-            hb = (u8)b >> 1;
-            setRGB2(prim, hr, hg, hb);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            t        = ang + 0x100;
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 12);
-            t2       = ang + 0x200;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 12);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 12);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rOuter * rsin(ang)) >> 13);
-            prim->y0 = block->sy + ((block->rOuter * rcos(ang)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(t)) >> 13);
-            prim->y1 = block->sy + ((block->rOuter * rcos(t)) >> 13);
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rOuter * rsin(t2)) >> 13);
-            prim->y3 = block->sy + ((block->rOuter * rcos(t2)) >> 13);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-
-        ang = 0x200;
-        r   = (u8)hr;
-        g   = (u8)hg;
-        b   = (u8)hb;
-        do {
-            ua             = ang - 0x400;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ua)) >> 13);
-            prim->y0 = block->sy + ((block->rInner * rcos(ua)) >> 13);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ang)) >> 12);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ang)) >> 12);
-            ub       = ang + 0x400;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(ub)) >> 13);
-            prim->y3 = block->sy + ((block->rInner * rcos(ub)) >> 13);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, r, g, b);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->sx + ((block->rInner * rsin(ang)) >> 12);
-            prim->y0 = block->sy + ((block->rInner * rcos(ang)) >> 12);
-            prim->x1 = block->sx + ((block->rOuter * rsin(ub)) >> 11);
-            prim->y1 = block->sy + ((block->rOuter * rcos(ub)) >> 11);
-            uc       = ang + 0x800;
-            prim->x2 = block->sx;
-            prim->y2 = block->sy;
-            prim->x3 = block->sx + ((block->rInner * rsin(uc)) >> 12);
-            prim->y3 = block->sy + ((block->rInner * rcos(uc)) >> 12);
-            ang      = uc;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        } while (ang < 0x1000);
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x14);
-}
+#include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"

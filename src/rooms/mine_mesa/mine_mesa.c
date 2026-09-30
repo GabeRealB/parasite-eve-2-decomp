@@ -73,6 +73,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
+#include "../../shared/glow_draw.h"
 
 #define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
@@ -184,8 +185,6 @@ extern GpEnemy*            D_mine_mesa_80189B74[2];
 static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
 static void func_mine_mesa_801817BC(void);
-
-static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_mine_mesa_8017E074(Task*);
 
@@ -3305,7 +3304,7 @@ void func_mine_mesa_8017EB54(s32 arg0)
 
 /// Publishes the mesa's three effect ids as `Gp_State1C->roomEffectMode` variant `2`
 /// on the task's first tick, then draws every emitter the current camera view
-/// shows: one `func_mine_mesa_8017EFA8` quad per position, texture column 1
+/// shows: one `glowDrawFlare` quad per position, texture column 1
 /// and half-extent 0x200, except the column-0, 0x300 positions of views 2 and
 /// 5.
 void func_mine_mesa_8017ED08(Task* arg0)
@@ -3321,116 +3320,72 @@ void func_mine_mesa_8017ED08(Task* arg0)
     switch (Gp_GetViewIndex() & 0xFF) {
         case 2: {
             SVECTOR* p = D_mine_mesa_801864D0;
-            func_mine_mesa_8017EFA8(&p[0], 0, 0x300);
-            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
+            glowDrawFlare(&p[0], 0, 0x300);
+            glowDrawFlare(&p[1], 1, 0x200);
+            glowDrawFlare(&p[2], 1, 0x200);
+            glowDrawFlare(&p[3], 1, 0x200);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
+            glowDrawFlare(&p[1], 1, 0x200);
+            glowDrawFlare(&p[2], 1, 0x200);
+            glowDrawFlare(&p[3], 1, 0x200);
+            glowDrawFlare(&p[6], 1, 0x200);
             break;
         }
         case 5: {
             SVECTOR* p = D_mine_mesa_801864C8;
-            func_mine_mesa_8017EFA8(&p[0], 0, 0x300);
-            func_mine_mesa_8017EFA8(&p[1], 0, 0x300);
-            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[8], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[9], 1, 0x200);
+            glowDrawFlare(&p[0], 0, 0x300);
+            glowDrawFlare(&p[1], 0, 0x300);
+            glowDrawFlare(&p[5], 1, 0x200);
+            glowDrawFlare(&p[6], 1, 0x200);
+            glowDrawFlare(&p[8], 1, 0x200);
+            glowDrawFlare(&p[9], 1, 0x200);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[4], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
+            glowDrawFlare(&p[1], 1, 0x200);
+            glowDrawFlare(&p[4], 1, 0x200);
+            glowDrawFlare(&p[5], 1, 0x200);
             break;
         }
         case 8: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
             break;
         }
         case 9: {
             SVECTOR* p = D_mine_mesa_80186508;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
+            glowDrawFlare(&p[1], 1, 0x200);
+            glowDrawFlare(&p[2], 1, 0x200);
             break;
         }
         case 10: {
             SVECTOR* p = D_mine_mesa_801864D8;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
+            glowDrawFlare(&p[2], 1, 0x200);
             break;
         }
         case 11: {
             SVECTOR* p = D_mine_mesa_801864F0;
-            func_mine_mesa_8017EFA8(&p[0], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[1], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[2], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[3], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[4], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[5], 1, 0x200);
-            func_mine_mesa_8017EFA8(&p[6], 1, 0x200);
+            glowDrawFlare(&p[0], 1, 0x200);
+            glowDrawFlare(&p[1], 1, 0x200);
+            glowDrawFlare(&p[2], 1, 0x200);
+            glowDrawFlare(&p[3], 1, 0x200);
+            glowDrawFlare(&p[4], 1, 0x200);
+            glowDrawFlare(&p[5], 1, 0x200);
+            glowDrawFlare(&p[6], 1, 0x200);
             break;
         }
     }
 }
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
-/// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-static void func_mine_mesa_8017EFA8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

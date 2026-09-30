@@ -24,6 +24,7 @@
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
+#include "../../shared/glow_draw.h"
 
 /// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
 extern SVECTOR D_dryfield_night_motel_room_5_8017DA58[1];
@@ -873,15 +874,15 @@ void func_dryfield_night_motel_room_5_8017D9A4(Task* unused)
     switch (gGameSession->location.loc.view) {
         case 3:
         case 8:
-            func_dryfield_night_motel_room_5_8017D728(&D_dryfield_night_motel_room_5_8017DA58[0], 1, 0x200);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA58[0], 1, 0x200);
             break;
         case 2:
         case 7:
-            func_dryfield_night_motel_room_5_8017D728(&D_dryfield_night_motel_room_5_8017DA60[0], 1, 0x240);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA60[0], 1, 0x240);
             break;
         case 4:
         case 9:
-            func_dryfield_night_motel_room_5_8017D728(&D_dryfield_night_motel_room_5_8017DA68[0], 1, 0x200);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_5_8017DA68[0], 1, 0x200);
             break;
     }
 }

@@ -189,8 +189,6 @@ typedef struct _MineCavernHitScratch {
     s16     damage;
 } _MineCavernHitScratch;
 
-static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2);
-
 extern GpGridParams   D_mine_cavern_8018981C[1];
 extern GpObj3A        D_mine_cavern_8018E078[2];
 extern GpObj4C        D_mine_cavern_8018D154[20];
@@ -2257,72 +2255,72 @@ void func_mine_cavern_8017E474(Task* arg0)
         case 3:
         case 9: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
         case 4: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[5], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[5], 1, 0x300);
             break;
         }
         case 5:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 23: {
             SVECTOR* p = D_mine_cavern_80188F64;
             glowDrawCapsule(&p[0], 0x180, 0x222);
             glowDrawCapsule(&p[1], 0x180, 0x222);
-            func_mine_cavern_8017EFB8(&p[3], 1, 0x300);
+            glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 6: {
             SVECTOR* p = D_mine_cavern_80188F8C;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[4], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[4], 1, 0x300);
             break;
         }
         case 7: {
             SVECTOR* p = D_mine_cavern_80188F84;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[3], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
+            glowDrawFlare(&p[3], 1, 0x300);
             break;
         }
         case 8:
         case 20:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F94, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F94, 1, 0x300);
             break;
         case 10:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188FB4, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188FB4, 1, 0x300);
             break;
         case 11:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 13: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[5], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[6], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[5], 1, 0x300);
+            glowDrawFlare(&p[6], 1, 0x300);
             break;
         }
         case 14:
         case 16:
         case 21:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F8C, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
             break;
         case 17:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F9C, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F9C, 1, 0x300);
             break;
         case 24:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188FC4, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188FC4, 1, 0x300);
         case 22:
-            func_mine_cavern_8017EFB8(D_mine_cavern_80188F7C, 1, 0x300);
+            glowDrawFlare(D_mine_cavern_80188F7C, 1, 0x300);
             break;
         case 25: {
             SVECTOR* p = D_mine_cavern_80188F7C;
-            func_mine_cavern_8017EFB8(&p[0], 1, 0x300);
-            func_mine_cavern_8017EFB8(&p[2], 1, 0x300);
+            glowDrawFlare(&p[0], 1, 0x300);
+            glowDrawFlare(&p[2], 1, 0x300);
             break;
         }
     }
@@ -2330,51 +2328,7 @@ void func_mine_cavern_8017E474(Task* arg0)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// `gte_stflg` is non-negative, queues one semi-transparent `POLY_FT4` (tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380`). `arg1` selects the 40-texel UV column
-/// `(s16)arg1 * 40` at v=0..0x27. `arg2` is a signed half-extent; the
-/// on-screen radius is `(s16)arg2 * 39 / otz`. RGB is the frame-counter blend
-/// byte `((animFrame & 1) * 16) + 0x20` on all three channels.
-static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                u;
-    s32                blend;
-    s32                idx;
-    u8                 frame;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyFT4(prim);
-        idx         = (s16)arg1;
-        frame       = gDisplayState.animFrame;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        u           = idx * 40;
-        setUV4(prim, u, 0, u + 39, 0, u, 39, u + 39, 39);
-        blend = ((frame & 1) << 4) + 0x20;
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        prim->x0 = prim->x2 = block->sx - block->radius;
-        prim->x1 = prim->x3 = block->sx + block->radius;
-        prim->y0 = prim->y1 = block->sy - block->radius;
-        prim->y2 = prim->y3 = block->sy + block->radius;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

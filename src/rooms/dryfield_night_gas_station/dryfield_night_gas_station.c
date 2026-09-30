@@ -187,7 +187,7 @@ extern GpEvsCmd       D_dryfield_night_gas_station_80189A7C[];
 
 /// The room's effect anchors, 8 bytes apart. Entries 0-9 are drawn in pairs by
 /// `glowDrawCapsule`, 10-18 one at a time by
-/// `func_dryfield_night_gas_station_80181AF8`, and 19-20 are where the spawned
+/// `glowDrawFlare`, and 19-20 are where the spawned
 /// effects are scattered around.
 extern SVECTOR D_dryfield_night_gas_station_80189C8C[];
 
@@ -217,8 +217,6 @@ void        func_dryfield_night_gas_station_8017FBD4(s32 arg0);
 static void func_dryfield_night_gas_station_80180C20(void);
 static void func_dryfield_night_gas_station_80180D1C(void);
 static void func_dryfield_night_gas_station_80180DC8(s16 arg0);
-
-static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 void func_dryfield_night_gas_station_80180828(Task*);
 
@@ -3474,7 +3472,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
     }
     for (i = 10; i < 19; i++) {
         if (mask & D_dryfield_night_gas_station_80189D54[i]) {
-            func_dryfield_night_gas_station_80181AF8(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
+            glowDrawFlare(&D_dryfield_night_gas_station_80189C8C[i], 0, 0x380);
         }
     }
     if (GameFlag_GetNibble(0x63) == 0) {
@@ -3517,58 +3515,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
 
 #include "../../shared/glow_draw_capsule.inc.c"
 
-/// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when
-/// it projects, queues one semi-transparent `POLY_FT4` centred on it: tpage
-/// 0x2B, clut `(arg1 & 0x3F) | 0x4380` and the 40-texel texture column
-/// `arg1`. `arg2` is a signed half-extent scaled by depth; the grey level
-/// follows the frame counter's low bit.
-static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s32 arg2)
-{
-    RoomDraw13Scratch* block;
-    POLY_FT4*          prim;
-    s32                idx;
-    s32                blend;
-    s16                xy;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
-
-    gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_SetRotMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(arg0);
-    gte_rtps();
-    gte_stsxy(&block->sx);
-    gte_stflg(&block->flag);
-    if (block->flag >= 0) {
-        gte_stszotz(&block->otz);
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 9);
-        setcode(prim, 0x2C);
-        idx         = (s16)arg1;
-        blend       = (((u8)gDisplayState.animFrame & 1) * 16) + 0x20;
-        prim->tpage = 0x2B;
-        prim->clut  = (idx & 0x3F) | 0x4380;
-        setUVWH(prim, idx * 40, 0, 0x27, 0x27);
-        setRGB0(prim, blend, blend, blend);
-        setSemiTrans(prim, 1);
-        block->radius = ((s16)arg2 * 39) / block->otz;
-        xy            = block->sx - (u16)block->radius;
-        prim->x2      = xy;
-        prim->x0      = xy;
-        xy            = block->sx + (u16)block->radius;
-        prim->x3      = xy;
-        prim->x1      = xy;
-        xy            = block->sy - (u16)block->radius;
-        prim->y1      = xy;
-        prim->y0      = xy;
-        xy            = block->sy + (u16)block->radius;
-        prim->y3      = xy;
-        prim->y2      = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
-}
+#include "../../shared/glow_draw_flare.inc.c"
 
 #include "../../shared/room_visual_effects.inc.c"
 

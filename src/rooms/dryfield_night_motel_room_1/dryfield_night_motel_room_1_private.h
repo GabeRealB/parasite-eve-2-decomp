@@ -6,6 +6,4 @@
 
 #include "types.h"
 
-void func_dryfield_night_motel_room_1_8017D734(SVECTOR* arg0, s32 arg1, s32 arg2);
-
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_MOTEL_ROOM_1_DRYFIELD_NIGHT_MOTEL_ROOM_1_PRIVATE_H

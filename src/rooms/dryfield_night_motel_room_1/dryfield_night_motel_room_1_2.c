@@ -22,6 +22,7 @@
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
+#include "../../shared/glow_draw.h"
 
 // One live spotlight is followed by retained exporter data in whole
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
@@ -1036,11 +1037,11 @@ void func_dryfield_night_motel_room_1_8017D9B0(Task* unused)
         case 3:
         case 8:
         case 9:
-            func_dryfield_night_motel_room_1_8017D734(&D_dryfield_night_motel_room_1_8017DA54[0], 1, 0x200);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA54[0], 1, 0x200);
             break;
         case 5:
         case 6:
-            func_dryfield_night_motel_room_1_8017D734(&D_dryfield_night_motel_room_1_8017DA5C[0], 2, 0x180);
+            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA5C[0], 2, 0x180);
             break;
     }
 }

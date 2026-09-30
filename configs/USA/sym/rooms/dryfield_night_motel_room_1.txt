@@ -56,3 +56,4 @@ D_map_dryfield_full_8017B708 = 0x8017B708; // absolute:True
 D_map_dryfield_full_8017B798 = 0x8017B798; // absolute:True
 
 func_dryfield_night_motel_room_1_8017D9B0 = 0x8017D9B0; // type:func
+glowDrawFlareClipped = 0x8017D734; // type:func
