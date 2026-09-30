@@ -32,22 +32,6 @@
 #include "rooms/room_common.h"
 #include "rooms/rooms_shared_8017dcb8.h"
 
-static void RoomFx_DrawMote(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3);
-static void RoomFx_DrawHaloRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size);
-static void RoomFx_DrawGroundQuad(GfxCoord* arg0, s32 arg1);
-static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlashRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlashDisc(GfxCoord* arg0, s16 arg1, u8* rgb);
-static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
-static void RoomFx_DrawBurstStar(GfxCoord* arg0, s16 arg1, u8* arg2);
-static void RoomFx_DrawFlyingSpark(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
-static void RoomFx_DrawFlyingRing(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb);
-static void RoomFx_DrawFlyingDisc(GfxCoord* arg0, s32 arg1, u8* rgb);
-static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size);
-static void RoomFx_DrawGround2Quad(GfxCoord* arg0, s32 arg1);
-
 /// A drifting mote. The first tick unpacks the spawn argument: a mote with
 /// either low bit set starts at full brightness and moves at its given
 /// vertical speed (upwards when bit 1 is set) in state 2; otherwise it starts
