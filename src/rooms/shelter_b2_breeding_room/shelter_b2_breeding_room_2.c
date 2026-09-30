@@ -34,6 +34,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_visual_effects.h"
 
 #define D_shelter_b2_breeding_room_80180470 (D_shelter_b2_breeding_room_80180450 + 4)
 #define D_shelter_b2_breeding_room_80180480 (D_shelter_b2_breeding_room_80180450 + 6)
@@ -81,10 +82,7 @@ SVECTOR D_shelter_b2_breeding_room_80180450[32] = {
     { 2650, -2350, 620, 0 },
 };
 
-s16 D_shelter_b2_breeding_room_80180550[2][3] = {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-};
+#include "../../shared/room_visual_effects_disc_data.inc.c"
 
 u8* D_shelter_b2_breeding_room_8018055C[1] = {
     D_8010CAF8,

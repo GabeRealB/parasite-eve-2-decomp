@@ -3,6 +3,4 @@
 
 #include "types.h"
 
-extern s16 D_shelter_b2_breeding_room_80180550[2][3];
-
 #endif // SRC_ROOMS_SHELTER_B2_BREEDING_ROOM_SHELTER_B2_BREEDING_ROOM_PRIVATE_H
