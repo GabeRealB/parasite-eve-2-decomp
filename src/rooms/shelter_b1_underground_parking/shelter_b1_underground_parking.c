@@ -73,6 +73,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// Work block of the parking-lot examine task, hung off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -344,7 +345,6 @@ extern SVECTOR D_shelter_b1_underground_parking_801877A4[];
 
 static s32  func_shelter_b1_underground_parking_80183124(RoomEventMsg* in, RoomEventMsg* out);
 static void func_shelter_b1_underground_parking_80183810(Task* arg0);
-static void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant);
 static void func_shelter_b1_underground_parking_80184304(Task* task);
 static void func_shelter_b1_underground_parking_801843F0(Task* task);
 static void func_shelter_b1_underground_parking_80184468(Task* task);
@@ -357,7 +357,6 @@ static void func_shelter_b1_underground_parking_801847D0(Task* task);
 static void func_shelter_b1_underground_parking_8018390C(void);
 static void func_shelter_b1_underground_parking_801848A4(void);
 static void func_shelter_b1_underground_parking_8018491C(void);
-static s32  func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y);
 static void func_shelter_b1_underground_parking_8018543C(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 static void func_shelter_b1_underground_parking_801857E0(s16 x, s16 y, s16 radius, s16 color);
 static void func_shelter_b1_underground_parking_80185A94(SVECTOR* arg0, s32 arg1, s32 arg2);
@@ -367,7 +366,6 @@ static void func_shelter_b1_underground_parking_80186890(s16 arg0);
 #define TELEPHONE_TITLE_BYTES "Telephone\0<\x9E"
 #include "../../shared/telephone.h"
 
-static void func_shelter_b1_underground_parking_801848BC(Task* task);
 static void func_shelter_b1_underground_parking_80184C54(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
@@ -1670,9 +1668,7 @@ u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
 static inline s32 Shop_AddItemCount(s32 item, s32 count);
 static void       func_shelter_b1_underground_parking_801826C0(Task* roomTask);
-static void       func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b);
 static void       func_shelter_b1_underground_parking_80183B9C(void);
-static void       func_shelter_b1_underground_parking_80183CEC(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
@@ -2587,61 +2583,7 @@ static void func_shelter_b1_underground_parking_8018390C(void)
     }
 }
 
-/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
-/// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
-/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-static void func_shelter_b1_underground_parking_80183958(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 static void func_shelter_b1_underground_parking_80183B9C(void)
 {
@@ -2668,188 +2610,15 @@ static void func_shelter_b1_underground_parking_80183B9C(void)
         D_shelter_b1_underground_parking_801876D4[D_shelter_b1_underground_parking_8018D789].vy, 7, 0xF0);
 }
 
-static void func_shelter_b1_underground_parking_80183CEC(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_shelter_b1_underground_parking_8018414C(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
-/// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
-/// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-static void func_shelter_b1_underground_parking_8018414C(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// Two-state dispatcher of the room's action-prompt task: builds the handler
 /// pair on the stack and calls the entry `Task::state` names.
 void func_shelter_b1_underground_parking_80184234(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b1_underground_parking_801848BC, func_shelter_b1_underground_parking_80183CEC };
+    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
 
     states[task->state](task);
 }
@@ -2923,7 +2692,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_shelter_b1_underground_parking_80184964(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
@@ -3045,26 +2814,7 @@ static void func_shelter_b1_underground_parking_801848A4(void)
     D_shelter_b1_underground_parking_8018D789 = 0;
 }
 
-/// Resets both action-prompt slots before a script's first cursor scan and steps
-/// the caller on one state: clears each slot's leading words and its two
-/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
-/// marks the slot as highlighted (`mode` 1).
-static void func_shelter_b1_underground_parking_801848BC(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 /// Looks up the low nibble of `D_shelter_b1_underground_parking_8018D788` in
 /// the byte table `D_shelter_b1_underground_parking_801876C4`, stores the
@@ -3077,24 +2827,7 @@ static void func_shelter_b1_underground_parking_8018491C(void)
     gGameSession->roomObjsDirty       = 1;
 }
 
-/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
-/// was.
-static s32 func_shelter_b1_underground_parking_80184964(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 void func_shelter_b1_underground_parking_80184A18(Task* unused)
 {

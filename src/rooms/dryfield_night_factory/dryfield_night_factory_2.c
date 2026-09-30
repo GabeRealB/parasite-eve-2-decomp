@@ -51,6 +51,7 @@
 #include "rooms/dryfield_factory.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// The single-entry `TaskDesc` table the room's script task spawns its child
 /// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
@@ -81,16 +82,13 @@ void        func_dryfield_night_factory_801802C8(Task* task);
 static void func_dryfield_night_factory_80180438(Task* arg0);
 static void func_dryfield_night_factory_801809EC(Task* task);
 static void func_dryfield_night_factory_80180A4C(Task* task);
-static void func_dryfield_night_factory_80181538(s32 x, s32 y, s32 variant);
 static void func_dryfield_night_factory_80181938(Task* task);
 static void func_dryfield_night_factory_8018196C(Task* task);
 static void func_dryfield_night_factory_801819BC(Task* task);
 static void func_dryfield_night_factory_80181A24(Task* task);
 static void func_dryfield_night_factory_80181AB8(Task* task);
 
-static s32  func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s16 y);
 static void func_dryfield_night_factory_8018182C(Task* task);
-static void func_dryfield_night_factory_80181BB4(Task* task);
 
 s32  func_dryfield_night_factory_80180574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_factory_8018080C(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -849,9 +847,7 @@ SpriteBatch D_dryfield_night_factory_801899E4[6] = {
 };
 
 static s32  func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
-static void func_dryfield_night_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b);
 static void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
-static void func_dryfield_night_factory_801810D8(Task* task);
 static void func_dryfield_night_factory_80181C14(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's event gate: answers 1 when the request's flag says the event
@@ -1221,7 +1217,7 @@ static void func_dryfield_night_factory_80180A4C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_dryfield_night_factory_80181778(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons.slots[0].state == 2) {
             for (; hs->id != -1; hs++) {
@@ -1259,60 +1255,7 @@ static const TaskFuncTable7 D_dryfield_night_factory_8017D678 = {
     },
 };
 
-/// Outlines `rect` in (`r`, `g`, `b`): four flat `LINE_F2`s along its top,
-/// right, bottom and left edges, each linked into `gGpuCurrentOt[1]`.
-static void func_dryfield_night_factory_80180BA4(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// Runs cap step `step` of the room's script, picking the sound, the progress
 /// flags and the cap slot for the step.
@@ -1426,183 +1369,9 @@ static void func_dryfield_night_factory_80180DE8(Task* task, s16 step)
     }
 }
 
-/// Moves both action-prompt cursors from the pads and draws them.
-static void func_dryfield_night_factory_801810D8(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_dryfield_night_factory_80181538(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Draws the action-prompt cursor icon at (`x`, `y`): one 16x24 textured quad
-/// linked into the head of the current OT, with palette 0x3C87 for `variant` 2
-/// and 0x3C88 otherwise. `variant` 0 draws nothing.
-static void func_dryfield_night_factory_80181538(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 void func_dryfield_night_factory_80181620(s32 show)
 {
@@ -1637,7 +1406,7 @@ void func_dryfield_night_factory_8018169C(Task* task)
 /// moves and draws the cursors every frame.
 void func_dryfield_night_factory_80181718(Task* task)
 {
-    TaskFunc states[2] = { func_dryfield_night_factory_80181BB4, func_dryfield_night_factory_801810D8 };
+    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
 
     states[task->state](task);
 }
@@ -1649,24 +1418,7 @@ void func_dryfield_night_factory_80181768(Task* task)
     ((NightFactoryScriptWork*)task->work)->field_A = 1;
 }
 
-/// Marks every hotspot of `table` under (`x`, `y`) as hit; answers whether any
-/// was.
-static s32 func_dryfield_night_factory_80181778(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 /// Task callback of the descriptor at `D_dryfield_night_factory_80186E94`:
 /// allocates the script work block, spawns the room's child task, picks the
@@ -1808,23 +1560,7 @@ void func_dryfield_night_factory_80181B38(s32 show)
     }
 }
 
-/// Resets both action-prompt slots and steps the caller on one state.
-static void func_dryfield_night_factory_80181BB4(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 /// Projects `arg0` through `gGfxViewCoord.workm` and, when it lands in front of
 /// the camera, draws a disc of sixteen gouraud wedges and a four-pointed inner

@@ -33,6 +33,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// Message table installed at `Task::msgTable` by the room task's state 0.
 extern GpMsgEntry D_neo_ark_shrine_80181E34[];
@@ -258,7 +259,6 @@ s16 D_neo_ark_shrine_801825EC[16][5] = {
 
 static void func_neo_ark_shrine_8017D8F4(Task* task);
 static void func_neo_ark_shrine_8017D940(Task* task);
-static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b);
 
 /// Always returns 0.
 s32 func_neo_ark_shrine_8017D6A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
@@ -370,7 +370,7 @@ void func_neo_ark_shrine_8017D948(Task* task)
 /// confirm-tested (`buttons[0].state == 2`) and its `id` / `promptKind` are
 /// latched into the script state, with the 3-vs-6 split decided by hotspot id
 /// 0x10 and the script's own `field_F`. The scan walks the hotspot table the
-/// hit test `func_neo_ark_shrine_8017EC10` just marked, and
+/// hit test `actionPromptHitTest` just marked, and
 /// `buttons[1].state == 2` leaves the scan by advancing the task to state 5.
 ///
 /// Both oddities below are allocator levers, not logic. The `do { } while (0)`
@@ -397,7 +397,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_neo_ark_shrine_8017EC10(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if (prompt->buttons.slots[0].state == 2) {
             id = hs->id;
@@ -515,61 +515,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
     }
 }
 
-/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
-/// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
-/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-static void func_neo_ark_shrine_8017DD38(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// Animates and draws the shrine's sliding-tile puzzle. Each tile's target
 /// position is taken from the board position it now occupies; its drawn

@@ -173,3 +173,8 @@ func_acropolis_bridge_80182AF8 = 0x80182AF8; // type:func
 func_acropolis_bridge_80182394 = 0x80182394; // type:func
 
 func_acropolis_bridge_8017DC68 = 0x8017DC68; // type:func
+actionPromptOutlineRect = 0x8017E908; // type:func
+actionPromptMoveCursors = 0x8017ED38; // type:func
+actionPromptDrawCursor = 0x8017F198; // type:func
+actionPromptHitTest = 0x8017F6D4; // type:func
+actionPromptReset = 0x8017F808; // type:func

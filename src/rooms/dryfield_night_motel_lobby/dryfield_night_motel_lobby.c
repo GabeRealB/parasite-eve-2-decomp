@@ -43,6 +43,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 void func_dryfield_night_motel_lobby_8017FD10(Task* task);
 
@@ -173,7 +174,6 @@ TaskDesc D_dryfield_night_motel_lobby_801827FC[2] = {
 
 static void func_dryfield_night_motel_lobby_8017FD9C(Task* task);
 static void func_dryfield_night_motel_lobby_8017FDE8(Task* task);
-static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g, u8 b);
 
 #include "../../shared/telephone.inc.c"
 
@@ -548,7 +548,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
         prompt->targetId = 0;
     } else {
         prompt->targetId = 0x80;
-        if (func_dryfield_night_motel_lobby_80180DE4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
             if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
@@ -592,58 +592,4 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
     func_dryfield_night_motel_lobby_801802A8(task);
 }
 
-/// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2`s, one per edge
-/// of the rectangle from (`x`, `y`) to (`x + w`, `y + h`), each linked into
-/// `gGpuCurrentOt[1]`.
-static void func_dryfield_night_motel_lobby_80180064(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"

@@ -33,6 +33,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
+#include "../../shared/action_prompt.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -84,7 +85,6 @@ extern u8              D_actor_143000_80134570[];
 extern Actor143000Rect D_actor_143000_80134580[];
 extern const char*     D_actor_143000_801345F8[3];
 
-static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant);
 static void func_actor_143000_80132A04(Task* arg0);
 static void func_actor_143000_80133664(Task* task);
 static void func_actor_143000_80133698(Task* task);
@@ -96,7 +96,6 @@ static void func_actor_143000_801339CC(Task* arg0);
 static void func_actor_143000_80133AC0(Task* arg0);
 static s32  func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y);
 static void func_actor_143000_80133C2C(void);
-static void func_actor_143000_80133C90(Task* task);
 
 void func_actor_143000_80133578(Task*);
 void func_actor_143000_801335C8(Task*);
@@ -261,207 +260,13 @@ Actor143000CaptureArgs D_actor_143000_80135090 = { 129, 39, 164, 90, 10, 0 };
 
 Actor143000CaptureArgs D_actor_143000_801350A0 = { 38, 138, 250, 75, 8, 0 };
 
-static void func_actor_143000_80131F80(Task* task);
 static void func_actor_143000_801324C8(Task* arg0);
 static void func_actor_143000_801325F0(Task* arg0);
 static void func_actor_143000_80132D10(Task* arg0);
-static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b);
 
-/// Per-frame cursor driver of the action prompt, run as state 1 of the prompt
-/// task that `func_actor_143000_80133578` dispatches.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (input format 0x12 reads it linearly, 0x73 squares it for a dead-zone
-/// curve) and then the d-pad -- whose four bits select one of eight
-/// 1/16-of-a-turn headings fed to `rsin`/`rcos` -- into the prompt's
-/// 1/512-pixel position, clamps that to the screen, classifies the confirm
-/// (0x40) and cancel (0xA0) buttons into the prompt's two button slots, and
-/// finally hands the rounded position to `func_actor_143000_801323E0`
-/// to draw the cursor. `RoomActionPrompt::targetId` doubles as the cursor speed
-/// here and `field_E` as the double-press window: a second press inside that
-/// many frames without the cursor having moved reports state 4 instead of 2.
-///
-/// `step` carries the analog delta first and the d-pad heading afterwards, and
-/// `idx` indexes the button slots in `u16` units so that `i` survives as the
-/// loop counter.
-static void func_actor_143000_80131F80(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_actor_143000_801323E0(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues one 16x24 textured quad -- the action prompt cursor icon -- at
-/// (`x`, `y`) into the head of the current OT. `variant` is the prompt's
-/// `mode`: 0 draws nothing, 2 (a hotspot under the cursor) uses palette
-/// 0x3C87 and anything else 0x3C88.
-static void func_actor_143000_801323E0(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 static void func_actor_143000_801324C8(Task* arg0)
 {
@@ -864,72 +669,18 @@ static void func_actor_143000_80132D10(Task* arg0)
     }
 }
 
-/// Outlines the hotspot rect `rect` in (`r`, `g`, `b`) with four flat
-/// `LINE_F2` edges linked into `gGpuCurrentOt[1]`. Only reached while
-/// `Mc_SaveData[0].state.demoScene` or `Mc_SaveData[0].state.demoScene` is 9, to show the hotspot rects.
-static void func_actor_143000_80133334(Actor143000Rect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// Callback of the action-prompt task that `func_actor_143000_801324C8` spawns
 /// from `D_actor_143000_80134558`: a two-state dispatcher whose handler table
-/// is built on the stack. State 0, `func_actor_143000_80133C90`, resets both
-/// prompt slots; state 1, `func_actor_143000_80131F80`, drives the cursor every
+/// is built on the stack. State 0, `actionPromptReset`, resets both
+/// prompt slots; state 1, `actionPromptMoveCursors`, drives the cursor every
 /// frame from then on.
 void func_actor_143000_80133578(Task* task)
 {
     TaskFunc funcs[2] = {
-        func_actor_143000_80133C90,
-        func_actor_143000_80131F80,
+        actionPromptReset,
+        actionPromptMoveCursors,
     };
 
     funcs[task->state](task);
@@ -1114,7 +865,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
         do {
             if (x >= p->x && x < p->x + p->w && y >= p->y && y < p->y + p->h) {
                 if (Mc_SaveData[0].state.demoScene == 9) {
-                    func_actor_143000_80133334(p, 0, 0, 0);
+                    actionPromptOutlineRect(p, 0, 0, 0);
                 }
                 p->field_B = 1;
                 if (result == 0) {
@@ -1122,7 +873,7 @@ static s32 func_actor_143000_80133AE8(Actor143000Rect* p, s16 x, s16 y)
                 }
             } else {
                 if (Mc_SaveData[0].state.demoScene == 9) {
-                    func_actor_143000_80133334(p, 0xFF, 0, 0);
+                    actionPromptOutlineRect(p, 0xFF, 0, 0);
                 }
                 p->field_B = 0;
             }
@@ -1138,33 +889,13 @@ static void func_actor_143000_80133C2C(void)
 
     if (p->field_8 != -1) {
         do {
-            func_actor_143000_80133334(p, 0, 0xFF, 0);
+            actionPromptOutlineRect(p, 0, 0xFF, 0);
             p++;
         } while (p->field_8 != -1);
     }
 }
 
-/// State 0 of the action-prompt task: resets both prompt slots before the
-/// first cursor frame -- clears the position accumulators and the two
-/// buttons' held-frame counters, parks the target id (the cursor speed) at
-/// 0x100 and `field_E` (the double-press window) at 0xF, marks the slot
-/// highlighted -- and steps the task on one state.
-static void func_actor_143000_80133C90(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 void func_actor_143000_80133CF0(Task* arg0)
 {

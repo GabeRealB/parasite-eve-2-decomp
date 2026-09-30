@@ -65,8 +65,6 @@ void func_neo_ark_shrine_8017DF7C(void);
 /// their generated code needs, and the helper ignores it.
 void func_neo_ark_shrine_8017EAC0();
 
-s32 func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y);
-
 void func_neo_ark_shrine_8017F448(void);
 
 void func_neo_ark_shrine_8017D9A0(Task* task);

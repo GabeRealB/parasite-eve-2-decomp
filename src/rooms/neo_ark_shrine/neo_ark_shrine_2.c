@@ -61,6 +61,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/action_prompt.h"
 
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
@@ -76,8 +77,6 @@ typedef struct {
     /* 0x46 */ u8     pad_46[2];
 } NeoArkShrineFall;
 
-static void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant);
-static void func_neo_ark_shrine_8017F80C(Task* task);
 static void func_neo_ark_shrine_8017F86C(Task* task);
 static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2);
 
@@ -1053,194 +1052,15 @@ NeoArkShrineSlot D_neo_ark_shrine_8018688C[16] = { 0 };
 
 NeoArkShrineSlot D_neo_ark_shrine_801868CC[16] = { 0 };
 
-static void func_neo_ark_shrine_8017E528(Task* task);
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-/// Moves the action-prompt cursor from the pad: for each port the task's
-/// `spawnArg1` selects, integrates the analog stick and the d-pad direction
-/// into the cursor's fixed-point position, clamps it to the screen, updates
-/// the two prompt buttons' press / hold states, and draws the cursor icon.
-static void func_neo_ark_shrine_8017E528(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
-
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_neo_ark_shrine_8017E988(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues the action-prompt cursor icon, a 16x24 textured quad, at (`x`, `y`)
-/// into the head of the current OT. `variant` selects the palette, 0x3C87 when
-/// it is 2 and 0x3C88 otherwise, and 0 draws nothing.
-static void func_neo_ark_shrine_8017E988(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// Task callback of the action-prompt cursor: state 0 resets both prompt slots,
 /// state 1 moves the cursor from the pad every frame after.
 void func_neo_ark_shrine_8017EA70(Task* task)
 {
-    TaskFunc states[2] = { func_neo_ark_shrine_8017F80C, func_neo_ark_shrine_8017E528 };
+    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
 
     states[task->state](task);
 }
@@ -1282,24 +1102,7 @@ void func_neo_ark_shrine_8017EBB8(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Hit-tests (`x`, `y`) against every rectangle of the `-1`-terminated hotspot
-/// table, setting each entry's `hit` flag, and returns whether any was hit.
-s32 func_neo_ark_shrine_8017EC10(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 /// Task callback of the descriptor at `D_neo_ark_shrine_80182404`: allocates
 /// the cap script's state, sets the global mode byte, steps the task on one
@@ -1746,25 +1549,7 @@ static void func_neo_ark_shrine_8017F738(Task* task)
     func_neo_ark_shrine_8017F86C(task);
 }
 
-/// Resets both action-prompt slots and steps the task on: zeroes each slot's
-/// fixed-point cursor position and its buttons' hold counters, sets
-/// `targetId` to 0x100, `field_E` to 0xF and `mode` to 1.
-static void func_neo_ark_shrine_8017F80C(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 /// Tail every `NeoArkShrineFall` handler runs: clears the prop's root coordinate
 /// flag, rebuilds its world matrix, and republishes the translation in

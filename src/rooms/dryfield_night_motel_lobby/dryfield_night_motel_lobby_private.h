@@ -62,7 +62,6 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
 
 /// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
 /// each entry's `hit` flag, and returns whether any entry was hit.
-s32 func_dryfield_night_motel_lobby_80180DE4(OverlayHotspot* table, s16 x, s16 y);
 
 void func_dryfield_night_motel_lobby_8017FE90(Task* task);
 

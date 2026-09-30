@@ -122,3 +122,8 @@ D_dryfield_night_factory_8018A7BC = 0x8018A7BC; // absolute:True owner=dryfield_
 D_dryfield_night_factory_8018A7C8 = 0x8018A7C8; // absolute:True owner=dryfield_night_factory
 
 func_dryfield_factory_801825F0 = 0x801825F0; // type:func
+actionPromptOutlineRect = 0x80180BA4; // type:func
+actionPromptMoveCursors = 0x801810D8; // type:func
+actionPromptDrawCursor = 0x80181538; // type:func
+actionPromptHitTest = 0x80181778; // type:func
+actionPromptReset = 0x80181BB4; // type:func

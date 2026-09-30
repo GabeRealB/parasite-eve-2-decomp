@@ -58,6 +58,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -111,7 +112,7 @@ STATIC_ASSERT_SIZEOF(DbwWork, 0x14);
 /// against: `func_dryfield_breezeway_8017E464` seeds them with the reset
 /// position (0, 0x20) `func_dryfield_breezeway_8017FD9C` also passes to
 /// `func_dryfield_breezeway_8017EB8C`, and `func_dryfield_breezeway_8017E81C`
-/// feeds them to `func_dryfield_breezeway_8017FCB4`.
+/// feeds them to `actionPromptHitTest`.
 ///
 /// `light` / `color` are the room's own lighting pair, the block's whole first
 /// 0x40 bytes: `func_dryfield_breezeway_8017E464` publishes them onto
@@ -213,7 +214,7 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 extern OverlayHotspot D_dryfield_breezeway_80182E00[];
 
 /// This room's prop hotspot table, the 0xFFFF-terminated `OverlayHotspot` run
-/// `func_dryfield_breezeway_8017FCB4` hit-tests the action cursor against. Its
+/// `actionPromptHitTest` hit-tests the action cursor against. Its
 /// entries are the room's interactive props:
 /// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
 /// before the first frame -- both tables', so the key-item prompt above starts
@@ -227,16 +228,13 @@ static void func_dryfield_breezeway_8017E65C(Task* task);
 static void func_dryfield_breezeway_8017E81C(Task* task);
 static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
 static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, DbwVec* arg3, DbwBeamEdge* arg4);
-static void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant);
 static s16  func_dryfield_breezeway_8017FAD0(DbwVec* target, DbwVec* pos);
 static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
 static s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-static s32  func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y);
 static void func_dryfield_breezeway_8017FD68(Task* task);
 static void func_dryfield_breezeway_8017FD9C(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
 static void func_dryfield_breezeway_8017FE90(Task* arg0);
-static void func_dryfield_breezeway_8017FF1C(Task* task);
 static void func_dryfield_breezeway_8018034C(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80181938(Task* task, u8* color);
@@ -463,8 +461,6 @@ extern GpEvsCmd D_dryfield_breezeway_80181E70[];
 extern GpEvsCmd D_dryfield_breezeway_80181F90[];
 
 static void func_dryfield_breezeway_8017DEC0(Task* arg0);
-static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b);
-static void func_dryfield_breezeway_8017F538(Task* task);
 
 /// The one state machine that arms the breezeway, switched on the room task's
 /// `DbwWork.field_C`:
@@ -859,7 +855,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
         return;
     }
     prompt->targetId = 0x80;
-    if (func_dryfield_breezeway_8017FCB4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
         if ((prompt->buttons.slots[0].state == 2) && (hs->id != -1)) {
             do {
@@ -915,7 +911,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
-    if (func_dryfield_breezeway_8017FCB4(hs, work->cursorX, work->cursorY) != 0) {
+    if (actionPromptHitTest(hs, work->cursorX, work->cursorY) != 0) {
         prompt->mode = 2;
         while (hs->id != -1) {
             if (hs->hit != 0) {
@@ -932,63 +928,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     }
 }
 
-/// Outlines `rect` on screen in (`r`, `g`, `b`) with four unconnected flat
-/// `LINE_F2`s -- top, right, bottom and left edge of the rectangle spanning
-/// (`x`, `y`) to (`x + w`, `y + h`) -- each linked into `gGpuCurrentOt[1]`.
-///
-/// Nothing in this room calls it.
-static void func_dryfield_breezeway_8017E948(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// The breezeway's cursor scan, run every frame its key-item event task is on a
 /// state that watches the cursor. `arg1` / `arg2` are the position the scan
@@ -1274,205 +1214,18 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, DbwVec* arg2, D
     arg4->fromB.vy = corner3.vy + arg2->vy;
 }
 
-/// Per-frame cursor driver of the room's action prompt, state 1 of the prompt
-/// task `func_dryfield_breezeway_8017FA80` runs.
-///
-/// `Task::spawnArg1` picks which pad ports take part: 1 drives port 0 only,
-/// 2 port 1 only, anything else both. For each port it integrates the analog
-/// stick (input format 0x12 reads it linearly, 0x73 squares it) and then the
-/// d-pad -- whose four bits select one of eight 1/16-of-a-turn headings fed to
-/// `rsin`/`rcos` -- into the prompt's 1/512-pixel position, clamps that to the
-/// screen, classifies the confirm (0x40) and cancel (0xA0) buttons into the
-/// prompt's two button slots, and hands the rounded position to
-/// `func_dryfield_breezeway_8017F998` to draw the cursor.
-/// `RoomActionPrompt::targetId` acts as the cursor speed here and `field_E` as
-/// the double-press window: a second press inside that many frames without the
-/// cursor having moved reports state 4 instead of 2.
-static void func_dryfield_breezeway_8017F538(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_dryfield_breezeway_8017F998(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues one 16x24 textured quad -- the room's on-screen action prompt icon --
-/// at (`x`, `y`) into the head of the current OT. `variant` selects the palette,
-/// 0x3C87 when it is 2 and 0x3C88 otherwise, and 0 draws nothing at all.
-static void func_dryfield_breezeway_8017F998(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// The room's prompt task, run from `D_dryfield_breezeway_80182DC0`: state 0
-/// resets both action-prompt slots (`func_dryfield_breezeway_8017FF1C`), state
+/// resets both action-prompt slots (`actionPromptReset`), state
 /// 1 drives the cursor every frame after that
-/// (`func_dryfield_breezeway_8017F538`). The handler pair is built on the stack
+/// (`actionPromptMoveCursors`). The handler pair is built on the stack
 /// rather than read from rodata.
 void func_dryfield_breezeway_8017FA80(Task* task)
 {
-    TaskFunc states[2] = { func_dryfield_breezeway_8017FF1C, func_dryfield_breezeway_8017F538 };
+    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
 
     states[task->state](task);
 }
@@ -1547,25 +1300,7 @@ void func_dryfield_breezeway_8017FC38(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Hit-tests the point (`x`, `y`) against the 0xFFFF-terminated hotspot table
-/// `table`, raising `hit` on every entry whose rectangle contains the point and
-/// clearing it on every other one. Returns non-zero if any entry was hit.
-static s32 func_dryfield_breezeway_8017FCB4(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 /// State 1 of the room's key-item event task: arms the action prompt and
 /// resets the caller's kill countdown. It highlights the prompt for the fixed
@@ -1655,26 +1390,7 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
     Task_RequestKill(arg0, 0);
 }
 
-/// Resets both action-prompt slots before a script's first cursor scan and steps
-/// the caller on one state: clears each slot's leading words and its two
-/// trailing shorts, parks the target id at 0x100 with `field_E` at 0xF, and
-/// marks the slot as highlighted (`mode` 1).
-static void func_dryfield_breezeway_8017FF1C(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {

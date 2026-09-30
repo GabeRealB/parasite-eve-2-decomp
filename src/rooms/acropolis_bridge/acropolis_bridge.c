@@ -81,6 +81,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/action_prompt.h"
 
 /// Work block this room's script tasks keep at `Task::work`
 /// (`memCalloc(0x10, 0)` in `func_acropolis_bridge_8017E04C`). `field_4` is
@@ -247,15 +248,12 @@ static void func_acropolis_bridge_8017E1D0(Task* task);
 static void func_acropolis_bridge_8017E3A0(Task* task);
 static void func_acropolis_bridge_8017E4FC(Task* task);
 static void func_acropolis_bridge_8017E81C(void);
-static void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant);
 void        func_acropolis_bridge_8017F2D0(s32 flags);
 static void func_acropolis_bridge_8017F404(Task* task);
 static void func_acropolis_bridge_8017F460(Task* task);
 static void func_acropolis_bridge_8017F4CC(Task* task);
 static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
-static s32  func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y);
-static void func_acropolis_bridge_8017F808(Task* task);
 static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
 static void func_acropolis_bridge_80182F8C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3);
 static void func_acropolis_bridge_801833A0(GfxCoord* arg0, u16 arg1, s16 arg2);
@@ -2478,9 +2476,7 @@ extern u8* D_acropolis_bridge_80191720[];
 
 extern AcropolisBridgeMessageEntry D_acropolis_bridge_80191744[3];
 
-static void            func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b);
 static void            func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy);
-static void            func_acropolis_bridge_8017ED38(Task* task);
 static s16             func_acropolis_bridge_80184024(OverlayWalker* work);
 static void            func_acropolis_bridge_80184208(OverlayWalker* work, SVECTOR3* pos);
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
@@ -2886,7 +2882,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->targetId = 0;
     } else {
         prompt->targetId = 0x80;
-        if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = 2;
             if (prompt->buttons.slots[0].state == 2) {
                 while (hs->id != -1) {
@@ -2969,7 +2965,7 @@ reset:
     work->field_8++;
 
 after:
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -3009,7 +3005,7 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
         work->field_8++;
     }
 
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -3136,60 +3132,7 @@ static void func_acropolis_bridge_8017E81C(void)
     batches[31].hidden = 1;
 }
 
-/// Outlines `rect` in (`r`, `g`, `b`) with four flat `LINE_F2`s - top, right,
-/// bottom and left edge - each linked into `gGpuCurrentOt[1]`.
-static void func_acropolis_bridge_8017E908(RoomRect* rect, u8 r, u8 g, u8 b)
-{
-    LINE_F2* line;
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y;
-    line->x1 = rect->x + rect->w;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x + rect->w;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y + rect->h;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-
-    line           = gGpuPrimCursor;
-    gGpuPrimCursor = line + 1;
-    setLineF2(line);
-    line->x0 = rect->x;
-    line->y0 = rect->y + rect->h;
-    line->x1 = rect->x;
-    line->y1 = rect->y;
-    line->r0 = r;
-    line->g0 = g;
-    line->b0 = b;
-    addPrim(gGpuCurrentOt + 1, line);
-}
+#include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// Slides one of three mutually exclusive bridge sprites in view 9 by
 /// `(dx, dy)` and makes it the visible one. Each state owns three consecutive
@@ -3248,198 +3191,15 @@ static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
     }
 }
 
-/// State 1 of the room's prompt script task: moves the action-prompt cursors
-/// from the pads and draws them.
-///
-/// `Task::spawnArg1` picks the ports: 1 drives port 0 only, 2 port 1 only,
-/// anything else both. Each port's analog stick (input format 0x12 linear, 0x73
-/// squared) and then its d-pad, whose four bits pick one of eight headings,
-/// move the prompt's 1/512-pixel position, which is clamped to the screen. The
-/// confirm (0x40) and cancel (0xA0) buttons are classified into the prompt's
-/// two button slots, a second press within `field_E` frames at an unmoved
-/// cursor reporting state 4 instead of 2. `targetId` is the cursor speed here.
-static void func_acropolis_bridge_8017ED38(Task* task)
-{
-    RoomActionPrompt* prompt;
-    PadState*         pad;
-    s32               port;
-    s32               first;
-    s32               count;
-    s32               inputFormat;
-    s32               stick;
-    s32               step;
-    s32               mask;
-    s32               speed;
-    s32               i;
-    s32               idx;
-    u16*              statep;
-    u16*              heldp;
+#include "../../shared/action_prompt_move_cursors.inc.c"
 
-    switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
-            break;
-        case 2:
-            first = 1;
-            count = 2;
-            break;
-        default:
-            first = 0;
-            count = 2;
-            break;
-    }
-
-    for (port = first; port < count; port++) {
-        prompt      = &D_80114D28[port];
-        pad         = &Pad_States[port];
-        inputFormat = pad->inputFormat;
-        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed            = prompt->targetId;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step             = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
-            }
-            prompt->field_4 += step * prompt->targetId * gDisplayState.frameTicks;
-        }
-
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
-                break;
-            case 3:
-                step = 0x200;
-                break;
-            case 2:
-                step = 0x400;
-                break;
-            case 6:
-                step = 0x600;
-                break;
-            case 4:
-                step = 0x800;
-                break;
-            case 12:
-                step = 0xA00;
-                break;
-            case 8:
-                step = 0xC00;
-                break;
-            case 9:
-                step = 0xE00;
-                break;
-            default:
-                step = -1;
-                break;
-        }
-
-        if (step != -1) {
-            prompt->field_4 += (-rcos(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-            prompt->field_0 += (rsin(step) * prompt->targetId * gDisplayState.frameTicks) >> 9;
-        }
-
-        if (prompt->field_0 < -0x14000) {
-            prompt->field_0 = -0x14000;
-        } else if (prompt->field_0 > 0x13E00) {
-            prompt->field_0 = 0x13E00;
-        }
-        if (prompt->field_4 < -0xDC00) {
-            prompt->field_4 = -0xDC00;
-        } else if (prompt->field_4 > 0xDC00) {
-            prompt->field_4 = 0xDC00;
-        }
-
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? 0x40 : 0xA0;
-            if (Pad_CheckButtons(port, 1, mask) != 0) {
-                if (heldp[idx] < prompt->field_E &&
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos == prompt->screen.packed) {
-                    *statep    = 4;
-                    heldp[idx] = prompt->field_E;
-                } else {
-                    heldp[idx]                                                          = 0;
-                    PARENT_OF(heldp + idx, RoomActionPromptButton, heldFrames)->lastPos = prompt->screen.packed;
-                    *statep                                                             = 2;
-                }
-            } else if (Pad_CheckButtons(port, 3, mask) != 0) {
-                *statep = 3;
-            } else if (Pad_CheckButtons(port, 0, mask) != 0) {
-                *statep = 1;
-            } else {
-                *statep = 0;
-            }
-            heldp[idx] += gDisplayState.frameTicks;
-        }
-
-        prompt->screen.xy.x = prompt->field_0 >> 9;
-        prompt->screen.xy.y = prompt->field_4 >> 9;
-        func_acropolis_bridge_8017F198(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);
-    }
-}
-
-/// Queues the action-prompt cursor, a 16x24 textured quad, at (`x`, `y`) into
-/// the head of the current OT. `variant` is the prompt's mode: 0 draws
-/// nothing, 2 uses clut 0x3C87 and anything else 0x3C88.
-static void func_acropolis_bridge_8017F198(s32 x, s32 y, s32 variant)
-{
-    POLY_FT4* prim;
-    s16       px;
-    s16       py;
-
-    if (variant == 0) {
-        return;
-    }
-
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-
-    px       = x - 2;
-    prim->x2 = px;
-    prim->x0 = px;
-    px       = x + 0xE;
-    prim->x3 = px;
-    prim->x1 = px;
-    py       = y - 2;
-    prim->y1 = py;
-    prim->y0 = py;
-    py       = y + 0x15;
-    prim->y3 = py;
-    prim->y2 = py;
-
-    prim->tpage = 0x1E;
-    if (variant == 2) {
-        prim->clut = 0x3C87;
-    } else {
-        prim->clut = 0x3C88;
-    }
-
-    setUVWH(prim, 0, 0xE8, 0x10, 0x17);
-    setlen(prim, 9);
-    setcode(prim, 0x2D);
-
-    addPrim(gGpuCurrentOt, prim);
-}
+#include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// Two-state dispatcher of the room's prompt script task: state 0 resets the
 /// action prompts, state 1 moves and draws their cursors.
 void func_acropolis_bridge_8017F280(Task* task)
 {
-    TaskFunc states[2] = { func_acropolis_bridge_8017F808, func_acropolis_bridge_8017ED38 };
+    TaskFunc states[2] = { actionPromptReset, actionPromptMoveCursors };
 
     states[task->state](task);
 }
@@ -3588,7 +3348,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->field_4, 0);
-    if (func_acropolis_bridge_8017F6D4(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = 2;
     } else {
         prompt->mode = 1;
@@ -3607,25 +3367,7 @@ static void func_acropolis_bridge_8017F658(Task* task)
     D_80114D08                 = 0xA;
 }
 
-/// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by an
-/// `id` of -1: raises `hit` on every entry whose rectangle contains the point
-/// and clears it on the others, and answers whether any entry was hit.
-static s32 func_acropolis_bridge_8017F6D4(OverlayHotspot* table, s16 x, s16 y)
-{
-    s32 hit;
-
-    hit = 0;
-    while (table->id != -1) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
-        } else {
-            table->hit = 0;
-        }
-        table++;
-    }
-    return hit;
-}
+#include "../../shared/action_prompt_hit_test.inc.c"
 
 /// Nine-state dispatcher of this room's script task: copies the handler table
 /// out of the overlay's rodata onto the stack and tails into the entry named by
@@ -3638,25 +3380,7 @@ void func_acropolis_bridge_8017F788(Task* task)
     states.funcs[task->state](task);
 }
 
-/// State 0 of the prompt script task: resets both action-prompt slots - cursor
-/// cleared, speed 0x100, double-press window 0xF frames, mode 1 - and steps the
-/// task on one state.
-static void func_acropolis_bridge_8017F808(Task* task)
-{
-    RoomActionPrompt* prompt = D_80114D28;
-    s32               i;
-
-    for (i = 0; i < 2; i++, prompt++) {
-        prompt->field_0                     = 0;
-        prompt->field_4                     = 0;
-        prompt->targetId                    = 0x100;
-        prompt->field_E                     = 0xF;
-        prompt->buttons.slots[0].heldFrames = 0;
-        prompt->buttons.slots[1].heldFrames = 0;
-        prompt->mode                        = 1;
-    }
-    task->state = task->state + 1;
-}
+#include "../../shared/action_prompt_reset.inc.c"
 
 /// Per-frame driver for the bridge's ambient effect field, and the room's
 /// message-table owner. On the first frame it publishes
