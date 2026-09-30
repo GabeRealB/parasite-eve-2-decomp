@@ -42,7 +42,7 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
                     break;
                 }
             case 0x30000:
-                hopperCalc_push(arg0, coord, &work->rec_2EC[i], &push);
+                hopperCalcPush(arg0, coord, &work->rec_2EC[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }

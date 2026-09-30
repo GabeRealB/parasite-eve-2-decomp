@@ -35,7 +35,7 @@ void hopperDangleFrame(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);

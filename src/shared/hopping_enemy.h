@@ -115,12 +115,12 @@ s16  hopperJoinAlert(Task* arg0);
 void hopperLurkRiseStart(Task* arg0);
 void hopperDangleState(Task* arg0);
 
-static inline void hopperEnter_state(Task* arg0, s32 state);
-static inline void hopperUpdate_color(void* enemy, GfxCoord* coord);
-static inline void hopperCalc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
-static inline void hopperSet_state(Task* arg0, s32 state);
-static inline s32  hopperTake_request(Task* arg0);
-static inline s32  hopperIs_hit(Task* arg0);
-static inline void hopperSet_state_s16(Task* arg0, s16 state);
+static inline void hopperEnterState(Task* arg0, s32 state);
+static inline void hopperUpdateColor(void* enemy, GfxCoord* coord);
+static inline void hopperCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
+static inline void hopperSetState(Task* arg0, s32 state);
+static inline s32  hopperTakeRequest(Task* arg0);
+static inline s32  hopperIsHit(Task* arg0);
+static inline void hopperSetStateS16(Task* arg0, s16 state);
 
 #endif /* SRC_SHARED_HOPPING_ENEMY_H */

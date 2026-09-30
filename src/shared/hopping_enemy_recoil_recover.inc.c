@@ -17,11 +17,11 @@ void hopperRecoilRecover(Task* arg0)
             work->field_414 = 2;
             return;
         }
-        if (hopperTake_request(arg0) == 0 && hopperIs_hit(arg0)) {
-            hopperSet_state(arg0, 3);
+        if (hopperTakeRequest(arg0) == 0 && hopperIsHit(arg0)) {
+            hopperSetState(arg0, 3);
         }
-    } else if (hopperIs_hit(arg0)) {
+    } else if (hopperIsHit(arg0)) {
         hopperSetAlertHold(arg0, 1);
-        hopperSet_state(arg0, 5);
+        hopperSetState(arg0, 5);
     }
 }

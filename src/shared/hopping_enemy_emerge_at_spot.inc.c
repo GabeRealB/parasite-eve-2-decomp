@@ -55,13 +55,13 @@ void hopperEmergeAtSpot(Task* arg0)
         w2->field_414   = 2;
         switch ((work->field_44C >> 4) & 0xF) {
             case 0:
-                hopperSet_state_s16(arg0, 1);
+                hopperSetStateS16(arg0, 1);
                 break;
             case 1:
-                hopperSet_state_s16(arg0, 4);
+                hopperSetStateS16(arg0, 4);
                 break;
             default:
-                hopperSet_state_s16(arg0, 7);
+                hopperSetStateS16(arg0, 7);
                 break;
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;

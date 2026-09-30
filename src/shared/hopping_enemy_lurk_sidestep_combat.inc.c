@@ -29,7 +29,7 @@ void hopperLurkSidestepToCombat(Task* arg0)
     }
     if (cond) {
         work->field_438 = 0;
-        hopperEnter_state(arg0, 3);
-        hopperSet_state(arg0, 3);
+        hopperEnterState(arg0, 3);
+        hopperSetState(arg0, 3);
     }
 }

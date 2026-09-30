@@ -1,7 +1,7 @@
 /* Part of the library; see hopping_enemy.h. Inline helpers the fragments use. */
 
 /// Moves the task to `state` with a fresh state machine.
-static __inline__ void hopperEnter_state(Task* arg0, s32 state)
+static __inline__ void hopperEnterState(Task* arg0, s32 state)
 {
     Actor341700Work* w = (Actor341700Work*)arg0->work;
 
@@ -13,7 +13,7 @@ static __inline__ void hopperEnter_state(Task* arg0, s32 state)
 /// Colours `enemy` from `coord`'s world position through a 0x10-byte
 /// `VECTOR` taken off the scratch stack. Inlined so each scratch-head access
 /// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void hopperUpdate_color(void* enemy, GfxCoord* coord)
+static __inline__ void hopperUpdateColor(void* enemy, GfxCoord* coord)
 {
     VECTOR* block = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
 
@@ -31,7 +31,7 @@ static __inline__ void hopperUpdate_color(void* enemy, GfxCoord* coord)
 ///
 /// `rec` must stay an inline argument: `integrate.c` expands it with
 /// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void hopperCalc_push(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
+static __inline__ void hopperCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
 {
     SVECTOR   pos;
     VECTOR    d;
@@ -67,7 +67,7 @@ static __inline__ void hopperCalc_push(Task* arg0, GfxCoord* coord, WorldCollisi
 
 /// Moves the state machine to `state` at sub-state 0, reloading the work
 /// block through the task as the original does.
-static __inline__ void hopperSet_state(Task* arg0, s32 state)
+static __inline__ void hopperSetState(Task* arg0, s32 state)
 {
     Actor341700Work* w = (Actor341700Work*)arg0->work;
 
@@ -78,26 +78,26 @@ static __inline__ void hopperSet_state(Task* arg0, s32 state)
 /// Inlined copy of `hopperTakeHitRequest`: while `field_41E` is 1,
 /// consumes the request in `field_448` (1..5 jump to states 6, 7, 8, 7, 9)
 /// and returns 1; otherwise returns 0.
-static __inline__ s32 hopperTake_request(Task* arg0)
+static __inline__ s32 hopperTakeRequest(Task* arg0)
 {
     Actor341700Work* work = (Actor341700Work*)arg0->work;
 
     if (work->field_41E == 1) {
         switch ((s16)(work->field_448 - 1)) {
             case 0:
-                hopperSet_state(arg0, 6);
+                hopperSetState(arg0, 6);
                 break;
             case 1:
-                hopperSet_state(arg0, 7);
+                hopperSetState(arg0, 7);
                 break;
             case 2:
-                hopperSet_state(arg0, 8);
+                hopperSetState(arg0, 8);
                 break;
             case 3:
-                hopperSet_state(arg0, 7);
+                hopperSetState(arg0, 7);
                 break;
             case 4:
-                hopperSet_state(arg0, 9);
+                hopperSetState(arg0, 9);
                 break;
         }
         work->field_448 = 0;
@@ -106,7 +106,7 @@ static __inline__ s32 hopperTake_request(Task* arg0)
     return 0;
 }
 
-static __inline__ s32 hopperIs_hit(Task* arg0)
+static __inline__ s32 hopperIsHit(Task* arg0)
 {
     Actor341700Work* w = (Actor341700Work*)arg0->work;
 
@@ -116,11 +116,11 @@ static __inline__ s32 hopperIs_hit(Task* arg0)
     return 0;
 }
 
-/// `hopperSet_state` with an `s16` state. The narrower parameter is load-bearing:
+/// `hopperSetState` with an `s16` state. The narrower parameter is load-bearing:
 /// with the `s32` one, `hopperEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
-static __inline__ void hopperSet_state_s16(Task* arg0, s16 state)
+static __inline__ void hopperSetStateS16(Task* arg0, s16 state)
 {
     Actor341700Work* w = (Actor341700Work*)arg0->work;
 

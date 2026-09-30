@@ -860,7 +860,7 @@ static __inline__ s16 take_hit(Task* arg0)
     if ((work->field_44C & 0xF) == 2) {
         if (work->field_438 == 0) {
             work->field_44C = 0;
-            hopperEnter_state(arg0, 3);
+            hopperEnterState(arg0, 3);
             w2            = (Actor341700Work*)arg0->work;
             w2->field_420 = 10;
             w2->field_422 = 0;
@@ -868,7 +868,7 @@ static __inline__ s16 take_hit(Task* arg0)
         }
     } else if ((work->field_44C & 0xF) == 3) {
         work->field_44C = 0;
-        hopperEnter_state(arg0, 7);
+        hopperEnterState(arg0, 7);
         return 1;
     }
     return 0;
@@ -947,18 +947,18 @@ static void func_actor_342400_801640B0(Task* arg0)
                 work->field_44A--;
             }
             if (work->field_41E != 0 && work->field_448 == 4 && enemy->hp <= 0) {
-                hopperEnter_state(arg0, work->field_448);
+                hopperEnterState(arg0, work->field_448);
             }
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                hopperEnter_state(arg0, 4);
+                hopperEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                hopperEnter_state(arg0, 8);
+                hopperEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                hopperEnter_state(arg0, 9);
+                hopperEnterState(arg0, 9);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
@@ -1022,7 +1022,7 @@ static void func_actor_342400_80165FC0(Task* arg0)
             sp.funcs[(s16)work->field_420](arg0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
                 hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1078,18 +1078,18 @@ static void func_actor_342400_8016666C(Task* arg0)
             update_rotation(arg0);
             hopperApplyContacts(arg0, 0);
             if (work->field_438 == 0 && enemy->hp <= 0) {
-                hopperEnter_state(arg0, 4);
+                hopperEnterState(arg0, 4);
             } else if (work->field_44C == 4 && work->field_438 == 0) {
-                hopperEnter_state(arg0, 8);
+                hopperEnterState(arg0, 8);
             } else if (work->field_44C == 5 && work->field_438 == 0) {
-                hopperEnter_state(arg0, 9);
-            } else if (hopperTake_request(arg0)) {
+                hopperEnterState(arg0, 9);
+            } else if (hopperTakeRequest(arg0)) {
                 work->field_438 = 0;
-                hopperEnter_state(arg0, 3);
+                hopperEnterState(arg0, 3);
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
             hopperDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
@@ -1229,7 +1229,7 @@ static void func_actor_342400_801670C0(Task* arg0)
             hopperApplyContacts(arg0, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
                 hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1239,7 +1239,7 @@ static void func_actor_342400_801670C0(Task* arg0)
     }
 }
 
-/// `hopperSet_state_s16` with an `s16` state. The narrower parameter is load-bearing:
+/// `hopperSetStateS16` with an `s16` state. The narrower parameter is load-bearing:
 /// with the `s32` one, `hopperEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
@@ -1302,7 +1302,7 @@ static void func_actor_342400_80168F14(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
                 hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1335,7 +1335,7 @@ static void func_actor_342400_801690FC(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case 1:
-            hopperUpdate_color(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
+            hopperUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->field_451 == 0) {
                 hopperDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
                 hopperDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
@@ -1363,8 +1363,8 @@ static void func_actor_342400_80169408(Task* arg0)
 s16 hopperJoinAlert(Task* arg0)
 {
     if ((s8)Gp_StateF0.field_1F & 0x80) {
-        hopperEnter_state(arg0, 3);
-        hopperSet_state_s16(arg0, 5);
+        hopperEnterState(arg0, 3);
+        hopperSetStateS16(arg0, 5);
         return 1;
     }
     return 0;

@@ -32,7 +32,7 @@ void hopperPulledIn(Task* arg0)
     Gp_UnlinkObj(&objs->obj_2AC);
     Gp_UnlinkObj(&objs->obj_2CC);
     Gp_UnlinkObj(&objs->obj_3AC);
-    hopperEnter_state(arg0, 5);
+    hopperEnterState(arg0, 5);
     Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
     tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
