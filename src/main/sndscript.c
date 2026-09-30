@@ -223,14 +223,17 @@ enum {
 
 static volatile u8 D_80082138[0x10];
 
-/// The loaded sound banks: one record per bank, at the slot its bank type maps
-/// to.
+/// Stable sound-script bank slots owning images and borrowing sample descriptors.
 ///
-/// A record is filled in by whichever load path brought the bank in — a
-/// resident bank from the bank-init table when the sound system starts, a
-/// streamed one as its load completes — and released through
-/// `SndBankSlot_Free`, which returns the image to the sound heap and marks the
-/// record free.
+/// Slot indices are 0..15. Bank types select them through `Snd_BankSlotsByType`,
+/// with type 4 using successive slots 4..6. Boot reserves image buffers for
+/// types 2 and 14; completed script loads transfer their sound-heap images here.
+/// MIDI sequence images are held separately.
+///
+/// Lookup reads the attached descriptor's id. Image release clears `image` and
+/// sets the cached `bankId` to -1, retaining the descriptor and SPU origin.
+/// Slot addresses remain stable across release and reload; borrowed image and
+/// table pointers require their contents to remain loaded until their last use.
 static SndBankSlot _gSndBankSlots[16];
 
 static SndScript SndScript_Slots[8];
@@ -1722,6 +1725,7 @@ static void SndVoice_Init(void)
 {
     u32  i;
     s32* ptr;
+    s32* bankSlotWords;
 
     ptr = (s32*)SndScript_Slots;
     i   = 0;
@@ -1731,13 +1735,14 @@ static void SndVoice_Init(void)
         ptr++;
     } while (i < 0xC0U);
 
-    ptr = (s32*)_gSndBankSlots;
-    i   = 0;
+    // Reset image ownership and descriptor references before boot reservations.
+    bankSlotWords = (s32*)_gSndBankSlots;
+    i             = 0;
     do {
-        *ptr = 0;
+        *bankSlotWords = 0;
         i++;
-        ptr++;
-    } while (i < sizeof(_gSndBankSlots) / sizeof(*ptr));
+        bankSlotWords++;
+    } while (i < sizeof(_gSndBankSlots) / sizeof(*bankSlotWords));
 
     ptr = (s32*)SndScript_Voices;
     i   = 0;
