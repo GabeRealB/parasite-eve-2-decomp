@@ -7,11 +7,10 @@
 #include "common.h"
 
 #include "gameplay/geometry.h"
+#include "gameplay/world_collision_types.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
-
-struct _GpObjDirRec;
 
 /// One body an actor puts on the world's object lists: a sphere of `radius`
 /// whose centre is `pos`, a local offset under `coord`, and which the contacts
@@ -20,24 +19,24 @@ struct _GpObjDirRec;
 /// `flags` bits 0-2 select what `ctx` points at, which is how the collision
 /// passes reach the `WorldCollisionContact` table recording that body's contacts: 0 nothing,
 /// 1 the table itself, 2 a node whose own table is used, 3 the `GpActorD4Rec`
-/// shape the body carries, 4 a `GpObjDirRec`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
+/// shape the body carries, 4 a `WorldCollisionMotionContext`. Bit 3 marks a node sitting on a `Gp_ObjLists` list, bit
 /// 0x800 makes the contacts it produces name the node instead of a direction,
 /// and bits 0x4000 and 0x8000 enable the grid and pair passes, which skip a
 /// node whose bit is clear.
 typedef struct _GpObj {
-    struct _GpObj*  next;             // next on the list
-    struct _GpObj** prev;             // address of the preceding next link
-    GfxCoord*       coord;            // transform `pos` is an offset under
+    struct _GpObj*  next;                   // next on the list
+    struct _GpObj** prev;                   // address of the preceding next link
+    GfxCoord*       coord;                  // transform `pos` is an offset under
     union {
-        WorldCollisionContact* recs;  // kind 1: the body's own contact table
-        struct _GpObj*         node;  // kind 2: the node whose table is used
-        GpActorD4Rec*          d4rec; // kind 3: the shape the body carries
-        struct _GpObjDirRec*   dir;   // kind 4: the record whose `field_8` table is used
-    } ctx;                            // the body's collision context; see the kind bits
-    SVECTOR pos;                      // centre, in the `coord` frame
-    s32     key;                      // identity in the contact records: class << 16 | id
-    u16     radius;                   // collision radius
-    u16     flags;                    // kind, list membership and pass enables; see above
+        WorldCollisionContact*       recs;  // kind 1: the body's own contact table
+        struct _GpObj*               node;  // kind 2: the node whose table is used
+        GpActorD4Rec*                d4rec; // kind 3: the shape the body carries
+        WorldCollisionMotionContext* dir;   // kind 4: motion direction and contact table
+    } ctx;                                  // the body's collision context; see the kind bits
+    SVECTOR pos;                            // centre, in the `coord` frame
+    s32     key;                            // identity in the contact records: class << 16 | id
+    u16     radius;                         // collision radius
+    u16     flags;                          // kind, list membership and pass enables; see above
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 

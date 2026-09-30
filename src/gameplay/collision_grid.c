@@ -93,7 +93,7 @@ STATIC_ASSERT_SIZEOF(GpFaceHitScratch, 0x80);
 
 /// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C` and
 /// `func_800DE150`. `src[0]` / `src[1]` are the local XZ endpoints of
-/// `GpObj.pos` offset by `ctx.dir->dir` (as an SVECTOR) scaled by
+/// `GpObj.pos` offset by `ctx.dir->motionDirection` scaled by
 /// `radius >> 12` (`func_800DDC2C`), or by the two `SVECTOR`s `ctx.d4rec`
 /// leads with (`func_800DE150`, which passes 1 to `func_800DE2C0`). `mat`
 /// is `gGfxViewCoord.workm * coord->workm`. `pos` holds the rotated endpoints
@@ -204,7 +204,7 @@ void func_800DD940(GpObj* arg0)
         if (D_80115450[i] &&
             Gp_GridParams->field_4[Gp_GridParams->field_C[i].normalIndex].vy < -0xDDA &&
             func_800DD324(i, block->seg, block->ray, arg0)) {
-            slot  = arg0->ctx.dir->field_8;
+            slot  = arg0->ctx.dir->contacts;
             flags = slot->flags;
             if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 if ((u32)(slot->key.value & 0xF) < (u32)Gp_GridParams->field_C[i].surfaceClass) {
@@ -233,18 +233,18 @@ static void func_800DDC2C(GpObj* arg0)
 {
     s32            i;
     GpEdgeScratch* block;
-    SVECTOR*       dir;
+    SVECTOR*       motionDirection;
     MATRIX*        mat;
 
-    dir              = &arg0->ctx.dir->dir;
+    motionDirection  = &arg0->ctx.dir->motionDirection;
     block            = SCRATCH_PUSH(GpEdgeScratch);
     mat              = &block->mat;
-    block->src[0].vx = (u16)arg0->pos.vx + ((dir->vx * (u16)arg0->radius) >> 12);
+    block->src[0].vx = (u16)arg0->pos.vx + ((motionDirection->vx * (u16)arg0->radius) >> 12);
     block->src[0].vy = 0;
-    block->src[0].vz = (u16)arg0->pos.vz + ((dir->vz * (u16)arg0->radius) >> 12);
-    block->src[1].vx = (u16)arg0->pos.vx + (-(dir->vx * (u16)arg0->radius) >> 12);
+    block->src[0].vz = (u16)arg0->pos.vz + ((motionDirection->vz * (u16)arg0->radius) >> 12);
+    block->src[1].vx = (u16)arg0->pos.vx + (-(motionDirection->vx * (u16)arg0->radius) >> 12);
     block->src[1].vy = 0;
-    block->src[1].vz = (u16)arg0->pos.vz + (-(dir->vz * (u16)arg0->radius) >> 12);
+    block->src[1].vz = (u16)arg0->pos.vz + (-(motionDirection->vz * (u16)arg0->radius) >> 12);
     Gp_WorldToLocal(&gGfxViewCoord.workm, &arg0->coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {

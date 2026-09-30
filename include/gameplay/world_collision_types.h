@@ -56,4 +56,20 @@ typedef struct {
 } WorldCollisionContact;
 STATIC_ASSERT_SIZEOF(WorldCollisionContact, 0x18);
 
+/// Motion direction and contact storage for a kind-4 spherical collision body.
+///
+/// The direction uses the body's cached transform's composition space, with
+/// 4096 representing one unit. It is the forward axis times the movement sign
+/// (zero when stopped), or the normalized push-back direction. Grid passes use
+/// it to filter surfaces and select the floor-query footprint.
+///
+/// The body borrows this context and an initialized contact table whose final
+/// entry has `WORLD_COLLISION_CONTACT_LAST` set. Multiple bodies can share the
+/// table. The owner keeps both alive until the bodies are unlinked.
+typedef struct {
+    SVECTOR                motionDirection; // Movement or push-back heading; 4096 per unit
+    WorldCollisionContact* contacts;        // Borrowed table, terminated by the final-entry flag
+} WorldCollisionMotionContext;
+STATIC_ASSERT_SIZEOF(WorldCollisionMotionContext, 0xC);
+
 #endif // GAMEPLAY_WORLD_COLLISION_TYPES_H

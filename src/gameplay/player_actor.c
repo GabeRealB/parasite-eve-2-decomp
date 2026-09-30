@@ -358,8 +358,8 @@ static void func_800FCD00(Task* arg0);
 static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3);
 
 /// Puts `obj`, one of the player's bodies, on the object list: a sphere of
-/// `radius` at `(x, y, z)` under `coord`, taking its direction from the actor's
-/// `i`th direction record, whose contacts go to `recs`, and keyed by the saved
+/// `radius` at `(x, y, z)` under `coord`, using the actor's `i`th motion context
+/// with contacts stored in `recs`, and keyed by the saved
 /// game's character.
 static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags);
@@ -4464,15 +4464,15 @@ static void Gp_DrawEffSpriteE2(GfxCoord* arg0, u16 arg1, u32 arg2, s16 arg3)
 static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, GpObj* obj, GfxCoord* coord, WorldCollisionContact* recs, s16 x, s16 y,
                                     s16 z, u16 radius, u16 flags)
 {
-    obj->ctx.dir               = &actor->field_88[i];
-    obj->coord                 = coord;
-    actor->field_88[i].field_8 = recs;
-    obj->pos.vx                = x;
-    obj->pos.vy                = y;
-    obj->pos.vz                = z;
-    obj->key                   = Mc_SaveData[0].state.characterId | 0x10000;
-    obj->radius                = radius;
-    obj->flags                 = flags;
+    obj->ctx.dir                = &actor->field_88[i];
+    obj->coord                  = coord;
+    actor->field_88[i].contacts = recs;
+    obj->pos.vx                 = x;
+    obj->pos.vy                 = y;
+    obj->pos.vz                 = z;
+    obj->key                    = Mc_SaveData[0].state.characterId | 0x10000;
+    obj->radius                 = radius;
+    obj->flags                  = flags;
     Gp_LinkObj(0, obj);
 }
 
@@ -4511,7 +4511,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     recs = actor->field_17C;
     obj  = (GpObj*)actor->field_AC;
     _gpLinkPlayerObj(actor, 0, obj, coord, recs, 0, -0x12C, 0, 0x12C, 4);
-    Gp_InitRec18Table(actor->field_88[0].field_8, 0x12, 0);
+    Gp_InitRec18Table(actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), 0);
     obj->flags |= 0xF200;
 
     obj = (GpObj*)actor->field_CC;
@@ -4566,7 +4566,7 @@ static void Gp_PlayerWorkState1(Task* arg0)
         actor->field_14 = coord->coord.t[1];
         actor->field_18 = coord->coord.t[2];
         if (actor->field_984 & 1) {
-            actor->field_992 = func_801011D0(coord, actor->field_88[0].field_8, 0x12, &actor->field_930);
+            actor->field_992 = func_801011D0(coord, actor->field_88[0].contacts, ARRAY_SIZE(actor->field_17C), &actor->field_930);
         } else {
             actor->field_992 = 0;
         }
@@ -4816,16 +4816,16 @@ void Gp_UpdatePlayerMove(void)
         vec->vy = coord->workm.m[1][2] * actor->field_973;
         vec->vz = coord->workm.m[2][2] * actor->field_973;
     }
-    task                      = actor->field_91C;
-    actor->field_88[0].dir.vx = vec->vx;
-    actor->field_88[0].dir.vy = vec->vy;
-    actor->field_88[0].dir.vz = vec->vz;
-    actor->field_88[1].dir.vx = vec->vx;
-    actor->field_88[1].dir.vy = vec->vy;
-    actor->field_88[1].dir.vz = vec->vz;
-    actor->field_88[2].dir.vx = vec->vx;
-    actor->field_88[2].dir.vy = vec->vy;
-    actor->field_88[2].dir.vz = vec->vz;
+    task                                  = actor->field_91C;
+    actor->field_88[0].motionDirection.vx = vec->vx;
+    actor->field_88[0].motionDirection.vy = vec->vy;
+    actor->field_88[0].motionDirection.vz = vec->vz;
+    actor->field_88[1].motionDirection.vx = vec->vx;
+    actor->field_88[1].motionDirection.vy = vec->vy;
+    actor->field_88[1].motionDirection.vz = vec->vz;
+    actor->field_88[2].motionDirection.vx = vec->vx;
+    actor->field_88[2].motionDirection.vy = vec->vy;
+    actor->field_88[2].motionDirection.vz = vec->vz;
     if (task != NULL) {
         actor->field_3D4 = *task->extra.tmd->coords;
         mat              = &actor->field_3D4.workm;

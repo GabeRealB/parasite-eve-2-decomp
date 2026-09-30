@@ -177,7 +177,7 @@ static inline WorldCollisionContact* _worldCollisionGetObjectContacts(GpObj* obj
             recs = obj->ctx.d4rec->recs;
             break;
         case 4:
-            recs = obj->ctx.dir->field_8;
+            recs = obj->ctx.dir->contacts;
             break;
     }
     return recs;
@@ -649,30 +649,30 @@ done:
 
 void Gp_CollideObjGridDir(GpObj* arg0)
 {
-    u8*                    head;
-    GpGridHitScratch*      block;
-    VECTOR3*               pos;
-    GpGridFace*            face;
-    WorldCollisionContact* slot;
-    GpObjDirRec*           rec;
-    s16*                   cell;
-    s32                    id;
-    s32                    i;
-    s32                    n;
-    s32                    outside;
-    s32                    val;
-    s32                    faceDot;
-    s32                    edgeDot;
-    u16                    dist;
-    s32                    extra;
-    s32                    faceKind;
-    u16                    flags;
+    u8*                          head;
+    GpGridHitScratch*            block;
+    VECTOR3*                     pos;
+    GpGridFace*                  face;
+    WorldCollisionContact*       slot;
+    WorldCollisionMotionContext* motionContext;
+    s16*                         cell;
+    s32                          id;
+    s32                          i;
+    s32                          n;
+    s32                          outside;
+    s32                          val;
+    s32                          faceDot;
+    s32                          edgeDot;
+    u16                          dist;
+    s32                          extra;
+    s32                          faceKind;
+    u16                          flags;
 
     head               = SCRATCH_HEAD(u8);
     pos                = (VECTOR3*)(head - 0x80);
     SCRATCH_HEAD(void) = head - 0x88;
     block              = (GpGridHitScratch*)(head - 0x88);
-    rec                = arg0->ctx.dir;
+    motionContext      = arg0->ctx.dir;
     Gp_ObjWorldPos(arg0, pos);
     Gp_LocalToGrid(pos, &block->grid);
 
@@ -706,8 +706,8 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 gte_rtv0();
                 gte_stlvnl(&block->normal);
 
-                if (rec->dir.vx * block->normal.vx + rec->dir.vy * block->normal.vy +
-                        rec->dir.vz * block->normal.vz >
+                if (motionContext->motionDirection.vx * block->normal.vx + motionContext->motionDirection.vy * block->normal.vy +
+                        motionContext->motionDirection.vz * block->normal.vz >
                     0x280000) {
                     cell++;
                     continue;
@@ -780,7 +780,7 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                     continue;
                 }
 
-                slot = arg0->ctx.dir->field_8;
+                slot = arg0->ctx.dir->contacts;
                 for (;;) {
                     flags = slot->flags;
                     if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
