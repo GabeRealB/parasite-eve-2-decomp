@@ -228,21 +228,32 @@ void taskNoopCallback(Task* unusedTask)
 {
 }
 
-/// Kerning between two adjacent glyphs: unless the previous glyph's trailing
-/// byte (`prev`, its rightKerningClass) and the next glyph's leftKerningClass
-/// sum to -1..1 as a byte, the pen position `x` is pulled in by one pixel when
-/// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL` and by two otherwise. The string
-/// drawer applies that test to the request's selector, which an inline face
-/// command does not update.
-#define TEXT_APPLY_KERNING(x, prev, glyph, req)                  \
-    do {                                                         \
-        if ((u8)((prev) + (glyph)->leftKerningClass + 1) >= 3) { \
-            if ((req)->glyphTable == TEXT_GLYPH_TABLE_SMALL) {   \
-                (x) -= 1;                                        \
-            } else {                                             \
-                (x) -= 2;                                        \
-            }                                                    \
-        }                                                        \
+/// Tightens the horizontal pixel lvalue `x` by the pair-kerning gap before `glyph`.
+///
+/// `previousRightClass` is the previous glyph's right-edge class, one of
+/// `FONT_KERNING_CLASS_*`, or neutral when no glyph precedes this one.
+/// `glyph` points at the next `_FontGlyph`; only `leftKerningClass` is read.
+/// `request` points at the `TextDrawReq`; only `glyphTable` is read. Each
+/// argument is evaluated once. `x` must be a modifiable lvalue in
+/// draw-environment pixels. The replacement is a statement and captures nothing.
+///
+/// The class bytes are 0, 1 and 255. The gap tightens when the low 8 bits of
+/// `previousRightClass + leftKerningClass + 1` are at least 3, which for these
+/// bytes is exactly an equal non-neutral pair (1 with 1, or 255 with 255).
+/// Read as signed codes +1 and -1, those pairs sum to +2 and -2; every other
+/// pair sums to -1, 0 or 1 and keeps its spacing. `TEXT_GLYPH_TABLE_SMALL`
+/// pulls `x` in by one pixel, and every other `glyphTable` value pulls it in
+/// by two. The count follows `glyphTable`, not the metrics table that
+/// produced `glyph`.
+#define TEXT_APPLY_KERNING(x, previousRightClass, glyph, request)              \
+    do {                                                                       \
+        if ((u8)((previousRightClass) + (glyph)->leftKerningClass + 1) >= 3) { \
+            if ((request)->glyphTable == TEXT_GLYPH_TABLE_SMALL) {             \
+                (x) -= 1;                                                      \
+            } else {                                                           \
+                (x) -= 2;                                                      \
+            }                                                                  \
+        }                                                                      \
     } while (0)
 
 static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table)
