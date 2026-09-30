@@ -45,7 +45,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
@@ -53,9 +54,7 @@
 #define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
 #define D_dryfield_saloon_g_r_8017ED6C (D_dryfield_saloon_g_r_8017ECE4[17])
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -725,12 +724,7 @@ GpRoomParamRec* D_dryfield_saloon_g_r_80181BBC[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    32,
-    1,
-    0,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 32, 1, 0 } };
 
 RoomEventReq gRoomEventReq;
 

@@ -81,6 +81,26 @@ typedef struct {
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
 
+/// A room's `gRoomDeparture` when that symbol is sixteen bytes.
+///
+/// `departure` is the record the departure task reads. The four bytes after
+/// it are zero in both rooms with this extent. Their role is unproven.
+typedef struct {
+    RoomDeparture departure;  // Departure the handler staged for the task
+    u8            unknown[4]; // Role unproven; zero, with no recovered access
+} RoomDepartureStorage;
+STATIC_ASSERT_SIZEOF(RoomDepartureStorage, 0x10);
+
+/// A room's `gRoomEventLatched` when that symbol is sixteen bytes.
+///
+/// `event` is the record the staged event task reads. The four bytes after
+/// it are zero wherever this extent occurs. Their role is unproven.
+typedef struct {
+    RoomLatchedEvent event;      // Event the staged task runs
+    u8               unknown[4]; // Role unproven; zero, with no recovered access
+} RoomLatchedEventStorage;
+STATIC_ASSERT_SIZEOF(RoomLatchedEventStorage, 0x10);
+
 /// The scratchpad block a mirror task takes while it rebuilds the reflected
 /// coordinate frame in its `RoomMirrorWork`. A floor mirror only needs
 /// `viewRow`, the view matrix's second row, which it negates through the GTE.

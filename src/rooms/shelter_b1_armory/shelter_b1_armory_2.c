@@ -33,7 +33,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
 #define D_shelter_b1_armory_80182538 (D_shelter_b1_armory_80182528 + 2)
@@ -534,12 +535,7 @@ ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    237,
-    62,
-    46,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 237, 62, 46 } };
 
 RoomEventReq gRoomEventReq;
 

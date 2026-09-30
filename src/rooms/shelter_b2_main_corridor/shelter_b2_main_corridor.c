@@ -67,8 +67,10 @@
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
-#define ROOM_DEPARTURE     gRoomDeparture.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
+// The departure symbol carries four unproven bytes after the record.
+#define ROOM_DEPARTURE gRoomDeparture.departure
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
@@ -98,28 +100,10 @@ extern RoomEventMsg gRoomEventStagedMsg;
 
 /// A second copy of the staged event block, taken whole once the block has been
 /// passed through `roomVariantResolveNeoArk`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomDeparture value;
-    u8            retained[4];
-} ShelterB2MainCorridorStorage9664;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9664, 16);
-
-extern ShelterB2MainCorridorStorage9664 gRoomDeparture;
+extern RoomDepartureStorage gRoomDeparture;
 
 /// The exit being taken, read by the exit task.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} ShelterB2MainCorridorStorage9674;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9674, 16);
-
-extern ShelterB2MainCorridorStorage9674 gRoomEventLatched;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The staged event block, read by the task spawned from
 /// `D_shelter_b2_main_corridor_80182C44`.
@@ -1594,9 +1578,9 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
 
 u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
-ShelterB2MainCorridorStorage9664 gRoomDeparture = { 0 };
+RoomDepartureStorage gRoomDeparture = { 0 };
 
-ShelterB2MainCorridorStorage9674 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
@@ -1674,7 +1658,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
             return 2;
         }
         gRoomEventStagedMsg     = *out;
-        gRoomEventLatched.value = staged;
+        gRoomEventLatched.event = staged;
         if (p->flagId != 0) {
             GameFlag_SetNibble(p->flagId, 1);
         }
@@ -1809,7 +1793,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             D_shelter_b2_main_corridor_80189684.area = param.areaId;
             D_shelter_b2_main_corridor_80189684.warp = param.warp;
             D_shelter_b2_main_corridor_80189684.room = param.room;
-            gRoomDeparture.value                     = D_shelter_b2_main_corridor_80189684;
+            gRoomDeparture.departure                 = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
             taskKill(arg0);
             break;

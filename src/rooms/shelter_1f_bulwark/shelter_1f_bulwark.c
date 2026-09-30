@@ -58,6 +58,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+// This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"

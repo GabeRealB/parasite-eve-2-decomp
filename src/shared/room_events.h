@@ -23,11 +23,28 @@
  *   RoomFadeStorage   gRoomEventFade      the staged task's fade record (`fade`)
  *   RoomDeparture     gRoomDeparture      the departure the handler staged
  *
- * Some rooms keep the flag, the request, the latched event, the departure or
- * the fade inside a larger object, or the fade on its own. The code reaches
- * those five through the macros below, which name the plain objects; such a
- * room defines the one it needs before including this header, naming where
- * the value sits.
+ * Some rooms' copies of the flag, the request, the latched event or the
+ * departure occupy more bytes than that record, and two rooms keep the fade
+ * as a bare `ScreenFade`. The shared code reaches the five records through
+ * the bindings below. A room whose symbol is the wider object, or whose fade
+ * is the bare record, defines the binding before including this header.
+ *
+ *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
+ *                       itself. `RoomEventActiveBytes` and
+ *                       `RoomEventActiveStorage` rooms bind `.raised`.
+ *   ROOM_EVENT_REQ      lvalue `RoomEventReq`. Default `gRoomEventReq`.
+ *                       `RoomEventReqStorage` rooms bind `.request`.
+ *   ROOM_EVENT_LATCHED  lvalue `RoomLatchedEvent`. Default `gRoomEventLatched`.
+ *                       `RoomLatchedEventStorage` rooms bind `.event`.
+ *   ROOM_DEPARTURE      lvalue `RoomDeparture`. Default `gRoomDeparture`.
+ *                       `RoomDepartureStorage` rooms bind `.departure`.
+ *   ROOM_EVENT_FADE     lvalue `ScreenFade`. Default `gRoomEventFade.fade`,
+ *                       the record inside `RoomFadeStorage`. A room whose
+ *                       symbol is the `ScreenFade` itself binds `gRoomEventFade`.
+ *
+ * Each binding names an object the room defines. The wider objects are
+ * `RoomEventActiveBytes`, `RoomEventActiveStorage`, `RoomEventReqStorage`,
+ * `RoomLatchedEventStorage` and `RoomDepartureStorage`.
  */
 
 #ifndef SRC_SHARED_ROOM_EVENTS_H
@@ -39,18 +56,23 @@
 #include "rooms/room_common.h"
 
 #ifndef ROOM_EVENT_ACTIVE
+/// Raised while the gate's event runs. The room's `gRoomEventActive` when that symbol is the byte.
 #define ROOM_EVENT_ACTIVE gRoomEventActive
 #endif
 #ifndef ROOM_EVENT_REQ
+/// Request the gate latched. The room's `gRoomEventReq` when that symbol is the request itself.
 #define ROOM_EVENT_REQ gRoomEventReq
 #endif
 #ifndef ROOM_EVENT_LATCHED
+/// Event the staged task runs. The room's `gRoomEventLatched` when that symbol is the event itself.
 #define ROOM_EVENT_LATCHED gRoomEventLatched
 #endif
 #ifndef ROOM_DEPARTURE
+/// Departure the handler staged. The room's `gRoomDeparture` when that symbol is the departure itself.
 #define ROOM_DEPARTURE gRoomDeparture
 #endif
 #ifndef ROOM_EVENT_FADE
+/// Fade record passed to task 0x31. The `fade` member of the room's `RoomFadeStorage gRoomEventFade`.
 #define ROOM_EVENT_FADE gRoomEventFade.fade
 #endif
 

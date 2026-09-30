@@ -52,8 +52,10 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+// This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
-#define ROOM_DEPARTURE  gRoomDeparture.value
+// The departure symbol carries four unproven bytes after the record.
+#define ROOM_DEPARTURE gRoomDeparture.departure
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
@@ -74,20 +76,11 @@ extern SVECTOR    D_shelter_1f_parking_garage_80180C4C[];
 /// Offsets from the parent coordinate of the two trail heads the smoke-trail
 /// task follows. The second is also reached under its own name.
 
-extern ScreenFade   gRoomEventFade;
-extern ScreenFade   D_shelter_1f_parking_garage_80181978;
-extern RoomEventMsg gRoomEventStagedMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomDeparture value;
-    u8            retained[4];
-} Shelter1fParkingGarageStorage1988;
-STATIC_ASSERT_SIZEOF(Shelter1fParkingGarageStorage1988, 16);
-
-extern Shelter1fParkingGarageStorage1988 gRoomDeparture;
-extern RoomLatchedEvent                  gRoomEventLatched;
+extern ScreenFade           gRoomEventFade;
+extern ScreenFade           D_shelter_1f_parking_garage_80181978;
+extern RoomEventMsg         gRoomEventStagedMsg;
+extern RoomDepartureStorage gRoomDeparture;
+extern RoomLatchedEvent     gRoomEventLatched;
 
 static void func_shelter_1f_parking_garage_8017DE9C(Task* task);
 static void func_shelter_1f_parking_garage_8017DF04(Task* task);
@@ -366,7 +359,7 @@ u8 D_shelter_1f_parking_garage_80181984[4] = {
     75,
 };
 
-Shelter1fParkingGarageStorage1988 gRoomDeparture;
+RoomDepartureStorage gRoomDeparture;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -402,7 +395,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
 
 /// Task body that holds `Gp_StateF0.field_4` set while the caption plays. On caption
 /// key 0xB it spawns the 0x31 task and, 30 frames later, advances flag nibble
-/// 0x4B from 9 to 0xA, publishes `gRoomDeparture.value` and
+/// 0x4B from 9 to 0xA, publishes `gRoomDeparture.departure` and
 /// spawns entry 0 of `D_shelter_1f_parking_garage_80180BA0`. Any other key
 /// clears `Gp_StateF0.field_4`, restores the weapon and ends the task.
 void func_shelter_1f_parking_garage_8017DAF0(Task* task)
@@ -452,10 +445,10 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
                 msg.room      = p->room;
                 msg.queryOnly = ROOM_EVENT_EXECUTE;
                 handler(&msg, &msg);
-                p->area              = msg.areaId;
-                p->warp              = msg.warp;
-                p->room              = msg.room;
-                gRoomDeparture.value = rec;
+                p->area                  = msg.areaId;
+                p->warp                  = msg.warp;
+                p->room                  = msg.room;
+                gRoomDeparture.departure = rec;
                 Task_SpawnFromTable(&D_shelter_1f_parking_garage_80180BA0, 0, 0, 0);
                 taskKill(task);
             }

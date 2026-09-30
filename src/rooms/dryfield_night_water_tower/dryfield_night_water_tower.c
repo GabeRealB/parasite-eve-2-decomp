@@ -22,12 +22,11 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The event the room's gate `roomEventGate`
 /// latched: the incoming message and the request, kept for the event task it
@@ -38,12 +37,7 @@ extern RoomEventReq gRoomEventReq;
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    1,
-    238,
-    253,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 1, 238, 253 } };
 
 RoomEventReq gRoomEventReq = { 0 };
 
@@ -81,7 +75,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
         return ret;

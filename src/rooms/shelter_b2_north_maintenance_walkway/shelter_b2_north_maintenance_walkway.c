@@ -46,7 +46,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
@@ -74,16 +75,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63B0, 8);
 
 extern ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenance_walkway_801863B0;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} ShelterB2NorthMaintenanceWalkwayStorage63C4;
-STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63C4, 16);
-
-extern ShelterB2NorthMaintenanceWalkwayStorage63C4 gRoomEventLatched;
+extern RoomLatchedEventStorage                     gRoomEventLatched;
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -711,7 +703,7 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-ShelterB2NorthMaintenanceWalkwayStorage63C4 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
@@ -735,7 +727,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg     = *dst;
-            gRoomEventLatched.value = *event;
+            gRoomEventLatched.event = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

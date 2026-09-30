@@ -62,8 +62,10 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive.value
-#define ROOM_EVENT_REQ    gRoomEventReq.value
+// The flag symbol carries seven unproven bytes after the flag.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The request symbol carries twelve unproven bytes after the request.
+#define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -73,28 +75,10 @@ extern u8 D_shelter_b1_main_corridor_80185D44[4];
 /// The event the gate last accepted: the message that triggered it, whose
 /// `msgId`, `field_2` and `field_3` name the area, warp and room the event
 /// task finally loads, and the request whose CAP command and sounds it runs.
-extern RoomEventMsg gRoomEventMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomEventReq value;
-    u8           retained[12];
-} ShelterB1MainCorridorStorage5D48;
-STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorStorage5D48, 32);
-
-extern ShelterB1MainCorridorStorage5D48 gRoomEventReq;
+extern RoomEventMsg        gRoomEventMsg;
+extern RoomEventReqStorage gRoomEventReq;
 /// Set once the gate has latched an event and spawned its task.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} ShelterB1MainCorridorStorage5D34;
-STATIC_ASSERT_SIZEOF(ShelterB1MainCorridorStorage5D34, 8);
-
-extern ShelterB1MainCorridorStorage5D34 gRoomEventActive;
+extern RoomEventActiveStorage gRoomEventActive;
 /// Spawn descriptor of the event task, `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
@@ -692,7 +676,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB1MainCorridorStorage5D34 gRoomEventActive = { 0 };
+RoomEventActiveStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -703,7 +687,7 @@ u8 D_shelter_b1_main_corridor_80185D44[4] = {
     0,
 };
 
-ShelterB1MainCorridorStorage5D48 gRoomEventReq;
+RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 

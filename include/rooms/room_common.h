@@ -132,6 +132,38 @@ typedef struct {
 } RoomEventReq;
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
 
+/// A room's `gRoomEventActive` when that symbol is four bytes.
+///
+/// `raised` is set while the event the gate just latched is running, and
+/// cleared on every call. The three bytes after it are a room-specific
+/// constant. Their role is unproven.
+typedef struct {
+    u8 raised;     // Nonzero after the gate latches an event and spawns its task
+    u8 unknown[3]; // Role unproven; room-specific constants, no recovered access
+} RoomEventActiveBytes;
+STATIC_ASSERT_SIZEOF(RoomEventActiveBytes, 4);
+
+/// A room's `gRoomEventActive` when that symbol is eight bytes.
+///
+/// `raised` is the same flag. The seven bytes after it are zero in every
+/// room with this extent. Their role is unproven.
+typedef struct {
+    u8 raised;     // Nonzero after the gate latches an event and spawns its task
+    u8 unknown[7]; // Role unproven; zero, with no recovered access
+} RoomEventActiveStorage;
+STATIC_ASSERT_SIZEOF(RoomEventActiveStorage, 8);
+
+/// A room's `gRoomEventReq` when that symbol is thirty-two bytes.
+///
+/// `request` is the record the gate latches and the event task reads. The
+/// twelve bytes after it are zero wherever this extent occurs. Their role
+/// is unproven.
+typedef struct {
+    RoomEventReq request;     // Request the gate latched for the event task
+    u8           unknown[12]; // Role unproven; zero, with no recovered access
+} RoomEventReqStorage;
+STATIC_ASSERT_SIZEOF(RoomEventReqStorage, 0x20);
+
 /// The scratch block a room's sprite or light-shaft drawer takes from
 /// the scratch stack for one projected point: `vec` is the point in world
 /// space, pushed through `GsWSMATRIX` with a single `RTPS`; `sx` / `sy` are the

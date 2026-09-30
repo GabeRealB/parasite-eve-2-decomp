@@ -40,7 +40,8 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 

@@ -27,12 +27,11 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 
@@ -57,12 +56,7 @@ GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    115,
-    55,
-    136,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 115, 55, 136 } };
 
 RoomEventReq gRoomEventReq;
 
@@ -104,7 +98,7 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.flagId        = 0x43;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -117,7 +111,7 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.flagId        = 0x44;
         req.collectedBit  = 0x13;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -130,7 +124,7 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task* task, s32 msgId, RoomEventM
         req.flagId        = 0x2E;
         req.collectedBit  = 0xF;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             GameFlag_SetNibble(0x30, 1);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
             func_800E3FAC(0xA2, 0xC);

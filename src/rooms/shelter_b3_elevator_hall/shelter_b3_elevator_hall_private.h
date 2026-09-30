@@ -9,8 +9,7 @@
 
 extern RoomEventMsg gRoomEventMsg;
 
-extern u8 gRoomEventActive[4];
-
-extern RoomEventReq gRoomEventReq;
+extern RoomEventActiveBytes gRoomEventActive;
+extern RoomEventReq         gRoomEventReq;
 
 #endif // SRC_ROOMS_SHELTER_B3_ELEVATOR_HALL_SHELTER_B3_ELEVATOR_HALL_PRIVATE_H

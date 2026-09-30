@@ -22,9 +22,8 @@ extern GpItemMap* Shop_Data_8018762C;
 
 extern RoomEventMsg gRoomEventMsg;
 
-extern u8 gRoomEventActive[4];
-
-extern RoomEventReq gRoomEventReq;
+extern RoomEventActiveBytes gRoomEventActive;
+extern RoomEventReq         gRoomEventReq;
 
 extern ShelterB1ArmoryStorage557C D_shelter_b1_armory_8018557C;
 

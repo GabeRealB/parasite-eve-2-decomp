@@ -42,12 +42,11 @@
 #include "rooms/dryfield_night_parking_lot.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
 /// The address sits past the end of this package, so the linker resolves it
@@ -448,12 +447,7 @@ GpRoomParamRec* D_dryfield_parking_lot_8017FB30[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    156,
-    190,
-    128,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 156, 190, 128 } };
 
 RoomEventReq gRoomEventReq = { 0 };
 
@@ -515,7 +509,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ApplyAreaRecs(D_dryfield_night_parking_lot_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
@@ -528,7 +522,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         req.flagId        = 0x35;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {

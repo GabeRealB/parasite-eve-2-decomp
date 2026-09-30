@@ -33,12 +33,11 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -164,12 +163,7 @@ GpRoomParamRec* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    192,
-    47,
-    192,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 192, 47, 192 } };
 
 RoomEventReq gRoomEventReq;
 

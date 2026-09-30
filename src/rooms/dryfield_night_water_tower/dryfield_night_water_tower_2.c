@@ -39,7 +39,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
 /// The world points the room's effect draw places its glow sprites and light

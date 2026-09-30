@@ -46,7 +46,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
 extern TaskDesc D_80142604;
@@ -470,12 +471,7 @@ GpRoomParamRec* D_shelter_b3_elevator_hall_801849E0[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    18,
-    230,
-    216,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 18, 230, 216 } };
 
 RoomEventReq gRoomEventReq = { 0 }; /// A glowing disc anchored to its parent at the work block's position. In
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"

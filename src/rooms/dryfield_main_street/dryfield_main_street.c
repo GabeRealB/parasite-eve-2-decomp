@@ -63,17 +63,17 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define ROOM_EVENT_ACTIVE  gRoomEventActive[0]
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
 #define DRYFIELD_MAIN_STREET_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -125,17 +125,8 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg gRoomEventStagedMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} DryfieldMainStreetStorage5634;
-STATIC_ASSERT_SIZEOF(DryfieldMainStreetStorage5634, 16);
-
-extern DryfieldMainStreetStorage5634 gRoomEventLatched;
+extern RoomEventMsg            gRoomEventStagedMsg;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// Set by the message handler when its last 0xB/0xC message latched an event
 /// and spawned the room's event task; every such message clears it first.
@@ -966,16 +957,11 @@ DryfieldMainStreetStorage561C D_dryfield_main_street_8018561C = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    3,
-    190,
-    28,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 3, 190, 28 } };
 
 Task* D_dryfield_main_street_80185630 = NULL;
 
-DryfieldMainStreetStorage5634 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
@@ -1046,7 +1032,7 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventLatched.event = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -1066,7 +1052,7 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventLatched.event = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -1088,7 +1074,7 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -1108,7 +1094,7 @@ s32 func_dryfield_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg,
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);

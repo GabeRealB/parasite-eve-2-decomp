@@ -63,7 +63,8 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
@@ -150,16 +151,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BB4, 8);
 
 extern DryfieldNightMainStreetStorage8BB4 D_dryfield_night_main_street_80188BB4;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} DryfieldNightMainStreetStorage8BC8;
-STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BC8, 16);
-
-extern DryfieldNightMainStreetStorage8BC8 gRoomEventLatched;
+extern RoomLatchedEventStorage            gRoomEventLatched;
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -1626,7 +1618,7 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-DryfieldNightMainStreetStorage8BC8 gRoomEventLatched;
+RoomLatchedEventStorage gRoomEventLatched;
 
 RoomEventReq gRoomEventReq;
 
@@ -1697,7 +1689,7 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventLatched.event = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -1717,7 +1709,7 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
                 gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventLatched.event = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
