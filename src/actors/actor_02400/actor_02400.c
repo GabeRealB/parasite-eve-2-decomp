@@ -119,7 +119,7 @@ typedef struct Actor02400ChildWork {
     /* 0x20 */ WorldCollisionBody    obj_20;
     /* 0x40 */ WorldCollisionContact rec_40;
     /* 0x58 */ WorldCollisionBody    obj_58;
-    /* 0x78 */ GpActorD4Rec          pose_78;
+    /* 0x78 */ WorldCollisionCapsule pose_78;
     /* 0x90 */ WorldCollisionContact field_90;
     /* 0xA8 */ s16                   field_A8;
     /* 0xAA */ s16                   field_AA;
@@ -1308,15 +1308,15 @@ static void Actor02400_Fn02790(Enemy* arg0, Task* arg1)
     work->obj_20.flags  = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(1, &work->obj_20);
 
-    work->pose_78.end1.vz        = -0xD2;
+    work->pose_78.ends[1].vz     = -0xD2;
     work->pose_78.end0Radius     = 1;
     work->pose_78.end1Radius     = 1;
-    work->pose_78.end0.vx        = 0;
-    work->pose_78.end0.vy        = 0;
-    work->pose_78.end0.vz        = 0;
-    work->pose_78.end1.vx        = 0;
-    work->pose_78.end1.vy        = 0;
-    work->pose_78.recs           = &work->field_90;
+    work->pose_78.ends[0].vx     = 0;
+    work->pose_78.ends[0].vy     = 0;
+    work->pose_78.ends[0].vz     = 0;
+    work->pose_78.ends[1].vx     = 0;
+    work->pose_78.ends[1].vy     = 0;
+    work->pose_78.contacts       = &work->field_90;
     work->obj_20.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     objCoord3                    = arg1->extra.tmd->coords;
     work->obj_58.context.capsule = &work->pose_78;

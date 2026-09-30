@@ -70,7 +70,7 @@ typedef struct Actor00300InitWork {
     /* 0x00 */ WorldCollisionBody    obj0;
     /* 0x20 */ WorldCollisionContact rec20;
     /* 0x38 */ WorldCollisionBody    obj38;
-    /* 0x58 */ GpActorD4Rec          pose;
+    /* 0x58 */ WorldCollisionCapsule pose;
     /* 0x70 */ WorldCollisionContact rec70;
     /* 0x88 */ s16                   timer;
     /* 0x8A */ s16                   pad8A;
@@ -83,7 +83,7 @@ typedef struct Actor00300MainWork {
     /* 0x440 */ u8                    field_440[32];
     /* 0x460 */ u8                    field_460[32];
     /* 0x480 */ WorldCollisionBody    obj480;
-    /* 0x4A0 */ GpActorD4Rec          pose4A0;
+    /* 0x4A0 */ WorldCollisionCapsule pose4A0;
     /* 0x4B8 */ WorldCollisionContact rec4B8;
     /* 0x4D0 */ WorldCollisionBody    obj4D0;
     /* 0x4F0 */ WorldCollisionContact rec4F0[3];
@@ -1349,16 +1349,16 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
         tmdProcessStream(model);
     }
     childTask                = child->task;
-    work->pose4A0.end0.vz    = 0x2328;
+    work->pose4A0.ends[0].vz = 0x2328;
     work->pose4A0.end0Radius = 0xFA0;
     rec4B8                   = &work->rec4B8;
-    work->pose4A0.end0.vx    = 0;
-    work->pose4A0.end0.vy    = 0;
-    work->pose4A0.end1.vx    = 0;
-    work->pose4A0.end1.vy    = 0;
-    work->pose4A0.end1.vz    = 0;
+    work->pose4A0.ends[0].vx = 0;
+    work->pose4A0.ends[0].vy = 0;
+    work->pose4A0.ends[1].vx = 0;
+    work->pose4A0.ends[1].vy = 0;
+    work->pose4A0.ends[1].vz = 0;
     work->pose4A0.end1Radius = 0x3E8;
-    work->pose4A0.recs       = rec4B8;
+    work->pose4A0.contacts   = rec4B8;
     work->field_43C          = childTask;
     work->obj480.coord =
         task->extra.tmd->coords + 2;
@@ -2990,15 +2990,15 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->obj0.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj0);
     Gp_InitRec18Table(&work->rec20, 1, 0);
-    work->pose.end1.vz          = -0x1A4;
+    work->pose.ends[1].vz       = -0x1A4;
     work->pose.end0Radius       = 1;
     work->pose.end1Radius       = 1;
-    work->pose.end0.vx          = 0;
-    work->pose.end0.vy          = 0;
-    work->pose.end0.vz          = 0;
-    work->pose.end1.vx          = 0;
-    work->pose.end1.vy          = 0;
-    work->pose.recs             = &work->rec70;
+    work->pose.ends[0].vx       = 0;
+    work->pose.ends[0].vy       = 0;
+    work->pose.ends[0].vz       = 0;
+    work->pose.ends[1].vx       = 0;
+    work->pose.ends[1].vy       = 0;
+    work->pose.contacts         = &work->rec70;
     work->obj0.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     objCoord2                   = arg1->extra.tmd->coords;
     work->obj38.context.capsule = &work->pose;

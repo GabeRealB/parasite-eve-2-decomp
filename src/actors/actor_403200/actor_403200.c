@@ -6119,16 +6119,16 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->field_E3C.c.composeStamp                                                             = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(freeCoord);
 
-    work->d4rec.end1.vz       = 0x1B58;
+    work->d4rec.ends[1].vz    = 0x1B58;
     recs2                     = work->recs2;
     work->d4rec.end0Radius    = 0x258;
     work->d4rec.end1Radius    = 0x258;
-    work->d4rec.end0.vx       = 0;
-    work->d4rec.end0.vy       = 0;
-    work->d4rec.end0.vz       = 0;
-    work->d4rec.end1.vx       = 0;
-    work->d4rec.end1.vy       = 0;
-    work->d4rec.recs          = recs2;
+    work->d4rec.ends[0].vx    = 0;
+    work->d4rec.ends[0].vy    = 0;
+    work->d4rec.ends[0].vz    = 0;
+    work->d4rec.ends[1].vx    = 0;
+    work->d4rec.ends[1].vy    = 0;
+    work->d4rec.contacts      = recs2;
     work->obj.coord           = freeCoord;
     work->obj.context.capsule = &work->d4rec;
     work->obj.pos.vx          = 0;

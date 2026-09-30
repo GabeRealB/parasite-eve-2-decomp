@@ -145,7 +145,7 @@ typedef struct Actor403600ProjectileWork {
     SVECTOR               trail[32]; // positions over the last 32 frames, newest first; each `pad` is a random angle its quad is turned by
     SVECTOR               velocity;  // step added to the position each frame
     WorldCollisionBody    obj;       // collision body, linked only for the kinds that can hit
-    GpActorD4Rec          shape;     // the capsule `obj` carries
+    WorldCollisionCapsule shape;     // the capsule `obj` carries
     WorldCollisionContact recs[1];   // contact table of `shape`
     s32                   life;      // frames left before the projectile fades out; forced negative when it hits
 } Actor403600ProjectileWork;

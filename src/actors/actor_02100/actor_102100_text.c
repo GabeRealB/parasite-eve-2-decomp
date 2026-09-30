@@ -533,7 +533,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->field_C0                 = 0x14;
     work->field_C2                 = 0x14;
     work->field_C4                 = contacts;
-    work->field_78.context.capsule = (GpActorD4Rec*)&work->field_B0;
+    work->field_78.context.capsule = (WorldCollisionCapsule*)&work->field_B0;
     work->field_78.coord           = coord;
     work->field_78.pos.vx          = 0;
     work->field_78.pos.vy          = 0;
@@ -554,7 +554,7 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->field_FA                 = 0x14;
     work->field_FC                 = contacts;
     work->field_C8.coord           = coord;
-    work->field_C8.context.capsule = (GpActorD4Rec*)&work->field_E8;
+    work->field_C8.context.capsule = (WorldCollisionCapsule*)&work->field_E8;
     work->field_C8.pos.vx          = 0;
     work->field_C8.pos.vy          = 0;
     work->field_C8.pos.vz          = 0;

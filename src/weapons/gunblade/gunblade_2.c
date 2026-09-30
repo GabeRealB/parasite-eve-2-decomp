@@ -71,17 +71,17 @@ static void func_gunblade_8011E040(Task* arg0);
 /// the muzzle coordinate.
 static void func_gunblade_8011E040(Task* arg0)
 {
-    GameActor*       actor;
-    GfxCoord*        coord;
-    GunbladeScratch* blk;
-    GpActorD4Rec*    rec;
-    GpEffWork*       eff;
-    s32              sfx;
-    s32              anim;
-    s32              hit;
-    s32              lvl;
-    s16              spread;
-    s32              shake;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GunbladeScratch*       blk;
+    WorldCollisionCapsule* rec;
+    GpEffWork*             eff;
+    s32                    sfx;
+    s32                    anim;
+    s32                    hit;
+    s32                    lvl;
+    s16                    spread;
+    s32                    shake;
 
     shake = 0;
     actor = arg0->work;
@@ -124,21 +124,21 @@ static void func_gunblade_8011E040(Task* arg0)
                 func_80106518(0x17);
                 actor->field_124 = 0x2171B;
                 {
-                    u16 reach       = rec->end1.vz + D_80112F60[23];
+                    u16 reach       = rec->ends[1].vz + D_80112F60[23];
                     rec->end0Radius = 0x180;
                     rec->end1Radius = 0x180;
-                    rec->end0.vz    = reach;
+                    rec->ends[0].vz = reach;
                 }
                 actor->field_12A &= 0xF7FF;
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 3);
                 break;
             }
             actor->field_95E = 6;
-            actor->field_14C.end0.vz =
-                actor->field_14C.end1.vz + 0x2200;
+            actor->field_14C.ends[0].vz =
+                actor->field_14C.ends[1].vz + 0x2200;
             actor->field_124 = Player_Status.weaponSlotItem | 0x21700;
             rec->end1Radius  = 0x100;
-            rec->end0.vz     = rec->end1.vz + 0x2200;
+            rec->ends[0].vz  = rec->ends[1].vz + 0x2200;
             spread           = 0x900;
             if (Player_Status.weaponSlotItem != 0xD) {
                 spread = 0x100;

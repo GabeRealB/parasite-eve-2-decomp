@@ -2262,8 +2262,8 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     work->difficulty = arg0->spawnArg1.value & 0xF;
     work->field_0C   = -0xDC;
 
-    actor->field_14C.end0.vz =
-        (actor->field_14C.end1.vz + D_80112F60[Player_Status.weapon]) << 1;
+    actor->field_14C.ends[0].vz =
+        (actor->field_14C.ends[1].vz + D_80112F60[Player_Status.weapon]) << 1;
     func_801066DC(slot, 1);
 
     if (work->difficulty < 3) {

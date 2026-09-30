@@ -1591,11 +1591,11 @@ void func_8010C180(Task* arg0)
 
 void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 {
-    GfxCoord*           src;
-    GpActorD4*          block;
-    WorldCollisionBody* obj;
-    GpActorD4Rec*       rec;
-    s16                 vz;
+    GfxCoord*              src;
+    GpActorD4*             block;
+    WorldCollisionBody*    obj;
+    WorldCollisionCapsule* rec;
+    s16                    vz;
 
     block                = ((GameActor*)arg0->work)->field_910;
     src                  = arg0->extra.tmd->coords;
@@ -1609,18 +1609,18 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     obj->pos.vx          = 0;
     obj->pos.vy          = 0;
     obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
-    rec->end1.vx         = arg1->vx;
-    rec->end1.vy         = arg1->vy;
+    rec->ends[1].vx      = arg1->vx;
+    rec->ends[1].vy      = arg1->vy;
     vz                   = arg1->vz;
-    rec->end0.vz         = arg2;
-    rec->end0.vx         = rec->end1.vx;
+    rec->ends[0].vz      = arg2;
+    rec->ends[0].vx      = rec->ends[1].vx;
     rec->end1Radius      = 0x80;
     rec->end0Radius      = 0x80;
-    rec->recs            = &block->contact;
-    rec->end1.vz         = vz;
-    rec->end0.vy         = rec->end1.vy;
+    rec->contacts        = &block->contact;
+    rec->ends[1].vz      = vz;
+    rec->ends[0].vy      = rec->ends[1].vy;
     Gp_LinkObj(1, obj);
-    Gp_InitRec18Table(rec->recs, 1, 0);
+    Gp_InitRec18Table(rec->contacts, 1, 0);
     obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 

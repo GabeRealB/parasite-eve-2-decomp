@@ -104,7 +104,7 @@ STATIC_ASSERT_SIZEOF(Actor104600Work, 0x2E4);
 
 /// The 0x2B0-byte work block of the package's second enemy, allocated by its
 /// spawn handler and parked in `Task::work`. It carries three `WorldCollisionBody` bodies:
-/// the first points its `context.capsule` at the `GpActorD4Rec` after it, the other
+/// the first points its `context.capsule` at the `WorldCollisionCapsule` after it, the other
 /// two point at their own `WorldCollisionContact` tables.
 typedef struct Actor104600Enemy2Work {
     /* 0x000 */ AnimationContext      context;
@@ -113,7 +113,7 @@ typedef struct Actor104600Enemy2Work {
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ WorldCollisionBody    field_FC;
-    /* 0x11C */ GpActorD4Rec          field_11C;
+    /* 0x11C */ WorldCollisionCapsule field_11C;
     /* 0x134 */ WorldCollisionContact field_134[1];
     /* 0x14C */ WorldCollisionBody    field_14C;
     /* 0x16C */ WorldCollisionContact field_16C[1];
@@ -1903,11 +1903,11 @@ static void Actor04600_Fn02D68(Enemy* arg0, Task* arg1)
     work->field_2A8              = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState                  = seed;
     Gp_SetLightMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    work->field_11C.end0.vz        = 0x1388;
+    work->field_11C.ends[0].vz     = 0x1388;
     work->field_11C.end0Radius     = 0xFA0;
     work->field_11C.end1Radius     = 0x7D0;
     records1                       = work->field_134;
-    work->field_11C.recs           = records1;
+    work->field_11C.contacts       = records1;
     work->field_FC.context.capsule = &work->field_11C;
     work->field_FC.coord           = coord;
     work->field_FC.pos.vx          = 0;

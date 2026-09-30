@@ -3462,7 +3462,7 @@ static void func_actor_800100_80166514(Task* arg0)
     blk                                               = head - 1;
     SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
 
-    Gp_FindRec18(obj->context.capsule->recs, 0);
+    Gp_FindRec18(obj->context.capsule->contacts, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;
@@ -3752,38 +3752,38 @@ static void func_actor_800100_80166EE8(Task* arg0)
 
 static void func_actor_800100_80166F50(Task* arg0)
 {
-    GameActor*          actor;
-    WorldCollisionBody* obj;
-    GpActorD4Rec*       rec;
-    GfxCoord*           src;
-    Task*               task;
+    GameActor*             actor;
+    WorldCollisionBody*    obj;
+    WorldCollisionCapsule* rec;
+    GfxCoord*              src;
+    Task*                  task;
 
     actor = arg0->work;
     task  = actor->field_91C;
     if (task != NULL) {
         obj              = (WorldCollisionBody*)actor->field_12C;
-        rec              = (GpActorD4Rec*)actor->pad_164;
+        rec              = (WorldCollisionCapsule*)actor->pad_164;
         src              = task->extra.tmd->coords;
         actor->field_3D4 = *src;
         Gfx_RotMatrixX(&actor->field_3D4.workm, 0x400, 0);
         obj->coord           = &actor->field_3D4;
-        obj->context.capsule = (GpActorD4Rec*)actor->pad_164;
+        obj->context.capsule = (WorldCollisionCapsule*)actor->pad_164;
         obj->key             = 0x60000;
         obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
         obj->pos.vx          = 0;
         obj->pos.vy          = 0;
         obj->pos.vz          = 0;
-        rec->end1.vx         = 0;
-        rec->end1.vy         = -0x10;
-        rec->end0.vx         = rec->end1.vx;
-        rec->end1.vz         = 0x20;
-        rec->end0.vy         = rec->end1.vy;
-        rec->end0.vz         = rec->end1.vz + D_80112F60[Player_Status.weapon];
+        rec->ends[1].vx      = 0;
+        rec->ends[1].vy      = -0x10;
+        rec->ends[0].vx      = rec->ends[1].vx;
+        rec->ends[1].vz      = 0x20;
+        rec->ends[0].vy      = rec->ends[1].vy;
+        rec->ends[0].vz      = rec->ends[1].vz + D_80112F60[Player_Status.weapon];
         rec->end1Radius      = 1;
         rec->end0Radius      = 1;
-        rec->recs            = actor->aimContacts;
+        rec->contacts        = actor->aimContacts;
         Gp_LinkObj(1, obj);
-        Gp_InitRec18Table(rec->recs, 1, 0);
+        Gp_InitRec18Table(rec->contacts, 1, 0);
         obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }
 }

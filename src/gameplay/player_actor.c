@@ -268,7 +268,7 @@ extern u8 D_80112F1C[][2];
 
 /// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1: where the
 /// weapon of that attach id sits on the actor. Copied through scratch; the low
-/// 16 bits of `vx`/`vy`/`vz` seed the shape's `end1`.
+/// 16 bits of `vx`/`vy`/`vz` seed the shape's `ends[1]`.
 extern VECTOR D_80112FA4[];
 
 /// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.
@@ -4591,12 +4591,12 @@ static void Gp_PlayerWorkState1(Task* arg0)
 
 void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
 {
-    GameActor*          actor;
-    WorldCollisionBody* obj;
-    GpActorD4Rec*       rec;
-    VECTOR*             tmp;
-    Task*               task;
-    s32                 scale;
+    GameActor*             actor;
+    WorldCollisionBody*    obj;
+    WorldCollisionCapsule* rec;
+    VECTOR*                tmp;
+    Task*                  task;
+    s32                    scale;
 
     actor = arg0->work;
     obj   = (WorldCollisionBody*)actor->field_10C;
@@ -4618,12 +4618,12 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         obj->pos.vz                   = 0;
         actor->field_124              = 0x20000 | (id << 8) | kind;
         *tmp                          = D_80112FA4[id];
-        rec->end1.vx                  = tmp->vx;
-        rec->end1.vy                  = tmp->vy;
-        rec->end1.vz                  = tmp->vz;
-        rec->end0.vx                  = rec->end1.vx;
-        rec->end0.vy                  = rec->end1.vy;
-        rec->end0.vz                  = rec->end1.vz + D_80112F60[id];
+        rec->ends[1].vx               = tmp->vx;
+        rec->ends[1].vy               = tmp->vy;
+        rec->ends[1].vz               = tmp->vz;
+        rec->ends[0].vx               = rec->ends[1].vx;
+        rec->ends[0].vy               = rec->ends[1].vy;
+        rec->ends[0].vz               = rec->ends[1].vz + D_80112F60[id];
         scale                         = 0x100;
         if (Player_Status.weapon == 0x13) {
             scale = 0x280;
@@ -4634,9 +4634,9 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         } else {
             rec->end0Radius = 0x900;
         }
-        rec->recs = actor->field_32C;
+        rec->contacts = actor->field_32C;
         Gp_LinkObj(1, obj);
-        Gp_InitRec18Table(rec->recs, 6, 0);
+        Gp_InitRec18Table(rec->contacts, 6, 0);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }

@@ -42,7 +42,7 @@
 /// 0x2B0-byte work block the enemy's spawn function allocates with `memCalloc`
 /// and parks in the task's `Task::work` slot (that slot is not a `TaskIdMap`
 /// here). It embeds three `WorldCollisionBody` list nodes; the first points its `context.contacts` at
-/// the `GpActorD4Rec` that follows it, the other two point straight at their
+/// the `WorldCollisionCapsule` that follows it, the other two point straight at their
 /// own `WorldCollisionContact` table, and `Gp_InitRec18Table` zeroes each table.
 /// `ActorsShared8014df20` hands all three nodes back to `Gp_UnlinkObj`.
 typedef struct ActorShared8014df20Work {
@@ -52,7 +52,7 @@ typedef struct ActorShared8014df20Work {
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ WorldCollisionBody    field_FC;
-    /* 0x11C */ GpActorD4Rec          field_11C;
+    /* 0x11C */ WorldCollisionCapsule field_11C;
     /* 0x134 */ WorldCollisionContact field_134[1];
     /* 0x14C */ WorldCollisionBody    field_14C;
     /* 0x16C */ WorldCollisionContact field_16C[1];
@@ -263,11 +263,11 @@ static void func_actor_207200_80149E84(Enemy* arg0, Task* arg1)
     work->field_2A8              = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState                  = seed;
     Gp_SetLightMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    work->field_11C.end0.vz        = 0x1388;
+    work->field_11C.ends[0].vz     = 0x1388;
     work->field_11C.end0Radius     = 0xFA0;
     work->field_11C.end1Radius     = 0x7D0;
     records1                       = work->field_134;
-    work->field_11C.recs           = records1;
+    work->field_11C.contacts       = records1;
     work->field_FC.context.capsule = &work->field_11C;
     work->field_FC.coord           = coord;
     work->field_FC.pos.vx          = 0;

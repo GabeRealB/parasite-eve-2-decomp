@@ -207,7 +207,7 @@ typedef struct Actor421600Work {
     /* 0xCAC */ WorldCollisionBody    field_CAC;
     /// Capsule carried by the fourth collision node. Its second endpoint's
     /// Z offset at 0xCD8 is 0x2BC at spawn and -0x320 in the movement tick.
-    /* 0xCCC */ GpActorD4Rec field_CCC;
+    /* 0xCCC */ WorldCollisionCapsule field_CCC;
     /// The 12 0x18-byte slots `func_actor_421600_80138D24` scans for one whose
     /// `key` reads 0x100000, stopping at the first empty one. A cursor into
     /// the same run sits at 0xCE0, which `func_actor_421600_80134AD4` points at
@@ -3182,15 +3182,15 @@ static void func_actor_421600_80134AD4(Enemy* enemy, Task* actor)
     work->field_B6C.radius           = 0x12C;
     work->field_B6C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->field_B6C);
-    work->field_CCC.end0.vx         = 0;
-    work->field_CCC.end0.vy         = -0x180;
-    work->field_CCC.end0.vz         = 0;
-    work->field_CCC.end1.vx         = 0;
-    work->field_CCC.end1.vy         = -0x180;
-    work->field_CCC.end1.vz         = 0x2BC;
+    work->field_CCC.ends[0].vx      = 0;
+    work->field_CCC.ends[0].vy      = -0x180;
+    work->field_CCC.ends[0].vz      = 0;
+    work->field_CCC.ends[1].vx      = 0;
+    work->field_CCC.ends[1].vy      = -0x180;
+    work->field_CCC.ends[1].vz      = 0x2BC;
     work->field_CCC.end0Radius      = 0x12C;
     work->field_CCC.end1Radius      = 0x12C;
-    work->field_CCC.recs            = work->field_CE4;
+    work->field_CCC.contacts        = work->field_CE4;
     work->field_CAC.context.capsule = &work->field_CCC;
     work->field_CAC.coord           = root;
     work->field_CAC.pos.vx          = 0;
@@ -4142,8 +4142,8 @@ static void func_actor_421600_80136C88(Task* arg0)
         work->field_B6C.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_421600_80134604(arg0);
         func_actor_421600_80134604(arg0);
-        work->field_6           = 0;
-        work->field_CCC.end1.vz = 0x26C;
+        work->field_6              = 0;
+        work->field_CCC.ends[1].vz = 0x26C;
         return;
     }
     head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
@@ -4307,14 +4307,14 @@ static void func_actor_421600_801373D4(Task* arg0)
         work->field_B6C.flags  = (u16)(work->field_B6C.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         work->field_832        = (u16)work->field_834;
         func_actor_421600_80134604(arg0);
-        work->field_CCC.end1.vz = 0x320;
-        work->field_6           = 0U;
-        work->field_8           = 0U;
-        work->field_E9E         = 0;
-        work->field_840         = 0;
-        work->field_8E8         = 9;
-        work->field_8E9         = 1;
-        work->field_8EA         = 1;
+        work->field_CCC.ends[1].vz = 0x320;
+        work->field_6              = 0U;
+        work->field_8              = 0U;
+        work->field_E9E            = 0;
+        work->field_840            = 0;
+        work->field_8E8            = 9;
+        work->field_8E9            = 1;
+        work->field_8EA            = 1;
         Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &work->field_8E8, 0x7DB);
         return;
     }
@@ -4744,14 +4744,14 @@ static void func_actor_421600_80138750(Task* arg0)
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        x                       = head[-2].vx;
-        work->field_8A8         = 0;
-        work->field_8A4         = x;
-        z                       = vec->vz;
-        work->field_8B4         = 7;
-        work->field_8B6         = 1;
-        work->field_CCC.end1.vz = 0x320;
-        work->field_8AC         = z;
+        x                          = head[-2].vx;
+        work->field_8A8            = 0;
+        work->field_8A4            = x;
+        z                          = vec->vz;
+        work->field_8B4            = 7;
+        work->field_8B6            = 1;
+        work->field_CCC.ends[1].vz = 0x320;
+        work->field_8AC            = z;
         if ((work->field_E90.word & 0xFFFFFF) == 0x11402) {
             work->field_0 = 5;
         }
@@ -4823,9 +4823,9 @@ static void func_actor_421600_80138D24(Task* arg0)
         work->field_82E        = 6;
         work->field_B6C.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_421600_80134604(arg0);
-        work->field_6           = 0;
-        work->field_8           = 0;
-        work->field_CCC.end1.vz = -0x320;
+        work->field_6              = 0;
+        work->field_8              = 0;
+        work->field_CCC.ends[1].vz = -0x320;
     }
     work->field_6++;
     func_actor_421600_80134604(arg0);
@@ -5195,8 +5195,8 @@ static void func_actor_421600_80139718(Task* arg0)
         work->field_14     = 0;
         work->field_C[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
         SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
-        work->field_C[0].z      = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->field_CCC.end1.vz = 0x26C;
+        work->field_C[0].z         = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
+        work->field_CCC.ends[1].vz = 0x26C;
         return;
     }
     work->field_8      += 1;
@@ -6129,7 +6129,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             work->field_C[1].z = D_actor_421600_801511D4[scratch->zone][7];
         }
         SCRATCH_STACK_RELEASE_BLOCK(Actor421600RouteScratch);
-        work->field_CCC.end1.vz = 0x26C;
+        work->field_CCC.ends[1].vz = 0x26C;
         return;
     }
     work->field_8      += 1;

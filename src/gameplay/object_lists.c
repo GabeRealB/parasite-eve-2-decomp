@@ -24,7 +24,7 @@
 #include "main/task_types.h"
 
 /// 0x28-byte scratch from the scratch stack used by `Gp_FindNearestSlot`.
-/// `local` is the collider's `end1` plus `WorldCollisionBody.pos`,
+/// `local` is the collider's `ends[1]` plus `WorldCollisionBody.pos`,
 /// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
 typedef struct _GpNearScratch {
@@ -588,7 +588,7 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
 {
     u8*                    head;
     GpNearScratch*         block;
-    GpActorD4Rec*          rec;
+    WorldCollisionCapsule* rec;
     WorldCollisionContact* slot;
     s32                    minDist;
     s32                    index;
@@ -603,13 +603,13 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
     best                       = index;
     rec                        = arg0->context.capsule;
     head                       = SCRATCH_STACK_CURSOR(u8);
-    slot                       = rec->recs;
+    slot                       = rec->contacts;
     SCRATCH_STACK_CURSOR(void) = (void*)(head - 0x28);
     block                      = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&arg0->coord->workm);
-    block->local.vx = (u16)rec->end1.vx + (u16)arg0->pos.vx;
-    block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;
-    block->local.vz = (u16)rec->end1.vz + (u16)arg0->pos.vz;
+    block->local.vx = (u16)rec->ends[1].vx + (u16)arg0->pos.vx;
+    block->local.vy = (u16)rec->ends[1].vy + (u16)arg0->pos.vy;
+    block->local.vz = (u16)rec->ends[1].vz + (u16)arg0->pos.vz;
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0();
     gte_stlvnl(block);

@@ -71,7 +71,7 @@ STATIC_ASSERT_SIZEOF(_Actor100100SphereBody, 0x98);
 /// Capsule body, its shape and all five results supplied by its owner.
 typedef struct {
     WorldCollisionBody    obj;         // Linked capsule collision body
-    GpActorD4Rec          shape;       // Endpoints, radii and contact-table pointer
+    WorldCollisionCapsule shape;       // Endpoints, radii and contact-table pointer
     WorldCollisionContact contacts[5]; // Complete initialized contact table
 } _Actor100100CapsuleBody;
 STATIC_ASSERT_SIZEOF(_Actor100100CapsuleBody, 0xB0);
@@ -2654,15 +2654,15 @@ static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1)
     work->objs[2].obj.radius           = 0x12C;
     work->objs[2].obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->objs[2].obj);
-    work->capsuleBody.shape.end0.vx       = 0;
-    work->capsuleBody.shape.end0.vy       = -0x180;
-    work->capsuleBody.shape.end0.vz       = 0;
-    work->capsuleBody.shape.end1.vx       = 0;
-    work->capsuleBody.shape.end1.vy       = -0x180;
-    work->capsuleBody.shape.end1.vz       = 0x2BC;
+    work->capsuleBody.shape.ends[0].vx    = 0;
+    work->capsuleBody.shape.ends[0].vy    = -0x180;
+    work->capsuleBody.shape.ends[0].vz    = 0;
+    work->capsuleBody.shape.ends[1].vx    = 0;
+    work->capsuleBody.shape.ends[1].vy    = -0x180;
+    work->capsuleBody.shape.ends[1].vz    = 0x2BC;
     work->capsuleBody.shape.end0Radius    = 0x12C;
     work->capsuleBody.shape.end1Radius    = 0x12C;
-    work->capsuleBody.shape.recs          = work->capsuleBody.contacts;
+    work->capsuleBody.shape.contacts      = work->capsuleBody.contacts;
     work->capsuleBody.obj.coord           = coord;
     work->capsuleBody.obj.context.capsule = &work->capsuleBody.shape;
     work->capsuleBody.obj.pos.vx          = 0;
@@ -3247,8 +3247,8 @@ static void Actor00100_Fn04864(Task* arg0)
         work->field_832          = work->field_834;
         Actor00100_Fn02788(arg0);
         Actor00100_Fn02788(arg0);
-        work->field_6                   = 0;
-        work->capsuleBody.shape.end1.vz = 0x26C;
+        work->field_6                      = 0;
+        work->capsuleBody.shape.ends[1].vz = 0x26C;
         return;
     }
     head              = SCRATCH_STACK_CURSOR(ActorTurnScratch);
@@ -3438,7 +3438,7 @@ static void Actor00100_Fn0503C(Task* arg0)
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832          = work->field_834;
         Actor00100_Fn02788(arg0);
-        work->capsuleBody.shape.end1.vz          = 0x320;
+        work->capsuleBody.shape.ends[1].vz       = 0x320;
         work->field_6                            = 0;
         work->field_8                            = 0;
         work->field_C1A                          = 0;
@@ -3898,14 +3898,14 @@ static void Actor00100_Fn06654(Task* arg0)
         gte_ldsv(vec);
         gte_gpf12();
         gte_stsv(vec);
-        x                               = head[-2].vx;
-        work->field_8DC                 = 0;
-        work->field_8D8                 = x;
-        z                               = vec->vz;
-        work->field_8E8                 = 7;
-        work->field_8EA                 = 1;
-        work->capsuleBody.shape.end1.vz = 0x320;
-        work->field_8E0                 = z;
+        x                                  = head[-2].vx;
+        work->field_8DC                    = 0;
+        work->field_8D8                    = x;
+        z                                  = vec->vz;
+        work->field_8E8                    = 7;
+        work->field_8EA                    = 1;
+        work->capsuleBody.shape.ends[1].vz = 0x320;
+        work->field_8E0                    = z;
         Gp_SpawnPadLerp(3, 0xFFU, 8U);
     }
     work->field_6 += 1;
@@ -3962,9 +3962,9 @@ static void Actor00100_Fn06C10(Task* arg0)
         work->objs[2].obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->field_832          = work->field_834;
         Actor00100_Fn02788(arg0);
-        work->field_6                   = 0;
-        work->field_8                   = 0;
-        work->capsuleBody.shape.end1.vz = -0x2D0;
+        work->field_6                      = 0;
+        work->field_8                      = 0;
+        work->capsuleBody.shape.ends[1].vz = -0x2D0;
     }
     work->field_6 += 1;
     Actor00100_Fn02788(arg0);
@@ -4316,7 +4316,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         ((Actor00100MoveWork*)work)->pos[0][0] = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
         SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
         ((Actor00100MoveWork*)work)->pos[0][1] = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
-        work->capsuleBody.shape.end1.vz        = 0x26C;
+        work->capsuleBody.shape.ends[1].vz     = 0x26C;
         return;
     }
     work->field_8      += 1;

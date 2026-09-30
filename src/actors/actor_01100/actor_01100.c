@@ -61,8 +61,8 @@
 /// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C), which is not a
 /// `TaskIdMap` here. The same block lies under the `Actor101100Work` of the four
 /// sibling slots (`actor_101100`, `actor_201100`, `actor_204900`,
-/// `actor_301100`), whose 0x28 run is the `GpActorD4Rec` filled in here: the
-/// object's `context.capsule` points at it and its `recs` at the one-entry `WorldCollisionContact`
+/// `actor_301100`), whose 0x28 run is the `WorldCollisionCapsule` filled in here: the
+/// object's `context.capsule` points at it and its `contacts` at the one-entry `WorldCollisionContact`
 /// collision table at 0x40, which is where the 0x58 bytes end.
 typedef struct ActorsShared80137fb8Work {
     /// Effect velocity: the random direction vector rotated by the actor's
@@ -71,7 +71,7 @@ typedef struct ActorsShared80137fb8Work {
     /* 0x00 */ SVECTOR vel;
     /// Collision body linked as kind 3 with a `Gp_PackPair` payload.
     /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ GpActorD4Rec          rec;
+    /* 0x28 */ WorldCollisionCapsule rec;
     /* 0x40 */ WorldCollisionContact rec18[1];
 } ActorsShared80137fb8Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80137fb8Work, 0x58);
@@ -3437,7 +3437,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, ActorsShared80138efcWor
 ///
 /// The collision body is linked as kind 3 pointing at the coordinate and at the
 /// 0x28 record, which takes 0x96 for `end0Radius` / `end1Radius` and points
-/// `recs` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
+/// `contacts` at the one-entry collision table `Gp_InitRec18Table` zeroes, and
 /// its `0xC000` flag pair is ORed in on top of `Gp_LinkObj`'s `flags = 3`. The
 /// actor takes `Actor01100_Fn073A8` as its exit callback and steps on to the
 /// next state, which it also runs immediately.
@@ -3448,7 +3448,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, ActorsShared80138efcWor
 static void Actor01100_Fn05E68(Task* task)
 {
     ActorsShared80137fb8Work* work;
-    GpActorD4Rec*             rec;
+    WorldCollisionCapsule*    rec;
     GfxCoord*                 coord;
     GpEffWork*                eff;
     WorldCollisionBody*       obj;
@@ -3505,13 +3505,13 @@ static void Actor01100_Fn05E68(Task* task)
     obj->key             = Gp_PackPair(&Actor01100_D074D0[0], 5);
     obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
 
-    rec->recs       = work->rec18;
-    rec->end1.vx    = 0;
-    rec->end1.vy    = 0;
-    rec->end1.vz    = 0;
-    rec->end0.vx    = 0;
-    rec->end0.vy    = 0;
-    rec->end0.vz    = 0;
+    rec->contacts   = work->rec18;
+    rec->ends[1].vx = 0;
+    rec->ends[1].vy = 0;
+    rec->ends[1].vz = 0;
+    rec->ends[0].vx = 0;
+    rec->ends[0].vy = 0;
+    rec->ends[0].vz = 0;
     rec->end0Radius = 0x96;
     rec->end1Radius = 0x96;
     Gp_InitRec18Table(work->rec18, 1, 0);
@@ -3527,7 +3527,7 @@ static void Actor01100_Fn05E68(Task* task)
 static void Actor01100_Fn06198(Task* task)
 {
     ActorsShared80137fb8Work* work;
-    GpActorD4Rec*             d4;
+    WorldCollisionCapsule*    d4;
     WorldCollisionContact*    rec;
     GfxCoord*                 coord;
     GfxCoord*                 soundCoord;
@@ -3545,9 +3545,9 @@ static void Actor01100_Fn06198(Task* task)
     d4            = &work->rec;
     flag          = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     if (Gp_StateF0.field_4 == 0) {
-        d4->end1.vx         = -work->vel.vx;
-        d4->end1.vy         = -work->vel.vy;
-        d4->end1.vz         = -work->vel.vz;
+        d4->ends[1].vx      = -work->vel.vx;
+        d4->ends[1].vy      = -work->vel.vy;
+        d4->ends[1].vz      = -work->vel.vz;
         coord->coord.t[0]  += work->vel.vx;
         rec                 = work->rec18;
         coord->coord.t[1]  += work->vel.vy;

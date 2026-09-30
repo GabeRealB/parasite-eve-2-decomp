@@ -86,7 +86,7 @@ typedef struct ActorShared80136288Work {
 typedef struct ActorsShared80136938Work {
     /* 0x00 */ SVECTOR               vec;
     /* 0x08 */ WorldCollisionBody    obj;
-    /* 0x28 */ GpActorD4Rec          rec;
+    /* 0x28 */ WorldCollisionCapsule rec;
     /* 0x40 */ WorldCollisionContact rec2;
 } ActorsShared80136938Work;
 STATIC_ASSERT_SIZEOF(ActorsShared80136938Work, 0x58);
@@ -932,8 +932,8 @@ TaskDesc Actor07000_D0D7E8 = { (TASK_BODY_TMD | 0x100), 96, Actor07000_Fn067B4, 
 /// the same `AnimationContext`, seven animation slots instead of three, then three
 /// `WorldCollisionBody` collision bodies where that one has four.
 ///
-/// Node 1's `context.capsule` is not a record table but the `GpActorD4Rec` at 0x1FC -
-/// the shape `GpActorD4` keeps, where the record's own `recs` points at the
+/// Node 1's `context.capsule` is not a record table but the `WorldCollisionCapsule` at 0x1FC -
+/// the shape `GpActorD4` keeps, where the record's own `contacts` points at the
 /// `WorldCollisionContact` run beside it (here the single record at 0x214). Nodes 2 and 3
 /// hold plain tables of four and one, the way `Actor107000SpawnWork`'s do.
 ///
@@ -947,7 +947,7 @@ typedef struct Actor107000Spawn2Work {
     /* 0x19C */ MATRIX                field_19C;       // colour matrix, TmdObject::colorMtx
     /* 0x1BC */ MATRIX                field_1BC;       // light matrix, TmdObject::lightMtx
     /* 0x1DC */ WorldCollisionBody    obj1;
-    /* 0x1FC */ GpActorD4Rec          field_1FC;
+    /* 0x1FC */ WorldCollisionCapsule field_1FC;
     /* 0x214 */ WorldCollisionContact field_214[1]; // the table `field_1FC` names
     /* 0x22C */ WorldCollisionBody    obj2;
     /* 0x24C */ WorldCollisionContact field_24C[4];
@@ -2674,11 +2674,11 @@ static void Actor07000_Fn02E0C(Enemy* arg0, Task* arg1)
     work->field_386            = 0;
     work->field_38E            = 0;
     work->field_38A            = 0;
-    work->field_1FC.end0.vz    = 0xBB8;
+    work->field_1FC.ends[0].vz = 0xBB8;
     work->field_1FC.end0Radius = 0xFA0;
     work->field_1FC.end1Radius = 0x7D0;
     table                      = work->field_214;
-    work->field_1FC.recs       = table;
+    work->field_1FC.contacts   = table;
     work->obj1.context.capsule = &work->field_1FC;
     work->obj1.coord           = coord;
     work->obj1.pos.vx          = 0;
@@ -3486,7 +3486,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     GfxCoord*                 coord;
     GpEffWork*                eff;
     WorldCollisionBody*       obj;
-    GpActorD4Rec*             rec;
+    WorldCollisionCapsule*    rec;
     SVECTOR*                  vec;
     s32                       angle;
     s32                       pan;
@@ -3529,13 +3529,13 @@ static void Actor07000_Fn04B18(Task* arg0)
     obj->radius          = 0;
     obj->key             = Gp_PackPair(Actor07000_D08078, 1);
     obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
-    rec->recs            = &work->rec2;
-    rec->end1.vx         = 0;
-    rec->end1.vy         = 0;
-    rec->end1.vz         = 0;
-    rec->end0.vx         = 0;
-    rec->end0.vy         = 0;
-    rec->end0.vz         = 0;
+    rec->contacts        = &work->rec2;
+    rec->ends[1].vx      = 0;
+    rec->ends[1].vy      = 0;
+    rec->ends[1].vz      = 0;
+    rec->ends[0].vx      = 0;
+    rec->ends[0].vy      = 0;
+    rec->ends[0].vz      = 0;
     rec->end0Radius      = 0x96;
     rec->end1Radius      = 0x96;
     Gp_InitRec18Table(&work->rec2, 1, 0);
@@ -3649,8 +3649,8 @@ default_body:
 /// render nodes and their collision tables, and hand the task over to the state
 /// table in `Task::msgTable`.
 ///
-/// Node 1 is the odd one: it points its context at the `GpActorD4Rec` at 0x1FC
-/// rather than at a record table, and the record's own `recs` names the one
+/// Node 1 is the odd one: it points its context at the `WorldCollisionCapsule` at 0x1FC
+/// rather than at a record table, and the record's own `contacts` names the one
 /// `WorldCollisionContact` beside it - the pair `GpActorD4` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
@@ -3719,10 +3719,10 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->field_386            = 0;
     work->field_38E            = 0;
     work->field_38A            = 0;
-    work->field_1FC.end0.vz    = 0xBB8;
+    work->field_1FC.ends[0].vz = 0xBB8;
     work->field_1FC.end0Radius = 0xFA0;
     work->field_1FC.end1Radius = 0x7D0;
-    work->field_1FC.recs       = work->field_214;
+    work->field_1FC.contacts   = work->field_214;
     work->obj1.context.capsule = &work->field_1FC;
     work->obj1.coord           = coord;
     work->obj1.pos.vx          = 0;

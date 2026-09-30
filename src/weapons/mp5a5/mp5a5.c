@@ -93,12 +93,12 @@ void func_mp5a5_8011D1E0(Task* task)
 /// held, the ammo check passes and the burst timer has run out.
 static void func_mp5a5_8011DDA4(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    GpEffWork*    eff;
-    s32           anim;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    GpEffWork*             eff;
+    s32                    anim;
 
     SCRATCH_PUSH_BYTES(0x50);
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);

@@ -66,7 +66,7 @@ typedef struct WorldCollisionBody {
     union {
         WorldCollisionContact*       contacts;     // Kind 1: initialized contact table
         struct WorldCollisionBody*   contactOwner; // Kind 2: body whose context.contacts supplies the table
-        GpActorD4Rec*                capsule;      // Kind 3: local endpoints, end radii and contacts
+        WorldCollisionCapsule*       capsule;      // Kind 3: local endpoints, end radii and contacts
         WorldCollisionMotionContext* motion;       // Kind 4: motion direction and contact table
     } context;                                     // Borrowed payload selected by flags & KIND_MASK
     SVECTOR pos;                                   // Local sphere centre or capsule origin, in game-coordinate units
@@ -98,7 +98,7 @@ typedef struct GpActorD4 {
     /* 0x00 */ byte                  pad_0[0x18];
     /* 0x18 */ GfxCoord              coord;         // the body's transform, a copy of the actor's model coordinate
     /* 0x68 */ WorldCollisionBody    obj;           // the body: a kind-3 node whose `context.capsule` is `shape`
-    /* 0x88 */ GpActorD4Rec          shape;         // the capsule the body's collisions are tested with
+    /* 0x88 */ WorldCollisionCapsule shape;         // the capsule the body's collisions are tested with
     /* 0xA0 */ WorldCollisionContact contact;       // the one-entry table `shape` records its contacts in
     /* 0xB8 */ byte                  pad_B8[0xC];
     /* 0xC4 */ s16                   decisionTimer; // frames left before the companion picks its next action

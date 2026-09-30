@@ -127,7 +127,7 @@ typedef struct Actor510900ChildFx {
     /* 0x40 */ WorldCollisionBody    obj40;
     /* 0x60 */ WorldCollisionContact rec60;
     /* 0x78 */ WorldCollisionBody    obj78;
-    /* 0x98 */ GpActorD4Rec          d4rec;
+    /* 0x98 */ WorldCollisionCapsule d4rec;
     /* 0xB0 */ WorldCollisionContact recB0;
     /* 0xC8 */ u16                   field_C8; ///< frame counter, reset at every state change
     /* 0xCA */ s16                   field_CA; ///< state: 0 fade in, 1 hold, 2 hit, 3 expire
@@ -2829,15 +2829,15 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     Gp_LinkObj(3, &work->obj40);
     Gp_InitRec18Table(&work->rec60, 1, 0);
 
-    work->d4rec.end0.vx         = 0;
-    work->d4rec.end0.vy         = 0;
-    work->d4rec.end0.vz         = 0;
-    work->d4rec.end1.vx         = 0;
-    work->d4rec.end1.vy         = 0x1F4;
-    work->d4rec.end1.vz         = 0;
+    work->d4rec.ends[0].vx      = 0;
+    work->d4rec.ends[0].vy      = 0;
+    work->d4rec.ends[0].vz      = 0;
+    work->d4rec.ends[1].vx      = 0;
+    work->d4rec.ends[1].vy      = 0x1F4;
+    work->d4rec.ends[1].vz      = 0;
     work->d4rec.end0Radius      = 1;
     work->d4rec.end1Radius      = 1;
-    work->d4rec.recs            = &work->recB0;
+    work->d4rec.contacts        = &work->recB0;
     work->obj78.context.capsule = &work->d4rec;
     work->obj78.coord           = coord;
     work->obj78.pos.vx          = 0;

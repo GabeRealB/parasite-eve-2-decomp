@@ -1442,7 +1442,7 @@ void func_actor_403600_80134398(Task* arg0)
     WorldCollisionContact* recs;
     SVECTOR*               temp_s0_4;
     SVECTOR*               temp_s1;
-    GpActorD4Rec*          newShape;
+    WorldCollisionCapsule* newShape;
     GfxCoord*              target;
     GfxCoord*              view;
     /* The setup and draw phases reuse this pointer; steering has its own counter. */
@@ -1541,25 +1541,25 @@ void func_actor_403600_80134398(Task* arg0)
         } while (var_s4 < 0x20);
         newShape = &newWork->shape;
         if (arg0->spawnArg1.value < 0x1000) {
-            obj                    = &newWork->obj;
-            obj->coord             = coord;
-            obj->context.capsule   = newShape;
-            obj->pos.vx            = 0;
-            obj->pos.vy            = 0;
-            obj->pos.vz            = 0;
-            obj->radius            = 0;
-            recs                   = newWork->recs;
-            obj->key               = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
-            obj->flags             = WORLD_COLLISION_BODY_CAPSULE;
-            newShape->recs         = recs;
-            newShape->end1.vx      = 0;
-            newShape->end1.vy      = 0;
-            newShape->end1.vz      = 0;
-            newWork->shape.end0.vx = 0;
-            newShape->end0.vy      = 0;
-            newShape->end0.vz      = 0;
-            newShape->end0Radius   = 0xC8;
-            newShape->end1Radius   = 0xC8;
+            obj                       = &newWork->obj;
+            obj->coord                = coord;
+            obj->context.capsule      = newShape;
+            obj->pos.vx               = 0;
+            obj->pos.vy               = 0;
+            obj->pos.vz               = 0;
+            obj->radius               = 0;
+            recs                      = newWork->recs;
+            obj->key                  = Gp_PackPair(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
+            obj->flags                = WORLD_COLLISION_BODY_CAPSULE;
+            newShape->contacts        = recs;
+            newShape->ends[1].vx      = 0;
+            newShape->ends[1].vy      = 0;
+            newShape->ends[1].vz      = 0;
+            newWork->shape.ends[0].vx = 0;
+            newShape->ends[0].vy      = 0;
+            newShape->ends[0].vz      = 0;
+            newShape->end0Radius      = 0xC8;
+            newShape->end1Radius      = 0xC8;
             Gp_InitRec18Table(recs, 1, 0);
             Gp_LinkObj(3, obj);
             obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1658,12 +1658,12 @@ block_22:
                         gte_ldsv(gteValue2);
                         gte_gpf12();
                         gte_stsv(temp_s0_4);
-                        newShape->end1.vx = (s16) - (s16)(u16)scratch->dir.vx;
-                        newShape->end1.vy = (s16) - (s16)(u16)scratch->dir.vy;
-                        newShape->end1.vz = (s16) - (s16)(u16)scratch->dir.vz;
-                        coord->coord.t[0] = coord->coord.t[0] + scratch->dir.vx;
-                        coord->coord.t[1] = coord->coord.t[1] + scratch->dir.vy;
-                        coord->coord.t[2] = coord->coord.t[2] + scratch->dir.vz;
+                        newShape->ends[1].vx = (s16) - (s16)(u16)scratch->dir.vx;
+                        newShape->ends[1].vy = (s16) - (s16)(u16)scratch->dir.vy;
+                        newShape->ends[1].vz = (s16) - (s16)(u16)scratch->dir.vz;
+                        coord->coord.t[0]    = coord->coord.t[0] + scratch->dir.vx;
+                        coord->coord.t[1]    = coord->coord.t[1] + scratch->dir.vy;
+                        coord->coord.t[2]    = coord->coord.t[2] + scratch->dir.vz;
                         goto block_51;
                     }
                     if (temp_v1_5 == 3) {

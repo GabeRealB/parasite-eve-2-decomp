@@ -134,7 +134,7 @@ typedef struct Actor400600Work {
     /* 0x5CC */ WorldCollisionBody    obj_5CC;    // collision node; flags bit 0x8000 cleared
     /* 0x5EC */ WorldCollisionContact rec_5EC[1]; // obj_5CC's table (flags kind 1)
     /* 0x604 */ WorldCollisionBody    obj_604;    // collision node; flags bit 0x4000 cleared
-    /* 0x624 */ GpActorD4Rec          rec_624;    // obj_604's payload (flags kind 3)
+    /* 0x624 */ WorldCollisionCapsule rec_624;    // obj_604's payload (flags kind 3)
     /* 0x63C */ WorldCollisionContact rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
     /* 0x6FC */ EffectSpawnArg        eff_6FC;    // fourth model part's coordinate
     /* 0x704 */ Task*                 field_704;  // child task, killed on death
@@ -1729,13 +1729,13 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->obj_4B4.flags = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->obj_4B4);
     Gp_InitRec18Table(work->rec_4D4, 8, 0);
-    work->rec_624.end0.vz         = 0xBB8;
+    work->rec_624.ends[0].vz      = 0xBB8;
     work->rec_624.end0Radius      = 0xA;
     work->rec_624.end1Radius      = 0xA;
-    work->rec_624.end0.vx         = 0;
-    work->rec_624.end1.vz         = 0;
-    work->rec_624.end1.vx         = 0;
-    work->rec_624.recs            = work->rec_63C;
+    work->rec_624.ends[0].vx      = 0;
+    work->rec_624.ends[1].vz      = 0;
+    work->rec_624.ends[1].vx      = 0;
+    work->rec_624.contacts        = work->rec_63C;
     work->obj_4B4.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->obj_604.coord           = arg0->extra.tmd->coords;
     work->obj_604.context.capsule = &work->rec_624;
@@ -4010,32 +4010,32 @@ static void func_actor_400600_80137498(Task* arg0, s16 arg1)
                 RotMatrixZ(-(s16)work->field_84, &m->mat);
                 ApplyMatrixSV(&m->mat, &v, &out);
             }
-            work->rec_624.end0.vx    = out.vx;
-            work->rec_624.end0.vy    = out.vy;
+            work->rec_624.ends[0].vx = out.vx;
+            work->rec_624.ends[0].vy = out.vy;
             n                        = out.vz;
-            work->rec_624.end0.vz    = n;
+            work->rec_624.ends[0].vz = n;
             n                        = 0xA;
             work->rec_624.end0Radius = n;
             work->rec_624.end1Radius = n;
             break;
         case 1:
-            work->rec_624.end0.vx    = 0;
-            work->rec_624.end0.vy    = 0x190;
-            work->rec_624.end0.vz    = -0xBB8;
+            work->rec_624.ends[0].vx = 0;
+            work->rec_624.ends[0].vy = 0x190;
+            work->rec_624.ends[0].vz = -0xBB8;
             work->rec_624.end0Radius = 0x50;
             work->rec_624.end1Radius = 0x50;
             break;
         case 2:
-            work->rec_624.end0.vx    = 0;
-            work->rec_624.end0.vy    = -0xBB8;
-            work->rec_624.end0.vz    = 0;
+            work->rec_624.ends[0].vx = 0;
+            work->rec_624.ends[0].vy = -0xBB8;
+            work->rec_624.ends[0].vz = 0;
             work->rec_624.end0Radius = 0xA;
             work->rec_624.end1Radius = 0xA;
             break;
     }
-    work->rec_624.end1.vx = 0;
-    work->rec_624.end1.vy = 0x64;
-    work->rec_624.end1.vz = 0;
+    work->rec_624.ends[1].vx = 0;
+    work->rec_624.ends[1].vy = 0x64;
+    work->rec_624.ends[1].vz = 0;
     Gp_ClearRec18Occupied(work->rec_63C);
     work->obj_604.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }

@@ -98,14 +98,14 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.w     = work->dir.vx / work->field_88.h.hi;
-    blk->delta.vy.w     = work->dir.vy / work->field_88.h.hi;
-    blk->delta.vz.w     = work->dir.vz / work->field_88.h.hi;
-    coord->coord.t[0]  += blk->delta.vx.w;
-    coord->coord.t[1]  += blk->delta.vy.w;
-    coord->coord.t[2]  += blk->delta.vz.w;
-    work->d4rec.end1.vz = -(work->field_88.w >> 9);
-    work->field_88.w   += 0x1800;
+    blk->delta.vx.w        = work->dir.vx / work->field_88.h.hi;
+    blk->delta.vy.w        = work->dir.vy / work->field_88.h.hi;
+    blk->delta.vz.w        = work->dir.vz / work->field_88.h.hi;
+    coord->coord.t[0]     += blk->delta.vx.w;
+    coord->coord.t[1]     += blk->delta.vy.w;
+    coord->coord.t[2]     += blk->delta.vz.w;
+    work->d4rec.ends[1].vz = -(work->field_88.w >> 9);
+    work->field_88.w      += 0x1800;
     if (work->field_88.w > 0xDFFFF) {
         goto explode;
     }

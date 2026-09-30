@@ -342,8 +342,8 @@ assignment.
 
 The filler it picks is the **latest unique-constant `li`/`sh` gap before
 the pointer's first use**. Writing `obj.pos.vy` / `obj.pos.vz` before
-`d4rec.recs = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
-the zeros and the `recs` store first, then the pos fields — the sibling
+`d4rec.contacts = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
+the zeros and the `contacts` store first, then the pos fields — the sibling
 spawn's source order — leaves `0x258` (the shared radius immediate) as
 the latest gap, which is the target, and still emits pos.vy/vz *before*
 the zeros. `TOUCH_REG(recs2)` after the radii forced the addiu earlier
@@ -36415,7 +36415,7 @@ so a `beqz flags` delay is `move v0, t7` / `lw 0x14(v0)` rather than
 register s32 temp asm("v0");
 temp = (s32)rec;
 asm volatile("" : "+r"(temp));
-slot = ((GpActorD4Rec*)temp)->recs;
+slot = ((WorldCollisionCapsule*)temp)->recs;
 ```
 
 Index a `VECTOR` / `SVECTOR` with that same `$v0` temp so the shifts stay
@@ -49742,8 +49742,8 @@ the case the label goes in, and every other user of it becomes a forward goto.
 A nested record inside a struct reads naturally through one named pointer:
 
 ```c
-GpActorD4Rec* rec = &actor->field_14C;
-rec->end0.vz = (rec->end1.vz + D_80112F60[D_80073BA9]) << 1;
+WorldCollisionCapsule* rec = &actor->field_14C;
+rec->ends[0].vz = (rec->ends[1].vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
 That scores 98% with `regs`/`branch` leftovers, because the local forces GCC to
@@ -49761,8 +49761,8 @@ GCC CSEs the constant offset into the addressing mode and never materializes the
 interior pointer:
 
 ```c
-actor->field_14C.end0.vz =
-    (actor->field_14C.end1.vz + D_80112F60[D_80073BA9]) << 1;
+actor->field_14C.ends[0].vz =
+    (actor->field_14C.ends[1].vz + D_80112F60[D_80073BA9]) << 1;
 ```
 
 This is the opposite of "Hold a global's address in a local pointer": a global
@@ -55729,7 +55729,7 @@ constant compare instead.
 
 The weapon firing state machines all open the same way: borrow 0x50 bytes of
 the hardware scratchpad into a `spot` local, then load `actor`, `coord` and the
-`GpActorD4Rec` pointer before the `switch`. The scratch borrow needs its
+`WorldCollisionCapsule` pointer before the `switch`. The scratch borrow needs its
 `register u8* tmp asm("v0")` pin so the pre-decrement value reaches both the
 callee-saved copy and the store-back:
 
@@ -73997,7 +73997,7 @@ spot this shape in a target.
 
 ## Group struct writes by object to move a free-floating address computation
 
-`func_actor_444000_8013AFF8` sets up a `WorldCollisionBody` and the `GpActorD4Rec` it points
+`func_actor_444000_8013AFF8` sets up a `WorldCollisionBody` and the `WorldCollisionCapsule` it points
 at, then hands the record table to `Gp_InitRec18Table`. Every version of the
 block emitted all 17 stores in the right order and still left one instruction -
 `addiu s0, s7, 0xd84` (`&work->recs2`, the table pointer) - seven slots too late,
@@ -80135,8 +80135,8 @@ Inputs: `base_1.i`
 ## A work block's embedded sub-record is written in the ROM's emission order, not the parent's field order
 
 `func_actor_105700_80134FDC` (USA/actors/actor_105700) fills a 0xF0-byte body
-block whose `obj98` `WorldCollisionBody` at 0x98 points at a `GpActorD4Rec` at 0xB8. The ROM
-emits `obj98.context.capsule`, then the whole `d4rec` run (`end0` … `recs`),
+block whose `obj98` `WorldCollisionBody` at 0x98 points at a `WorldCollisionCapsule` at 0xB8. The ROM
+emits `obj98.context.capsule`, then the whole `d4rec` run (`ends[0]` … `contacts`),
 then `obj98.coord` / `pos` / `key` / `radius` / `flags` — the
 parent's fields are split *around* the sub-record, not grouped.
 
@@ -80148,9 +80148,9 @@ only lever is where each store sits, and the matching form is exactly the ROM
 order:
 
 ```c
-work->d4rec.end0.vx = 0;
-/* … end0.vy / end0.vz / end1.vx / end1.vy / end1.vz / end0Radius / end1Radius */
-work->d4rec.recs    = work->recD0;
+work->d4rec.ends[0].vx = 0;
+/* … ends[0].vy / ends[0].vz / ends[1].vx / ends[1].vy / ends[1].vz / end0Radius / end1Radius */
+work->d4rec.contacts    = work->recD0;
 work->obj98.context.capsule = &work->d4rec;
 work->obj98.field_8  = coord;
 /* … field_10 / _12 / _14 / _18 / _1C */
@@ -115267,18 +115267,18 @@ blocks. Three statement moves closed it:
    order is per-function, so do not carry it over.
 
 2. **Which statement first names a CSE'd address decides where its `addiu` lands.**
-   `work->field_214` is named twice (`field_1FC.recs = work->field_214;` and
+   `work->field_214` is named twice (`field_1FC.contacts = work->field_214;` and
    `Gp_InitRec18Table(work->field_214, 1, 0)`), so CSE materialises one `addiu`.
    With `obj1.context.capsule = &work->field_1FC;` written first, that `addiu`
    sits one slot too late and the last insn lands after `addiu v0, s2, 0x1FC`
-   instead of before `sh v0, 0x20E`. Moving the `recs` assignment above the
+   instead of before `sh v0, 0x20E`. Moving the `contacts` assignment above the
    `context.capsule` assignment moved it one slot earlier and the function went to
    100.000%.
 
 3. Everything else was already right: the `one` local (a named `s32 one = 1`)
    keeps `$s5` live across `Gp_LinkNode`, `part = &coord[6]` lands in `$s7` in
-   the `bne` delay slot, and the work block's 0x1FC run is a `GpActorD4Rec`
-   whose `recs` names the single `WorldCollisionContact` beside it - not, as the m2c
+   the `bne` delay slot, and the work block's 0x1FC run is a `WorldCollisionCapsule`
+   whose `contacts` names the single `WorldCollisionContact` beside it - not, as the m2c
    spelling suggests, a `WorldCollisionContact` at 0x1FC plus a stray word store at 0x210.
 
 The body is byte-identical to `func_actor_207000_8014EE88`, but promotion is
@@ -126969,7 +126969,7 @@ the object reverses; that fix is the statement permutation, not a fence.
 A second instance, and a stronger one: `func_actor_105600_80134FD0` against
 `func_actor_105700_80134FDC` differ in nothing but the two `D_` symbols they
 name, so the masked diff is empty apart from those lines and the port is total -
-the sibling's whole 0xF0-byte work struct, its `GpActorD4Rec` corner and all
+the sibling's whole 0xF0-byte work struct, its `WorldCollisionCapsule` corner and all
 three `Gte` column transforms come across unchanged. `find` again reported
 `same body: 1 copies`. Two consequences worth carrying forward: a same-family
 sibling that scores 1.00 in every `similar` class is worth porting *before*
@@ -136390,7 +136390,7 @@ Evidence and compiler/preprocessed-input hashes: tools/compiler_evidence/2026-09
 `func_actor_800100_80166F50` (2026-09-20) resolves another instance of the
 fixed-scalar/varying-struct alias exemption. Its archived seed was 95.301%
 (`regs=2 reorder=3 insert=1 delete=1`). Earlier retries rearranged stores to
-`GpActorD4Rec` but could not move the `end1.vx` store/load pair earlier while
+`WorldCollisionCapsule` but could not move the `ends[1].vx` store/load pair earlier while
 keeping both loads and the target's register homes.
 
 The deciding access was later: `D_80112F60[D_80073BA9]`. UID 113's bare scalar

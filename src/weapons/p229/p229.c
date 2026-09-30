@@ -84,13 +84,13 @@ void func_p229_8011D1DC(Task* task)
 /// the firing pose once the aim check fails or the trigger has been released.
 static void func_p229_8011DDA0(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    GpEffWork*    eff;
-    s32           anim;
-    s16           frames;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    GpEffWork*             eff;
+    s32                    anim;
+    s16                    frames;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;

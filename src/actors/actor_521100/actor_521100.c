@@ -1743,15 +1743,15 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     work->obj59C.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(3, &work->obj59C);
 
-    work->shape.end0.vz    = 0x5DC;
-    work->shape.end0.vx    = 0;
-    work->shape.end0.vy    = 0;
-    work->shape.end1.vx    = 0;
-    work->shape.end1.vy    = 0;
-    work->shape.end1.vz    = 0;
+    work->shape.ends[0].vz = 0x5DC;
+    work->shape.ends[0].vx = 0;
+    work->shape.ends[0].vy = 0;
+    work->shape.ends[1].vx = 0;
+    work->shape.ends[1].vy = 0;
+    work->shape.ends[1].vz = 0;
     work->shape.end0Radius = 1;
     work->shape.end1Radius = 1;
-    work->shape.recs       = work->rec62C;
+    work->shape.contacts   = work->rec62C;
     work->obj59C.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     work->obj5D4.coord           = task->extra.tmd->coords;

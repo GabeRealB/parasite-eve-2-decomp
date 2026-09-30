@@ -1671,8 +1671,8 @@ typedef struct Actor403200Work {
     /* 0x7F4 */ Actor403200HitGroup hits[9];
     /// The tenth collision object, the one the swipe tick raises `flags` bit
     /// 0x8000 on while the swipe is live.
-    /* 0xD4C */ WorldCollisionBody obj;
-    /* 0xD6C */ GpActorD4Rec       d4rec;
+    /* 0xD4C */ WorldCollisionBody    obj;
+    /* 0xD6C */ WorldCollisionCapsule d4rec;
     /// The five records the tenth collision object carries, walked by the swipe
     /// tick for the one whose high half is 0x10000.
     /* 0xD84 */ WorldCollisionContact recs2[5];
@@ -1808,7 +1808,7 @@ typedef struct Actor105600Work {
     /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its
     /// `radius` the frame count parked alongside it.
     WorldCollisionBody    field_47C;
-    GpActorD4Rec          field_49C;
+    WorldCollisionCapsule field_49C;
     WorldCollisionContact field_4B4[1];
     /// Second body object; `pos.vz` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
@@ -1826,7 +1826,7 @@ typedef struct Actor105600Work {
     WorldCollisionContact field_604[1];
     /// Fifth body object, unlinked with the others by `Actor05700_Fn01A58`.
     WorldCollisionBody    field_61C;
-    GpActorD4Rec          field_63C;
+    WorldCollisionCapsule field_63C;
     WorldCollisionContact field_654[1];
     TaskDesc*             field_66C;
     EffectSpawnArg        field_670;
@@ -1900,7 +1900,7 @@ STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 /// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `WorldCollisionBody` bodies collide against `rec60`
-/// (shared by the first two) and, through the `GpActorD4Rec` between them,
+/// (shared by the first two) and, through the `WorldCollisionCapsule` between them,
 /// `recD0`. `field_EE` mirrors the placement table's variant flag.
 typedef struct Actor105600FxWork {
     MATRIX                colorMtx;
@@ -1909,7 +1909,7 @@ typedef struct Actor105600FxWork {
     WorldCollisionContact rec60[1];
     WorldCollisionBody    obj78;
     WorldCollisionBody    obj98;
-    GpActorD4Rec          d4rec;
+    WorldCollisionCapsule d4rec;
     WorldCollisionContact recD0[1];
     s16                   field_E8;
     s16                   field_EA;

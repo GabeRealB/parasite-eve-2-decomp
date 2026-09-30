@@ -2446,15 +2446,15 @@ case0:
         CdCmd_Enqueue(0x21, param1, param2);
     }
 
-    work->field_49C.end0.vz         = 0x1F40;
+    work->field_49C.ends[0].vz      = 0x1F40;
     work->field_49C.end0Radius      = 0x3E8;
-    work->field_49C.end0.vx         = 0;
-    work->field_49C.end0.vy         = 0;
-    work->field_49C.end1.vx         = 0;
-    work->field_49C.end1.vy         = 0;
-    work->field_49C.end1.vz         = 0;
+    work->field_49C.ends[0].vx      = 0;
+    work->field_49C.ends[0].vy      = 0;
+    work->field_49C.ends[1].vx      = 0;
+    work->field_49C.ends[1].vy      = 0;
+    work->field_49C.ends[1].vz      = 0;
     work->field_49C.end1Radius      = 0x5DC;
-    work->field_49C.recs            = work->field_4B4;
+    work->field_49C.contacts        = work->field_4B4;
     partsA                          = actor->extra.tmd->coords;
     work->field_47C.context.capsule = &work->field_49C;
     work->field_47C.pos.vx          = 0;

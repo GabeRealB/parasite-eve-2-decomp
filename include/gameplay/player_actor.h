@@ -30,7 +30,7 @@ STATIC_ASSERT_SIZEOF(GpCountArg, 8);
 extern u8 D_80112E04[][2];
 
 /// u16 table indexed by `Gp_AttachActorObj` arg1: the reach a weapon of that
-/// attach id adds to the shape's `end1` to give its `end0`.
+/// attach id adds to the shape's `ends[1]` to give its `ends[0]`.
 extern u16 D_80112F60[];
 
 extern u16 Gp_WeaponIdBase[2];

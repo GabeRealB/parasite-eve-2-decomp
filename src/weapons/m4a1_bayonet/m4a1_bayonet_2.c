@@ -39,14 +39,14 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0);
 /// trigger has been released.
 static void func_m4a1_bayonet_8011DA34(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    GpEffWork*    eff;
-    s32           anim;
-    s32           delay;
-    s16           frames;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    GpEffWork*             eff;
+    s32                    anim;
+    s32                    delay;
+    s16                    frames;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -90,7 +90,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                 actor->field_93E = 0x12;
                 func_80106518(0x1A);
                 actor->field_940  = 0x1C;
-                rec->end0.vz      = rec->end1.vz + 0x340;
+                rec->ends[0].vz   = rec->ends[1].vz + 0x340;
                 actor->field_124  = 0x21A1D;
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
@@ -105,7 +105,7 @@ static void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->field_93E--;
                     actor->field_934  = 3;
                     actor->field_981  = 0;
-                    rec->end0.vz      = rec->end1.vz + D_80112F60[26];
+                    rec->ends[0].vz   = rec->ends[1].vz + D_80112F60[26];
                     actor->field_12A |= 0xC000;
                     Gp_ConsumeSlotQty(0x99, 1);
                     if (func_80106264(1) == 0) {
