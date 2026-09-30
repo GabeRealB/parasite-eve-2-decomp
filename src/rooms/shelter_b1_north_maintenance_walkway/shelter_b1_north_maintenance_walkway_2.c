@@ -50,28 +50,10 @@
 
 #include "rooms/rooms_shared_8017dcb8.h"
 
-// Preserve the nonzero halfword after the three effect records.
-// Its role is unresolved; it may be retained exporter padding.
-typedef struct {
-    RoomHaloShade entries[3];
-    u16           retained;
-} ShelterB1NorthMaintenanceWalkwayHaloStorage;
-STATIC_ASSERT_SIZEOF(ShelterB1NorthMaintenanceWalkwayHaloStorage, 20);
-ShelterB1NorthMaintenanceWalkwayHaloStorage RoomFx_HaloShades;
-
-/// Per-palette channel shifts for the halo, indexed by the palette the spawn
-/// argument selects.
-
-/// Offsets from the anchor of the two points the twin trail follows. The
-/// second is also reached under its own name.
-
-/// Per-colour channel shifts for the glowing disc, indexed by the spawn
-/// argument.
-
 #include "../../shared/room_visual_effects.h"
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x374F }
-#define ROOM_FX_HALO_STORAGE_TYPE        ShelterB1NorthMaintenanceWalkwayHaloStorage
+#define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
 #define ROOM_FX_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 #include "../../shared/room_visual_effects_trail_data.inc.c"
