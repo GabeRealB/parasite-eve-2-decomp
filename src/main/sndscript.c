@@ -135,33 +135,33 @@ STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 /// field_44 is the `SndBankSlot` whose bank the script plays (its image holds the
 /// `oneC` entry offsets, its bank is the default for a `oneV` with bank id 0);
 /// field_48 is a byte cursor over variable-length tagged commands;
-/// field_F is bit1 of SndVoiceParams::flags.
-/// field_4C is the `SndVoiceParams` block of the sound being played, reloaded by
+/// field_F is bit1 of SndScriptEntryControls::flags.
+/// field_4C is the `SndScriptEntryControls` block of the sound being played, reloaded by
 /// its `oneC` command.
 /// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
 typedef struct _SndScript {
-    /* 0x00 */ s32             field_0;
-    /* 0x04 */ s32             field_4;
-    /* 0x08 */ s32             field_8;
-    /* 0x0C */ s8              field_C;
-    /* 0x0D */ s8              field_D;
-    /* 0x0E */ s8              field_E;
-    /* 0x0F */ s8              field_F;
-    /* 0x10 */ u8              field_10;
-    /* 0x11 */ u8              field_11;
-    /* 0x12 */ s8              field_12;
-    /* 0x13 */ u8              field_13;
-    /* 0x14 */ u8              field_14;
-    /* 0x15 */ s8              field_15;
-    /* 0x16 */ u8              field_16;
-    /* 0x17 */ u8              field_17;
-    /* 0x18 */ u8              field_18[8];
-    /* 0x20 */ u8*             field_20[8];
-    /* 0x40 */ SndVoice*       field_40;
-    /* 0x44 */ SndBankSlot*    field_44;
-    /* 0x48 */ u8*             field_48;
-    /* 0x4C */ SndVoiceParams* field_4C;
-    /* 0x50 */ LinInterp       field_50;
+    /* 0x00 */ s32                     field_0;
+    /* 0x04 */ s32                     field_4;
+    /* 0x08 */ s32                     field_8;
+    /* 0x0C */ s8                      field_C;
+    /* 0x0D */ s8                      field_D;
+    /* 0x0E */ s8                      field_E;
+    /* 0x0F */ s8                      field_F;
+    /* 0x10 */ u8                      field_10;
+    /* 0x11 */ u8                      field_11;
+    /* 0x12 */ s8                      field_12;
+    /* 0x13 */ u8                      field_13;
+    /* 0x14 */ u8                      field_14;
+    /* 0x15 */ s8                      field_15;
+    /* 0x16 */ u8                      field_16;
+    /* 0x17 */ u8                      field_17;
+    /* 0x18 */ u8                      field_18[8];
+    /* 0x20 */ u8*                     field_20[8];
+    /* 0x40 */ SndVoice*               field_40;
+    /* 0x44 */ SndBankSlot*            field_44;
+    /* 0x48 */ u8*                     field_48;
+    /* 0x4C */ SndScriptEntryControls* field_4C;
+    /* 0x50 */ LinInterp               field_50;
 } SndScript;
 STATIC_ASSERT_SIZEOF(SndScript, 0x60);
 
@@ -209,6 +209,17 @@ typedef struct _SndBankInitEntry {
     /* 0x8 */ s32 field_8;
 } SndBankInitEntry;
 STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
+
+// oneC controls apply to a whole script instance and all voices it starts.
+enum {
+    SOUND_SCRIPT_ENTRY_TAG           = 0x43656E6F,
+    SOUND_SCRIPT_VOLUME_UNITY        = 127,
+    SOUND_SCRIPT_ALLOW_DISABLED_TYPE = 0x01,
+    SOUND_SCRIPT_USE_UNDUCKED_VOLUME = 0x02,
+    SOUND_SCRIPT_GROUP_BY_FLAGS      = 0x10,
+    SOUND_SCRIPT_REJECT_WHILE_MUTED  = 0x80,
+    SOUND_SCRIPT_RETRIGGER_DISABLED  = -1
+};
 
 static volatile u8 D_80082138[0x10];
 
@@ -282,9 +293,9 @@ static void SndVoice_Init(void);
 static void SndVoice_SetPriorityLevel(s8 arg0);
 
 /// Selects an eligible voice candidate, respecting the retrigger-age limit.
-static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerFrames);
+static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerTicks);
 
-static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndVoiceParams* arg5);
+static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls);
 
 static void SndVoice_Detach(void* context);
 
@@ -697,14 +708,14 @@ loop:
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
     enum { SOUND_BANK_ENTRY_ABSENT = 0 };
-    s32              orig;
-    SndBankSlot*     bankSlot;
-    SndBankHdr*      header;
-    SndVoiceParams*  entry;
-    u16              offset;
-    u32              index;
-    SndEvt*          temp;
-    SndEvtVoiceArgs* args;
+    s32                     orig;
+    SndBankSlot*            bankSlot;
+    SndBankHdr*             header;
+    SndScriptEntryControls* entry;
+    u16                     offset;
+    u32                     index;
+    SndEvt*                 temp;
+    SndEvtVoiceArgs*        args;
 
     orig = arg0;
     if ((arg0 == 0) || (arg0 == 8)) {
@@ -730,14 +741,14 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     if (offset == SOUND_BANK_ENTRY_ABSENT) {
         return -3;
     }
-    entry = (SndVoiceParams*)((u8*)header + offset);
+    entry = (SndScriptEntryControls*)((u8*)header + offset);
     if (D_800689EC != 0) {
-        if ((entry->flags & 0x80) != 0) {
+        if ((entry->flags & SOUND_SCRIPT_REJECT_WHILE_MUTED) != 0) {
             return -5;
         }
     }
     if (D_80082138[(u32)arg0 >> 28] == 0) {
-        if ((entry->flags & 1) == 0) {
+        if ((entry->flags & SOUND_SCRIPT_ALLOW_DISABLED_TYPE) == 0) {
             return -4;
         }
     }
@@ -1196,7 +1207,7 @@ static void SndVoice_ScanCandidates(SndVoicePick* candidates, u16 arg1, s32 arg2
                 }
             }
             if (((p->field_0 & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
-                (((temp = p->field_4C->flags) & 0x10) && (arg3 == temp))) {
+                (((temp = p->field_4C->flags) & SOUND_SCRIPT_GROUP_BY_FLAGS) && (arg3 == temp))) {
                 candidates->field_1 = i;
                 if ((candidates->field_2 == -1) || (candidates->field_C > p->field_4)) {
                     score               = p->field_4;
@@ -1285,7 +1296,6 @@ static inline u8 _sndScriptUseReverb(SndOneV* oneV)
 static s32 SndScript_Exec(SndScript* script)
 {
     enum {
-        SOUND_BANK_VOLUME_MAX        = 127,
         SOUND_BANK_PAN_CENTER        = 64,
         SOUND_BANK_PAN_MAX           = 127,
         SOUND_BANK_KEY_FRACTION_BITS = 7
@@ -1355,11 +1365,11 @@ static s32 SndScript_Exec(SndScript* script)
             }
             result = 1;
             goto done;
-        case 0x43656E6F:
+        case SOUND_SCRIPT_ENTRY_TAG:
             header = script->field_44->image;
             // Reload this entry's controls before executing its first voice command.
-            script->field_4C = (SndVoiceParams*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
-            script->field_48 = script->field_48 + sizeof(SndVoiceParams);
+            script->field_4C = (SndScriptEntryControls*)((u8*)header + *(header->entryOffsets + (u8)script->field_0));
+            script->field_48 = script->field_48 + sizeof(SndScriptEntryControls);
         case 0x56656E6F:
             oneV  = (SndOneV*)script->field_48;
             ticks = script->field_8;
@@ -1390,7 +1400,7 @@ static s32 SndScript_Exec(SndScript* script)
                 attr         = voiceRef.field_4;
                 masterVolume = D_80082748;
                 attr->addr   = bankLayer->waveAddr;
-                if ((D_80082749 != 0) && (script->field_4C->flags & 2)) {
+                if ((D_80082749 != 0) && (script->field_4C->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
                     masterVolume = D_80082749;
                 }
                 layerVolume = (u8)oneV->field_D;
@@ -1398,8 +1408,8 @@ static s32 SndScript_Exec(SndScript* script)
                     layerVolume = bankLayer->volume;
                 }
                 voice->field_A = layerVolume;
-                voice->field_2 = (s8)((masterVolume * script->field_4C->volume * voice->field_A) / (SOUND_BANK_VOLUME_MAX * SOUND_BANK_VOLUME_MAX));
-                pan            = script->field_4C->pan;
+                voice->field_2 = (s8)((masterVolume * script->field_4C->volumeScale * voice->field_A) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY));
+                pan            = script->field_4C->panBias;
                 panSum         = oneV->field_C;
                 if (panSum < 0) {
                     panSum = bankLayer->pan;
@@ -1568,18 +1578,18 @@ apply:
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndVoiceParams* arg4)
+s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptEntryControls* entryControls)
 {
     SndVoicePick sp18;
 
-    SndVoice_ScanCandidates(&sp18, arg4->priority, arg0, arg4->flags);
-    if ((sp18.field_7 < arg4->maxVoices) && (sp18.field_3 != -1)) {
+    SndVoice_ScanCandidates(&sp18, entryControls->priority, arg0, entryControls->flags);
+    if ((sp18.field_7 < entryControls->maxInstances) && (sp18.field_3 != -1)) {
         sp18.field_0 = sp18.field_3;
     } else {
-        sp18.field_0 = SndVoice_SelectStealCandidate(&sp18, arg4->retriggerFrames);
+        sp18.field_0 = SndVoice_SelectStealCandidate(&sp18, entryControls->retriggerTicks);
     }
     if (sp18.field_0 >= 0) {
-        SndScript_Play(sp18.field_0, arg1, arg2, arg0, slot, arg4);
+        SndScript_Play(sp18.field_0, arg1, arg2, arg0, slot, entryControls);
     }
     return sp18.field_0;
 }
@@ -1786,7 +1796,7 @@ void SndVoice_ApplyMasterVolume(s8 arg0)
             if (temp != NULL) {
                 node = temp;
                 do {
-                    node->field_2 = (arg0 * p->field_4C->volume * node->field_A) / 16129;
+                    node->field_2 = (arg0 * p->field_4C->volumeScale * node->field_A) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY);
                     node          = node->field_3C;
                 } while (node != NULL);
                 p->field_E = 0;
@@ -1806,17 +1816,17 @@ s8 SndVoice_GetMasterVolume(void)
     return D_80082748;
 }
 
-static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerFrames)
+static s8 SndVoice_SelectStealCandidate(SndVoicePick* candidates, s32 retriggerTicks)
 {
     s32 v;
     u8  u;
     s32 none;
 
     none = -1;
-    if (retriggerFrames == none) {
+    if (retriggerTicks == SOUND_SCRIPT_RETRIGGER_DISABLED) {
         return -9;
     }
-    if (candidates->field_C < retriggerFrames) {
+    if (candidates->field_C < retriggerTicks) {
         return -5;
     }
     if (candidates->field_2 != none) {
@@ -1844,16 +1854,16 @@ ret_m6:
     return -6;
 }
 
-static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndVoiceParams* arg5)
+static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls)
 {
-    SndScript*      p;
-    SndVoice*       node;
-    SndVoiceParams* desc;
-    u16             flags;
+    SndScript*              p;
+    SndVoice*               node;
+    SndScriptEntryControls* controls;
+    u16                     flags;
 
-    desc = arg5;
-    p    = &SndScript_Slots[arg0];
-    node = p->field_40;
+    controls = entryControls;
+    p        = &SndScript_Slots[arg0];
+    node     = p->field_40;
     if (node != NULL) {
         do {
             Spu_KeyOff(node->field_0);
@@ -1872,9 +1882,9 @@ static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* sl
     p->field_10 = arg1;
     p->field_13 = arg2;
     p->field_17 = 0;
-    flags       = desc->flags;
-    p->field_48 = (u8*)arg5;
-    p->field_F  = (flags >> 1) & 1;
+    flags       = controls->flags;
+    p->field_48 = (u8*)entryControls;
+    p->field_F  = (flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME) != 0;
 }
 
 static void SndVoice_Detach(void* context)

@@ -97,42 +97,47 @@ typedef struct {
 } SndBank;
 STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
-/// The voice parameters a sound-bank entry starts a sound with, carried as the
-/// `oneC` command that opens the entry's script program.
+/// A sound-script entry's tagged allocation policy and shared voice controls.
 ///
-/// A bank publishes its entries through `SndBankHdr::entryOffsets`, and an entry
-/// is a small script whose first command is this block, followed by the `oneV`
-/// commands that start the voices. The allocator also reads the block when the
-/// sound is requested, so it settles which script slot the sound gets: a request
-/// plays while fewer than `maxVoices` copies of the sound are running and a slot
-/// is free, and otherwise either restarts the newest copy or takes over the
-/// playing sound with the lowest `priority` — and is dropped instead, when the
-/// newest copy is younger than `retriggerFrames` (a `-1` refuses every takeover,
-/// so the sound plays only while a slot is free).
+/// This is the 16-byte `oneC` prefix of a variable-length bank entry, addressed
+/// by an image-relative byte offset in `SndBankHdr::entryOffsets`. Requests read
+/// it before queueing playback; the interpreter skips it to reach the commands.
+/// The loaded bank image owns the storage and must remain loaded until all
+/// queued requests and playing scripts referring to it have finished.
 ///
-/// `flags` carries the sound's playback switches: (bit 0 plays while its sound
-/// type is disabled, bit 1 follows the override level rather than the master
-/// volume, bit 4 groups the entries that share its value as copies of one sound,
-/// bit 7 is dropped while the sound is muted).
+/// Each instance occupies one of eight script slots and can start several SPU
+/// voices. A free slot is preferred while the same-sound count is below
+/// `maxInstances`. Otherwise, after checking the newest same-sound instance's
+/// age against `retriggerTicks`, playback replaces the oldest same-sound
+/// instance, or a lower-priority instance, or the oldest equal-priority one.
+/// An age limit of -1 forbids replacement, including replacement of other sounds.
+/// Same-sound matching ignores request-id bits 8..15; flag 0x10 also groups
+/// instances whose complete `flags` words are equal.
+///
+/// `volumeScale` and `panBias` apply to every voice started by the script.
+/// Flags: 0x01 permits requests while the bank type is disabled; 0x02 uses the
+/// saved, unducked master volume while ducking is active; 0x10 groups by the
+/// full flags word; 0x80 rejects requests while the global mute is active.
+/// Other bits have no individual readers but remain part of the grouping key.
 typedef struct {
-    s32 magic;           // "oneC" (0x43656E6F) — the command this block carries
-    u8  unknown_4;
-    u8  volume;          // Volume scale applied over the note's (0-127)
-    u8  pan;             // Pan (0x40 = centre)
-    u8  maxVoices;       // Copies of this sound allowed to play at once
-    s16 retriggerFrames; // Age a playing copy must reach before another request takes a slot
-    u16 unknown_A;
-    u16 priority;        // Allocation priority: the lowest playing sound gives up its slot first
-    u16 flags;           // Playback switches (see above)
-} SndVoiceParams;
-STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
+    u32  tag;            // Serialized oneC FourCC; requests do not validate it
+    u8   unknown_4;      // Serialized byte with no runtime reader; role unproven
+    u8   volumeScale;    // Gain (0 silent, 127 unity), combined with master and layer gain / 127^2
+    u8   panBias;        // Added to each voice's pan with 64 subtracted (64 leaves pan unchanged)
+    u8   maxInstances;   // Same-sound instance threshold for choosing a free script slot
+    s16  retriggerTicks; // Minimum newest-instance age in running audio updates (-1 no replacement)
+    byte unknown_A[2];   // Serialized bytes with no runtime reader; grouping and role unproven
+    u16  priority;       // Can replace lower priorities, or the oldest equal priority
+    u16  flags;          // Request gates, unducked volume and same-sound grouping (see above)
+} SndScriptEntryControls;
+STATIC_ASSERT_SIZEOF(SndScriptEntryControls, 0x10);
 
 /// Header and entry-offset table of an `hONE` sound-script bank image.
 ///
 /// The eight-byte fixed header is followed by `entryCount` unsigned 16-bit
 /// offsets. A request's low byte selects a table slot below `entryCount`;
 /// zero means no entry, and multiple slots may share an entry. Nonzero offsets
-/// address `SndVoiceParams` (`oneC`) blocks relative to the image's start.
+/// address `SndScriptEntryControls` (`oneC`) blocks relative to the image's start.
 /// Scripts and their optional `oneA` / `oneE` chunks occupy the same image.
 /// The complete table and every referenced block must fit its loaded byte extent;
 /// `sizeof(SndBankHdr)` covers only the fixed header, not that extent.
@@ -206,15 +211,15 @@ STATIC_ASSERT_SIZEOF(SndEvtMidiArgs, 0x4);
 /// either: 0 stops the matched voices at once, 1 does the same and raises a flag
 /// on the slot, and a larger value is the fade length in frames.
 typedef struct {
-    s8 pan;                     // Stereo offset from the voice's own pan (0 centre)
+    s8 pan;                             // Stereo offset from the voice's own pan (0 centre)
     union {
-        s8 attenuation;         // How far the source is from the listener, subtracted from its level
-        u8 loudness;            // Level the volume ramp moves to (0x7F full, 0 silent)
+        s8 attenuation;                 // How far the source is from the listener, subtracted from its level
+        u8 loudness;                    // Level the volume ramp moves to (0x7F full, 0 silent)
     } level;
-    u16             stopFrames; // How a matching stop acts on the voices
-    s32             id;         // Bank-remapped id of the sound the event acts on
-    SndBankSlot*    bank;       // Bank the id was resolved in, held for the deferred start
-    SndVoiceParams* params;     // Bank entry the voice is started from
+    u16                     stopFrames; // How a matching stop acts on the voices
+    s32                     id;         // Bank-remapped id of the sound the event acts on
+    SndBankSlot*            bank;       // Bank the id was resolved in, held for the deferred start
+    SndScriptEntryControls* params;     // Bank entry the voice is started from
 } SndEvtVoiceArgs;
 STATIC_ASSERT_SIZEOF(SndEvtVoiceArgs, 0x10);
 

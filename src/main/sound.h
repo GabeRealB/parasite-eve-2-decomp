@@ -150,7 +150,7 @@ void Snd_SetMutedVolumes(s32 arg0);
 
 void SndVoice_KeyOffMatching(void);
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndVoiceParams* arg4);
+s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptEntryControls* entryControls);
 
 s32 SndScript_StopMatching(s32 arg0, s32 arg1);
 
