@@ -179,4 +179,3 @@ actionPromptDrawCursor = 0x8017F198; // type:func
 actionPromptHitTest = 0x8017F6D4; // type:func
 actionPromptReset = 0x8017F808; // type:func
 glowDrawTintedDiscNoBias = 0x80183654; // type:func
-gGlowPrismCorners = 0x801872CC;

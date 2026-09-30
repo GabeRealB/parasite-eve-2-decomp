@@ -54,4 +54,3 @@ D_map_dryfield_8017BC14 = 0x8017BC14; // absolute:True
 
 func_dryfield_cellar_8017DAEC = 0x8017DAEC; // type:func
 glowDrawFlareLocal = 0x8017D7DC; // type:func
-gGlowPrismCorners = 0x801872CC;
