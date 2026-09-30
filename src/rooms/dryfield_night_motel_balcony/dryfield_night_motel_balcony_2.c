@@ -25,6 +25,7 @@
 #include "main/wipsys_types.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
 void func_dryfield_night_motel_balcony_8017E068(Task*);
 
@@ -33,11 +34,11 @@ void func_dryfield_night_motel_balcony_8017DDD0(Task*);
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_night_motel_balcony_80182804[6] = {
-    { 5102, func_dryfield_night_motel_balcony_8017D968 },
+    { 5102, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_night_motel_balcony_8017DC18 },
     { 5103, func_dryfield_night_motel_balcony_8017DC28 },
     { 5104, func_dryfield_night_motel_balcony_8017DC20 },
-    { 5106, func_dryfield_night_motel_balcony_8017DBC8 },
+    { 5106, roomVariantMotelBalconySoundMsg },
     { 0x7FFFFFFF, NULL },
 };
 

@@ -27,4 +27,7 @@ s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
 s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 s32 roomVariantMotelBalconyMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 
+s32 roomVariantMotelBalconyDoorsMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
+s32 roomVariantMotelBalconySoundMsg(Task* task, s32 msgId, s32 arg2, s32 arg3);
+
 #endif /* SRC_SHARED_ROOM_VARIANTS_H */

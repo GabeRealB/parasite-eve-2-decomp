@@ -227,3 +227,5 @@ glowDrawShaft = 0x8017EC58; // type:func
 roomEventGate = 0x8017D694; // type:func
 roomEventTask = 0x8017D7F8; // type:func
 glowDrawFlare = 0x8017F440; // type:func
+roomVariantMotelBalconyDoorsMsg = 0x8017D968; // type:func
+roomVariantMotelBalconySoundMsg = 0x8017DBC8; // type:func

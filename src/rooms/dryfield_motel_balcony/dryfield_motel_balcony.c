@@ -61,6 +61,7 @@
 #include "../../shared/room_visual_effects.h"
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -94,8 +95,6 @@ extern GpRoomCoordSet             D_dryfield_motel_balcony_801865E8[1];
 
 extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
 
-s32 func_dryfield_motel_balcony_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_motel_balcony_8017DB1C(Task*, s32, s32, s32);
 s32 func_dryfield_motel_balcony_8017DB6C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_balcony_8017DB74(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -103,11 +102,11 @@ s32 func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessage
 TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_motel_balcony_8018227C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_balcony_8017D8BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyDoorsMsg },
     { 5105, func_dryfield_motel_balcony_8017DB6C },
     { 5103, func_dryfield_motel_balcony_8017DB7C },
     { 5104, func_dryfield_motel_balcony_8017DB74 },
-    { 5106, func_dryfield_motel_balcony_8017DB1C },
+    { 5106, roomVariantMotelBalconySoundMsg },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -1144,91 +1143,9 @@ static void func_dryfield_motel_balcony_8017DBC8(Task* arg0);
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room's message handler. It copies `msg` to `out`, filling `room`
-/// from game flags for messages 0x1C, 0xF and 0x1F, then routes messages 0x1C,
-/// 0x1F and 0x1E through the event gate with each one's request; when the
-/// gate fires, it updates the collected and seen item bits (and, for 0x1E, a
-/// flag nibble and `Mc_SaveData[0].state.sceneEvent`). Any other message answers 1; a gate result
-/// of 0 is reported as 2.
-s32 func_dryfield_motel_balcony_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
-{
-    RoomEventReq req;
-    s32          flagClear;
-    s32          ret;
+#include "../../shared/room_variants_motel_balcony_doors.inc.c"
 
-    *out = *msg;
-    if (msg->areaId == 0x1C && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    if (msg->areaId == 0xF && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        out->room = GameFlag_GetNibble(0x61) + 1;
-    }
-    if (msg->areaId == 0x1F && msg->queryOnly == ROOM_EVENT_EXECUTE) {
-        flagClear = GameFlag_GetNibble(0x96) == 0;
-        out->room = flagClear ? 1 : 2;
-    }
-    if (msg->areaId == 0x1C) {
-        req.capCmd        = 7;
-        req.missingCapCmd = 4;
-        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
-        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
-        req.flagId        = 0x43;
-        req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
-            Gp_SetItemSeenBit(0x113, 1);
-        }
-    } else if (msg->areaId == 0x1F) {
-        req.capCmd        = 5;
-        req.missingCapCmd = 2;
-        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
-        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
-        req.flagId        = 0x44;
-        req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
-            Gp_ClearCollectedBit(0x10F);
-            Gp_ClearCollectedBit(0x112);
-            Gp_SetItemSeenBit(0x113, 1);
-        }
-    } else if (msg->areaId == 0x1E) {
-        req.capCmd        = 6;
-        req.missingCapCmd = 3;
-        req.firstSnd      = Gp_PackStageSndId(0x521D000A);
-        req.secondSnd     = Gp_PackStageSndId(0x521D0001);
-        req.flagId        = 0x2E;
-        req.collectedBit  = 0xF;
-        ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
-            GameFlag_SetNibble(0x30, 1);
-            Mc_SaveData[0].state.sceneEvent = 3;
-            func_800E3FAC(0xA2, 0xC);
-        }
-    } else {
-        return 1;
-    }
-    if (ret == 0) {
-        ret = 2;
-    }
-    return ret;
-}
-
-/// Plays stage sound 0x521D0008 or 0x521D0009 for events 8 and 9; always
-/// answers 0.
-s32 func_dryfield_motel_balcony_8017DB1C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    switch (arg2) {
-        case 0x8:
-            Gp_EnqueueStageSnd6(0x521D0008, 0, 0);
-            break;
-        case 0x9:
-            Gp_EnqueueStageSnd6(0x521D0009, 0, 0);
-            break;
-    }
-    return 0;
-}
+#include "../../shared/room_variants_motel_balcony_sound.inc.c"
 
 s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
