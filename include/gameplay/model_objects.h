@@ -132,7 +132,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 /// per-vertex screen-Z table, so an element names its three corners in that table
 /// rather than in the vertex array. The packet's fixed fields — its length, its
 /// primitive code and the element's colour — are the build pass's
-/// (`gpStreamPrimF3PreXform`), so what a frame adds is the triangle's filing:
+/// (`modelLightingStreamPrimF3PreXform`), so what a frame adds is the triangle's filing:
 /// the three cached depths are averaged for the ordering-table link, and the
 /// facing comes from the coordinates the packet already carries.
 ///

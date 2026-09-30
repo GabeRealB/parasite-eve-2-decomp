@@ -481,7 +481,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = gpStreamPrimF4;
                 break;
             case 5:
-                handler = gpStreamPrimF3PreXform;
+                handler = modelLightingStreamPrimF3PreXform;
                 break;
             case 0x45:
                 handler = gpStreamPrimF4PreXform;

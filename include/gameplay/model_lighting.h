@@ -250,14 +250,23 @@ u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-triangle records (`0x5`): each
-/// element contributes one untextured triangle to the buffer half's first
-/// region, with the element's colour word written into it.
+/// element contributes one untextured, unlit triangle to the buffer half's
+/// first region, with the element's colour word written into it.
 ///
-/// Only the packet's fixed fields are written here — its length, its primitive
-/// code and the element's colour. A pre-transformed triangle's vertices come
-/// from the stream's vertex commands, and the draw pass culls the triangle and
-/// links it into the order table, so neither is this command's work.
-u32* gpStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// The opcode's `0x01` bit marks the corners as already in screen space. This
+/// command writes the packet's fixed fields: its length (4 words after the
+/// tag), the element's colour and the opaque flat-triangle code (`0x20`). The
+/// colour is the element's third word and includes the command byte, so the
+/// code is stored after it. The record's draw handler reads three depth-cache
+/// offsets from the element's leading halfwords, culls from the screen
+/// coordinates already stored in the packet, and links a triangle the cull
+/// accepts. That handler leaves this length, code and colour unchanged.
+///
+/// `preXformWrite` advances by one triangle per element. The record has no
+/// variant for `flags` to select, and packet construction passes zero, so
+/// `flags` goes unread. The returned cursor is the stream advanced by one
+/// element stride per element.
+u32* modelLightingStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-triangle records (`0x38`, `0x3A`, `0x8038`,
 /// `0x10038`, `0x1003A`, `0x20038`): each element contributes one triangle to
