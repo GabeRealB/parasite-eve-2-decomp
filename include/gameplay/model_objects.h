@@ -47,14 +47,27 @@ TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
 ///
 /// `node` must be an element's link currently on this list, never the sentinel
 /// or an already detached link. The body stays allocated and its old links
-/// remain in place; release it with `gpFreeTmd` after unlinking.
+/// remain in place; release it with `modelObjectFreeTmd` after unlinking.
 void modelObjectUnlinkTmd(TmdListNode* node);
 
-/// Releases a model body: the buffer it owns, then the body itself.
+/// Releases a detached task-owned model and any primitive buffer it owns.
 ///
-/// The body has already left its list, so this is the second half of the
-/// release: `modelObjectFreeCoordBody` is its counterpart for coordinate bodies.
-void gpFreeTmd(TmdObject* obj);
+/// `model` is the live object `Tmd_Create` returned, including one attached by
+/// `Gp_AttachTmd` or `Gp_AttachTmdFlags`. It is not `NULL`. That address is the
+/// primary-heap allocation, so releasing it also ends the owned coordinate
+/// tail. Borrowed source geometry and the light and colour matrices stay with
+/// their owners.
+///
+/// Unlink it from `gTmdList` first, keep it out of any stashed model list, and
+/// end borrows of its part coordinates and uses of its buffer. A buffer, when
+/// present, is the original auxiliary-heap allocation and is released before
+/// the body; a `NULL` buffer is left alone. The caller owns the task's
+/// body-pointer and body-kind bookkeeping. `modelObjectFreeCoordBody` releases
+/// a coordinate body instead.
+///
+/// Releasing a buffer selects the auxiliary heap. Releasing the body then
+/// selects the primary heap and leaves it selected.
+void modelObjectFreeTmd(TmdObject* model);
 
 /// Unlinks a coordinate body from its refresh list (`gModelObjectCoordBodyList`).
 ///

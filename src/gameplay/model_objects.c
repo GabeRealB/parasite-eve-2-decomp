@@ -371,13 +371,14 @@ void modelObjectUnlinkTmd(TmdListNode* node)
     prev->next = node->next;
 }
 
-void gpFreeTmd(TmdObject* obj)
+void modelObjectFreeTmd(TmdObject* model)
 {
-    if (obj->buffer != NULL) {
-        memFreeFromHeap(obj->buffer, true);
-        obj->buffer = NULL;
+    // The primitive buffer is a separate auxiliary-heap allocation.
+    if (model->buffer != NULL) {
+        memFreeFromHeap(model->buffer, true);
+        model->buffer = NULL;
     }
-    memFree(obj);
+    memFree(model);
 }
 
 void modelObjectUnlinkDisp2d(TmdListNode* node)

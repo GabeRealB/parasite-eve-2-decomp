@@ -132476,13 +132476,13 @@ that called the helper carries a `jal` to it, and a target without one is a
 source that repeated the code instead.
 
 ```c
-void gpFreeTmd(TmdObject* obj)   /* target jals: memFreeFromHeap, memFree */
+void modelObjectFreeTmd(TmdObject* model)   /* target jals: memFreeFromHeap, memFree */
 {
-    if (obj->buffer != NULL) {   /* this half is Tmd_FreeBuffers, verbatim */
-        memFreeFromHeap(obj->buffer, true);
-        obj->buffer = NULL;
+    if (model->buffer != NULL) {   /* this half is Tmd_FreeBuffers, verbatim */
+        memFreeFromHeap(model->buffer, true);
+        model->buffer = NULL;
     }
-    memFree(obj);
+    memFree(model);
 }
 ```
 

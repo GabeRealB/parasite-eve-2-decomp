@@ -260,7 +260,7 @@ void taskKill(Task* task)
     cu1:
         model = task->extra.tmd;
         modelObjectUnlinkTmd(&model->link);
-        gpFreeTmd(model);
+        modelObjectFreeTmd(model);
         goto cu_def;
 
     cu2:
@@ -282,7 +282,7 @@ void taskKill(Task* task)
 
 imm1:
     modelObjectUnlinkTmd(&task->extra.tmd->link);
-    gpFreeTmd(task->extra.tmd);
+    modelObjectFreeTmd(task->extra.tmd);
     goto imm_unlink;
 
 imm2:
@@ -682,7 +682,7 @@ void taskCountdownCallback(Task* task)
         case TASK_BODY_TMD:
             model = task->extra.tmd;
             modelObjectUnlinkTmd(&model->link);
-            gpFreeTmd(model);
+            modelObjectFreeTmd(model);
             task->bodyKind = TASK_BODY_RELEASED;
             break;
         case TASK_BODY_COORD:
