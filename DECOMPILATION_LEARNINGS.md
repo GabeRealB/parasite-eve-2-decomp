@@ -13838,38 +13838,38 @@ When the target walks banks of a fixed-size array with:
 ```
 li    a1, 0x10
 ...
-addu  v1, a3, a1      /* entries = p + offset */
+addu  v1, a3, a1      /* requests = p + bankByteOffset */
 ...
 addiu a1, a1, 0x20    /* delay of outer branch */
 ```
 
-writing the clean form `entries = p->field_10[i]` alone often loses the offset
+writing the clean form `requests = p->events[i]` alone often loses the offset
 register and rewrites the address as `sll`/`addu` on `i`. Keep a parallel
 offset temporary that starts at the first bank's byte offset and advances by
 the bank stride each outer iteration — even if it is never read in C. GCC CSE
-equates `field_10[i]` with `p + offset` and emits the target's `addu` /
+equates `events[i]` with `p + bankByteOffset` and emits the target's `addu` /
 `addiu …, 0x20` shape:
 
 ```c
 i = 0;
-offset = 0x10; /* first bank at struct offset 0x10 */
+bankByteOffset = OFFSET_OF(PadState, events); /* first bank at struct offset 0x10 */
 for (; i < 2; i++) {
-    entries = p->field_10[i]; /* not (Entry*)((u8*)p + offset) */
+    requests = p->events[i]; /* not (PadVibrationRequest*)((u8*)p + bankByteOffset) */
     for (j = 0; j < 8; j++) {
-        entries[j].field_0 = 0;
-        entries[j].field_1 = 0;
-        entries[j].field_2 = 0;
+        requests[j].active = PAD_VIBRATION_INACTIVE;
+        requests[j].intensity = 0;
+        requests[j].pollsRemaining = 0;
     }
-    offset += 0x20; /* bank stride; keeps a1 live for addu */
+    bankByteOffset += sizeof(p->events[i]); /* bank stride; keeps a1 live for addu */
 }
 ```
 
-Also: prefer `entries[j].field = …` over `entry->field = …; entry++`. Pointer
+Also: prefer `requests[j].field = …` over `request->field = …; request++`. Pointer
 increment tends to CSE a separate address for a mid-struct halfword field
 (`addiu v1, a0, 2` then `sb -1(v1)` / `sh 0(v1)`), while array indexing keeps
 one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
 
-`Pad_ClearEvents` (`PadState::field_10[2][8]`) is the example.
+`Pad_ClearEvents` (`PadState::events[2][8]`) is the example.
 
 ## Capture a reused halfword field so `%lo` wins and `$a0` stays free
 
@@ -17020,9 +17020,9 @@ For a wrap-around counter written as:
 
 ```c
 idx = idx + 1;
-p->field_2 = idx;
+p->eventIdx = idx;
 if (idx >= 8) {
-    p->field_2 = 0;
+    p->eventIdx = 0;
 }
 ```
 
@@ -17039,8 +17039,8 @@ sb     zero, field(t0)
 ```
 
 An `s32` index with `(u8)idx >= 8` rewrites to check-first / store-in-delay-slot
-and mismatches. `Pad_PostEvent` is the pure example (pad-event ring at
-`PadState.field_2`).
+and mismatches. `Pad_PostEvent` is the pure example (vibration-request ring at
+`PadState.eventIdx`).
 
 ## Force `prev = curr` before the next-pointer load in list walks
 

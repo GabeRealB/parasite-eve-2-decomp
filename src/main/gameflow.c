@@ -371,35 +371,37 @@ void GameFlow_DispatchTable(Task* task)
 
 static void Pad_TickEventBanks(PadState* pad)
 {
-    u8*       motor;
-    PadEvent* ev;
-    s32       i;
+    u8*                  motor;
+    PadVibrationRequest* request;
+    s32                  i;
 
     SCRATCH_PUSH_BYTES(4);
     motor    = SCRATCH_HEAD(u8);
     motor[1] = 0;
     motor[0] = 0;
 
-    ev = pad->events[0];
-    for (i = 0; i < 8; i++, ev++) {
-        if (ev->field_0 != 0) {
-            if (--ev->field_2 == 0) {
-                ev->field_0 = 0;
+    // Binary requests combine by logical OR, including each request's expiry poll.
+    request = pad->events[PAD_VIBRATION_MOTOR_BINARY];
+    for (i = 0; i < ARRAY_SIZE(pad->events[PAD_VIBRATION_MOTOR_BINARY]); i++, request++) {
+        if (request->active != PAD_VIBRATION_INACTIVE) {
+            if (--request->pollsRemaining == 0) {
+                request->active = PAD_VIBRATION_INACTIVE;
             }
-            if (ev->field_1 != 0) {
+            if (request->intensity != 0) {
                 motor[0] = 1;
             }
         }
     }
 
-    ev = pad->events[1];
-    for (i = 0; i < 8; i++, ev++) {
-        if (ev->field_0 != 0) {
-            if (--ev->field_2 == 0) {
-                ev->field_0 = 0;
+    // Variable motor requests combine by maximum intensity.
+    request = pad->events[PAD_VIBRATION_MOTOR_VARIABLE];
+    for (i = 0; i < ARRAY_SIZE(pad->events[PAD_VIBRATION_MOTOR_VARIABLE]); i++, request++) {
+        if (request->active != PAD_VIBRATION_INACTIVE) {
+            if (--request->pollsRemaining == 0) {
+                request->active = PAD_VIBRATION_INACTIVE;
             }
-            if (motor[1] < ev->field_1) {
-                motor[1] = ev->field_1;
+            if (motor[1] < request->intensity) {
+                motor[1] = request->intensity;
             }
         }
     }
