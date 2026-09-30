@@ -34,6 +34,18 @@ static u8 D_800716E8[8];
 
 #include "main/task.h"
 
+/// Completed body teardown awaiting execution-list collection.
+///
+/// Stored in `Task::bodyKind` once its owned body has been freed, or when
+/// teardown has no body to release. `TASK_BODY_NONE` instead denotes a live
+/// task without a body. Teardown leaves `Task::extra` unchanged; its pointer
+/// must no longer be dereferenced.
+///
+/// Walkers unlink and free marked tasks after callback dispatch or the filter
+/// decision, unless a stop request ends the walk first. Immediate teardown
+/// unlinks and frees the task without setting this marker.
+enum { TASK_BODY_RELEASED = 0xFF };
+
 /// Values used by the task stop and deferred-model-release protocols.
 enum {
     TASK_STATUS_STOP_REQUESTED     = 0xFF,

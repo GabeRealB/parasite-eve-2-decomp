@@ -8,12 +8,11 @@
 struct ModelObjectCoordBody;
 struct Task;
 
-/// Recognized body kinds in `Task::bodyKind`, plus the teardown-complete marker.
+/// Recognized body kinds in `Task::bodyKind`.
 enum {
-    TASK_BODY_NONE     = 0,
-    TASK_BODY_TMD      = 1,
-    TASK_BODY_DISP2D   = 2,
-    TASK_BODY_RELEASED = 0xFF
+    TASK_BODY_NONE   = 0,
+    TASK_BODY_TMD    = 1,
+    TASK_BODY_DISP2D = 2
 };
 
 /// One owned body allocation, interpreted according to `Task::bodyKind`.
@@ -26,8 +25,8 @@ enum {
 ///
 /// Attachment links the body into its kind's refresh/draw list. Unlink before
 /// releasing it. Copies of this pointer union borrow the allocation and do not
-/// transfer ownership. Teardown leaves the pointer unchanged, so
-/// `TASK_BODY_RELEASED` forbids dereferencing it even when it is non-NULL.
+/// transfer ownership. Teardown leaves the pointer unchanged; a released body
+/// (`bodyKind` 0xFF) must not be dereferenced even when non-NULL.
 typedef union {
     TmdObject*                   tmd;        // TASK_BODY_TMD: model with owned part coordinates and optional primitive buffer
     struct ModelObjectCoordBody* coordBody;  // TASK_BODY_DISP2D: single transform for tasks that emit their own primitives
@@ -182,7 +181,7 @@ STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 /// releasing the body and does not clear either pointer. Normal model teardown
 /// waits two countdown callbacks; coordinate bodies are released immediately.
 /// The execution pass collects the task after a callback returns with
-/// `TASK_BODY_RELEASED`.
+/// `bodyKind` 0xFF.
 /// Immediate teardown can free the task within its callback. A bare list head
 /// is never a task, and released pointers must not be dereferenced.
 typedef struct Task {

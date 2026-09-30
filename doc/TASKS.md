@@ -88,7 +88,10 @@ Spawn type (low byte of `flags`, stored as `Task::bodyKind`) is the body:
 `bodyKind`: a model owns `partCount` coordinates, while a coordinate body owns
 exactly one. `extra.allocation` supplies the kind-independent NULL check during
 spawn. A copy of this union borrows the body; teardown leaves the pointer bits
-unchanged, so `TASK_BODY_RELEASED` forbids further body access.
+unchanged, so the release marker (`bodyKind` 0xFF, privately named
+`TASK_BODY_RELEASED` in `src/main/task.c`) forbids further body access. It marks
+a task ready for collection even if that task never had a body; kind 0 instead
+denotes a live task without a body.
 
 If attach fails, spawn returns NULL and frees the `Task`. `exitCallback`
 defaults to `taskKill`.
@@ -101,15 +104,19 @@ defaults to `taskKill`.
 Task_ExecDefaultList(...);   // walks gTaskDefaultList
 ```
 
-Each node’s `callback` runs. Two early-outs:
+Each node’s `callback` runs, then the walk checks:
 
 - `gDisplayState.stopTaskWalk == 1` — abort the rest of the list this frame
   (gameflow uses this after killing the world and respawning).
-- `bodyKind == 0xFF` — **tombstone**: unlink + `memFree` this node, continue.
+- `bodyKind == TASK_BODY_RELEASED` (0xFF) — unlink + `memFree` this node,
+  continue. The callback can set this marker during the same walk. A stop
+  request takes precedence and leaves the marked node for a later walk.
 
 `Task_ExecList` is the same walk on an arbitrary list.
-`Task_ExecListFiltered(list, pri)` only runs nodes whose `priority` equals
-`pri & 0xFF` (stage load uses `0x62`).
+`Task_ExecListFiltered(list, pri)` only runs callbacks on nodes whose `priority`
+equals `pri & 0xFF` (stage load uses `0x62`), but checks every node for release.
+`Task_CallExitFiltered` does the same collection after dispatching selected
+exit callbacks.
 
 ### 1.4 Kill
 
