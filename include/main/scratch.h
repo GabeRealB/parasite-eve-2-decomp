@@ -35,8 +35,23 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// Takes one `type` off the stack; the block is then `SCRATCH_HEAD(type)`.
 #define SCRATCH_PUSH(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT -= 1)
 
-/// Gives one `type` back to the stack.
-#define SCRATCH_POP(type) (*(type**)SCRATCH_STACK_CURSOR_SLOT += 1)
+/// Releases one block from the downward-growing scratch stack.
+///
+/// `blockType` is a complete, fixed-size object type whose size equals the
+/// reservation being released. The shared cursor in `SCRATCH_STACK_CURSOR_SLOT`
+/// advances by `sizeof(blockType)` bytes; reservations must be released in
+/// reverse order, including those made by directly assigning `SCRATCH_HEAD`.
+/// The cursor must be initialized, and the update must stay within the stack
+/// storage, at or below its empty position at the cursor slot. No bounds or
+/// alignment checks are performed.
+///
+/// Returns the updated cursor as `blockType*`, rather than the released block.
+/// The result may point to an enclosing reservation of a different type or to
+/// the empty-stack slot; it is not necessarily a dereferenceable `blockType`.
+/// The slot is read and written once. Released bytes are untouched, but become
+/// available for reuse by subsequent reservations. This expression captures no
+/// caller variables and evaluates no value argument.
+#define SCRATCH_STACK_RELEASE_BLOCK(blockType) ((blockType*)(*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + sizeof(blockType)))
 
 /// Takes `n` bytes off the stack.
 #define SCRATCH_PUSH_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - (n))
@@ -48,7 +63,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// (`head = SCRATCH_HEAD_ADDR;`) and works through that.
 #define SCRATCH_HEAD_ADDR (SCRATCH_STACK_CURSOR_SLOT)
 
-/// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_POP` through such a local.
+/// `SCRATCH_HEAD`, `SCRATCH_PUSH` and `SCRATCH_STACK_RELEASE_BLOCK` through such a local.
 #define SCRATCH_HEAD_AT(head, type) (*(type**)(head))
 
 #define SCRATCH_PUSH_AT(head, type) (*(type**)(head) -= 1)

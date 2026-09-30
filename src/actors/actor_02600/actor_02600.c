@@ -916,7 +916,7 @@ static void Actor02600_Fn0006C(Task* arg0)
         work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ClearRec18Occupied(work->field_304);
     }
-    SCRATCH_POP(Actor105500HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor105500HitScratch);
 }
 
 /// State handlers of the projectile task `Actor02600_Fn03DD0` dispatches,
@@ -1415,7 +1415,7 @@ static void Actor02600_Fn0143C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Behaviour state 6, entered when a hit does damage. On entry it starts
@@ -2566,7 +2566,7 @@ static void Actor02600_Fn03B58(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 static void Actor02600_Fn03C4C(Task* actor)

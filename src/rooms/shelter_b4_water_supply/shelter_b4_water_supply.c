@@ -1833,7 +1833,7 @@ static void func_shelter_b4_water_supply_8017FF7C(GfxCoord* arg0, s16 arg1, s16 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a flickering grey light beam from `arg0[0]` to `arg0[1]`. Both points
@@ -2266,7 +2266,7 @@ static void func_shelter_b4_water_supply_801813DC(GfxCoord* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -2496,7 +2496,7 @@ static void func_shelter_b4_water_supply_80181D40(GfxCoord* coord, s16 size)
             func_shelter_b4_water_supply_8018226C(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

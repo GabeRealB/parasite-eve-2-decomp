@@ -545,7 +545,7 @@ static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's coordinate task: both prisms are drawn under

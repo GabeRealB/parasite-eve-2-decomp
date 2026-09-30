@@ -1614,7 +1614,7 @@ void func_actor_510900_801332EC(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1715,7 +1715,7 @@ void func_actor_510900_8013371C(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1807,7 +1807,7 @@ void func_actor_510900_80133C84(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }

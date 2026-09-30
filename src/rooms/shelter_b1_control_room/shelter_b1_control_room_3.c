@@ -333,7 +333,7 @@ static void func_shelter_b1_control_room_80180980(GfxCoord* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -381,7 +381,7 @@ static void func_shelter_b1_control_room_80180DA4(GfxCoord* arg0, s32 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Burst effect task on the task object's coordinate, frozen while the room's
@@ -556,7 +556,7 @@ static void func_shelter_b1_control_room_801812E4(GfxCoord* coord, s16 size)
             func_shelter_b1_control_room_80181810(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

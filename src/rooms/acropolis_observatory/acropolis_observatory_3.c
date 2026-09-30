@@ -1066,7 +1066,7 @@ void func_acropolis_observatory_8017E424(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(AobFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(AobFlareScratch);
     Gp_ReleaseState1CMem(mem, arg0);
 }
 

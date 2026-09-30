@@ -2512,7 +2512,7 @@ static void func_mine_cavern_8017EFB8(SVECTOR* arg0, s32 arg1, s32 arg2)
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
@@ -2665,7 +2665,7 @@ static void func_mine_cavern_8017F50C(GfxCoord* arg0, u16 arg1, u16 arg2, u16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -2721,7 +2721,7 @@ static void func_mine_cavern_8017F7D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -3043,7 +3043,7 @@ static void func_mine_cavern_801804CC(GfxCoord* coord, s16 size)
             func_mine_cavern_801809F8(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -3249,7 +3249,7 @@ static void func_mine_cavern_80180D70(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Frame callback of a rising spark: each tick walks its angle on by a random

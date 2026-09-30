@@ -1005,7 +1005,7 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -1173,7 +1173,7 @@ static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
     Gfx_RotMatrixY(&task->extra.tmd->coords->coord, turn->yaw, 1);
     Actor223600_MoveForward(task->extra.tmd->coords, 5);
     func_actor_223600_8014B2F4(task);
-    SCRATCH_POP(Actor223600Turn);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor223600Turn);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

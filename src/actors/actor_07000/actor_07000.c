@@ -2567,7 +2567,7 @@ static void Actor07000_Fn02BB8(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 /// Exit callback of the caged specimen: takes the enemy's node and the four
@@ -3426,7 +3426,7 @@ static s32 Actor07000_Fn047F4(GfxCoord* arg0, u32* arg1)
     blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
     blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];
     *arg1         = SquareRoot0(blk->delta.vx * blk->delta.vx + blk->delta.vz * blk->delta.vz);
-    SCRATCH_POP(ActorBearingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     return angle;
 }
 
@@ -3542,7 +3542,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     Gp_LinkObj(3, obj);
     obj->flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg0->exitCallback = Actor07000_Fn068F0;
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     arg0->state += 1;
     pan          = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(0x40460002, pan, (s8)gpGetObjDepth(coord));

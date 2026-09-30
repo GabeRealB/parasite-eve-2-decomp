@@ -2051,7 +2051,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 static void func_actor_510900_80138250(Task* arg0)
@@ -2121,7 +2121,7 @@ static void func_actor_510900_80138250(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 static void func_actor_510900_801384C4(Task* arg0)
@@ -2208,7 +2208,7 @@ static void func_actor_510900_8013864C(Task* arg0)
     dz              = Player_Status.coordMtx->t[2] - coord->coord.t[2];
     delta->vz       = dz;
     work->field_5AC = SquareRoot0(dx * dx + dz * dz);
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_510900_801387F4(Task* arg0)
@@ -2268,7 +2268,7 @@ static void func_actor_510900_801387F4(Task* arg0)
         rot->vy = work->field_5A0;
         rot->vz = 0;
         RotMatrix(rot, &coord->coord);
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -3417,7 +3417,7 @@ end:
     if (work->field_334 == 2) {
         parent->field_5C4 = work->field_330;
     }
-    SCRATCH_POP(Actor510900GrabScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor510900GrabScratch);
 }
 
 static void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)

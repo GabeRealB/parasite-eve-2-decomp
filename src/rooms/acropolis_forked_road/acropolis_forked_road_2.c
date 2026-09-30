@@ -1750,7 +1750,7 @@ static void func_acropolis_forked_road_8017EC70(GfxCoord* coord, s32 arg1, s16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// A flash that swells and then fades. For as many ticks as the spawn argument
@@ -1874,7 +1874,7 @@ static void func_acropolis_forked_road_8017F224(GfxCoord* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1925,7 +1925,7 @@ static void func_acropolis_forked_road_8017F650(GfxCoord* arg0, s16 arg1, u8* rg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// A twin trail. The first tick allocates sixteen coordinate frames, eight for
@@ -2129,7 +2129,7 @@ static void func_acropolis_forked_road_8017FED4(GfxCoord* arg0, GfxCoord* arg1, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -2326,5 +2326,5 @@ static void func_acropolis_forked_road_80180554(GfxCoord* arg0, s16 arg1, u8* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

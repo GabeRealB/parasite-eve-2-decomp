@@ -452,7 +452,7 @@ static void func_neo_ark_island_8017F890(GfxCoord* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void func_neo_ark_island_8017FB2C(Task* arg0)
@@ -591,7 +591,7 @@ static void func_neo_ark_island_8017FE40(GfxCoord* arg0, s32 arg1, s32 arg2, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -644,7 +644,7 @@ static void func_neo_ark_island_8018026C(GfxCoord* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// `Gp_State1C` effect task drawing a ribbon between the trails of two points
@@ -847,7 +847,7 @@ static void func_neo_ark_island_80180AF0(GfxCoord* arg0, GfxCoord* arg1, s16 arg
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect
@@ -1048,5 +1048,5 @@ static void func_neo_ark_island_80181170(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

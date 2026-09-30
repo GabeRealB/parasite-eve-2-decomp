@@ -2091,7 +2091,7 @@ static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 sha
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         Gp_AddTpageShift((P_TAG*)prim, (Gp_LcgState >> 16) & 1, blk->otz);
     }
-    SCRATCH_POP(_ShelterB6NurseryTriScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_ShelterB6NurseryTriScratch);
 }
 
 void func_shelter_b6_nursery_80182D14(s32 arg0, s32 arg1)
@@ -2222,7 +2222,7 @@ static void func_shelter_b6_nursery_80182FCC(GfxCoord* arg0, s32 arg1, s32 arg2,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -2476,7 +2476,7 @@ static void func_shelter_b6_nursery_80183C7C(GfxCoord* arg0, GfxCoord* arg1, s16
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns
@@ -2673,5 +2673,5 @@ static void func_shelter_b6_nursery_801842FC(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -604,7 +604,7 @@ static void func_dryfield_back_street_8017DC74(GfxCoord* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
@@ -860,7 +860,7 @@ static void func_dryfield_back_street_8017E924(GfxCoord* arg0, GfxCoord* arg1, s
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,
@@ -1057,5 +1057,5 @@ static void func_dryfield_back_street_8017EFA4(GfxCoord* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

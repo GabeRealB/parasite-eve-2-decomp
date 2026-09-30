@@ -778,7 +778,7 @@ static void func_shelter_b3_elevator_hall_80181818(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
@@ -825,7 +825,7 @@ static void func_shelter_b3_elevator_hall_80181C3C(GfxCoord* arg0, s32 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// A burst: each tick it draws a disc growing with the effect's angle and the
@@ -998,7 +998,7 @@ static void func_shelter_b3_elevator_hall_8018217C(GfxCoord* coord, s16 size)
             func_shelter_b3_elevator_hall_801826A8(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

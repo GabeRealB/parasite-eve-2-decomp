@@ -1414,7 +1414,7 @@ static void Gp_DrawEffSprite81(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
@@ -1477,7 +1477,7 @@ static void Gp_DrawEffSprite46(GfxCoord* arg0, s32 arg1, s16 arg2, u16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 void Gp_EffSprTask81(Task* arg0)
@@ -1690,7 +1690,7 @@ void Gp_EffSprTask55(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -1810,7 +1810,7 @@ void Gp_EffSprTask42(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -2232,7 +2232,7 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
@@ -2292,7 +2292,7 @@ static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
                     prim);
         }
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 static void Gp_EffTask07State1(Task* arg0)
@@ -2809,7 +2809,7 @@ static void Gp_DrawEffTri(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void Gp_EffCtlTaskF4(Task* arg0)
@@ -3445,7 +3445,7 @@ void Gp_EffSprTaskA7(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
@@ -3923,7 +3923,7 @@ void Gp_EffSprTask8D(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpRingScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4022,7 +4022,7 @@ void Gp_EffSprTask3F(Task* arg0)
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     prim);
         }
-        SCRATCH_POP(GpFxQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
         if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
@@ -4638,7 +4638,7 @@ void Gp_AttachActorObj(Task* arg0, s32 id, s32 kind)
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->recs, 6, 0);
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Steps a 16.16 value that has a fractional part one whole unit away from
@@ -4671,7 +4671,7 @@ s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* ar
             ret = 0;
         }
     }
-    SCRATCH_POP(GpDeltaScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpDeltaScratch);
     return ret;
 }
 
@@ -4834,7 +4834,7 @@ void Gp_UpdatePlayerMove(void)
             Gfx_RotMatrixY(mat, -0x20, 0);
         }
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 void Gp_TickActorAnimState(Task* arg0)
@@ -4980,7 +4980,7 @@ void Gp_StepPlayerMove(Task* arg0)
     coord->coord.t[0] += actor->field_0;
     coord->coord.t[1] += actor->field_4;
     coord->coord.t[2] += actor->field_8;
-    SCRATCH_POP(GpMoveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpMoveScratch);
 }
 
 /// Eases `angle` back toward zero by an eighth of itself, at least 0x20 per
@@ -5074,7 +5074,7 @@ static inline s16 _gpShortestTurn(s16 from, s16 to)
     } else {
         from = d->field_8;
     }
-    SCRATCH_POP(GpAngleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAngleScratch);
     return from;
 }
 
@@ -5133,7 +5133,7 @@ void Gp_AimYawToLock(Task* arg0, s32 arg1)
     actor            = arg0->work;
     SCRATCH_HEAD(u8) = head - sizeof(GpYawScratch);
     _gpAimYawAt(actor, (GpYawScratch*)(head - sizeof(GpYawScratch)), arg1);
-    SCRATCH_POP(GpYawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpYawScratch);
 }
 
 /// Places `block->coord` at the offset and rotation `rot` from `src`.
@@ -5214,7 +5214,7 @@ void Gp_AimPitchToLock(Task* arg0)
             actor->field_64  = (actor->field_60 / 5) * 2;
         }
     }
-    SCRATCH_POP(GpPitchScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPitchScratch);
 }
 
 static void Gp_AimPitchToLockAlt(Task* arg0)
@@ -5260,7 +5260,7 @@ static void Gp_AimPitchToLockAlt(Task* arg0)
             actor->field_64 += block->angle;
         }
     }
-    SCRATCH_POP(GpPitchScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPitchScratch);
 }
 
 void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
@@ -5292,7 +5292,7 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2)
             }
         }
     }
-    SCRATCH_POP(GpPitchScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPitchScratch);
 }
 
 static void Gp_AimPitchDirect(Task* arg0)
@@ -5326,7 +5326,7 @@ static void Gp_AimPitchDirect(Task* arg0)
             }
         }
     }
-    SCRATCH_POP(GpPitchScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPitchScratch);
 }
 
 static void func_801030CC(Task* arg0)
@@ -5374,7 +5374,7 @@ static void func_801030CC(Task* arg0)
         }
     }
 
-    SCRATCH_POP(RECT);
+    SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
 inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -5814,7 +5814,7 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
     } else {
         arg0 = d->field_8;
     }
-    SCRATCH_POP(GpAngleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAngleScratch);
     return arg0;
 }
 
@@ -6965,7 +6965,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
     } else {
         i = 0;
     }
-    SCRATCH_POP(GpPickScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPickScratch);
     return i;
 }
 
@@ -8100,7 +8100,7 @@ void Gp_PlayerMode2State4(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_POP(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
 }
 
 static void Gp_PlayerMode2StateA(Task* arg0)

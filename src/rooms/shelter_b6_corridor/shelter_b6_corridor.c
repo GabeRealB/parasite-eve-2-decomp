@@ -720,7 +720,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_POP(OverlayWaveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
 }
 
 s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)

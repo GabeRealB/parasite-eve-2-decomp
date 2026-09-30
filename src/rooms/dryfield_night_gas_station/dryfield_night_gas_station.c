@@ -3712,7 +3712,7 @@ static void func_dryfield_night_gas_station_80181AF8(SVECTOR* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Effect task of a growing glow: over `spawnArg1` ticks it widens and
@@ -3834,7 +3834,7 @@ static void func_dryfield_night_gas_station_80182024(GfxCoord* arg0, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -4084,7 +4084,7 @@ static void func_dryfield_night_gas_station_80182CD4(GfxCoord* arg0, GfxCoord* a
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Effect task of a burst: spawns its particle effects, then either scatters
@@ -4277,5 +4277,5 @@ static void func_dryfield_night_gas_station_80183354(GfxCoord* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -833,7 +833,7 @@ static __inline__ void Actor01900_MoveForward(GfxCoord* coord, s16 amount)
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -859,7 +859,7 @@ static __inline__ void Actor01900_StepForward(GfxCoord* coord, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -884,7 +884,7 @@ static __inline__ void Actor01900_StepForwardHead(GfxCoord* coord, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -1776,7 +1776,7 @@ static void Actor01900_Fn02A50(Task* arg0)
                 work->field_0 = 0x13;
             }
         }
-        SCRATCH_POP(ActorHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorHitScratch);
     }
 }
 
@@ -1888,7 +1888,7 @@ static void Actor01900_Fn03854(Task* arg0)
         Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, yaw->turn, 1);
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         Actor01900_Fn01C94(arg0);
-        SCRATCH_POP(ActorChaseScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
     }
 }
 
@@ -1995,7 +1995,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(ActorStepDelta);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorStepDelta);
     return s->moved;
 }
 
@@ -2049,7 +2049,7 @@ static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_POP(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
     return s->hit;
 }
 
@@ -2177,7 +2177,7 @@ static void Actor01900_Fn042BC(Task* arg0)
     if (work->field_C37 != 0) {
         work->field_C37--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn04D14(Task* arg0)
@@ -2293,7 +2293,7 @@ static void Actor01900_Fn04D14(Task* arg0)
         }
     }
     work->field_8A2 += work->field_C26;
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn0551C(Task* arg0)
@@ -2330,7 +2330,7 @@ static void Actor01900_Fn0551C(Task* arg0)
         s->angle        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_C20 = s->angle;
         work->field_C22 = s->angle + (u16)s->turn * 2;
-        SCRATCH_POP(ActorChaseScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
     head                            = SCRATCH_HEAD(ActorChaseScratch);
@@ -2366,7 +2366,7 @@ static void Actor01900_Fn0551C(Task* arg0)
     if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_A28, 0xC) != 1) {
         Actor01900_Fn03FF8(arg0, &work->field_8E8, 0xC);
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn05B4C(Task* arg0)
@@ -2460,7 +2460,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         work->field_0 = 7;
         work->field_2 = -1;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn05F38(Task* arg0)
@@ -2548,7 +2548,7 @@ static void Actor01900_Fn06100(Task* arg0)
     } else {
         Actor01900_StepForward(arg0->extra.tmd->coords, 0x14);
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn06634(Task* arg0)
@@ -2820,7 +2820,7 @@ static void Actor01900_Fn06F40(Task* arg0)
     if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void Actor01900_Fn07810(Task* arg0)
@@ -2875,7 +2875,7 @@ static void Actor01900_Fn07810(Task* arg0)
     if ((work->field_68 & 0x100) || work->field_C24 == 0) {
         work->field_0 = 9;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void Actor01900_Fn07BA8(Task* arg0)
@@ -2942,7 +2942,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
             work->field_0 = 7;
         }
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn080A8(Task* arg0)
@@ -2989,7 +2989,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     Actor01900_Fn01C94(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn the actor toward the player at up to 0x28 per call. Takes a 0x10-byte
@@ -3042,7 +3042,7 @@ static void Actor01900_Fn083E8(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     work->field_898 = 2;
     Actor01900_Fn01C94(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn08724(Task* arg0)
@@ -3274,7 +3274,7 @@ static void Actor01900_Fn09694(Task* arg0)
             work->field_0 = 0xE;
         }
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void Actor01900_Fn09BE8(Task* arg0)

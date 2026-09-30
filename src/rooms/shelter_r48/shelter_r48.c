@@ -2089,7 +2089,7 @@ void func_shelter_r48_8017D660(Task* arg0)
             ang += 0xC5;
         }
     }
-    SCRATCH_POP(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
 }
 
 s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
@@ -2898,7 +2898,7 @@ static void func_shelter_r48_8017FF74(GfxCoord* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Per-frame handler for one animated sprite effect, drawn by

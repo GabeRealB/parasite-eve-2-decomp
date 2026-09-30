@@ -328,7 +328,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         } while (node != NULL);
     }
 
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -388,7 +388,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         } while (node != NULL);
     }
 
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Draws `val`, clamped at zero, as a right-aligned number at (`x`, `y`).

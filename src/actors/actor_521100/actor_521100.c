@@ -2441,7 +2441,7 @@ static void func_actor_521100_8013334C(Task* arg0)
         work->field_68E = tbl[(rng >> 16) & 0xF];
         work->field_6AE = 0;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 /// Step-0 body of the burn-out sequence: the transition into it and the two
 /// respawn draws. `field_6A2` is a four-phase latch. Phase 0 waits out the clip

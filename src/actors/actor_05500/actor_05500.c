@@ -907,7 +907,7 @@ static void Actor05500_Fn0006C(Task* arg0)
         work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         Gp_ClearRec18Occupied(work->field_304);
     }
-    SCRATCH_POP(Actor105500HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor105500HitScratch);
 }
 
 /// State handlers of the task `Actor05500_Fn03DD8` dispatches, indexed by the
@@ -1401,7 +1401,7 @@ static void Actor05500_Fn0143C(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Action 6, the flinch after a hit. The first call starts animation 0xB and
@@ -2506,7 +2506,7 @@ static void Actor05500_Fn03B60(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 static void Actor05500_Fn03C54(Task* actor)

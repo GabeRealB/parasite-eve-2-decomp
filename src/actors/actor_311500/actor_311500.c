@@ -315,7 +315,7 @@ static s32 func_actor_311500_80161E38(GfxCoord* coord, WorldCollisionContact* re
         gte_stsv(offset);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorRepelScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRepelScratch);
     return s->hit;
 }
 
@@ -432,7 +432,7 @@ static void func_actor_311500_801626CC(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void func_actor_311500_801629D8(Task* arg0)

@@ -329,7 +329,7 @@ static void func_shelter_b1_sleeping_quarters_8017F0DC(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -376,7 +376,7 @@ static void func_shelter_b1_sleeping_quarters_8017F500(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// An orange burst effect task. Each tick draws a disc and a glow at a
@@ -550,7 +550,7 @@ static void func_shelter_b1_sleeping_quarters_8017FA40(GfxCoord* coord, s16 size
             func_shelter_b1_sleeping_quarters_8017FF6C(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

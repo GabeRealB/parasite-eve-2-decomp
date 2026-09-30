@@ -992,7 +992,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017E640(SVECTOR* arg0, s1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// A flash. The first tick takes 0x100 / the spawn count as its step; while
@@ -1118,7 +1118,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017EC40(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1373,7 +1373,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017F8F0(GfxCoord* arg0, G
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1570,7 +1570,7 @@ static void func_shelter_b2_south_maintenance_walkway_8017FF70(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A glowing disc attached to its parent at the work block's position; the
@@ -1870,7 +1870,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181330(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -2096,7 +2096,7 @@ static void func_shelter_b2_south_maintenance_walkway_80181C94(GfxCoord* coord, 
             func_shelter_b2_south_maintenance_walkway_801821C0(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

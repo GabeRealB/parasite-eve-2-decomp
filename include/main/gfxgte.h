@@ -58,7 +58,7 @@ static __inline__ void gfxScaleMatrixColumns(MATRIX* m, VECTOR* scale)
     gte_gpf12();
     gte_stsv(sv);
     gte_WriteMatrixColumn(sv, m, 2);
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 #endif // MAIN_GFXGTE_H

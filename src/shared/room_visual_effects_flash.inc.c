@@ -115,7 +115,7 @@ static void RoomFx_DrawBurstGlow(GfxCoord* coord, s16 size)
             RoomFx_DrawGroundQuad(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -320,7 +320,7 @@ static void RoomFx_DrawFlashStar(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A spark emitter. For 0x14 ticks it turns its heading by a random

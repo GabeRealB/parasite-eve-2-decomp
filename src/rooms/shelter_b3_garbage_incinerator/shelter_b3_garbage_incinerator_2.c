@@ -1195,7 +1195,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_POP(OverlayWaveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
 }
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte

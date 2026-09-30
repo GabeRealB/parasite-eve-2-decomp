@@ -3544,7 +3544,7 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Near and far trail offsets. `[0]` seeds the object's coordinate on the first
@@ -3714,7 +3714,7 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
             Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
         }
     }
-    SCRATCH_POP(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
 /// Per-frame state machine of the ``DdhEffWork`` effect family's fade-in
@@ -3903,7 +3903,7 @@ static void func_dryfield_dilapidated_house_80182A18(GfxCoord* arg0, s16 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
@@ -3954,7 +3954,7 @@ static void func_dryfield_dilapidated_house_80182F14(GfxCoord* arg0, s16 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a spinning textured sprite at `arg0`'s `workm` translation, projected
@@ -4014,7 +4014,7 @@ static void func_dryfield_dilapidated_house_801832A8(GfxCoord* arg0, s16 arg1, s
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 /// Draws the flame band: two 16-vertex rings of radius `arg1` and
@@ -4096,7 +4096,7 @@ static void func_dryfield_dilapidated_house_80183728(GfxCoord* arg0, s16 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 void func_dryfield_dilapidated_house_80183BF8(Task* arg0)

@@ -3281,7 +3281,7 @@ static void Actor01600_Fn03A60(Task* arg0)
     scratch->rotation.vy = (u16)work->field_4FC;
     scratch->rotation.vz = 0;
     RotMatrix(&scratch->rotation, &coord->coord);
-    SCRATCH_POP(Actor01600RotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor01600RotScratch);
 }
 
 static void Actor01600_Fn03D48(Task* arg0)
@@ -3352,7 +3352,7 @@ static void Actor01600_Fn03EEC(Task* arg0)
             scratch->pos.vz = coord->workm.t[2];
         }
         Gp_DrawEffGroundQuad(&scratch->pos, 0x1C0, 0);
-        SCRATCH_POP(Actor01600GroundScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(Actor01600GroundScratch);
         return;
     }
     if (func_800EA1A8(MATRIX_TRANS(&coord[1].workm), &pos) != 0) {
@@ -3545,7 +3545,7 @@ static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
     scratch->delta.vy = other->coord.t[1] - coord->coord.t[1];
     scratch->delta.vz = other->coord.t[2] - coord->coord.t[2];
     *distance         = SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz);
-    SCRATCH_POP(Actor01600AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor01600AimScratch);
     return angle;
 }
 
@@ -3824,7 +3824,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
         }
     }
     Gp_ClearRec18Occupied(&work->capsuleContact);
-    SCRATCH_POP(Actor01600YawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor01600YawScratch);
     return var_s4;
 }
 

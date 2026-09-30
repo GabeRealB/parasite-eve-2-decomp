@@ -4824,7 +4824,7 @@ void func_acropolis_plaza_80182054(Task* task)
             }
         }
     }
-    SCRATCH_POP(AcropolisPlazaGlowScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(AcropolisPlazaGlowScratch);
 }
 
 /// Plaza ambient-effect spawner. On its first frame only, it fires three bursts

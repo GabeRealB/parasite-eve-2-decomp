@@ -485,7 +485,7 @@ static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 /// Keeps `Gp_State1C->roomEffectMode` at 2 every frame and, on its first run,
@@ -626,7 +626,7 @@ static void func_neo_ark_forest_zone_8017E6C4(GfxCoord* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -883,7 +883,7 @@ static void func_neo_ark_forest_zone_8017F374(GfxCoord* arg0, GfxCoord* arg1, s1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -1080,5 +1080,5 @@ static void func_neo_ark_forest_zone_8017F9F4(GfxCoord* arg0, s16 arg1, u8* arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

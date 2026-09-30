@@ -606,7 +606,7 @@ static void func_hypervelocity_8011DF34(GfxCoord* coord, s16 age, s16 spin, s32 
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         }
     }
-    SCRATCH_POP(HyperTrailScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(HyperTrailScratch);
 }
 
 /// Links the billboarded charge quad into `gGpuCurrentOt`, dropped entirely if
@@ -755,7 +755,7 @@ static void func_hypervelocity_8011E8A0(GfxCoord* ground, s32 spin)
         prim->y3    = sc->sxy3.vy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
 }
 
 /// Draws the discharge cone `func_hypervelocity_8011F270` leaves behind: two
@@ -861,7 +861,7 @@ static void func_hypervelocity_8011EC1C(GfxCoord* coord, s16 age, s32 radius, u8
         }
         i++;
     } while (i < 2);
-    SCRATCH_POP(HyperConeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(HyperConeScratch);
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was

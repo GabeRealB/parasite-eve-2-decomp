@@ -1493,7 +1493,7 @@ static void func_shelter_b2_operating_room_8017E95C(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Halo effect task attached to a parent coordinate. State 0 places it at the
@@ -1790,7 +1790,7 @@ static void func_shelter_b2_operating_room_8017F6FC(GfxCoord* arg0, s32 arg1, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -1838,7 +1838,7 @@ static void func_shelter_b2_operating_room_8017FB20(GfxCoord* arg0, s32 arg1, u8
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Burst effect task. Every frame it draws a glowing disc and the glow of
@@ -2013,7 +2013,7 @@ static void func_shelter_b2_operating_room_80180060(GfxCoord* coord, s16 size)
             func_shelter_b2_operating_room_8018058C(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

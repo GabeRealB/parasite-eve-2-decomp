@@ -1786,7 +1786,7 @@ void Gp_DrawArc(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
@@ -1838,7 +1838,7 @@ void Gp_DrawRing(GfxCoord* arg0, s32 arg1, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
@@ -1891,7 +1891,7 @@ void Gp_DrawFxQuad(GfxCoord* arg0, u16 arg1, s16 arg2, u16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
@@ -1938,7 +1938,7 @@ void func_800EB6E8(GfxCoord* arg0, u16 arg1, u16 arg2, u16 arg3)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
@@ -2021,7 +2021,7 @@ void Gp_DrawBand(GfxCoord* arg0, s16 arg1, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
@@ -2104,7 +2104,7 @@ void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
                     dr);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 void func_800EC47C(Task* arg0)

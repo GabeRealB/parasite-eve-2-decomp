@@ -622,7 +622,7 @@ static void func_neo_ark_garden_8017EFB8(SVECTOR* arg0, s16 arg1, s32 arg2)
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Queues one textured quad (tpage 0xAC, clut 0x43C0, 64x64 texels). The
@@ -688,7 +688,7 @@ static void func_neo_ark_garden_8017F42C(SVECTOR* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 /// Glow effect task. It does nothing while the event state is 1 to 3 and
@@ -987,7 +987,7 @@ static void func_neo_ark_garden_80180190(GfxCoord* arg0, s32 arg1, s32 arg2, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a gouraud glow disc at the coordinate's world position: projects it
@@ -1040,7 +1040,7 @@ static void func_neo_ark_garden_801805B4(GfxCoord* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Burst effect task. Each tick it grows the burst's size by 0x10 and draws
@@ -1217,7 +1217,7 @@ static void func_neo_ark_garden_80180AF4(GfxCoord* coord, s16 size)
             func_neo_ark_garden_80181020(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

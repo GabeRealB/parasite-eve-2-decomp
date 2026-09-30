@@ -1377,7 +1377,7 @@ static void Actor00300_Fn00078(GfxCoord* coord, s16 size)
             }
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a semi-transparent ground quad under `arg0`: the four corners of
@@ -1455,7 +1455,7 @@ static void Actor00300_Fn005D0(GfxCoord* arg0, s32 arg1)
                     prim);
         }
     }
-    SCRATCH_POP(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
 }
 
 static void Actor00300_Fn00970(GpEnemy* enemy, Task* task)
@@ -2807,7 +2807,7 @@ static void Actor00300_Fn0340C(Task* arg0)
     if (active == 0) {
         work->field_664 = 0;
     }
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void Actor00300_Fn03618(Task* arg0)
@@ -3130,7 +3130,7 @@ static __inline__ void Actor00300_UpdateTransform(GpEnemy* arg0, Task* arg1)
         MulMatrix(&coord->coord, &scratch->mat.mat);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         saved->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(ActorScaleScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
     }
 }
 
@@ -3215,7 +3215,7 @@ static void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
     work->obj38.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     Task_DetachFromParent(arg1);
     arg1->state = 1;
-    SCRATCH_POP(ActorOffsetScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
 static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
@@ -3471,7 +3471,7 @@ static s32 Actor00300_Fn04B14(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
     return ret;
 }
 
@@ -3674,7 +3674,7 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 void Actor00300_Fn05138(Task* arg0)

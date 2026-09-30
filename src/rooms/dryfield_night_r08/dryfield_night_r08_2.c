@@ -564,7 +564,7 @@ static void func_dryfield_night_r08_8017E334(SVECTOR* arg0, s32 arg1, s32 arg2)
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Flash effect task on the object's coordinate. While `effectControl` is non-zero
@@ -689,7 +689,7 @@ static void func_dryfield_night_r08_8017E854(GfxCoord* arg0, s32 arg1, s32 arg2,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when the
@@ -942,7 +942,7 @@ static void func_dryfield_night_r08_8017F504(GfxCoord* arg0, GfxCoord* arg1, s16
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. While `effectControl` is non-zero
@@ -1141,5 +1141,5 @@ static void func_dryfield_night_r08_8017FB84(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

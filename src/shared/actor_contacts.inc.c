@@ -44,7 +44,7 @@ static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Walks the first `count` contact records (stopping at a zero key) and keeps,
@@ -99,7 +99,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
         gte_stsv(offset);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorRepelScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRepelScratch);
     return s->hit;
 }
 
@@ -236,7 +236,7 @@ static s32 ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec,
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -336,6 +336,6 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }

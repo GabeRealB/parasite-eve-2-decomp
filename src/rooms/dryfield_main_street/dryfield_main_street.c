@@ -1713,7 +1713,7 @@ static void func_dryfield_main_street_8017EA88(GfxCoord* arg0, s32 arg1, s32 arg
                     prim);
         }
     }
-    SCRATCH_POP(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
 }
 
 /// A flash on an effect's anchor, lasting `spawnArg1` frames. State 1 grows a
@@ -1837,7 +1837,7 @@ static void func_dryfield_main_street_8017F18C(GfxCoord* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -2095,7 +2095,7 @@ static void func_dryfield_main_street_8017FE3C(GfxCoord* arg0, GfxCoord* arg1, s
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,
@@ -2292,5 +2292,5 @@ static void func_dryfield_main_street_801804BC(GfxCoord* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

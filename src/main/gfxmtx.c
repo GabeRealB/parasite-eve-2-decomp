@@ -124,7 +124,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    SCRATCH_POP(ScratchRotXYZ);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchRotXYZ);
 }
 
 void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
@@ -191,7 +191,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    SCRATCH_POP(ScratchRotXYZ);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchRotXYZ);
 }
 
 static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
@@ -258,7 +258,7 @@ static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
         gte_MulMatrix0(out, &block->mat, out);
     }
 
-    SCRATCH_POP(ScratchRotZYX);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchRotZYX);
 }
 
 void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
@@ -350,7 +350,7 @@ void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag)
         gte_MulMatrix0(matrix, &block->rotation, matrix);
     }
 
-    SCRATCH_POP(_GfxAxisRotationScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
 void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
@@ -386,7 +386,7 @@ void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag)
         gte_MulMatrix0(matrix, &block->rotation, matrix);
     }
 
-    SCRATCH_POP(_GfxAxisRotationScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
 void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
@@ -422,7 +422,7 @@ void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag)
         gte_MulMatrix0(matrix, &block->rotation, matrix);
     }
 
-    SCRATCH_POP(_GfxAxisRotationScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GfxAxisRotationScratch);
 }
 
 void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
@@ -454,7 +454,7 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 
     VectorNormalS(&block->v, out);
 
-    SCRATCH_POP(ScratchNormBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchNormBlock);
 }
 
 /// Builds a rotation from two axes: `arg2` and `arg1` become rows 1 and 2 of a
@@ -481,7 +481,7 @@ void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
 
     gte_TransposeMatrix(mat, out);
 
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)

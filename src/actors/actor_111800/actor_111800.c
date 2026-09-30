@@ -247,7 +247,7 @@ static void func_actor_111800_80131E40(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Advances animation slots 1..0x12 by one frame and latches slot 1's current

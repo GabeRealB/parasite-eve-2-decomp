@@ -425,7 +425,7 @@ static void Actor02400_Fn00064(GfxCoord* coord, s16 size)
             }
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a flat textured quad on the ground under `arg0`: the corners of the
@@ -506,7 +506,7 @@ static void Actor02400_Fn005BC(GfxCoord* arg0, s32 arg1)
                     prim);
         }
     }
-    SCRATCH_POP(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
 }
 
 /// The main body's state handlers, run by `Actor02400_Fn02DB0` for the task's
@@ -1237,7 +1237,7 @@ static void Actor02400_Fn0208C(Task* task)
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->coord.t[0] = scratch->t.vx;
     coord->coord.t[1] = scratch->t.vy;
-    SCRATCH_POP(Actor02400ScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor02400ScaleScratch);
     coord->coord.t[2]   = scratch->t.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -1532,7 +1532,7 @@ static void Actor02400_Fn02790(GpEnemy* arg0, Task* arg1)
     work->obj_58.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     Task_DetachFromParent(arg1);
     arg1->state = 1;
-    SCRATCH_POP(ActorOffsetScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
 /// Flight handler of the projectile: moves it along `field_A8` / `field_AC`

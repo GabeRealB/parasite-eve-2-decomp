@@ -1256,7 +1256,7 @@ void func_acropolis_roof_garden_8017DE90(Task* arg0)
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         prim);
             }
-            SCRATCH_POP(RoomShaftScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(RoomShaftScratch);
         }
     }
 }
@@ -1619,7 +1619,7 @@ static void func_acropolis_roof_garden_8017F560(GfxCoord* arg0, s32 arg1, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// reports one, adds its X and Z to the coordinate's translation, rounding a
@@ -1663,7 +1663,7 @@ static s32 func_acropolis_roof_garden_8017F870(GfxCoord* coord, WorldCollisionCo
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1763,7 +1763,7 @@ static s32 func_acropolis_roof_garden_8017FA14(GfxCoord* coord, WorldCollisionCo
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

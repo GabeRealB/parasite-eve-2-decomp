@@ -1216,7 +1216,7 @@ static void func_neo_ark_bridge_8017FCA0(GfxCoord* arg0, s16 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// `Gp_State1C` effect task for a flash that builds up and bursts. Over
@@ -1343,7 +1343,7 @@ static void func_neo_ark_bridge_80180228(GfxCoord* arg0, s32 arg1, s32 arg2, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1603,7 +1603,7 @@ static void func_neo_ark_bridge_80180ED8(GfxCoord* arg0, GfxCoord* arg1, s16 arg
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect
@@ -1804,5 +1804,5 @@ static void func_neo_ark_bridge_80181558(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

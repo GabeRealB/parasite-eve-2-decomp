@@ -591,7 +591,7 @@ static void func_shelter_b1_golem_freezer_1_8017DC5C(SVECTOR* arg0, s32 arg1, s3
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)

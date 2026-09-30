@@ -256,7 +256,7 @@ static void func_800DDC2C(WorldCollisionBody* arg0)
         block->pos[i].vz = block->pos[i].vz + block->mat.t[2] + Gp_GridParams->field_18;
     }
     func_800DE2C0(block->pos, 0);
-    SCRATCH_POP(GpEdgeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpEdgeScratch);
 }
 
 void func_800DDDF8(WorldCollisionBody* obj)
@@ -318,7 +318,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
             }
         }
     }
-    SCRATCH_POP(GpSegmentHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpSegmentHitScratch);
 }
 
 static void func_800DE150(WorldCollisionBody* arg0)
@@ -636,7 +636,7 @@ done_search:
     block->vec.vz = arg1[0].vz - arg1[1].vz;
     VectorNormalS(&block->vec, arg2);
 
-    SCRATCH_POP(GpNormScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpNormScratch);
 }
 
 void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
@@ -669,7 +669,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
              block->delta.vz * block->delta.vz;
     tmp = other->field_44 + node->radius;
     if (tmp * tmp < distSq) {
-        SCRATCH_POP(GpQuadHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
         return;
     }
 
@@ -688,13 +688,13 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
         dot  = m0 + m1;
         dot += m2;
         if (dot > -0xC00000) {
-            SCRATCH_POP(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
     } else if (kind == 4) {
         if (distSq <= 0x3D08F) {
             other->field_4B = 1;
-            SCRATCH_POP(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
         block->local.vx = other->field_C.vx;
@@ -720,7 +720,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
             dot += n2;
         }
         if (dot > -0xC00000) {
-            SCRATCH_POP(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
     }
@@ -744,7 +744,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
             12) -
            faceDot;
     if (dist >= 0 || dist < -node->radius) {
-        SCRATCH_POP(GpQuadHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
         return;
     }
 
@@ -772,13 +772,13 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other)
         tmp >>= 12;
         tmp  -= (block->cross.vx * va->vx + block->cross.vy * va->vy + block->cross.vz * va->vz) >> 12;
         if (tmp >= 0) {
-            SCRATCH_POP(GpQuadHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
             return;
         }
     }
 
     other->field_4B = 1;
-    SCRATCH_POP(GpQuadHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadHitScratch);
 }
 
 void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
@@ -799,7 +799,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
     VectorNormal(&block->dir, &block->dir);
     if (other->field_34.vx * block->dir.vx + other->field_34.vy * block->dir.vy + other->field_34.vz * block->dir.vz >=
         0) {
-        SCRATCH_POP(_GpQuadDirScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
@@ -818,7 +818,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
     tmp                  = other->field_44 + node->radius;
     if (tmp * tmp < block->quad.delta.vx * block->quad.delta.vx + block->quad.delta.vy * block->quad.delta.vy +
                         block->quad.delta.vz * block->quad.delta.vz) {
-        SCRATCH_POP(_GpQuadDirScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
@@ -841,7 +841,7 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
             12) -
            faceDot;
     if (dist >= 0 || dist < -node->radius) {
-        SCRATCH_POP(_GpQuadDirScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
         return;
     }
 
@@ -869,13 +869,13 @@ void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from)
         tmp >>= 12;
         tmp  -= (block->quad.cross.vx * va->vx + block->quad.cross.vy * va->vy + block->quad.cross.vz * va->vz) >> 12;
         if (tmp >= 0) {
-            SCRATCH_POP(_GpQuadDirScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
             return;
         }
     }
 
     other->field_4B = 1;
-    SCRATCH_POP(_GpQuadDirScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GpQuadDirScratch);
 }
 
 s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
@@ -918,13 +918,13 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
                12;
     dirDot = (block->normal.vx * arg3->vx + block->normal.vy * arg3->vy + block->normal.vz * arg3->vz) >> 12;
     if (dirDot == 0) {
-        SCRATCH_POP(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
         return 0;
     }
     t = ((block->normal.vx * arg1->vx + block->normal.vy * arg1->vy + block->normal.vz * arg1->vz) >> 12) - planeDot;
     t = -(t << 12) / dirDot;
     if (t == 0) {
-        SCRATCH_POP(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
         return 0;
     }
 
@@ -946,7 +946,7 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
             (block->origin.vy - arg1->vy) * (block->origin.vy - arg2->vy) +
             (block->origin.vz - arg1->vz) * (block->origin.vz - arg2->vz) >=
         0) {
-        SCRATCH_POP(GpFaceHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
         return 0;
     }
 
@@ -965,10 +965,10 @@ s32 func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3)
                   block->cross.vz * block->origin.vz) >>
                  12;
         if (hitDot - edgeDot > 0) {
-            SCRATCH_POP(GpFaceHitScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
             return 0;
         }
     }
-    SCRATCH_POP(GpFaceHitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFaceHitScratch);
     return 1;
 }

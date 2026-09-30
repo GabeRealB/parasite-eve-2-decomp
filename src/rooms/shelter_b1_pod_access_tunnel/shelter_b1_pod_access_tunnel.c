@@ -1820,7 +1820,7 @@ static void func_shelter_b1_pod_access_tunnel_8017F3DC(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1871,7 +1871,7 @@ static void func_shelter_b1_pod_access_tunnel_8017F808(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// A twin trail. The first tick allocates sixteen coordinate frames, eight for
@@ -2075,7 +2075,7 @@ static void func_shelter_b1_pod_access_tunnel_8018008C(GfxCoord* arg0, GfxCoord*
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -2272,5 +2272,5 @@ static void func_shelter_b1_pod_access_tunnel_8018070C(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

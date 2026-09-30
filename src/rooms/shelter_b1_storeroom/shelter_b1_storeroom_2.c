@@ -896,7 +896,7 @@ static void func_shelter_b1_storeroom_8017E408(SVECTOR* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 #include "../../shared/room_visual_effects.inc.c"

@@ -2202,7 +2202,7 @@ static void func_actor_206100_8014BEC4(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Services the animation request in the work block and steps animation slots
@@ -3844,7 +3844,7 @@ static void func_actor_206100_8014ED3C(Task* task, s16 arg1)
         coord->coord.t[0] = work->field_434;
         coord->coord.t[2] = work->field_438;
     }
-    SCRATCH_POP(Actor206100DistScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor206100DistScratch);
 }
 
 static GpEnemy* func_actor_206100_8014EE2C(s32 arg0)

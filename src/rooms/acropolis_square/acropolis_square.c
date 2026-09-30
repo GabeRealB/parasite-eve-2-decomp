@@ -1982,7 +1982,7 @@ void func_acropolis_square_801825DC(Task* task)
             }
         }
     }
-    SCRATCH_POP(RoomGlowScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowScratch);
     Gp_ReleaseState1CMem(mem, task);
 }
 

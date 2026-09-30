@@ -1310,7 +1310,7 @@ static s32 Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, 
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1842,7 +1842,7 @@ static __inline__ void Actor204000_FaceScale(GfxCoord* coord, s16 s)
     coord->coord.m[2][1] = sc->m.m[2][1];
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 /// Frames 0x5B onward of the collapse: drifts the model along its facing for the

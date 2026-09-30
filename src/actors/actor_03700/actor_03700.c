@@ -1212,7 +1212,7 @@ static void Actor03700_Fn00ABC(Task* task)
         work->field_250      = 0;
         Gp_StateF0.field_19 |= 1;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 static void Actor03700_Fn00D5C(Task* task)

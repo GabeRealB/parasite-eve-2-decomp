@@ -1368,7 +1368,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Steps `coord` `amount` units along its own root colour-matrix column unless
@@ -1395,7 +1395,7 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -1444,7 +1444,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
         if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
             s->moved = 1;
         }
-        SCRATCH_POP(OverlayDeltaFlag);
+        SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     }
 }
 
@@ -1488,7 +1488,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1570,7 +1570,7 @@ static void func_actor_356100_80164158(Task* arg0)
         work->field_97E = 3;
         work->field_978 = 1;
     }
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Turn-aim state body, the 356100 twin of `Actor01900_Fn04D14`: take a 0x10
@@ -1711,7 +1711,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
         }
     }
     work->field_982 += (u16)work->field_B4E;
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Aim tick: going live resets the model and starts clip 1 at speed 0x10 with
@@ -1759,7 +1759,7 @@ static void func_actor_356100_801653F4(Task* arg0)
         s->facing         = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_B48   = s->facing;
         work->field_B4A   = s->facing + (u16)s->angle * 2;
-        SCRATCH_POP(Actor356100AimScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
         return;
     }
     head                                = SCRATCH_HEAD(Actor356100AimScratch);
@@ -1799,7 +1799,7 @@ static void func_actor_356100_801653F4(Task* arg0)
         Actor356100_StepForward(arg0->extra.tmd->coords, 0x14);
     }
     Actor356100_PushRecords(arg0->extra.tmd->coords, &work->field_A58, 3, 0x10);
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Turn-and-close tick: going live writes the 0x978..0x982 animation slots with
@@ -1899,7 +1899,7 @@ static void func_actor_356100_80165B30(Task* arg0)
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
     }
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Turn-and-close tick, and the sibling of `func_actor_356100_801666B4` above
@@ -2235,7 +2235,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
     } else {
         Actor356100_StepForward(arg0->extra.tmd->coords, 0x3C);
     }
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Rotation-collapse tick: going live clears the model's `field_C`, flags the
@@ -2421,7 +2421,7 @@ static __inline__ void Actor356100_MoveForward(GfxCoord* coord, s16 amount)
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2478,7 +2478,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
         Actor356100_MoveForward(arg0->extra.tmd->coords, 10);
     }
     Actor356100_PushRecords(arg0->extra.tmd->coords, &work->field_A58, 3, 0x10);
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2540,7 +2540,7 @@ static void func_actor_356100_8016804C(Task* arg0)
     if ((work->field_68 & 1) || work->field_B4C == 0) {
         work->field_0 = 9;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// `actorMoveForwardNonzero` testing the freeze flag through a
@@ -2568,7 +2568,7 @@ static __inline__ void Actor356100_StepForwardSave(McSaveData* save, GfxCoord* c
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2703,7 +2703,7 @@ static void func_actor_356100_801684F0(Task* arg0)
             work->field_0 = 7;
         }
     }
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Turn the actor's facing onto the player in one step and rescale the root
@@ -2758,7 +2758,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->angle, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_356100_80163508(arg0);
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// Turn the actor's facing onto the player in 0x28 steps and rescale the root
@@ -2814,7 +2814,7 @@ static void func_actor_356100_80168E44(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     work->field_978 = 2;
     func_actor_356100_80163508(arg0);
-    SCRATCH_POP(Actor356100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100AimScratch);
 }
 
 /// The overlay's death-throes tick, the sibling of `func_actor_356100_80168E44`:
@@ -3047,7 +3047,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
     work->field_B6C[work->field_BBC].vx = blk->v.vx;
     work->field_B6C[work->field_BBC].vy = blk->v.vy;
     work->field_B6C[work->field_BBC].vz = blk->v.vz;
-    SCRATCH_POP(Actor356100GroundCoord);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor356100GroundCoord);
     next            = (u16)work->field_BBC + 1;
     work->field_BBC = next;
     if (next == 7) {

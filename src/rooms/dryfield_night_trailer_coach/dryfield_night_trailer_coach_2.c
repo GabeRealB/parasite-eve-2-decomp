@@ -1251,5 +1251,5 @@ static void func_dryfield_night_trailer_coach_801838B4(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }

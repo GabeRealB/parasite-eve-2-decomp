@@ -937,7 +937,7 @@ static void func_mine_secret_passage_8017E4C8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Frame callback of a drifting mote. Setup reads speed, lifetime and drawing
@@ -1090,7 +1090,7 @@ static void func_mine_secret_passage_8017EB34(GfxCoord* arg0, u16 arg1, u16 arg2
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1146,7 +1146,7 @@ static void func_mine_secret_passage_8017EDF8(GfxCoord* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -1468,7 +1468,7 @@ static void func_mine_secret_passage_8017FAF4(GfxCoord* coord, s16 size)
             func_mine_secret_passage_80180020(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1676,7 +1676,7 @@ static void func_mine_secret_passage_80180398(GfxCoord* arg0, s16 arg1, u8* arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Frame callback of a rising spark: each tick walks its angle on by a random

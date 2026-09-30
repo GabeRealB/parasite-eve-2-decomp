@@ -115,7 +115,7 @@ static void RoomFx_DrawBurst2Glow(GfxCoord* coord, s16 size)
             RoomFx_DrawGround2Quad(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

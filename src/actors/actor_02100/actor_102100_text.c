@@ -1024,7 +1024,7 @@ static void Actor02100_Fn011C4(Task* arg0)
             }
             current = current->nextSibling;
         } while (current != head);
-        SCRATCH_POP(Actor02100Fn011C4Scratch);
+        SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn011C4Scratch);
     }
 }
 
@@ -1198,7 +1198,7 @@ static __inline__ void Actor02100_SetVector(Task* arg0)
     gte_rtv0();
     gte_stsv(&work->field_B0);
     work->field_E8 = work->field_B0;
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Stores the near vector the GTE has just rotated into `field_128[1]`,
@@ -1208,7 +1208,7 @@ static __inline__ void _actor02100StoreNearVector(Actor02100Work* work)
 {
     gte_stsv(&work->field_128[1]);
     work->field_128[1].vz += 0x12C;
-    SCRATCH_POP(Actor02100Fn014E4Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn014E4Scratch);
 }
 
 /// Rebuilds the same two direction vectors as `Actor02100_AimAndBuildVectors`
@@ -1462,14 +1462,14 @@ static __inline__ void Actor02100_UpdateVectors(Task* arg0)
     gte_rtv0();
     gte_stsv(&work->field_128[1]);
     work->field_128[1].vz += 0x12C;
-    SCRATCH_POP(Actor02100Fn014E4Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn014E4Scratch);
     Actor02100_SetVector(arg0);
 }
 
 /// Releases the block `Actor02100_OrientScratch` leaves on the scratch stack.
 static __inline__ void Actor02100_ReleaseScratch28(void)
 {
-    SCRATCH_POP(Actor02100Fn01FF0Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn01FF0Scratch);
 }
 
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
@@ -1611,7 +1611,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
     }
 
-    SCRATCH_POP(Actor02100Fn01FF0Block);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor02100Fn01FF0Block);
 }
 
 /// Draws one beam between the two screen points held in `Actor02100Work`
@@ -1903,7 +1903,7 @@ static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
     return ret;
 }
 

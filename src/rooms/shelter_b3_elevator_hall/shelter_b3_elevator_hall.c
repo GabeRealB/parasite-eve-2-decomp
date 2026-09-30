@@ -788,7 +788,7 @@ static void func_shelter_b3_elevator_hall_8017EAC0(GfxCoord* arg0, u16 arg1, u16
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a gouraud ring of sixteen `POLY_G4` segments around the projected
@@ -842,7 +842,7 @@ static void func_shelter_b3_elevator_hall_8017ED84(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Draws a gouraud disc of eight `POLY_G4` wedges around the projected origin
@@ -1154,7 +1154,7 @@ static void func_shelter_b3_elevator_hall_8017FA80(GfxCoord* coord, s16 size)
             func_shelter_b3_elevator_hall_8017FFAC(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1359,7 +1359,7 @@ static void func_shelter_b3_elevator_hall_80180324(GfxCoord* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Each tick advances the effect's angle by a random 0x200-0x3FF, sets its

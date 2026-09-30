@@ -582,7 +582,7 @@ static void func_shelter_b1_transfer_tunnel_8017DFAC(SVECTOR* arg0, s16 arg1)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Drifting mote: state 0 unpacks the spawn argument into brightness, draw
@@ -735,7 +735,7 @@ static void func_shelter_b1_transfer_tunnel_8017E5D4(GfxCoord* arg0, u16 arg1, u
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -789,7 +789,7 @@ static void func_shelter_b1_transfer_tunnel_8017E898(GfxCoord* arg0, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Halo: projects the coordinate's world position and, unless the GTE flags
@@ -1101,7 +1101,7 @@ static void func_shelter_b1_transfer_tunnel_8017F594(GfxCoord* coord, s16 size)
             func_shelter_b1_transfer_tunnel_8017FAC0(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1306,7 +1306,7 @@ static void func_shelter_b1_transfer_tunnel_8017FE38(GfxCoord* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Rising sparks: each tick turns the effect's angle on by a random
@@ -1467,7 +1467,7 @@ static void func_shelter_b1_transfer_tunnel_80180BD0(GfxCoord* arg0, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Halo: projects the coordinate's world position and, unless the GTE flags
@@ -1720,7 +1720,7 @@ static void func_shelter_b1_transfer_tunnel_80181880(GfxCoord* arg0, GfxCoord* a
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst: state 0 spawns the burst's effects and then either streams
@@ -1915,5 +1915,5 @@ static void func_shelter_b1_transfer_tunnel_80181F00(GfxCoord* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

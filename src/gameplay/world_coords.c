@@ -433,7 +433,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
         }
     }
     base->u.at.scale = block->scale;
-    SCRATCH_POP(GpAttnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
     return result;
 }
 
@@ -470,7 +470,7 @@ static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
         }
     }
     base->u.at.scale = block->scale;
-    SCRATCH_POP(GpAttnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
     return result;
 }
 
@@ -519,7 +519,7 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
         }
     }
     light->u.at.scale = block->scale;
-    SCRATCH_POP(GpSpotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpSpotScratch);
     return result;
 }
 
@@ -558,7 +558,7 @@ static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpViewLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpViewLightScratch);
 }
 
 /// Selects the nearest point or cone light to world position `arg0`, using
@@ -643,7 +643,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
@@ -675,7 +675,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
@@ -707,7 +707,7 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 static __inline__ s32 solve_luma(GpLight* arg0)
@@ -1102,7 +1102,7 @@ static void Gp_DebugPanTask(Task* arg0)
             req.drawMode   = TEXT_DRAW_QUEUED;
             Text_DrawString(&req, (u8*)D_8009745C);
         }
-        SCRATCH_POP(WorldCoordProjectionScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     } else {
         func_800D7A9C(extra, &vec, 0, 3);
         if (D_80114F28 != 0) {
@@ -1321,7 +1321,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
                 arg0->colorBlend--;
             }
         }
-        SCRATCH_POP(GpColorScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpColorScratch);
     }
 }
 
@@ -1359,7 +1359,7 @@ static void Gp_LightFalloff(GpPointLight* light)
     }
     base->u.at.scale      = block->scale;
     base->u.at.world.t[0] = result;
-    SCRATCH_POP(GpAttnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
 }
 
 void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
@@ -1422,7 +1422,7 @@ s32 Gp_GetObjPan(GfxCoord* coord)
     } else {
         ret = 0;
     }
-    SCRATCH_POP(WorldCoordProjectionScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
     return -ret;
 }
 
@@ -1569,7 +1569,7 @@ static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
@@ -1601,7 +1601,7 @@ static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
@@ -1633,7 +1633,7 @@ static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     colorMtx->m[1][arg0] = block->dir.vy;
     colorMtx->m[2][arg0] = block->dir.vz;
 
-    SCRATCH_POP(GpLightScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
 void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4)
@@ -1752,7 +1752,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     gte_stdp(&block->p);
     gte_stflg(&block->flag);
     gte_stszotz(&block->otz);
-    SCRATCH_POP(GpPerspScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
 }
 
 static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)

@@ -957,7 +957,7 @@ static void func_actor_105100_80131EBC(GfxCoord* coord, s16 size)
             }
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a flat textured quad on the ground under the actor: the corners of
@@ -1038,7 +1038,7 @@ static void func_actor_105100_80132414(GfxCoord* arg0, s32 arg1)
                     prim);
         }
     }
-    SCRATCH_POP(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
 }
 
 /// Spawn/setup handler. It allocates the 0x5C4-byte work block and hangs it off
@@ -1342,7 +1342,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
         }
         Gp_ClearRec18Occupied(work->field_53C);
     }
-    SCRATCH_POP(Actor105100HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor105100HitScratch);
 }
 
 /// The enemy's step dispatcher, run every frame out of the `field_596` schedule
@@ -2385,7 +2385,7 @@ body:
             }
             break;
     }
-    SCRATCH_POP(Actor105100ProjScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor105100ProjScratch);
 }
 
 static void func_actor_105100_80135278(GpEnemy* arg0, Task* arg1)
@@ -2583,7 +2583,7 @@ static void func_actor_105100_80135674(Task* arg0)
             coord->coord.t[2] += (rec->direction.vz * rec->step) >> 12;
             break;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Reaction 1's handler (`field_40 == 1`), which walks the model towards the
@@ -2626,7 +2626,7 @@ static void func_actor_105100_801359B4(Task* arg0)
             coord->coord.t[2] += (rec->direction.vz * rec->step) >> 12;
             break;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_105100_80135B40(Task* arg0)
@@ -3085,7 +3085,7 @@ static void func_actor_105100_80136574(Task* arg0, MATRIX* arg1, s16 arg2, s32 a
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 void func_actor_105100_8013667C(Task* arg0)

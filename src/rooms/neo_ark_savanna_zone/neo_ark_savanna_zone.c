@@ -724,7 +724,7 @@ static void func_neo_ark_savanna_zone_8017DCB0(GfxCoord* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -977,7 +977,7 @@ static void func_neo_ark_savanna_zone_8017E960(GfxCoord* arg0, GfxCoord* arg1, s
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -1174,5 +1174,5 @@ static void func_neo_ark_savanna_zone_8017EFE0(GfxCoord* arg0, s16 arg1, u8* arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

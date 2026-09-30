@@ -2447,7 +2447,7 @@ static void func_actor_401800_80134C94(Task* arg0)
                 }
             }
         }
-        SCRATCH_POP(ActorHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorHitScratch);
     }
 }
 
@@ -2552,7 +2552,7 @@ static void func_actor_401800_80135F58(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401800_80133EB8(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Push the root coordinate out of a `WorldCollisionContact` table: take a 0x34 scratch, seed
@@ -2608,7 +2608,7 @@ static s32 func_actor_401800_8013629C(Task* arg0, WorldCollisionContact* recs, s
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_POP(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
     return s->hit;
 }
 
@@ -2893,7 +2893,7 @@ static void func_actor_401800_80136EAC(Task* arg0)
     if (work->field_8C2 != 0) {
         work->field_8C2--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Chase body: takes a 0x10 scratch for the player offset and the heading it
@@ -2940,7 +2940,7 @@ static void func_actor_401800_80137714(Task* arg0)
         s->angle        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_BF8 = s->angle;
         work->field_BFA = s->angle + (u16)s->turn * 2;
-        SCRATCH_POP(ActorChaseScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
     head                            = SCRATCH_HEAD(ActorChaseScratch);
@@ -2987,7 +2987,7 @@ static void func_actor_401800_80137714(Task* arg0)
     if (work->field_8C2 != 0) {
         work->field_8C2--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Live-actor swing. On the live flag it resets the model buffers, takes the
@@ -3095,7 +3095,7 @@ static void func_actor_401800_80137DDC(Task* arg0)
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir)
@@ -3917,7 +3917,7 @@ static void func_actor_401800_8013A2E8(Task* arg0)
     if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Aim the actor at the player, fold the clamped turn into the root
@@ -3979,7 +3979,7 @@ static void func_actor_401800_8013AB64(Task* arg0)
     if ((work->field_68 & 1) || work->field_BFC == 0) {
         work->field_0 = 9;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Aim the actor at the player and rebuild its root coordinate from the new
@@ -4058,7 +4058,7 @@ static void func_actor_401800_8013AF1C(Task* arg0)
             work->field_0 = 7;
         }
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401800_8013B444(Task* arg0)
@@ -4105,7 +4105,7 @@ static void func_actor_401800_8013B444(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401800_80133EB8(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Aim the actor at the player and rescale its root coordinate, turning the
@@ -4166,7 +4166,7 @@ static void func_actor_401800_8013B784(Task* arg0)
     if (work->field_8C2 != 0) {
         work->field_8C2--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Step-driven effect spawner for the actor's live ramp: while the spawn flag
@@ -4449,7 +4449,7 @@ static void func_actor_401800_8013CD98(Task* arg0)
     if (work->field_8C2 != 0) {
         work->field_8C2--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static const Actor401800StateTable D_actor_401800_80131FDC = { {

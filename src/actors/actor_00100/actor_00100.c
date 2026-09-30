@@ -578,7 +578,7 @@ static __inline__ void Actor00100_ScaleTransform(MATRIX* matrix, s16 amount)
     matrix->t[0] = scratch->trans.vx;
     matrix->t[1] = scratch->trans.vy;
     matrix->t[2] = scratch->trans.vz;
-    SCRATCH_POP(ActorScaleMatrixScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
 }
 
 static __inline__ s16 Actor00100_HasRecord10(Task* actor)
@@ -617,7 +617,7 @@ static __inline__ s32 Actor00100_OutsideRadius(SVECTOR* pos, s32 radius)
     scratch->dx                      *= scratch->dx;
     scratch->dz                      *= scratch->dz;
     scratch->r                       *= scratch->r;
-    SCRATCH_POP(OverlayRangeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
     return scratch->dx + scratch->dz >= scratch->r;
 }
 
@@ -1555,7 +1555,7 @@ static void Actor00100_Fn001FC(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Pushes `coord` away from the obstacles in `recs`. Up to eight bearings
@@ -1695,7 +1695,7 @@ static s32 Actor00100_Fn00A54(GfxCoord* coord, WorldCollisionContact* movement, 
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -3188,7 +3188,7 @@ static void Actor00100_Fn0375C(Task* arg0)
         if (ctx->hp <= 0) {
             work->field_C2A = 1;
         }
-        SCRATCH_POP(Actor00100DamageScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(Actor00100DamageScratch);
     }
 }
 
@@ -3368,7 +3368,7 @@ static void Actor00100_Fn04864(Task* arg0)
         if (Gp_StateF0.prefix.bytes.field_2 & 1)
             work->field_0 = 0x26;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void Actor00100_Fn0503C(Task* arg0)
@@ -4168,7 +4168,7 @@ static void Actor00100_Fn070DC(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(Actor00100AngleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor00100AngleScratch);
 }
 
 static void Actor00100_Fn0747C(Task* arg0)
@@ -4361,7 +4361,7 @@ static void Actor00100_Fn0782C(Task* arg0)
         gte_stsv(&scratch->vec);
         ((Actor00100MoveWork*)work)->index     = 0;
         ((Actor00100MoveWork*)work)->pos[0][0] = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
-        SCRATCH_POP(ActorMoveScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
         ((Actor00100MoveWork*)work)->pos[0][1] = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
         work->capsuleBody.shape.end1.vz        = 0x26C;
         return;
@@ -4563,7 +4563,7 @@ static void Actor00100_Fn0782C(Task* arg0)
             work->field_0 = 0x1C;
         }
     }
-    SCRATCH_POP(ActorMoveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
 }
 
 static void Actor00100_Fn08588(Task* arg0)
@@ -4665,7 +4665,7 @@ static void Actor00100_Fn08588(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(ActorTurnStepScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
 }
 
 static void Actor00100_Fn08A14(Task* arg0)
@@ -4764,7 +4764,7 @@ static void Actor00100_Fn08A14(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(ActorTurnStepScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
 }
 
 static void Actor00100_Fn08E7C(Task* arg0)
@@ -4899,7 +4899,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
         Gp_ArmStateF0(1);
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(Actor00100ProjectScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor00100ProjectScratch);
 }
 
 static void Actor00100_Fn09310(Task* arg0)

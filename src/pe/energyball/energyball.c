@@ -498,7 +498,7 @@ static void func_energyball_8012FFD0(GfxCoord* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Links one frame of the energy ball's core sprite at `arg0`'s world
@@ -562,7 +562,7 @@ static void func_energyball_8013035C(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 /// Draws a ground-plane quad at `arg0`'s `workm` translation: the unit quad
@@ -639,7 +639,7 @@ static void func_energyball_801307D4(GfxCoord* arg0, s32 arg1)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(OverlayGroundScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayGroundScratch);
 }
 
 /// Draws the energy ball's surface: two 16-vertex rings of the same radius
@@ -722,7 +722,7 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
                     prim);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 void func_energyball_8013107C(Task* arg0)

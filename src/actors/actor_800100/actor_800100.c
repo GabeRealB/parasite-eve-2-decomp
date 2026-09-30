@@ -2219,7 +2219,7 @@ static void func_actor_800100_801643F4(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
@@ -2291,7 +2291,7 @@ static void func_actor_800100_80164580(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_800100_80164710(Task* arg0)
@@ -2469,7 +2469,7 @@ static void func_actor_800100_80164940(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Aim/lock drive for the actor's `field_95E` phase machine. While the planar distance
@@ -3146,7 +3146,7 @@ static void func_actor_800100_801659EC(Task* arg0)
             func_actor_800100_80165664(arg0);
             break;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_800100_80165C38(Task* arg0)
@@ -3195,7 +3195,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GfxCoord);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static void func_actor_800100_80165DE8(Task* arg0)
@@ -3318,7 +3318,7 @@ static void func_actor_800100_80165F50(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GfxCoord);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static void func_actor_800100_80166190(Task* arg0)
@@ -3437,7 +3437,7 @@ static void func_actor_800100_80166190(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GfxCoord);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static void func_actor_800100_80166514(Task* arg0)
@@ -3683,7 +3683,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
     } else {
         i = 0;
     }
-    SCRATCH_POP(GpPickScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPickScratch);
     return i;
 }
 

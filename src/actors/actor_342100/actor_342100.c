@@ -586,7 +586,7 @@ void func_actor_342100_80161E70(Task* arg0)
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_POP(OverlayWaveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
 }
 
 /// Fade-to-white driver of the encounter, six states over the eight-byte

@@ -93,7 +93,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     gte_stdp(&block->p);
     gte_stflg(&block->flag);
     gte_stszotz(&block->otz);
-    SCRATCH_POP(GpPerspScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
 }
 
 void Gp_DrawTargetCursor(void)
@@ -187,7 +187,7 @@ void Gp_DrawTargetCursor(void)
             setlen(prim, 9);
             setcode(prim, 0x2F);
             addPrim(gGpuCurrentOt, prim);
-            SCRATCH_POP(WorldCoordProjectionScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(WorldCoordProjectionScratch);
             break;
         }
     }
@@ -308,7 +308,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     if (best != NULL) {
         Gp_GetLockPos(best, out);
     }
-    SCRATCH_POP(GpLockScanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpLockScanScratch);
     return best;
 }
 
@@ -745,7 +745,7 @@ static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
     gte_stflg(&block->flag);
     gte_stszotz(&block->otz);
     ret = block->otz;
-    SCRATCH_POP(GpPerspScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpPerspScratch);
     return ret;
 }
 
@@ -868,7 +868,7 @@ void Gp_LoadImages(GpImgRec* arg0)
         arg0++;
     } while (done == 0);
 
-    SCRATCH_POP(RECT);
+    SCRATCH_STACK_RELEASE_BLOCK(RECT);
 }
 
 void Gp_InitStateF0(void)

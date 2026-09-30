@@ -879,7 +879,7 @@ static void func_shelter_b1_control_room_8017F39C(SVECTOR* arg0, s32 arg1, s32 a
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Draws a glowing disc at the world point `arg0`, projected through
@@ -945,5 +945,5 @@ static void func_shelter_b1_control_room_8017FBE0(SVECTOR* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }

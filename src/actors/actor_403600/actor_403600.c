@@ -1053,7 +1053,7 @@ void func_actor_403600_801320F8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP(ActorsDrawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorsDrawScratch);
 }
 
 static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
@@ -1595,7 +1595,7 @@ void func_actor_403600_80134398(Task* arg0)
         newWork = memCalloc(0x15C, 0);
         if (newWork == NULL) {
             Task_CallExit(arg0);
-            SCRATCH_POP(Actor403600ProjectileScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(Actor403600ProjectileScratch);
             return;
         }
         arg0->work             = newWork;
@@ -1983,7 +1983,7 @@ block_22:
             } while (var_s4 < 0x20);
         }
     }
-    SCRATCH_POP(Actor403600ProjectileScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor403600ProjectileScratch);
 }
 
 static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)

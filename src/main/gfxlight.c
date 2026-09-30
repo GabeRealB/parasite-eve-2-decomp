@@ -38,7 +38,7 @@ static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirM
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_POP(ScratchLightBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchLightBlock);
 }
 
 void Gpu_InitDefaultLights(void)
@@ -96,7 +96,7 @@ void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx
     colorMtx->m[1][id] = light->g << 4;
     colorMtx->m[2][id] = light->b << 4;
 
-    SCRATCH_POP(ScratchLightBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(ScratchLightBlock);
 }
 
 static void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)

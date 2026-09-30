@@ -549,7 +549,7 @@ static void func_pyrokinesis_8012FC34(GfxCoord* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 /// Draws the flame ring: `arg0`'s origin is projected once through
@@ -599,7 +599,7 @@ static void func_pyrokinesis_80130130(GfxCoord* arg0, s16 arg1, s16 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws the scorch mark the cone leaves on the floor: the unit quad
@@ -673,7 +673,7 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 /// Draws one billboard flame quad: `arg0`'s origin is projected once through
@@ -972,7 +972,7 @@ static void func_pyrokinesis_801312B4(GfxCoord* arg0, s16 arg1, s32 arg2, s16 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 /// Draws the pyrokinesis flame tube: two 16-vertex rings in `arg0`'s local XY
@@ -1072,7 +1072,7 @@ static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 ar
                     prim);
         }
     }
-    SCRATCH_POP(GpBandScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpBandScratch);
 }
 
 void func_pyrokinesis_80131CE4(Task* arg0)

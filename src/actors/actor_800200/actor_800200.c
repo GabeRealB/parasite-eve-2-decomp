@@ -2215,7 +2215,7 @@ static void func_actor_800200_80164598(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
 }
 
 static void func_actor_800200_801647A8(Task* arg0)
@@ -2465,7 +2465,7 @@ static void func_actor_800200_80164C54(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_POP(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
 }
 
 static void func_actor_800200_80164EBC(Task* arg0)
@@ -2530,7 +2530,7 @@ static void func_actor_800200_80164EBC(Task* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    SCRATCH_POP(GpApproachScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpApproachScratch);
 }
 
 /// Handlers `func_actor_800200_80165B84` runs, indexed by `field_956`.

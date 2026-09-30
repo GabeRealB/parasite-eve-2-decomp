@@ -998,7 +998,7 @@ static void func_neo_ark_power_plant_2_8017DA54(SVECTOR* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw31Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw31Scratch);
 }
 
 /// Flash burst. State 0 derives a per-frame step of `0x100 / spawnArg1` for
@@ -1123,7 +1123,7 @@ static void func_neo_ark_power_plant_2_8017E098(GfxCoord* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1379,7 +1379,7 @@ static void func_neo_ark_power_plant_2_8017ED48(GfxCoord* arg0, GfxCoord* arg1, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -1577,7 +1577,7 @@ static void func_neo_ark_power_plant_2_8017F3C8(GfxCoord* arg0, s16 arg1, u8* ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Sets `field_4` of the third sprite command in the sixth record of the

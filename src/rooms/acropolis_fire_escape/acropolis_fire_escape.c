@@ -1344,6 +1344,6 @@ void func_acropolis_fire_escape_80180B20(Task* task)
             }
         }
     }
-    SCRATCH_POP(AcropolisFireEscapeGlowScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(AcropolisFireEscapeGlowScratch);
     Gp_ReleaseState1CMem(mem, task);
 }

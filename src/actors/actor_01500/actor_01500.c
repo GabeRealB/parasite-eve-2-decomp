@@ -1047,7 +1047,7 @@ static void Actor01500_Fn004EC(Task* actor)
         Gp_ClearRec18Occupied(effectRec);
         work->field_36A = 1;
     }
-    SCRATCH_POP(ActorPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPushFrame);
 }
 
 static void Actor01500_Fn00AFC(Task* actor, s32 damage)
@@ -1186,7 +1186,7 @@ static void Actor01500_Fn00CA4(Task* actor)
             Gp_ArmStateF0(1);
         }
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Once the pose has run 30 frames, re-aims `field_374` along the coordinate's
@@ -1383,7 +1383,7 @@ static void Actor01500_Fn015DC(Task* actor)
         ++work->field_362 > 1800) {
         work->field_378 = 1;
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Leaves the idle poses once `field_356` frames have run: state 0 switches to
@@ -2167,7 +2167,7 @@ static void Actor01500_Fn02B70(Task* arg0)
         vec->vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(vec, 0x200, 0x80);
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Death shrink: restores the root coordinate from the matrix `field_32C`
@@ -2203,5 +2203,5 @@ static void Actor01500_Fn02C34(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

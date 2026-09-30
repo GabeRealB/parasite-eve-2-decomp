@@ -729,7 +729,7 @@ static void func_dryfield_night_motel_room_4_8017D714(SVECTOR* arg0, s32 arg1, s
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Per-frame effect: queues the room's flickering sprites for the view

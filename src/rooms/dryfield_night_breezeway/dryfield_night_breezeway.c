@@ -652,7 +652,7 @@ static void func_dryfield_night_breezeway_8017D6D8(SVECTOR* arg0, s16 arg1, s32 
             i = t2;
         } while (i < 2);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Draws a light shaft between the two world points `arg0[0]` and `arg0[1]`:
@@ -777,7 +777,7 @@ static void func_dryfield_night_breezeway_8017DB4C(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Draws a textured, semi-transparent sprite at the world point `arg0`,
@@ -823,7 +823,7 @@ static void func_dryfield_night_breezeway_8017E334(SVECTOR* arg0, s32 arg1, s32 
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// The room's light draw: sets `Gp_State1C->roomEffectMode` to 2, then draws

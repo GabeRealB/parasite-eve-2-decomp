@@ -2657,7 +2657,7 @@ void func_dryfield_toilet_8017DEF4(Task* arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(OverlaySpriteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
     if (Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (Gp_StateF0.field_4 == 1) {
             return;
@@ -2973,7 +2973,7 @@ static void func_dryfield_toilet_8017F09C(GfxCoord* arg0, s32 arg1, s32 arg2, u8
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -3020,7 +3020,7 @@ static void func_dryfield_toilet_8017F4C0(GfxCoord* arg0, s32 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// A glowing burst effect task. Each frame it draws a disc and the glow of
@@ -3195,7 +3195,7 @@ static void func_dryfield_toilet_8017FA00(GfxCoord* coord, s16 size)
             func_dryfield_toilet_8017FF2C(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

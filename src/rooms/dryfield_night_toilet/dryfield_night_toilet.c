@@ -594,7 +594,7 @@ static void func_dryfield_night_toilet_8017D77C(SVECTOR* arg0, s32 arg1, s32 arg
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Draws the room's glow sprite (texture cell 1, half-extent 0x200) at the

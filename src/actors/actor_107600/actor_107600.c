@@ -2024,7 +2024,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
                 arg0->colorBlend--;
             }
         }
-        SCRATCH_POP(GpColorScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(GpColorScratch);
     }
 }
 

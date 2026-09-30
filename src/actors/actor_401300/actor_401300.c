@@ -1353,7 +1353,7 @@ static void func_actor_401300_801320A4(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Moves `coord` in X and Z by the delta `func_800E0C10` resolves from the
@@ -1398,7 +1398,7 @@ static s32 func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* re
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1552,7 +1552,7 @@ static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_POP(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
     return s->hit;
 }
 
@@ -1657,7 +1657,7 @@ static s32 func_actor_401300_80132C78(GfxCoord* coord, WorldCollisionContact* re
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(ActorStepDelta);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorStepDelta);
     return s->moved;
 }
 
@@ -2347,7 +2347,7 @@ static __inline__ void Actor401300_InitPose(GfxCoord* coord, Actor401300Work* wo
     work->field_8B8      = 0x100;
     work->field_8B6      = 0x170;
     work->field_8BA      = 0x20;
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 static void func_actor_401300_80134454(GpEnemy* enemy, Task* actor)
@@ -2892,7 +2892,7 @@ static void func_actor_401300_80134F90(Task* arg0)
                 work->field_C8A = 1;
             }
         }
-        SCRATCH_POP(ActorHitScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorHitScratch);
     }
 }
 
@@ -3073,7 +3073,7 @@ static void func_actor_401300_80136238(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     func_actor_401300_80133A3C(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_801365F8(Task* arg0)
@@ -3189,7 +3189,7 @@ static void func_actor_401300_801365F8(Task* arg0)
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg0->extra.tmd->coords);
-    SCRATCH_POP(Actor401300PursuitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor401300PursuitScratch);
 }
 
 static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
@@ -3215,7 +3215,7 @@ static __inline__ void Actor401300_MoveBy(GfxCoord* coord, s16 amount)
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -3348,7 +3348,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(Actor401300PursuitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor401300PursuitScratch);
 }
 
 static void func_actor_401300_801376E4(Task* arg0)
@@ -3385,7 +3385,7 @@ static void func_actor_401300_801376E4(Task* arg0)
         s->angle        = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_C94 = s->angle;
         work->field_C96 = s->angle + (u16)s->turn * 2;
-        SCRATCH_POP(ActorChaseScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
     head                            = SCRATCH_HEAD(ActorChaseScratch);
@@ -3427,7 +3427,7 @@ static void func_actor_401300_801376E4(Task* arg0)
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57) != 1) {
         func_actor_401300_80132910(arg0, work->field_990, 0xC);
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_80137D78(Task* arg0)
@@ -3524,7 +3524,7 @@ static void func_actor_401300_80137D78(Task* arg0)
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_80138160(Task* arg0)
@@ -3819,7 +3819,7 @@ static __inline__ void Actor401300_RescaleYawXZ(GfxCoord* coord, s32 xz, s16 y)
     coord->coord.m[2][0] = (u16)blk->m.m[2][0];
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
 }
@@ -4090,7 +4090,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     if (Gp_StateF0.prefix.packed & 0xD0000) {
         work->field_0 = 6;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void func_actor_401300_8013A208(Task* arg0)
@@ -4147,7 +4147,7 @@ static void func_actor_401300_8013A208(Task* arg0)
     if ((work->field_6C & 0x100) || work->field_C98 == 0) {
         work->field_0 = 9;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void func_actor_401300_8013A5C0(Task* arg0)
@@ -4216,7 +4216,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
             work->field_0 = 7;
         }
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_8013AAE8(Task* arg0)
@@ -4263,7 +4263,7 @@ static void func_actor_401300_8013AAE8(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
     func_actor_401300_80133A3C(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_8013AE48(Task* arg0)
@@ -4359,7 +4359,7 @@ static void func_actor_401300_8013AE48(Task* arg0)
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1964);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_8013B6E8(Task* arg0)
@@ -4605,7 +4605,7 @@ static void func_actor_401300_8013CBAC(Task* arg0)
         work->field_8A2 = 2;
         work->field_89C = 1;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401300_8013D2AC(Task* arg0)
@@ -4793,7 +4793,7 @@ static __inline__ void Actor401300_ResetActorYaw(Task* actor)
     coord->composeStamp                    = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2]                   = m22;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 /// Facing yaw of `coord`.
@@ -4822,7 +4822,7 @@ static __inline__ void Actor401300_MoveForwardSave(McSaveData* save, GfxCoord* c
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -5030,7 +5030,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             work->field_0 = 0x18;
             break;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// `actorMoveForwardNonzero` testing the same flag byte through a
@@ -5058,7 +5058,7 @@ static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GfxC
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -5240,7 +5240,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             work->field_0 = 0x18;
             break;
     }
-    SCRATCH_POP(Actor401300LungeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor401300LungeScratch);
 }
 
 /// Scale `m` uniformly by `scale` (4.12), translation included.
@@ -5265,7 +5265,7 @@ static __inline__ void Actor401300_ScaleMatrix(MATRIX* m, s16 scale)
     gte_stsv(&blk->trans);
     m->t[0] = blk->trans.vx;
     m->t[1] = blk->trans.vy;
-    SCRATCH_POP(ActorScaleMatrixScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
     m->t[2] = blk->trans.vz;
 }
 
@@ -5403,7 +5403,7 @@ static void func_actor_401300_8013F628(Task* arg0)
             work->field_0 = 0x18;
             break;
     }
-    SCRATCH_POP(ActorScaleMatrixScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
 }
 
 static void func_actor_401300_80140300(Task* arg0)

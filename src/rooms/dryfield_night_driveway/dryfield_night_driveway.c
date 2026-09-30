@@ -1344,7 +1344,7 @@ static void func_dryfield_night_driveway_8017DDE4(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Room draw hook: sets the effect mode to 2, then draws the beams the current

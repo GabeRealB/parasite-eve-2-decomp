@@ -593,7 +593,7 @@ static void func_dryfield_night_back_street_8017D920(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Draws a textured semi-transparent glow sprite centred on the world point
@@ -645,7 +645,7 @@ static void func_dryfield_night_back_street_8017E108(SVECTOR* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// A flash on an effect's anchor, lasting `spawnArg1` frames. State 1 grows a
@@ -769,7 +769,7 @@ static void func_dryfield_night_back_street_8017E634(GfxCoord* arg0, s32 arg1, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a glow of eight gouraud wedges around the coordinate's projected
@@ -820,7 +820,7 @@ static void func_dryfield_night_back_street_8017EA60(GfxCoord* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// A beam between two anchors, the two entries of
@@ -1023,7 +1023,7 @@ static void func_dryfield_night_back_street_8017F2E4(GfxCoord* arg0, GfxCoord* a
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A burst on an effect's anchor. It spawns effect 0x60076 and then either,
@@ -1220,5 +1220,5 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

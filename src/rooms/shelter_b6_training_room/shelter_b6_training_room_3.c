@@ -682,7 +682,7 @@ static void func_shelter_b6_training_room_8017EAD0(SVECTOR* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 void func_shelter_b6_training_room_8017EE70(Task* arg0)
@@ -850,7 +850,7 @@ static void func_shelter_b6_training_room_8017F014(GfxCoord* coord, s16 size)
             func_shelter_b6_training_room_8017F540(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

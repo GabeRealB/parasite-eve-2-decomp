@@ -844,7 +844,7 @@ static void func_shelter_1f_bulwark_8017E630(GfxCoord* arg0, s32 arg1, s32 arg2,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a glow disc of eight gouraud wedges around the coordinate's world
@@ -895,7 +895,7 @@ static void func_shelter_1f_bulwark_8017EA5C(GfxCoord* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 void func_shelter_1f_bulwark_8017EDF0(Task* task)
@@ -1092,7 +1092,7 @@ static void func_shelter_1f_bulwark_8017F2E0(GfxCoord* arg0, GfxCoord* arg1, s16
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 void func_shelter_1f_bulwark_8017F6D8(Task* task)
@@ -1283,5 +1283,5 @@ static void func_shelter_1f_bulwark_8017F960(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -1373,7 +1373,7 @@ static void func_actor_401000_801320E0(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Moves `coord` in X and Z by the delta `func_800E0C10` resolves from the
@@ -1418,7 +1418,7 @@ static s32 func_actor_401000_801323EC(GfxCoord* coord, WorldCollisionContact* re
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -2604,7 +2604,7 @@ static void func_actor_401000_80134F98(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401000_801352DC(GameLocationKey* session, GfxCoord* coord)
@@ -2734,7 +2734,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(ActorStepDelta);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorStepDelta);
     return s->moved;
 }
 
@@ -2784,7 +2784,7 @@ static s32 func_actor_401000_80135704(Task* arg0, WorldCollisionContact* recs, s
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
-    SCRATCH_POP(ActorPushScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorPushScratch);
     return s->hit;
 }
 
@@ -2913,7 +2913,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     if (work->field_8 >= 0x4C) {
         work->field_0 = 6;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-aim state body, the 401000 twin of `Actor01900_Fn04D14`: take a 0x10
@@ -3050,7 +3050,7 @@ static void func_actor_401000_801365C8(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_801376E4`: carve the
@@ -3098,7 +3098,7 @@ static void func_actor_401000_80136E20(Task* arg0)
         aim->angle      = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->field_C00 = aim->angle;
         work->field_C02 = aim->angle + (u16)aim->turn * 2;
-        SCRATCH_POP(ActorChaseScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
         return;
     }
     head                            = SCRATCH_HEAD(ActorChaseScratch);
@@ -3143,7 +3143,7 @@ static void func_actor_401000_80136E20(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn-entry body, the 401000 twin of `func_actor_401300_80137D78`: carve the
@@ -3252,7 +3252,7 @@ static void func_actor_401000_801374D4(Task* arg0)
     if (++work->field_6 >= 0x1E) {
         work->field_0 = 7;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 static void func_actor_401000_801378DC(Task* arg0)
@@ -3892,7 +3892,7 @@ static void func_actor_401000_801394EC(Task* arg0)
         if (Gp_StateF0.prefix.packed & 0xD0000) {
             work->field_0 = 6;
         }
-        SCRATCH_POP(ActorTurnScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     }
 }
 
@@ -3959,7 +3959,7 @@ static void func_actor_401000_80139D10(Task* arg0)
     if ((work->flags_68.half & 1) || work->field_C04 == 0) {
         work->field_0 = 9;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Aim step toward the player, the `func_actor_401300_8013A5C0` twin. Unlike
@@ -4032,7 +4032,7 @@ static void func_actor_401000_8013A0C8(Task* arg0)
             work->field_0 = 7;
         }
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Aim step toward the player: the same body as `func_actor_401000_80134F98`
@@ -4085,7 +4085,7 @@ static void func_actor_401000_8013A5F0(Task* arg0)
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
     func_actor_401000_80132EF0(arg0);
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Turn the actor toward the player in two stages: while the `field_6`
@@ -4191,7 +4191,7 @@ static void func_actor_401000_8013A930(Task* arg0)
         actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Clip-0x2D body: on the live-actor flag it resets the effect node and the
@@ -4485,7 +4485,7 @@ static void func_actor_401000_8013C46C(Task* arg0)
     if (work->field_C1B != 0) {
         work->field_C1B--;
     }
-    SCRATCH_POP(ActorChaseScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// State 9 clip-0xB body, the 401000 twin of `func_actor_401000_80138BB4` and

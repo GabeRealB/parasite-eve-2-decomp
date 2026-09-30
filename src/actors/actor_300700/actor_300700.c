@@ -754,7 +754,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     }
                     break;
             }
-            SCRATCH_POP(SVECTOR);
+            SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
             break;
     }
 }
@@ -905,7 +905,7 @@ static void func_actor_300700_80163410(Task* arg0)
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 /// Second variant's spawn: allocates its 0x39C-byte work block, binds the two

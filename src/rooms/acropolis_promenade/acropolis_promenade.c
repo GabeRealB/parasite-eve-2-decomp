@@ -2286,7 +2286,7 @@ void func_acropolis_promenade_8017F0BC(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomGlowSpriteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     Gp_ReleaseState1CMem(work, task);
 }
 

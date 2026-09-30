@@ -830,7 +830,7 @@ static void func_shelter_b1_south_maintenance_walkway_8017E404(SVECTOR* arg0, s1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// A flash that swells and then fades. For as many ticks as the spawn argument
@@ -954,7 +954,7 @@ static void func_shelter_b1_south_maintenance_walkway_8017EA04(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1209,7 +1209,7 @@ static void func_shelter_b1_south_maintenance_walkway_8017F6B4(GfxCoord* arg0, G
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1406,7 +1406,7 @@ static void func_shelter_b1_south_maintenance_walkway_8017FD34(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A glowing disc attached to its parent at the work block's position. In
@@ -1704,7 +1704,7 @@ static void func_shelter_b1_south_maintenance_walkway_801810F4(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1753,7 +1753,7 @@ static void func_shelter_b1_south_maintenance_walkway_80181518(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// A burst in orange. Each tick draws a disc and a glow at a growing size
@@ -1927,7 +1927,7 @@ static void func_shelter_b1_south_maintenance_walkway_80181A58(GfxCoord* coord, 
             func_shelter_b1_south_maintenance_walkway_80181F84(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

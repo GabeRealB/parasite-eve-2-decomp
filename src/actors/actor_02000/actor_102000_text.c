@@ -2811,7 +2811,7 @@ static s32 Actor02000_Fn0315C(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
     return ret;
 }
 

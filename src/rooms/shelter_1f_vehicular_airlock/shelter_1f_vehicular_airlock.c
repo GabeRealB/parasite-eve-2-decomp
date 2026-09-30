@@ -1014,7 +1014,7 @@ static void func_shelter_1f_vehicular_airlock_8017EF60(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a fan of eight gouraud quads around the screen position of the
@@ -1268,7 +1268,7 @@ static void func_shelter_1f_vehicular_airlock_8017FC10(GfxCoord* arg0, GfxCoord*
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Burst effect task on the object's coordinate. On its first tick it spawns
@@ -1465,5 +1465,5 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -620,7 +620,7 @@ void func_neo_ark_garden_8017D64C(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
 }
 
 /// Draws a wavy screen-distortion band for some views of areas 12 and 30 and

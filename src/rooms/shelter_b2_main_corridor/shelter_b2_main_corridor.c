@@ -2658,7 +2658,7 @@ static void func_shelter_b2_main_corridor_8017FC4C(GfxCoord* arg0, s32 arg1, s32
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
@@ -2846,7 +2846,7 @@ static void func_shelter_b2_main_corridor_801806D0(SVECTOR* arg0, s32 arg1, s32 
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Per-frame driver of a burst of light in red, half blue and quarter green.
@@ -2975,7 +2975,7 @@ static void func_shelter_b2_main_corridor_80180BF0(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -3235,7 +3235,7 @@ static void func_shelter_b2_main_corridor_801818A0(GfxCoord* arg0, GfxCoord* arg
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -3436,5 +3436,5 @@ static void func_shelter_b2_main_corridor_80181F20(GfxCoord* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

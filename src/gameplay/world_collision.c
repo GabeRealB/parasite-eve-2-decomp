@@ -310,7 +310,7 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     block->delta.vy = block->pos0.vy - block->pos1.vy;
     block->delta.vz = block->pos0.vz - block->pos1.vz;
     if ((ABS(block->delta.vx) > 0x7FFF) || (ABS(block->delta.vz) > 0x7FFF)) {
-        SCRATCH_POP(_WorldCollisionSphereScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionSphereScratch);
         return 0;
     }
 
@@ -336,7 +336,7 @@ s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
         _worldCollisionRecordPairContact(arg1, arg0, &block->contact);
     }
 
-    SCRATCH_POP(_WorldCollisionSphereScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionSphereScratch);
     return ret;
 }
 
@@ -402,7 +402,7 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     dz0 = (block->sphere.vz - block->planeA.vz) * block->normal.vz;
     ret = 0;
     if (dx0 + dy0 + dz0 > 0) {
-        SCRATCH_POP(_WorldCollisionCapsuleScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
@@ -411,7 +411,7 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     dz1  = (block->sphere.vz - block->planeB.vz) * block->normal.vz;
     proj = (dx1 + dy1 + dz1) >> 12;
     if (proj <= 0) {
-        SCRATCH_POP(_WorldCollisionCapsuleScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
         return 0;
     }
 
@@ -503,7 +503,7 @@ check:
         ret = 1;
     }
 
-    SCRATCH_POP(_WorldCollisionCapsuleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleScratch);
     return ret;
 }
 

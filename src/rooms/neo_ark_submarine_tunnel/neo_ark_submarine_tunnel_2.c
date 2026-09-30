@@ -1590,7 +1590,7 @@ static void func_neo_ark_submarine_tunnel_8017FEDC(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1641,7 +1641,7 @@ static void func_neo_ark_submarine_tunnel_80180300(GfxCoord* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// A glowing burst effect task. Each frame it draws a disc and the glow of
@@ -1816,7 +1816,7 @@ static void func_neo_ark_submarine_tunnel_80180840(GfxCoord* coord, s16 size)
             func_neo_ark_submarine_tunnel_80180D6C(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

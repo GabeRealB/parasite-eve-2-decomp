@@ -1415,7 +1415,7 @@ static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
     blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
     blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];
     *arg1         = SquareRoot0(blk->delta.vx * blk->delta.vx + blk->delta.vz * blk->delta.vz);
-    SCRATCH_POP(ActorBearingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     return angle;
 }
 
@@ -1740,7 +1740,7 @@ static void func_actor_207200_8014D7E8(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 /// Re-picks the model part the enemy's `coord` points at and relinks its

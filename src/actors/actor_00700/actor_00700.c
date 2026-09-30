@@ -979,7 +979,7 @@ static void Actor00700_Fn00334(Task* actor)
         work->field_33C  = sourceCoord;
     }
     Gp_ClearRec18Occupied(contactRec);
-    SCRATCH_POP(ActorWallPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorWallPushFrame);
 }
 
 static void Actor00700_Fn008B4(Task* arg0)
@@ -1846,7 +1846,7 @@ static void Actor00700_Fn01EEC(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 /// The state handlers `Actor00700_Fn034BC` dispatches on `Task::state`,
@@ -2361,7 +2361,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
                     }
                     break;
             }
-            SCRATCH_POP(SVECTOR);
+            SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
             break;
     }
 }
@@ -2501,5 +2501,5 @@ static void Actor00700_Fn03570(Task* arg0)
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

@@ -614,7 +614,7 @@ static void func_combustion_80130184(GfxCoord* arg0, s16 arg1, s16 arg2, s16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 /// Links one frame of the large combustion flame at `arg0`'s world position,

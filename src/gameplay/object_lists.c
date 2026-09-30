@@ -186,7 +186,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
             }
         }
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
     return ret;
 }
 

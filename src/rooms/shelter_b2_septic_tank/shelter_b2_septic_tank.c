@@ -2090,7 +2090,7 @@ static void func_shelter_b2_septic_tank_8017FD70(GfxCoord* arg0, s16 arg1, s16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Draws a flickering light beam from `arg0[0]` to `arg0[1]`. Both points are
@@ -2453,7 +2453,7 @@ static void func_shelter_b2_septic_tank_80180E84(GfxCoord* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -2713,7 +2713,7 @@ static void func_shelter_b2_septic_tank_80181B34(GfxCoord* arg0, GfxCoord* arg1,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -2914,5 +2914,5 @@ static void func_shelter_b2_septic_tank_801821B4(GfxCoord* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

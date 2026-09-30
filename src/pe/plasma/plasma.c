@@ -357,5 +357,5 @@ static void func_plasma_8012FB10(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }

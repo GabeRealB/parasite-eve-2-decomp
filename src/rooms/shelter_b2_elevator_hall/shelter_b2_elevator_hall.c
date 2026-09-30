@@ -1290,7 +1290,7 @@ static void func_shelter_b2_elevator_hall_8017F4A4(GfxCoord* arg0, u16 arg1, u16
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects `arg0`'s world position through `GsWSMATRIX` and, when it
@@ -1345,7 +1345,7 @@ static void func_shelter_b2_elevator_hall_8017F768(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1649,7 +1649,7 @@ static void func_shelter_b2_elevator_hall_80180464(GfxCoord* coord, s16 size)
             func_shelter_b2_elevator_hall_80180990(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1854,7 +1854,7 @@ static void func_shelter_b2_elevator_hall_80180D08(GfxCoord* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
@@ -2009,7 +2009,7 @@ static void func_shelter_b2_elevator_hall_80181AA0(GfxCoord* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// A second, instruction-for-instruction copy of
@@ -2254,7 +2254,7 @@ static void func_shelter_b2_elevator_hall_80182750(GfxCoord* arg0, GfxCoord* arg
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 void func_shelter_b2_elevator_hall_80182B48(Task* task)
@@ -2442,5 +2442,5 @@ static void func_shelter_b2_elevator_hall_80182DD0(GfxCoord* arg0, s16 arg1, u8*
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -1668,7 +1668,7 @@ static void func_actor_405800_80131FC8(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP(ActorsDrawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorsDrawScratch);
 }
 
 static void func_actor_405800_80132670(Task* arg0)
@@ -2253,7 +2253,7 @@ static __inline__ void Actor405800_ProjectPart(GfxCoord* part)
     }
     block->otz = (block->otz >> 4) + 0x1E;
     func_actor_405800_80131FC8(block->otz);
-    SCRATCH_POP(Actor405800PerspScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor405800PerspScratch);
 }
 
 static void func_actor_405800_80133800(Task* arg0)

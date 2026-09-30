@@ -1104,7 +1104,7 @@ static void func_shelter_b4_lower_sewer_8017FC14(GfxCoord* arg0, s32 arg1, s32 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Per-frame driver of a burst of light in red, half blue and quarter green.
@@ -1233,7 +1233,7 @@ static void func_shelter_b4_lower_sewer_80180154(GfxCoord* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Draws a round glow at the coordinate's world position. The position is
@@ -1286,7 +1286,7 @@ static void func_shelter_b4_lower_sewer_80180580(GfxCoord* arg0, s16 arg1, u8* r
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// Per-frame driver of a ribbon trail swept by two points of a moving parent.
@@ -1493,7 +1493,7 @@ static void func_shelter_b4_lower_sewer_80180E04(GfxCoord* arg0, GfxCoord* arg1,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Per-frame driver of an explosion at the task's coordinate. The first frame
@@ -1694,5 +1694,5 @@ static void func_shelter_b4_lower_sewer_80181484(GfxCoord* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

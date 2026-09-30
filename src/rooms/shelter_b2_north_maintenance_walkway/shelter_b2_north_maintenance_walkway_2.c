@@ -395,7 +395,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017E858(SVECTOR* arg0, s1
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// Queues a tinted gouraud star at the projected point `arg0`: a disc of
@@ -704,7 +704,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017F85C(GfxCoord* arg0, u
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues a gouraud ring of sixteen quads around the projected world position
@@ -757,7 +757,7 @@ static void func_shelter_b2_north_maintenance_walkway_8017FB20(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1073,7 +1073,7 @@ static void func_shelter_b2_north_maintenance_walkway_8018081C(GfxCoord* coord, 
             func_shelter_b2_north_maintenance_walkway_80180D48(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1278,7 +1278,7 @@ static void func_shelter_b2_north_maintenance_walkway_801810C0(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A spark emitter. For 0x14 ticks it turns its heading by a random
@@ -1440,7 +1440,7 @@ static void func_shelter_b2_north_maintenance_walkway_80181E58(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Queues a gouraud disc of eight wedges around the projected world position
@@ -1695,7 +1695,7 @@ static void func_shelter_b2_north_maintenance_walkway_80182B08(GfxCoord* arg0, G
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns its flash effect; then, for a non-zero
@@ -1891,5 +1891,5 @@ static void func_shelter_b2_north_maintenance_walkway_80183188(GfxCoord* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

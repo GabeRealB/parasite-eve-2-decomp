@@ -720,7 +720,7 @@ static s32 Actor01200_Fn0067C(GfxCoord* coord, WorldCollisionContact* movement, 
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1100,7 +1100,7 @@ static void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
     if (work->field_3DC >= 0xF1) {
         work->field_0 = 8;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s)
@@ -1125,7 +1125,7 @@ static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s)
     coord->coord.m[2][1] = sc->m.m[2][1];
     coord->coord.m[2][2] = sc->m.m[2][2];
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
@@ -1604,7 +1604,7 @@ static void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
             work->field_0 = 1;
         }
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 /// Walk back toward the spawn point: turn at most 0x10 toward it, step 8 units,
@@ -1664,7 +1664,7 @@ static void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
     if (Actor01200_Fn00130(arg1->extra.tmd->coords, work->jointContacts, 5, &s->delta) == 1) {
         work->field_0 = 6;
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static const Actor01200StateTable Actor01200_D000E4 = {

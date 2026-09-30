@@ -543,7 +543,7 @@ static void func_neo_ark_woodland_path_8017F154(GfxCoord* arg0, s32 arg1, s16 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpQuadScratch);
 }
 
 /// `Gp_State1C` effect task drawing a growing, fading quad through
@@ -911,7 +911,7 @@ static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 ar
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void func_neo_ark_woodland_path_8018046C(Task* task, s32 arg1, s32 arg2)

@@ -585,7 +585,7 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
         arg0->coord.t[2]  += vec->vz;
         arg0->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     return arg1;
 }
 

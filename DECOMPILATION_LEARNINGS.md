@@ -33380,7 +33380,7 @@ alternates registers; splitting into `idx = x * 4 - 5; idx += y` stops the
 tie too, which is what `$v0`/`$a0` pins once compensated for.
 
 The same function's scratch block (`addiu v1,head,-8; sw v1; move s1,v1`) is
-`rect = SCRATCH_PUSH(RECT)`, released with `SCRATCH_POP(RECT)`: the pushed
+`rect = SCRATCH_PUSH(RECT)`, released with `SCRATCH_STACK_RELEASE_BLOCK(RECT)`: the pushed
 value and the local are two pseudos, which a hand-kept `head` / `temp` pair
 only imitated. `func_801030CC` is the example.
 
@@ -44595,7 +44595,7 @@ register (`lui/ori v1` shared by the push's load and store, then a fresh
 instead (79%), and so does changing the helper. The standalone body matches
 unpinned when the push goes through a local and the pop does not:
 `void** head = SCRATCH_HEAD_ADDR; SCRATCH_PUSH_AT(head, T); d = SCRATCH_HEAD_AT(head, T);`
-… `SCRATCH_POP(T);`. So when an inline helper and a standalone function share
+… `SCRATCH_STACK_RELEASE_BLOCK(T);`. So when an inline helper and a standalone function share
 a body but differ only in how the head address is formed, treat that as the
 inline boundary at work, not as evidence of a different source.
 
@@ -123800,7 +123800,7 @@ Three smaller ones from the same function:
 **Superseded for the same idiom in `func_actor_342000_801625D8`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
 `static __inline__` helper (`gfxScaleMatrixColumns(MATRIX*, VECTOR*)` in `include/main/gfxgte.h`,
-written with `SCRATCH_PUSH`/`SCRATCH_POP`) matched with no `lui` asm, no
+written with `SCRATCH_PUSH`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `sv` stops the `-8(head)` fold. So try the helper
 before reaching for the pins above. The same helper later removed every pin
@@ -131350,13 +131350,13 @@ fails at the overlay checksum, where nothing points at the field.
 Before porting a match, confirm `wc -c <name>_diff` is 0. A score of 100% with a
 non-empty diff means the difference is in a constant.
 
-## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_PUSH`/`SCRATCH_POP` (Actor02100_Fn01FF0, 2026-09-26)
+## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_PUSH`/`SCRATCH_STACK_RELEASE_BLOCK` (Actor02100_Fn01FF0, 2026-09-26)
 
 This function once needed five `SOFT_COMPILER_BARRIER()`s and a `SOFT_TOUCH_REG`
 around the scratch head: a hand-computed `head + 0x10` block stored after a
 `head + 0x28` release, a `head - 8` block whose stores had to stay in order, and a
 state store that had to precede a push. All of them went once every block was
-taken with `SCRATCH_PUSH(T)` and given back with `SCRATCH_POP(T)` at the helper
+taken with `SCRATCH_PUSH(T)` and given back with `SCRATCH_STACK_RELEASE_BLOCK(T)` at the helper
 boundaries the code already had. Two things did the work:
 
 - The ROM's back-to-back head stores (`sw head+0x28` then `sw head+0x10`) are a
@@ -141261,7 +141261,7 @@ parameter as is and compares `(field & 0x7F) != (mode & 0x7F)`.
 Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
 `&gGfxViewCoord` built by hand and a pop-then-push pair of head stores were
 one inline helper called twice - `SCRATCH_PUSH(MATRIX)`, a coordinate-to-view
-walk, a write-back, `SCRATCH_POP(MATRIX)`. CSE folds the first call's pop and
+walk, a write-back, `SCRATCH_STACK_RELEASE_BLOCK(MATRIX)`. CSE folds the first call's pop and
 the second call's push into `sw h+0x20; sw h` on its own.
 ## `li sN,K` right after storing the same `K` through `$v0` wants the stored value in `HImode` (func_actor_120300_80132C60, 2026-09-25)
 
@@ -141947,7 +141947,7 @@ pointer into two givs, and the radius sum `lhu 0x44; lhu 0x1c; addu v1,v1,v0`
 came out with its loads swapped.
 
 **Fix.** Four source changes, no pins:
-- `SCRATCH_PUSH(T)` / `block = SCRATCH_HEAD(T)` / `SCRATCH_POP(T)` with no
+- `SCRATCH_PUSH(T)` / `block = SCRATCH_HEAD(T)` / `SCRATCH_STACK_RELEASE_BLOCK(T)` with no
   address local. CSE holds `0x1F8003FC` in `s1` for the early exits by
   itself and drops it once dead, so the late pops each build a fresh
   `lui/ori` and cross-jump to one shared `lw/addiu/sw`.
@@ -143145,7 +143145,7 @@ setRGB0(prim, blend, blend, blend);
 setSemiTrans(prim, 1);
 block->radius = ((s16)arg2 * 39) / block->otz;
 ...
-SCRATCH_POP(RoomDraw13Scratch);
+SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 ```
 
 The order of the last two macros is the whole fix: `setSemiTrans` before
@@ -143748,7 +143748,7 @@ turns the load into a copy of the value just stored.
 With `head - 0x1C` / `head - 0xC` pointers computed by hand, the scratch block
 also lost `s0` to a matrix pointer at an allocation-priority tie, which a
 third pin (`block asm("s0")`) fixed. The typed scratch macros fixed it without
-a pin: `SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_POP(T);`, with
+a pin: `SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);`, with
 `&block->dir` in place of a separate `dir` pointer. When a scratch-block
 function pins the block pointer, try the typed push/read/pop form first.
 ## Repeated decay blocks share one function-scope step; a per-node helper returns the member pointer (Gp_TurnPlayer, 2026-09-26)
@@ -144267,7 +144267,7 @@ been written by hand at that position with `block = head - 0x1C` and a
 separate `dir = head - 0xC`. That spelling also lost the reloaded
 `move t0,v0; mtc2 t0,$8` of `gte_lddp(block->scale)`: reload found the stored
 value through the load's REG_EQUIV note and used `v0` directly. The typed idiom
-`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_POP(T);` with
+`SCRATCH_PUSH(T); block = SCRATCH_HEAD(T); ... SCRATCH_STACK_RELEASE_BLOCK(T);` with
 `&block->dir` matched outright: sched1 moves the head store down among the
 field stores, and the `block` copy it leaves between the field store and the
 asm stops reload's equivalence search, as in `func_800D9794`. A head store in
@@ -144790,7 +144790,7 @@ destination coordinate swapped between `$s0` and `$s1`, and the seed held them
 with `USE_REG(m)`. The block was taken as `m = head - 1; head = m;` - two
 statements. Writing it as one, `m = SCRATCH_PUSH(MATRIX);`, and the column
 sequence as `gte_MulMatrix0(dst, m, dst)` (gtemac.h) matched with no pin; the
-pop pairs as `SCRATCH_POP(MATRIX)`. Look for this spelling wherever a GTE
+pop pairs as `SCRATCH_STACK_RELEASE_BLOCK(MATRIX)`. Look for this spelling wherever a GTE
 column sequence follows a hand-split scratch push.
 
 ## Parameters a callee never reads may be leftover registers, not arguments - a `one` local feeding them is the tell (Actor00700_Fn0188C, 2026-09-27)
@@ -144830,7 +144830,7 @@ static __inline__ void _storeNear(Work* work)
 {
     gte_stsv(&work->near);
     work->near.vz += 0x12C;
-    SCRATCH_POP(Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Scratch);
 }
 /* each arm: ...; gte_ldv0(...); gte_rtv0(); _storeNear(work); */
 ```
@@ -145859,7 +145859,7 @@ blk = SCRATCH_PUSH(RoomGlowSpriteScratch);   /* was head/scratch/blk/p + pin */
 ...
 gte_stszotz(&blk->otz);
 ...
-SCRATCH_POP(RoomGlowSpriteScratch);
+SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 ```
 
 The object is byte-identical to the pinned version. Before pinning a

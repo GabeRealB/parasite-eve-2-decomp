@@ -569,7 +569,7 @@ void func_neo_ark_submarine_gallery_8017D678(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
 }
 
 /// Wavy screen-distortion band, drawn only in some views of areas 12 and 30;

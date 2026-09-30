@@ -2011,7 +2011,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
             destinationPose->rotationY    = scratch->nextRotation.vy;
             destinationPose->rotationZ    = scratch->nextRotation.vz;
         }
-        SCRATCH_POP(_AnimationBlendScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_AnimationBlendScratch);
     }
 }
 
@@ -2052,7 +2052,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
             destinationPose->ry = scratch->nextRotation.vy >> ANIMATION_PACKED_ANGLE_SHIFT;
             destinationPose->rz = scratch->nextRotation.vz >> ANIMATION_PACKED_ANGLE_SHIFT;
         }
-        SCRATCH_POP(_AnimationBlendScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(_AnimationBlendScratch);
     }
 }
 
@@ -2248,7 +2248,7 @@ void animationTickSlotPose(AnimationContext* context, s32 slotIndex, GpAnimPose*
             _animationBlendPackedRotation(&scratch->request, coord, slot);
             break;
     }
-    SCRATCH_POP(_AnimationTickScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_AnimationTickScratch);
 }
 
 static inline void _gpAnimSeekSlot(AnimationContext* context, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
@@ -2578,7 +2578,7 @@ void Gp_AnimWritePoseBlend(AnimationContext* context, s32 arg1, GpAnimPose* arg2
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(GpAnimPose);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAnimPose);
 }
 
 void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
@@ -2612,7 +2612,7 @@ void Gp_AnimWritePoseCopy(AnimationContext* context, s32 arg1, GpAnimPose* arg2,
     gte_stsv(rot);
     RotMatrix_gte(rot, &dest->coord);
     dest->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(GpAnimPose);
+    SCRATCH_STACK_RELEASE_BLOCK(GpAnimPose);
 }
 
 void Gp_AnimTickIndex(AnimationContext* context, s32 arg1)
@@ -2816,7 +2816,7 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     savedPose->yaw   = euler->vy;
     euler->vz        = euler->vz >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
     savedPose->roll  = euler->vz;
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 void Gp_SpawnArea(GameLocationKey* location)
@@ -3025,7 +3025,7 @@ void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
         prim->clut  = 0x4283;
         addPrim(&gGpuCurrentOt[block->maxotz >> 4], prim);
     }
-    SCRATCH_POP(GpFloorQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFloorQuadScratch);
 }
 
 static void func_800B51F4(Task* task)
@@ -3630,7 +3630,7 @@ void worldCollisionCalcContactViewOffset(SVECTOR* position, WorldCollisionContac
     gte_ldsv(delta);
     gte_gpf12();
     gte_stsv(offset);
-    SCRATCH_POP(GpDirScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpDirScratch);
 }
 
 void Gp_FreeSlot4TmdBuffers(void)

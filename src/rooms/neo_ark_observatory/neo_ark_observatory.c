@@ -2225,7 +2225,7 @@ static void func_neo_ark_observatory_80180534(SVECTOR* v, s32 arg1, s16 arg2, s1
                 Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
             }
         }
-        SCRATCH_POP(RoomQuadProjScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(RoomQuadProjScratch);
     }
 }
 
@@ -2293,7 +2293,7 @@ static void func_neo_ark_observatory_80180A0C(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 void func_neo_ark_observatory_80180DAC(s32 arg0)

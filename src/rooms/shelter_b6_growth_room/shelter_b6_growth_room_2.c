@@ -623,7 +623,7 @@ static void func_shelter_b6_growth_room_8017E0A8(SVECTOR* arg0, s32 arg1, s32 ar
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)

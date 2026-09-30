@@ -2961,7 +2961,7 @@ static void func_actor_400500_80134D6C(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP(ActorsDrawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorsDrawScratch);
 }
 
 static void func_actor_400500_80135414(Task* arg0)
@@ -4370,7 +4370,7 @@ static inline void _actor400500TurnPart(GfxCoord* part, u16 heading)
     memcpy(part->coord.m, matrix->m, sizeof(part->coord.m));
     part->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(part);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Returns the horizontal distance in view space between the player's part 4

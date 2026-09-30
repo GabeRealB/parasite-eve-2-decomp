@@ -1112,7 +1112,7 @@ static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void func_actor_323300_801634B0(Task* arg0)

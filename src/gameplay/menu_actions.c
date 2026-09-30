@@ -1142,7 +1142,7 @@ noDir:
     gGpuPrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xE);
     addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1C], dr);
-    SCRATCH_POP(GpMapCursorPos);
+    SCRATCH_STACK_RELEASE_BLOCK(GpMapCursorPos);
 }
 
 static void func_800D0614(Task* arg0)
@@ -1375,7 +1375,7 @@ static void func_800D0C34(Task* arg0)
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 0, 0xE);
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - 0x1B], dr);
-            SCRATCH_POP(GpMapCursorPos);
+            SCRATCH_STACK_RELEASE_BLOCK(GpMapCursorPos);
         }
         i++;
     }
@@ -1473,7 +1473,7 @@ static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
             gGpuPrimCursor = dr + 1;
             setDrawTPage(dr, 0, 0, 0xE);
             addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - otOff], dr);
-            SCRATCH_POP(GpMapIconPos);
+            SCRATCH_STACK_RELEASE_BLOCK(GpMapIconPos);
         }
         i++;
     }
@@ -3091,7 +3091,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     tw.h           = 0x20;
     setTexWindow(dr, &tw);
     addPrim(&gGpuCurrentOt[otz], dr);
-    SCRATCH_POP(GpMapMarkScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpMapMarkScratch);
 }
 
 s32 func_800D4D2C(s32 arg0)

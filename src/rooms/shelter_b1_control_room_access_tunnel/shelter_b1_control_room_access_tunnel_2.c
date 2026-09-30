@@ -539,7 +539,7 @@ static void func_shelter_b1_control_room_access_tunnel_80180C6C(GfxCoord* arg0, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// The same disc as `func_shelter_b1_control_room_access_tunnel_8017E9A8`,
@@ -587,7 +587,7 @@ static void func_shelter_b1_control_room_access_tunnel_80181090(GfxCoord* arg0, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Flare at the task's coordinate: each tick grows a size by 0x10 and draws a
@@ -760,7 +760,7 @@ static void func_shelter_b1_control_room_access_tunnel_801815D0(GfxCoord* coord,
             func_shelter_b1_control_room_access_tunnel_80181AFC(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

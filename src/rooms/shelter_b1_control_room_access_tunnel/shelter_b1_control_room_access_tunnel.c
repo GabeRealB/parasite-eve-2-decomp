@@ -326,7 +326,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw25Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw25Scratch);
 }
 
 /// On its first tick stores six effect ids in gameplay's `D_801157xx` slots;
@@ -485,7 +485,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017E57C(GfxCoord* arg0, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Disc: projects the coordinate's world position through `GsWSMATRIX` and,
@@ -537,7 +537,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017E9A8(GfxCoord* arg0, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// Twin smoke trail. State 0 allocates sixteen coordinates, eight per trail,
@@ -740,7 +740,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017F22C(GfxCoord* arg0, 
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst: state 0 spawns the burst's effects and then either streams
@@ -936,5 +936,5 @@ static void func_shelter_b1_control_room_access_tunnel_8017F8AC(GfxCoord* arg0, 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

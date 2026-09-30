@@ -383,7 +383,7 @@ static void func_actor_105400_80131E3C(Task* arg0)
     }
 end:
     Gp_ClearRec18Occupied(work->rec18);
-    SCRATCH_POP(Actor05300Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor05300Scratch);
 }
 
 /// Idle schedule of the enemy, one of the steps the tick handler
@@ -839,7 +839,7 @@ static void func_actor_105400_80132DAC(GpEnemy* arg0, Task* arg1)
         }
     }
     Gp_ClearRec18Occupied(part->rec18);
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Spawn/setup handler. It allocates the 0x340-byte work block and hangs it on
@@ -1118,7 +1118,7 @@ static void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 a
     ScaleMatrix(&blk->mat.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
 /// State handlers of the part task, indexed by `Task::state`: spawn, per-frame

@@ -380,7 +380,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
         LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
         arg0->field_16 = -1;
     }
-    SCRATCH_POP(GpXformScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpXformScratch);
 }
 
 void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
@@ -574,7 +574,7 @@ static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     }
     arg1->field_4 = block->field_14;
     arg1->field_6 = block->field_16;
-    SCRATCH_POP(GpHudScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpHudScratch);
 }
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
@@ -620,7 +620,7 @@ void Gp_UpdateLinkXforms(void)
         GP_NODE_ENEMY(node)->playerRelPos.vy = block->vec.vy;
         GP_NODE_ENEMY(node)->playerRelPos.vz = block->vec.vz;
     }
-    SCRATCH_POP(GpXformScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpXformScratch);
 }
 
 void Gp_StartAreaBgm(s16* arg0)
@@ -1141,7 +1141,7 @@ static __inline__ void coordToRoot(GfxCoord* arg0, GfxCoord* root, GfxCoord* res
     tmp->delta.vz = world->t[2] - rootm->t[2];
     ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)out->t);
 
-    SCRATCH_POP(_GpRelMatScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GpRelMatScratch);
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
@@ -1330,7 +1330,7 @@ void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
     tmp->delta.vz = arg1->t[2] - arg0->t[2];
     ApplyMatrixLV(&tmp->rot, &tmp->delta, (VECTOR*)arg2->t);
 
-    SCRATCH_POP(_GpRelMatScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_GpRelMatScratch);
 }
 
 s32 Gp_TrySpawnViewTask(GpViewRec* arg0)

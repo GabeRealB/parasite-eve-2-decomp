@@ -1624,7 +1624,7 @@ static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, World
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -1726,7 +1726,7 @@ static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, World
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

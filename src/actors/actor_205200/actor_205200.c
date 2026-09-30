@@ -438,7 +438,7 @@ void func_actor_205200_80149E54(Task* arg0)
     gGpuPrimCursor = stp + 1;
     SetDrawStp(stp, 0);
     addPrim(&gGpuCurrentOt[0], stp);
-    SCRATCH_POP(OverlayWaveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
 }
 
 static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
@@ -770,7 +770,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
         }
     }
     Gp_ClearRec18Occupied(part->recs);
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)

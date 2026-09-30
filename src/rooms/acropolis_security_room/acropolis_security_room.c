@@ -3908,7 +3908,7 @@ void func_acropolis_security_room_80181108(Task* arg0)
         prim->code |= 1;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 
     if (mem->index == 0) {
         coord->coord.t[0] += mem->move.vx;
@@ -4036,7 +4036,7 @@ void func_acropolis_security_room_801817A4(Task* task)
             Gp_AddTpageShift((P_TAG*)line, 1, scratch->otz);
         }
     }
-    SCRATCH_POP(AsrFlashScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(AsrFlashScratch);
     Gp_ReleaseState1CMem(mem, task);
 }
 
@@ -4082,7 +4082,7 @@ static s32 func_acropolis_security_room_80181C84(GfxCoord* coord, WorldCollision
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -4182,7 +4182,7 @@ static s32 func_acropolis_security_room_80181E28(GfxCoord* coord, WorldCollision
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

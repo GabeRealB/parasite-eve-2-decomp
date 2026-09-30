@@ -629,7 +629,7 @@ static void func_neo_ark_north_promenade_8017DA7C(GfxCoord* arg0, u16 arg1, u16 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -685,7 +685,7 @@ static void func_neo_ark_north_promenade_8017DD40(GfxCoord* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -998,7 +998,7 @@ static void func_neo_ark_north_promenade_8017EA3C(GfxCoord* coord, s16 size)
             func_neo_ark_north_promenade_8017EF68(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1204,7 +1204,7 @@ static void func_neo_ark_north_promenade_8017F2E0(GfxCoord* arg0, s16 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Spark emitter: each tick turns the effect's angle on by a random 0x200..0x3FF,
@@ -1366,7 +1366,7 @@ static void func_neo_ark_north_promenade_80180078(GfxCoord* arg0, s32 arg1, s32 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1418,7 +1418,7 @@ static void func_neo_ark_north_promenade_801804A4(GfxCoord* arg0, s16 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// Twin smoke trail. State 0 allocates sixteen `GfxCoord`s, eight per
@@ -1622,7 +1622,7 @@ static void func_neo_ark_north_promenade_80180D28(GfxCoord* arg0, GfxCoord* arg1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// Spark burst. State 0 fires the burst's effect, then a non-zero spawn
@@ -1819,5 +1819,5 @@ static void func_neo_ark_north_promenade_801813A8(GfxCoord* arg0, s16 arg1, u8* 
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

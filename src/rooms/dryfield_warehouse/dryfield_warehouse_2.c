@@ -921,7 +921,7 @@ static void func_dryfield_warehouse_8017E414(GfxCoord* coord, s16 arg1)
     setRGB3(prim, shade, shade, shade);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Draws one ring of gouraud `POLY_G4` segments between two circles in the XZ
@@ -1011,7 +1011,7 @@ static void func_dryfield_warehouse_8017ED34(GfxCoord* coord, s16 arg1, s16 arg2
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's coordinate task: draws the room geometry for the

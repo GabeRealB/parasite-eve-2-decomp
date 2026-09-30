@@ -448,7 +448,7 @@ static s32 func_acropolis_hallway_8017D830(GfxCoord* coord, WorldCollisionContac
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -548,7 +548,7 @@ static s32 func_acropolis_hallway_8017D9D4(GfxCoord* coord, WorldCollisionContac
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

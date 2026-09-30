@@ -2294,7 +2294,7 @@ static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2323,7 +2323,7 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2349,7 +2349,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
         coord->coord.t[1]  += vec->vy;
         coord->coord.t[2]  += vec->vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2448,7 +2448,7 @@ static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
             coord->coord.t[2]  += vec->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        SCRATCH_POP(SVECTOR);
+        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     }
 }
 
@@ -2659,7 +2659,7 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
     scratch->dx                      *= scratch->dx;
     scratch->dz                      *= scratch->dz;
     scratch->r                       *= scratch->r;
-    SCRATCH_POP(OverlayRangeScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
     return scratch->dx + scratch->dz >= scratch->r;
 }
 

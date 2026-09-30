@@ -1469,7 +1469,7 @@ static void func_actor_402200_80131F54(Task* arg0)
         work->field_582 &= 0x7FFF;
         Gp_ClearRec18Occupied(&work->field_584);
     }
-    SCRATCH_POP(Actor402200HitScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor402200HitScratch);
 }
 
 /// Picks the damage reaction for the hit just taken, from the enemy's HP and
@@ -3289,7 +3289,7 @@ static void func_actor_402200_80136184(Task* arg0)
         tp->code[0] = 0xE1000620;
         addPrim((&gGpuCurrentOt[((((u32)(sc->z << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), tp);
     }
-    SCRATCH_POP(Actor402200TrailScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor402200TrailScratch);
 }
 
 /// Inlined copy of `func_actor_402200_80137EEC`: reseeds animation slots
@@ -3535,7 +3535,7 @@ static void func_actor_402200_80136D9C(s32 otz)
     SetDrawArea(area, clip);
     addPrim(&gGpuCurrentOt[scratch->otz], area);
 
-    SCRATCH_POP(ActorsDrawScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorsDrawScratch);
 }
 
 /// Spawn handler. Allocates the 0x71C-byte work block, points the model at its

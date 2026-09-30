@@ -587,7 +587,7 @@ static void func_dryfield_night_g_r_kitchen_8017D9FC(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Picks the pair of light shafts `func_dryfield_night_g_r_kitchen_8017D9FC`

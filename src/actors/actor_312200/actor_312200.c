@@ -372,7 +372,7 @@ static s32 func_actor_312200_80161E30(GfxCoord* coord, WorldCollisionContact* re
         gte_stsv(offset);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorRepelScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRepelScratch);
     return s->hit;
 }
 
@@ -514,7 +514,7 @@ static s32 func_actor_312200_801626C4(GfxCoord* coord, WorldCollisionContact* mo
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -614,7 +614,7 @@ static s32 func_actor_312200_80162868(GfxCoord* coord, WorldCollisionContact* re
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

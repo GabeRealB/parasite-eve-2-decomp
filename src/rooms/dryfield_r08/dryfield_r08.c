@@ -766,7 +766,7 @@ static void func_dryfield_r08_8017DEFC(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
 }
 
 /// Projects `arg0`'s world translation through `GsWSMATRIX` and, unless the
@@ -841,7 +841,7 @@ static void func_dryfield_r08_8017E36C(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpEffFlareScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpEffFlareScratch);
 }
 
 /// Draws a glowing disc around the point `arg0`, projected through
@@ -907,7 +907,7 @@ static void func_dryfield_r08_8017E7C8(SVECTOR* arg0, s32 arg1, s32 arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw31Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw31Scratch);
 }
 
 /// Projects the world-space point `arg0` through `gGfxViewCoord.workm` and, when

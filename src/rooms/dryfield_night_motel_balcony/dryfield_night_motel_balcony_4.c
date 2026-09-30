@@ -3138,7 +3138,7 @@ static void func_dryfield_night_motel_balcony_8017EC58(SVECTOR* arg0, s32 arg1)
             }
         }
     }
-    SCRATCH_POP(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
 }
 
 /// Projects the point `arg0` through `gGfxViewCoord.workm` and, when the GTE flag
@@ -3183,7 +3183,7 @@ static void func_dryfield_night_motel_balcony_8017F440(SVECTOR* arg0, s32 arg1, 
         prim->y2 = prim->y3 = block->sy + block->radius;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Draws one axis-aligned `POLY_FT4` panel of a 0x28-pixel sprite at the packed
@@ -3463,7 +3463,7 @@ static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s3
         prim->y2    = block->sy + block->dy;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
     }
-    SCRATCH_POP(GpFxQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpFxQuadScratch);
 }
 
 void func_dryfield_night_motel_balcony_80180580(Task* task)
@@ -3707,7 +3707,7 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Per-frame handler of an effect-spawning room task. Any non-zero event state
@@ -4177,7 +4177,7 @@ static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s1
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Spawns an 8-step burst of effect 0x6007E and then a 6-step burst of 0x60070

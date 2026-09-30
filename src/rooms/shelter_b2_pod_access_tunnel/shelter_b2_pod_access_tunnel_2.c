@@ -1233,7 +1233,7 @@ static void func_shelter_b2_pod_access_tunnel_8017F8D4(GfxCoord* arg0, u16 arg1,
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -1287,7 +1287,7 @@ static void func_shelter_b2_pod_access_tunnel_8017FB98(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when it
@@ -1339,7 +1339,7 @@ static void func_shelter_b2_pod_access_tunnel_8017FFBC(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomFanScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomFanScratch);
 }
 
 /// An expanding halo. The first tick hangs the effect's coordinate off its
@@ -1610,7 +1610,7 @@ static void func_shelter_b2_pod_access_tunnel_80180894(GfxCoord* coord, s16 size
             func_shelter_b2_pod_access_tunnel_80180DC0(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -1816,7 +1816,7 @@ static void func_shelter_b2_pod_access_tunnel_80181138(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A rising spark trail. Each tick turns the effect's angle on by a random
@@ -1977,7 +1977,7 @@ static void func_shelter_b2_pod_access_tunnel_80181ED0(GfxCoord* arg0, s32 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// The same disc as `func_shelter_b2_pod_access_tunnel_8017FFBC`.
@@ -2231,7 +2231,7 @@ static void func_shelter_b2_pod_access_tunnel_80182B80(GfxCoord* arg0, GfxCoord*
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// A spark burst. The first tick spawns effect 0x60076 at the task's
@@ -2425,5 +2425,5 @@ static void func_shelter_b2_pod_access_tunnel_80183200(GfxCoord* arg0, s16 arg1,
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

@@ -1363,7 +1363,7 @@ static void func_neo_ark_submarine_gallery_8017FFB8(GfxCoord* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects `arg0` and `arg0 + 1` through `gGfxViewCoord.workm` and sweeps three
@@ -1579,7 +1579,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
 }
 
 /// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`
@@ -1721,5 +1721,5 @@ static void func_neo_ark_submarine_gallery_80180E80(GfxCoord* coord, s16 arg1)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    SCRATCH_POP(RoomQuadProjScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadProjScratch);
 }

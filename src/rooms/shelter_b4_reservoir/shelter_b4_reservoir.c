@@ -2314,7 +2314,7 @@ static void func_shelter_b4_reservoir_8018110C(GfxCoord* arg0, s16 arg1, s16 arg
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
@@ -3047,7 +3047,7 @@ static void func_shelter_b4_reservoir_8018351C(GfxCoord* arg0, s32 arg1, s32 arg
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Draws a glowing disc at the coordinate's world position, unless the
@@ -3095,7 +3095,7 @@ static void func_shelter_b4_reservoir_80183940(GfxCoord* arg0, s32 arg1, u8* rgb
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Burst effect task: each frame draws a disc and the glow of
@@ -3269,7 +3269,7 @@ static void func_shelter_b4_reservoir_80183E80(GfxCoord* coord, s16 size)
             func_shelter_b4_reservoir_801843AC(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

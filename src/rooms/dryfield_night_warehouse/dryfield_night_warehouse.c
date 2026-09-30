@@ -544,7 +544,7 @@ static void func_dryfield_night_warehouse_8017D6B4(GfxCoord* coord, s16 arg1)
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
             prim);
     Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Draws the band joining ring `arg1` to ring `arg1 + 1` as `arg2` gouraud
@@ -648,7 +648,7 @@ static void func_dryfield_night_warehouse_8017DFF4(GfxCoord* coord, s16 arg1, s1
                 prim);
         Gp_AddTpageShift((P_TAG*)prim, 1, blk->otz);
     }
-    SCRATCH_POP(RoomQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomQuadScratch);
 }
 
 /// Per-frame effect on the room's coordinate task: recomputes the task's composed

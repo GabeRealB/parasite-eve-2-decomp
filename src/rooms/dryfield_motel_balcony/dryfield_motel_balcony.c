@@ -1558,7 +1558,7 @@ static void func_dryfield_motel_balcony_8017DF84(GfxCoord* arg0, u16 arg1, u16 a
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1613,7 +1613,7 @@ static void func_dryfield_motel_balcony_8017E248(GfxCoord* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1927,7 +1927,7 @@ static void func_dryfield_motel_balcony_8017EF44(GfxCoord* coord, s16 size)
             func_dryfield_motel_balcony_8017F470(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's
@@ -2133,7 +2133,7 @@ static void func_dryfield_motel_balcony_8017F7E8(GfxCoord* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// A spark-spray effect task: for twenty ticks it turns its heading by a
@@ -2292,7 +2292,7 @@ static void func_dryfield_motel_balcony_80180580(GfxCoord* arg0, s32 arg1, s32 a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// A second copy of the fan at 0x8017E66C: eight gouraud `POLY_G4` wedges
@@ -2547,7 +2547,7 @@ static void func_dryfield_motel_balcony_80181230(GfxCoord* arg0, GfxCoord* arg1,
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// An impact effect task. State 0 spawns effect 0x60076, then either a
@@ -2740,5 +2740,5 @@ static void func_dryfield_motel_balcony_801818B0(GfxCoord* arg0, s16 arg1, u8* a
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }

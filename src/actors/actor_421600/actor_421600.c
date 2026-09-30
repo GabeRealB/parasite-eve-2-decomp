@@ -2234,7 +2234,7 @@ static void func_actor_421600_80132004(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Push `coord` away from the obstacle records in `recs` (the first `count`,
@@ -2373,7 +2373,7 @@ static s32 func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* mo
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -4134,7 +4134,7 @@ static void func_actor_421600_80136138(Task* arg0)
     }
     func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -4169,7 +4169,7 @@ static __inline__ void Actor421600_ShrinkCoord(GfxCoord* coord, s16 y)
     coord->coord.m[2][0] = (u16)blk->m.m[2][0];
     coord->coord.m[2][1] = (u16)blk->m.m[2][1];
     m22                  = (u16)blk->m.m[2][2];
-    SCRATCH_POP(ActorScaleRotScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
     coord->composeStamp  = GRAPHICS_COORD_DIRTY;
     coord->coord.m[2][2] = m22;
 }
@@ -4438,7 +4438,7 @@ static void func_actor_421600_80136C88(Task* arg0)
             work->field_0 = 0x1C;
         }
     }
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
 static void func_actor_421600_801373D4(Task* arg0)
@@ -5424,7 +5424,7 @@ static void func_actor_421600_80139718(Task* arg0)
         gte_stsv(&scratch->vec);
         work->field_14     = 0;
         work->field_C[0].x = (s16)((u16)scratch->vec.vx + arg0->extra.tmd->coords->coord.t[0]);
-        SCRATCH_POP(ActorMoveScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
         work->field_C[0].z      = (s16)((u16)scratch->vec.vz + arg0->extra.tmd->coords->coord.t[2]);
         work->field_CCC.end1.vz = 0x26C;
         return;
@@ -5627,7 +5627,7 @@ static void func_actor_421600_80139718(Task* arg0)
         }
     }
     func_actor_421600_80133334(arg0->extra.tmd->coords);
-    SCRATCH_POP(ActorMoveScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorMoveScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -5924,7 +5924,7 @@ static void func_actor_421600_8013A554(Task* arg0)
             Gp_SpawnEff(0x60054, arg0->extra.tmd->coords + part, effectFlags | 0x80000000, &effect);
         }
     }
-    SCRATCH_POP(Actor421600AttackScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor421600AttackScratch);
 }
 
 static void func_actor_421600_8013B00C(Task* arg0)
@@ -6066,7 +6066,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         actorMoveForward(coord4, 0xC8);
     }
     func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -6198,7 +6198,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         actorMoveForward(coord4, 0xC8);
     }
     func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
-    SCRATCH_POP(ActorTurnScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -6358,7 +6358,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             work->field_C[1].x = D_actor_421600_801511D4[scratch->zone][6];
             work->field_C[1].z = D_actor_421600_801511D4[scratch->zone][7];
         }
-        SCRATCH_POP(Actor421600RouteScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(Actor421600RouteScratch);
         work->field_CCC.end1.vz = 0x26C;
         return;
     }
@@ -6584,7 +6584,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
             clampCoord->coord.t[2] = -0xA8C;
         }
     }
-    SCRATCH_POP(Actor421600RouteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor421600RouteScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -6751,7 +6751,7 @@ static void func_actor_421600_8013CD3C(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(ActorTurnStepScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
 }
 
 static void func_actor_421600_8013D1DC(Task* arg0)
@@ -6850,7 +6850,7 @@ static void func_actor_421600_8013D1DC(Task* arg0)
     if (work->field_68 & 0x100) {
         work->field_0 = 0x1C;
     }
-    SCRATCH_POP(ActorTurnStepScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorTurnStepScratch);
 }
 
 static const Actor421600StateTable D_actor_421600_80131EFC = { { func_actor_421600_8013E858,

@@ -1533,7 +1533,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
         scratch->pos.vy = coord->workm.t[1];
         scratch->pos.vz = coord->workm.t[2];
         Gp_DrawEffGroundQuad(&scratch->pos, 0x1A0, 0xC0);
-        SCRATCH_POP(DjyGroundQuadScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(DjyGroundQuadScratch);
     }
 }
 

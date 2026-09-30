@@ -503,7 +503,7 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
     }
     block->otz = (block->otz >> 4) + 0x1E;
     func_actor_403600_801320F8(block->otz);
-    return (u8*)SCRATCH_POP(ActorProjectScratch);
+    return (u8*)SCRATCH_STACK_RELEASE_BLOCK(ActorProjectScratch);
 }
 
 static u8* func_actor_403600_80138DCC(Task* arg0)
@@ -2577,7 +2577,7 @@ static void func_actor_403600_8013C864(Task* arg0)
         work->field_792 = 0x96;
         work->field_734++;
     }
-    SCRATCH_POP(Actor403600TargetScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor403600TargetScratch);
 }
 
 static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
@@ -2901,7 +2901,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
         Gp_ClearRec18Occupied(other);
         work->field_588.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
-    SCRATCH_POP(Actor403600DamageScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor403600DamageScratch);
 }
 
 static s32 func_actor_403600_8013D9A8(Task* arg0)
@@ -3115,7 +3115,7 @@ static s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
     scratch->rot.vy = work->field_748;
     scratch->rot.vz = 0;
     RotMatrix(&scratch->rot, &work->field_4B8.coord);
-    SCRATCH_POP(ActorFaceScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
     return distance;
 }
 
@@ -4017,7 +4017,7 @@ static __inline__ void _actor403600UpdateColor(GpEnemy* enemy, Task* task)
     SCRATCH_HEAD(VECTOR) = pos;
     pos->vz              = work->field_4B8.workm.t[2];
     Gp_UpdateActorColor(enemy, pos, 0, 0);
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// Turns coordinate 2 by the twist in `field_700`, then eases the twist back
@@ -4057,7 +4057,7 @@ static __inline__ void _actor403600RotateParts(Task* task)
             }
         }
     }
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
@@ -4665,7 +4665,7 @@ static void func_actor_403600_80141338(Task* arg0)
         }
     }
 
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void func_actor_403600_801414FC(Task* arg0)

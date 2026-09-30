@@ -521,7 +521,7 @@ void tmdProcessStream(TmdObject* obj)
         }
     }
 done:
-    SCRATCH_POP(TmdStreamWorkspace);
+    SCRATCH_STACK_RELEASE_BLOCK(TmdStreamWorkspace);
 }
 
 TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
@@ -643,7 +643,7 @@ static void Tmd_SetupDraw(TmdObject* obj)
 
     Tmd_SetupGteMatrices(&ws->stream, flags, stream, obj);
 
-    SCRATCH_POP(TmdScratchDrawBlock);
+    SCRATCH_STACK_RELEASE_BLOCK(TmdScratchDrawBlock);
 }
 
 void Tmd_FreeBuffers(TmdObject* obj)

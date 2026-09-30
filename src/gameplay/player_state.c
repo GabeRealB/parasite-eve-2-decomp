@@ -1503,7 +1503,7 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     if (ABS(actor->field_6A + yawStep) < PLAYER_ACTOR_AIM_YAW_LIMIT) {
         actor->field_6A += yawStep;
     }
-    SCRATCH_POP(_PlayerActorAimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimScratch);
 }
 
 void func_8010BF7C(Task* arg0, s32 arg1, s32 arg2)

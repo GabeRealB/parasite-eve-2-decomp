@@ -4454,7 +4454,7 @@ void func_acropolis_bridge_801819C8(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(AcropolisBridgeQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(AcropolisBridgeQuadScratch);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -4525,7 +4525,7 @@ void func_acropolis_bridge_80181D28(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(RoomGlowSpriteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     Gp_ReleaseState1CMem(work, task);
 }
 
@@ -4735,7 +4735,7 @@ static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)blk->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
 /// Controller for one piece of the bridge's blown debris: it drifts the task's
@@ -5573,7 +5573,7 @@ static void func_acropolis_bridge_80184B94(OverlayWalker* work)
         }
     }
 
-    SCRATCH_POP(OverlayAvoidScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayAvoidScratch);
 }
 
 /// Turns the walker toward `pos` by at most `field_5A` angle units per frame.
@@ -5941,7 +5941,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
     vec->vy = task->extra.tmd->coords->workm.t[1];
     vec->vz = task->extra.tmd->coords->workm.t[2];
     func_800D7A9C(task->extra.tmd, vec, 0, 3);
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 /// One-time setup for the bridge enemy: allocates the 0x294-byte work block,

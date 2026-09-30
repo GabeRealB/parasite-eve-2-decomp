@@ -1203,7 +1203,7 @@ static void Actor03800_Fn00A98(Task* arg0)
         }
     }
     Gp_ClearRec18Occupied(work->field_2AC);
-    SCRATCH_POP(ActorWallPushFrame);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorWallPushFrame);
 }
 
 static void Actor03800_Fn01150(Task* arg0)
@@ -2500,5 +2500,5 @@ static void Actor03800_Fn037E0(Task* arg0)
     ScaleMatrix(&scratch->mat.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->mat.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorScaleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

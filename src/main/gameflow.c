@@ -651,5 +651,5 @@ void Pad_UpdatePort0(void)
         i++;
     } while (i <= 0);
 
-    SCRATCH_POP(PadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(PadScratch);
 }

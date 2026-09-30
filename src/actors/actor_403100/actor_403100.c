@@ -7282,7 +7282,7 @@ static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1)
     dest->m[2][0] = transpose->m[2][0];
     dest->m[2][1] = transpose->m[2][1];
     dest->m[2][2] = transpose->m[2][2];
-    SCRATCH_POP(Actor403100AimScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor403100AimScratch);
     lower->composeStamp  = GRAPHICS_COORD_DIRTY;
     middle->composeStamp = GRAPHICS_COORD_DIRTY;
     head->composeStamp   = GRAPHICS_COORD_DIRTY;

@@ -1464,7 +1464,7 @@ static void func_acropolis_cafeteria_8017FBEC(GfxCoord* arg0, s32 arg1, s32 arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, unless
@@ -1714,7 +1714,7 @@ static void func_acropolis_cafeteria_8018089C(GfxCoord* arg0, GfxCoord* arg1, s1
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 void func_acropolis_cafeteria_80180C94(Task* task)
@@ -1907,7 +1907,7 @@ static void func_acropolis_cafeteria_80180F1C(GfxCoord* arg0, s16 arg1, u8* arg2
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 static void func_acropolis_cafeteria_801818DC(Task* task)
@@ -2025,7 +2025,7 @@ static void func_acropolis_cafeteria_80181A3C(Task* task)
     }
     RotMatrix(&work->field_C4, &coord->coord);
     Gp_ClearRec18Occupied(work->slots);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 static void func_acropolis_cafeteria_80181E30(Task* arg0)
@@ -2100,7 +2100,7 @@ static s32 func_acropolis_cafeteria_80181ED4(GfxCoord* coord, WorldCollisionCont
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -2200,7 +2200,7 @@ static s32 func_acropolis_cafeteria_80182078(GfxCoord* coord, WorldCollisionCont
     }
 
     hit = st->hit;
-    SCRATCH_POP(OverlayBisectorScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
     return hit;
 }
 

@@ -6386,7 +6386,7 @@ static void func_actor_560800_80136AA8(Task* arg0)
             }
             break;
     }
-    SCRATCH_POP(Actor560800ChainScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(Actor560800ChainScratch);
 }
 
 /// Sets up the animated model part the spawn argument names: allocates its

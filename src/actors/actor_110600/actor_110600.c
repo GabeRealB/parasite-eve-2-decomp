@@ -1194,7 +1194,7 @@ static void func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw)
     memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
     out->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(out);
-    SCRATCH_POP(MATRIX);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
 /// Moves `coord` in X/Z by the push the first `count` records of `movement`
@@ -1238,7 +1238,7 @@ static s32 func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* mo
     if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
         s->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return s->moved;
 }
 
@@ -2346,7 +2346,7 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
         scale->vx = scale->vy = scale->vz = amount;
         ScaleMatrix(&walker->scaleMtx, scale);
     }
-    SCRATCH_POP(VECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
 static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)

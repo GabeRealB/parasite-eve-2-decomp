@@ -1600,7 +1600,7 @@ void func_neo_ark_pavilion_8017D660(Task* task)
             cosArg += 0xC5;
         }
     }
-    SCRATCH_POP(OverlayRippleScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
 }
 
 /// Draws a rippling screen-distortion band for certain views of areas 12 and 30
@@ -2315,7 +2315,7 @@ static void func_neo_ark_pavilion_8017F974(GfxCoord* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 void func_neo_ark_pavilion_8017FC10(Task* arg0)
@@ -2456,7 +2456,7 @@ static void func_neo_ark_pavilion_8017FF54(GfxCoord* arg0, s32 arg1, s32 arg2, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomDraw02Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw02Scratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -2716,7 +2716,7 @@ static void func_neo_ark_pavilion_80180C04(GfxCoord* arg0, GfxCoord* arg1, s16 a
         }
         i += 1;
     } while (i < 7);
-    SCRATCH_POP(RoomDraw03Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw03Scratch);
 }
 
 /// `Gp_State1C` effect task for a burst. The first frame spawns effect
@@ -2917,7 +2917,7 @@ static void func_neo_ark_pavilion_80181284(GfxCoord* arg0, s16 arg1, u8* arg2)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_POP(RoomBillboardScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(RoomBillboardScratch);
 }
 
 /// Glowing disc anchored to its parent at the work block's position. State 1
@@ -3214,7 +3214,7 @@ static void func_neo_ark_pavilion_80182644(GfxCoord* arg0, s32 arg1, s32 arg2, u
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpArcScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpArcScratch);
 }
 
 /// Projects the coordinate's world position through `GsWSMATRIX` and, when
@@ -3263,7 +3263,7 @@ static void func_neo_ark_pavilion_80182A68(GfxCoord* arg0, s16 arg1, u8* rgb)
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// `Gp_State1C` effect task for a flickering glow. Each frame it grows a size
@@ -3439,7 +3439,7 @@ static void func_neo_ark_pavilion_80182FA8(GfxCoord* coord, s16 size)
             func_neo_ark_pavilion_801834D4(&ground, outerSize);
         }
     }
-    SCRATCH_POP(GpRingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GpRingScratch);
 }
 
 /// Queues one semi-transparent textured quad lying flat at the coordinate's

@@ -1114,7 +1114,7 @@ static s32 Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 
         gte_stsv(offset);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP(ActorRepelScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRepelScratch);
     return s->hit;
 }
 
@@ -1501,7 +1501,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     if ((blk->delta.vx.w != 0) || (blk->delta.vz.w != 0)) {
         blk->moved = 1;
     }
-    SCRATCH_POP(OverlayDeltaFlag);
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
     return blk->moved;
 }
 
@@ -2586,7 +2586,7 @@ static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
         other = Gp_ActorSlots[0]->extra.tmd->coords;
         blk   = SCRATCH_PUSH(ActorBearingScratch);
         angle = actorBearingInFrame(blk, self, other);
-        SCRATCH_POP(ActorBearingScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     }
     return angle;
 }
@@ -2635,7 +2635,7 @@ static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
     vec->vy = other->workm.t[1] - self->workm.t[1];
     vec->vz = other->workm.t[2] - self->workm.t[2];
     dist    = Gfx_ApplyMatrixNoSf(vec, vec);
-    SCRATCH_POP(SVECTOR);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
     return dist;
 }
 
@@ -3991,7 +3991,7 @@ static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
     } else if (angle < -0x800) {
         result = angle + 0x1000;
     }
-    SCRATCH_POP(ActorBearingScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     return result;
 }
 
