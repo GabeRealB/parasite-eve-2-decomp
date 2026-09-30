@@ -225,8 +225,6 @@ extern s32 D_actor_403600_80160698;
 
 extern GfxCoord* D_actor_403600_801606A0;
 
-void func_actor_403600_801320F8(s32 otz);
-
 void func_actor_403600_80138C68(Task* arg0);
 
 void func_actor_403600_80132E40(Task* arg0, Actor403600Work* arg1, Actor403600FxWork* arg2);

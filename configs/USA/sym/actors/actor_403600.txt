@@ -211,3 +211,4 @@ D_shelter_b2_pod_bottom_80187E14 = 0x80187E14; // absolute:True
 D_shelter_b2_pod_bottom_80188264 = 0x80188264; // absolute:True
 
 D_shelter_b2_pod_bottom_8018864C = 0x8018864C; // absolute:True
+frameCaptureQueue = 0x801320F8; // type:func

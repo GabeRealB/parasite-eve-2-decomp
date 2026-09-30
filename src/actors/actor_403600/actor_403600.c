@@ -48,6 +48,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
+#include "../../shared/frame_capture.h"
 
 /// A quad of the screen distortion grid. Its texture is the copy of the frame
 /// the grid is drawn over, which is wider than one texture page reaches, so a
@@ -932,129 +933,7 @@ static u32*        func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags,
     ((p)->tag = ((p)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(ot) & GPU_DMA_LINK_ADDRESS_MASK), \
      *(ot)    = (*(ot) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(p) & GPU_DMA_LINK_ADDRESS_MASK))
 
-/// Links, at ordering-table depth `otz`, the primitives that copy the frame
-/// drawn so far into the 320x240 VRAM rectangle at (0x1C0, 0x100). Linked at
-/// one slot they run in reverse: the draw area and offset move to that
-/// rectangle, the mask bit is set, a near-black tile clears it and the current
-/// draw buffer is copied over it as two 160-pixel 15-bit sprites; then the
-/// mask bit is cleared and the draw offset and area return to the draw buffer,
-/// clipped to the view's sprite rectangle when its depth lies in front of
-/// `otz`. A 0x14-byte block on the scratch stack holds the area and offset for
-/// the duration of the call.
-void func_actor_403600_801320F8(s32 otz)
-{
-    ActorsDrawScratch* scratch;
-    GpDrawAreaRec*     extra;
-    DR_AREA*           area;
-    DR_STP*            stp;
-    DR_OFFSET*         off;
-    SPRT*              sprt;
-    DR_TPAGE*          tpage;
-    TILE*              tile;
-    RECT*              clip;
-    u_short*           ofs;
-
-    extra          = Gp_GetViewSprtExtra();
-    scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorsDrawScratch);
-    scratch->otz   = otz;
-    area           = gGpuPrimCursor;
-    gGpuPrimCursor = area + 1;
-    if (extra != NULL && ((extra->depth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
-        scratch->rect    = extra->rect;
-        scratch->rect.y += gDisplayState.drawBuffer * 0x110;
-    } else {
-        scratch->rect.x = 0;
-        scratch->rect.y = gDisplayState.drawBuffer * 0x110;
-        scratch->rect.w = 0x140;
-        scratch->rect.h = 0xF0;
-    }
-    clip = &scratch->rect;
-    SetDrawArea(area, clip);
-    addPrim(&gGpuCurrentOt[scratch->otz], area);
-
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[scratch->otz], stp);
-
-    ofs             = scratch->ofs;
-    off             = gGpuPrimCursor;
-    gGpuPrimCursor  = off + 1;
-    scratch->ofs[0] = 0xA0;
-    scratch->ofs[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
-    SetDrawOffset(off, ofs);
-    addPrim(&gGpuCurrentOt[scratch->otz], off);
-
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    sprt->x0       = -0xA0;
-    sprt->y0       = -0x78;
-    sprt->w        = 0xA0;
-    sprt->h        = 0xF0;
-    sprt->u0       = 0;
-    sprt->v0       = gDisplayState.drawBuffer * 0x10;
-    setlen(sprt, 4);
-    setcode(sprt, 0x65);
-    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
-
-    tpage          = gGpuPrimCursor;
-    gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
-
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    sprt->x0       = 0;
-    sprt->y0       = -0x78;
-    sprt->w        = 0xA0;
-    sprt->h        = 0xF0;
-    sprt->u0       = 0x20;
-    sprt->v0       = gDisplayState.drawBuffer * 0x10;
-    setlen(sprt, 4);
-    setcode(sprt, 0x65);
-    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
-
-    tpage          = gGpuPrimCursor;
-    gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
-
-    tile           = gGpuPrimCursor;
-    gGpuPrimCursor = tile + 1;
-    setlen(tile, 3);
-    setcode(tile, 0x60);
-    tile->b0 = 2;
-    tile->g0 = 2;
-    tile->r0 = 2;
-    tile->x0 = -0xA0;
-    tile->y0 = -0x78;
-    tile->w  = 0x140;
-    tile->h  = 0xF0;
-    addPrim(&gGpuCurrentOt[scratch->otz], tile);
-
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[scratch->otz], stp);
-
-    off             = gGpuPrimCursor;
-    gGpuPrimCursor  = off + 1;
-    scratch->ofs[0] = 0x260;
-    scratch->ofs[1] = 0x178;
-    SetDrawOffset(off, ofs);
-    addPrim(&gGpuCurrentOt[scratch->otz], off);
-
-    area            = gGpuPrimCursor;
-    gGpuPrimCursor  = area + 1;
-    scratch->rect.x = 0x1C0;
-    scratch->rect.y = 0x100;
-    scratch->rect.w = 0x140;
-    scratch->rect.h = 0xF0;
-    SetDrawArea(area, clip);
-    addPrim(&gGpuCurrentOt[scratch->otz], area);
-
-    SCRATCH_STACK_RELEASE_BLOCK(ActorsDrawScratch);
-}
+#include "../../shared/frame_capture.inc.c"
 
 static void func_actor_403600_801327A0(Actor403600GridQuad* arg0)
 {
@@ -1280,7 +1159,7 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
         setDrawTPage(draw_mode, 0, 1, 0x20);
         addPrim(gGpuCurrentOt - 1, draw_mode);
     }
-    func_actor_403600_801320F8(0);
+    frameCaptureQueue(0);
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
@@ -2220,7 +2099,7 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
         } while (i < 16);
         j++;
     } while (j < 12);
-    func_actor_403600_801320F8(scratch->maxOtz + 1);
+    frameCaptureQueue(scratch->maxOtz + 1);
     SCRATCH_STACK_RELEASE_BYTES(0x78);
 }
 

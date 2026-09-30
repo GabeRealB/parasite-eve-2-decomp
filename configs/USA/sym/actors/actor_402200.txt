@@ -167,3 +167,4 @@ D_actor_402200_80154170 = 0x80154170; // size:0x8 defined:True
 D_actor_402200_80154178 = 0x80154178; // size:0x10 defined:True
 D_actor_402200_80154188 = 0x80154188; // size:0xC defined:True
 D_actor_402200_80154194 = 0x80154194; // size:0x58 defined:True
+frameCaptureQueue = 0x80136D9C; // type:func

@@ -66,6 +66,7 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/shelter_b2_pod_bottom.h"
+#include "../../shared/frame_capture.h"
 
 typedef struct Actor403600DamageRow {
     /* 0x0 */ s16 threshold;
@@ -511,7 +512,7 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    func_actor_403600_801320F8(block->otz);
+    frameCaptureQueue(block->otz);
     return (u8*)SCRATCH_STACK_RELEASE_BLOCK(ActorProjectScratch);
 }
 
