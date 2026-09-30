@@ -218,3 +218,4 @@ actionPromptOutlineRect = 0x80181148; // type:func
 actionPromptMoveCursors = 0x80182470; // type:func
 actionPromptDrawCursor = 0x801828D0; // type:func
 actionPromptReset = 0x80183284; // type:func
+roomCutsceneSoundTask = 0x80180540; // type:func

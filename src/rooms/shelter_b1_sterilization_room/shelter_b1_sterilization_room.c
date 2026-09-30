@@ -181,7 +181,6 @@ s32  func_shelter_b1_sterilization_room_801803E4(void);
 s32  func_shelter_b1_sterilization_room_801803EC(s32, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b1_sterilization_room_80180430(s32, s32, s32);
 void func_shelter_b1_sterilization_room_80180188(Task*);
-void func_shelter_b1_sterilization_room_801802B0(Task*);
 
 extern AnimationSet D_shelter_b1_sterilization_room_80185228;
 extern AnimationSet D_shelter_b1_sterilization_room_801853DC;
@@ -230,7 +229,7 @@ TmdSource D_shelter_b1_sterilization_room_80184DF8 = {
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_shelter_b1_sterilization_room_801802B0, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -752,24 +751,7 @@ void func_shelter_b1_sterilization_room_80180188(Task* task)
     }
 }
 
-/// Plays the sound event in `spawnArg2` in states 0 and 0x50, then kills the
-/// task at state 0x78.
-void func_shelter_b1_sterilization_room_801802B0(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 static void func_shelter_b1_sterilization_room_80180340(s32 arg0)
 {

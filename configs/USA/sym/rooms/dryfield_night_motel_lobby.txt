@@ -118,3 +118,4 @@ actionPromptReset = 0x80181298; // type:func
 glowDrawPulsingDisc = 0x80181878; // type:func
 glowDrawDiamond = 0x80181404; // type:func
 roomCutsceneTask = 0x8017F504; // type:func
+roomCutsceneSoundTask = 0x8017FA70; // type:func

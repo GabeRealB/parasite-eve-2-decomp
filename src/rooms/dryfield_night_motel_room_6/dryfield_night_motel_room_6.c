@@ -131,7 +131,7 @@ static u8 Reflection_Data_8017FC8C[];
 
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `roomCutsceneTask`, entry 1 the sound task
-/// `func_dryfield_night_motel_room_6_80181A0C` it runs alongside the scene.
+/// `roomCutsceneSoundTask` it runs alongside the scene.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
@@ -169,10 +169,6 @@ static s32  func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 
 static void func_dryfield_night_motel_room_6_80181C34(Task* task);
 static void func_dryfield_night_motel_room_6_80181C78(Task* task);
 
-void func_dryfield_night_motel_room_6_80181A0C(Task*);
-
-void func_dryfield_night_motel_room_6_80181A0C(Task*);
-
 extern GpGridParams   D_dryfield_night_motel_room_6_80183984[1];
 extern GpObj4C        D_dryfield_night_motel_room_6_80185A48[10];
 extern GpObj4C        D_dryfield_night_motel_room_6_80185D40[15];
@@ -200,7 +196,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_dryfield_night_motel_room_6_80181A0C, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -1007,24 +1003,7 @@ L_case5:
     taskKill(task);
 }
 
-/// Sound task: plays the sound event `spawnArg2` on its first tick and again
-/// at tick 0x50, then kills itself at tick 0x78.
-void func_dryfield_night_motel_room_6_80181A0C(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Runs the cap command for events 6, 0xD and 0xB, picking an alternative
 /// command while flag nibble 0x61 is set. Event 6 instead spawns the story

@@ -549,3 +549,4 @@ glowDrawCapsule = 0x80185814; // type:func
 glowDrawPulsingDisc = 0x80184E8C; // type:func
 glowDrawDiamond = 0x80184A18; // type:func
 roomCutsceneTask = 0x80181E8C; // type:func
+roomCutsceneSoundTask = 0x80182628; // type:func

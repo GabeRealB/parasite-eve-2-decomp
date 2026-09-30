@@ -138,8 +138,6 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
-void func_mist_parking_80182628(Task*);
-
 s32  func_mist_parking_801823F8(s32, s32, s32);
 s32  func_mist_parking_801826B8(void);
 s32  func_mist_parking_801826C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -157,7 +155,7 @@ TaskDesc D_mist_parking_8018668C = { 0, 192, Shop_SessionTask, { .model = NULL }
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_mist_parking_80182628, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -1045,24 +1043,7 @@ static const TaskFuncTable3 D_mist_parking_8017D7DC = {
     },
 };
 
-/// Plays the sound event in `spawnArg2` on its first frame and again at frame
-/// 0x50, then asks for the task's own kill at frame 0x78.
-void func_mist_parking_80182628(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Handler that answers 0.
 s32 func_mist_parking_801826B8(void)

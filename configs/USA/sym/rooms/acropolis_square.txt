@@ -138,3 +138,4 @@ Reflection_UpdatePlayer = 0x8017D8C8; // type:func
 Reflection_HeldObjectTask = 0x8017F24C; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;
 roomCutsceneTask = 0x80181228; // type:func
+roomCutsceneSoundTask = 0x80182048; // type:func

@@ -198,8 +198,6 @@ extern GfxCoord D_acropolis_square_801888CC;
 static void func_acropolis_square_80182260(Task* task);
 static void func_acropolis_square_801822A4(Task* task);
 
-void func_acropolis_square_80182048(Task*);
-
 s32  func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_square_801819BC(Task*, s32, s32, s32);
 s32  func_acropolis_square_801820D8(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
@@ -230,11 +228,9 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 #include "../../shared/telephone_data.inc.c"
 
-void func_acropolis_square_80182048(Task*);
-
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_acropolis_square_80182048, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -1431,24 +1427,7 @@ void func_acropolis_square_80181DD0(Task* task)
     }
 }
 
-/// Sound task: plays the sound event `spawnArg2` on its first tick and again
-/// at tick 0x50, then kills itself at tick 0x78.
-void func_acropolis_square_80182048(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 s32 func_acropolis_square_801820D8(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {

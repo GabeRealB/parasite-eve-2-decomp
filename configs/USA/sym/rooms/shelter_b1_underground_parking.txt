@@ -319,3 +319,4 @@ glowDrawBitDisc = 0x8018543C; // type:func
 roomDepartureTask = 0x80181FE4; // type:func
 roomCutsceneTask = 0x80182154; // type:func
 roomVariantResolveNeoArk = 0x80183124; // type:func
+roomCutsceneSoundTask = 0x801831F4; // type:func

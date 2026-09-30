@@ -143,7 +143,7 @@ static u8 Reflection_Data_8017FC8C[];
 
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `roomCutsceneTask`, entry 1 the sound task
-/// `func_dryfield_motel_room_6_80181880` it runs alongside the scene.
+/// `roomCutsceneSoundTask` it runs alongside the scene.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
@@ -180,10 +180,6 @@ static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, 
 static void func_dryfield_motel_room_6_80181AC4(Task* task);
 static void func_dryfield_motel_room_6_80181B10(Task* task);
 
-void func_dryfield_motel_room_6_80181880(Task*);
-
-void func_dryfield_motel_room_6_80181880(Task*);
-
 extern GpGridParams               D_dryfield_motel_room_6_8018381C[1];
 extern GpObj4C                    D_dryfield_motel_room_6_8018575C[10];
 extern GpObj4C                    D_dryfield_motel_room_6_80185A54[15];
@@ -215,7 +211,7 @@ static inline TaskDesc* Reflection_GetTasks(void)
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_dryfield_motel_room_6_80181880, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -1858,24 +1854,7 @@ s32 func_dryfield_motel_room_6_80181740(Task* arg0, s32 arg1, s32 arg2, s32 arg3
     return 0;
 }
 
-/// Sound task: plays the sound event `spawnArg2` on its first tick and again
-/// at tick 0x50, then kills itself at tick 0x78.
-void func_dryfield_motel_room_6_80181880(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Fallback of the room's message-0x13F0 handler for every event other than
 /// the cutscene's; this room does nothing with them.

@@ -179,7 +179,6 @@ s32  func_dryfield_trailer_coach_80182578(Task*, s32, TaskMessageArg, TaskMessag
 s32  func_dryfield_trailer_coach_80182580(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_trailer_coach_801825A8(Task*, s32, s32, TaskMessageArg);
 void func_dryfield_trailer_coach_801822F4(Task*);
-void func_dryfield_trailer_coach_801824E8(Task*);
 void func_dryfield_trailer_coach_801827F8(Task*);
 
 extern DryfieldTrailerCoachAnimStorage5368 D_dryfield_trailer_coach_80185368;
@@ -317,7 +316,7 @@ AnimationSet D_dryfield_trailer_coach_80184F54 = {
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_dryfield_trailer_coach_801824E8, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -1639,24 +1638,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
     }
 }
 
-/// Plays the sound event in `spawnArg2` on its first frame and again at frame
-/// 0x50, then asks for the task's own kill at frame 0x78.
-void func_dryfield_trailer_coach_801824E8(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always returns 0.
 s32 func_dryfield_trailer_coach_80182578(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)

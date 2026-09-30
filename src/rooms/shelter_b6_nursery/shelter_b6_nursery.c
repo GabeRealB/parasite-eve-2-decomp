@@ -216,17 +216,13 @@ static void func_shelter_b6_nursery_80181EDC(GfxCoord* coord, u16 arg1, s16 arg2
 static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_nursery_801829E4(GfxCoord* coord, s16 scale, s16 shade);
 
-void func_shelter_b6_nursery_8017FD3C(Task*);
-
 void func_shelter_b6_nursery_8017FBC0(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
-void func_shelter_b6_nursery_8017FD3C(Task*);
-
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_shelter_b6_nursery_8017FD3C, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -989,24 +985,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
     }
 }
 
-/// Sound task: plays the sound event `spawnArg2` on its first tick and again on
-/// tick 0x50, and asks to be killed on tick 0x78.
-void func_shelter_b6_nursery_8017FD3C(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// Always answers 0.
 s32 func_shelter_b6_nursery_8017FDCC(void)

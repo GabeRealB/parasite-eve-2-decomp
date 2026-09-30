@@ -137,15 +137,11 @@ static UiObjectDesc Telephone_Data_80181C90;
 #define TELEPHONE_TITLE_BYTES "Telephone\0\1\x0E"
 #include "../../shared/telephone.h"
 
-void func_dryfield_night_motel_lobby_8017FA70(Task*);
-
 #include "../../shared/telephone_data.inc.c"
-
-void func_dryfield_night_motel_lobby_8017FA70(Task*);
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_dryfield_night_motel_lobby_8017FA70, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -185,22 +181,7 @@ void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-void func_dryfield_night_motel_lobby_8017FA70(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 s32 func_dryfield_night_motel_lobby_8017FB00(void)
 {

@@ -137,3 +137,4 @@ glowDrawPulsingDisc = 0x8018176C; // type:func
 roomEventGate = 0x8017FA44; // type:func
 roomEventTask = 0x8017FBA8; // type:func
 roomCutsceneTask = 0x8017F4D8; // type:func
+roomCutsceneSoundTask = 0x80180064; // type:func

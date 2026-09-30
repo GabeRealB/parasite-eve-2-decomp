@@ -175,8 +175,6 @@ static void func_mine_refuge_8017FE78(s32 arg0);
 static void func_mine_refuge_8017FF4C(Task* task);
 static void func_mine_refuge_8017FFAC(Task* task);
 
-void func_mine_refuge_8017FB24(Task*);
-
 extern GpGridParams               D_mine_refuge_80181BA4[1];
 extern GpObj4C                    D_mine_refuge_80182778[2];
 extern GpObj4C                    D_mine_refuge_80182810[6];
@@ -192,11 +190,9 @@ void                              func_mine_refuge_8017FDBC(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
-void func_mine_refuge_8017FB24(Task*);
-
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_mine_refuge_8017FB24, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -608,24 +604,7 @@ void func_mine_refuge_8017FA08(Task* task)
     }
 }
 
-/// Plays the sound event passed in `spawnArg2` on frames 0 and 0x50 of the
-/// task's life and kills the task at frame 0x78.
-void func_mine_refuge_8017FB24(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// The `0x13F1` message handler of `D_mine_refuge_80181884`: relays the
 /// message unchanged to `D_mine_refuge_80182AD8` and returns its answer, or 0

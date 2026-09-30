@@ -102,7 +102,6 @@ static TaskDesc              D_shelter_r47_801872F0;
 static s32                   func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, TaskMessageArg);
 static s32                   func_shelter_r47_801801DC(Task*, s32, s32, TaskMessageArg);
 static void                  func_shelter_r47_80180324(Task*);
-static void                  func_shelter_r47_80180540(Task*);
 static s32                   func_shelter_r47_801805D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 static s32                   func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 static s32                   func_shelter_r47_8018061C(Task*, s32, s32, TaskMessageArg);
@@ -122,7 +121,7 @@ static void func_shelter_r47_8017FCC0(Task* task);
 
 static TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_shelter_r47_80180540, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -823,24 +822,7 @@ static void func_shelter_r47_80180324(Task* task)
     }
 }
 
-/// Sound task: plays the sound event `spawnArg2` on its first tick and again on
-/// tick 0x50, and asks to be killed on tick 0x78.
-static void func_shelter_r47_80180540(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

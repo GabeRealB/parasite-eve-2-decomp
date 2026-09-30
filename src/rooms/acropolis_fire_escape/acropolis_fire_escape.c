@@ -179,7 +179,6 @@ s32 func_acropolis_fire_escape_8017FE40(Task*, s32, s32, s32);
 s32 func_acropolis_fire_escape_8017FE48(Task*, s32, s32, s32);
 
 void func_acropolis_fire_escape_8017FB40(Task*);
-void func_acropolis_fire_escape_8017FD08(Task*);
 
 extern GpGridParams   D_acropolis_fire_escape_801822A8[1];
 extern GpObj3A        D_acropolis_fire_escape_801828BC[2];
@@ -205,7 +204,7 @@ extern SpriteSource  D_acropolis_fire_escape_80182D58[5];
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_acropolis_fire_escape_8017FD08, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -663,24 +662,7 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     D_acropolis_fire_escape_80183040 = vol;
 }
 
-/// Plays the sound event passed in `spawnArg2` on frames 0 and 0x50 of the
-/// task's life and kills the task at frame 0x78.
-void func_acropolis_fire_escape_8017FD08(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 /// The `0x13EE` message handler of `D_acropolis_fire_escape_80181D3C`: copies
 /// the incoming save location onto the outgoing one, fades the ambient sound

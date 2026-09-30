@@ -113,8 +113,6 @@ extern GpMsgEntry D_shelter_b3_incinerator_control_room_80181838[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x14\xCF"
 #include "../../shared/telephone.h"
 
-void func_shelter_b3_incinerator_control_room_8017F9F4(Task*);
-
 s32 func_shelter_b3_incinerator_control_room_8017FA84(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_shelter_b3_incinerator_control_room_8017FB20(Task*, s32, s32, TaskMessageArg);
@@ -123,11 +121,9 @@ s32 func_shelter_b3_incinerator_control_room_8017FBE8(Task*, s32, s32, TaskMessa
 
 #include "../../shared/telephone_data.inc.c"
 
-void func_shelter_b3_incinerator_control_room_8017F9F4(Task*);
-
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { 0, 32, roomCutsceneTask, { .model = NULL } },
-    { 0, 32, func_shelter_b3_incinerator_control_room_8017F9F4, { .model = NULL } },
+    { 0, 32, roomCutsceneSoundTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -156,24 +152,7 @@ void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// Plays the sound event passed in `spawnArg2` on frames 0 and 0x50 of the
-/// task's life and kills the task at frame 0x78.
-void func_shelter_b3_incinerator_control_room_8017F9F4(Task* task)
-{
-    switch (task->state) {
-        case 0x50:
-        case 0x0:
-            SndEvt_EnqueueType6(task->spawnArg2.value, 0, 0);
-            task->state += 1;
-            break;
-        case 0x78:
-            Task_RequestKill(task, 0);
-            break;
-        default:
-            task->state += 1;
-            break;
-    }
-}
+#include "../../shared/room_cutscene_sound_task.inc.c"
 
 s32 func_shelter_b3_incinerator_control_room_8017FA84(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
