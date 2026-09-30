@@ -263,12 +263,15 @@ static void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 
 void Gfx_MatrixToEuler(MATRIX* matrix, SVECTOR* vector)
 {
+    /// Scratch-stack reservation in bytes for the inverse-X Euler intermediate.
+    ///
+    /// The 0x30-byte span holds a 0x24-byte `_GfxAxisRotationScratch`; the final
+    /// 0x0C bytes are unused. Allocation and release both use the full span.
     enum { GRAPHICS_EULER_SCRATCH_BYTES = 0x30 };
 
     _GfxAxisRotationScratch* block;
     s16                      angle;
 
-    // The reservation exceeds the block's extent; the extra bytes are unused here.
     block = SCRATCH_PUSH_BYTES(GRAPHICS_EULER_SCRATCH_BYTES);
 
     angle           = -ratan2(matrix->m[1][2], matrix->m[2][2]);
