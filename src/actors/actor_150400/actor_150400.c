@@ -60,7 +60,7 @@ extern Actor150400MsgEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
-static void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
+static void func_actor_150400_80132434(Enemy* enemy, Task* task);
 static void func_actor_150400_801324B8(Task* task);
 
 extern TmdSource D_actor_150400_80139A64;
@@ -121,7 +121,7 @@ ActorTransform D_actor_150400_80132D38 = { { 6705, -500, -3316, 0 }, { 0, -1024,
 
 ActorTransform D_actor_150400_80132D50 = { { 1535, -500, -3316, 0 }, { 0, 1024, 0, 0 } };
 
-GpOverlayIds D_actor_150400_80132D68 = { 5, 4, 11 };
+EvsSceneKey D_actor_150400_80132D68 = { 5, 4, 11 };
 
 GpEvsCmd D_actor_150400_80132D70[33] = {
     { 12, { .overlays = &D_actor_150400_80132D68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -374,7 +374,7 @@ Task* D_actor_150400_8013C924 = NULL;
 Task* D_actor_150400_8013C928;
 
 static void func_actor_150400_80131FB8(void);
-static void func_actor_150400_80132014(GpEnemy* enemy, Task* task);
+static void func_actor_150400_80132014(Enemy* enemy, Task* task);
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
@@ -406,7 +406,7 @@ void func_actor_150400_80131E24(Task* task)
         }
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (Mc_SaveData[0].state.location.loc.view != 5) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 5) {
         obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         obj->flags    = 0;
@@ -416,16 +416,16 @@ void func_actor_150400_80131E24(Task* task)
 
 void func_actor_150400_80131ECC(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         SetDispMask(1);
         GameFlag_SetNibble(0xE5, 1);
         Gp_EnqueueConfigCd(1);
         Gp_ApplyAreaRecs(D_shelter_b1_control_room_80183BE0);
-        Mc_SaveData[0].state.location.loc.stage = 4;
-        Mc_SaveData[0].state.location.loc.area  = 0x21;
-        Mc_SaveData[0].state.location.loc.warp  = 4;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x21;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
         Gp_RestoreStreamRng();
     }
@@ -452,13 +452,13 @@ static void func_actor_150400_80131FB8(void)
 /// sub-model task and parents it under this one, textures the sub-model from
 /// the placement record of the current area, then starts the animation in
 /// state 2 and runs the step body `pairWalkUpdate` once.
-static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
+static void func_actor_150400_80132014(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -499,10 +499,10 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 
 /// Per-frame callback of the actor's task: runs the state's handler, the spawn
 /// handler `func_actor_150400_80132014` in state 0 and the per-frame update
-/// `func_actor_150400_80132434` after it, passing the task's `GpEnemy`.
+/// `func_actor_150400_80132434` after it, passing the task's `Enemy`.
 void func_actor_150400_801323E0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_150400_80132014,
         func_actor_150400_80132434,
     };
@@ -518,7 +518,7 @@ void func_actor_150400_801323E0(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback of the actor's task: hands its `GpEnemy` back to
+/// Exit callback of the actor's task: hands its `Enemy` back to
 /// `Gp_DestroyEnemy`.
 static void func_actor_150400_801324B8(Task* task)
 {
@@ -562,7 +562,7 @@ s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target)
     dz           = target->pos.vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);
     work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     work->st.travel = SquareRoot0(dx * dx + dz * dz) / 17;
     return 0;
 }

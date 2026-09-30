@@ -12,7 +12,7 @@
 /// step refreshes the model's colour from its world position and damps the two
 /// shake terms. Bails to `Gp_DestroyEnemy` when the overlay is shutting down,
 /// cancelling a still-installed animation on the way out.
-void incinBossGlobEngulf(GpEnemy* enemy, Task* task)
+void incinBossGlobEngulf(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
     Task*                player;

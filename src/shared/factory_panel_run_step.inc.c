@@ -18,9 +18,9 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (!(GameFlag_GetNibble(0x49) & 2)) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) | 2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].state.location.loc.view = 0x12;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                     } else {
-                        Mc_SaveData[0].state.location.loc.view = 0x13;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -38,9 +38,9 @@ void factoryPanelRunStep(Task* task, s16 step)
                 if (GameFlag_GetNibble(0x49) & 2) {
                     GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) & ~2);
                     if (GameFlag_GetNibble(0x47) == 0) {
-                        Mc_SaveData[0].state.location.loc.view = 0x12;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                     } else {
-                        Mc_SaveData[0].state.location.loc.view = 0x13;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;
                     }
                     state = 6;
                 } else {
@@ -57,9 +57,9 @@ void factoryPanelRunStep(Task* task, s16 step)
                 SndEvt_EnqueueType6(id | 9, 0, 0);
                 GameFlag_SetNibble(0x49, GameFlag_GetNibble(0x49) ^ 1);
                 if (GameFlag_GetNibble(0x47) == 0) {
-                    Mc_SaveData[0].state.location.loc.view = 0x12;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
                 } else {
-                    Mc_SaveData[0].state.location.loc.view = 0x13;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x13;
                 }
                 state       = 6;
                 task->state = state;

@@ -54,7 +54,8 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 #include "../../shared/shelter_elevator.h"
 
@@ -192,9 +193,9 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             break;
         case 4:
             if (Gp_GetCapEventKey() == 0x15) {
-                Mc_SaveData[0].state.location.loc.area = 0x1A;
-                Mc_SaveData[0].state.location.loc.warp = 1;
-                Mc_SaveData[0].state.location.loc.room = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1A;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             } else {
                 Gp_MsgPlayerWeapon(1);
                 Gp_StateF0.field_4 = 0;

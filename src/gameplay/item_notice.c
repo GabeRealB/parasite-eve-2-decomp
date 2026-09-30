@@ -84,7 +84,7 @@ void func_800B65B0(Task* task)
                 }
                 gDisplayState.gameMode = DISPLAY_GAME_MODAL;
                 cfg                    = &Player_Status;
-                save                   = &Mc_SaveData[0];
+                save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
                 save->state.playerExp  = cfg->exp;
                 save->state.playerBp   = cfg->bp;
                 save->state.savePoint  = Gp_PubItemLoc;
@@ -122,7 +122,7 @@ void func_800B65B0(Task* task)
                             shift   = (id & 0xF) * 2;
                             mask    = 3 << shift;
                             if (((*current & mask) >> shift) != 3) {
-                                flags  = Gp_Bit2Banks[Mc_SaveData[0].state.location.loc.stage].field_4 + (id >> 4);
+                                flags  = Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].field_4 + (id >> 4);
                                 *flags = (*flags & ~mask) | (2 << shift);
                             }
                             work->field_3 = 1;

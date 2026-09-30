@@ -6,9 +6,9 @@
 /// out through the star draw before the work block is released.
 static inline void RoomFx_FlashTask(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

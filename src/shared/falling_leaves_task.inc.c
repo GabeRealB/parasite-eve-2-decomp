@@ -9,11 +9,11 @@
 /// and releases its work block.
 static inline void leafFallTask(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        vy;
-    s32        vx;
-    s32        vz;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         vy;
+    s32         vx;
+    s32         vz;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

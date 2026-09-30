@@ -59,8 +59,8 @@ extern Actor503500MsgEntry D_actor_503500_80146888[];
 static void                func_actor_503500_801324C4(Task* task);
 static void                func_actor_503500_801324EC(Task* arg0);
 /// Script pair handed to `Gp_SpawnScript18` on every odd pulse frame.
-extern GpScriptCmd D_actor_503500_801468A8[2];
-extern GpScriptRec D_actor_503500_801468B0[2];
+extern PadScriptCmd D_actor_503500_801468A8[2];
+extern GpScriptRec  D_actor_503500_801468B0[2];
 /// Two 360-entry X/Z paths `func_actor_503500_8013223C` walks the model along,
 /// selected by `Actor503500ColorMtx::field_45` (1 or 2).
 extern DVECTOR_XZ D_actor_503500_80147D90[];
@@ -81,7 +81,10 @@ Actor503500MsgEntry D_actor_503500_80146888[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-GpScriptCmd D_actor_503500_801468A8[2] = { { 0, 257 }, { 0, 0 } };
+PadScriptCmd D_actor_503500_801468A8[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_actor_503500_801468B0[2] = { { 0, 0, 2, 0 }, { 156, 106, 2, 1 } };
 
@@ -874,7 +877,7 @@ static void func_actor_503500_8013223C(Task* arg0)
 {
     TmdObject*           ext;
     Actor503500ColorMtx* work;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
     GfxCoord*            coord;
     DVECTOR_XZ*          p;
     VECTOR               pos;
@@ -959,7 +962,7 @@ static void func_actor_503500_80132430(Task* arg0)
 }
 
 /// `Task::exitCallback` of the actor's main task, and the third entry of its
-/// state table: hands the `GpEnemy` the spawn left in `Task::spawnArg2` back to
+/// state table: hands the `Enemy` the spawn left in `Task::spawnArg2` back to
 /// `Gp_DestroyEnemy`.
 static void func_actor_503500_801324C4(Task* task)
 {

@@ -501,7 +501,7 @@ void Gp_DrawAmmoRow(UiList* arg0, UiObject* obj)
     USE_REG(spawnArg);
     prompt = arg0;
     USE_REG(arg0);
-    item   = Gp_NthRelatedId(&Mc_SaveData[0].state.carriedItems, prompt->field_8, spawnArg);
+    item   = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, prompt->field_8, spawnArg);
     status = obj->panel.control.word;
     if (((status >> 16) == 1) || (status == 1)) {
         if (prompt->field_10 == prompt->field_8) {
@@ -681,7 +681,7 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
         Ui_SetState4(parent->spawnArg2.pointer, parent);
         Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
     }
-    val = Gp_NthRelatedId(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
+    val = Gp_NthRelatedId(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->field_10, 0);
     if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
         flags = 0x12;
         if (val == 0) {
@@ -743,7 +743,7 @@ void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 
     if (item != 0) {
         rec = Gp_FindItemById(item);
-        qty = rec->qty - Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, item);
+        qty = rec->qty - Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, item);
         if (Gp_ReloadMode == 0) {
             load = Gp_GetItemSlot(spawnArg);
             if (load->primaryItemId == item) {
@@ -839,7 +839,7 @@ void Gp_BuildAttachList(UiList* arg0, s32 arg1)
     s32                  item;
     s32                  qty;
 
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     mode  = Gp_ReloadMode;
     count = 0;
     slot  = Gp_GetItemSlot(arg1);

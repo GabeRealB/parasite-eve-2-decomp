@@ -8,7 +8,7 @@
 /// of them cancel the animation with message 0x3F1 and step the task on.
 /// Bails to `Gp_DestroyEnemy` when the overlay is shutting down, cancelling a
 /// still-installed animation on the way out.
-void incinBossGlobHold(GpEnemy* enemy, Task* task)
+void incinBossGlobHold(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
     Task*                player;
@@ -33,7 +33,7 @@ void incinBossGlobHold(GpEnemy* enemy, Task* task)
             return;
         }
         gIncinBossCaughtAnimSets[2] =
-            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
+            (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon])->table.sets[9];
         work->anim.source.sets = gIncinBossCaughtAnimSets;
         work->anim.animationId = 2;
         work->anim.blend       = armed;

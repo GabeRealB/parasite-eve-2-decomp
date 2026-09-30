@@ -66,12 +66,12 @@ extern Task* D_acropolis_helicopter_landing_pad_80187F80;
 
 /// Three `Gp_SpawnScript18` argument pairs used by the state timeline in
 /// `func_acropolis_helicopter_landing_pad_8017DE78`, one pair per phase.
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2];
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2];
-extern GpScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
-extern GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D48[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D60[2];
+extern PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4];
+extern GpScriptRec  D_acropolis_helicopter_landing_pad_80187D78[2];
 
 static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
 static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
@@ -152,14 +152,14 @@ GpObj3A D_acropolis_helicopter_landing_pad_80186128[2] = {
 
 GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861A0[2] = {
     { 27, 109, 4, 0, { 0, 0 }, D_80167A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_helicopter_landing_pad_801861B8[4] = {
     { 27, 110, 4, 0, { 0, 0 }, D_80155070 },
     { 144, 110, 5, 0, { 0, 0 }, D_801472E8 },
     { 254, 110, 5, 0, { 0, 0 }, D_80139924 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
@@ -182,7 +182,7 @@ WorldCoordLight D_acropolis_helicopter_landing_pad_80186250[1] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 10, -10, -10 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1556, 1638, 1802 }, { 0, 0 } },
 };
 
-GpPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
+WorldCoordPointLight D_acropolis_helicopter_landing_pad_801862A8[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3900, -4205, -1800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -4205, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2129, 2211 }, { 0, 0 } }, 500, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1000, -6100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3194, 3276 }, { 0, 0 } }, 500, 1500 },
@@ -630,16 +630,16 @@ GpViewRec D_acropolis_helicopter_landing_pad_80187968[27] = {
     { { { { 836, 0, 4009 }, { -1269, 3885, 264 }, { -3803, -1297, 793 } }, { 292, 673, 6887 } }, 207 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
-    { 256, 1 },
-    { 1280, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D34[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D3C = { 120, 70, 20, 1 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D40[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2] = {
@@ -647,11 +647,11 @@ GpScriptRec D_acropolis_helicopter_landing_pad_80187D48[2] = {
     { 255, 220, 25, 1 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
-    { 1, 257 },
-    { 2563, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D50[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2] = {
@@ -659,11 +659,11 @@ GpScriptRec D_acropolis_helicopter_landing_pad_80187D60[2] = {
     { 220, 180, 25, 1 },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
-    { 1, 257 },
-    { 2563, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80187D68[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 10), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80187D78[2] = {
@@ -765,7 +765,7 @@ SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
 
 /// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
-/// slot-4 entry 1 on a second-or-later visit (`Mc_SaveData[0].state.location.loc.variant`), stamps
+/// slot-4 entry 1 on a second-or-later visit (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant`), stamps
 /// the save location with 0x12 and sets the override vector. States 1-4 wait
 /// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
 /// call `func_800A99B4`. State 5 asks slot 4 to spawn the enemy task (0x7D8),
@@ -789,13 +789,13 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->spawnArg1.value = 0;
             Gp_MsgPlayerWeapon(0);
             task->state += 1;
-            if (Mc_SaveData[0].state.location.loc.variant >= 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D5, 0, 0);
             }
-            Mc_SaveData[0].state.location.loc.view = 0x12;
-            vec.vx                                 = 0x4B0;
-            vec.vy                                 = 0x4B0;
-            vec.vz                                 = 0x610;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
+            vec.vx                                                     = 0x4B0;
+            vec.vy                                                     = 0x4B0;
+            vec.vz                                                     = 0x610;
             Gp_SetOverrideVec(&vec);
             break;
         case 1:
@@ -804,7 +804,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             }
             break;
         case 2:
-            if (Mc_SaveData[0].state.location.loc.variant < 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
                 Gp_DispatchMsg(gameGetPtrSlot(4), 0x7D9, 0, 0);
             }
             task->state += 1;
@@ -830,7 +830,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             task->state += 1;
             break;
         case 6:
-            if (Mc_SaveData[0].state.location.loc.variant < 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
                 param1[2] = 0x33;
                 param2[0] = 0xA;
                 param2[2] = 3;
@@ -847,7 +847,7 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 7:
             task->spawnArg1.value -= 1;
-            if (Mc_SaveData[0].state.location.loc.variant >= 2) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
                 task->state = 9;
             } else if (CdCmd_IsIdle()) {
                 func_800A99B4();
@@ -856,9 +856,9 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             break;
         case 8:
             task->spawnArg1.value -= 1;
-            areaSetPlacementVariant(&Mc_SaveData[0].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
-            areaSyncLocationVariant(&Mc_SaveData[0].state.location.loc);
-            Gp_SpawnArea(&Mc_SaveData[0].state.location.loc);
+            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+            areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            Gp_SpawnArea(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_acropolis_helicopter_landing_pad_80184D9C = 4;
             task->state                                += 1;
             break;
@@ -930,12 +930,12 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             return;
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.sceneEvent         = 1;
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0x12;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x12;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             Display_ReleaseRef();
             taskKill(arg0);

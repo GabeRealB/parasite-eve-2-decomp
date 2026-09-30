@@ -1408,7 +1408,7 @@ GpSprtRec D_neo_ark_observatory_801860E8[21] = {
     { { .empty = D_neo_ark_observatory_801860D8 }, D_neo_ark_observatory_801860D8, NULL },
 };
 
-GpPointLight D_neo_ark_observatory_801861E4[17] = {
+WorldCoordPointLight D_neo_ark_observatory_801861E4[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8002, -2500, 9640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 2500 },
@@ -1432,7 +1432,7 @@ GpRoomCoordSet D_neo_ark_observatory_80186844[1] = {
     { 0, NULL, 17, D_neo_ark_observatory_801861E4, 0, NULL },
 };
 
-GpPointLight D_neo_ark_observatory_8018685C[17] = {
+WorldCoordPointLight D_neo_ark_observatory_8018685C[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CD5, -2337, 0x2BA7 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 906, 669 }, { 0, 0 } }, 100, 1600 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CF2, -2500, 0x2EC5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9184, -2500, 0x2EC6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3115, 2954, 2717 }, { 0, 0 } }, 500, 3500 },
@@ -1496,7 +1496,7 @@ GpObj4C D_neo_ark_observatory_8018742C[14] = {
 
 GpAreaTmdRec D_neo_ark_observatory_80187854[2] = {
     { 101, 502, 3, 0, { 0, 0 }, D_80137A60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_observatory_8018786C[13] = {
@@ -1667,7 +1667,7 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, DirectionActionReque
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 6);
             GameFlag_SetNibble(0xE1, 1);
-            Mc_SaveData[0].state.sceneEvent = 0x15;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
             func_800E8634(&D_8013FC58, 0, &D_80140078);
         }
     }
@@ -1783,13 +1783,13 @@ static void func_neo_ark_observatory_8017FD7C(Task* task)
     s32 var_a0;
 
     if (gGameSession->eventState == 0) {
-        if (Mc_SaveData[0].state.location.loc.view != 2) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 2) {
             Gp_MsgAlly3F3(2);
             return;
         }
     }
     var_a0 = 1;
-    if (Mc_SaveData[0].state.location.loc.view == 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) {
         var_a0 = 2;
     }
     Gp_MsgAlly3F3(var_a0);

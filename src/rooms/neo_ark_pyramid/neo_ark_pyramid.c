@@ -360,7 +360,7 @@ GpSprtRec D_neo_ark_pyramid_80180E18[8] = {
     { { .empty = D_neo_ark_pyramid_80180E08 }, D_neo_ark_pyramid_80180E08, NULL },
 };
 
-GpPointLight D_neo_ark_pyramid_80180E78[11] = {
+WorldCoordPointLight D_neo_ark_pyramid_80180E78[11] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3490, -2000, -3010 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -80, -4000, -6040 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2000, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4120, -2000, -5600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
@@ -399,30 +399,30 @@ GpObj4C D_neo_ark_pyramid_80181478[7] = {
 
 GpAreaTmdRec D_neo_ark_pyramid_8018168C[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_pyramid_801816A4[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_pyramid_801816BC[3] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
     { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_pyramid_801816E0[3] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
     { 20, 20, 2, 0, { 0, 0 }, D_80177DF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_pyramid_80181704[3] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_pyramid_80181728[13] = {
@@ -506,10 +506,10 @@ void func_neo_ark_pyramid_8017D600(Task* task)
 
     switch (task->state) {
         case 0:
-            Mc_SaveData[0].state.location.loc.view = 8;
-            gGameSession->hideHud                  = 1;
-            gGameSession->eventState               = 1;
-            Gp_StateF0.field_4                     = 2;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+            gGameSession->hideHud                                      = 1;
+            gGameSession->eventState                                   = 1;
+            Gp_StateF0.field_4                                         = 2;
             task->state++;
             break;
         case 1:
@@ -556,10 +556,10 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             }
             break;
         case 10:
-            Mc_SaveData[0].state.location.loc.view = 3;
-            gGameSession->hideHud                  = 0;
-            gGameSession->eventState               = 0;
-            Gp_StateF0.field_4                     = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
+            gGameSession->hideHud                                      = 0;
+            gGameSession->eventState                                   = 0;
+            Gp_StateF0.field_4                                         = 0;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             taskKill(task);

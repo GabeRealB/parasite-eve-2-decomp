@@ -192,7 +192,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
     InventoryItemRow*   rec;
     s32                 item;
 
-    scan = &Mc_SaveData[0].state.carriedItems;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     rec  = Gp_NthEquippableRec(scan, prompt->field_8, 0);
     if (rec != NULL) {
         item = rec->itemId;
@@ -309,7 +309,7 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     s32                 count;
     InventoryItemRange* scan;
 
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table = Gp_GetItemTable(scan);
     count = 0;
     table = &table[scan->firstRow];
@@ -354,7 +354,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     }
     Ui_DrawHBar(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
     Ui_UpdateListNoAnim(menu, obj);
-    rec = Gp_NthEquippableRec(&Mc_SaveData[0].state.carriedItems, menu->field_10, 0);
+    rec = Gp_NthEquippableRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->field_10, 0);
     if (rec != NULL) {
         val = rec->itemId;
     }
@@ -393,7 +393,7 @@ void Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1)
         return;
     }
     if (gDisplayState.debugMode == -1) {
-        if (Mc_SaveData[0].state.demoScene != 0xC) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xC) {
             return;
         }
     }

@@ -420,7 +420,7 @@ GpSprtRec D_shelter_b6_corridor_8018004C[5] = {
     { { .empty = D_shelter_b6_corridor_8018003C }, D_shelter_b6_corridor_8018003C, NULL },
 };
 
-GpPointLight D_shelter_b6_corridor_80180088[1] = {
+WorldCoordPointLight D_shelter_b6_corridor_80180088[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4600, -2750, -50 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
 };
 
@@ -440,7 +440,7 @@ GpAreaTmdRec D_shelter_b6_corridor_801802C8[5] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
     { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_corridor_80180304[13] = {
@@ -721,10 +721,10 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
 
 void func_shelter_b6_corridor_8017ECA8(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        effectControl;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         effectControl;
+    u8          rgb[3];
 
     mem           = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;

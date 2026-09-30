@@ -10,7 +10,7 @@
 /// destroys the enemy once that count is spent. Outside reaction states 5 and 6
 /// the first two phases also tick the animation, scale and recompute the
 /// second part and re-colour the enemy.
-void bursterDeathState(GpEnemy* enemy, Task* task)
+void bursterDeathState(Enemy* enemy, Task* task)
 {
     TmdObject*       model;
     Actor104600Work* work;
@@ -45,10 +45,10 @@ void bursterDeathState(GpEnemy* enemy, Task* task)
                     }
                     if (task->killCountdown <= 0) {
                         if (work->field_2D6 != 0) {
-                            soundId = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x4046000D;
+                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000D;
                             SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                         } else {
-                            soundId = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x402E0005;
+                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0005;
                             SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                         }
                         task->killCountdown = 0;

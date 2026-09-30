@@ -85,7 +85,7 @@ extern UiObjectDesc D_800611E4;
 extern TaskDesc D_801358D8;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -448,7 +448,7 @@ GpSprtRec D_mine_refuge_8018264C[7] = {
     { { .empty = D_mine_refuge_8018263C }, D_mine_refuge_8018263C, NULL },
 };
 
-GpPointLight D_mine_refuge_801826A0[2] = {
+WorldCoordPointLight D_mine_refuge_801826A0[2] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2128, -1869, 1212 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3342, 2588 }, { 0, 0 } }, 0, 2200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1562, -2170, 3664 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 3000 },
 };
@@ -473,7 +473,7 @@ GpObj4C D_mine_refuge_80182810[6] = {
 
 GpAreaTmdRec D_mine_refuge_801829D8[2] = {
     { 101, 481, 4, 0, { 0, 0 }, &D_801358D8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_refuge_801829F0[1] = {
@@ -640,9 +640,9 @@ s32 func_mine_refuge_8017FC2C(Task* task, s32 msgId, s32 arg2, TaskMessageArg ar
         } else {
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            temp_a3                                = Mc_SaveData[0].state.location.loc.view;
-            Mc_SaveData[0].state.location.loc.view = 6U;
-            D_mine_refuge_80182ADC[0]              = temp_a3;
+            temp_a3                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6U;
+            D_mine_refuge_80182ADC[0]                                  = temp_a3;
             SndEvt_EnqueueType6(0x54060003, 0, 0);
             Gp_RunCapCmd(0xD, 0);
             Task_SpawnFromTable(D_mine_refuge_801818B4, 1, 0, 0);
@@ -697,7 +697,7 @@ void func_mine_refuge_8017FDBC(Task* arg0)
                 arg0->state = arg0->state + 1;
                 return;
             }
-            Mc_SaveData[0].state.location.loc.view = D_mine_refuge_80182ADC[0];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_mine_refuge_80182ADC[0];
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
@@ -1014,7 +1014,7 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
     void**             scratch;
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ring;
     s32                ang;
@@ -1028,17 +1028,17 @@ static void func_mine_refuge_80181094(SVECTOR* arg0, s32 arg1, s32 arg2)
 
     scratch = SCRATCH_STACK_CURSOR_SLOT;
     head    = *scratch;
-    block   = (RoomDraw13Scratch*)(*scratch = head - 0x10);
+    block   = (GlowCentreScratch*)(*scratch = head - 0x10);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         ring          = 0;
         blend         = ((u8)gDisplayState.animFrame & 1) << 5;
         packed        = arg2 << 16;

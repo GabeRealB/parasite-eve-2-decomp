@@ -90,7 +90,7 @@ extern SVECTOR D_shelter_b6_training_room_80184334[];
 extern u16     D_shelter_b6_training_room_801843FC[];
 
 static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to, s16 size, u16 color);
-static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GfxCoord* coord, s32 band);
+static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band);
 static void func_shelter_b6_training_room_80181BAC(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
 static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg1, s32 arg2, s16 arg3);
 
@@ -486,11 +486,11 @@ void func_shelter_b6_training_room_8017DDE8(Task* task)
 
 void func_shelter_b6_training_room_8017EE70(Task* arg0)
 {
-    u8         rgb[3];
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        step;
+    u8          rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         step;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -539,9 +539,9 @@ void func_shelter_b6_training_room_8017EE70(Task* arg0)
 
 void func_shelter_b6_training_room_8017F8B8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u8         rgb[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -890,7 +890,7 @@ static void func_shelter_b6_training_room_80180530(GfxCoord* from, GfxCoord* to,
 
 void func_shelter_b6_training_room_80180DB4(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     u8          rgb[3];
@@ -970,8 +970,8 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
 
 void func_shelter_b6_training_room_801811AC(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
+    EffectWork* mem;
+    GfxCoord*   coord;
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1037,7 +1037,7 @@ void func_shelter_b6_training_room_801811AC(Task* task)
 /// through `GsWSMATRIX`. Quad `i` takes its texture column from
 /// `(D_shelter_b6_training_room_80185C60[band][i] + age) % 6`, so each quad
 /// animates on its own phase, and `scale` sets its brightness.
-static void func_shelter_b6_training_room_80181368(GpEffWork* mem, GfxCoord* coord, s32 band)
+static void func_shelter_b6_training_room_80181368(EffectWork* mem, GfxCoord* coord, s32 band)
 {
     void**                             scratch;
     u8*                                head;
@@ -1152,8 +1152,8 @@ void func_shelter_b6_training_room_80181930(Task* task)
 
 void func_shelter_b6_training_room_80181A3C(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
+    EffectWork* mem;
+    GfxCoord*   coord;
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1335,10 +1335,10 @@ static void func_shelter_b6_training_room_80181FDC(GfxCoord* arg0, GfxCoord* arg
 
 void func_shelter_b6_training_room_8018245C(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        effectControl;
-    u8         rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         effectControl;
+    u8          rgb[3];
 
     mem           = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -1378,8 +1378,8 @@ void func_shelter_b6_training_room_8018245C(Task* task)
 
 void func_shelter_b6_training_room_801825C0(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
+    EffectWork* mem;
+    GfxCoord*   coord;
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1410,8 +1410,8 @@ void func_shelter_b6_training_room_801825C0(Task* task)
 
 void func_shelter_b6_training_room_801826E0(Task* task)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
+    EffectWork* mem;
+    GfxCoord*   coord;
 
     mem   = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1443,7 +1443,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
 
 void func_shelter_b6_training_room_80182804(Task* task)
 {
-    GpEffWork* mem;
+    EffectWork* mem;
 
     mem = task->spawnArg2.pointer;
     if (mem->age >= 0x15) {

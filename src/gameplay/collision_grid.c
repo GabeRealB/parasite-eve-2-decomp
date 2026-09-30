@@ -276,7 +276,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
 
     for (i = 0; i < Gp_GridParams->field_22; i++) {
         if (D_80115450[i] != 0 && func_800DD324(i, block->pos, block->ray, obj) != 0) {
-            slot = obj->context.capsule->recs;
+            slot = obj->context.capsule->contacts;
             if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
                                       [Gp_GridParams->field_C[i].surfaceClass]
@@ -335,7 +335,7 @@ static void func_800DE150(WorldCollisionBody* arg0)
     SCRATCH_STACK_CURSOR(void) = head - 0x50;
     block                      = (GpEdgeScratch*)(head - 0x50);
     mat                        = (MATRIX*)(head - 0x20);
-    src                        = &arg0->context.capsule->end0;
+    src                        = arg0->context.capsule->ends;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     for (i = 0; i < 2; i++) {
@@ -552,7 +552,7 @@ static void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
 void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 {
     GpNormScratch*         block;
-    GpActorD4Rec*          rec;
+    WorldCollisionCapsule* rec;
     SVECTOR*               src;
     WorldCollisionContact* slot;
     s32                    flags;
@@ -564,7 +564,7 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
 
     if (arg3 == 0) {
         if (arg0->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            slot = arg0->context.capsule->recs;
+            slot = arg0->context.capsule->contacts;
             for (;;) {
                 flags = slot->flags;
                 if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
@@ -580,7 +580,7 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
                 slot++;
             }
         } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-            slot = arg0->context.capsule->recs;
+            slot = arg0->context.capsule->contacts;
             for (;;) {
                 if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                     if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
@@ -598,7 +598,7 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
             }
         }
     } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-        slot = arg0->context.capsule->recs;
+        slot = arg0->context.capsule->contacts;
         for (;;) {
             if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
                 if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
@@ -619,7 +619,7 @@ void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 ar
 done_search:
     gte_SetRotMatrix(&arg0->coord->workm);
     for (; i < 2; i++) {
-        src             = &rec->end0 + i; // end0 and end1 are adjacent
+        src             = &rec->ends[i];
         block->local.vx = src->vx + arg0->pos.vx;
         block->local.vy = src->vy + arg0->pos.vy;
         block->local.vz = src->vz + arg0->pos.vz;

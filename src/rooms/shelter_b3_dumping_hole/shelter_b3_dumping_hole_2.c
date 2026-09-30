@@ -442,7 +442,7 @@ extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B008;
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018B01C;
 extern ActorCommand                        D_shelter_b3_dumping_hole_8018B078;
-extern GpScriptCmd                         D_shelter_b3_dumping_hole_8018AFAC[2];
+extern PadScriptCmd                        D_shelter_b3_dumping_hole_8018AFAC[2];
 extern GpScriptRec                         D_shelter_b3_dumping_hole_8018AFB4[2];
 extern ActorTransform                      D_shelter_b3_dumping_hole_8018B030;
 extern ActorTransform                      D_shelter_b3_dumping_hole_8018B048;
@@ -645,7 +645,7 @@ DumpingHoleDebrisEntry D_shelter_b3_dumping_hole_801884CC[13] = {
     { 0xFFFF, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0 },
 };
 
-GpOverlayIds D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
+EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
 
 GpEvsCmd D_shelter_b3_dumping_hole_80188640[45] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -766,7 +766,7 @@ ShelterB3DumpingHole2MessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
 
 ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
 
-GpOverlayIds D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
+EvsSceneKey D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
 
 GpEvsCmd D_shelter_b3_dumping_hole_8018968C[33] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
@@ -891,9 +891,9 @@ AnimationSet D_shelter_b3_dumping_hole_8018AF84 = {
     { NULL, D_shelter_b3_dumping_hole_8018A29C, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
 };
 
-GpScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_shelter_b3_dumping_hole_8018AFB4[2] = {
@@ -1712,7 +1712,7 @@ WorldCoordLight D_shelter_b3_dumping_hole_8018E20C[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9632, -0x2B02, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 925, 820 }, { 0, 0 } },
 };
 
-GpPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
+WorldCoordPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A38, -3000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 819, 737, 655 }, { 0, 0 } }, 3561, 4500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2903, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
@@ -1720,7 +1720,7 @@ GpPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
 
 GpRoomCoordSet D_shelter_b3_dumping_hole_8018E3DC = { 2, D_shelter_b3_dumping_hole_8018E20C, 3, D_shelter_b3_dumping_hole_8018E2BC, 0, NULL };
 
-GpPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
+WorldCoordPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1110, 985 }, { 0, 0 } }, 4202, 7241 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A98, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1106, 987 }, { 0, 0 } }, 4339, 7000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1109, 984 }, { 0, 0 } }, 4124, 7086 },
@@ -1761,12 +1761,12 @@ GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB3C[5] = {
     { 103, 417, 2, 0, { 0, 0 }, D_shelter_b3_dumping_hole_80188BC8 },
     { 252, 417, 5, 0, { 0, 0 }, D_80176354 },
     { 44, 44, 5, 2, { 0, 0 }, &D_80174D58 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b3_dumping_hole_8018EB78[2] = {
     { 32, 32, 3, 0, { 0, 0 }, D_8015F8D0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_dumping_hole_8018EB90[2] = {
@@ -1779,7 +1779,7 @@ GpAreaTmdRec D_shelter_b3_dumping_hole_8018EBB0[5] = {
     { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
     { 103, 421, 2, 1, { 0, 0 }, &D_80164B78 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_dumping_hole_8018EBEC[5] = {
@@ -2387,7 +2387,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     coord->coord.t[0] = placement->pos.vx;
     coord->coord.t[1] = placement->pos.vy;
     coord->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&coord->coord, placement->rot.vy, 1);
+    gfxRotMatrixY(&coord->coord, placement->rot.vy, 1);
     Gfx_RotMatrixX(&coord->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&coord->coord, placement->rot.vz, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2506,7 +2506,7 @@ void func_shelter_b3_dumping_hole_8017E94C(Task* arg0)
             c2->coord.t[0] += work->velX;
             c2->coord.t[1] += work->velY + work->fall;
             c2->coord.t[2] += work->velZ;
-            Gfx_RotMatrixY(&c2->coord, (s16)work->rotY, 1);
+            gfxRotMatrixY(&c2->coord, (s16)work->rotY, 1);
             Gfx_RotMatrixX(&c2->coord, (s16)work->rotX, 0);
             c2->composeStamp = GRAPHICS_COORD_DIRTY;
             return;
@@ -2548,7 +2548,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId   = Player_Status.weapon;
-                        msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.animationId          = 0x2F;
                         msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
                         msg.anim.blendFrames          = 0xA;
@@ -2563,7 +2563,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 2: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x32;
             msg.anim.blend                = ANIMATION_BLEND_RESET;
             msg.anim.blendFrames          = 0;
@@ -2579,7 +2579,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
             {
                 DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                 s32                weaponId   = Player_Status.weapon;
-                msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.anim.animationId          = 9;
                 msg.anim.blend                = ANIMATION_BLEND_RESET;
                 msg.anim.blendFrames          = 0;
@@ -2605,7 +2605,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
                     {
                         DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
                         s32                weaponId   = Player_Status.weapon;
-                        msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                        msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                         msg.anim.animationId          = 0x30;
                         msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
                         msg.anim.blendFrames          = 0xA;
@@ -2620,7 +2620,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 6: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x33;
             msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.anim.blendFrames          = 0xA;
@@ -2632,7 +2632,7 @@ static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0)
         case 7: {
             DumpingHoleEntity* w2         = (DumpingHoleEntity*)arg0->work;
             s32                weaponId   = Player_Status.weapon;
-            msg.anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            msg.anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.anim.animationId          = 0x31;
             msg.anim.blend                = ANIMATION_BLEND_INTERPOLATE;
             msg.anim.blendFrames          = 0xA;
@@ -2778,16 +2778,16 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
                 work->field_48                     = 0;
                 work->field_46                     = 0;
             }
-            w                               = (DumpingHoleEntity*)arg0->work;
-            w->field_0                      = w->field_28->extra.tmd->coords->coord.t[0];
-            t                               = w->field_28;
-            w->field_4                      = t->extra.tmd->coords->coord.t[1];
-            w->field_8                      = t->extra.tmd->coords->coord.t[2];
-            w->field_12                     = 0x400;
-            w->field_10                     = 0;
-            w->field_14                     = 0;
-            Mc_SaveData[0].state.sceneEvent = 0xC;
-            gStageSceneMusicEntry           = 3;
+            w                                                   = (DumpingHoleEntity*)arg0->work;
+            w->field_0                                          = w->field_28->extra.tmd->coords->coord.t[0];
+            t                                                   = w->field_28;
+            w->field_4                                          = t->extra.tmd->coords->coord.t[1];
+            w->field_8                                          = t->extra.tmd->coords->coord.t[2];
+            w->field_12                                         = 0x400;
+            w->field_10                                         = 0;
+            w->field_14                                         = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
+            gStageSceneMusicEntry                               = 3;
             arg0->state++;
             break;
         case 1:
@@ -2810,7 +2810,7 @@ void func_shelter_b3_dumping_hole_8017F820(Task* arg0)
             Gp_DispatchMsgPtr(w2->field_24, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
             weaponId                  = Player_Status.weapon;
             p                         = &anim;
-            anim.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             p->animationId            = 1;
             p->blend                  = ANIMATION_BLEND_INTERPOLATE;
             p->blendFrames            = 0xA;
@@ -2971,7 +2971,7 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     Gp_DispatchMsg(ent->field_24, 0x3F3, 1, 0);
     Gp_DispatchMsgPtr(ent->field_24, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
     ent2    = st->work;
-    desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+    desc[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
     desc[1] = 9;
     desc[2] = 0;
     desc[3] = 0;
@@ -3124,7 +3124,7 @@ void func_shelter_b3_dumping_hole_8018005C(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3179,7 +3179,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
         case 1:
             Gp_PulseState1C();
             Gp_StateC08.field_6 |= 1;
-            buf.words[0]         = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            buf.words[0]         = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             buf.words[1]         = 9;
             buf.words[2]         = 1;
             buf.words[3]         = 0xA;
@@ -3338,7 +3338,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             Gp_DispatchMsg(work->field_84, 0x7D5, 2, 0);
             break;
         case 5:
-            Mc_SaveData[0].state.location.loc.view = work->field_94;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->field_94;
             Gp_DispatchMsg(work->field_80, 0x3F3, 1, 0);
             Gp_DispatchMsg(work->field_84, 0x7D5, 1, 0);
             work->field_96 = 1;
@@ -3349,7 +3349,7 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             command5->command          = 0xC;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, command5, ACTOR_COMMAND_MESSAGE_APPLY);
             p        = words;
-            words[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            words[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             p[1]     = 1;
             p[2]     = 1;
             p[3]     = 0xA;
@@ -3427,7 +3427,7 @@ void func_shelter_b3_dumping_hole_80181430(void)
     Gp_DispatchMsg(ent->field_80, 0x3F3, 1, 0);
 
     p3       = desc3;
-    desc3[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+    desc3[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
     p3[1]    = 1;
     desc3[2] = 0;
     desc3[3] = 0;
@@ -3467,7 +3467,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
             D_shelter_b3_dumping_hole_8018F4D8          = 0;
             ((DumpingHoleEntity4*)task->work)->field_94 = gGameSession->location.loc.view;
             Gp_MsgPlayerWeapon(0);
-            desc[0] = Player_Status.weapon + (Mc_SaveData[0].state.characterId == 1 ? 1 : 0x22);
+            desc[0] = Player_Status.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
             desc[1] = 9;
             desc[2] = 1;
             desc[3] = 0xA;
@@ -3616,7 +3616,7 @@ static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 {
     OverlayEncounterPairWork* work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
 
@@ -3634,7 +3634,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -3644,7 +3644,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -3847,7 +3847,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
-        GpEnemy* enemy;
+        Enemy* enemy;
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_80142604, 1, 0, NULL);
         if (enemy != NULL) {
@@ -3855,7 +3855,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << 12;
+            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                                  += 1;
             return;
@@ -3868,14 +3868,14 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
     ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    t0  = ent->enemy;
+    Enemy*                      t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
         TmdObject* p              = t00->extra.tmd;
         p->clutRowOffset          = 2;
         p->texturePageOffset      = 0;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2C;
         request.command           = arg0->spawnArg1.value;
@@ -3896,7 +3896,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
-        GpEnemy* enemy;
+        Enemy* enemy;
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
@@ -3904,7 +3904,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << 12;
+            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                                  += 1;
             return;
@@ -3917,14 +3917,14 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
     ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    t0  = ent->enemy;
+    Enemy*                      t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
         TmdObject* p              = t00->extra.tmd;
         p->texturePageOffset      = 2;
         p->clutRowOffset          = 4;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2A;
         request.command           = arg0->spawnArg1.value;
@@ -3951,14 +3951,14 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
     ActorCommand              request;
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  t0  = ent->enemy0;
+    Enemy*                    t0  = ent->enemy0;
 
     if (t0 != NULL) {
         Task*      t00            = t0->task;
         TmdObject* p              = t00->extra.tmd;
         p->texturePageOffset      = 3;
         p->clutRowOffset          = 5;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2E;
         request.command           = arg0->spawnArg1.value;
@@ -3971,7 +3971,7 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 {
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  t   = ent->enemy1;
+    Enemy*                    t   = ent->enemy1;
 
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->enemy1 != NULL) {
@@ -3984,7 +3984,7 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             ActorCommand request;
             p->texturePageOffset      = 3;
             p->clutRowOffset          = 5;
-            t->workType               = 0x900;
+            t->workType               = ENEMY_WORK_PLAIN;
             request.context.loc.stage = 0;
             request.context.loc.area  = 0x2E;
             request.command           = arg0->spawnArg1.value;
@@ -4205,13 +4205,13 @@ void func_shelter_b3_dumping_hole_80183F84(Task* task)
 /// draws, and is released once the event state reaches 4.
 void func_shelter_b3_dumping_hole_80186218(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        kind;
-    s32        step;
-    s32        state;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         kind;
+    s32         step;
+    s32         state;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -4327,12 +4327,12 @@ void func_shelter_b3_dumping_hole_80186218(Task* task)
 
 void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    MATRIX*    m;
-    s32        i;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    MATRIX*     m;
+    s32         i;
 
-    mem   = (GpEffWork*)arg0->spawnArg2.pointer;
+    mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);

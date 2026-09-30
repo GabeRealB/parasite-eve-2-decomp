@@ -52,9 +52,9 @@ void factoryWhiteoutScene(Task* task)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 5:
-            Mc_SaveData[0].state.location.loc.room = 2;
-            gGameSession->location.loc.room        = 2;
-            gGameSession->roomObjsDirty            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+            gGameSession->location.loc.room                            = 2;
+            gGameSession->roomObjsDirty                                = 1;
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             goto advance;
         case 1:

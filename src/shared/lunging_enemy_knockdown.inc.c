@@ -38,23 +38,23 @@ void lungerKnockdownState(Task* arg0)
                 work->field_6B8        = 2;
                 work->field_4CC.pos.vz = 0x109;
             }
-            work->field_4CC.radius                             = 0x15E;
-            work->field_69C                                    = 0;
-            work->field_69E                                    = 0;
-            work->field_6DE                                    = 1;
-            work->field_4CC.flags                              = (u16)(work->field_4CC.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-            work->field_564.flags                              = (u16)(work->field_564.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-            ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                    = 1;
+            work->field_4CC.radius                           = 0x15E;
+            work->field_69C                                  = 0;
+            work->field_69E                                  = 0;
+            work->field_6DE                                  = 1;
+            work->field_4CC.flags                            = (u16)(work->field_4CC.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->field_564.flags                            = (u16)(work->field_564.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
+            work->field_6D4                                  = 1;
             break;
         case 1:
             if (work->field_698 == 0x14) {
-                snd = gLungerVoiceCues[work->field_6D6 + 0xC] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gLungerVoiceCues[work->field_6D6 + 0xC] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 == 0x2C) {
-                snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan2 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
             }
@@ -64,7 +64,7 @@ void lungerKnockdownState(Task* arg0)
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 work->field_6AE = (u16)((random >> 0x10) & 0x3F);
                 Gp_LcgState     = (s32)random;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp > 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
                     arg0->state     = 2;
@@ -78,7 +78,7 @@ void lungerKnockdownState(Task* arg0)
             break;
         case 2:
             if (work->field_698 == 0x19) {
-                snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan3 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
             }
@@ -88,7 +88,7 @@ void lungerKnockdownState(Task* arg0)
                 random2         = (Gp_LcgState * 5) + 0x71357911;
                 work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
                 Gp_LcgState     = (s32)random2;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp > 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
                     arg0->state     = 2;

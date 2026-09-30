@@ -248,7 +248,7 @@ GpSprtRec D_shelter_b6_growth_room_8017FEB8[8] = {
     { { .empty = D_shelter_b6_growth_room_8017FEA8 }, D_shelter_b6_growth_room_8017FEA8, NULL },
 };
 
-GpPointLight D_shelter_b6_growth_room_8017FF18[1] = {
+WorldCoordPointLight D_shelter_b6_growth_room_8017FF18[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2400, -2850, 4050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
 };
 
@@ -271,7 +271,7 @@ GpObj4C D_shelter_b6_growth_room_8017FF90[12] = {
 
 GpAreaTmdRec D_shelter_b6_growth_room_80180320[2] = {
     { 101, 509, 3, 0, { 0, 0 }, &D_80135E78 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_growth_room_80180338[13] = {
@@ -580,13 +580,13 @@ static void func_shelter_b6_growth_room_8017E448(s16 arg0, s16 arg1)
 
 void func_shelter_b6_growth_room_8017E564(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s32        t;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s32         t;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {
@@ -716,12 +716,12 @@ static void func_shelter_b6_growth_room_8017E7F0(GfxCoord* coord, u16 arg1, s16 
 
 void func_shelter_b6_growth_room_8017EAC8(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {

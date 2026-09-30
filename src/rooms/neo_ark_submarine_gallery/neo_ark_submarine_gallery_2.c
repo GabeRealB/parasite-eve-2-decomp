@@ -826,7 +826,7 @@ WorldCoordLight D_neo_ark_submarine_gallery_80184D64[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
 };
 
-GpPointLight D_neo_ark_submarine_gallery_80184EC4[10] = {
+WorldCoordPointLight D_neo_ark_submarine_gallery_80184EC4[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2400, 4608, 1600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2900, 4608, -600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1601, 4608, -2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
@@ -868,22 +868,22 @@ GpObj4C D_neo_ark_submarine_gallery_801854FC[10] = {
 GpAreaTmdRec D_neo_ark_submarine_gallery_801857F4[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 61, 61, 1, 0, { 0, 0 }, D_80158B0C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185818[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185830[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_submarine_gallery_80185848[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
@@ -1167,7 +1167,7 @@ static void func_neo_ark_submarine_gallery_80180254(SVECTOR* arg0, s32 arg1, s32
 /// sets the radius and the OT slot.
 static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -1181,7 +1181,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
     u8                 g;
     u8                 b;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(arg0);
@@ -1230,7 +1230,7 @@ static void func_neo_ark_submarine_gallery_80180AC8(SVECTOR* arg0, s32 arg1, s32
             Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
         } while (ang < 0x1000);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
 
 /// Draws one prism from `D_neo_ark_submarine_gallery_801818C8[arg1..arg1 + 7]`

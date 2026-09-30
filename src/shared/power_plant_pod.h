@@ -20,13 +20,13 @@
 
 void podBodyHit(Task* arg0);
 void podPulse(Task* arg0);
-void podDeathState(GpEnemy* arg0, Task* arg1);
-void podWeakPointSpawn(GpEnemy* arg0, Task* arg1);
-void podWeakPointHit(GpEnemy* arg0, Task* arg1);
-void podTickState(GpEnemy* arg0, Task* arg1);
+void podDeathState(Enemy* arg0, Task* arg1);
+void podWeakPointSpawn(Enemy* arg0, Task* arg1);
+void podWeakPointHit(Enemy* arg0, Task* arg1);
+void podTickState(Enemy* arg0, Task* arg1);
 void podRegenerate(Task* arg0);
 void podTickPose(Task* arg0);
-void podWeakPointTeardown(GpEnemy* arg0, Task* arg1);
+void podWeakPointTeardown(Enemy* arg0, Task* arg1);
 s32  podSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg);
 
 /* Defined by each package. */

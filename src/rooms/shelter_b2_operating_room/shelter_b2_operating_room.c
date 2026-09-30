@@ -59,8 +59,10 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive.value
-#define ROOM_EVENT_REQ    gRoomEventReq.value
+// The flag symbol carries seven unproven bytes after the flag.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The request symbol carries twelve unproven bytes after the request.
+#define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
 #define D_shelter_b2_operating_room_80180ABC (D_shelter_b2_operating_room_801809BC + 32)
@@ -89,27 +91,9 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and request of the exit the gate last accepted, latched for
 /// the transition task, and the flag saying the gate spawned it.
-extern RoomEventMsg gRoomEventMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} ShelterB2OperatingRoomStorage4224;
-STATIC_ASSERT_SIZEOF(ShelterB2OperatingRoomStorage4224, 8);
-
-extern ShelterB2OperatingRoomStorage4224 gRoomEventActive;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomEventReq value;
-    u8           retained[12];
-} ShelterB2OperatingRoomStorage4238;
-STATIC_ASSERT_SIZEOF(ShelterB2OperatingRoomStorage4238, 32);
-
-extern ShelterB2OperatingRoomStorage4238 gRoomEventReq;
+extern RoomEventMsg           gRoomEventMsg;
+extern RoomEventActiveStorage gRoomEventActive;
+extern RoomEventReqStorage    gRoomEventReq;
 
 /// The message and event the message handler latched for the room's event
 /// task, and the flag saying the handler spawned it.
@@ -716,7 +700,7 @@ GpSprtRec D_shelter_b2_operating_room_80183184[7] = {
     { { .elements = D_shelter_b2_operating_room_80182D6C }, D_shelter_b2_operating_room_80183154, NULL },
 };
 
-GpPointLight D_shelter_b2_operating_room_801831D8[14] = {
+WorldCoordPointLight D_shelter_b2_operating_room_801831D8[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1560, -1747, 1797 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 4014, 3932 }, { 0, 0 } }, 601, 1260 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2800, -1615, 1827 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 3686 }, { 0, 0 } }, 0, 2161 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -1705, 4987 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3932, 3932 }, { 0, 0 } }, 500, 1300 },
@@ -775,24 +759,24 @@ GpAreaTmdRec D_shelter_b2_operating_room_80183EB8[5] = {
     { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183EF4[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183F0C[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_operating_room_80183F24[4] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 0, { 0, 0 }, &D_80151E60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_operating_room_80183F54[7] = {
@@ -901,7 +885,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB2OperatingRoomStorage4224 gRoomEventActive = { 0 };
+RoomEventActiveStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -912,7 +896,7 @@ u8 D_shelter_b2_operating_room_80184234[4] = {
     8,
 };
 
-ShelterB2OperatingRoomStorage4238 gRoomEventReq;
+RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 

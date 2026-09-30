@@ -7,13 +7,13 @@
 /// flight on a body contact, a room face without the `field_1` flag, or after
 /// 0x5A frames: the burst effect and cue play, the child hides and advances
 /// to state 2, and a kind-1 body contact also starts a pad rumble.
-void lungerBulletFly(GpEnemy* arg0, Task* arg1)
+void lungerBulletFly(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork* work;
     GfxCoord*          coord;
     TmdObject*         tmd;
     SVECTOR*           scratch;
-    GpEnemy*           ctx;
+    Enemy*             ctx;
     s32                found;
     s32                idx;
     s32                sound;
@@ -44,7 +44,7 @@ void lungerBulletFly(GpEnemy* arg0, Task* arg1)
     coord->coord.t[1]  += (coord->coord.m[1][1] * 75) >> 11;
     coord->coord.t[2]  += (coord->coord.m[2][1] * 75) >> 11;
 
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(0x28);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x28);
     if (++work->field_E8 >= 4) {
         scratch->vx = 0;
         scratch->vy = 0x64;
@@ -68,7 +68,7 @@ void lungerBulletFly(GpEnemy* arg0, Task* arg1)
         Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
-        sound                  = gLungerImpactSound.value | (((u16)ctx->placeKey >> 0xC) << 8);
+        sound                  = gLungerImpactSound.value | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan                    = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         arg1->state = 2;

@@ -66,9 +66,9 @@
 
 extern UiObjectDesc D_800611E4;
 
-/// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].state.location.loc.view` as it was when the cutscene started, restored
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -738,7 +738,7 @@ GpSprtRec D_dryfield_night_motel_room_6_801857C0[12] = {
     { { .empty = D_dryfield_night_motel_room_6_801857B0 }, D_dryfield_night_motel_room_6_801857B0, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_room_6_80185850[5] = {
+WorldCoordPointLight D_dryfield_night_motel_room_6_80185850[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -882, -3651, 0x2A8A } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 528, 586, 603 }, { 0, 0 } }, 0x32C8, 0x4650 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2452, -1396, 2755 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3173, 3151, 3128 }, { 0, 0 } }, 2120, 4223 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4822, -1215, 4142 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, 0, 478 },
@@ -995,10 +995,10 @@ L_case5:
     GameFlag_SetNibble(0x59, 1);
     GameFlag_SetNibble(0x5A, 2);
     GameFlag_SetNibble(0x30, 0);
-    Mc_SaveData[0].state.location.loc.area = 8;
-    Mc_SaveData[0].state.location.loc.warp = 1;
-    Mc_SaveData[0].state.location.loc.room = 1;
-    gDisplayState.spriteVariant            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 8;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+    gDisplayState.spriteVariant                                = 1;
     Task_Spawn(0, 0x11, 0, 0);
     taskKill(task);
 }

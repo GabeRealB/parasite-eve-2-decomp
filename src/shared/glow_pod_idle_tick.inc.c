@@ -17,10 +17,10 @@ void glowPodIdleTick(Task* arg0)
     s32          snd;
     s16          mode;
     s32          id;
-    GpEnemy*     ctx;
+    Enemy*       ctx;
 
     work = (GlowPodWork*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     obj = arg0->extra.tmd->coords;
     if (Gp_CountRec18Hi(work->field_16C, 0x10000) != 0 || Gp_CountRec18Hi(work->field_134, 0x10000) != 0) {
         Gp_StateF0.prefix.bytes.field_3 = 1;
@@ -30,12 +30,12 @@ void glowPodIdleTick(Task* arg0)
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x40480007;
-                snd = ((ctx->placeKey >> 12) << 8) | id;
+                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             } else {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x402E0006;
-                snd = ((ctx->placeKey >> 12) << 8) | id;
+                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             }
             work->field_290 = 0;
@@ -48,12 +48,12 @@ void glowPodIdleTick(Task* arg0)
         if (work->field_2AC != 0) {
             ctx = arg0->spawnArg2.pointer;
             id  = 0x40480008;
-            snd = ((ctx->placeKey >> 12) << 8) | id;
+            snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
             SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
         } else {
             ctx = arg0->spawnArg2.pointer;
             id  = 0x402E0007;
-            snd = ((ctx->placeKey >> 12) << 8) | id;
+            snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
             SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
         }
         work->field_14C.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -70,12 +70,12 @@ void glowPodIdleTick(Task* arg0)
                 if (work->field_2AC != 0) {
                     ctx = arg0->spawnArg2.pointer;
                     id  = 0x40480007;
-                    snd = ((ctx->placeKey >> 12) << 8) | id;
+                    snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                 } else {
                     ctx = arg0->spawnArg2.pointer;
                     id  = 0x402E0006;
-                    snd = ((ctx->placeKey >> 12) << 8) | id;
+                    snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                 }
                 work->field_290 = 0;
@@ -95,12 +95,12 @@ void glowPodIdleTick(Task* arg0)
             if (work->field_2AC != 0) {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x40480008;
-                snd = ((ctx->placeKey >> 12) << 8) | id;
+                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             } else {
                 ctx = arg0->spawnArg2.pointer;
                 id  = 0x402E0007;
-                snd = ((ctx->placeKey >> 12) << 8) | id;
+                snd = ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
             }
             work->field_290 = 0;

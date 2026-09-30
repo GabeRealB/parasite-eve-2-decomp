@@ -22,7 +22,7 @@ void hopperDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 width
     firstCoord  = coords + firstJoint;
     secondCoord = coords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = (ActorsShared80163354Scratch*)SCRATCH_PUSH_BYTES(sizeof(ActorsShared80163354Scratch));
+        s = (ActorsShared80163354Scratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(ActorsShared80163354Scratch));
         Gp_UpdateCoord(firstCoord);
         Gp_UpdateCoord(secondCoord);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);

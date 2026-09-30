@@ -55,8 +55,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         gMainStreetEventSpawned.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventStagedMsg = *out;
+                ROOM_EVENT_LATCHED  = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -75,8 +75,8 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         gMainStreetEventSpawned.value = 0;
         if (GameFlag_GetNibble(ev.flagId) == 0 || ev.flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg     = *out;
-                gRoomEventLatched.value = ev;
+                gRoomEventStagedMsg = *out;
+                ROOM_EVENT_LATCHED  = ev;
                 if (ev.flagId != 0) {
                     GameFlag_SetNibble(ev.flagId, 1);
                 }
@@ -98,7 +98,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive != 0) {
+        if (ROOM_EVENT_ACTIVE != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -118,7 +118,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive != 0) {
+        if (ROOM_EVENT_ACTIVE != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);

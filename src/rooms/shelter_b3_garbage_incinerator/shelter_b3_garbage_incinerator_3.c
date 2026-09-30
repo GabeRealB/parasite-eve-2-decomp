@@ -1534,7 +1534,7 @@ WorldCoordLight D_shelter_b3_garbage_incinerator_8018D2E0[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -990, -2010, 990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3072, 3072 }, { 0, 0 } },
 };
 
-GpPointLight D_shelter_b3_garbage_incinerator_8018D390[25] = {
+WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018D390[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2150, -0x6464 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BC, -1760, -0x4CDF } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 20, { 0, 0, 0, 0 }, 0, NULL } }, { 1641, 1496, 1355 }, { 0, 0 } }, 1504, 1825 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38A4, -1760, -0x6658 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
@@ -1571,7 +1571,7 @@ WorldCoordLight D_shelter_b3_garbage_incinerator_8018DD08[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -990, -2010, 990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 1843, 1843 }, { 0, 0 } },
 };
 
-GpPointLight D_shelter_b3_garbage_incinerator_8018DDB8[21] = {
+WorldCoordPointLight D_shelter_b3_garbage_incinerator_8018DDB8[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36B0, -2150, -0x6464 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 0, 0 }, { 0, 0 } }, 1119, 1413 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38A4, -1760, -0x6658 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2868, 2725, 2582 }, { 0, 0 } }, 1040, 1361 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2BC0, -2000, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 0, 0 }, { 0, 0 } }, 1300, 1500 },
@@ -1680,7 +1680,7 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F8FC[4] = {
     { 32, 440, 3, 0, { 0, 0 }, D_80161854 },
     { 103, 419, 2, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, 5, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_garbage_incinerator_8018F92C[4] = {
@@ -1694,7 +1694,7 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F96C[4] = {
     { 70, 70, 1, 2, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 1, { 0, 0 }, &D_80151E60 },
     { 44, 424, 2, 1, { 0, 0 }, D_80173A54 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_garbage_incinerator_8018F99C[1] = {
@@ -1702,7 +1702,7 @@ AreaPlacement D_shelter_b3_garbage_incinerator_8018F99C[1] = {
 };
 
 GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9AC[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_garbage_incinerator_8018F9B8[4] = {
@@ -1716,7 +1716,7 @@ GpAreaTmdRec D_shelter_b3_garbage_incinerator_8018F9F8[4] = {
     { 32, 440, 3, 0, { 0, 0 }, D_80161854 },
     { 103, 419, 2, 0, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
     { 44, 422, 5, 1, { 0, 0 }, D_shelter_b3_garbage_incinerator_8018FAC0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_garbage_incinerator_8018FA28[3] = {
@@ -2159,7 +2159,7 @@ void func_shelter_b3_garbage_incinerator_8018110C(Task* task)
 static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s32 arg2)
 {
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -2174,17 +2174,17 @@ static void func_shelter_b3_garbage_incinerator_80181FC4(SVECTOR* v, s32 arg1, s
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
+    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         ang           = 0;
         packed        = arg2 << 16;
         blend         = (gDisplayState.animFrame & 1) << (packed >> 28);
@@ -2300,7 +2300,7 @@ void effectSpriteDrawBanked(GfxCoord* arg0, u16 arg1, s16 arg2, s16 arg3)
 static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s32 arg2, s32 arg3)
 {
     u8*                head;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_G4*           prim;
     s32                ang;
     s32                t;
@@ -2312,18 +2312,18 @@ static void func_shelter_b3_garbage_incinerator_80183E78(SVECTOR* v, s32 arg1, s
 
     head                       = SCRATCH_STACK_CURSOR(void);
     SCRATCH_STACK_CURSOR(void) = head - 0x10;
-    block                      = SCRATCH_STACK_CURSOR(RoomDraw13Scratch);
+    block                      = SCRATCH_STACK_CURSOR(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(v);
     gte_rtps();
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         lvl           = rsin(gDisplayState.animFrame * (s16)arg3) / 34 + 0x78;
-        arg1          = ((s16)arg1 * 64) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
+        arg1          = ((s16)arg1 * 64) / ((GlowCentreScratch*)(head - 0x10))->otz;
         r             = lvl * (((s16)arg2 >> 8) & 0xF) / 15;
         g             = lvl * (((s16)arg2 >> 4) & 0xF) / 15;
         b             = lvl * (arg2 & 0xF) / 15;
@@ -2524,7 +2524,7 @@ void func_shelter_b3_garbage_incinerator_80184D84(Task* arg0)
     switch (arg0->state) {
         case 0:
             v = Player_Status.weapon;
-            if (Mc_SaveData[0].state.characterId == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 v = v + 1;
             } else {
                 v = v + 0x22;

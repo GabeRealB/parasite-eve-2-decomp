@@ -8,7 +8,7 @@
 /// fifteenth of `vel` in x and z, has its colour refreshed from the model's
 /// world position, damps the two shake terms and has its rotation rebuilt at
 /// half scale.
-void incinBossGlobFall(GpEnemy* enemy, Task* task)
+void incinBossGlobFall(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work = task->work;
     GfxCoord*            coord;
@@ -28,7 +28,7 @@ void incinBossGlobFall(GpEnemy* enemy, Task* task)
     if (drop > 0) {
         coord->coord.t[1] = -0x32;
         work->field_1AC   = 0;
-        sfx               = ((enemy->placeKey >> 0xC) << 8) | 0x4020000C;
+        sfx               = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
         pan               = (s8)Gp_GetObjPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
         task->state++;

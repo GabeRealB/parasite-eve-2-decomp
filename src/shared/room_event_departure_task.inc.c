@@ -44,11 +44,11 @@ void roomDepartureTask(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7((s32)0x80000000, 0);
-            gDisplayState.spriteVariant             = 1;
-            Mc_SaveData[0].state.location.loc.stage = ROOM_DEPARTURE.stage;
-            Mc_SaveData[0].state.location.loc.area  = ROOM_DEPARTURE.area;
-            Mc_SaveData[0].state.location.loc.warp  = ROOM_DEPARTURE.warp;
-            Mc_SaveData[0].state.location.loc.room  = ROOM_DEPARTURE.room;
+            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = ROOM_DEPARTURE.stage;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = ROOM_DEPARTURE.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ROOM_DEPARTURE.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ROOM_DEPARTURE.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

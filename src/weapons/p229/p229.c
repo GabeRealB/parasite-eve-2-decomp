@@ -84,13 +84,13 @@ void func_p229_8011D1DC(Task* task)
 /// the firing pose once the aim check fails or the trigger has been released.
 static void func_p229_8011DDA0(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    GpEffWork*    eff;
-    s32           anim;
-    s16           frames;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    EffectWork*            eff;
+    s32                    anim;
+    s16                    frames;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -98,7 +98,7 @@ static void func_p229_8011DDA0(Task* arg0)
     /* The push must stay *after* the three loads above, or the `lui`/`ori`
        of the scratch-head address wins the ready list and reschedules the
        entry. */
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
@@ -166,7 +166,7 @@ static void func_p229_8011DDA0(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 frames = 0x12;
                 if (actor->field_97F == 1) {

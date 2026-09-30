@@ -18,7 +18,7 @@ void bursterDormantTick(Task* arg0)
 
     coord = arg0->extra.tmd->coords;
     work  = (Actor104600Work*)arg0->work;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     if (Gp_CountRec18Hi(&work->rec11C, 0x10000) != 0) {
         work->field_2D8 = 1;
     }
@@ -37,10 +37,10 @@ void bursterDormantTick(Task* arg0)
             Gp_LcgState     = rng;
             work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
             if (work->field_2D6 != 0) {
-                soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40460009;
+                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else {
-                soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x402E0001;
+                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
         }

@@ -11,7 +11,7 @@
 /// the result is added to the root translation before the three rotations are
 /// rebuilt from `field_98` and `field_96`. Bails to `Gp_DestroyEnemy` while the
 /// overlay is shutting down.
-void incinBossSpinnerChase(GpEnemy* enemy, Task* task)
+void incinBossSpinnerChase(Enemy* enemy, Task* task)
 {
     Actor403200SpinnerWork* work;
     SVECTOR                 step;
@@ -41,10 +41,10 @@ void incinBossSpinnerChase(GpEnemy* enemy, Task* task)
         work->spin = spin;
         phase      = work->spin;
         if ((phase & 3) == 1) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x40, 0);
         }
         if ((work->spin & 3) == 3) {
-            Gfx_RotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, -0x3C, 0);
         }
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(task->extra.tmd->coords);
@@ -87,7 +87,7 @@ void incinBossSpinnerChase(GpEnemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]  += step.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->field_98 / 2, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, work->field_98 * 2, 0);
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, work->field_96, 0);
 }

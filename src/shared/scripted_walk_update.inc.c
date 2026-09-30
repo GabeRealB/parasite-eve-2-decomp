@@ -40,7 +40,7 @@ void scriptedWalkUpdate(Task* task)
         }
         if (work->st.animId == 3 && work->turnFrames != 0) {
             work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
+            gfxRotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }

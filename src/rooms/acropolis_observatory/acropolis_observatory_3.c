@@ -85,9 +85,9 @@ STATIC_ASSERT_SIZEOF(AobFlareScratch, 0x18);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses, and
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `Gp_StateC08.field_A` gate the scene's setup (the latter is the
-/// cutscene/among-us mode flag). `Mc_SaveData[0].state.location.loc.room` is the field-actor mode byte the
+/// cutscene/among-us mode flag). `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` is the field-actor mode byte the
 /// scene switches to 1 when it hands control back.
 
 extern s16 D_acropolis_observatory_8017FE68[];
@@ -232,32 +232,32 @@ GpObj4C D_acropolis_observatory_80180D6C[9] = {
 
 GpAreaTmdRec D_acropolis_observatory_80181018[2] = {
     { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181030[2] = {
     { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181048[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181060[2] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181078[2] = {
     { 13, 13, 3, 0, { 0, 0 }, D_80158A18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_observatory_80181090[2] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801810A8[2] = {
@@ -267,7 +267,7 @@ AreaPlacement D_acropolis_observatory_801810A8[2] = {
 
 GpAreaTmdRec D_acropolis_observatory_801810C8[2] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801810E0[2] = {
@@ -287,7 +287,7 @@ AreaPlacement D_acropolis_observatory_80181100[7] = {
 
 GpAreaTmdRec D_acropolis_observatory_80181170[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_80181188[3] = {
@@ -297,7 +297,7 @@ AreaPlacement D_acropolis_observatory_80181188[3] = {
 };
 
 GpAreaTmdRec D_acropolis_observatory_801811B8[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_801811C4[3] = {
@@ -308,7 +308,7 @@ AreaPlacement D_acropolis_observatory_801811C4[3] = {
 
 GpAreaTmdRec D_acropolis_observatory_801811F4[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_8018120C[2] = {
@@ -318,7 +318,7 @@ AreaPlacement D_acropolis_observatory_8018120C[2] = {
 
 GpAreaTmdRec D_acropolis_observatory_8018122C[2] = {
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_acropolis_observatory_80181244[2] = {
@@ -348,7 +348,7 @@ GpAreaVariant D_acropolis_observatory_80181264[19] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_observatory_801812FC[12] = {
+WorldCoordPointLight D_acropolis_observatory_801812FC[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5386, -4300, -0x2A44 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3686, 4096 }, { 0, 0 } }, 100, 6000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6650, -4300, -6290 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3686, 4096 }, { 0, 0 } }, 1000, 4500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -878, -5457, -610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3276, 2867 }, { 0, 0 } }, 500, 5000 },
@@ -830,13 +830,13 @@ GpViewRec D_acropolis_observatory_80183360[8] = {
     { { { { 3757, 0, 1630 }, { 1140, 2928, -2626 }, { -1165, 2863, 2686 } }, { 1914, 9275, 7324 } }, 230 },
 };
 
-GpScriptCmd D_acropolis_observatory_80183480[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4867, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_observatory_80183480[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_observatory_80183498[2] = {
@@ -844,13 +844,13 @@ GpScriptRec D_acropolis_observatory_80183498[2] = {
     { 60, 60, 1, 0 },
 };
 
-GpScriptCmd D_acropolis_observatory_801834A0[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4867, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_observatory_801834A0[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_observatory_801834B8[2] = {
@@ -949,18 +949,18 @@ void func_acropolis_observatory_8017E19C(Task* task)
             break;
         case 5:
             weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(work->target, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            Mc_SaveData[0].state.location.loc.room = 1;
-            gGameSession->location.loc.room        = 1;
-            gGameSession->roomObjsDirty            = 1;
-            gGameSession->viewDirty                = 1;
-            task->state                            = task->state + 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            gGameSession->location.loc.room                            = 1;
+            gGameSession->roomObjsDirty                                = 1;
+            gGameSession->viewDirty                                    = 1;
+            task->state                                                = task->state + 1;
             break;
         case 6:
             Gp_DispatchMsg(work->target, 0x3F1, 0, 0);

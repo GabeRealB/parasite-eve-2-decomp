@@ -48,13 +48,27 @@ enum {
     TEXT_GLYPH_V_BIAS_LARGE  = 0x80,
 };
 
-/// Records in the medium face: one per character byte from ' ' through 0xFF.
+/// Record count of the medium UI face.
+///
+/// One record per character byte from ' ' through 0xFF, indexed as
+/// `byte - ' '`, so every such byte is in range. The large face covers the
+/// same bytes; the small face stops at 0x7A and does not use this count.
+/// 224 records occupy 0xA80 bytes.
 enum { FONT_GLYPH_MEDIUM_COUNT = 0x100 - ' ' };
+
+/// Record count of the large UI face.
+///
+/// One record per character byte from ' ' through 0xFF, indexed as
+/// `byte - ' '`, so every such byte is in range. The medium face covers the
+/// same bytes under `FONT_GLYPH_MEDIUM_COUNT`. The small face stops at 0x7A
+/// and does not use this count.
+/// 224 records occupy 0xA80 bytes.
+enum { FONT_GLYPH_LARGE_COUNT = 0x100 - ' ' };
 
 /// Texture bounds and pen metrics for one encoded UI-font character.
 ///
 /// Tables are indexed by the character byte minus ' ': `_gFontGlyphsMedium` and
-/// `Font_Glyphs1` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
+/// `_gFontGlyphsLarge` cover 0x20..0xFF, and `Font_Glyphs2` covers 0x20..0x7A.
 /// The texture origin is relative to a 4bpp page; the selected font supplies
 /// an additional V bias. Adjacent right/left kerning classes combine modulo
 /// 256, allowing pair tightening when equal and non-neutral.
@@ -73,6 +87,7 @@ typedef struct {
 } _FontGlyph;
 STATIC_ASSERT_SIZEOF(_FontGlyph, 0xC);
 STATIC_ASSERT(FONT_GLYPH_MEDIUM_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsMediumBytes);
+STATIC_ASSERT(FONT_GLYPH_LARGE_COUNT * sizeof(_FontGlyph) == 0xA80, fontGlyphsLargeBytes);
 
 /// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
 static SPRT D_80071710;
@@ -83,7 +98,7 @@ static TaskDesc D_8005EDA0[];
 
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT];
 
-static _FontGlyph Font_Glyphs1[];
+static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT];
 
 static _FontGlyph Font_Glyphs2[];
 
@@ -208,7 +223,18 @@ TaskDesc* gTaskDescBanks[15] = {
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT] = {
 #include "assets/font_glyphs0.inc"
 };
-static _FontGlyph Font_Glyphs1[] = {
+
+/// Large UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
+///
+/// `Text_DrawString` and `Text_MeasureAndCenter` select this face when
+/// `glyphTable` is neither `TEXT_GLYPH_TABLE_MEDIUM` nor
+/// `TEXT_GLYPH_TABLE_SMALL`. Named callers use `TEXT_GLYPH_TABLE_LARGE` and
+/// `TEXT_GLYPH_TABLE_LARGE_ALTERNATE`; any other selector takes this face too.
+/// Drawing also selects it for an `\sL` command, in either letter's case, and
+/// adds `TEXT_GLYPH_V_BIAS_LARGE` to each record's texture V. The initializer
+/// is the embedded `font_glyphs1` catalogue blob. Bytes below space are not
+/// records in this face.
+static _FontGlyph _gFontGlyphsLarge[FONT_GLYPH_LARGE_COUNT] = {
 #include "assets/font_glyphs1.inc"
 };
 static _FontGlyph Font_Glyphs2[] = {
@@ -223,21 +249,32 @@ void taskNoopCallback(Task* unusedTask)
 {
 }
 
-/// Kerning between two adjacent glyphs: unless the previous glyph's trailing
-/// byte (`prev`, its rightKerningClass) and the next glyph's leftKerningClass
-/// sum to -1..1 as a byte, the pen position `x` is pulled in by one pixel when
-/// `glyphTable` is `TEXT_GLYPH_TABLE_SMALL` and by two otherwise. The string
-/// drawer applies that test to the request's selector, which an inline face
-/// command does not update.
-#define TEXT_APPLY_KERNING(x, prev, glyph, req)                  \
-    do {                                                         \
-        if ((u8)((prev) + (glyph)->leftKerningClass + 1) >= 3) { \
-            if ((req)->glyphTable == TEXT_GLYPH_TABLE_SMALL) {   \
-                (x) -= 1;                                        \
-            } else {                                             \
-                (x) -= 2;                                        \
-            }                                                    \
-        }                                                        \
+/// Tightens the horizontal pixel lvalue `x` by the pair-kerning gap before `glyph`.
+///
+/// `previousRightClass` is the previous glyph's right-edge class, one of
+/// `FONT_KERNING_CLASS_*`, or neutral when no glyph precedes this one.
+/// `glyph` points at the next `_FontGlyph`; only `leftKerningClass` is read.
+/// `request` points at the `TextDrawReq`; only `glyphTable` is read. Each
+/// argument is evaluated once. `x` must be a modifiable lvalue in
+/// draw-environment pixels. The replacement is a statement and captures nothing.
+///
+/// The class bytes are 0, 1 and 255. The gap tightens when the low 8 bits of
+/// `previousRightClass + leftKerningClass + 1` are at least 3, which for these
+/// bytes is exactly an equal non-neutral pair (1 with 1, or 255 with 255).
+/// Read as signed codes +1 and -1, those pairs sum to +2 and -2; every other
+/// pair sums to -1, 0 or 1 and keeps its spacing. `TEXT_GLYPH_TABLE_SMALL`
+/// pulls `x` in by one pixel, and every other `glyphTable` value pulls it in
+/// by two. The count follows `glyphTable`, not the metrics table that
+/// produced `glyph`.
+#define TEXT_APPLY_KERNING(x, previousRightClass, glyph, request)              \
+    do {                                                                       \
+        if ((u8)((previousRightClass) + (glyph)->leftKerningClass + 1) >= 3) { \
+            if ((request)->glyphTable == TEXT_GLYPH_TABLE_SMALL) {             \
+                (x) -= 1;                                                      \
+            } else {                                                           \
+                (x) -= 2;                                                      \
+            }                                                                  \
+        }                                                                      \
     } while (0)
 
 static s32 Text_MeasureGlyphWidth(TextDrawReq* req, u8* str, const _FontGlyph* table)
@@ -432,7 +469,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
             request->vBias = TEXT_GLYPH_V_BIAS_SMALL;
             break;
         default:
-            table          = Font_Glyphs1;
+            table          = _gFontGlyphsLarge;
             request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
             break;
     }
@@ -528,7 +565,7 @@ void Text_DrawString(TextDrawReq* request, u8* text)
                                 break;
                             case 'L':
                             case 'l':
-                                table          = Font_Glyphs1;
+                                table          = _gFontGlyphsLarge;
                                 request->vBias = TEXT_GLYPH_V_BIAS_LARGE;
                                 break;
                         }
@@ -793,7 +830,7 @@ void Text_MeasureAndCenter(TextDrawReq* request, u8* arg1)
             table = Font_Glyphs2;
             break;
         default:
-            table = Font_Glyphs1;
+            table = _gFontGlyphsLarge;
             break;
     }
 

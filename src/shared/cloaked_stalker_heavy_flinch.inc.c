@@ -32,7 +32,7 @@ void stalkerHeavyFlinchSeq(Task* arg0)
                 work->field_6DA = 3;
                 work->field_6DC = 0x1E;
                 work->field_6DE = 0xF;
-                work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan             = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
                 break;

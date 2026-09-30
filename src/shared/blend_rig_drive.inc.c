@@ -15,7 +15,7 @@ void blendRigDrive(Task* arg0)
     BlendRigWork* secondaryWork;
     BlendRigWork* tickWork;
     BlendRigWork* work;
-    GpEnemy*      enemy;
+    Enemy*        enemy;
     s32           animation;
     s32           index;
     u32           table;
@@ -143,7 +143,7 @@ void blendRigDrive(Task* arg0)
     }
     sound = blendRigAnimEvent(work);
     if (sound != 0) {
-        soundId = sound | (((u16)enemy->placeKey >> 0xC) << 8);
+        soundId = sound | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, (s32)pan,
                             (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));

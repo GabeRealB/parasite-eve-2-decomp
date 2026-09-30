@@ -333,7 +333,7 @@ static void Title_MenuTask(Task* task)
 
 /// Restore demo card / save banks from Fs_ActorLoadBase2 (or 0x80600100 when
 /// gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY).
-/// Preserves Mc_SaveData[0].state.vibration / field_23 across the bulk copy.
+/// Preserves gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
     u8* src;
@@ -345,14 +345,14 @@ void Title_RestoreDemoCard(void)
 
     src         = (u8*)Fs_ActorLoadBase2;
     bank        = GAME_FLAG_NIBBLE_BANK_LIVE;
-    saveField23 = Mc_SaveData[0].state.demoScene;
-    saveField21 = Mc_SaveData[0].state.vibration;
+    saveField23 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
+    saveField21 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         src = (u8*)0x80600100;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.location.loc.stage, Mc_SaveData[0].state.location.loc.area);
+    printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 
-    memcpy(&Mc_SaveData[0], src, sizeof(McSaveData));
+    memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], src, sizeof(McSaveData));
     src += sizeof(McSaveData);
 
     // Restore one serialized player image using the save format's bank stride.
@@ -379,12 +379,12 @@ void Title_RestoreDemoCard(void)
 
     memcpy(&gGameFlagNibbleBanks[bank], src, sizeof(gGameFlagNibbleBanks[bank]));
 
-    Mc_SaveData[0].state.demoScene = saveField23;
-    Mc_SaveData[0].state.vibration = saveField21;
-    if (Fs_StageCdfIsAvailable(Mc_SaveData[0].state.location.loc.stage) != 1) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene = saveField23;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saveField21;
+    if (Fs_StageCdfIsAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != 1) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
-    printf(Title_DemoCardRestoreMsg, Mc_SaveData[0].state.location.loc.stage, Mc_SaveData[0].state.location.loc.area);
+    printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 }
 
 static void Title_FlagAdvanceTask(Task* arg0)
@@ -552,7 +552,7 @@ void Title_EnqueueDemoScene(s32 arg0)
     u8  param2[4];
     u8* param1;
 
-    param1                 = SCRATCH_PUSH_BYTES(8);
+    param1                 = SCRATCH_STACK_RESERVE_BYTES(8);
     gGameSession->field_80 = 0;
     param1[3]              = 0;
     param1[2]              = 0x50;

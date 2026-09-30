@@ -23,7 +23,7 @@ void stalkerCloakFade(Task* arg0)
     u32              random;
     s16              t;
 
-    sc    = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
     obj   = arg0->extra.tmd;
     coord = obj->coords;
@@ -86,7 +86,7 @@ void stalkerCloakFade(Task* arg0)
                         SndEvt_EnqueueType7(work->field_6BC, 1);
                         work->field_6BC = 0;
                     }
-                    snd = gStalkerFadeCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    snd = gStalkerFadeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
                 }

@@ -13,7 +13,7 @@
 /// body's 0x8000 bit.
 void bursterContacts(Task* arg0)
 {
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     WorldCollisionContact* effectRec;
     s32                    effect;
     s32                    pushY;
@@ -31,7 +31,7 @@ void bursterContacts(Task* arg0)
     s32                    i;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorContactFrame*)SCRATCH_PUSH_BYTES(0x4C);
+    scratch  = (ActorContactFrame*)SCRATCH_STACK_RESERVE_BYTES(0x4C);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
     movement = func_800E0C10(work->rec154, &scratch->delta, 4, &scratch->result);

@@ -900,7 +900,7 @@ GpSprtRec D_shelter_b2_laboratory_801854D0[15] = {
     { { .elements = D_shelter_b2_laboratory_801851B8 }, D_shelter_b2_laboratory_8018549C, D_shelter_b2_laboratory_801854BC },
 };
 
-GpPointLight D_shelter_b2_laboratory_80185584[10] = {
+WorldCoordPointLight D_shelter_b2_laboratory_80185584[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5547, -1204, 1082 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2071, 2222, 2201 }, { 0, 0 } }, 4000, 8000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6419, -1756, 3004 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 890, 1978, 1175 }, { 0, 0 } }, 1261, 1721 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2237, -2188, 1564 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1010, 2438, 694 }, { 0, 0 } }, 500, 1600 },
@@ -956,7 +956,7 @@ GpObj4C D_shelter_b2_laboratory_80185D84[19] = {
 
 GpAreaTmdRec D_shelter_b2_laboratory_80186328[2] = {
     { 101, 430, 0, 0, { 0, 0 }, D_801350B0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_laboratory_80186340[2] = {
@@ -1157,7 +1157,7 @@ void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;
@@ -1270,10 +1270,10 @@ void func_shelter_b2_laboratory_80180350(Task* task)
             }
             return;
         case 1:
-            Mc_SaveData[0].state.sceneEvent = 0xE;
-            pair                            = &gStageMusicParams;
-            pair->fadeFrames                = 0;
-            pair->unusedCommandArg          = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xE;
+            pair                                                = &gStageMusicParams;
+            pair->fadeFrames                                    = 0;
+            pair->unusedCommandArg                              = 0;
             Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
             task->state++;
             return;

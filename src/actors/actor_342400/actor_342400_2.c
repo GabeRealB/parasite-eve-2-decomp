@@ -64,7 +64,7 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-// the main enemy's `GpEnemy::param` record
+// the main enemy's `Enemy::param` record
 extern u8 gHopperAnimBank[]; // animation bank handed to `func_800B3F84`
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
@@ -875,7 +875,7 @@ static __inline__ void update_rotation(Task* arg0)
 /// dead, 8 / 9 for messages 4 / 5 while `field_438` is clear.
 static void func_actor_342400_801640B0(Task* arg0)
 {
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
     GfxCoord*        coord = obj->coords;
@@ -1016,7 +1016,7 @@ static const TaskFuncTable5 D_actor_342400_80161F8C = { {
 static void func_actor_342400_8016666C(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
     GfxCoord*        coord = obj->coords;
     TaskFuncTable5   sp    = D_actor_342400_80161F8C;

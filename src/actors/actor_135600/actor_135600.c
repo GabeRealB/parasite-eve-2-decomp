@@ -797,13 +797,13 @@ static void func_actor_135600_80132234(Task* task)
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
         work->child1 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
     if (spawned != NULL) {
         work->child0 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);
@@ -1092,9 +1092,10 @@ static void func_actor_135600_80132F28(Task* task)
 
 /// The 0x7D5 entry of `D_actor_135600_8013B0F4`, the actor's visibility,
 /// switched on the word `mode`. Flag 0x80 hides the model (the tick skips the
-/// shadow while it is set). Mode 0 hides the model and clears flag 4, 1 shows
-/// it, allocates its buffers and clears 4, 2 hides it, sets 4 and starts the
-/// `freeCountdown` countdown at 2, and 3 shows it while setting 4. Anything else
+/// shadow while it is set). Mode 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows
+/// it, allocates its buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it, sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts the
+/// `freeCountdown` countdown at 2, and 3 shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the flags alone; the handled modes return 0. Either
 /// way the resulting flags are copied onto the objects of the three tasks the
 /// setup state parked at `child0` / `child1` / `child2`.

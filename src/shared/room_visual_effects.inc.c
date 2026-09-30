@@ -42,9 +42,9 @@
 /// and releases the block when that state reaches 4.
 static inline void RoomFx_MoteTask(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        lifetime;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         lifetime;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

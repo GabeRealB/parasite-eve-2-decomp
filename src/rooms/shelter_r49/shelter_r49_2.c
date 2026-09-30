@@ -136,7 +136,7 @@ GpSprtRec D_shelter_r49_8017DCA0[3] = {
     { { .empty = D_shelter_r49_8017DC90 }, D_shelter_r49_8017DC90, NULL },
 };
 
-GpPointLight D_shelter_r49_8017DCC4[1] = {
+WorldCoordPointLight D_shelter_r49_8017DCC4[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 6000, 7000 },
 };
 
@@ -146,7 +146,7 @@ GpRoomCoordSet D_shelter_r49_8017DD24[1] = {
 
 GpAreaTmdRec D_shelter_r49_8017DD3C[2] = {
     { 111, 439, 0, 0, { 0, 0 }, D_801413EC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r49_8017DD54[2] = {
@@ -294,11 +294,11 @@ void func_shelter_r49_8017D8D8(Task* arg0)
             break;
         case 3:
             SetDispMask(1);
-            Mc_SaveData[0].state.location.loc.stage = 5;
-            Mc_SaveData[0].state.location.loc.area  = 7;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 7;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

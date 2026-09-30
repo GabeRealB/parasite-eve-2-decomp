@@ -13,7 +13,7 @@
 void bursterReactionDispatch(Task* arg0)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              frames;
 
     work = (Actor104600Work*)arg0->work;

@@ -114,7 +114,7 @@ extern GpEvsCmd             D_actor_146300_80138A38[];
 extern GpEvsCmd             D_actor_146300_80138AC8[];
 extern s32                  D_actor_146300_80142824;
 
-static void func_actor_146300_80132728(GpEnemy* enemy, Task* task);
+static void func_actor_146300_80132728(Enemy* enemy, Task* task);
 static void func_actor_146300_801327A4(Task* task);
 static void func_actor_146300_801327CC(Task* task);
 
@@ -1338,7 +1338,7 @@ Task* gActorSelfTask;
 Task* gActorHelperTask;
 
 static void func_actor_146300_8013224C(void);
-static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task);
+static void func_actor_146300_801324AC(Enemy* enemy, Task* task);
 
 void func_actor_146300_80131ECC(Task* task)
 {
@@ -1511,13 +1511,13 @@ void func_actor_146300_80132418(s32 arg0)
 /// The companion task from `D_actor_146300_801427C8` carries the model whose
 /// texture page and CLUT row come out of the current area record - the session
 /// location key is copied onto the stack, `areaSyncLocationVariant` fills in its
-/// nested index and the enemy's `placeKey >> 12` selects the 0x10-byte record.
+/// nested index and the enemy's `placeKey >> ENEMY_PLACE_INDEX_SHIFT` selects the 0x10-byte record.
 /// The actor's task is then reparented under that companion, the model gets the
 /// block's light and colour matrices and is relit from a point 0x320 above its
 /// root translation, the animation stream is bound, the animation state is
 /// seeded with mode 2 / id 0xB, the message table is published and the
 /// per-frame update runs once before the state advances.
-static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
+static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor146300Work* work;
@@ -1568,7 +1568,7 @@ static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
 /// 0, the per-frame update after it.
 void func_actor_146300_801326CC(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_146300_801324AC,
         func_actor_146300_80132728,
     };
@@ -1580,7 +1580,7 @@ void func_actor_146300_801326CC(Task* task)
 /// State 1 of the task handler `func_actor_146300_801326CC`: refreshes the model
 /// root's world matrix, relights the model from a point 0x320 above its
 /// translation, then runs the per-frame update.
-static void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
+static void func_actor_146300_80132728(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
     GfxCoord*  coord;
@@ -1596,7 +1596,7 @@ static void func_actor_146300_80132728(GpEnemy* enemy, Task* task)
     func_actor_146300_801327CC(task);
 }
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
+/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
 static void func_actor_146300_801327A4(Task* task)
 {

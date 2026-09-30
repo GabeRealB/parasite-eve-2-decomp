@@ -39,7 +39,7 @@ extern GpEvsCmd D_dryfield_night_dilapidated_house_801868F4[88];
 
 extern GpEvsCmd D_dryfield_night_dilapidated_house_80187134[16];
 
-extern GpPointLight D_dryfield_night_dilapidated_house_80189500[8];
+extern WorldCoordPointLight D_dryfield_night_dilapidated_house_80189500[8];
 
 extern DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidated_house_80189800;
 

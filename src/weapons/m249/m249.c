@@ -34,7 +34,7 @@ static void func_m249_8011D1DC(Task* arg0)
     M249Scratch* scratch;
     s32          anim;
 
-    SCRATCH_PUSH_BYTES(0x68);
+    SCRATCH_STACK_RESERVE_BYTES(0x68);
     scratch = SCRATCH_STACK_CURSOR(M249Scratch);
     actor   = arg0->work;
     coord   = arg0->extra.tmd->coords;
@@ -92,7 +92,7 @@ static void func_m249_8011D1DC(Task* arg0)
             if ((s8)func_801060E0(arg0) != 0 && func_80106264(1) > 0) {
                 goto fire;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

@@ -285,7 +285,7 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task);
+static void func_actor_110800_80131F9C(Enemy* enemy, Task* task);
 
 #include "../../shared/view_figure_spawn.inc.c"
 
@@ -303,7 +303,7 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task);
 /// halfword.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
-/// is copied into `$a0` (the first, unused, is the `GpEnemy*`), and the model
+/// is copied into `$a0` (the first, unused, is the `Enemy*`), and the model
 /// and its coordinate are read through that copy. `task->extra` is written
 /// twice with the coordinate taken through the first read: that leaves cse's
 /// load in a temporary and copies it into `obj`, which is the `move` between
@@ -312,7 +312,7 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task);
 /// The switch reads `animId` signed. The field is unsigned, so the cast is
 /// load-bearing: without it the halfword load is `lhu` where the target has
 /// `lh`.
-static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
+static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
 {
     GfxCoord*  coord;
     TmdObject* obj;
@@ -381,7 +381,7 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
 /// overlay's other functions reach the block without the task.
 void func_actor_110800_801322A0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         viewFigureSpawnState,
         func_actor_110800_80131F9C,
     };

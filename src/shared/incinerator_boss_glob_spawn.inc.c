@@ -16,10 +16,10 @@
 ///
 /// Bails out -- destroying the enemy -- when the overlay is shutting down or
 /// the work block cannot be allocated.
-void incinBossGlobSpawn(GpEnemy* enemy, Task* task)
+void incinBossGlobSpawn(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
-    GpEnemy*             owner;
+    Enemy*               owner;
     Actor403200Work*     host;
     Task*                player;
     SVECTOR              vec;
@@ -50,7 +50,7 @@ void incinBossGlobSpawn(GpEnemy* enemy, Task* task)
     if (task->extra.tmd->buffer != NULL) {
         tmdProcessStream(task->extra.tmd);
         tmdProcessStream(task->extra.tmd);
-        sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020001C;
+        sfx = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020001C;
         pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)(gpGetObjDepth(task->extra.tmd->coords) / 2));
     }

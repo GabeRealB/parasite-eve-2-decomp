@@ -91,9 +91,9 @@ extern Actor3417002MessageEntry D_actor_341700_80175F5C[4]; // stored into `Task
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1);
-static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1);
-static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1);
+static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1);
+static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1);
 
 extern TmdSource D_actor_341700_80175F38;
 static void      func_actor_341700_8016D32C(Task*);
@@ -805,14 +805,14 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1);
-static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1);
+static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1);
+static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts.h"
 
 #include "../../shared/actor_contacts.inc.c"
 
-static void func_actor_341700_8016C0F4(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
 {
     SVECTOR             vec;
     Actor341700SubWork* work = (Actor341700SubWork*)arg1->work;
@@ -1023,7 +1023,7 @@ static const GpEnemyTaskFuncTable3 D_actor_341700_80162058 = { {
 /// so the case list keeps three nodes and GCC's tree tests `case 1` at the
 /// root; dropping the case makes `case 2` the root and the emitted branches
 /// come out with the wrong polarity and a stray low-bound test.
-static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
 {
     VECTOR                block;
     Actor341700SubWork*   work = (Actor341700SubWork*)arg1->work;
@@ -1129,7 +1129,7 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd)
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
 {
     Actor341700SubWork* work;
     Actor341700SubWork* workAllocation;
@@ -1175,7 +1175,7 @@ static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     arg1->state  += 1;
 }
 
-static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
@@ -1186,7 +1186,7 @@ static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     }
 }
 
-static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
+static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1)
 {
     TmdObject* model;
 

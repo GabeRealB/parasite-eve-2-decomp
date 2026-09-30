@@ -60,7 +60,10 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+/// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
+/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
+/// `GlowCentreScratch`.
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];
@@ -176,12 +179,12 @@ AnimationPlayRequest D_neo_ark_power_plant_2_80180260 = { { .sets = D_neo_ark_po
 
 ActorTransform D_neo_ark_power_plant_2_80180274 = { { 4000, -5000, -1540, 0 }, { 0, -2275, 0, 0 } };
 
-GpScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
-    { 257, 1 },
-    { 258, 1282 },
-    { 0x2803, 3843 },
-    { 4, 4 },
-    { 0, 0 },
+PadScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_neo_ark_power_plant_2_801802A0[2] = {
@@ -603,7 +606,7 @@ GpSprtRec D_neo_ark_power_plant_2_8018205C[9] = {
     { { .elements = D_neo_ark_power_plant_2_80181FF4 }, D_neo_ark_power_plant_2_80182044, NULL },
 };
 
-GpPointLight D_neo_ark_power_plant_2_801820C8[21] = {
+WorldCoordPointLight D_neo_ark_power_plant_2_801820C8[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -7350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
@@ -656,18 +659,18 @@ GpObj4C D_neo_ark_power_plant_2_80182B20[8] = {
 GpAreaTmdRec D_neo_ark_power_plant_2_80182D80[3] = {
     { 53, 53, 0, 0, { 0, 0 }, D_8013D3FC },
     { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_2_80182DA4[3] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
     { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_2_80182DC8[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
@@ -863,7 +866,7 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             if (GameFlag_GetNibble(0xF3) != 0) {
                 Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
             }
-            Mc_SaveData[0].state.sceneEvent = 0x17;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x17;
             func_800E3FAC(0xA2, 0x2E);
             GameFlag_SetNibble(3, 0);
             GameFlag_SetNibble(0x155, 7);
@@ -884,10 +887,10 @@ void func_neo_ark_power_plant_2_8017D854(Task* task)
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
 {
-    u32           rnd;
-    u16           intensity;
-    GpPointLight* work;
-    GpCoord64*    light;
+    u32                   rnd;
+    u16                   intensity;
+    WorldCoordPointLight* work;
+    GpCoord64*            light;
 
     if (arg0->state == 0) {
         D_80115758  = 0x601DC;

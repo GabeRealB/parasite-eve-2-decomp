@@ -391,8 +391,8 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 static void            func_actor_210600_8014B2C0(Task* task);
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
-static void            func_actor_210600_8014B434(GpEnemy* enemy, Task* task);
-static void            func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task);
+static void            func_actor_210600_8014B434(Enemy* enemy, Task* task);
+static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
@@ -466,7 +466,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
@@ -491,7 +491,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 /// at 0.75 scale, and when animation slot 1 holds clip 7 while slot 0 did not
 /// on the previous update, spawns the effect `Gp_GetIdParam1(0x1001)` on the
 /// model's second part. `enemy` is unused.
-static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 {
     Actor210600Work* work;
     SVECTOR          vec;
@@ -518,8 +518,8 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
 /// Message 0x7D5 handler, listed in `D_actor_210600_8015A4CC`: `arg2` selects
 /// the display mode. 0 hides the model (`TmdObject::flags` = 0x80) and 1 shows
 /// it (flags cleared), both reallocating its buffers through
-/// `Tmd_AllocBuffers`; 2 adds bit 0x4 to the flags and any other value sets
-/// them to 0x4 alone. Modes 0 and 2 set `Actor210600Work::field_890`, which
+/// `Tmd_AllocBuffers`; 2 adds `TMD_OBJECT_SKIP_AUTO_BUFFER` to the flags and any other value sets
+/// them to `TMD_OBJECT_SKIP_AUTO_BUFFER` alone. Modes 0 and 2 set `Actor210600Work::field_890`, which
 /// stops the update state, and the other two clear it. `arg1` is unused.
 s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2)
 {
@@ -585,7 +585,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
 /// clip 1, the message table is installed, and the model root is parented to
 /// `gGfxViewCoord` and rebuilt once before its world position is handed to
 /// `func_800D7A9C`. Advances the task to the next state.
-static void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     GfxCoord*        coord;

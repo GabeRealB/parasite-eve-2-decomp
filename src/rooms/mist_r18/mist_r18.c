@@ -1059,7 +1059,7 @@ GpSprtRec D_mist_r18_80186B60[10] = {
 GpAreaTmdRec D_mist_r18_80186BD8[3] = {
     { 144, 130, 0, 0, { 0, 0 }, D_8013ABB4 },
     { 105, 130, 1, 0, { 0, 0 }, D_80157DE0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_mist_r18_80186BFC[13] = {
@@ -1078,7 +1078,7 @@ GpAreaVariant D_mist_r18_80186BFC[13] = {
     { NULL, NULL },
 };
 
-GpPointLight D_mist_r18_80186C64[5] = {
+WorldCoordPointLight D_mist_r18_80186C64[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 2050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5700, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3800, -2300, 4800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
@@ -1678,11 +1678,11 @@ void func_mist_r18_8017EA98(Task* task)
 void func_mist_r18_8017EB48(void)
 {
     Gp_InitStarterInv();
-    Mc_SaveData[0].state.location.loc.stage = 1;
-    Mc_SaveData[0].state.location.loc.area  = 0x13;
-    Mc_SaveData[0].state.location.loc.warp  = 3;
-    Mc_SaveData[0].state.location.loc.room  = 3;
-    gDisplayState.spriteVariant             = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x13;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
+    gDisplayState.spriteVariant                                 = 1;
     SndEvt_EnqueueType7(0x80000000, 0);
     Task_Spawn(0, 0x11, 0, 0);
 }

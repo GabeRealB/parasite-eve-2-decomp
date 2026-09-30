@@ -92,7 +92,7 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_RunCapCmd(7, 0);
                 gGameSession->eventState = 1;
                 {
-                    u32 view                              = Mc_SaveData[0].state.location.loc.view;
+                    u32 view                              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                     s32 state                             = arg0->state;
                     D_dryfield_water_tower_8018768C.value = view;
                     arg0->state                           = state + 1;
@@ -116,10 +116,10 @@ void func_dryfield_water_tower_8017D948(Task* arg0)
                 Gp_DispatchMsg(D_dryfield_water_tower_801876A0, 0x13EC, 0, 0);
                 SndEvt_EnqueueType6(0x52140009, 0, 0);
             } else {
-                gGameSession->eventState               = 0;
-                gGameSession->hideHud                  = 0;
-                Gp_StateF0.field_4                     = 0;
-                Mc_SaveData[0].state.location.loc.view = D_dryfield_water_tower_8018768C.value;
+                gGameSession->eventState                                   = 0;
+                gGameSession->hideHud                                      = 0;
+                Gp_StateF0.field_4                                         = 0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_water_tower_8018768C.value;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }

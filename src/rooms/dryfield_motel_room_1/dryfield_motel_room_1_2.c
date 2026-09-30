@@ -152,7 +152,7 @@ void func_dryfield_motel_room_1_8017DF08(void);
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` (the cutscene mode flag) gate the room task's
-/// setup, and `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record
+/// setup, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record
 /// uses.
 
 /// The cutscene script's two blocks, handed to `func_800E8634` by the room
@@ -841,7 +841,7 @@ GpObj3A D_dryfield_motel_room_1_801811BC[1] = {
     { NULL, NULL, { 1760, -1408, 4512, 0 }, { { -1632, -2432, 0, 0 }, { 1632, -2432, 0, 0 }, { -1632, 2432, 0, 0 }, { 1632, 2432, 0, 0 } }, { 0, 0, -4098, 0 }, { 102, 11 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_motel_room_1_801811F8[5] = {
+WorldCoordPointLight D_dryfield_motel_room_1_801811F8[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1234, -1685, 5738 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3300, 3300, 3300 }, { 0, 0 } }, 1222, 4450 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3463, -1645, 1027 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4250, 4250, 4250 }, { 0, 0 } }, 2300, 4100 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 926, -1645, 83 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3800, 3800, 3800 }, { 0, 0 } }, 2153, 4701 },
@@ -854,31 +854,31 @@ GpRoomCoordSet D_dryfield_motel_room_1_801813D8[1] = {
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_801813F0[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_801813FC[3] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
     { 12, 12, 2, 0, { 0, 0 }, D_80168E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_80181420[3] = {
     { 112, 232, 0, 0, { 0, 0 }, D_80137234 },
     { 12, 12, 1, 0, { 0, 0 }, D_80150E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_80181444[3] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
     { 40, 40, 2, 0, { 0, 0 }, D_8016E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_1_80181468[3] = {
     { 112, 232, 0, 0, { 0, 0 }, D_80137234 },
     { 12, 12, 1, 0, { 0, 0 }, D_80150E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_motel_room_1_8018148C[5] = {
@@ -1011,7 +1011,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
 
                         rec    = &buf.shifted.rec;
                         weapon = cfg->weapon;
-                        if (Mc_SaveData[0].state.characterId == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim = weapon + 1;
                         } else {
                             anim = weapon + 0x22;
@@ -1026,7 +1026,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                         work->field_2E += 1;
                     } else {
                         weaponId = cfg->weapon;
-                        if (Mc_SaveData[0].state.characterId == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim = weaponId + 1;
                         } else {
                             anim = weaponId + 0x22;
@@ -1046,7 +1046,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 > 0x1000) {
                         anim = Player_Status.weapon;
-                        if (Mc_SaveData[0].state.characterId == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -1068,7 +1068,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_26  = work->field_34 + 0x400;
                     if (work->field_34 < 0) {
                         anim = Player_Status.weapon;
-                        if (Mc_SaveData[0].state.characterId == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -1089,7 +1089,7 @@ static void func_dryfield_motel_room_1_8017D7AC(Task* arg0)
                     work->field_30 += 1;
                     if (work->field_30 >= 4) {
                         anim = Player_Status.weapon;
-                        if (Mc_SaveData[0].state.characterId == 1) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                             anim += 1;
                         } else {
                             anim += 0x22;
@@ -1154,7 +1154,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0)
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 func_dryfield_motel_room_1_8017DC2C(arg0);
                 weaponId                     = Player_Status.weapon;
-                anim                         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.rec.source.index         = anim;
                 buf.rec.animationId          = 1;
                 buf.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1223,7 +1223,7 @@ void func_dryfield_motel_room_1_8017DFD0(void)
 
     work                     = (Dmr1Work*)D_dryfield_motel_room_1_8018159C->work;
     weaponId                 = Player_Status.weapon;
-    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 9;
     msg.blend                = ANIMATION_BLEND_RESET;

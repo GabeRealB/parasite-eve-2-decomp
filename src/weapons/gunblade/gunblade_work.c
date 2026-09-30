@@ -11,10 +11,10 @@
 /// splat lists an object in the linker script at its first subsegment, and
 /// this has to link after the trailing data.
 
-/// The running beam task and its `GpEffWork`, cached on entry to state 0 so
+/// The running beam task and its `EffectWork`, cached on entry to state 0 so
 /// `func_gunblade_8011E008` can reach them from outside the task.
-Task*      D_gunblade_8012E244 = NULL;
-GpEffWork* D_gunblade_8012E248 = NULL;
+Task*       D_gunblade_8012E244 = NULL;
+EffectWork* D_gunblade_8012E248 = NULL;
 
 /// Nothing reads the two words after the work pointer; they keep the offset of
 /// the trails that follow.

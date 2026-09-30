@@ -44,7 +44,7 @@ void func_800DEF80(WorldCollisionBody* node, GpObj4C* other);
 
 void func_800DF6AC(WorldCollisionBody* node, GpObj4C* other, VECTOR3* from);
 
-struct GpEnemy;
+struct Enemy;
 
 /// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
 /// whose address is the first link. A node's `prev` points to the link that
@@ -81,7 +81,7 @@ void Gp_LoadRoomParams(void);
 
 void Gp_CommitObj4CSave(void);
 
-void Gp_ClaimSlot18(struct GpEnemy* arg0, s32 arg1);
+void Gp_ClaimSlot18(struct Enemy* arg0, s32 arg1);
 
 void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b);
 

@@ -144,7 +144,7 @@ extern s16 gRoamerLastRequest;
 
 /// A placement `func_...801806D8` puts a spawned task at: the x and z it writes
 /// into the task's coordinate translation (y is always zero) and the Y
-/// rotation it hands `Gfx_RotMatrixY`. The halfword after `x` is not read.
+/// rotation it hands `gfxRotMatrixY`. The halfword after `x` is not read.
 typedef struct NeoArkWoodlandPathSpawnPos {
     s16 x;
     s16 pad_2;
@@ -168,7 +168,7 @@ extern s16 gRoamerPrevBattleRefs;
 /// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
 /// the chance, out of 0x200, of spawning an effect this frame. It is recomputed
 /// from how far the tracked model parts moved. Nothing yet shows whether this
-/// is the same object as `GpEnemy`.
+/// is the same object as `Enemy`.
 typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x00 */ byte pad_0[0x26];
     /* 0x26 */ s16  chance;
@@ -415,13 +415,13 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
 /// sends it the 0x7DB message and places it at one of five fixed points.
 static void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
@@ -499,31 +499,31 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[0].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[0].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[0].rotY, 1);
                             break;
                         case 1:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_woodland_path_80184A14[1].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_woodland_path_80184A14[1].z;
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[1].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[1].rotY, 1);
                             break;
                         case 2:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[2].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[2].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[2].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[2].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 3:
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[3].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[3].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[3].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[3].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                         case 4:
@@ -531,8 +531,8 @@ static void func_neo_ark_woodland_path_80180DDC(Task* task)
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[4].x;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1] = 0;
                             Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[4].z;
-                            Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                           D_neo_ark_woodland_path_80184A14[4].rotY, 1);
+                            gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                          D_neo_ark_woodland_path_80184A14[4].rotY, 1);
                             Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                             break;
                     }

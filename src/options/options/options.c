@@ -152,7 +152,7 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
-    saved    = Mc_SaveData[0].state.soundMode;
+    saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
     y        = i;
     selected = saved;
     x        = arg1->panel.contentLeft.signedValue + 0x78;
@@ -184,8 +184,8 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].state.soundMode = selected;
-    cur                            = Mc_SaveData[0].state.soundMode;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selected;
+    cur                                                = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
     if (saved != cur) {
         if (cur != 0) {
             if (cur != 1) {
@@ -232,7 +232,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
     Text_DrawPrompt(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->field_1A, title, arg0->field_1C, 1, 0);
     i        = 0;
     p        = labels;
-    saved    = Mc_SaveData[0].state.musicVolume;
+    saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
     y        = i;
     selected = saved;
     x        = arg1->panel.contentLeft.signedValue + 0x78;
@@ -264,7 +264,7 @@ static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].state.musicVolume = selected;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume = selected;
     if (saved != (s8)selected) {
         Snd_ApplyVolumeTable(0);
     }
@@ -292,7 +292,7 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
     i        = 0;
     p        = labels;
     y        = i;
-    selected = Mc_SaveData[0].state.cursorMode;
+    selected = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode;
     x        = arg1->panel.contentLeft.signedValue + 0x78;
     span     = arg1->panel.contentRight.signedValue - x;
     n2       = 2;
@@ -323,8 +323,8 @@ static void func_options_801D4504(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].state.cursorMode = selected;
-    status                          = arg1->panel.control.word;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selected;
+    status                                              = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5CE4, 0, 0);
     }
@@ -350,7 +350,7 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
     i        = 0;
     p        = labels;
     y        = i;
-    selected = Mc_SaveData[0].state.vibration;
+    selected = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
     x        = arg1->panel.contentLeft.signedValue + 0x78;
     span     = arg1->panel.contentRight.signedValue - x;
     n2       = 2;
@@ -381,8 +381,8 @@ static void func_options_801D4724(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].state.vibration = selected;
-    status                         = arg1->panel.control.word;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = selected;
+    status                                             = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D28, 0, 0);
     }
@@ -408,7 +408,7 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     i           = 0;
     p           = labels;
     y           = i;
-    selected    = Mc_SaveData[0].state.moveMode;
+    selected    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
     x           = arg1->panel.contentLeft.signedValue + 0x78;
     span        = arg1->panel.contentRight.signedValue - x;
     columnCount = 2;
@@ -439,8 +439,8 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
             }
         }
     }
-    Mc_SaveData[0].state.moveMode = selected;
-    status                        = arg1->panel.control.word;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selected;
+    status                                            = arg1->panel.control.word;
     if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->field_10 == arg0->field_8)) {
         Ui_SetHolderParam(D_options_801D5D68, 0, 0);
     }
@@ -545,8 +545,8 @@ static void func_options_801D4D0C(Task* task)
     runWalk  = D_options_801D5C10;
     x        = obj->panel.contentTop.signedValue;
     one      = 1;
-    walkMode = Mc_SaveData[0].state.moveMode;
-    type     = Mc_SaveData[0].state.buttonLayout;
+    walkMode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
+    type     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     y        = x + 0xF;
     if (walkMode == one) {
         runWalk = D_options_801D5C14;
@@ -555,7 +555,7 @@ static void func_options_801D4D0C(Task* task)
     Ui_DrawText(&(obj)->panel, "Key Configuration");
     if (task->state == 0) {
         Ui_UpdateLayoutSize(&(obj)->panel, 0, Ui_Scale15(9) + 6);
-        task->spawnArg1.value = Mc_SaveData[0].state.buttonLayout;
+        task->spawnArg1.value = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
         task->state          += 1;
     }
     y1     = x + 1;
@@ -877,10 +877,10 @@ static void func_options_801D4D0C(Task* task)
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (Pad_CheckButtons(0, 1, 0x6000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData[0].state.buttonLayout = ((s8)(Mc_SaveData[0].state.buttonLayout + 1)) % 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 1)) % 3;
         } else if (Pad_CheckButtons(0, 1, 0x9000) != 0) {
             SndEvt_EnqueueType6(2, 0, 0);
-            Mc_SaveData[0].state.buttonLayout = ((s8)(Mc_SaveData[0].state.buttonLayout + 2)) % 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 2)) % 3;
         } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
             obj->result = USER_INTERFACE_RESULT_CONFIRM;

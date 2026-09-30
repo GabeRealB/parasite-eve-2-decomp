@@ -41,9 +41,9 @@ STATIC_ASSERT_SIZEOF(InfernoIdMap, 0xC);
 
 /// One ring's geometry in `D_inferno_801304E4`, indexed by the `kind` the
 /// caster passes to the fan routines (0 = inner ring, 1 = outer ring).
-/// `field_0` is added to `GpEffWork::angle` to give the ring's radius in
+/// `field_0` is added to `EffectWork::angle` to give the ring's radius in
 /// the ground plane, `field_2` is how far the inner rim is lifted along local
-/// Y, and `field_4` plus `GpEffWork::step` widens the outer rim.
+/// Y, and `field_4` plus `EffectWork::step` widens the outer rim.
 typedef struct InfernoFanParam {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -81,8 +81,8 @@ static InfernoFanParam D_inferno_801304E4[] = {
 static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 static void func_inferno_8012F3EC(s16 arg0);
-static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
-static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
+static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map);
 
 /// Runs one frame of the inferno cast: a state machine driven by
 /// `Task::state`, with the chain it takes chosen in state 0 from
@@ -90,17 +90,17 @@ static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
 /// roar from `D_inferno_801304F0` and lands the task on state 1, 5 or 9.
 /// State 1 spawns the two ignition effects, state 5 fans six flames around a
 /// 0x400 step, state 9 the ground burst; states 10 and 11 fade the effect
-/// brightness scalar (`GpEffWork::angle`) down and back up and each fire one ring of
+/// brightness scalar (`EffectWork::angle`) down and back up and each fire one ring of
 /// flames on their own tick, and state 12 fades out and releases. Every state
 /// updates the effect coordinate first, and any state releases immediately if
 /// the player is dying (`Gp_StateC08.field_3`) or parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_inferno_8012EF88(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        i;
-    s32        pan;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         i;
+    s32         pan;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -235,7 +235,7 @@ static void func_inferno_8012F3EC(s16 arg0)
 }
 
 /// Companion inferno-cast task: state 0 allocates a 12-byte `InfernoIdMap`
-/// of LCG jitter, scales `GpEffWork::pos` by 0x80 (`gte_gpf12`) and
+/// of LCG jitter, scales `EffectWork::pos` by 0x80 (`gte_gpf12`) and
 /// rotates it into `move`. States 1–6 fade `scale` while spinning
 /// `angle` / `period` / `step` and drawing through
 /// `func_inferno_8012F978` (kind 0) and `func_inferno_8012FF34` (kind 1).
@@ -244,7 +244,7 @@ static void func_inferno_8012F3EC(s16 arg0)
 /// hit. `Task::spawnArg1 + 1` selects the chain from state 0.
 void func_inferno_8012F530(Task* arg0)
 {
-    GpEffWork*    mem;
+    EffectWork*   mem;
     GfxCoord*     coord;
     InfernoIdMap* map;
     u8*           p;
@@ -374,10 +374,10 @@ release:
 
 /// Draws the lifted ring of the inferno's ground fan, the twin of
 /// `func_inferno_8012FF34`: identical geometry and prim setup, except the
-/// inner rim is lifted `GpEffWork::period + field_2` along local Y instead
+/// inner rim is lifted `EffectWork::period + field_2` along local Y instead
 /// of `field_2` alone, so the ring rises as the caster's `period` winds up.
 /// `kind` picks the row of `D_inferno_801304E4` that sizes it.
-static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012F978(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;
@@ -474,9 +474,9 @@ static void func_inferno_8012F978(GpEffWork* mem, GfxCoord* coord, s32 kind, Inf
 /// plane are built by `rsin` / `rcos` a sixth of a turn apart, rotated by
 /// `coord`'s `workm` and offset by its translation. Each of the six segments
 /// is then projected through `GsWSMATRIX` and linked as one semi-transparent
-/// `POLY_FT4`; `map` and `GpEffWork::age` pick which of the six 0x28-wide
+/// `POLY_FT4`; `map` and `EffectWork::age` pick which of the six 0x28-wide
 /// texture frames it uses, and a negative `gte_stflg` drops the segment.
-static void func_inferno_8012FF34(GpEffWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
+static void func_inferno_8012FF34(EffectWork* mem, GfxCoord* coord, s32 kind, InfernoIdMap* map)
 {
     u8*                head;
     InfernoFanScratch* block;

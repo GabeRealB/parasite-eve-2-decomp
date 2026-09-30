@@ -140,10 +140,10 @@ extern GpEvsCmd             D_actor_450800_8013ACFC[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_450800_80132448(Task* task);
-static void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
+static void func_actor_450800_801327E4(Enemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
-static void func_actor_450800_801332B8(GpEnemy* enemy, Task* task);
+static void func_actor_450800_801332B8(Enemy* enemy, Task* task);
 static void func_actor_450800_80133364(Task* task);
 
 extern TmdSource D_actor_450800_80140604;
@@ -1278,14 +1278,14 @@ ActorTransform D_actor_450800_8013AF38 = { { 800, 0, 450, 0 }, { 0, 1024, 0, 0 }
 
 ActorTransform D_actor_450800_8013AF50 = { { 0, 0, 0, 0 }, { 0, 853, 0, 0 } };
 
-GpOverlayIds D_actor_450800_8013AF68 = { 5, 9, 11 };
+EvsSceneKey D_actor_450800_8013AF68 = { 5, 9, 11 };
 
-GpScriptCmd D_actor_450800_8013AF70[5] = {
-    { 257, 1 },
-    { 258, 0 },
-    { 771, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_actor_450800_8013AF70[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_450800_8013AF84[2] = {
@@ -2619,7 +2619,7 @@ static void        func_actor_450800_80131E2C(void);
 static void        func_actor_450800_80132000(void);
 static void        func_actor_450800_80132028(void);
 static inline void _actor450800TintModel(Task* spawned, Task* actor);
-static void        func_actor_450800_80132160(GpEnemy* enemy, Task* task);
+static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
 
 static void func_actor_450800_80131E2C(void)
 {
@@ -2713,12 +2713,12 @@ static void func_actor_450800_80132028(void)
 
 void func_actor_450800_80132080(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.location.loc.stage = 5;
-        Mc_SaveData[0].state.location.loc.area  = 0x17;
-        Mc_SaveData[0].state.location.loc.warp  = 1;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x17;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
     }
 }
@@ -2747,7 +2747,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     u32              idx;
 
     sessionKey = &gGameSession->location.loc;
-    idx        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 12;
+    idx        = ((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -2771,7 +2771,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
 /// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
 /// the actor's own model parts, textured from the placement the actor's
 /// `Task::spawnArg2` enemy selects. Task 4 is spawned but not textured.
-static void func_actor_450800_80132160(GpEnemy* enemy, Task* task)
+static void func_actor_450800_80132160(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     GfxCoord*        coord;
@@ -2871,7 +2871,7 @@ static void func_actor_450800_80132448(Task* task)
         }
         if (work->st.animId == 3 && work->turnFrames != 0) {
             work->st.yaw += 0x33;
-            Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
+            gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->turnFrames--;
         }
@@ -3092,7 +3092,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (work->field_4FE == 1) {
         work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (work->field_4FE) {

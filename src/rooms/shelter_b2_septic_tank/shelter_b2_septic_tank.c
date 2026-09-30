@@ -1007,7 +1007,7 @@ GpSprtRec D_shelter_b2_septic_tank_801866F4[6] = {
     { { .empty = D_shelter_b2_septic_tank_801866E4 }, D_shelter_b2_septic_tank_801866E4, NULL },
 };
 
-GpPointLight D_shelter_b2_septic_tank_8018673C[8] = {
+WorldCoordPointLight D_shelter_b2_septic_tank_8018673C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 20, -41, -4221 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 941, 2662 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 44, -41, -6238 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 961, 2502 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -21, -41, -8592 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1121, 2522 },
@@ -1038,35 +1038,35 @@ GpObj4C D_shelter_b2_septic_tank_80186C1C[4] = {
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D4C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D64[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186D7C[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DA0[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DB8[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 4, 4, 1, 0, { 0, 0 }, D_8015FE48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_septic_tank_80186DDC[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_septic_tank_80186E00[3] = {
@@ -1558,11 +1558,11 @@ void func_shelter_b2_septic_tank_8017EA50(Task* task)
     gGameSession->waterY = D_shelter_b2_septic_tank_801832BC;
 }
 
-/// Clears the session's `field_80` or `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and
+/// Clears the session's `field_80` or `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and
 /// advances the task to its next state.
 static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -1572,11 +1572,11 @@ static void func_shelter_b2_septic_tank_8017EAB8(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b2_septic_tank_80187054` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].state.companionType`, then draws both
+/// slice of one of two primitive areas, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b2_septic_tank_8017EAF8(Task* task)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b2_septic_tank_80187054 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b2_septic_tank_80187054 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;

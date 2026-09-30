@@ -509,12 +509,12 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             Gp_DispatchMsgPtr(work->field_4, 0x7D4, &D_dryfield_breezeway_80181E28, 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_breezeway_80181E40[0], 0);
             Gp_DispatchMsgPtr(work->field_0, 0x3EE, &D_dryfield_breezeway_80181E40[1], 0);
-            Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(4);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
             break;
         case 2:
             rec                          = &buf.rec;
             id                           = Player_Status.weapon;
-            buf.rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+            buf.rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
             rec->animationId             = 9;
             rec->blend                   = ANIMATION_BLEND_INTERPOLATE;
             rec->blendFrames             = 0xA;
@@ -597,7 +597,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 work->field_8                 = Gp_FindWorkById(id)->field_0;
             }
             id                       = Player_Status.weapon;
-            buf.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+            buf.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
             buf.animationId          = 1;
             buf.blend                = ANIMATION_BLEND_INTERPOLATE;
             buf.blendFrames          = 0xA;
@@ -650,7 +650,7 @@ void func_dryfield_breezeway_8017E390(void)
     s32       id;
 
     id                           = Player_Status.weapon;
-    buf.rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? id + 1 : id + 0x22;
+    buf.rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? id + 1 : id + 0x22;
     buf.rec.animationId          = 9;
     buf.rec.blend                = ANIMATION_BLEND_RESET;
     buf.rec.blendFrames          = 0;
@@ -672,7 +672,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
 /// `Task::msgTable` -- which is what routes the key-item query into this room
 /// at all -- and the room's own event task is spawned from
-/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `Mc_SaveData[0].state.location.loc.view` is
+/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is
 /// stamped with 6, the area-record index the view gate reads back.
 ///
 /// The event object then draws with the room's lighting rather than the shared
@@ -688,7 +688,7 @@ void func_dryfield_breezeway_8017E390(void)
 /// behind is load-bearing twice: its loop depth doubles those stores' ref
 /// weights, which is what lifts the 6 above the state reload in `local-alloc`'s
 /// quantity order, and it stops that reload being hoisted above the
-/// `Mc_SaveData[0].state.location.loc.view` store once it holds `$v0`. Three plain statements instead of
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store once it holds `$v0`. Three plain statements instead of
 /// the wrapper score 98.5%; wrapping a fourth statement reweights it too and
 /// does not match.
 ///
@@ -714,9 +714,9 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
 
     arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
-        arg0->msgTable                         = D_dryfield_breezeway_80182DCC;
-        arg0->work                             = work;
-        Mc_SaveData[0].state.location.loc.view = 6;
+        arg0->msgTable                                             = D_dryfield_breezeway_80182DCC;
+        arg0->work                                                 = work;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
     } while (0);
     arg0->state   += 1;
     work->field_40 = 0;
@@ -1374,7 +1374,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
 /// Exit state of the room's key-item event task, undoing its set-up
 /// (`func_dryfield_breezeway_8017E464`): sends the two player messages with 1,
 /// releases the display reference, clears the session's event, HUD and
-/// cutscene holds, puts `Mc_SaveData[0].state.location.loc.view` back from 6 to 4, kills the prompt task
+/// cutscene holds, puts `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` back from 6 to 4, kills the prompt task
 /// the set-up spawned (`Task::spawnArg2`) and asks for its own removal.
 static void func_dryfield_breezeway_8017FE90(Task* arg0)
 {
@@ -1382,10 +1382,10 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 4;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
@@ -1395,12 +1395,12 @@ static void func_dryfield_breezeway_8017FE90(Task* arg0)
 
 void func_dryfield_breezeway_8017FF7C(Task* task)
 {
-    s32        mask;
-    GpEffWork* eff;
-    GfxCoord*  coord;
-    GfxCoord*  player;
-    s32        limit;
-    s32        pan;
+    s32         mask;
+    EffectWork* eff;
+    GfxCoord*   coord;
+    GfxCoord*   player;
+    s32         limit;
+    s32         pan;
 
     mask   = 1 << gGameSession->location.loc.view;
     eff    = task->spawnArg2.pointer;
@@ -1708,13 +1708,13 @@ static void func_dryfield_breezeway_80180858(GfxCoord* coord, u8* data, s32 arg2
 /// is then released. The age does not advance while an event is running.
 void func_dryfield_breezeway_80181264(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    MATRIX*    m;
-    SVECTOR    delta;
-    SVECTOR    dir;
-    SVECTOR    pos;
-    u8         color[3];
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    MATRIX*     m;
+    SVECTOR     delta;
+    SVECTOR     dir;
+    SVECTOR     pos;
+    u8          color[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1850,7 +1850,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 static void func_dryfield_breezeway_80181938(Task* task, u8* color)
 {
     ModelObjectCoordBody* body = task->extra.coordBody;
-    GpEffWork*            work = task->spawnArg2.pointer;
+    EffectWork*           work = task->spawnArg2.pointer;
     void**                scratch;
     GfxCoord*             coord;
     GpFxQuadScratch*      block;

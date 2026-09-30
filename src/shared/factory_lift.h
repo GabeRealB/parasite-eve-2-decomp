@@ -185,8 +185,8 @@ extern TaskDesc     gFactoryDayPanelDesc[];
 extern TaskDesc     gFactoryNightPanelDesc[];
 extern GpGridParams gFactoryDayGrid;
 extern GpGridParams gFactoryNightGrid;
-extern GpScriptCmd  gFactoryDayJoltCmds[3];
-extern GpScriptCmd  gFactoryNightJoltCmds[3];
+extern PadScriptCmd gFactoryDayJoltCmds[3];
+extern PadScriptCmd gFactoryNightJoltCmds[3];
 extern GpScriptRec  gFactoryDayJoltRecs[3];
 extern GpScriptRec  gFactoryNightJoltRecs[3];
 

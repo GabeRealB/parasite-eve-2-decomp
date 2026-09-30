@@ -8,7 +8,7 @@
 /// counter over the first steps and is then held at 0x380. After 0xC steps the
 /// object is unlinked and the task steps on; either way the work block's
 /// coordinate keeps tracking the model.
-void incinBossRainSplat(GpEnemy* enemy, Task* task)
+void incinBossRainSplat(Enemy* enemy, Task* task)
 {
     Actor403200DropWork* work;
 

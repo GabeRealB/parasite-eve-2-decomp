@@ -9,7 +9,7 @@
 /// the root at 0 and moves the enemy to the live stage with animation 2 and
 /// task state 1; until then the fall speed grows by 10 a frame, or by 20 once
 /// the drop has hit something.
-void bursterDropState(GpEnemy* arg0, Task* arg1)
+void bursterDropState(Enemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     GfxCoord*        coord;
@@ -41,7 +41,7 @@ void bursterDropState(GpEnemy* arg0, Task* arg1)
             }
             coord = arg1->extra.tmd->coords;
             if (coord->coord.t[1] >= 0) {
-                soundId = ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x402C0008;
+                soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0008;
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 work->field_2B2                     = 1;
                 work->field_2C8                     = 1;

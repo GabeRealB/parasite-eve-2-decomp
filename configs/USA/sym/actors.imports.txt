@@ -61,7 +61,7 @@ Gfx_MatrixCol0 = 0x8003C728; // absolute:True
 Gfx_MatrixCol1 = 0x8003C748; // absolute:True
 Gfx_MatrixCol2 = 0x8003C768; // absolute:True
 Gfx_RotMatrixX = 0x8003C788; // absolute:True
-Gfx_RotMatrixY = 0x8003C98C; // absolute:True
+gfxRotMatrixY = 0x8003C98C; // absolute:True
 Gfx_RotMatrixZ = 0x8003CB80; // absolute:True
 Gfx_OrthonormalBasis = 0x8003CEC4; // absolute:True
 Gfx_ApplyMatrixNoSf = 0x8003D000; // absolute:True
@@ -147,7 +147,7 @@ gGpuCurrentOt = 0x800710A0; // absolute:True
 GsWSMATRIX = 0x80071138; // absolute:True
 gGpuPrimCursor = 0x80071190; // absolute:True
 Pad_States = 0x80071620; // absolute:True
-Mc_SaveData = 0x80072168; // absolute:True
+gMcSaveData = 0x80072168; // absolute:True
 Player_Status = 0x80073B88; // absolute:True
 
 // --- from gameplay (216 symbols)
@@ -365,7 +365,7 @@ Gp_PendingObj4C = 0x8011556C; // absolute:True
 Gp_CapFile = 0x8011568C; // absolute:True
 D_801156F9 = 0x801156F9; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
-Gp_ActorSlots = 0x80115760; // absolute:True
+gPlayerActorTasks = 0x80115760; // absolute:True
 D_80115768 = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (185)

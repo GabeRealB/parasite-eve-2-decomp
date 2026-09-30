@@ -7,16 +7,23 @@
 #include "gameplay/message.h"
 
 struct _GpEvsCmd;
-struct _GpScriptCmd;
+struct PadScriptCmd;
 struct _GpScriptRec;
 
-/// Overlay ids passed to the loader by an event-script command.
-typedef struct _GpOverlayIds {
-    u16 field_0;
-    u16 field_2;
-    u16 field_4;
-} GpOverlayIds;
-STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
+/// Key an event script uses to select a scene/audio stream.
+///
+/// Opcode 12 installs the pointer for caption playback. `group` and `streamId`
+/// match the stream key, and `subId` matches the stream's first qualifier. The
+/// second qualifier is absent from this record; playback matches it as zero.
+/// Group zero selects the stage-zero stream table, and any other group is
+/// matched in the current folder's table. Debug output prints the three
+/// numbers as `evs<group>_<streamId>_<subId>.txt`.
+typedef struct {
+    u16 group;    // Scene/audio selection group (0 selects the stage-zero table)
+    u16 streamId; // Stream ID matched in that table
+    u16 subId;    // First exact stream qualifier
+} EvsSceneKey;
+STATIC_ASSERT_SIZEOF(EvsSceneKey, 6);
 
 /// An event operand is either a value or an address, according to its opcode.
 typedef union GpEvsOperand {
@@ -24,8 +31,8 @@ typedef union GpEvsOperand {
     void*                 storage;
     struct _GpEvsCmd*     commands;
     AnimationPlayRequest* animation;
-    GpOverlayIds*         overlays;
-    struct _GpScriptCmd*  padCommands;
+    EvsSceneKey*          overlays;
+    struct PadScriptCmd*  padCommands;
     struct _GpScriptRec*  padRecords;
     TaskMessageArg        message;
     TaskSpawnArg          spawn;

@@ -8,7 +8,7 @@
 void bursterTakeDamage(Task* arg0, s32 arg1)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
     s32              anim;
@@ -28,10 +28,10 @@ void bursterTakeDamage(Task* arg0, s32 arg1)
         return;
     }
     if (work->field_2D6 != 0) {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x4046000A;
+        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000A;
         SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     } else {
-        soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402E0002;
+        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0002;
         SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     }
     anim            = work->field_2B8;

@@ -504,7 +504,7 @@ void Gp_UnlinkNode(WorldTargetNode* node)
     WorldTargetNode** list;
 
     i = 0;
-    p = Gp_ActorSlots;
+    p = gPlayerActorTasks;
     do {
         work = *p;
         if (work != NULL) {
@@ -515,7 +515,7 @@ void Gp_UnlinkNode(WorldTargetNode* node)
         }
         i++;
         p++;
-    } while (i < 2);
+    } while (i < PLAYER_ACTOR_TASK_COUNT);
 
     if (node->state.parts.onList == 1) {
         list = &gWorldTargetListHead;
@@ -566,7 +566,7 @@ s32 Gp_NodeSlotMask(WorldTargetNode* node)
     mask = 0;
     i    = mask;
     one  = 1;
-    p    = Gp_ActorSlots;
+    p    = gPlayerActorTasks;
     do {
         work = *p;
         if (work != NULL) {
@@ -576,7 +576,7 @@ s32 Gp_NodeSlotMask(WorldTargetNode* node)
         }
         i++;
         p++;
-    } while (i < 2);
+    } while (i < PLAYER_ACTOR_TASK_COUNT);
     return mask;
 }
 
@@ -587,7 +587,7 @@ void Gp_AssignNodeSlot0(WorldTargetNode* node)
     WorldTargetNode* previous;
     u8               val;
 
-    work = Gp_ActorSlots[0];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor    = work->work;
         previous = actor->field_90C;
@@ -610,7 +610,7 @@ void Gp_ClearNodeSlots(WorldTargetNode* node)
     u8              val;
 
     i = 0;
-    p = Gp_ActorSlots;
+    p = gPlayerActorTasks;
     do {
         work = *p;
         if (work != NULL) {
@@ -621,7 +621,7 @@ void Gp_ClearNodeSlots(WorldTargetNode* node)
         }
         i++;
         p++;
-    } while (i < 2);
+    } while (i < PLAYER_ACTOR_TASK_COUNT);
     val                        = node->state.parts.flags;
     node->state.parts.targeted = 0;
     node->state.parts.flags    = val | WORLD_TARGET_NOT_LOCKABLE;
@@ -756,7 +756,7 @@ void Gp_ClearSlotNodeFlags(void)
     WorldTargetNode* node;
 
     i = 0;
-    p = Gp_ActorSlots;
+    p = gPlayerActorTasks;
     do {
         work = *p;
         if (work != NULL) {
@@ -767,7 +767,7 @@ void Gp_ClearSlotNodeFlags(void)
         }
         i++;
         p++;
-    } while (i < 2);
+    } while (i < PLAYER_ACTOR_TASK_COUNT);
 }
 
 s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
@@ -789,7 +789,7 @@ s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
     area  = loc->area;
     sub   = loc->variant;
     key   = (stage << 24) | (area << 16) | (sub << 8);
-    mode  = Mc_SaveData[0].state.gameMode;
+    mode  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     if ((mode == 0) || (mode == 2)) {
         rec = D_8010F9F4[stage];
     } else {
@@ -910,7 +910,7 @@ void Gp_InitStateF0(void)
     if (Gp_IsDebugAttachRoom() == 1) {
         p->field_2B = 0;
     } else {
-        save        = &Mc_SaveData[0];
+        save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         val         = (u8)save->state.gameMode;
         p->field_2B = val;
         if (val == 0) {
@@ -963,7 +963,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
-        params = ((GpEnemy*)arg0->spawnArg2.pointer)->param;
+        params = ((Enemy*)arg0->spawnArg2.pointer)->param;
         if (params != NULL) {
             q            = &Gp_StateF0;
             q->field_8  += params->exp;

@@ -8,7 +8,7 @@
 /// scalar at `field_5E` then ramps towards `field_5C` by `field_60` a frame;
 /// while it is non-zero it scales (`GPF`) the normalised facing column of the
 /// model matrix into the per-frame world step, which is added to the
-/// coordinate's translation and kept in `moveStep`. `Mc_SaveData[0].state.actorsFrozen` (a global
+/// coordinate's translation and kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` (a global
 /// freeze flag) zeroes the step instead. Written as an inline so the two
 /// scratch-head accesses inside one frame stay absolute; see
 /// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
@@ -40,7 +40,7 @@ static __inline__ void patrolWalkerStep(OverlayWalker* walker, u8* head,
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
-            SCRATCH_PUSH_BYTES(4);
+            SCRATCH_STACK_RESERVE_BYTES(4);
             walker->field_6F = patrolNodeNearestActor(walker, 1);
             walker->field_70 = patrolNodeNearestSelf(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
@@ -81,7 +81,7 @@ static __inline__ void patrolWalkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[0].state.actorsFrozen == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;

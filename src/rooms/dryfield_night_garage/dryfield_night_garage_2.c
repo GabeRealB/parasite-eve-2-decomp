@@ -144,7 +144,7 @@ ActorCommand D_dryfield_night_garage_80182DE8 = { { .loc = { 3, 24 } }, 4 };
 
 ActorCommand D_dryfield_night_garage_80182DEC = { { .loc = { 3, 24 } }, 5 };
 
-GpOverlayIds D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
+EvsSceneKey D_dryfield_night_garage_80182DF0 = { 3, 55, 11 };
 
 GpEvsCmd D_dryfield_night_garage_80182DF8[40] = {
     { 12, { .overlays = &D_dryfield_night_garage_80182DF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -859,7 +859,7 @@ GpObj4C D_dryfield_night_garage_80186734[12] = {
     { NULL, NULL, NULL, { 3583, -1664, 6207, 0 }, { { -1882, -2672, 2589, 0 }, { 1840, -2672, -2629, 0 }, { -1882, 2672, 2589, 0 }, { 1840, 2672, -2629, 0 } }, { -3352, 0, -2392, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 2, 3, 129, 0 },
 };
 
-GpPointLight D_dryfield_night_garage_80186AC4[7] = {
+WorldCoordPointLight D_dryfield_night_garage_80186AC4[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7636, -1881, 6062 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 2664 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8399, -1740, 3071 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3278, 3278, 3287 }, { 0, 0 } }, 0, 2930 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5719, -2018, 3332 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3689, 3689, 3689 }, { 0, 0 } }, 0, 3084 },
@@ -904,23 +904,23 @@ GpObj4C D_dryfield_night_garage_8018723C[7] = {
 
 GpAreaTmdRec D_dryfield_night_garage_80187450[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_garage_80187468[3] = {
     { 106, 354, 0, 0, { 0, 0 }, D_8013A4AC },
     { 114, 354, 5, 0, { 0, 0 }, D_8013F8D8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_garage_8018748C[2] = {
     { 101, 363, 0, 0, { 0, 0 }, D_8013B11C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_garage_801874A4[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_garage_801874BC[12] = {
@@ -1039,7 +1039,7 @@ Task* func_dryfield_night_garage_80180A64(s32 arg0)
     GpWorkObj* work;
     Task*      task;
 
-    work = Gp_FindWorkById(gGameSession->location.loc.area | ((arg0 << 12) | (gGameSession->location.loc.stage << 8)));
+    work = Gp_FindWorkById(gGameSession->location.loc.area | ((arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
     task = NULL;
     if (work != NULL) {
         task = work->field_0;

@@ -52,7 +52,7 @@ RoomEventMsg D_mine_secret_passage_80183448;
 /// backs out, state 3 counts the armed-shot window down before raising the PE
 /// prompt, state 4 raises the helper task 0x31 and queues the sound event,
 /// state 5 waits for that voice, and state 6 - the commit - copies the staged
-/// location into `Mc_SaveData` and reloads. Every state but the commit advances
+/// location into `gMcSaveData` and reloads. Every state but the commit advances
 /// through the shared `advance` tail; a confirmed cancel stops without it.
 void func_mine_secret_passage_8017D60C(Task* arg0)
 {
@@ -103,10 +103,10 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             break;
         case 6:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_mine_secret_passage_80183448.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_mine_secret_passage_80183448.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_mine_secret_passage_80183448.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_mine_secret_passage_80183448.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

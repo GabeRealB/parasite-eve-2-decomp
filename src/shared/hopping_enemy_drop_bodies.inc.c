@@ -7,9 +7,9 @@ void hopperDropBodies(Task* arg0)
     Actor341700Work* work2;
     Actor341700Work* work;
 
-    work                                      = (Actor341700Work*)arg0->work;
-    ((GpEnemy*)arg0->spawnArg2.pointer)->recs = 0;
-    work2                                     = (Actor341700Work*)arg0->work;
+    work                                    = (Actor341700Work*)arg0->work;
+    ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
+    work2                                   = (Actor341700Work*)arg0->work;
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);

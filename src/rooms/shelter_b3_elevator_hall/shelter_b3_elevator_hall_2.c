@@ -46,7 +46,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
 extern TaskDesc D_80142604;
@@ -328,7 +329,7 @@ GpSprtRec D_shelter_b3_elevator_hall_801841DC[7] = {
     { { .empty = D_shelter_b3_elevator_hall_801841CC }, D_shelter_b3_elevator_hall_801841CC, NULL },
 };
 
-GpPointLight D_shelter_b3_elevator_hall_80184230[5] = {
+WorldCoordPointLight D_shelter_b3_elevator_hall_80184230[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2088, -2723, -1583 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3528, 3488, 3508 }, { 0, 0 } }, 2000, 5702 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1644, -2723, -1583 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 6201 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7160, -2723, -2914 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2000, 7581 },
@@ -351,18 +352,18 @@ GpObj4C D_shelter_b3_elevator_hall_80184428[8] = {
 
 GpAreaTmdRec D_shelter_b3_elevator_hall_80184688[2] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b3_elevator_hall_801846A0[3] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b3_elevator_hall_801846C4[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b3_elevator_hall_801846DC[3] = {
@@ -470,12 +471,7 @@ GpRoomParamRec* D_shelter_b3_elevator_hall_801849E0[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    18,
-    230,
-    216,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 18, 230, 216 } };
 
 RoomEventReq gRoomEventReq = { 0 }; /// A glowing disc anchored to its parent at the work block's position. In
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"

@@ -5,15 +5,15 @@
 /// state 7; otherwise the state advances.
 void hopperDeathCry(Task* arg0)
 {
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     Actor341700Work* work;
     TmdObject*       model;
     Actor341700Work* work2;
 
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     model = arg0->extra.tmd;
     work  = (Actor341700Work*)arg0->work;
-    SndEvt_EnqueueType7(((enemy->placeKey >> 0xC) << 8) | 0x402C0002, 0xF);
+    SndEvt_EnqueueType7(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0002, 0xF);
     hopperSetAlertHold(arg0, 0);
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {

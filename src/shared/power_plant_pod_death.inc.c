@@ -13,7 +13,7 @@
 /// of `gPodReleaseIds` (message bit 2 clears the hold value 2). The
 /// pose and colour are ticked every frame, and the enemy is destroyed once the
 /// sequence has ended and the release has run.
-void podDeathState(GpEnemy* arg0, Task* arg1)
+void podDeathState(Enemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          pos;

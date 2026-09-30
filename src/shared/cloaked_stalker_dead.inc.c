@@ -6,7 +6,7 @@
 /// `field_6CE` sequence runs: state 0 unlinks the actor and saves its pose,
 /// state 1 sprays a randomly angled effect every fourth frame, and state 2
 /// projects the actor before moving on to 3.
-void stalkerDeadState(GpEnemy* arg0, Task* arg1)
+void stalkerDeadState(Enemy* arg0, Task* arg1)
 {
     u8*              head;
     SVECTOR*         sc;

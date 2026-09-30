@@ -20,7 +20,7 @@ void bursterTurnToPlayer(Task* arg0)
 
     coord        = arg0->extra.tmd->coords;
     work         = (Actor104600Work*)arg0->work;
-    sc           = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
+    sc           = (ActorFaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     sc->delta.vx = Player_Status.coordMtx->t[0] - coord->coord.t[0];
     sc->delta.vy = 0;
     sc->delta.vz = Player_Status.coordMtx->t[2] - coord->coord.t[2];

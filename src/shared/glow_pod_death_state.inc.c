@@ -7,7 +7,7 @@
 /// countdown running out releases state 0xF0, sets `field_288` and unlinks the
 /// enemy's node and its three bodies, and the two animation slots are rebound
 /// or advanced.
-void glowPodDeathState(GpEnemy* arg0, Task* arg1)
+void glowPodDeathState(Enemy* arg0, Task* arg1)
 {
     GlowPodWork* work;
     TmdObject*   obj;

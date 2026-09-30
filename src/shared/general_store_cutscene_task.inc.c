@@ -15,7 +15,7 @@
 /// helper task 0x31, which it spawns with a `ScreenFade` whose `rampFrames`
 /// is 8; any other key cuts the cutscene short instead -
 /// captions off, stage sound 0x5203000E, the latched stage byte back into
-/// `Mc_SaveData[0].state.location.loc.view` and the player's weapon messages re-enabled.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` and the player's weapon messages re-enabled.
 ///
 /// State 5 is the commit: it queues sound event 0x80000000, points the save's
 /// location at area 0x26 with the two latched script arguments as its warp
@@ -29,9 +29,9 @@ void storeCutsceneTask(Task* arg0)
         case 0:
             Gp_MsgPlayerWeapon(0);
             Gp_MsgPlayer3F3(0);
-            gStoreSavedView                        = Mc_SaveData[0].state.location.loc.view;
-            Mc_SaveData[0].state.location.loc.view = 0x10;
-            arg0->state                           += 1;
+            gStoreSavedView                                            = gMcSaveData[0].state.location.loc.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
+            arg0->state                                               += 1;
             return;
         case 1:
         case 3:
@@ -55,16 +55,16 @@ void storeCutsceneTask(Task* arg0)
             }
             Gp_StateF0.field_4 = 0;
             Gp_EnqueueStageSnd6(0x5203000E, 0, 0);
-            Mc_SaveData[0].state.location.loc.view = gStoreSavedView;
+            gMcSaveData[0].state.location.loc.view = gStoreSavedView;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
         case 5:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 0x26;
-            Mc_SaveData[0].state.location.loc.warp = gStoreWarp;
-            Mc_SaveData[0].state.location.loc.room = gStoreRoom;
-            gDisplayState.spriteVariant            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x26;
+            gMcSaveData[0].state.location.loc.warp                     = gStoreWarp;
+            gMcSaveData[0].state.location.loc.room                     = gStoreRoom;
+            gDisplayState.spriteVariant                                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             break;
         default:

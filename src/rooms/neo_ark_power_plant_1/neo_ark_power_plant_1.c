@@ -90,11 +90,11 @@ GpAreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
 /// it sends message 0x7D6 to the slot-4 task, and when that returns 0 with
 /// `Gp_StateC08.field_A` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
 /// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
-/// `Mc_SaveData[0].state.sceneEvent` to 0x16 and starts the event script at
-/// `D_neo_ark_power_plant_1_8017EB7C`. When `Mc_SaveData[0].state.location.loc.view` is 3 and nibble 0xFB
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x16 and starts the event script at
+/// `D_neo_ark_power_plant_1_8017EB7C`. When `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is 3 and nibble 0xFB
 /// is clear, it sets 0xFB, clears `field_126` and `Gp_StateF0.prefix.bytes.field_0` and
 /// starts the script at `D_neo_ark_power_plant_1_8017EEE4`. It re-arms the
-/// countdown to 4 while `Mc_SaveData[0].state.location.loc.view` differs from the current view with 0xDE
+/// countdown to 4 while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` differs from the current view with 0xDE
 /// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
 /// 0, enqueues sound event 0x5511000A (as type 6 in view 7, type 7 elsewhere).
 static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
@@ -111,20 +111,20 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         GameFlag_SetNibble(0xF6, 1);
                         GameFlag_SetNibble(0x1B2, 0);
                         Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
-                        Mc_SaveData[0].state.sceneEvent = 0x16;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x16;
                         func_800E8634(D_neo_ark_power_plant_1_8017EB7C, 0, D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }
             }
         }
     }
-    if ((Mc_SaveData[0].state.location.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) && (GameFlag_GetNibble(0xFB) == 0)) {
         GameFlag_SetNibble(0xFB, 1);
         gGameSession->battleResetPending = 0;
         Gp_StateF0.prefix.bytes.field_0  = 0;
         func_800E8614(D_neo_ark_power_plant_1_8017EEE4, 0);
     }
-    if ((Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (GameFlag_GetNibble(0xDE) != 0) && (GameFlag_GetNibble(0xDF) == 0)) {
         D_neo_ark_power_plant_1_8017F01C = 4;
         return;
     }

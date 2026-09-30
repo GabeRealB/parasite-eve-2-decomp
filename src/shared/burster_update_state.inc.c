@@ -8,7 +8,7 @@
 /// part, clears the display flags of the first two parts and recomputes the
 /// second one's world matrix; the tail colours the enemy from that part and
 /// draws its ground shadow.
-void bursterUpdateState(GpEnemy* arg0, Task* arg1)
+void bursterUpdateState(Enemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;

@@ -24,7 +24,7 @@ s32 footstepWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (gFootstepWalkMode == 1) {
         work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, work->st.yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
     switch (gFootstepWalkMode) {
         case 0:

@@ -67,8 +67,10 @@
 /// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
-#define ROOM_DEPARTURE     gRoomDeparture.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
+// The departure symbol carries four unproven bytes after the record.
+#define ROOM_DEPARTURE gRoomDeparture.departure
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
@@ -98,28 +100,10 @@ extern RoomEventMsg gRoomEventStagedMsg;
 
 /// A second copy of the staged event block, taken whole once the block has been
 /// passed through `roomVariantResolveNeoArk`.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomDeparture value;
-    u8            retained[4];
-} ShelterB2MainCorridorStorage9664;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9664, 16);
-
-extern ShelterB2MainCorridorStorage9664 gRoomDeparture;
+extern RoomDepartureStorage gRoomDeparture;
 
 /// The exit being taken, read by the exit task.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} ShelterB2MainCorridorStorage9674;
-STATIC_ASSERT_SIZEOF(ShelterB2MainCorridorStorage9674, 16);
-
-extern ShelterB2MainCorridorStorage9674 gRoomEventLatched;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The staged event block, read by the task spawned from
 /// `D_shelter_b2_main_corridor_80182C44`.
@@ -1408,7 +1392,7 @@ GpSprtRec D_shelter_b2_main_corridor_80188848[13] = {
     { { .empty = D_shelter_b2_main_corridor_80188838 }, D_shelter_b2_main_corridor_80188838, NULL },
 };
 
-GpPointLight D_shelter_b2_main_corridor_801888E4[8] = {
+WorldCoordPointLight D_shelter_b2_main_corridor_801888E4[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2129, -1643, -681 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2638, 2638, 2688 }, { 0, 0 } }, 2000, 6401 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 88, -1642, -1382 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2638, 1076, 1085 }, { 0, 0 } }, 759, 1859 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2129, -1643, -0x34D9 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3499, 3539, 3569 }, { 0, 0 } }, 2000, 9481 },
@@ -1444,34 +1428,34 @@ GpObj4C D_shelter_b2_main_corridor_80188BFC[18] = {
 
 GpAreaTmdRec D_shelter_b2_main_corridor_80189154[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_main_corridor_8018916C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_main_corridor_80189184[3] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_main_corridor_801891A8[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_main_corridor_801891B4[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_main_corridor_801891D8[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_main_corridor_801891FC[4] = {
@@ -1594,9 +1578,9 @@ u8 D_shelter_b2_main_corridor_8018965C[4] = {
 
 u8* D_shelter_b2_main_corridor_80189660 = NULL;
 
-ShelterB2MainCorridorStorage9664 gRoomDeparture = { 0 };
+RoomDepartureStorage gRoomDeparture = { 0 };
 
-ShelterB2MainCorridorStorage9674 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomDeparture D_shelter_b2_main_corridor_80189684 = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
@@ -1674,7 +1658,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
             return 2;
         }
         gRoomEventStagedMsg     = *out;
-        gRoomEventLatched.value = staged;
+        gRoomEventLatched.event = staged;
         if (p->flagId != 0) {
             GameFlag_SetNibble(p->flagId, 1);
         }
@@ -1809,7 +1793,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
             D_shelter_b2_main_corridor_80189684.area = param.areaId;
             D_shelter_b2_main_corridor_80189684.warp = param.warp;
             D_shelter_b2_main_corridor_80189684.room = param.room;
-            gRoomDeparture.value                     = D_shelter_b2_main_corridor_80189684;
+            gRoomDeparture.departure                 = D_shelter_b2_main_corridor_80189684;
             Task_SpawnFromTable(&D_shelter_b2_main_corridor_801828E0.task, 0, 0, 0);
             taskKill(arg0);
             break;
@@ -1918,7 +1902,7 @@ static void func_shelter_b2_main_corridor_8017E390(Task* arg0)
             }
         }
     }
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b2_main_corridor_80189660 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
@@ -2046,10 +2030,10 @@ void func_shelter_b2_main_corridor_8017EB8C(Task* task)
 }
 
 /// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and advances to the next state.
+/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances to the next state.
 static void func_shelter_b2_main_corridor_8017EBF4(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;

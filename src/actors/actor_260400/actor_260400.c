@@ -109,7 +109,7 @@ extern Task* D_actor_260400_80154C74;
 /// which the split covers as padding, so it has no symbol-file declaration.
 extern s16 gScriptedWalkMode;
 
-static void func_actor_260400_8014A5AC(GpEnemy* enemy, Task* task);
+static void func_actor_260400_8014A5AC(Enemy* enemy, Task* task);
 static void func_actor_260400_8014A630(Task* task);
 
 extern TmdSource D_actor_260400_8014F7F0;
@@ -970,7 +970,7 @@ s16 gScriptedWalkMode;
 
 static void func_actor_260400_80149E38(void);
 static void func_actor_260400_80149FA4(void);
-static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task);
+static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
 
 static void func_actor_260400_80149E38(void)
 {
@@ -1030,7 +1030,7 @@ static void func_actor_260400_80149FA4(void)
 /// stream. It then starts the helper task and textures the helper's model from
 /// the area placement record the spawning enemy names, before running the
 /// first update with the reset mode 2 / id 1 it seeds.
-static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
+static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -1069,7 +1069,7 @@ static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
     spawned                      = Task_SpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
         gScriptedWalkWork->helper = spawned;
-        actorTintTask(spawned, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintTask(spawned, (Enemy*)task->spawnArg2.pointer);
     }
     gScriptedWalkWork->st.travel   = 0;
     gScriptedWalkWork->turnFrames  = 0;
@@ -1087,7 +1087,7 @@ static void func_actor_260400_80149FE0(GpEnemy* enemy, Task* task)
 /// on the stack.
 void func_actor_260400_8014A550(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_260400_80149FE0,
         func_actor_260400_8014A5AC,
     };
@@ -1104,7 +1104,7 @@ void func_actor_260400_8014A550(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
+/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
 /// back to `Gp_DestroyEnemy` and kills the helper task.
 static void func_actor_260400_8014A630(Task* task)
 {

@@ -9,7 +9,7 @@ void spiderSpawnHusk(Task* actor)
     u8               areaByte0;
     GpAreaVariant*   rec;
     AreaPlacement*   entry;
-    GpEffWork*       eff;
+    EffectWork*      eff;
     TmdObject*       model;
     s32              idx;
     u32              raw;
@@ -20,7 +20,7 @@ void spiderSpawnHusk(Task* actor)
         return;
     }
     sessionKey = &gGameSession->location.loc;
-    raw        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey;
+    raw        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
     model      = eff->task->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;

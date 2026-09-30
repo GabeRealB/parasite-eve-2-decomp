@@ -281,7 +281,7 @@ GpSprtRec D_dryfield_night_souvenir_shop_8017EF08[4] = {
     { { .empty = D_dryfield_night_souvenir_shop_8017EEF8 }, D_dryfield_night_souvenir_shop_8017EEF8, NULL },
 };
 
-GpPointLight D_dryfield_night_souvenir_shop_8017EF38[6] = {
+WorldCoordPointLight D_dryfield_night_souvenir_shop_8017EF38[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4098, -1580, -3550 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1846, 2048, 2048 }, { 0, 0 } }, 1102, 1964 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2383, -1477, -3573 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 2048, 2048 }, { 0, 0 } }, 1161, 2563 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1993, -1582, -21 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1844, 2048, 2049 }, { 0, 0 } }, 1486, 2463 },
@@ -323,18 +323,18 @@ GpObj4C D_dryfield_night_souvenir_shop_8017F248[12] = {
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F5D8[2] = {
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F5F0[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_souvenir_shop_8017F608[3] = {
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_souvenir_shop_8017F62C[12] = {

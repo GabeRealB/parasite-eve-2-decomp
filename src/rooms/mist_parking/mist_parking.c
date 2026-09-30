@@ -1014,9 +1014,9 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
-            session                                = gGameSession;
-            Mc_SaveData[0].state.location.loc.warp = 2;
-            session->location.loc.warp             = 2;
+            session                                                    = gGameSession;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
+            session->location.loc.warp                                 = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);
@@ -1076,9 +1076,9 @@ void func_mist_parking_80182750(s32 arg0)
     if (GameFlag_GetNibble(0x7A) != 0) {
         arg0 += 2;
     }
-    Mc_SaveData[0].state.location.loc.room = arg0;
-    gGameSession->location.loc.room        = arg0;
-    gGameSession->roomObjsDirty            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gGameSession->roomObjsDirty                                = 1;
 }
 
 void func_mist_parking_801827A0(s32 arg0)
@@ -1091,7 +1091,7 @@ static void func_mist_parking_801827C0(Task* arg0)
     arg0->msgTable = D_mist_parking_80186BB8;
     Game_SetPtrSlot(arg0, 7);
     if ((gGameSession->location.loc.variant == 2) && (GameFlag_GetNibble(0xF1) == 0)) {
-        if (Mc_SaveData[0].state.location.loc.warp == 3) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             func_800E3FAC(0xA2, 0x3C);
             func_mist_parking_801837A4(0);
             func_800E8634(D_mist_parking_8018DF34, 0, D_mist_parking_8018EDBC);

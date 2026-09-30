@@ -603,7 +603,7 @@ GpSprtRec D_shelter_b4_water_supply_80183F90[11] = {
     { { .empty = D_shelter_b4_water_supply_80183F80 }, D_shelter_b4_water_supply_80183F80, NULL },
 };
 
-GpPointLight D_shelter_b4_water_supply_80184014[10] = {
+WorldCoordPointLight D_shelter_b4_water_supply_80184014[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2710, -3800, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3358, 2949, 2539 }, { 0, 0 } }, 2000, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x393A, -5245, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3358, 2949, 2539 }, { 0, 0 } }, 1750, 2250 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1930, -7250, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 2785 }, { 0, 0 } }, 3000, 4000 },
@@ -651,23 +651,23 @@ GpObj4C D_shelter_b4_water_supply_80184944[7] = {
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B58[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B70[3] = {
     { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184B94[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_water_supply_80184BAC[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b4_water_supply_80184BC4[2] = {
@@ -834,10 +834,10 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -1299,10 +1299,10 @@ void func_shelter_b4_water_supply_8017ED28(Task* task)
 }
 
 /// The water task's opening state: clears the session's `field_80` or
-/// `field_7E`, chosen by `Mc_SaveData[0].state.companionType`, and advances the task to its next state.
+/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances the task to its next state.
 static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -1312,11 +1312,11 @@ static void func_shelter_b4_water_supply_8017ED90(Task* arg0)
 
 /// The water task's drawing state: points the primitive cursor
 /// `D_shelter_b4_water_supply_80184E50` at the current buffer's 0xC000-byte
-/// slice of one of two primitive areas, chosen by `Mc_SaveData[0].state.companionType`, then draws both
+/// slice of one of two primitive areas, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, then draws both
 /// lists of water surfaces.
 static void func_shelter_b4_water_supply_8017EDD0(Task* task)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_water_supply_80184E50 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;

@@ -21,7 +21,7 @@
 /// about `Task` fields rest on unverified names. Rewrite once `Task` is done.
 /// Draws the expanding flash the ofuda produces, over three states.
 ///
-/// Spawned with a `GpEffWork` block in `Task::spawnArg2` holding the effect's
+/// Spawned with a `EffectWork` block in `Task::spawnArg2` holding the effect's
 /// brightness, ring radius and per-frame step, and a coordinate reached through
 /// `Task::extra`. `Task::spawnArg1` counts the frames of the growing phase down
 /// to zero.
@@ -35,7 +35,7 @@
 /// A cancelled or interrupted cast stops the cue and releases immediately.
 void ofudaEffectTask(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpStateC08* state;
     s32         pan;

@@ -25,20 +25,20 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-void bursterSpawnState(GpEnemy* arg0, Task* arg1);
+void bursterSpawnState(Enemy* arg0, Task* arg1);
 void bursterReactionDispatch(Task* arg0);
 void bursterDormantTick(Task* arg0);
 void bursterAwakeTick(Task* arg0);
 void bursterContacts(Task* arg0);
 void bursterTakeDamage(Task* arg0, s32 arg1);
 void bursterTurnToPlayer(Task* arg0);
-void bursterDeathState(GpEnemy* enemy, Task* task);
+void bursterDeathState(Enemy* enemy, Task* task);
 void bursterKill(Task* arg0, u8 arg1);
-void bursterDropSpawnState(GpEnemy* arg0, Task* arg1);
-void bursterDropState(GpEnemy* arg0, Task* arg1);
+void bursterDropSpawnState(Enemy* arg0, Task* arg1);
+void bursterDropState(Enemy* arg0, Task* arg1);
 void bursterDropCollide(Task* arg0);
 s32  bursterMessage(Task* arg0, s32 arg1, ActorCommand* request);
-void bursterUpdateState(GpEnemy* arg0, Task* arg1);
+void bursterUpdateState(Enemy* arg0, Task* arg1);
 void bursterReactionFlags(Task* arg0);
 void bursterStep(Task* task);
 void bursterScalePart(Task* arg0, GfxCoord* arg1);
@@ -48,7 +48,7 @@ void bursterFallStep(Task* task);
 
 /* Defined by each package. */
 void bursterAnimate(Task* arg0);
-void bursterColour(GpEnemy* arg0, Task* task);
+void bursterColour(Enemy* arg0, Task* task);
 void bursterDrawShadow(Task* task);
 
 #endif /* SRC_SHARED_BURSTER_H */

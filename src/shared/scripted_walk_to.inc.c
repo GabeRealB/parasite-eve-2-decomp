@@ -25,7 +25,7 @@ s32 scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
     if (SCRIPTED_WALK_MODE == 1) {
         work->st.yaw = angle + 0x800;
     }
-    Gfx_RotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)work->st.yaw, 1);
     dist  = SquareRoot0(dx * dx + dz * dz);
     steps = 0x19;
     switch (SCRIPTED_WALK_MODE) {

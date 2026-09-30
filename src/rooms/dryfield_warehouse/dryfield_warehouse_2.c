@@ -479,7 +479,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = anim;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
@@ -487,10 +487,10 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             Gp_DispatchMsgPtr(work->owner, ANIMATION_MESSAGE_PLAY, &rec, 0);
             Gp_DispatchMsgPtr(work->owner, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
-            if (Mc_SaveData[0].state.location.loc.room != 2) {
-                Mc_SaveData[0].state.location.loc.room = 2;
-                gGameSession->location.loc.room        = 2;
-                D_dryfield_warehouse_801821C4          = 1;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != 2) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+                gGameSession->location.loc.room                            = 2;
+                D_dryfield_warehouse_801821C4                              = 1;
                 return;
             }
             D_dryfield_warehouse_801821C4 = 0;
@@ -567,7 +567,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                 Gp_MsgPlayerWeapon(0);
             }
             weaponId                     = Player_Status.weapon;
-            anim                         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.rec.source.index         = anim;
             msg.rec.animationId          = 1;
             msg.rec.blend                = ANIMATION_BLEND_RESET;
@@ -619,9 +619,9 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
             switch (work->field_6) {
                 case 0:
-                    Mc_SaveData[0].state.location.loc.room = 2;
-                    gGameSession->location.loc.room        = 2;
-                    work->field_8                          = 0;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+                    gGameSession->location.loc.room                            = 2;
+                    work->field_8                                              = 0;
                     work->field_6++;
                     break;
                 case 1:
@@ -691,7 +691,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
                     D_dryfield_warehouse_801821BC = arg0;
                 }
                 weaponId                 = Player_Status.weapon;
-                anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 rec.source.index         = anim;
                 rec.animationId          = 1;
                 rec.blend                = ANIMATION_BLEND_RESET;

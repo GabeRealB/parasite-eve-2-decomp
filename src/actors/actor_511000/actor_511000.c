@@ -128,14 +128,14 @@ static void func_actor_511000_80133498(Task* task);
 static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
 static void func_actor_511000_80133760(Task* task);
 static void func_actor_511000_801337F0(Task* task);
-static void func_actor_511000_80133958(GpEnemy* enemy, Task* task);
-static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task);
-static void func_actor_511000_80133F48(GpEnemy* enemy, Task* task);
-static void func_actor_511000_80133F88(GpEnemy* enemy, Task* task);
-static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task);
-static void func_actor_511000_8013405C(GpEnemy* enemy, Task* task);
-static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task);
-static void func_actor_511000_80134130(GpEnemy* enemy, Task* task);
+static void func_actor_511000_80133958(Enemy* enemy, Task* task);
+static void func_actor_511000_80133B80(Enemy* enemy, Task* task);
+static void func_actor_511000_80133F48(Enemy* enemy, Task* task);
+static void func_actor_511000_80133F88(Enemy* enemy, Task* task);
+static void func_actor_511000_8013401C(Enemy* enemy, Task* task);
+static void func_actor_511000_8013405C(Enemy* enemy, Task* task);
+static void func_actor_511000_801340F0(Enemy* enemy, Task* task);
+static void func_actor_511000_80134130(Enemy* enemy, Task* task);
 
 /// State table of a child chained under a part of its spawner's model: the
 /// attach state, an empty tick and the kill.
@@ -2334,10 +2334,11 @@ s32 func_actor_511000_80132604(Task* task, s32 arg1, AnimationPlayRequest* msg, 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 shows
-/// the model (`field_C` bit 0x80) and clears the 4 flag, 1 hides it, frees the
-/// aux buffers and clears the flag, 2 does both plus latching the mode into the
-/// work block's `field_480`, and 3 hides it while setting the flag. Anything
+/// mode word, run against the `TmdObject` parked in `Task::extra`. Mode 0 hides
+/// the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 1 shows it, allocates the
+/// buffers and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, 2 hides it, sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and latches the mode into `field_480`, and 3
+/// shows it while setting `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything
 /// else returns 1 and leaves the object alone; the handled modes return 0.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block. The same body
@@ -3014,7 +3015,7 @@ void func_actor_511000_80133900(Task* task)
 /// animation state, installs the message table, then spawns table entries 1
 /// and 2 - tinting each child's model from the current area's record - and
 /// entry 3, and advances to state 1. An allocation failure destroys the enemy.
-static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133958(Enemy* enemy, Task* task)
 {
     enum { MODEL_HIDDEN = 0x80,
            STATE_UPDATE = 1 };
@@ -3028,7 +3029,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     Actor511000ParentWork* work;
     TaskDesc*              table;
     u32                    placementWord;
-    GpEnemy*               spawned;
+    Enemy*                 spawned;
     GameSession*           session;
 
     model = task->extra.tmd;
@@ -3052,7 +3053,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     session = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
     // Reusing the spawn result preserves its register preference at the task load.
-    spawned       = (GpEnemy*)spawned->task;
+    spawned       = (Enemy*)spawned->task;
     sessionKey    = &session->location.loc;
     placementWord = enemy->placeKey;
     stage         = sessionKey->stage;
@@ -3075,7 +3076,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     }
     spawned       = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
     session       = gGameSession;
-    spawned       = (GpEnemy*)spawned->task;
+    spawned       = (Enemy*)spawned->task;
     sessionKey    = &session->location.loc;
     placementWord = enemy->placeKey;
     stage         = sessionKey->stage;
@@ -3100,7 +3101,7 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     task->state = STATE_UPDATE;
 }
 
-static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133B80(Enemy* enemy, Task* task)
 {
     TmdObject*             extra;
     VECTOR*                pos;
@@ -3113,7 +3114,7 @@ static void func_actor_511000_80133B80(GpEnemy* enemy, Task* task)
     s32                    flag;
 
     extra = task->extra.tmd;
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     work   = (Actor511000ParentWork*)task->work;
     coords = extra->coords;
     coord  = &coords[1];
@@ -3188,7 +3189,7 @@ s32 func_actor_511000_80133DEC(Task* task, s32 arg1, AnimationPlayRequest* prese
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
 /// Visibility message handler: bit 0 of `arg2` shows the model (flags 0)
-/// instead of hiding it (0x80); bit 1 also sets flag 0x4.
+/// instead of hiding it (0x80); bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
 s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 {
     TmdObject* obj;
@@ -3216,7 +3217,7 @@ void func_actor_511000_80133EF4(Task* task)
 /// Spawn state of the model child attached to the spawner's part 8: chains
 /// the root coordinate under that part, takes the spawner work block's light
 /// and colour matrices, shows the model and advances to the tick state.
-static void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
+static void func_actor_511000_80133F48(Enemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -3237,7 +3238,7 @@ static void func_actor_511000_80133F48(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-static void func_actor_511000_80133F88(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_80133F88(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -3250,7 +3251,7 @@ void func_actor_511000_80133FC8(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
+static void func_actor_511000_8013401C(Enemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -3271,7 +3272,7 @@ static void func_actor_511000_8013401C(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-static void func_actor_511000_8013405C(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_8013405C(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);
@@ -3284,7 +3285,7 @@ void func_actor_511000_8013409C(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
+static void func_actor_511000_801340F0(Enemy* enemy, Task* task)
 {
     Task*                  parent;
     TmdObject*             obj;
@@ -3305,7 +3306,7 @@ static void func_actor_511000_801340F0(GpEnemy* enemy, Task* task)
     task->state   = 1;
 }
 
-static void func_actor_511000_80134130(GpEnemy* arg0, Task* arg1)
+static void func_actor_511000_80134130(Enemy* arg0, Task* arg1)
 {
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(arg1->extra.tmd->coords);

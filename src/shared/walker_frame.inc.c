@@ -2,7 +2,7 @@
 
 /// Per-frame state of a walker: refreshes the model root, relights the model
 /// from a point 0x320 above it, runs the walker's update and draws its shadow.
-static void walkerFrame(GpEnemy* enemy, Task* task)
+static void walkerFrame(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
     GfxCoord*  coord;

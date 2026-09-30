@@ -90,8 +90,8 @@ extern u8                  gPairWalkAnimParams[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
-static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
+static void func_actor_535700_801324D4(Enemy* enemy, Task* task);
+static void func_actor_535700_80132F74(Enemy* enemy, Task* task);
 static void func_actor_535700_80133020(Task* task);
 
 extern TmdSource D_actor_535700_80139A6C;
@@ -240,7 +240,7 @@ ActorTransform D_actor_535700_80133860 = { { 0, 0, -0x38A4, 0 }, { 0, -1024, 0, 
 
 ActorTransform D_actor_535700_80133878 = { { 0, 0, -0x3322, 0 }, { 0, -1024, 0, 0 } };
 
-GpOverlayIds D_actor_535700_80133890 = { 3, 57, 11 };
+EvsSceneKey D_actor_535700_80133890 = { 3, 57, 11 };
 
 GpEvsCmd D_actor_535700_80133898[99] = {
     { 12, { .overlays = &D_actor_535700_80133890 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1156,13 +1156,13 @@ void func_actor_535700_80131EF0(s32 frames)
 
 void func_actor_535700_80131F2C(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
-        Mc_SaveData[0].state.location.loc.area = 0x1D;
-        Mc_SaveData[0].state.location.loc.warp = 5;
-        Mc_SaveData[0].state.location.loc.room = 2;
-        gDisplayState.spriteVariant            = 1;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1D;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+        gDisplayState.spriteVariant                                = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Mc_SaveData[0].state.sceneEvent = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         Gp_RestoreStreamRng();
     }
 }
@@ -1177,7 +1177,7 @@ void func_actor_535700_80131F2C(void)
 /// then the per-frame `func_actor_535700_801324D4`.
 void func_actor_535700_80132478(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         footstepWalkSpawn,
         func_actor_535700_801324D4,
     };
@@ -1264,7 +1264,7 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 /// then the per-frame `func_actor_535700_80132F74`.
 void func_actor_535700_80132F20(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         pairWalkSpawn,
         func_actor_535700_80132F74,
     };

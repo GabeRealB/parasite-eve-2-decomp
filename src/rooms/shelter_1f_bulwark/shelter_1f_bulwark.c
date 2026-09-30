@@ -58,6 +58,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+// This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
@@ -212,7 +213,7 @@ GpSprtRec D_shelter_1f_bulwark_801807B0[3] = {
     { { .elements = D_shelter_1f_bulwark_801806F8 }, D_shelter_1f_bulwark_80180798, NULL },
 };
 
-GpPointLight D_shelter_1f_bulwark_801807D4[7] = {
+WorldCoordPointLight D_shelter_1f_bulwark_801807D4[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3994, -1930, 2718 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 0, 0 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
@@ -245,7 +246,7 @@ GpObj4C D_shelter_1f_bulwark_80180B24[8] = {
 GpAreaTmdRec D_shelter_1f_bulwark_80180D84[3] = {
     { 23, 23, 0, 0, { 0, 0 }, D_80147AB8 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
@@ -543,12 +544,12 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
             arg0->state = arg0->state + 1;
             break;
         case 3:
-            Mc_SaveData[0].state.location.loc.stage = 5;
-            Mc_SaveData[0].state.location.loc.area  = 0x1A;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
-            Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x1A;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
+            Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;

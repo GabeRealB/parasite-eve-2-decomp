@@ -222,7 +222,7 @@ GpSprtRec D_shelter_b6_training_room_80184D78[8] = {
     { { .empty = D_shelter_b6_training_room_80184D68 }, D_shelter_b6_training_room_80184D68, NULL },
 };
 
-GpPointLight D_shelter_b6_training_room_80184DD8[12] = {
+WorldCoordPointLight D_shelter_b6_training_room_80184DD8[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 7500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 250, -2000, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 1228 }, { 0, 0 } }, 750, 1500 },
@@ -270,7 +270,7 @@ GpAreaTmdRec D_shelter_b6_training_room_80185994[6] = {
     { 51, 51, 0, 0, { 0, 0 }, D_80141464 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
     { 60, 60, 1, 0, { 0, 0 }, D_801567C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_training_room_801859DC[13] = {
@@ -540,9 +540,9 @@ void func_shelter_b6_training_room_8017DAF8(s32 arg0)
 /// Sets the saved location to area 0x16, warp 1, room 1 and spawns task 0x11.
 void func_shelter_b6_training_room_8017DB28(void)
 {
-    Mc_SaveData[0].state.location.loc.area = 0x16;
-    Mc_SaveData[0].state.location.loc.warp = 1;
-    Mc_SaveData[0].state.location.loc.room = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x16;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

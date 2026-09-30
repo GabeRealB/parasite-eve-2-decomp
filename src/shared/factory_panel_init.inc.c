@@ -18,9 +18,9 @@ void factoryPanelInit(Task* task)
     task->work              = work;
     task->msgTable          = gFactoryPanelMsgTable;
     if (GameFlag_GetNibble(0x48) == 0) {
-        Mc_SaveData[0].state.location.loc.view = 0xC;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
     } else {
-        Mc_SaveData[0].state.location.loc.view = 5;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
     }
     task->state++;
     Display_AcquireRef();

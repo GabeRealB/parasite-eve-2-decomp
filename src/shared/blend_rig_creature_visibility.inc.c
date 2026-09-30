@@ -3,7 +3,7 @@
 /// Handler for message 0x7D5: sets the model's display flags for the mode in
 /// `arg2` and picks the state that follows. 0 hides the model (flag 0x80
 /// alone), rebuilds the buffers and restarts state 0; 1 clears the flags,
-/// showing it, rebuilds and starts state 2; 2 raises flag 4 over the current
+/// showing it, rebuilds and starts state 2; 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER` over the current
 /// flags and 3 replaces them with it, both restarting state 0.
 s32 rigSetVisibility(Task* task, s32 arg1, s32 arg2)
 {

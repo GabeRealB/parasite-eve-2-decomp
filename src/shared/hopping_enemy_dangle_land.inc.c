@@ -12,7 +12,7 @@ void hopperDangleLand(Task* arg0)
 
     work = (Actor341700Work*)arg0->work;
     if ((s16)++work->field_412 == 1) {
-        soundId   = (u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
+        soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x402C0004;
@@ -21,7 +21,7 @@ void hopperDangleLand(Task* arg0)
         SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
     if ((s16)work->field_412 == 2) {
-        soundId   = (u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
+        soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         soundId >>= 0xC;
         soundId <<= 8;
         soundId  |= 0x402C0003;

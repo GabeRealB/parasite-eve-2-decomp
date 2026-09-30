@@ -57,8 +57,8 @@
 /// Placement descriptor for this actor.
 extern DamageAttack gLungerAttacks[5];
 
-/// Enemy parameters the approach cycle parks at `GpEnemy::param`; its `hpMax`
-/// becomes the enemy's `field_40`.
+/// Enemy parameters the approach cycle parks at `Enemy::param`; its `hpMax`
+/// becomes the enemy's `hp`.
 extern EnemyParams Actor05600_D161D0[];
 
 /// Per-stage tables of streaming cue ids, indexed by `GameSession::location.loc.stage`
@@ -89,7 +89,7 @@ extern s32 gLungerVoiceCues[];
 /// The approach cycle's per-state handlers, indexed by `Actor105600Work.field_6A6`.
 extern TaskFunc Actor05600_D16540[];
 
-static void Actor05600_Fn04ACC(GpEnemy* arg0, Task* task);
+static void Actor05600_Fn04ACC(Enemy* arg0, Task* task);
 
 extern AnimationSet Actor05600_D0B3CC;
 extern AnimationSet Actor05600_D0BD34;
@@ -1198,12 +1198,12 @@ extern s16 gLungerBeamRibbonCorners[][4];
 /// packed in.
 extern Actor05600Storage8114 gLungerImpactSound;
 
-static void        Actor05600_Fn03924(GpEnemy* ctx, Task* actor);
+static void        Actor05600_Fn03924(Enemy* ctx, Task* actor);
 static inline void _actor05600ApplyReaction(Task* actor);
 static inline void _actor05600StepRoot(Task* actor);
 static inline void _actor05600TickAnim(Task* actor);
 static inline void _actor05600Draw(Task* actor, GfxCoord* coord);
-static void        Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor);
+static void        Actor05600_Fn03EBC(Enemy* ctx, Task* actor);
 
 #include "../../shared/lunging_enemy_hit_tick.inc.c"
 
@@ -1248,7 +1248,7 @@ void Actor05600_Fn01E1C(Task* arg0)
     Actor105600Work* work;
     GfxCoord*        coord;
 
-    delta = (VECTOR*)SCRATCH_PUSH_BYTES(0x20);
+    delta = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x20);
     work  = (Actor105600Work*)arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6A8) {
@@ -1405,11 +1405,11 @@ void Actor05600_Fn01E1C(Task* arg0)
 /// Spawn handler of the approach cycle: allocates the 0x6E4-byte work block,
 /// binds the animation set and reseeds the nineteen slots, then starts the
 /// companion enemy whose model takes its texture page and CLUT row from the
-/// current room's area record. `GpEnemy::spawnState` picks how much of that is
+/// current room's area record. `Enemy::spawnState` picks how much of that is
 /// kept: 0 also links the list node, the five `Gp_LinkObj` collision nodes with
 /// their `WorldCollisionContact` tables and the room's streaming cue, while 1 and 2 only
 /// prime the animation state. Entry 0 of `Actor05600_D00098`.
-static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
+static void Actor05600_Fn03924(Enemy* ctx, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
@@ -1420,7 +1420,7 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
     GfxCoord*        partsC;
     GfxCoord*        partsD;
     GfxCoord*        effParts;
-    GpEnemy*         eff;
+    Enemy*           eff;
     u16*             tbl;
     u8               param1[8];
     u8               param2[8];
@@ -1491,15 +1491,15 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
                 CdCmd_Enqueue(0x21, param1, param2);
             }
 
-            work->field_49C.end0.vz         = 0x1F40;
+            work->field_49C.ends[0].vz      = 0x1F40;
             work->field_49C.end0Radius      = 0x3E8;
-            work->field_49C.end0.vx         = 0;
-            work->field_49C.end0.vy         = 0;
-            work->field_49C.end1.vx         = 0;
-            work->field_49C.end1.vy         = 0;
-            work->field_49C.end1.vz         = 0;
+            work->field_49C.ends[0].vx      = 0;
+            work->field_49C.ends[0].vy      = 0;
+            work->field_49C.ends[1].vx      = 0;
+            work->field_49C.ends[1].vy      = 0;
+            work->field_49C.ends[1].vz      = 0;
             work->field_49C.end1Radius      = 0x5DC;
-            work->field_49C.recs            = work->field_4B4;
+            work->field_49C.contacts        = work->field_4B4;
             partsA                          = actor->extra.tmd->coords;
             work->field_47C.context.capsule = &work->field_49C;
             work->field_47C.pos.vx          = 0;
@@ -1552,15 +1552,15 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
             Gp_InitRec18Table(work->field_604, 1, 0);
             work->field_5E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-            work->field_63C.end0.vx         = 0;
-            work->field_63C.end0.vy         = 0;
-            work->field_63C.end0.vz         = 0;
-            work->field_63C.end1.vx         = 0;
-            work->field_63C.end1.vy         = 0;
-            work->field_63C.end1.vz         = 0;
+            work->field_63C.ends[0].vx      = 0;
+            work->field_63C.ends[0].vy      = 0;
+            work->field_63C.ends[0].vz      = 0;
+            work->field_63C.ends[1].vx      = 0;
+            work->field_63C.ends[1].vy      = 0;
+            work->field_63C.ends[1].vz      = 0;
             work->field_63C.end0Radius      = 1;
             work->field_63C.end1Radius      = 1;
-            work->field_63C.recs            = work->field_654;
+            work->field_63C.contacts        = work->field_654;
             partsD                          = actor->extra.tmd->coords;
             work->field_61C.context.capsule = &work->field_63C;
             work->field_61C.pos.vx          = 0;
@@ -1593,15 +1593,15 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
 /// the `field_6A6` table with animation 0x14.
 static inline void _actor05600ApplyReaction(Task* actor)
 {
-    GpEnemy*         spawn;
+    Enemy*           spawn;
     Actor105600Work* work;
     u8               flags;
 
-    spawn = (GpEnemy*)actor->spawnArg2.pointer;
+    spawn = (Enemy*)actor->spawnArg2.pointer;
     flags = spawn->reactionFlags;
     work  = (Actor105600Work*)actor->work;
-    if ((flags & 2) && (work->field_6B8 == 0)) {
-        spawn->reactionFlags = flags & 0xFD;
+    if ((flags & ENEMY_REACTION_BUILDUP) && (work->field_6B8 == 0)) {
+        spawn->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_6A6      = 0xA;
         work->field_694      = 0x14;
         work->field_6A8      = 0;
@@ -1665,7 +1665,7 @@ static inline void _actor05600Draw(Task* actor, GfxCoord* coord)
     pos.vx = coord->workm.t[0];
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
-    Gp_UpdateActorColor((GpEnemy*)actor->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
+    Gp_UpdateActorColor((Enemy*)actor->spawnArg2.pointer, (VECTOR*)&pos, 0, 0);
     root   = actor->extra.tmd->coords;
     part   = root + 3;
     pos.vx = part->workm.t[0];
@@ -1680,7 +1680,7 @@ static inline void _actor05600Draw(Task* actor, GfxCoord* coord)
 /// publishes the body's colour and its ground shadow. `Gp_StateF0.field_4` overrides
 /// the whole state machine - 1 draws the body without advancing it and 2
 /// hides it. Entry 1 of `Actor05600_D00098`.
-static void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
+static void Actor05600_Fn03EBC(Enemy* ctx, Task* actor)
 {
     TmdObject*       model;
     Actor105600Work* work;
@@ -1963,7 +1963,7 @@ void Actor05600_Fn04A70(Task* arg0)
 /// Spawn state of the model child hung off the actor: parents the child's
 /// root coordinate to part 7 of the actor's model, points the child's model
 /// at the actor's light and colour matrices and advances to state 1.
-static void Actor05600_Fn04ACC(GpEnemy* arg0, Task* task)
+static void Actor05600_Fn04ACC(Enemy* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;

@@ -94,7 +94,7 @@ Gfx_RotMatrixXYZ = 0x8003B960; // absolute:True
 Gfx_MatrixToEuler = 0x8003C4F0; // absolute:True
 Gfx_MatrixCol2 = 0x8003C768; // absolute:True
 Gfx_RotMatrixX = 0x8003C788; // absolute:True
-Gfx_RotMatrixY = 0x8003C98C; // absolute:True
+gfxRotMatrixY = 0x8003C98C; // absolute:True
 Gfx_RotMatrixZ = 0x8003CB80; // absolute:True
 Gfx_NormalizeLightDir = 0x8003CD78; // absolute:True
 Gfx_OrthonormalBasis = 0x8003CEC4; // absolute:True
@@ -265,7 +265,7 @@ gModelObjectCoordBodyList = 0x800711C0; // absolute:True size:0x8
 D_80071210 = 0x80071210; // absolute:True
 Pad_States = 0x80071620; // absolute:True size:0xB8
 gTaskDefaultList = 0x800716E0; // absolute:True
-Mc_SaveData = 0x80072168; // absolute:True size:0x1288
+gMcSaveData = 0x80072168; // absolute:True size:0x1288
 gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
 Player_Status = 0x80073B88; // absolute:True size:0x80

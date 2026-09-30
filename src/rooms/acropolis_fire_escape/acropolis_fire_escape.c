@@ -87,7 +87,7 @@ STATIC_ASSERT_SIZEOF(AcropolisFireEscapeGlowScratch, 0x18);
 extern UiObjectDesc D_800611E4;
 
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
-/// end reads it through this name rather than through `Mc_SaveData`.
+/// end reads it through this name rather than through `gMcSaveData`.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -329,7 +329,7 @@ GpObj3A D_acropolis_fire_escape_801828BC[2] = {
 
 GpAreaTmdRec D_acropolis_fire_escape_80182934[2] = {
     { 10, 115, 2, 0, { 0, 0 }, D_80169338 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_fire_escape_8018294C[5] = {
@@ -340,7 +340,7 @@ GpAreaVariant D_acropolis_fire_escape_8018294C[5] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_fire_escape_80182974[5] = {
+WorldCoordPointLight D_acropolis_fire_escape_80182974[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2020, -2380, 663 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 760, 4206 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2020, -2380, 2820 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -10, -2380, 3860 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
@@ -626,11 +626,11 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
     switch (gGameSession->location.loc.view) {
         case 8:
             vol = 0x64;
-            if (Mc_SaveData[0].state.sceneEvent == 5) {
-                Mc_SaveData[0].state.sceneEvent = 7;
-                pair                            = &gStageMusicParams;
-                pair->fadeFrames                = 1;
-                pair->unusedCommandArg          = 1;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 7;
+                pair                                                = &gStageMusicParams;
+                pair->fadeFrames                                    = 1;
+                pair->unusedCommandArg                              = 1;
                 Task_SpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
                 gGameSession->flowFlags = 0;
             }
@@ -699,14 +699,14 @@ s32 func_acropolis_fire_escape_8017FE48(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// First state of the room's message task: installs the message table, takes
-/// pointer slot 7, spawns the ambient-sound task and, when `Mc_SaveData[0].state.sceneEvent` is 5,
+/// pointer slot 7, spawns the ambient-sound task and, when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` is 5,
 /// sets the session's flow flags to 8.
 static void func_acropolis_fire_escape_8017FE50(Task* task)
 {
     task->msgTable = D_acropolis_fire_escape_80181D3C;
     Game_SetPtrSlot(task, 7);
     Task_SpawnFromTable(D_acropolis_fire_escape_80181D64, 0, 0, 0);
-    if (Mc_SaveData[0].state.sceneEvent == 5) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY;
     }
     task->state = task->state + 1;
@@ -744,8 +744,8 @@ void func_acropolis_fire_escape_8017FF24(Task* task)
 /// parameters of the current view, for views 3, 6, 8 and 9.
 void func_acropolis_fire_escape_8017FF7C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -803,7 +803,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
 /// Every wedge takes the semi-transparent tpage of `Gp_AddTpageShift`.
 void func_acropolis_fire_escape_80180154(Task* task)
 {
-    GpEffWork*                      work;
+    EffectWork*                     work;
     GfxCoord*                       coord;
     AcropolisFireEscapeGlowScratch* block;
     POLY_G4*                        prim;

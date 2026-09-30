@@ -54,7 +54,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// Staging save location the island commits: area / warp / room
 /// hold what `func_neo_ark_island_8017E968` copies out of the incoming
 /// location, and `func_neo_ark_island_8017E844` moves those same three bytes
-/// into `Mc_SaveData[0].state.location.loc.area` / `warp` / `room`.
+/// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_island_80184008;
 
 static void func_neo_ark_island_8017EA94(Task* arg0);
@@ -479,26 +479,26 @@ GpObj4C D_neo_ark_island_80183DF8[3] = {
 
 GpAreaTmdRec D_neo_ark_island_80183EDC[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183EF4[2] = {
     { 49, 49, 1, 0, { 0, 0 }, D_8015F400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F0C[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F24[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_island_80183F30[2] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_island_80183F48[13] = {
@@ -573,7 +573,7 @@ static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
 /// flag and waits for the event key it answers with - anything but 0xA kills
 /// the task and messages the player weapon - step 3 is the shared advance, and
 /// step 4 raises the outgoing sound, commits the staged save location to
-/// `Mc_SaveData` and spawns the task's successor.
+/// `gMcSaveData` and spawns the task's successor.
 void func_neo_ark_island_8017E844(Task* arg0)
 {
     switch (arg0->state) {
@@ -599,10 +599,10 @@ void func_neo_ark_island_8017E844(Task* arg0)
             return;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_neo_ark_island_80184008.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_island_80184008.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

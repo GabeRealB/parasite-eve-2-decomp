@@ -1,7 +1,7 @@
 /* Part of the hopping enemy library; see hopping_enemy.h. */
 
 /// Once the hit flags are set, requests animation 0xB; once the enemy's
-/// flag-2 counter runs out, moves the state machine to state 3.
+/// buildup countdown (`Gp_TickObjFlag2`) runs out, moves the state machine to state 3.
 void hopperStatusHold(Task* arg0)
 {
     Actor341700Work* work;

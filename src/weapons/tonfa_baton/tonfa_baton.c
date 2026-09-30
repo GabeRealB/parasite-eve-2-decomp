@@ -66,13 +66,13 @@ static void func_tonfa_baton_8011DBFC(Task* arg0);
 
 void func_tonfa_baton_8011D1EC(Task* task)
 {
-    GfxCoord   local;
-    GfxCoord*  coord;
-    GfxCoord*  dst;
-    GpEffWork* work;
-    SVECTOR*   vec;
-    s32        i;
-    s32        flags;
+    GfxCoord    local;
+    GfxCoord*   coord;
+    GfxCoord*   dst;
+    EffectWork* work;
+    SVECTOR*    vec;
+    s32         i;
+    s32         flags;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -251,7 +251,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
     GameActor*  actor;
     GfxCoord*   coord;
     TonfaSwing* swing;
-    GpEffWork*  eff;
+    EffectWork* eff;
     s32         delay;
     s32         step;
     s32         fade;
@@ -259,7 +259,7 @@ static void func_tonfa_baton_8011DBFC(Task* arg0)
 
     swinging = 0;
     actor    = arg0->work;
-    SCRATCH_PUSH_BYTES(0x18);
+    SCRATCH_STACK_RESERVE_BYTES(0x18);
     swing = SCRATCH_STACK_CURSOR(TonfaSwing);
     switch (actor->field_95E) {
         case 0:

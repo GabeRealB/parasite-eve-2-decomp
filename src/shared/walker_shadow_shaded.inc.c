@@ -11,7 +11,7 @@ void walkerDrawShadowShaded(Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
-        vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+        vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
         vec->vz = coord->workm.t[2];

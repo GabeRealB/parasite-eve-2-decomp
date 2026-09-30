@@ -885,7 +885,7 @@ GpSprtRec D_acropolis_west_elevator_hall_80186408[5] = {
     { { .elements = D_acropolis_west_elevator_hall_801861E8 }, D_acropolis_west_elevator_hall_801863F0, NULL },
 };
 
-GpPointLight D_acropolis_west_elevator_hall_80186444[15] = {
+WorldCoordPointLight D_acropolis_west_elevator_hall_80186444[15] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4540, -1500, -1830 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 500, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4840, -1500, 2900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 500, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5410, -1660, 2170 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 500, 1000 },
@@ -1011,8 +1011,8 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventM
     *dst = *src;
     if (src->areaId == 1 && GameFlag_GetNibble(0x21) == 0 && src->queryOnly == ROOM_EVENT_EXECUTE) {
         GameFlag_SetNibble(0x21, 1);
-        Mc_SaveData[0].state.sceneEvent = 1;
-        dst->warp                       = 7;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
+        dst->warp                                           = 7;
     }
     return 1;
 }
@@ -1144,7 +1144,7 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
     }
 }
 
-/// Per-frame update of the lift bay's lighting: ramps `GpEffWork::scale`
+/// Per-frame update of the lift bay's lighting: ramps `EffectWork::scale`
 /// from 0 to 0x1000 in 0x800 steps, re-blending the bay CLUT towards its lit
 /// palette on every step it takes, and latching `angle` once the ramp is
 /// full. On every session phase but 5 the CLUT is then blended straight back
@@ -1152,11 +1152,11 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
 /// phase 5 keeps the lit bay on screen.
 void func_acropolis_west_elevator_hall_8017F990(Task* task)
 {
-    GpEffWork* work;
-    s32        i;
-    s32        blend;
+    EffectWork* work;
+    s32         i;
+    s32         blend;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     blend = 0;
     if (work->angle == 0) {
         work->scale = work->scale + 0x800;

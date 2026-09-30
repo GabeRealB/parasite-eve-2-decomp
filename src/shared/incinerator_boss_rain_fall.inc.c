@@ -7,12 +7,12 @@
 /// trailing `Gp_SpawnEff` effect to wind down, play the landing cue and step
 /// the task on. Either way the work block's own coordinate is left tracking
 /// the model. Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
-void incinBossRainFall(GpEnemy* enemy, Task* task)
+void incinBossRainFall(Enemy* enemy, Task* task)
 {
     Actor403200DropWork* work;
     Actor403200DropCoord coord;
     MATRIX*              mtx;
-    GpEnemy*             owner;
+    Enemy*               owner;
     s32                  snd;
     s32                  pan;
 
@@ -31,7 +31,7 @@ void incinBossRainFall(GpEnemy* enemy, Task* task)
     MATRIX_PAIR(mtx, 1, 1) = 0x1000;
     coord.ident.m20_m21    = 0;
     mtx->m[2][2]           = 0x1000;
-    Gfx_RotMatrixY(mtx, 0, 1);
+    gfxRotMatrixY(mtx, 0, 1);
 
     coord.c.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
     coord.c.coord.t[1]   = 0;
@@ -53,7 +53,7 @@ void incinBossRainFall(GpEnemy* enemy, Task* task)
                 work->eff->task->spawnArg1.value = 2;
             }
             task->state++;
-            snd = ((owner->placeKey >> 12) << 8) | 0x4020000C;
+            snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
             pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
         }

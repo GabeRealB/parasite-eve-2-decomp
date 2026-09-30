@@ -13,7 +13,7 @@ s32 pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement)
     work         = (Actor150400Work*)task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     coord->coord.t[0]   = placement->pos.vx;
     coord->coord.t[1]   = placement->pos.vy;
     coord->coord.t[2]   = placement->pos.vz;

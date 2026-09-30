@@ -86,7 +86,7 @@ static void Actor05500_Fn00754(Task* arg0);
 static void Actor05500_Fn00914(Task* arg0);
 static void Actor05500_Fn00A94(Task* arg0);
 static void Actor05500_Fn00FA0(Task* arg0);
-static void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor);
+static void Actor05500_Fn02FFC(Enemy* ctx, Task* actor);
 
 /// Stores the yaw that `coord`'s frame faces in `work->field_3A2`, then
 /// rebuilds the frame's rotation as a level turn half a revolution away from
@@ -698,7 +698,7 @@ void spiderResolveContacts(Task* arg0)
     Actor105500Work*       work;
     Actor105500HitScratch* head;
     Actor105500HitScratch* scratch;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              coord;
     GfxCoord*              src;
     s32                    result;
@@ -722,7 +722,7 @@ void spiderResolveContacts(Task* arg0)
     coord   = arg0->extra.tmd->coords;
     head    = SCRATCH_STACK_CURSOR(Actor105500HitScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor105500HitScratch) = head - 1;
-    enemy                                                 = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy                                                 = (Enemy*)arg0->spawnArg2.pointer;
     work->field_3CC                                       = 0;
     result                                                = func_800E0C10(work->field_234, &scratch->delta, 4, NULL);
     if (result != 0) {
@@ -777,7 +777,7 @@ void spiderResolveContacts(Task* arg0)
                 }
             }
             if ((result != one) || (work->field_3B2 == 0)) {
-                src                 = Gp_ActorSlots[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
+                src                 = gPlayerActorTasks[((u32)work->field_2B4[i].key.value >> 7) & 1]->extra.tmd->coords;
                 dx                  = src->coord.t[0] - coord->coord.t[0];
                 scratch->delta.vx.w = dx;
                 dy                  = src->coord.t[1] - coord->coord.t[1];
@@ -846,7 +846,7 @@ void spiderResolveContacts(Task* arg0)
                             work->field_3BE        = 0;
                             work->field_3B2        = 0;
                             work->field_31C.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                            Gp_SetLightMode(arg0->spawnArg2.pointer, 3);
+                            Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_TINT);
                         }
                         break;
                 }
@@ -948,7 +948,7 @@ static void Actor05500_Fn00754(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = state;
-                index           = ((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex;
+                index           = ((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex;
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 Gp_LcgState     = random;
                 work->field_39E = gSpiderIdleDelay[index] + ((random >> 0x10) & 0xF);
@@ -1048,14 +1048,14 @@ static void Actor05500_Fn00A94(Task* actor)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 1;
                 work->field_392        = 7;
-                work->field_3A8        = Actor05500_D089A0[((GpEnemy*)actor->spawnArg2.pointer)->place->rowIndex];
+                work->field_3A8        = Actor05500_D089A0[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
                 work->field_2E4.coord  = coord;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.pos.vy = -0x12C;
                 work->field_2E4.key    = Gp_PackPair(gSpiderAttacks, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
-                    sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
+                    sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan0  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan0, (s8)gpGetObjDepth(coord));
                 }
@@ -1071,7 +1071,7 @@ static void Actor05500_Fn00A94(Task* actor)
                 Gp_ArmStateF0(1);
                 work->field_39C        = 2;
                 work->field_392        = 9;
-                work->field_3A8        = Actor05500_D089A0[((GpEnemy*)actor->spawnArg2.pointer)->place->rowIndex];
+                work->field_3A8        = Actor05500_D089A0[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex];
                 work->field_3BC        = 0x2D;
                 work->field_2E4.radius = 0x12C;
                 work->field_2E4.coord  = coord;
@@ -1079,7 +1079,7 @@ static void Actor05500_Fn00A94(Task* actor)
                 work->field_2E4.key    = Gp_PackPair(gSpiderAttacks, 5);
                 work->field_2E4.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if ((locationWord & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 32, 0, 0)) {
-                    sound = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x55200006;
+                    sound = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55200006;
                     pan1  = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
                 }
@@ -1110,7 +1110,7 @@ static void Actor05500_Fn00A94(Task* actor)
                 work->field_392        = 0xA;
                 work->field_3A8        = 0x80;
                 work->field_2E4.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                sound                  = ((((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401A0002;
+                sound                  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan2                   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan2, (s8)gpGetObjDepth(coord));
             }
@@ -1121,12 +1121,12 @@ static void Actor05500_Fn00A94(Task* actor)
                 work->field_39A        = state;
                 work->field_39C        = 0;
                 work->field_392        = 1;
-                work->field_39E        = gSpiderIdleDelay[((GpEnemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E        = gSpiderIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_2E4.coord  = actor->extra.tmd->coords + 4;
                 work->field_2E4.radius = 0xC8;
                 work->field_2E4.pos.vy = 0;
                 work->field_3C8        = 0;
-                if (((GpEnemy*)actor->spawnArg2.pointer)->hp <= 0) {
+                if (((Enemy*)actor->spawnArg2.pointer)->hp <= 0) {
                     work->field_39A = 9;
                     work->field_39C = 0;
                     actor->state    = 2;
@@ -1172,7 +1172,7 @@ static void Actor05500_Fn00FA0(Task* arg0)
                 work->field_39C = 1;
                 work->field_392 = 2;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = Actor05500_D08990[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0x3FF);
+                work->field_39E = Actor05500_D08990[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0x3FF);
                 Gp_LcgState     = random;
                 return;
             }
@@ -1192,12 +1192,12 @@ static void Actor05500_Fn00FA0(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = state;
                 random2         = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = gSpiderIdleDelay[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random2 >> 0x10) & 0xF);
+                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random2 >> 0x10) & 0xF);
                 Gp_LcgState     = random2;
                 return;
             }
             if ((s16)work->field_396 == 0xC) {
-                sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401A0001;
+                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0001;
                 pan   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
             }
@@ -1248,7 +1248,7 @@ static void Actor05500_Fn00FA0(Task* arg0)
 
 #include "../../shared/web_spider_draw_thread.inc.c"
 
-static void Actor05500_Fn02FFC(GpEnemy* ctx, Task* actor)
+static void Actor05500_Fn02FFC(Enemy* ctx, Task* actor)
 {
     SVECTOR                rot;
     WorldCollisionContact* rec0;
@@ -1510,7 +1510,7 @@ void Actor05500_Fn03DD8(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor05500_D0002C;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2.pointer), arg0);
+    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }
 
 #include "../../shared/web_spider_puff_setup.inc.c"
@@ -1520,5 +1520,5 @@ void Actor05500_Fn03F88(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor05500_D00038;
-    sp.funcs[arg0->state](((GpEnemy*)arg0->spawnArg2.pointer), arg0);
+    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }

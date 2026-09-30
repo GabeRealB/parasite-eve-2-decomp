@@ -879,7 +879,7 @@ WorldCoordLight D_neo_ark_shrine_80185358[2] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 267, -272, 272 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 348, 286, 245 }, { 0, 0 } },
 };
 
-GpPointLight D_neo_ark_shrine_80185408[17] = {
+WorldCoordPointLight D_neo_ark_shrine_80185408[17] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1198, -2188, 3758 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4100, 4038, 3936 }, { 0, 0 } }, 832, 4161 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6232, -1290, -505 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 1765, 1703 }, { 0, 0 } }, 1685, 3529 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6055, -1410, 3087 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1475, 1311, 1232 }, { 0, 0 } }, 992, 2101 },
@@ -956,38 +956,38 @@ GpObj4C D_neo_ark_shrine_801863B4[8] = {
 
 GpAreaTmdRec D_neo_ark_shrine_80186614[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_8018662C[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_80186644[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_8018665C[3] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_80186680[2] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_80186698[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_shrine_801866B0[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_shrine_801866C8[13] = {
@@ -1117,9 +1117,9 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                             = st;
-    Mc_SaveData[0].state.location.loc.view = 0xB;
+    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
+    task->work                                                 = st;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
        pointer's (3*1/10) and the two swap callee-saved homes. Keeping the
@@ -1197,12 +1197,12 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 0xA;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
-       `Mc_SaveData[0].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
+       `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
     taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
@@ -1225,7 +1225,7 @@ static void func_neo_ark_shrine_8017EF68(Task* task)
 
 /// The script step that runs while the shrine's pad is idle: it re-clears the
 /// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
-/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `Mc_SaveData[0].state.location.loc.room` and the
+/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` and the
 /// session, which makes the room rebuild its objects, and enters state 2.
 ///
 /// The same literal is stored in both arms on purpose: `gGameSession` is read
@@ -1245,11 +1245,11 @@ static void func_neo_ark_shrine_8017EFE4(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].state.location.loc.room = 2;
-            gGameSession->location.loc.room        = 2;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+            gGameSession->location.loc.room                            = 2;
         } else {
-            Mc_SaveData[0].state.location.loc.room = 5;
-            gGameSession->location.loc.room        = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 5;
+            gGameSession->location.loc.room                            = 5;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -1279,9 +1279,9 @@ static void func_neo_ark_shrine_8017F0F0(Task* task)
     st->timer = timer;
     if (timer >= 0x1EU) {
         Task_SpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
-        Mc_SaveData[0].state.location.loc.view = 0xE;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
         /* Without this the scheduler hoists the `task->state` reload above the
-           `Mc_SaveData[0].state.location.loc.view` byte store to fill its load-delay slot. */
+           `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store to fill its load-delay slot. */
         st->timer = 0;
         task->state++;
     }
@@ -1300,7 +1300,7 @@ static void func_neo_ark_shrine_8017F178(Task* task)
         st->timer = 0;
         if (GameFlag_GetNibble(0xE9) == 0) {
             Task_SpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
-            Mc_SaveData[0].state.location.loc.view = 0xD;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
             GameFlag_SetNibble(0xE9, 1);
             next = task->state + 1;
         } else {
@@ -1328,17 +1328,17 @@ static void func_neo_ark_shrine_8017F21C(Task* task)
 
 static void func_neo_ark_shrine_8017F274(Task* task)
 {
-    Gp_StateF0.field_20                    = 2;
-    Mc_SaveData[0].state.location.loc.room = 6;
-    gGameSession->location.loc.room        = 6;
-    gGameSession->roomObjsDirty            = 1;
+    Gp_StateF0.field_20                                        = 2;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
+    gGameSession->location.loc.room                            = 6;
+    gGameSession->roomObjsDirty                                = 1;
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 0xA;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
     Task_RequestKill(task, 0);
 }
 
@@ -1372,11 +1372,11 @@ static void func_neo_ark_shrine_8017F398(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     if (st->timer >= 0x1E) {
         if (GameFlag_GetNibble(0xE9) == 0) {
-            Mc_SaveData[0].state.location.loc.room = 1;
-            gGameSession->location.loc.room        = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+            gGameSession->location.loc.room                            = 1;
         } else {
-            Mc_SaveData[0].state.location.loc.room = 4;
-            gGameSession->location.loc.room        = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 4;
+            gGameSession->location.loc.room                            = 4;
         }
         gGameSession->roomObjsDirty = 1;
         task->state                 = 2;
@@ -1680,7 +1680,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     void**             scratch;
     u8*                head;
     u8*                tmp;
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_FT4*          prim;
     DisplayState*      ds;
     s32                idx;
@@ -1693,7 +1693,7 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     head     = *scratch;
     tmp      = head - 0x10;
-    block    = (RoomDraw13Scratch*)tmp;
+    block    = (GlowCentreScratch*)tmp;
     *scratch = tmp;
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1702,9 +1702,9 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
     gte_rtps();
     ds    = &gDisplayState;
     blend = (((u8)ds->animFrame & 1) * 16) + 0x20;
-    gte_stsxy(&((RoomDraw13Scratch*)(head - 0x10))->sx);
-    gte_stflg(&((RoomDraw13Scratch*)(head - 0x10))->flag);
-    if (((RoomDraw13Scratch*)tmp)->flag >= 0) {
+    gte_stsxy(&((GlowCentreScratch*)(head - 0x10))->sx);
+    gte_stflg(&((GlowCentreScratch*)(head - 0x10))->flag);
+    if (((GlowCentreScratch*)tmp)->flag >= 0) {
         gte_stszotz(&block->otz);
         prim           = gGpuPrimCursor;
         gGpuPrimCursor = prim + 1;
@@ -1726,20 +1726,20 @@ static void func_neo_ark_shrine_8017FC14(SVECTOR* pos, s32 arg1, s32 arg2)
         prim->u3                          = u1;
         prim->v3                          = 0x27;
         prim->code                       |= 2;
-        ((RoomDraw13Scratch*)tmp)->radius = (sarg * 40 - sarg) / ((RoomDraw13Scratch*)(head - 0x10))->otz;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sx - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        ((GlowCentreScratch*)tmp)->radius = (sarg * 40 - sarg) / ((GlowCentreScratch*)(head - 0x10))->otz;
+        xy                                = ((GlowCentreScratch*)tmp)->sx - (u16)((GlowCentreScratch*)tmp)->radius;
         prim->x2                          = xy;
         prim->x0                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sx + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sx + (u16)((GlowCentreScratch*)tmp)->radius;
         prim->x3                          = xy;
         prim->x1                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sy - (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sy - (u16)((GlowCentreScratch*)tmp)->radius;
         prim->y1                          = xy;
         prim->y0                          = xy;
-        xy                                = ((RoomDraw13Scratch*)tmp)->sy + (u16)((RoomDraw13Scratch*)tmp)->radius;
+        xy                                = ((GlowCentreScratch*)tmp)->sy + (u16)((GlowCentreScratch*)tmp)->radius;
         prim->y3                          = xy;
         prim->y2                          = xy;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((RoomDraw13Scratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)((GlowCentreScratch*)(head - 0x10))->otz << ds->otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
     SCRATCH_POP_BYTES_AT(scratch, 0x10);

@@ -5,7 +5,7 @@
 /// relative to the view coordinate), and links the work's collision object
 /// with its single record, carrying the parent work's `field_3AC`. The enemy
 /// is destroyed when the allocation fails.
-void spiderPuffSetup(GpEnemy* enemy, Task* task)
+void spiderPuffSetup(Enemy* enemy, Task* task)
 {
     Task*                        parent;
     TmdObject*                   parentObj;

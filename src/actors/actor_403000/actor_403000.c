@@ -102,37 +102,37 @@ typedef struct Actor403000Work {
         u16 half;
         s32 word;
     } field_60;
-    /* 0x064 */ byte               pad_64[0xA5C];
-    /* 0xAC0 */ s16                field_AC0;
-    /* 0xAC2 */ s16                field_AC2;
-    /* 0xAC4 */ s16                field_AC4;
-    /* 0xAC6 */ s16                field_AC6;
-    /* 0xAC8 */ byte               pad_AC8[2];
-    /* 0xACA */ s16                field_ACA;
-    /* 0xACC */ s16                field_ACC;
-    /* 0xACE */ s16                field_ACE;
-    /* 0xAD0 */ s16                field_AD0;
-    /* 0xAD2 */ byte               pad_AD2[0x4];
-    /* 0xAD6 */ s16                field_AD6;
-    /* 0xAD8 */ s16                field_AD8;
-    /* 0xADA */ s16                field_ADA;
-    /* 0xADC */ s16                field_ADC;
-    /* 0xADE */ byte               pad_ADE[0x2];
-    /* 0xAE0 */ s16                field_AE0;
-    /* 0xAE2 */ s16                field_AE2;
-    /* 0xAE4 */ s16                field_AE4;
-    /* 0xAE6 */ s16                field_AE6;
-    /* 0xAE8 */ u8                 field_AE8;
-    /* 0xAE9 */ u8                 field_AE9;
-    /* 0xAEA */ u8                 field_AEA;
-    /* 0xAEB */ u8                 field_AEB;
-    /* 0xAEC */ byte               pad_AEC[0x64];
-    /* 0xB50 */ Actor403000Obj     objB50;
-    /* 0xBE8 */ Actor403000Obj     objBE8;
-    /* 0xC80 */ Actor403000Obj     objC80;
-    /* 0xD18 */ Actor403000Obj     objD18;
-    /* 0xDB0 */ WorldCollisionBody objDB0;
-    /* 0xDD0 */ GpActorD4Rec       recDD0;
+    /* 0x064 */ byte                  pad_64[0xA5C];
+    /* 0xAC0 */ s16                   field_AC0;
+    /* 0xAC2 */ s16                   field_AC2;
+    /* 0xAC4 */ s16                   field_AC4;
+    /* 0xAC6 */ s16                   field_AC6;
+    /* 0xAC8 */ byte                  pad_AC8[2];
+    /* 0xACA */ s16                   field_ACA;
+    /* 0xACC */ s16                   field_ACC;
+    /* 0xACE */ s16                   field_ACE;
+    /* 0xAD0 */ s16                   field_AD0;
+    /* 0xAD2 */ byte                  pad_AD2[0x4];
+    /* 0xAD6 */ s16                   field_AD6;
+    /* 0xAD8 */ s16                   field_AD8;
+    /* 0xADA */ s16                   field_ADA;
+    /* 0xADC */ s16                   field_ADC;
+    /* 0xADE */ byte                  pad_ADE[0x2];
+    /* 0xAE0 */ s16                   field_AE0;
+    /* 0xAE2 */ s16                   field_AE2;
+    /* 0xAE4 */ s16                   field_AE4;
+    /* 0xAE6 */ s16                   field_AE6;
+    /* 0xAE8 */ u8                    field_AE8;
+    /* 0xAE9 */ u8                    field_AE9;
+    /* 0xAEA */ u8                    field_AEA;
+    /* 0xAEB */ u8                    field_AEB;
+    /* 0xAEC */ byte                  pad_AEC[0x64];
+    /* 0xB50 */ Actor403000Obj        objB50;
+    /* 0xBE8 */ Actor403000Obj        objBE8;
+    /* 0xC80 */ Actor403000Obj        objC80;
+    /* 0xD18 */ Actor403000Obj        objD18;
+    /* 0xDB0 */ WorldCollisionBody    objDB0;
+    /* 0xDD0 */ WorldCollisionCapsule recDD0;
     /// Record table `func_actor_403000_8013D48C` scans: the same five-entry
     /// `WorldCollisionContact` run the display nodes carry at +0x20, here standing on its own
     /// after the four nodes. `func_actor_403000_8013C864` hands it back to
@@ -141,7 +141,7 @@ typedef struct Actor403000Work {
     /// high half 0x10 is the kind that counts as present.
     /* 0xDE8 */ WorldCollisionContact records[5];
     /* 0xE60 */ WorldCollisionBody    objE60;
-    /* 0xE80 */ GpActorD4Rec          recE80;
+    /* 0xE80 */ WorldCollisionCapsule recE80;
     /* 0xE98 */ WorldCollisionContact recordsE98[5];
     /* 0xF10 */ MATRIX                field_F10;
     /// The second of the two default matrices the spawn handler binds to the
@@ -536,7 +536,7 @@ static void func_actor_403000_8013D850(Task* arg0);
 /// Per-frame countdown: on the frame `field_4` is set, reload the `field_6`
 /// tick from a fresh `Gp_LcgState` draw masked to 0xA..0x19, then decrement
 /// it. When the tick underflows and the enemy still has HP left
-/// (`GpEnemy::hp`), the animation state `field_0` is set to 0x13.
+/// (`Enemy::hp`), the animation state `field_0` is set to 0x13.
 static void func_actor_403000_8013D910(Task* arg0);
 
 extern EnemyParams   D_actor_403000_8013DA00;
@@ -3557,12 +3557,12 @@ static void                func_actor_403000_80133444(Task* arg0);
 static void                func_actor_403000_801336B4(Task* arg0);
 static s32                 func_actor_403000_801337E0(Task* arg0, Actor403000AnimWork* work);
 static s32                 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2);
-static void                func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1);
+static void                func_actor_403000_801343B8(Enemy* arg0, Task* arg1);
 static void                func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2);
 static s32                 func_actor_403000_80134E00(Task* arg0);
 static inline s32          func_actor_403000_FindHit(SVECTOR* pos, WorldCollisionContact* records);
 static inline s16          func_actor_403000_WrapAngle(s16 angle);
-static inline void         func_actor_403000_PlaySound(Task* arg0, GpEnemy* enemy, s32 id);
+static inline void         func_actor_403000_PlaySound(Task* arg0, Enemy* enemy, s32 id);
 static void                func_actor_403000_80135F08(Task* arg0);
 static __inline__ void     Actor403000_FaceScale(GfxCoord* coord, s16 sy);
 static void                func_actor_403000_8013603C(Task* arg0);
@@ -3587,7 +3587,7 @@ static __inline__ s32      Actor403000_Outside(SVECTOR* v, s32 r);
 static void                func_actor_403000_8013BDE0(Task* arg0);
 static void                func_actor_403000_8013C050(Task* arg0);
 static void                func_actor_403000_8013C2D4(Task* arg0);
-static void                func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1);
+static void                func_actor_403000_8013C864(Enemy* arg0, Task* arg1);
 static s32                 func_actor_403000_8013D98C(s32 arg0);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
@@ -3597,7 +3597,7 @@ static s32                 func_actor_403000_8013D98C(s32 arg0);
 s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
 {
     Actor403000Work* work  = arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
 
     work->field_FA4 = arg2->b[0];
     work->field_FA5 = arg2->b[1];
@@ -3609,7 +3609,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_0 = 0;
                 return 1;
             case 1:
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 enemy->param         = &D_actor_403000_8013DA00;
                 enemy->hp            = D_actor_403000_8013DA00.hpMax;
@@ -3618,7 +3618,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2        = -1;
                 return 1;
             case 2:
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 enemy->param         = &D_actor_403000_8013DA00;
                 enemy->hp            = D_actor_403000_8013DA00.hpMax;
@@ -3628,7 +3628,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 return 1;
             case 3:
                 enemy->hp = 0;
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x1A;
                 work->field_0        = 1;
@@ -3638,7 +3638,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 enemy->param         = &D_actor_403000_8013DA10;
                 return 1;
             case 4:
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x1B;
                 work->field_0        = 1;
@@ -3651,7 +3651,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 arg0->extra.tmd->clutRowOffset     = 4;
                 return 1;
             case 6:
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 enemy->hp            = D_actor_403000_8013DA10.hpMax;
                 enemy->param         = &D_actor_403000_8013DA10;
@@ -3666,7 +3666,7 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2                      = -1;
                 return 1;
             case 10:
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 enemy->reactionFlags = 0;
                 work->field_AC6      = 0x18;
                 work->field_0        = 1;
@@ -3762,7 +3762,7 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     POLY_FT4*                prim;
     SVECTOR*                 n;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
     scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
@@ -3889,7 +3889,7 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
     SVECTOR*                 pos;
     s16                      i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor403000TrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403000TrailScratch));
     scratch = SCRATCH_STACK_CURSOR(Actor403000TrailScratch);
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
@@ -4500,7 +4500,7 @@ static s32 func_actor_403000_80134204(GfxCoord* arg0)
     return scratch->turn;
 }
 
-static void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
+static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
 {
     SVECTOR                dir;
     VECTOR                 pos;
@@ -4568,43 +4568,43 @@ static void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
     work->objD18.obj.radius           = 0x12C;
     work->objD18.obj.flags            = WORLD_COLLISION_BODY_SPHERE;
     Gp_LinkObj(2, &work->objD18.obj);
-    work->recDD0.end0.vy         = -0x180;
-    work->recDD0.end1.vy         = -0x180;
-    work->recDD0.end1.vz         = 0x2BC;
+    work->recDD0.ends[0].vy      = -0x180;
+    work->recDD0.ends[1].vy      = -0x180;
+    work->recDD0.ends[1].vz      = 0x2BC;
     work->objDB0.context.capsule = &work->recDD0;
     work->objDB0.key             = 0x30001;
-    work->recDD0.end0.vx         = 0;
-    work->recDD0.end0.vz         = 0;
-    work->recDD0.end1.vx         = 0;
+    work->recDD0.ends[0].vx      = 0;
+    work->recDD0.ends[0].vz      = 0;
+    work->recDD0.ends[1].vx      = 0;
     work->recDD0.end0Radius      = 0x12C;
     work->recDD0.end1Radius      = 0x12C;
-    work->recDD0.recs = records = work->records;
-    work->objDB0.coord          = coord;
-    work->objDB0.pos.vx         = 0;
-    work->objDB0.pos.vy         = 0;
-    work->objDB0.pos.vz         = 0;
-    work->objDB0.radius         = 0;
-    work->objDB0.flags          = WORLD_COLLISION_BODY_CAPSULE;
-    work->objD18.obj.flags     |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->recDD0.contacts = records = work->records;
+    work->objDB0.coord              = coord;
+    work->objDB0.pos.vx             = 0;
+    work->objDB0.pos.vy             = 0;
+    work->objDB0.pos.vz             = 0;
+    work->objDB0.radius             = 0;
+    work->objDB0.flags              = WORLD_COLLISION_BODY_CAPSULE;
+    work->objD18.obj.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
     Gp_LinkObj(2, &work->objDB0);
-    work->recE80.end0.vz    = -0x3E8;
-    work->recE80.end1.vz    = 0x190;
+    work->recE80.ends[0].vz = -0x3E8;
+    work->recE80.ends[1].vz = 0x190;
     work->recE80.end0Radius = 0x200;
     work->recE80.end1Radius = 0x200;
-    work->recE80.end0.vx    = 0;
-    work->recE80.end0.vy    = 0;
-    work->recE80.end1.vx    = 0;
-    work->recE80.end1.vy    = 0;
-    work->recE80.recs = records2 = work->recordsE98;
-    work->objDB0.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    work->objE60.coord           = &arg1->extra.tmd->coords[5];
-    work->objE60.context.capsule = &work->recE80;
-    work->objE60.pos.vx          = 0;
-    work->objE60.pos.vy          = 0;
-    work->objE60.pos.vz          = 0;
-    work->objE60.key             = 0x3001E;
-    work->objE60.radius          = 0;
-    work->objE60.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    work->recE80.ends[0].vx = 0;
+    work->recE80.ends[0].vy = 0;
+    work->recE80.ends[1].vx = 0;
+    work->recE80.ends[1].vy = 0;
+    work->recE80.contacts = records2 = work->recordsE98;
+    work->objDB0.flags              |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    work->objE60.coord               = &arg1->extra.tmd->coords[5];
+    work->objE60.context.capsule     = &work->recE80;
+    work->objE60.pos.vx              = 0;
+    work->objE60.pos.vy              = 0;
+    work->objE60.pos.vz              = 0;
+    work->objE60.key                 = 0x3001E;
+    work->objE60.radius              = 0;
+    work->objE60.flags               = WORLD_COLLISION_BODY_CAPSULE;
     Gp_LinkObj(2, &work->objE60);
     work->objE60.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     Gp_InitRec18Table(records, 5, 0);
@@ -4805,12 +4805,12 @@ static inline s16 func_actor_403000_WrapAngle(s16 angle)
     return angle;
 }
 
-static inline void func_actor_403000_PlaySound(Task* arg0, GpEnemy* enemy, s32 id)
+static inline void func_actor_403000_PlaySound(Task* arg0, Enemy* enemy, s32 id)
 {
     s32 sound;
     s32 pan;
 
-    sound = (((u16)enemy->placeKey >> 0xC) << 8) | id;
+    sound = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | id;
     pan   = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
 }
@@ -4818,7 +4818,7 @@ static inline void func_actor_403000_PlaySound(Task* arg0, GpEnemy* enemy, s32 i
 static void func_actor_403000_80134F44(Task* arg0)
 {
     Task*                     player;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     PlayerStatus*             config;
     Actor403000Work*          work;
     Actor403000DamageScratch* head;
@@ -4952,7 +4952,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                     Gp_SetObjFlag4(enemy, scratch->id, 0);
                     break;
                 case 1:
-                    enemy->reactionFlags &= 0xFE;
+                    enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
                     if (work->field_0 == 0x10 || work->field_0 == 0x12 || work->field_0 == 0x18 || (work->field_0 == 0x13 && (s16)work->field_6 < 0x12)) {
                         work->field_0 = 0x18;
                         work->field_2 = -1;
@@ -5020,10 +5020,10 @@ static void func_actor_403000_80134F44(Task* arg0)
                 func_actor_403000_PlaySound(arg0, enemy, 0x401E0005);
             }
         }
-        if (enemy->reactionFlags & 0xC) {
+        if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             scratch->damage = Gp_TickObjFlag4(enemy);
             if (Gp_ObjFlag4Expired(enemy) != 0) {
-                enemy->reactionFlags &= 0xF3;
+                enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
             if (scratch->damage != 0) {
                 scratch->damage >>= 2;
@@ -5060,7 +5060,7 @@ static void func_actor_403000_80134F44(Task* arg0)
 static void func_actor_403000_80135F08(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         obj;
+    Enemy*           obj;
     TmdObject*       tmd;
     u32              seed;
 
@@ -5091,7 +5091,7 @@ static void func_actor_403000_80135F08(Task* arg0)
         work->field_ACA = 0x10;
     }
     if ((Gp_TickObjFlag2(obj) == 1) || (obj->hp <= 0)) {
-        obj->reactionFlags &= 0xFD;
+        obj->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_0       = 0x12;
     }
 }
@@ -5105,7 +5105,7 @@ static __inline__ void Actor403000_FaceScale(GfxCoord* coord, s16 sy)
     scratch                                    = head - 1;
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = scratch;
     scratch->angle                             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    Gfx_RotMatrixY(&scratch->m, scratch->angle, 1);
+    gfxRotMatrixY(&scratch->m, scratch->angle, 1);
     scratch->scale.vx = 0x1000;
     scratch->scale.vy = sy;
     scratch->scale.vz = 0x1000;
@@ -5126,7 +5126,7 @@ static __inline__ void Actor403000_FaceScale(GfxCoord* coord, s16 sy)
 static void func_actor_403000_8013603C(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
     s16              t;
 
@@ -5140,7 +5140,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         work->objD18.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         Gp_ClearNodeSlots(&enemy->node);
         work->field_6 = 0;
-        Gp_SetLightMode(enemy, 0);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
     if (work->field_F8C == 1 && Gp_StateC08.field_A != work->field_F8C && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, 0, 0);
@@ -5167,7 +5167,7 @@ static void func_actor_403000_8013603C(Task* arg0)
         switch ((s16)work->field_6) {
             case 1:
                 arg0->extra.tmd->flags = 0;
-                Gp_SetLightMode(enemy, 1);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x76:
                 Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[1], 2, NULL);
@@ -5176,7 +5176,7 @@ static void func_actor_403000_8013603C(Task* arg0)
                 break;
             case 0x78:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(enemy, 2);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 arg0->extra.tmd->texturePageOffset = 2;
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
@@ -5200,7 +5200,7 @@ static void func_actor_403000_8013603C(Task* arg0)
 static void func_actor_403000_801365D0(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
     s16              t;
 
@@ -5214,7 +5214,7 @@ static void func_actor_403000_801365D0(Task* arg0)
         work->objD18.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         Gp_ClearNodeSlots(&enemy->node);
         work->field_6 = 0;
-        Gp_SetLightMode(enemy, 0);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
     }
     if ((s16)work->field_6 <= 0x1000) {
         work->field_6++;
@@ -5237,7 +5237,7 @@ static void func_actor_403000_801365D0(Task* arg0)
         switch ((s16)work->field_6) {
             case 1:
                 arg0->extra.tmd->flags = 0;
-                Gp_SetLightMode(enemy, 1);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x58:
                 Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[1], 2, NULL);
@@ -5246,7 +5246,7 @@ static void func_actor_403000_801365D0(Task* arg0)
                 break;
             case 0x5A:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
-                Gp_SetLightMode(enemy, 2);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 arg0->extra.tmd->texturePageOffset = 2;
                 arg0->extra.tmd->clutRowOffset     = 4;
                 break;
@@ -5270,7 +5270,7 @@ static void func_actor_403000_801365D0(Task* arg0)
 static void func_actor_403000_80136B14(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
 
     work  = arg0->work;
@@ -5280,7 +5280,7 @@ static void func_actor_403000_80136B14(Task* arg0)
         tmd->flags = 0;
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_SetLightMode(enemy, 1);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
         work->field_ACA               = 0x10;
         work->field_AC6               = 0x1C;
@@ -5323,7 +5323,7 @@ static void func_actor_403000_80136B14(Task* arg0)
 static void func_actor_403000_80136D68(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
 
     work  = arg0->work;
@@ -5333,7 +5333,7 @@ static void func_actor_403000_80136D68(Task* arg0)
         tmd->flags = 0;
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Gp_SetLightMode(enemy, 1);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         enemy->reactionFlags          = 0;
         work->field_ACA               = 0x10;
         work->field_AC6               = 0x1C;
@@ -5472,7 +5472,7 @@ static void func_actor_403000_80137084(Task* arg0)
         work->field_6           = 0;
         work->field_8           = 0;
         work->field_FC2         = 0;
-        work->recDD0.end1.vz    = 0x384;
+        work->recDD0.ends[1].vz = 0x384;
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_403000_80133AF8(arg0);
@@ -5505,7 +5505,7 @@ static void func_actor_403000_80137084(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         if (ABS(work->field_AD8) < 0x80) {
             work->field_AC6 = 2;
             work->field_AC0 = 1;
@@ -5537,7 +5537,7 @@ static void func_actor_403000_80137084(Task* arg0)
         scratch->angle = mag = angle;
         work->field_AD8      = mag;
         coord                = arg0->extra.tmd->coords;
-        if (Mc_SaveData[0].state.actorsFrozen != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dir);
             VectorNormalSS(dir, dir);
@@ -5589,7 +5589,7 @@ static void func_actor_403000_80137084(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000ChaseScratch);
 }
@@ -5605,7 +5605,7 @@ static void func_actor_403000_801377C8(Task* arg0)
 {
     Actor403000Work*        work;
     Task*                   player;
-    GpEnemy*                enemy;
+    Enemy*                  enemy;
     Actor403000GrabScratch* scratch;
     Actor403000GrabScratch* head;
     GfxCoord*               coord;
@@ -5793,7 +5793,7 @@ static void func_actor_403000_801377C8(Task* arg0)
     }
     if (work->field_AC6 == 2) {
         coord = arg0->extra.tmd->coords;
-        if (Mc_SaveData[0].state.actorsFrozen != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dirA = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dirA);
             VectorNormalSS(dirA, dirA);
@@ -5808,7 +5808,7 @@ static void func_actor_403000_801377C8(Task* arg0)
     if (work->field_AC6 == 0xB && (s16)work->field_6 < 0xE) {
         coord2 = arg0->extra.tmd->coords;
         step   = work->field_F86;
-        if (Mc_SaveData[0].state.actorsFrozen != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dirB = Actor403000_PushVec();
             v    = dirB;
             if (step != 0) {
@@ -5878,7 +5878,7 @@ static void func_actor_403000_801377C8(Task* arg0)
 static void func_actor_403000_801384E8(Task* arg0)
 {
     Actor403000Work*        work;
-    GpEnemy*                enemy;
+    Enemy*                  enemy;
     Task*                   player;
     Actor403000PushScratch* scratch;
     s32                     sound;
@@ -5903,7 +5903,7 @@ static void func_actor_403000_801384E8(Task* arg0)
         D_actor_403000_80158DB0.value.z        = scratch->dir.vz;
         D_actor_403000_80158DB0.value.field_10 = 7;
         D_actor_403000_80158DB0.value.field_12 = 1;
-        sound                                  = ((enemy->placeKey >> 0xC) << 8) | 7;
+        sound                                  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
         pan                                    = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -5935,7 +5935,7 @@ static void func_actor_403000_801386E8(Task* arg0)
 {
     Actor403000Work*         work;
     Task*                    player;
-    GpEnemy*                 enemy;
+    Enemy*                   enemy;
     Actor403000LungeScratch* scratch;
     Actor403000LungeScratch* head;
     GfxCoord*                coord;
@@ -5978,7 +5978,7 @@ static void func_actor_403000_801386E8(Task* arg0)
     if (work->field_6 >= 5 && work->field_6 < 25) {
         coord = arg0->extra.tmd->coords;
         step  = work->field_F84;
-        if (Mc_SaveData[0].state.actorsFrozen != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
             if (step != 0) {
                 Gfx_MatrixCol2(&coord->coord, dir);
@@ -6021,7 +6021,7 @@ static void func_actor_403000_801386E8(Task* arg0)
             scratch->angle = -0x40;
         }
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     }
     recs = work->recordsE98;
     if ((s16)work->field_6 == 0x17) {
@@ -6154,7 +6154,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         }
         scratch->angle  = angle;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         t2                                    = &scratch->target;
         Gfx_MatrixCol2(&arg0->extra.tmd->coords->coord, t2);
@@ -6173,7 +6173,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
     }
     if ((s16)work->field_6 < 10) {
         coord = arg0->extra.tmd->coords;
-        if (Mc_SaveData[0].state.actorsFrozen != 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
             dir = Actor403000_PushVec();
             Gfx_MatrixCol2(&coord->coord, dir);
             VectorNormalSS(dir, dir);
@@ -6226,7 +6226,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         }
         scratch->angle  = angle;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if ((s16)work->field_6 == 0x29) {
@@ -6311,7 +6311,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
 static void func_actor_403000_801399A0(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -6335,7 +6335,7 @@ static void func_actor_403000_801399A0(Task* arg0)
     if ((work->field_60.half & 0x100) && work->field_AC6 == 0xE) {
         work->objB50.obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp > 0) {
-            if (enemy->reactionFlags & 2) {
+            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 0x10;
             } else {
                 work->field_0 = 0x12;
@@ -6380,13 +6380,13 @@ static void func_actor_403000_80139AE0(Task* arg0)
         work->field_AD6         = 0;
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_403000_80133AF8(arg0);
-        work->field_6        = 0;
-        work->field_8        = 0;
-        work->field_FC2      = 0;
-        work->recDD0.end1.vz = 0x320;
-        scratch->facing      = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->base        = Actor403000_Cell(arg0->extra.tmd->coords);
-        diff                 = scratch->base - scratch->facing;
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_FC2         = 0;
+        work->recDD0.ends[1].vz = 0x320;
+        scratch->facing         = Actor403000_Cell(player->extra.tmd->coords);
+        scratch->base           = Actor403000_Cell(arg0->extra.tmd->coords);
+        diff                    = scratch->base - scratch->facing;
         if (diff < -5) {
             goto neg;
         }
@@ -6451,7 +6451,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
         scratch->angle = -0x30;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6493,13 +6493,13 @@ static void func_actor_403000_8013A08C(Task* arg0)
         work->field_AD6         = 0;
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_403000_80133AF8(arg0);
-        work->field_6        = 0;
-        work->field_8        = 0;
-        work->field_FC2      = 0;
-        work->recDD0.end1.vz = 0x320;
-        scratch->facing      = Actor403000_Cell(player->extra.tmd->coords);
-        cell                 = Actor403000_Cell(arg0->extra.tmd->coords);
-        scratch->base        = cell;
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_FC2         = 0;
+        work->recDD0.ends[1].vz = 0x320;
+        scratch->facing         = Actor403000_Cell(player->extra.tmd->coords);
+        cell                    = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->base           = cell;
         if (cell != scratch->facing) {
             diff = cell - scratch->facing;
             if (diff < -5) {
@@ -6571,7 +6571,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         scratch->angle = -0x40;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6614,12 +6614,12 @@ static void func_actor_403000_8013A678(Task* arg0)
         work->field_AD6         = 0;
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_403000_80133AF8(arg0);
-        work->field_6        = 0;
-        work->field_8        = 0;
-        work->field_FC2      = 0;
-        work->recDD0.end1.vz = 0x320;
-        scratch->facing      = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->base        = Actor403000_Cell(arg0->extra.tmd->coords);
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_FC2         = 0;
+        work->recDD0.ends[1].vz = 0x320;
+        scratch->facing         = Actor403000_Cell(player->extra.tmd->coords);
+        scratch->base           = Actor403000_Cell(arg0->extra.tmd->coords);
         switch ((u8)scratch->facing) {
             case 0:
             case 1:
@@ -6730,7 +6730,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         scratch->angle = -0x40;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x12C);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -6826,12 +6826,12 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         scratch->angle  = angle;
         work->field_AD8 = 0;
         scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-        Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
-        work->field_6        = 0;
-        work->field_8        = 0;
-        work->field_FC2      = 0;
-        work->recDD0.end1.vz = 0x320;
-        scratch->facing      = Actor403000_Cell(player->extra.tmd->coords);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_FC2         = 0;
+        work->recDD0.ends[1].vz = 0x320;
+        scratch->facing         = Actor403000_Cell(player->extra.tmd->coords);
     }
     work->field_6++;
     scratch->facing = Actor403000_Cell(player->extra.tmd->coords);
@@ -6965,7 +6965,7 @@ static void func_actor_403000_8013B238(Task* arg0)
     work->field_6++;
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->angle = work->field_FC8 + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->coord.t[0]  += work->field_FB0.vx;
     arg0->extra.tmd->coords->coord.t[1]  += work->field_FB0.vy;
     arg0->extra.tmd->coords->coord.t[2]  += work->field_FB0.vz;
@@ -6998,7 +6998,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
 {
     Actor403000Work*        work;
     Task*                   player;
-    GpEnemy*                enemy;
+    Enemy*                  enemy;
     Actor403000DropScratch* scratch;
     Actor403000DropScratch* head;
     GfxCoord*               coord;
@@ -7030,18 +7030,18 @@ static void func_actor_403000_8013B74C(Task* arg0)
         scratch->base                       = b;
         switch (scratch->base) {
             case 0:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x800, 1);
                 break;
 
             case 1:
             case 2:
             case 3:
             case 4:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x400, 1);
                 break;
 
             case 5:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0, 1);
                 break;
 
             case 6:
@@ -7049,7 +7049,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
             case 8:
             case 9:
             default:
-                Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
+                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
                 break;
         }
 
@@ -7144,7 +7144,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
     Actor403000Work*        work;
     Task*                   player;
     Actor403000PushScratch* scratch;
-    GpEnemy*                enemy;
+    Enemy*                  enemy;
     s32                     sound;
     s32                     pan;
 
@@ -7156,7 +7156,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
         enemy           = arg0->spawnArg2.pointer;
         work->field_FCA = 0;
         work->field_6   = 0;
-        sound           = ((enemy->placeKey >> 0xC) << 8) | 7;
+        sound           = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
         pan             = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -7191,7 +7191,7 @@ static void func_actor_403000_8013C050(Task* arg0)
 {
     Actor403000Work* work;
     Task*            player;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              sound;
     s32              pan;
     s32              sound2;
@@ -7215,7 +7215,7 @@ static void func_actor_403000_8013C050(Task* arg0)
     }
     if ((s16)work->field_6 > 0x3C) {
         work->field_FD9 = 0x14;
-        sound           = ((enemy->placeKey >> 0xC) << 8) | 0x401E0010;
+        sound           = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401E0010;
         pan             = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         work->field_0 = 0xC;
@@ -7230,7 +7230,7 @@ static void func_actor_403000_8013C050(Task* arg0)
         }
         if (work->field_8 > 0x1E) {
             work->field_FD9 = 0x14;
-            sound2          = ((enemy->placeKey >> 0xC) << 8) | 0x401E0010;
+            sound2          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401E0010;
             pan2            = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
             work->field_0 = 0xC;
@@ -7275,13 +7275,13 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         work->field_AD6         = 0;
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_403000_80133AF8(arg0);
-        work->field_6        = 0;
-        work->field_8        = 0;
-        work->field_FC2      = 0;
-        work->recDD0.end1.vz = 0x320;
-        scratch->facing      = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->base        = Actor403000_Cell(arg0->extra.tmd->coords);
-        work->field_FD1      = func_actor_403000_80134204(arg0->extra.tmd->coords);
+        work->field_6           = 0;
+        work->field_8           = 0;
+        work->field_FC2         = 0;
+        work->recDD0.ends[1].vz = 0x320;
+        scratch->facing         = Actor403000_Cell(player->extra.tmd->coords);
+        scratch->base           = Actor403000_Cell(arg0->extra.tmd->coords);
+        work->field_FD1         = func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
     ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->facing = Actor403000_Cell(player->extra.tmd->coords);
@@ -7332,7 +7332,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         scratch->angle = -8;
     }
     scratch->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
-    Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
+    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorMoveForward(arg0->extra.tmd->coords, 0x16);
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000SeekScratch);
@@ -7368,7 +7368,7 @@ static const Actor403000StateTable D_actor_403000_80131F44 = {
     }
 };
 
-static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
+static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
 {
     VECTOR3                   pos;
     Actor403000Work*          work;
@@ -7474,7 +7474,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
     }
     if (work->field_FC0 == 1) {
         work->field_FCC++;
-        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]) {
+        if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon]) {
             switch (work->field_F94) {
                 case 1:
                     if (work->field_FCC == 42) {
@@ -7526,7 +7526,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
         }
         if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3ED, 0, 0) == 0) {
             work->field_FCC = 0;
-            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon]) {
+            if (work->field_F90 != Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon]) {
                 switch (work->field_F94) {
                     case 1:
                         work->field_F94 = 2;
@@ -7552,7 +7552,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
                     case 2:
                     case 4:
                     case 6:
-                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData[0].state.characterId - 1] + Player_Status.weapon];
+                        work->field_F90 = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + Player_Status.weapon];
                         work->field_F94 = 7;
                         work->field_F9C = 0x10;
                         work->field_F98 = 0;
@@ -7615,8 +7615,8 @@ void func_actor_403000_8013D260(void)
 
 /// Handler for message 0x7D5 in the actor's message table. `arg2` picks the
 /// display mode: 0 hides the model (flag 0x80) and 1 shows it again, both
-/// re-running `Tmd_AllocBuffers`; 2 sets flag 0x4 on top of the current flags
-/// and 3 replaces them with just 0x4. Every mode but 1 resets the animation
+/// re-running `Tmd_AllocBuffers`; 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on top of the current flags
+/// and 3 replaces them with just `TMD_OBJECT_SKIP_AUTO_BUFFER`. Every mode but 1 resets the animation
 /// state `field_0`. `arg1` is unused.
 s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
 {
@@ -7652,7 +7652,7 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
 /// or its model is shown (flag 0x80 clear), 0 once it is dead and hidden.
 s32 func_actor_403000_8013D324(Task* task)
 {
-    if (((GpEnemy*)task->spawnArg2.pointer)->hp > 0) {
+    if (((Enemy*)task->spawnArg2.pointer)->hp > 0) {
         goto return_one;
     }
 
@@ -7676,7 +7676,7 @@ s32 func_actor_403000_8013D364(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 1);
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7717,7 +7717,7 @@ static s16 func_actor_403000_8013D48C(Task* task)
 static void func_actor_403000_8013D4F4(Task* task)
 {
     Actor403000Work* work  = (Actor403000Work*)task->work;
-    GpEnemy*         enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*           enemy = (Enemy*)task->spawnArg2.pointer;
 
     if (work != NULL) {
         Gp_UnlinkObj(&work->objB50.obj);
@@ -7750,7 +7750,7 @@ static void func_actor_403000_8013D5F8(Task* arg0)
 {
     TmdObject*       obj;
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     work = arg0->work;
     if (work->field_4 != 0) {
@@ -7767,7 +7767,7 @@ static void func_actor_403000_8013D648(Task* arg0)
 {
     TmdObject*       obj;
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -7785,7 +7785,7 @@ static void func_actor_403000_8013D648(Task* arg0)
     func_actor_403000_80133AF8(arg0);
     if ((work->field_60.word & 0x102) || (s16)work->field_6 >= 5) {
         if (enemy->hp > 0) {
-            if (enemy->reactionFlags & 2) {
+            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
                 work->field_0 = 0x10;
             } else {
                 work->field_0 = 0x12;
@@ -7799,7 +7799,7 @@ static void func_actor_403000_8013D648(Task* arg0)
 
 static void func_actor_403000_8013D72C(Task* arg0)
 {
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     Actor403000Work* work;
     TmdObject*       obj;
 
@@ -7872,7 +7872,7 @@ static void func_actor_403000_8013D850(Task* arg0)
 static void func_actor_403000_8013D910(Task* arg0)
 {
     Actor403000Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u32              rng;
     s16              timer;
 

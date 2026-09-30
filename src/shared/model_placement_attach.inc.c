@@ -2,7 +2,8 @@
 
 /// Setup state of the child task whose state table is
 /// `D_actor_113100_80131E30`: hides the child's model, then mirrors the parent's
-/// (`spawnArg2`) model flag bits 0x80 and 0x4 as the tick state does. It draws
+/// (`spawnArg2`) `TMD_OBJECT_SKIP_ACTIVE_DRAW` and `TMD_OBJECT_SKIP_AUTO_BUFFER`
+/// as the tick state does. It draws
 /// the model at order-table offset -2, hangs the child's root coordinate off the
 /// parent's part `spawnArg1`, shares the parent's light and colour matrices,
 /// reparents the task under the parent and steps to the next state.

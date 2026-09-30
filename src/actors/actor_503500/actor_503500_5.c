@@ -65,14 +65,14 @@ STATIC_ASSERT_SIZEOF(Actor503500Work44, 0x44);
 /// four-entry record table (`func_actor_503500_801454E0` and
 /// `func_actor_503500_80145F18`, the same body twice). It follows the gameplay
 /// `GpActorD4` convention: the display node's `context.capsule` points at the
-/// `GpActorD4Rec` directly behind it, whose `recs` in turn points at the
+/// `WorldCollisionCapsule` directly behind it, whose `contacts` in turn points at the
 /// `WorldCollisionContact` table that `Gp_InitRec18Table(_, 4, 0)` zeroes at 0x38. Like
 /// `Actor503500ObjWork` this type stops where the two blocks stop agreeing:
 /// `func_actor_503500_80144E8C` allocates 0xD0 and `func_actor_503500_80145A2C`
 /// allocates 0xAC, both with `memCalloc(_, 0)`.
 typedef struct Actor503500WorkRec4 {
     /* 0x00 */ WorldCollisionBody    obj;
-    /* 0x20 */ GpActorD4Rec          d4;
+    /* 0x20 */ WorldCollisionCapsule d4;
     /* 0x38 */ WorldCollisionContact rec[4];
 } Actor503500WorkRec4;
 STATIC_ASSERT_SIZEOF(Actor503500WorkRec4, 0x98);
@@ -168,7 +168,7 @@ STATIC_ASSERT_SIZEOF(Actor5035005MsgEntry, 8);
 extern Actor5035005MsgEntry D_actor_503500_80176530[];
 
 /// Local offset of the display node `func_actor_503500_80144E8C` links, and the
-/// offsets it seeds its `GpActorD4Rec` with.
+/// offsets it seeds its `WorldCollisionCapsule` with.
 extern Actor503500UVec D_actor_503500_801715C4;
 extern Actor503500UVec D_actor_503500_801715CC;
 /// Local offset of the display node `func_actor_503500_801455A4` links.
@@ -1005,7 +1005,10 @@ SVECTOR D_actor_503500_8017158C = { -1000, 0, 0, 0 };
 
 SVECTOR D_actor_503500_80171594 = { 1000, 0, 0, 0 };
 
-GpScriptCmd D_actor_503500_8017159C[2] = { { 1, 257 }, { 0, 0 } };
+PadScriptCmd D_actor_503500_8017159C[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_actor_503500_801715A4[2] = { { 0, 0, 8, 0 }, { 255, 255, 8, 1 } };
 
@@ -1128,9 +1131,9 @@ static void func_actor_503500_80144E8C(Task* arg0)
 {
     Actor503500WorkD0*     work;
     GfxCoord*              coord;
-    GpActorD4Rec*          d4;
+    WorldCollisionCapsule* d4;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m1;
     GpMtxWords*            m2;
@@ -1171,13 +1174,13 @@ static void func_actor_503500_80144E8C(Task* arg0)
     work->head.obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->head.obj.radius          = 0;
 
-    d4->recs       = rec;
-    d4->end1.vx    = 0;
-    d4->end1.vy    = 0;
-    d4->end1.vz    = 0;
-    d4->end0.vx    = D_actor_503500_801715CC.vx;
-    d4->end0.vy    = D_actor_503500_801715CC.vy;
-    d4->end0.vz    = D_actor_503500_801715CC.vz;
+    d4->contacts   = rec;
+    d4->ends[1].vx = 0;
+    d4->ends[1].vy = 0;
+    d4->ends[1].vz = 0;
+    d4->ends[0].vx = D_actor_503500_801715CC.vx;
+    d4->ends[0].vy = D_actor_503500_801715CC.vy;
+    d4->ends[0].vz = D_actor_503500_801715CC.vz;
     d4->end1Radius = 0x3E8;
     d4->end0Radius = 0x7D0;
 
@@ -1204,12 +1207,12 @@ static void func_actor_503500_80144E8C(Task* arg0)
 
 static void func_actor_503500_801450A0(Task* arg0)
 {
-    Actor503500WorkD0* work;
-    GpActorD4Rec*      d4;
-    GfxCoord*          coord;
-    s32                pan;
-    s32                step;
-    s32                ang;
+    Actor503500WorkD0*     work;
+    WorldCollisionCapsule* d4;
+    GfxCoord*              coord;
+    s32                    pan;
+    s32                    step;
+    s32                    ang;
 
     work = (Actor503500WorkD0*)arg0->work;
     d4   = &work->head.d4;
@@ -1379,7 +1382,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     Actor503500Work44* work;
     GfxCoord*          coord;
     GpMtxWords*        m;
-    GpEffWork*         eff;
+    EffectWork*        eff;
     Task*              child;
     s32                pan;
 
@@ -1522,9 +1525,9 @@ static void func_actor_503500_80145A2C(Task* arg0)
 {
     Actor503500WorkAC*     work;
     GfxCoord*              coord;
-    GpActorD4Rec*          d4;
+    WorldCollisionCapsule* d4;
     WorldCollisionContact* rec;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  child;
     GpMtxWords*            m;
     s32                    pan;
@@ -1557,13 +1560,13 @@ static void func_actor_503500_80145A2C(Task* arg0)
     work->head.obj.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->head.obj.radius          = 0;
 
-    d4->recs       = rec;
-    d4->end1.vx    = 0;
-    d4->end1.vy    = 0;
-    d4->end1.vz    = 0;
-    d4->end0.vx    = D_actor_503500_801715E4.vx;
-    d4->end0.vy    = D_actor_503500_801715E4.vy;
-    d4->end0.vz    = D_actor_503500_801715E4.vz;
+    d4->contacts   = rec;
+    d4->ends[1].vx = 0;
+    d4->ends[1].vy = 0;
+    d4->ends[1].vz = 0;
+    d4->ends[0].vx = D_actor_503500_801715E4.vx;
+    d4->ends[0].vy = D_actor_503500_801715E4.vy;
+    d4->ends[0].vz = D_actor_503500_801715E4.vz;
     d4->end1Radius = 0x7D0;
     d4->end0Radius = 0xBB8;
 
@@ -1810,13 +1813,13 @@ static void func_actor_503500_8014618C(Task* arg0)
             switch (work->field_4C4) {
                 case 0x14:
                     ext->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x1E:
                     Gp_SpawnEff(0x600A5, coord, 2, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 0x96:
                     arg0->state++;
@@ -1840,7 +1843,7 @@ static void func_actor_503500_8014642C(Task* arg0)
 {
     Actor503500Effect4CC* work;
     GfxCoord*             coord;
-    GpEnemy*              enemy;
+    Enemy*                enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
@@ -1908,7 +1911,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
             ext->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1921,7 +1924,7 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
             ext->flags                                    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

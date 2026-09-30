@@ -25,7 +25,7 @@
 typedef struct {
     u16   flags;
     u16   priority;
-    void  (*callback)(GpEnemy*, Task*);
+    void  (*callback)(Enemy*, Task*);
     void* arg;
 } Actor146000RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor146000RetainedTaskSeed, 12);
@@ -570,10 +570,10 @@ void func_actor_146000_80131E24(Task* arg0)
             if (GameFlag_GetNibble(0x73) != 0) {
                 func_800E8634(D_actor_146000_80135980, 0, D_actor_146000_80135BD8);
                 GameFlag_SetNibble(0x4B, 7);
-                Mc_SaveData[0].state.location.loc.warp = 4;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 4;
             } else {
                 func_800E8634(D_actor_146000_80135428, 1, D_actor_146000_80135BD8);
-                Mc_SaveData[0].state.location.loc.warp = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
             }
             arg0->state++;
             return;
@@ -587,9 +587,9 @@ void func_actor_146000_80131E24(Task* arg0)
             SndEvt_EnqueueType7(0x80000000, 0);
             GameFlag_SetNibble(0x4C, 0);
             Gp_ApplyAreaRecs(D_dryfield_night_water_hole_80183618);
-            Mc_SaveData[0].state.location.loc.area = 0x19;
-            Mc_SaveData[0].state.location.loc.room = state;
-            gDisplayState.spriteVariant            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
+            gDisplayState.spriteVariant                                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

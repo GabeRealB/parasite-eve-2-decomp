@@ -459,7 +459,7 @@ enum { ROOM_EFFECT_NORMAL_SPAWN_LIMIT = 0x81 };
 
 /// Grayscale fade task controlled by `Player_Status.statusFlags` bit 0.
 /// Alternates LCG-selected brightness targets, then fades out and releases
-/// its `GpEffWork` when the flag stays clear.
+/// its `EffectWork` when the flag stays clear.
 void func_800EC47C(Task* arg0);
 
 static void Gp_InitState1C(Task* arg0);
@@ -1602,11 +1602,11 @@ void func_800EA420(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-GpEffWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3)
+EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3)
 {
-    Task*      task;
-    GpEffWork* mem;
-    s32        bank;
+    Task*       task;
+    EffectWork* mem;
+    s32         bank;
 
     bank = (arg0 >> 16) & 0x7FFF;
     if ((arg0 >= 0) && (gRoomEffectState->effectCount >= ROOM_EFFECT_NORMAL_SPAWN_LIMIT)) {
@@ -1620,7 +1620,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg
     if (task == NULL) {
         return NULL;
     }
-    mem = memCalloc(sizeof(GpEffWork), false);
+    mem = memCalloc(sizeof(EffectWork), false);
     if (mem == NULL) {
         taskKill(task);
         return NULL;
@@ -2110,12 +2110,12 @@ void Gp_DrawBandEx(GfxCoord* arg0, s16 arg1, s32 arg2, u8* rgb)
 
 void func_800EC47C(Task* arg0)
 {
-    GpEffWork* mem;
-    u8         rgb[3];
-    s32        current;
-    s32        target;
-    u16        count;
-    u32        random;
+    EffectWork* mem;
+    u8          rgb[3];
+    s32         current;
+    s32         target;
+    u16         count;
+    u32         random;
 
     mem = arg0->spawnArg2.pointer;
     switch (arg0->state) {
@@ -2179,7 +2179,7 @@ void func_800EC47C(Task* arg0)
 void Gp_FadeWaveTask(Task* arg0)
 {
     RoomEffectState* effectState;
-    GpEffWork*       mem;
+    EffectWork*      mem;
     u16              color;
     u8               rgb[3];
 

@@ -6,7 +6,7 @@
 void bursterExit(Task* task)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     enemy = task->spawnArg2.pointer;
     work  = (Actor104600Work*)task->work;

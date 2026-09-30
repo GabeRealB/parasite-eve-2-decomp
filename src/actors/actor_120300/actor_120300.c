@@ -1102,7 +1102,7 @@ ActorTransform D_actor_120300_80140A54[13] = {
     { { 8500, 0, 1531, 0 }, { 0, 3072, 0, 0 } },
 };
 
-GpOverlayIds D_actor_120300_80140B8C = { 2, 3, 11 };
+EvsSceneKey D_actor_120300_80140B8C = { 2, 3, 11 };
 
 GpEvsCmd D_actor_120300_80140B94[102] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -1525,18 +1525,18 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
 /// All arguments are evaluated once. The bank selector depends on the current
 /// weapon and save character; `frames` is a whole-frame blend duration.
 /// Dispatch consumes the block-local request synchronously.
-#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                   \
-    {                                                                                                            \
-        AnimationPlayRequest request;                                                                            \
-        s32                  weaponId;                                                                           \
-                                                                                                                 \
-        weaponId                     = Player_Status.weapon;                                                     \
-        request.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        request.animationId          = 1;                                                                        \
-        request.blend                = (blendChoice);                                                            \
-        request.blendFrames          = (frames);                                                                 \
-        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
-        Gp_DispatchMsgPtr((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                        \
+#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                                       \
+    {                                                                                                                                \
+        AnimationPlayRequest request;                                                                                                \
+        s32                  weaponId;                                                                                               \
+                                                                                                                                     \
+        weaponId                     = Player_Status.weapon;                                                                         \
+        request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
+        request.animationId          = 1;                                                                                            \
+        request.blend                = (blendChoice);                                                                                \
+        request.blendFrames          = (frames);                                                                                     \
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
+        Gp_DispatchMsgPtr((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                            \
     }
 
 /// Request handler for the code latched in `field_4C0`. While the session
@@ -1886,7 +1886,7 @@ void func_actor_120300_80133330(s32 arg0)
     Gp_DispatchMsgPtr(work->field_4BC, 0x7D4, &D_actor_120300_80140A54[11], 0);
     if (arg0 == 0) {
         weaponId                 = Player_Status.weapon;
-        id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+        id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
         rec.source.index         = id;
         rec.animationId          = 1;
         rec.blend                = ANIMATION_BLEND_RESET;
@@ -2060,7 +2060,7 @@ void func_actor_120300_801337C4(Task* arg0)
                     arg0->state = 4;
                 } else {
                     weaponId = Player_Status.weapon;
-                    if (Mc_SaveData[0].state.characterId == 1) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                         weaponId = weaponId + 1;
                     } else {
                         weaponId = weaponId + 0x22;
@@ -2075,8 +2075,8 @@ void func_actor_120300_801337C4(Task* arg0)
                     GameFlag_SetNibble(0x2D, 1);
                     func_800E3FAC(0xA2, 0xB);
                     func_800E8634(D_actor_120300_80140B94, 0, D_actor_120300_80141524);
-                    Mc_SaveData[0].state.sceneEvent = 2;
-                    arg0->state                    += 1;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
+                    arg0->state                                        += 1;
                 }
                 Mem_CopyUnaligned(&D_actor_120300_801409A8, D_dryfield_garage_8017DD6C, 0x18);
                 Mem_CopyUnaligned(&D_actor_120300_80140A20, D_dryfield_garage_8017E1F4, 0x24);

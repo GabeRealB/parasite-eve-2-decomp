@@ -33,14 +33,14 @@ void lungerCollapseState(Task* arg0)
                 work->field_6AE        = 0x31;
                 work->field_4CC.pos.vz = 0x109;
             }
-            work->field_4CC.radius                             = 0x15E;
-            work->field_69C                                    = 0;
-            work->field_69E                                    = 0;
-            work->field_6DE                                    = 1;
-            work->field_4CC.flags                             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work->field_564.flags                             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                    = 1;
+            work->field_4CC.radius                           = 0x15E;
+            work->field_69C                                  = 0;
+            work->field_69E                                  = 0;
+            work->field_6DE                                  = 1;
+            work->field_4CC.flags                           |= WORLD_COLLISION_BODY_GRID_ENABLED;
+            work->field_564.flags                           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
+            work->field_6D4                                  = 1;
             break;
         case 1:
             if (work->field_6DE == 1) {
@@ -51,7 +51,7 @@ void lungerCollapseState(Task* arg0)
                     s32 pan;
 
                     snd = gLungerVoiceCues[work->field_6D6 + 0xC] |
-                          ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                          ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
@@ -60,7 +60,7 @@ void lungerCollapseState(Task* arg0)
                     s32 pan;
 
                     snd = gLungerVoiceCues[work->field_6D6 + 8] |
-                          ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                          ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(self);
 
                     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));
@@ -69,7 +69,7 @@ void lungerCollapseState(Task* arg0)
                 s32 pan;
 
                 snd = gLungerVoiceCues[work->field_6D6 + 8] |
-                      ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                      ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)Gp_GetObjPan(self);
 
                 SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(self));

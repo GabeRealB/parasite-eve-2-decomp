@@ -16,7 +16,7 @@ void lungerDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
     s32                     j;
     s32                     depth;
 
-    s          = (Actor105600BeamScratch*)SCRATCH_PUSH_BYTES(0x48);
+    s          = (Actor105600BeamScratch*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     self       = arg0->extra.tmd->coords;
     s->step.vx = (arg1->vx - arg2->vx) / 8;
     s->step.vy = (arg1->vy - arg2->vy) / 8;

@@ -80,9 +80,9 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
                 }
             }
             st->hit = 1;
-            Gfx_RotMatrixY(&st->m,
-                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
-                           1);
+            gfxRotMatrixY(&st->m,
+                          st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
+                          1);
             Gfx_MatrixCol2(&st->m, &st->aim);
             VectorNormalSS(&st->aim, &st->aim);
             gte_lddp(-push);

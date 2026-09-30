@@ -110,7 +110,7 @@ u16 Gp_GetAttachParam(s32 arg0)
             cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData[0].state.attachLevels;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }

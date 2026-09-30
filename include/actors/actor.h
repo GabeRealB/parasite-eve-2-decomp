@@ -37,8 +37,6 @@
 
 #include "overlay.h"
 
-struct GpEffWork;
-
 /// Working state of the push-out walk over an actor's contact records: the
 /// coordinate's world translation, the push that moves it out of the latest
 /// solid record (capped in length), that push's XZ part, the record cursor and
@@ -868,7 +866,7 @@ typedef struct Actor160600Work {
     s16             animArg;
     s16             effects;
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
 
@@ -890,7 +888,7 @@ typedef struct Actor161500Work {
     s16             turnWeight;
     byte            pad_4F2[0x2];
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
@@ -1087,7 +1085,7 @@ typedef struct Actor402200Work {
     Actor402200Region* field_6B4;
     s32                field_6B8;
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
-    /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
+    /// overlay's cue word `D_actor_402200_80138468` with the `Enemy` work id's
     /// high nibble in bits 8-11, the same construction the cue body
     /// `func_actor_402200_80135BE0` uses on `D_actor_402200_80138420`. Stored
     /// back to the block and re-read from there as the first argument of
@@ -1513,10 +1511,10 @@ typedef struct Actor403200DropWork {
     byte                  pad_108[0x88];
     /// The effect the spawn state starts, reparented onto the task so it dies
     /// with it; the landing state tells it to finish.
-    GpEffWork* eff;
-    byte       pad_194[0x16];
-    s16        field_1AA;
-    u16        timer;
+    EffectWork* eff;
+    byte        pad_194[0x16];
+    s16         field_1AA;
+    u16         timer;
     /// Per-step bias of the rise and fall, rolled off the LCG.
     s16  field_1AE;
     byte pad_1B0[0x10];
@@ -1671,8 +1669,8 @@ typedef struct Actor403200Work {
     /* 0x7F4 */ Actor403200HitGroup hits[9];
     /// The tenth collision object, the one the swipe tick raises `flags` bit
     /// 0x8000 on while the swipe is live.
-    /* 0xD4C */ WorldCollisionBody obj;
-    /* 0xD6C */ GpActorD4Rec       d4rec;
+    /* 0xD4C */ WorldCollisionBody    obj;
+    /* 0xD6C */ WorldCollisionCapsule d4rec;
     /// The five records the tenth collision object carries, walked by the swipe
     /// tick for the one whose high half is 0x10000.
     /* 0xD84 */ WorldCollisionContact recs2[5];
@@ -1681,7 +1679,7 @@ typedef struct Actor403200Work {
     /* 0xDFC */ MATRIX lightMtx;
     /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the swipe tick clears and pushes through
-    /// `Gp_UpdateCoord` every step; `coord` is the matrix `Gfx_RotMatrixY`
+    /// `Gp_UpdateCoord` every step; `coord` is the matrix `gfxRotMatrixY`
     /// rebuilds from `field_7C8`. The spawn state seeds it with the identity
     /// through the word view.
     /* 0xE3C */ Actor403200DropCoord field_E3C;
@@ -1722,15 +1720,15 @@ typedef struct Actor403200Work {
     /// The seven escorts the spawn state starts; the state-change reset walks
     /// them to push the host's `TmdObject::flags` onto each escort's own model
     /// object.
-    /* 0xECC */ GpEnemy* field_ECC[7];
+    /* 0xECC */ Enemy* field_ECC[7];
     /// Two nearby-enemy slots the spawn tick fills, each dropped once its HP
     /// runs out.
-    /* 0xEE8 */ GpEnemy* field_EE8[2];
+    /* 0xEE8 */ Enemy* field_EE8[2];
     /// The enemy the state-change reset spawns from `D_actor_403200_8015E858`
     /// for the three states that launch it.
-    /* 0xEF0 */ GpEnemy* field_EF0;
-    /* 0xEF4 */ s16      field_EF4;
-    /* 0xEF6 */ s16      field_EF6;
+    /* 0xEF0 */ Enemy* field_EF0;
+    /* 0xEF4 */ s16    field_EF4;
+    /* 0xEF6 */ s16    field_EF6;
     /// Armed to 1 alongside `field_EF6` by the swipe tick's reset half.
     /* 0xEF8 */ s16 field_EF8;
     /// Armed to 1 by the per-frame body's re-arm path.
@@ -1808,7 +1806,7 @@ typedef struct Actor105600Work {
     /// branch of `Actor05700_Fn01318` parks (-0xA7 or 0x109) and its
     /// `radius` the frame count parked alongside it.
     WorldCollisionBody    field_47C;
-    GpActorD4Rec          field_49C;
+    WorldCollisionCapsule field_49C;
     WorldCollisionContact field_4B4[1];
     /// Second body object; `pos.vz` is the pose the state-0 branch parks
     /// (0x15E) and `flags` the bits whose 0x4000 it raises.
@@ -1826,7 +1824,7 @@ typedef struct Actor105600Work {
     WorldCollisionContact field_604[1];
     /// Fifth body object, unlinked with the others by `Actor05700_Fn01A58`.
     WorldCollisionBody    field_61C;
-    GpActorD4Rec          field_63C;
+    WorldCollisionCapsule field_63C;
     WorldCollisionContact field_654[1];
     TaskDesc*             field_66C;
     EffectSpawnArg        field_670;
@@ -1835,8 +1833,8 @@ typedef struct Actor105600Work {
     s32                   field_680;
     byte                  pad_684[4];
     /// Tilt angles decayed toward zero by `Actor05700_Fn016D0`.
-    SVECTOR           field_688;
-    struct GpEffWork* field_690;
+    SVECTOR     field_688;
+    EffectWork* field_690;
     /// Animation index selected by the state machine; 4 is the "handover"
     /// clip of `Actor05700_Fn04CC0`'s state 0.
     s16 field_694;
@@ -1900,7 +1898,7 @@ STATIC_ASSERT_SIZEOF(Actor105600Work, 0x6E4);
 /// 0xF0-byte body block `Actor05600_Fn031B0` parks at `Task::work`.
 /// The two leading matrices are the light/colour pair published on the model
 /// root's `TmdObject`; the three `WorldCollisionBody` bodies collide against `rec60`
-/// (shared by the first two) and, through the `GpActorD4Rec` between them,
+/// (shared by the first two) and, through the `WorldCollisionCapsule` between them,
 /// `recD0`. `field_EE` mirrors the placement table's variant flag.
 typedef struct Actor105600FxWork {
     MATRIX                colorMtx;
@@ -1909,7 +1907,7 @@ typedef struct Actor105600FxWork {
     WorldCollisionContact rec60[1];
     WorldCollisionBody    obj78;
     WorldCollisionBody    obj98;
-    GpActorD4Rec          d4rec;
+    WorldCollisionCapsule d4rec;
     WorldCollisionContact recD0[1];
     s16                   field_E8;
     s16                   field_EA;
@@ -2045,7 +2043,7 @@ typedef struct Actor150400Work {
     s16             animArg;
     byte            pad_4B6[0x2];
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor150400Work;
 STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
@@ -2257,7 +2255,7 @@ static __inline__ void actorRescaleYaw(GfxCoord* coord, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
@@ -2284,7 +2282,7 @@ static __inline__ void actorMoveForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2310,7 +2308,7 @@ static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
     SVECTOR* vec;
     SVECTOR* gteVec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2339,7 +2337,7 @@ static __inline__ void actorMoveModelForward(Task* task, s16 amount)
     SVECTOR*  vec;
 
     coord = task->extra.tmd->coords;
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2373,7 +2371,7 @@ static __inline__ void actorResetYaw(GfxCoord* coord)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = 1;
     blk->scale.vy = 1;
     blk->scale.vx = 1;
@@ -2408,7 +2406,7 @@ static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = scale;
     blk->scale.vy = scaleY;
     blk->scale.vz = scale;
@@ -2435,7 +2433,7 @@ static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
     SVECTOR* head;
     SVECTOR* vec;
 
-    if (Mc_SaveData[0].state.actorsFrozen != 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
         head                          = SCRATCH_STACK_CURSOR(SVECTOR);
         vec                           = head - 1;
         SCRATCH_STACK_CURSOR(SVECTOR) = vec;
@@ -2493,13 +2491,13 @@ static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 
 /// Gives `model` the texture page and palette of the enemy's placement in the
 /// current area, and reprocesses its stream when it already has one.
-static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
+static __inline__ void actorTintModel(TmdObject* model, Enemy* enemy)
 {
     GpAreaVariant* rec;
     AreaPlacement* place;
     s32            idx;
 
-    idx                      = enemy->placeKey >> 12;
+    idx                      = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     rec                      = actorGetCurrentAreaRec();
     place                    = gpAreaPlaceAt(rec->field_0, idx);
     model->texturePageOffset = place->texturePageOffset;
@@ -2511,7 +2509,7 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 }
 
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
-static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
+static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
@@ -2521,7 +2519,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     s32              idx;
 
     sessionKey = &gGameSession->location.loc;
-    idx        = enemy->placeKey >> 12;
+    idx        = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -2539,7 +2537,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 }
 
 /// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
-static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
+static __inline__ void actorTintEffect(EffectWork* eff, Enemy* enemy)
 {
     if (eff != NULL) {
         actorTintModel(eff->task->extra.tmd, enemy);
@@ -2668,14 +2666,14 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 }
 
 /// Tells the player task that `ctx` touched it, packing the pair with `mode`.
-static __inline__ s32 actorPlayerContactMessage(GpEnemy* ctx, s32 mode)
+static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
 {
     Task* player = gameGetPtrSlot(3);
     return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 /// Relights `enemy` for the world position of `coord`.
-static __inline__ void actorUpdateColor(GpEnemy* enemy, GfxCoord* coord)
+static __inline__ void actorUpdateColor(Enemy* enemy, GfxCoord* coord)
 {
     VECTOR* block                = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
     block->vx                    = coord->workm.t[0];

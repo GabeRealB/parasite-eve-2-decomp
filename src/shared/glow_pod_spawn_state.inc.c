@@ -9,7 +9,7 @@
 /// matching the task's `bodyKind` steps the model's texture page and CLUT
 /// row and re-streams it twice. `glowPodExit` becomes the exit
 /// callback.
-void glowPodSpawnState(GpEnemy* arg0, Task* arg1)
+void glowPodSpawnState(Enemy* arg0, Task* arg1)
 {
     GlowPodWork*           work;
     TmdObject*             obj;
@@ -61,12 +61,12 @@ void glowPodSpawnState(GpEnemy* arg0, Task* arg1)
     seed                         = Gp_LcgState * 5 + 0x71357911;
     work->field_2A8              = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState                  = seed;
-    Gp_SetLightMode(arg1->spawnArg2.pointer, 2);
-    work->field_11C.end0.vz        = 0x1388;
+    Gp_SetLightMode(arg1->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    work->field_11C.ends[0].vz     = 0x1388;
     work->field_11C.end0Radius     = 0xFA0;
     work->field_11C.end1Radius     = 0x7D0;
     records1                       = work->field_134;
-    work->field_11C.recs           = records1;
+    work->field_11C.contacts       = records1;
     work->field_FC.context.capsule = &work->field_11C;
     work->field_FC.coord           = coord;
     work->field_FC.pos.vx          = 0;

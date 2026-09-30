@@ -77,9 +77,9 @@ STATIC_ASSERT_SIZEOF(DryfieldMotelRoom6SpotLightStorage, 1080);
 extern UiObjectDesc D_800611E4;
 extern TaskDesc     D_8013843C;
 
-/// `Mc_SaveData[0].state.companionType` (ally present), read through its own symbol.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
-/// `Mc_SaveData[0].state.location.loc.view` as it was when the cutscene started, restored
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -193,7 +193,7 @@ s32                               func_dryfield_motel_room_6_80181A00(Task*, s32
 void                              func_dryfield_motel_room_6_80181A08(Task*);
 
 extern DryfieldMotelRoom6SpotLightStorage D_dryfield_motel_room_6_80186288;
-extern GpPointLight                       D_dryfield_motel_room_6_80185EC8[10];
+extern WorldCoordPointLight               D_dryfield_motel_room_6_80185EC8[10];
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -795,7 +795,7 @@ GpObj4C D_dryfield_motel_room_6_80185A54[15] = {
     { NULL, NULL, NULL, { 2976, -64, 6528, 0 }, { { -176, 0, -1024, 0 }, { 816, 0, -1024, 0 }, { -176, 0, 960, 0 }, { 816, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1305, 2, 15, 0, 132, 0 },
 };
 
-GpPointLight D_dryfield_motel_room_6_80185EC8[10] = {
+WorldCoordPointLight D_dryfield_motel_room_6_80185EC8[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -960, -2980, 6704 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1417, 1342, 1305 }, { 0, 0 } }, 2700, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 492, -1614, 7495 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1155, 1060 }, { 0, 0 } }, 0, 1 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 323, -2069, 2730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3648, 3632, 3614 }, { 0, 0 } }, 1219, 2336 },
@@ -1703,11 +1703,11 @@ WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13] = {
 
 GpAreaTmdRec D_dryfield_motel_room_6_80186740[2] = {
     { 101, 205, 0, 0, { 0, 0 }, &D_8013843C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_motel_room_6_80186758[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_motel_room_6_80186764[12] = {

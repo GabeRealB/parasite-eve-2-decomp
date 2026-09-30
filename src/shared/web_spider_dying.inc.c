@@ -10,7 +10,7 @@
 /// effect of `spiderSpawnHusk` in its place), spawns effect 0x600A5 at frame
 /// 0xF and moves to step 2 at frame 0x3C; step 2 destroys the enemy 0x3C
 /// frames later.
-void spiderDyingState(GpEnemy* arg0, Task* arg1)
+void spiderDyingState(Enemy* arg0, Task* arg1)
 {
     VECTOR           vec;
     Actor105500Work* work;

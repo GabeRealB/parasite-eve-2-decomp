@@ -49,17 +49,17 @@ static SVECTOR D_m4a1_bayonet_8011DED0 = { 0, 0x0180, 0x0040, 0 };
 /// lives 13 frames.
 void func_m4a1_bayonet_8011D1E4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    GfxCoord*  slot;
-    GfxCoord   hilt;
-    s32        phase;
-    SVECTOR*   vec;
-    s32        vx;
-    s32        vy;
-    s32        vz;
-    s32        i;
-    s32        alive;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   slot;
+    GfxCoord    hilt;
+    s32         phase;
+    SVECTOR*    vec;
+    s32         vx;
+    s32         vy;
+    s32         vz;
+    s32         i;
+    s32         alive;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

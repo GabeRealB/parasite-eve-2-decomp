@@ -8,18 +8,18 @@
 void glowPodLightRamp(Task* task)
 {
     GlowPodWork* work;
-    GpEnemy*     enemy;
+    Enemy*       enemy;
     TmdObject*   obj;
 
     work  = (GlowPodWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     obj   = task->extra.tmd;
 
     if (work->field_2A6 != 0) {
         if (work->field_2A4 == 0) {
             work->field_2A4++;
             obj->flags = TMD_OBJECT_SEMI_TRANS;
-            Gp_SetLightMode(task->spawnArg2.pointer, 2);
+            Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
         } else {
             work->field_2A4++;
             if (work->field_2A4 >= 0x12) {

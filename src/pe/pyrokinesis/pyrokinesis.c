@@ -56,7 +56,7 @@ static void func_pyrokinesis_801304C4(GfxCoord* arg0, s32 arg1);
 static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// The `SndEvt_EnqueueType6` id of the ignition roar, three per PE level,
-/// indexed by `GpEffWork.index * 3 + Task::spawnArg1` (level by cast variant).
+/// indexed by `EffectWork.index * 3 + Task::spawnArg1` (level by cast variant).
 static s32 D_pyrokinesis_80131DD8[] = {
     0xE00B0002,
     0xE00B0002,
@@ -92,17 +92,17 @@ static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 /// cancelled (`gRoomEffectState->peEffectControl`).
 void func_pyrokinesis_8012EF48(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     PyroWork*             work;
     ModelObjectCoordBody* body;
     GfxCoord*             player;
     GpCoord64*            base;
     GfxCoord*             slotc;
-    GpPointLight*         slot;
+    WorldCoordPointLight* slot;
     GpMtxWords*           dstm;
     GpMtxWords*           srcm;
-    GpEffWork*            spawned;
+    EffectWork*           spawned;
     GfxCoord              ground;
     u8                    rgb[3];
     s32                   i;
@@ -400,11 +400,11 @@ void func_pyrokinesis_8012EF48(Task* arg0)
 
 void func_pyrokinesis_8012FAC8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        scene;
-    s16        flag;
-    s32        state;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         scene;
+    s16         flag;
+    s32         state;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -608,11 +608,11 @@ static void func_pyrokinesis_80130848(GfxCoord* arg0, s32 arg1, s32 arg2, s32 ar
 
 void func_pyrokinesis_80130C54(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        temp_a1;
-    s32        y;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         temp_a1;
+    s32         y;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -653,11 +653,11 @@ void func_pyrokinesis_80130C54(Task* arg0)
 
 void func_pyrokinesis_801311B8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s32        scale;
-    s32        angle;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s32         scale;
+    s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -794,11 +794,11 @@ static void func_pyrokinesis_80131784(GfxCoord* arg0, s16 arg1, s32 arg2, s32 ar
 
 void func_pyrokinesis_80131CE4(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s32        scale;
-    s32        angle;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s32         scale;
+    s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

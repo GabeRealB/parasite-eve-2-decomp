@@ -862,7 +862,7 @@ SVECTOR D_actor_160900_8013F458[27] = {
     { 0, 0, 0, -1 },
 };
 
-GpOverlayIds D_actor_160900_8013F530 = { 6, 9, 11 };
+EvsSceneKey D_actor_160900_8013F530 = { 6, 9, 11 };
 
 GpEvsCmd D_actor_160900_8013F538[58] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -1460,7 +1460,7 @@ static void func_actor_160900_80133238(Task* arg0)
         case 3:
             if ((u16)work->field_4E == 0) {
                 weaponId = Player_Status.weapon;
-                if (Mc_SaveData[0].state.characterId == 1) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     bankIndex = weaponId + 1;
                 } else {
                     bankIndex = weaponId + 0x22;
@@ -1933,7 +1933,7 @@ void func_actor_160900_8013418C(Task* arg0)
             break;
         case 2:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].state.sceneEvent = 0x1E;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1E;
                 Task_RequestKill(arg0, 0);
             }
             break;

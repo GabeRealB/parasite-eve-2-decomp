@@ -111,8 +111,8 @@ void func_800AA548(s32 arg0)
     if (Player_Status.hp <= 0) {
         Player_Status.hp = 1;
     }
-    if ((Mc_SaveData[0].state.companionType != 0) && (Mc_SaveData[0].state.companionHp <= 0)) {
-        Mc_SaveData[0].state.companionHp = 1;
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0)) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 1;
     }
     Gp_LoadRoomParams();
     gGameSession->cutsceneHold = 0;
@@ -131,27 +131,27 @@ void func_800AA548(s32 arg0)
     rec   = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
         if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->location.loc.warp == 2)) {
-            Mc_SaveData[0].state.location.loc.view = gGameSession->location.loc.view = 2;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = 2;
         } else {
-            Mc_SaveData[0].state.location.loc.view = gGameSession->location.loc.view = rec.field_34;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = rec.field_34;
         }
     }
-    Gp_ActorSlots[0] = NULL;
-    Gp_ActorSlots[1] = NULL;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]    = NULL;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
     if (gDisplayState.control.flags.pendingPlayerPos == 1) {
         // Restore the captured signed coordinates instead of the warp's start.
-        savedPos                 = &(&Player_Status)[Mc_SaveData[0].state.characterId - 1].pos;
+        savedPos                 = &(&Player_Status)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
         D_80114CB0.words.field_0 = savedPos->yaw;
         D_80114CB0.words.field_4 = savedPos->x;
         D_80114CB0.words.field_8 = savedPos->y;
         D_80114CB0.words.field_C = savedPos->z;
         flags.field_0            = 0x23;
         flags.field_2            = 0;
-        Gp_SpawnPlayer(&D_80114CB0.actor, Mc_SaveData[0].state.characterId & 0xFFFF, 0, &flags);
+        Gp_SpawnPlayer(&D_80114CB0.actor, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &flags);
         Gp_SetupCompanionActor(&rec.companion.actor, &flags.field_0);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
-        playerId      = (u8)Mc_SaveData[0].state.characterId;
+        playerId      = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
         flags.field_0 = 1;
         flags.field_2 = rec.field_35 & 1;
         Gp_SpawnPlayer(&rec.player.actor, (s8)playerId & 0xFFFF, 0, &flags);
@@ -168,8 +168,8 @@ void func_800AA548(s32 arg0)
     Game_SetPtrSlot(Task_Spawn(6, 4, 0, 0), 5);
     Task_Spawn(9, 6, 0, 0);
     Task_Spawn(9, 0x11, 0, 0);
-    if ((Mc_SaveData[0].state.demoScene != 0) && (Mc_SaveData[0].state.demoScene != 0xB)) {
-        Task_Spawn((s32)Mc_SaveData[0].state.demoScene, 1, 0, 0);
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
+        Task_Spawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
     }
     Gp_SpawnPlaces(sess);
     Gp_SpawnArea(sess);
@@ -209,7 +209,7 @@ void Gp_BeginSessionTask(Task* arg0)
     one = 1;
     Mem_Init();
     CdCmd_ActivatePhase1();
-    gGameSession->location           = Mc_SaveData[0].state.location;
+    gGameSession->location           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     gGameSession->spriteVariant      = ds->spriteVariant;
     queue->suppressMoviePresentation = one;
     if ((arg0->spawnArg1.value & 0xF) == 0) {
@@ -252,7 +252,7 @@ void Gp_LoadWaitBoot(Task* task)
         }
         Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
-        save    = &Mc_SaveData[0];
+        save    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (session->loadedCharacterId != save->state.characterId || session->loadedConfigSet != Player_Status.resourceVariant) {
             GameSession* sess;
 
@@ -366,9 +366,9 @@ void Gp_LoadState2(Task* task)
         addPrim(gGpuCurrentOt - 0x10, dr);
     }
     if (CdCmd_IsIdle() & 0xFFFF) {
-        sess = &Mc_SaveData[0].state.location.loc;
+        sess = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
         Gp_InitStageVisit(sess);
-        save = &Mc_SaveData[0];
+        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         Mem_ConfigureAuxHeap(save->state.location.loc.stage, save->state.location.loc.area);
         if ((GAME_LOCATION_WORD(save->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
             Mem_SetActiveAuxHeap(true);
@@ -441,7 +441,7 @@ void Gp_LoadWaitCompanion(Task* task)
         flag = Gp_PickCompanion();
         if (flag != 0) {
             gGameSession->companionType = flag;
-            Gp_EnqueueCompanionCd(Mc_SaveData[0].state.companionType, Mc_SaveData[0].state.companionVariant);
+            Gp_EnqueueCompanionCd(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant);
         }
         task->state++;
     }
@@ -502,10 +502,10 @@ void Gp_LoadWaitSave(Task* task)
         }
         sess = gGameSession;
         if (sess->applySaveVariant == 1) {
-            areaSetPlacementVariant(&sess->location.loc, Mc_SaveData[0].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            areaSetPlacementVariant(&sess->location.loc, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
             gGameSession->applySaveVariant = 0;
         }
-        saveKey = &Mc_SaveData[0].state.location.loc;
+        saveKey = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
         Gp_MarkAreaVisited(saveKey);
         areaSyncLocationVariant(saveKey);
         gGameSession->location.loc.variant = saveKey->variant;
@@ -555,7 +555,7 @@ void Gp_LoadWaitAreaCd(Task* task)
         ds2 = &gDisplayState;
         Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->drawBuffer]);
         task->state++;
-        if (Mc_SaveData[0].state.interlace != 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
             ds2->dispEnv[1].isinter = 1;
             ds2->dispEnv[0].isinter = 1;
         }
@@ -608,7 +608,7 @@ static void Gp_InitStageVisit(GameLocationKey* arg0)
     GpFlagBank*  bank;
 
     banks = Gp_FlagBanks;
-    save  = &Mc_SaveData[0];
+    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if ((save->state.visitFlags & 1) == 0) {
         save->state.visitFlags = 1;
         Gp_ClearAllFlagNibbles();

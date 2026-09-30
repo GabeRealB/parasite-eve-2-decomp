@@ -649,9 +649,9 @@ static void Gp_CommitSaveLoc(void)
         fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
-    Mc_SaveData[0].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
-    Mc_SaveData[0].state.location.loc.warp = Gp_WarpLoc.warp;
-    Mc_SaveData[0].state.location.loc.room = Gp_WarpLoc.room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = Gp_WarpLoc.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = Gp_WarpLoc.room;
     Task_Spawn(0, 0x11, 0, 0);
     D_80114CF8   = 0;
     Gp_DirNibble = 0;

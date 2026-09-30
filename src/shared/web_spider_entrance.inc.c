@@ -18,7 +18,7 @@ void spiderEntranceState(Task* arg0)
     s32      pan2;
     s32      pan3;
     s16      timer;
-    GpEnemy* ctx;
+    Enemy*   ctx;
     s32      indexOrSound;
     u32      randomY;
     u32      randomZ;
@@ -83,14 +83,14 @@ void spiderEntranceState(Task* arg0)
                     Gp_SpawnEff(0x6017C, coord, 0, velocity);
                     indexOrSound++;
                 } while (indexOrSound < 5);
-                indexOrSound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x510D0012;
+                indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x510D0012;
                 pan1         = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(indexOrSound, pan1, (s8)gpGetObjDepth(coord));
             }
             break;
         case 3:
             if ((s16)work->field_396 == 0x1E) {
-                indexOrSound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x51090007;
+                indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51090007;
                 pan2         = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(indexOrSound, pan2, (s8)gpGetObjDepth(coord));
             }
@@ -122,7 +122,7 @@ void spiderEntranceState(Task* arg0)
                 motion++;
             } while (indexOrSound < 9);
             if ((s16)work->field_396 == 0x28) {
-                indexOrSound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401A0002;
+                indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan3         = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(indexOrSound, pan3, (s8)gpGetObjDepth(coord));
                 work->field_3A8        = 0x80;
@@ -134,7 +134,7 @@ void spiderEntranceState(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 randomDelay     = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = gSpiderIdleDelay[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
+                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
                 Gp_LcgState     = randomDelay;
                 Gp_ArmStateF0(1);
             }

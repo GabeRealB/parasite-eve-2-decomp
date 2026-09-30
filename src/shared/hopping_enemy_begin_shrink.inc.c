@@ -5,7 +5,7 @@
 /// 1.0, saves the root matrix, sets light mode 1 and advances the state.
 void hopperBeginShrink(Task* task)
 {
-    GpEnemy*         enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*           enemy = (Enemy*)task->spawnArg2.pointer;
     Actor341700Work* work  = (Actor341700Work*)task->work;
     GfxCoord*        coord = task->extra.tmd->coords;
     Actor341700Work* objWork;
@@ -20,7 +20,7 @@ void hopperBeginShrink(Task* task)
     work->field_430    = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode(task->spawnArg2.pointer, 1);
+    Gp_SetLightMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
     work->field_412 = 0;
     work->field_420++;

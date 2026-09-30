@@ -841,7 +841,7 @@ GpGridParams D_dryfield_trailer_coach_801876B4[1] = {
 
 GpAreaTmdRec D_dryfield_trailer_coach_801876D8[2] = {
     { 106, 207, 3, 0, { 0, 0 }, D_8013EF68 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_trailer_coach_801876F0[13] = {
@@ -1292,7 +1292,7 @@ GpObj4C D_dryfield_trailer_coach_80189384[12] = {
     { NULL, NULL, NULL, { 8624, -64, -2496, 0 }, { { -336, 0, -736, 0 }, { 336, 0, -736, 0 }, { -336, 0, 736, 0 }, { 336, 0, 736, 0 } }, { 0, 4102, 0, 0 }, { 4016, 0, 798, 0 }, 807, 2, 22, 0, 130, 0 },
 };
 
-GpPointLight D_dryfield_trailer_coach_80189714[12] = {
+WorldCoordPointLight D_dryfield_trailer_coach_80189714[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2807, -936, -1738 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3280, 3076, 2870 }, { 0, 0 } }, 1587, 2185 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8192, -2555, -1604 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1120, 1672 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6380, -2555, -1625 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2460, 2460 }, { 0, 0 } }, 1057, 1718 },
@@ -1614,7 +1614,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 GameFlag_SetNibble(0x3A, 1);
                 GameFlag_SetNibble(0x4B, 1);
                 func_800E3FAC(0xA2, 0xF);
-                Mc_SaveData[0].state.sceneEvent = 6;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
                 Gp_ApplyAreaRecs(D_dryfield_trailer_coach_80189C50);
             } else if (Gp_HasCollectedBit(0x111) == 0 && GameFlag_GetNibble(0x4F) != 0) {
                 if (GameFlag_GetNibble(0xFD) == 0) {
@@ -1665,8 +1665,8 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, TaskMes
         Task_SpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
     }
     if (arg2 == 0xE) {
-        if (Mc_SaveData[0].state.location.loc.warp == 2) {
-            Mc_SaveData[0].state.location.loc.warp = 1U;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1U;
         }
         if (GameFlag_GetNibble(0x16C) == 0) {
             GameFlag_SetNibble(0x16C, 1);
@@ -1809,7 +1809,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
 {
     arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.location.loc.warp == 2) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
         func_800E8634(D_dryfield_trailer_coach_801853F4, 0, D_dryfield_trailer_coach_80185964);
         GameFlag_SetNibble(3, 0);
         GameFlag_SetNibble(0x155, 4);
@@ -1823,7 +1823,7 @@ static void func_dryfield_trailer_coach_8018291C(Task* task)
 {
     char pad[0x10];
 
-    if (Mc_SaveData[0].state.location.loc.view == 8) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 8) {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;

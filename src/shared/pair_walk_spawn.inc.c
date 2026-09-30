@@ -5,13 +5,13 @@
 /// spawns its own model task out of the same `gPairWalkTasks` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
 /// machine to `pairWalkUpdate`.
-void pairWalkSpawn(GpEnemy* enemy, Task* task)
+void pairWalkSpawn(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;

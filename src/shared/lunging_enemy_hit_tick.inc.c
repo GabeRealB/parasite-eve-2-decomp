@@ -15,7 +15,7 @@ void lungerHitTick(Task* arg0)
     Actor105600Work*       work;
     GpDeltaScratch*        head;
     Actor105600HitScratch* scratch;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              self;
     GfxCoord*              other;
     GfxCoord*              part;
@@ -41,7 +41,7 @@ void lungerHitTick(Task* arg0)
     self    = arg0->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BLOCK(Actor105600HitScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
-    enemy   = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy   = (Enemy*)arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
         case 0:
@@ -89,7 +89,7 @@ void lungerHitTick(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                other               = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];

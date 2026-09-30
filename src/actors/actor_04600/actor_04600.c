@@ -113,8 +113,8 @@ extern EnemyParams  gBursterParams;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
-extern u32 gBursterBurstScriptA[];
-extern u32 gBursterBurstScriptB[];
+extern PadScriptCmd gBursterBurstScriptA[];
+extern u32          gBursterBurstScriptB[];
 
 /// Message table the dropping first enemy's spawn parks in `Task::msgTable`.
 // Typed callback views for the task message dispatcher.
@@ -162,10 +162,10 @@ DamageAttack gBursterAttack = { 30, 7 };
 
 EnemyParams gBursterParams = { &gBursterAttack, 70, 6, 12, 3, 100, 20, 100, 0 };
 
-u32 gBursterBurstScriptA[3] = {
-    0x1010001,
-    0x2010000,
-    0,
+PadScriptCmd gBursterBurstScriptA[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
 };
 
 u32 gBursterBurstScriptB[3] = {
@@ -475,7 +475,7 @@ void bursterAnimate(Task* arg0)
 
 /// Colours the first enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void bursterColour(GpEnemy* arg0, Task* task)
+void bursterColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;
@@ -502,7 +502,7 @@ void bursterDrawShadow(Task* task)
     VECTOR3*  vec;
 
     coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
+    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
     vec->vx = coord->workm.t[0];
     vec->vy = coord->workm.t[1];
     vec->vz = coord->workm.t[2];
@@ -571,7 +571,7 @@ void glowPodAnimate(Task* arg0)
 
 /// Colours the second enemy from the world position of its model's second
 /// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void glowPodColour(GpEnemy* arg0, Task* task)
+void glowPodColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;

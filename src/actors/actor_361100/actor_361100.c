@@ -90,8 +90,8 @@ extern Task* D_actor_361100_80171BE0;
 extern TaskDesc D_actor_361100_80165C58[];
 
 /// Script pair handed to `Gp_SpawnScript18` on every even frame of the blink.
-extern GpScriptCmd D_actor_361100_80166AD0[2];
-extern GpScriptRec D_actor_361100_80166AD8;
+extern PadScriptCmd D_actor_361100_80166AD0[2];
+extern GpScriptRec  D_actor_361100_80166AD8;
 
 extern AnimationSet*  D_actor_361100_8016BAD0[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
@@ -200,7 +200,7 @@ extern ActorCommand         D_actor_361100_80165E7C;
 extern ActorCommand         D_actor_361100_80165E80;
 extern GpCopyArg            D_actor_361100_80165C98;
 extern GpOverrideArg        D_actor_361100_80165DC8;
-extern GpScriptCmd          D_actor_361100_80166AB8[3];
+extern PadScriptCmd         D_actor_361100_80166AB8[3];
 extern GpScriptRec          D_actor_361100_80166AC4[3];
 extern ActorTransform       D_actor_361100_80165D68;
 extern ActorTransform       D_actor_361100_80165D80;
@@ -525,7 +525,7 @@ ActorCommand D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
 
 ActorCommand D_actor_361100_80165F3C = { { .loc = { 4, 22 } }, 0xFFFF };
 
-GpOverlayIds D_actor_361100_80165F40 = { 6, 11, 21 };
+EvsSceneKey D_actor_361100_80165F40 = { 6, 11, 21 };
 
 GpEvsCmd D_actor_361100_80165F48[96] = {
     { 12, { .overlays = &D_actor_361100_80165F40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -655,10 +655,10 @@ GpEvsCmd D_actor_361100_80166848[26] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpScriptCmd D_actor_361100_80166AB8[3] = {
-    { 2818, 1 },
-    { 513, 257 },
-    { 0, 0 },
+PadScriptCmd D_actor_361100_80166AB8[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 11), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_361100_80166AC4[3] = {
@@ -667,9 +667,9 @@ GpScriptRec D_actor_361100_80166AC4[3] = {
     { 0, 0, 8, 0 },
 };
 
-GpScriptCmd D_actor_361100_80166AD0[2] = {
-    { 0, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_361100_80166AD0[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_361100_80166AD8 = { 255, 255, 1, 1 };
@@ -1558,7 +1558,7 @@ void func_actor_361100_80162CBC(Task* task)
 
 /// Spawn callback: allocates the work block into `Task::work`, seeds the
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
-/// argument `GpEnemy` with the coordinate's root matrix, then enters the
+/// argument `Enemy` with the coordinate's root matrix, then enters the
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
 /// installed at `Task::msgTable`. The task exits through
 /// `func_actor_361100_80162DE4` if the allocation fails.
@@ -1566,7 +1566,7 @@ static void func_actor_361100_80162D28(Task* arg0)
 {
     Actor361100Work* work;
     GfxCoord*        coord;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;
@@ -1617,8 +1617,8 @@ static void func_actor_361100_80162E04(Task* arg0)
 /// Places the actor at `placement`: drops the opcode's translation straight
 /// into the root part's local matrix, stores its Euler angles in the
 /// coordinate's own `rot` slot and rebuilds the rotation from them with
-/// `RotMatrixZYX`. Clearing `composeStamp` makes `_gpUpdateCoordTree` recompute the
-/// world matrix from it, and the six words the body then clears are the work
+/// `RotMatrixZYX`. Clearing `composeStamp` makes `actorRenderComposeCoordChain` recompute the
+/// composed matrix from it, and the six words the body then clears are the work
 /// block's two vector accumulators.
 s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement)
 {

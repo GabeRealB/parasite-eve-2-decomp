@@ -93,8 +93,8 @@ extern ActorCommand         D_actor_503500_8014BC20;
 extern ActorCommand         D_actor_503500_8014BC24;
 extern ActorCommand         D_actor_503500_8014BC28;
 extern GpCopyArg            D_actor_503500_8014B9CC;
-extern GpScriptCmd          D_actor_503500_8014D2F0[2];
-extern GpScriptCmd          D_actor_503500_8014D300[3];
+extern PadScriptCmd         D_actor_503500_8014D2F0[2];
+extern PadScriptCmd         D_actor_503500_8014D300[3];
 extern GpScriptRec          D_actor_503500_8014D2F8[2];
 extern GpScriptRec          D_actor_503500_8014D30C[3];
 extern ActorTransform       D_actor_503500_8014BAD8;
@@ -506,11 +506,11 @@ ActorCommand D_actor_503500_8014BD28 = { { .loc = { 4, 48 } }, 2 };
 
 ActorCommand D_actor_503500_8014BD2C = { { .loc = { 4, 48 } }, 3 };
 
-GpOverlayIds D_actor_503500_8014BD30 = { 6, 10, 11 };
+EvsSceneKey D_actor_503500_8014BD30 = { 6, 10, 11 };
 
-GpOverlayIds D_actor_503500_8014BD38 = { 6, 11, 11 };
+EvsSceneKey D_actor_503500_8014BD38 = { 6, 11, 11 };
 
-GpOverlayIds D_actor_503500_8014BD40 = { 6, 80, 11 };
+EvsSceneKey D_actor_503500_8014BD40 = { 6, 80, 11 };
 
 GpEvsCmd D_actor_503500_8014BD48[56] = {
     { 12, { .overlays = &D_actor_503500_8014BD30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -764,9 +764,9 @@ GpEvsCmd D_actor_503500_8014D158[17] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpScriptCmd D_actor_503500_8014D2F0[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_503500_8014D2F0[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_503500_8014D2F8[2] = {
@@ -774,10 +774,10 @@ GpScriptRec D_actor_503500_8014D2F8[2] = {
     { 0, 0, 8, 0 },
 };
 
-GpScriptCmd D_actor_503500_8014D300[3] = {
-    { 1, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd D_actor_503500_8014D300[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_503500_8014D30C[3] = {
@@ -1821,9 +1821,9 @@ void func_actor_503500_80132BD8(void)
 
 void func_actor_503500_80132BF8(void)
 {
-    Mc_SaveData[0].state.location.loc.area = 0x16;
-    Mc_SaveData[0].state.location.loc.warp = 1;
-    Mc_SaveData[0].state.location.loc.room = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x16;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 

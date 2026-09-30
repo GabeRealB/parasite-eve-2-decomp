@@ -812,7 +812,7 @@ GpObj4C D_dryfield_water_tank_80187FF8[4] = {
     { NULL, NULL, NULL, { 544, -0x3330, -2336, 0 }, { { 0, -1904, -1024, 0 }, { 0, -1904, 1024, 0 }, { 0, 1904, -1024, 0 }, { 0, 1904, 1024, 0 } }, { 4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2157, 0, 3, 2, 129, 0 },
 };
 
-GpPointLight D_dryfield_water_tank_80188128[21] = {
+WorldCoordPointLight D_dryfield_water_tank_80188128[21] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -0x36B0, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -0x36B0, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 3000 },
@@ -854,11 +854,11 @@ GpObj4C D_dryfield_water_tank_80188920[9] = {
 
 GpAreaTmdRec D_dryfield_water_tank_80188BCC[2] = {
     { 140, 204, 0, 0, { 0, 0 }, D_8013E748 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tank_80188BE4[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_water_tank_80188BF0[13] = {
@@ -973,7 +973,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 break;
             }
             gGameSession->eventState       = 1;
-            D_dryfield_water_tank_80188D48 = Mc_SaveData[0].state.location.loc.view;
+            D_dryfield_water_tank_80188D48 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
             Gp_StartCapSlot(0xE, 0, 0);
@@ -993,10 +993,10 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 Task_SpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
                 func_dryfield_water_tank_8017DB48();
             } else {
-                gGameSession->eventState               = 0;
-                gGameSession->hideHud                  = 0;
-                Gp_StateF0.field_4                     = 0;
-                Mc_SaveData[0].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
+                gGameSession->eventState                                   = 0;
+                gGameSession->hideHud                                      = 0;
+                Gp_StateF0.field_4                                         = 0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
             }
@@ -1318,8 +1318,8 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             Gp_DispatchMsgPtr(work->child, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         case 2:
-            Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(3);
-            gGameSession->viewDirty                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
+            gGameSession->viewDirty                                    = 1;
             /* Through a pointer rather than as `work->owner`: a member load is
              * struct memory, which lets the store to the view index sink into
              * the call's delay slot; the two request tails then no longer
@@ -1392,8 +1392,8 @@ void func_dryfield_water_tank_8017E1B4(void)
     DwtScriptWork* work;
     Task**         owner;
 
-    work                                   = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
-    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(3);
+    work                                                       = (DwtScriptWork*)D_dryfield_water_tank_80188D4C->work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
     /* Through a pointer rather than as `work->owner`: a member load is struct
      * memory, which lets the store to the view index sink into the call's
      * delay slot, and the original keeps it ahead of the load. */

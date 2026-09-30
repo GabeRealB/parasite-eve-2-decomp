@@ -9,7 +9,7 @@
 /// kills the horizontal velocity, whatever is left of it moves the model by a
 /// ninth per step, and the model's own `workm` translation is handed to
 /// `Gp_UpdateActorColor`.
-void incinBossChunkFall(GpEnemy* enemy, Task* task)
+void incinBossChunkFall(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work = task->work;
     VECTOR               pos;
@@ -23,7 +23,7 @@ void incinBossChunkFall(GpEnemy* enemy, Task* task)
     }
 
     if (work->field_1A8 != 0) {
-        Gp_SetLightMode(enemy, 0);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
 

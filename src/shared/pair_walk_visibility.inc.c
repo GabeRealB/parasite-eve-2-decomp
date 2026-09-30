@@ -3,7 +3,7 @@
 /// Script opcode: set the visibility of the actor's model and of its sub-model
 /// (the model of the task in `pairTask`) together. `flags` bit 0 shows both
 /// (`TmdObject::flags` = 0) and its absence hides them (0x80); bit 1
-/// additionally sets bit 0x4 on both.
+/// additionally sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on both.
 s32 pairWalkSetVisibility(Task* task, s32 arg1, s32 flags)
 {
     TmdObject* self;

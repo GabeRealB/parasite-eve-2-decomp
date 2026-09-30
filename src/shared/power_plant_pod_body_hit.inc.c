@@ -14,7 +14,7 @@ void podBodyHit(Task* arg0)
 {
     Actor05300Scratch* scr;
     Actor05300Work*    work;
-    GpEnemy*           enemy;
+    Enemy*             enemy;
     GfxCoord*          coord;
     s32                damage;
     s32                lastId;
@@ -87,7 +87,7 @@ void podBodyHit(Task* arg0)
         if (val > 0) {
             work->field_332 = val;
         }
-        snd = gPodSoundIds[2] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+        snd = gPodSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     }
 end:

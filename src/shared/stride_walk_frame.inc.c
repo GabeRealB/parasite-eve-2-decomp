@@ -5,7 +5,7 @@
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `turnWeight` rate is stepped +0x200 or -0x200 per tick depending on
 /// `turnUp`, clamped to 0x1000 and 0 respectively.
-void strideWalkFrame(GpEnemy* enemy, Task* task)
+void strideWalkFrame(Enemy* enemy, Task* task)
 {
     Actor161500Work* work;
     GfxCoord*        coord;

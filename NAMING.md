@@ -332,7 +332,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `effect` | Gameplay effect tasks | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `src/gameplay/effect_tasks.h` |
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers and tracking | `hud_sprites.c` | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
-| `padInput`, `padScript` | Gameplay input mapping and scripted input | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
+| `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
 | `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
 | `scene` | Scene tasks, actor-command routing and runtime coordination | `scene_runtime.c` | `include/gameplay/scene_runtime.h`, `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
 | `ending` | Ending sequence control | `ending.c` | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
@@ -352,14 +352,17 @@ whose entry points retain package identities.
 
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
-`room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h` and
-`water_effects.h`. Use their subsystem prefixes with static per-instance
-linkage as described above. `water_effects.h` uses the prefix `water`; its
-configuration macros use `WATER_`. It is the included splash, drift,
-distortion and refraction code. Gameplay `roomEffect` remains the resident
-room-effect state. If a shared implementation and a gameplay subsystem have
-similar names, distinguish actual ownership and linkage before introducing a
-qualifier; do not assume that they are one API.
+`room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,
+`water_effects.h` and `glow_draw.h`. Use their subsystem prefixes with static
+per-instance linkage as described above. `water_effects.h` uses the prefix
+`water`; its configuration macros use `WATER_`. It is the included splash,
+drift, distortion and refraction code. Gameplay `roomEffect` remains the
+resident room-effect state. `glow_draw.h` uses the prefix `glow`; its
+configuration macros use `GLOW_`. It is the included projected glow, flare and
+light-beam drawing. Scratch records that several overlays share, such as the
+one-centre projection block, are declared in `include/rooms/room_common.h`. If a shared implementation and a gameplay
+subsystem have similar names, distinguish actual ownership and linkage before
+introducing a qualifier; do not assume that they are one API.
 
 ## Documentation
 

@@ -50,7 +50,7 @@ void stalkerCollapseDeathSeq(Task* arg0)
                 frames = 0x2C;
             }
             if (work->field_6C4 == frames) {
-                snd = gStalkerAnimCues[work->field_712 + 8] | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gStalkerAnimCues[work->field_712 + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             }

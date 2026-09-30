@@ -373,10 +373,10 @@ static MidiHandler Midi_EventFns[] = {
     Midi_PitchBend,
     Midi_HandleMetaSysex,
 };
-volatile s32        D_800689E4   = 0xFF;
-static volatile s32 D_800689E8   = 0;
-volatile s16        D_800689EC   = 0;
-static u8           D_800689F0[] = {
+volatile s32        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
+static volatile s32 D_800689E8     = 0;
+volatile s16        D_800689EC     = 0;
+static u8           D_800689F0[]   = {
     0x60,
     0x0,
     0x0,
@@ -1796,9 +1796,10 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 D_80082128 = 0;
             }
             {
-                s32 id;
-                id           = state->payload.header.bankId;
-                *&D_800689E4 = id;
+                // Publish the accepted id before the previous bank is released.
+                s32 bankId;
+                bankId           = state->payload.header.bankId;
+                *&gSndLoadBankId = bankId;
                 if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.variant) == -1) {
                     state->field_2 = 6;
                     break;
@@ -1954,7 +1955,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     bank = load->bank;
     if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
     fail:
-        D_800689E4 = 0xFF;
+        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
         return -1;
     }
     slot = Snd_BankSlotsByType[id >> 12];
@@ -1980,7 +1981,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
         bankLayer++;
     }
     Snd_BuildGroupIndex(bankSlot->bank);
-    D_800689E4        = 0xFF;
+    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
     load->imageBuffer = 0;
     D_8008212C        = D_80082122;
@@ -2009,15 +2010,15 @@ static s32 SndLoad_Complete(SndLoadState* load)
     s32       ret;
 
     if (D_800689E8 == 6) {
-        D_800689E4 = 0xFF;
-        ret        = 0;
+        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
+        ret            = 0;
     } else {
         ret = -1;
         switch (load->payload.header.variant) {
             case 0:
                 bank = load->bank;
                 if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
-                    D_800689E4 = 0xFF;
+                    gSndLoadBankId = SOUND_LOAD_BANK_NONE;
                 } else {
                     id                 &= 0xFF;
                     song                = Midi_GetSlot(id);
@@ -2029,7 +2030,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
                     _sndBankRebaseNotes(bank, load->payload.header.noteCount);
                     Snd_BuildGroupIndex(song->bank);
                     ret               = 0;
-                    D_800689E4        = 0xFF;
+                    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
                     load->bank        = 0;
                     load->imageBuffer = 0;
                 }
@@ -2148,7 +2149,7 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
             goto success;
         }
     }
-    D_800689E4 = 0xFF;
+    gSndLoadBankId = SOUND_LOAD_BANK_NONE;
     return -1;
 
 success:
@@ -2173,7 +2174,7 @@ success:
         } while (i != end);
     }
     Snd_BuildGroupIndex(state->bank);
-    D_800689E4        = 0xFF;
+    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
     load->imageBuffer = 0;
     return 0;

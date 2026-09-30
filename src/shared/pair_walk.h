@@ -32,7 +32,7 @@ s32  pairWalkSetVisibility(Task* task, s32 arg1, s32 flags);
 s32  pairWalkPlace(Task* task, s32 arg1, ActorTransform* placement);
 void pairWalkSubModelTask(Task* task);
 
-void pairWalkSpawn(GpEnemy* enemy, Task* task);
+void pairWalkSpawn(Enemy* enemy, Task* task);
 s32  pairWalkTo(Task* task, s32 arg1, VECTOR* target);
 
 /* Defined by each package. */

@@ -63,7 +63,8 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 #include "../../shared/main_street.h"
 
@@ -151,16 +152,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BB4, 8);
 
 extern DryfieldNightMainStreetStorage8BB4 gMainStreetEventSpawned;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} DryfieldNightMainStreetStorage8BC8;
-STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BC8, 16);
-
-extern DryfieldNightMainStreetStorage8BC8 gRoomEventLatched;
+extern RoomLatchedEventStorage            gRoomEventLatched;
 
 /// The message and request the event gate latched for its event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -1486,7 +1478,7 @@ GpObj4C D_dryfield_night_main_street_8018824C[12] = {
     { NULL, NULL, NULL, { -2962, -64, 7199, 0 }, { { -624, 0, -512, 0 }, { 625, 0, -512, 0 }, { -624, 0, 513, 0 }, { 625, 0, 513, 0 } }, { 0, 4096, 0, 0 }, { -2598, 0, -3166, 0 }, 807, 5, 19, 0, 132, 0 },
 };
 
-GpPointLight D_dryfield_night_main_street_801885DC[10] = {
+WorldCoordPointLight D_dryfield_night_main_street_801885DC[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4417, -2000, 2032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4417, -2000, -1229 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -878, -2000, -2607 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 4096, 3686 }, { 0, 0 } }, 1500, 4000 },
@@ -1506,17 +1498,17 @@ GpRoomCoordSet D_dryfield_night_main_street_8018899C[1] = {
 GpAreaTmdRec D_dryfield_night_main_street_801889B4[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_main_street_801889D8[2] = {
     { 106, 361, 0, 0, { 0, 0 }, D_80140744 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_main_street_801889F0[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_main_street_80188A08[13] = {
@@ -1622,7 +1614,7 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-DryfieldNightMainStreetStorage8BC8 gRoomEventLatched;
+RoomLatchedEventStorage gRoomEventLatched;
 
 RoomEventReq gRoomEventReq;
 

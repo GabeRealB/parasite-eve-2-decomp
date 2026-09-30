@@ -5,21 +5,46 @@
 
 #include "main/task_types.h"
 
-// Scripted pad commands and their task entry points.
+// Scripted controller-vibration commands and their task entry points.
 
-/// 4-byte dual-script command. `GpState18::field_0` is an array of these.
-/// Script A reads `field_0`, script B reads `field_2`. Low byte is the opcode
-/// (0 = stop, 1 = timed pad from `field_4`, 2 = set delay, 3 = set/decrement
-/// loop, 4 = loop jump); high byte is the payload.
-typedef struct _GpScriptCmd {
-    /* 0x0 */ u16 field_0; // script A command
-    /* 0x2 */ u16 field_2; // script B command
-} GpScriptCmd;
-STATIC_ASSERT_SIZEOF(GpScriptCmd, 4);
+/// Opcodes packed into the low byte of a `PadScriptCmd` lane.
+///
+/// A lane saves its command word, and this opcode selects the lane's next
+/// task state, so the values are that state's index. A lane at
+/// `PAD_SCRIPT_STOP` is idle. The script ends when both lanes are idle.
+enum {
+    PAD_SCRIPT_STOP = 0, // Idle. A nonzero operand is stored and ignored.
+    PAD_SCRIPT_PLAY = 1, // Play vibration record `operand`, then wait out its duration.
+    PAD_SCRIPT_WAIT = 2, // Wait `operand` frames without posting vibration.
+    PAD_SCRIPT_LOOP = 3, // Load `operand` into the loop counter when it is 0; otherwise decrement it.
+    PAD_SCRIPT_JUMP = 4, // If the counter is nonzero, go to step `operand`; otherwise advance. Step again immediately.
+};
+
+/// Pack a lane opcode and its operand into one command word.
+///
+/// The opcode occupies the low byte and the operand the high byte. Each
+/// argument is truncated to eight bits and evaluated once. The operand is a
+/// record index for `PAD_SCRIPT_PLAY`, a frame count for `PAD_SCRIPT_WAIT`,
+/// a loop count for `PAD_SCRIPT_LOOP` and a step index for `PAD_SCRIPT_JUMP`.
+#define PAD_SCRIPT_COMMAND(opcode, operand) ((u16)(((opcode) & 0xFF) | (((operand) & 0xFF) << 8)))
+
+/// One step of a two-lane controller-vibration script.
+///
+/// The lanes share this encoding and walk the same array, each with its own
+/// program counter, delay and loop counter. `holdCommand` refreshes the
+/// controller's on/off motor; `lerpCommand` refreshes its variable-intensity
+/// motor. Playing a record posts that motor for the record's duration and
+/// waits out that duration before the next command.
+typedef struct PadScriptCmd {
+    u16 holdCommand; // On/off motor lane, packed with `PAD_SCRIPT_COMMAND`
+    u16 lerpCommand; // Variable-intensity motor lane, packed the same way
+} PadScriptCmd;
+STATIC_ASSERT_SIZEOF(PadScriptCmd, 4);
 
 /// 4-byte pad record. `GpState18::field_4` is an array of these, indexed by
-/// the high byte of an opcode-1 command. `field_2` is the delay copied to
-/// `field_10` / `field_11`; `field_0` / `field_1` are start/end for script B.
+/// the operand of a `PAD_SCRIPT_PLAY` command. `field_2` is the delay copied to
+/// `field_10` / `field_11`; `field_0` / `field_1` are the variable-intensity
+/// lane's start and end.
 typedef struct _GpScriptRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
@@ -30,9 +55,9 @@ STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
 
 /// Serialized EVS operands and native pointers share the PS1 address word.
 typedef union GpScriptCmdAddress {
-    s32          address;
-    GpScriptCmd* commands;
-    void*        storage;
+    s32           address;
+    PadScriptCmd* commands;
+    void*         storage;
 } GpScriptCmdAddress __attribute__((transparent_union));
 
 typedef union GpScriptRecAddress {

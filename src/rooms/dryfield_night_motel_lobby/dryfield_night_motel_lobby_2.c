@@ -447,7 +447,7 @@ GpSprtRec D_dryfield_night_motel_lobby_80183D1C[8] = {
     { { .empty = D_dryfield_night_motel_lobby_80183D0C }, D_dryfield_night_motel_lobby_80183D0C, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_lobby_80183D7C[7] = {
+WorldCoordPointLight D_dryfield_night_motel_lobby_80183D7C[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -2100, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 1500, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4500, -2100, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3600, 3314, 2501 }, { 0, 0 } }, 1500, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -2100, 4500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2457 }, { 0, 0 } }, 1500, 3000 },
@@ -763,9 +763,9 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
-    task->work                             = work;
-    Mc_SaveData[0].state.location.loc.view = 6;
+    task->spawnArg2.pointer                                    = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->work                                                 = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */
     do {
@@ -844,10 +844,10 @@ static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 4;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
@@ -884,10 +884,10 @@ static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
     Gp_MsgPlayerWeapon(1);
     Gp_MsgPlayer3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 4;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     Task_RequestKill(arg0, 0);
 }
 
@@ -927,13 +927,13 @@ void func_dryfield_night_motel_lobby_801812F8(Task* unused)
 /// 0x20 bytes of scratch but releases only 0x10 on exit.
 static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_FT4*          prim;
     s32                idx;
     s32                blend;
     s16                xy;
 
-    block = SCRATCH_PUSH_BYTES(0x20);
+    block = SCRATCH_STACK_RESERVE_BYTES(0x20);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -970,5 +970,5 @@ static void func_dryfield_night_motel_lobby_80182200(SVECTOR* arg0, s32 arg1, s3
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }

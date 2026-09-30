@@ -10,10 +10,10 @@ void factoryPanelExit(Task* arg0)
     Gp_MsgPlayer3F3(1);
     Gp_MsgAlly3F3(1);
     Display_ReleaseRef();
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
-    Mc_SaveData[0].state.location.loc.view = 3;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
     taskKill((Task*)arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);

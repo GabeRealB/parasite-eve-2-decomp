@@ -95,7 +95,7 @@ void func_800AD6BC(void)
     cfg   = &Player_Status;
     slot  = gameGetPtrSlot(1);
     if (slot != NULL) {
-        if (slot->spawnArg1.value != Mc_SaveData[0].state.location.loc.view) {
+        if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
             func_800A7F24();
             D_80114D08 = 0xA;
         }
@@ -232,7 +232,7 @@ void Gp_SetupDirWarp(void)
                 pos.vx     = -0x5C1;
                 pos.vy     = 0;
                 pos.vz     = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(Gp_ActorSlots[0], (GpPosXZ*)&pos);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos);
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->field_52;
             }
@@ -274,7 +274,7 @@ void Gp_SetupDirWarp(void)
                 pos2.vx    = -0x5C1;
                 pos2.vy    = 0;
                 pos2.vz    = 0x9C1;
-                msg.rot.vy = Gp_YawToPosXZ(Gp_ActorSlots[0], (GpPosXZ*)&pos2);
+                msg.rot.vy = Gp_YawToPosXZ(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], (GpPosXZ*)&pos2);
             } else if (rec.player.words.field_0 == 0x7FFE) {
                 msg.rot.vy = actor->field_52;
             }

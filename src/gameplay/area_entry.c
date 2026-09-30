@@ -22,7 +22,7 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-Task* Gp_ActorSlots[2];
+Task* gPlayerActorTasks[PLAYER_ACTOR_TASK_COUNT];
 
 /// Unreferenced halfword table following the item-grant scan.
 static u16 D_8010CA30[];
@@ -69,8 +69,8 @@ void Gp_AreaEnterTask(Task* arg0)
         stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
         Stage_InitPrimBufOnce();
-        for (i = 0; i < 2; i++) {
-            slot = Gp_ActorSlots[i];
+        for (i = 0; i < PLAYER_ACTOR_TASK_COUNT; i++) {
+            slot = gPlayerActorTasks[i];
             if (slot != NULL) {
                 ((GameActor*)slot->work)->field_90C = NULL;
             }
@@ -88,8 +88,8 @@ void Gp_AreaEnterTask(Task* arg0)
                 gGameSession->battleResetPending = 1;
                 if (!((stageAreaKey == GAME_LOCATION_KEY(5, 11, 0, 0) || stageAreaKey == GAME_LOCATION_KEY(5, 29, 0, 0)) &&
                       gGameSession->location.loc.variant - 1 < 3U)) {
-                    if (Mc_SaveData[0].state.battlesWon < 0x270FU) {
-                        Mc_SaveData[0].state.battlesWon++;
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon < 0x270FU) {
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon++;
                     }
                 }
                 scan = &D_8010CA2C;
@@ -103,8 +103,8 @@ void Gp_AreaEnterTask(Task* arg0)
                 }
             } else {
                 arg0->status = 0;
-                if (Mc_SaveData[0].state.battlesEscaped < 0x270FU) {
-                    Mc_SaveData[0].state.battlesEscaped++;
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped < 0x270FU) {
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped++;
                 }
             }
         }

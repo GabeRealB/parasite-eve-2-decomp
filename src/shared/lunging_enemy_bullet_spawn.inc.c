@@ -7,11 +7,11 @@
 /// colour matrices to its `TmdObject`. The sound cue that marks the placement
 /// packs the room/channel bits of the spawn context into
 /// `gLungerShotSound`.
-void lungerBulletSpawn(GpEnemy* arg0, Task* arg1)
+void lungerBulletSpawn(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork*       work;
     Actor105600PlaceScratch* scratch;
-    GpEnemy*                 ctx;
+    Enemy*                   ctx;
     GfxCoord*                coord;
     GfxCoord*                parentCoord;
     TmdObject*               tmd;
@@ -30,7 +30,7 @@ void lungerBulletSpawn(GpEnemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(0x38);
+    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x38);
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -92,15 +92,15 @@ void lungerBulletSpawn(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(1, &work->obj78);
     work->obj78.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    work->d4rec.end0.vx         = 0;
-    work->d4rec.end0.vy         = 0;
-    work->d4rec.end0.vz         = 0;
-    work->d4rec.end1.vx         = 0;
-    work->d4rec.end1.vy         = -0x1F4;
-    work->d4rec.end1.vz         = 0;
+    work->d4rec.ends[0].vx      = 0;
+    work->d4rec.ends[0].vy      = 0;
+    work->d4rec.ends[0].vz      = 0;
+    work->d4rec.ends[1].vx      = 0;
+    work->d4rec.ends[1].vy      = -0x1F4;
+    work->d4rec.ends[1].vz      = 0;
     work->d4rec.end0Radius      = 1;
     work->d4rec.end1Radius      = 1;
-    work->d4rec.recs            = work->recD0;
+    work->d4rec.contacts        = work->recD0;
     work->obj98.context.capsule = &work->d4rec;
     work->obj98.coord           = coord;
     work->obj98.pos.vx          = 0;
@@ -120,7 +120,7 @@ void lungerBulletSpawn(GpEnemy* arg0, Task* arg1)
     Gp_UpdateCoord(coord);
 
     ctx   = arg1->spawnArg2.pointer;
-    sound = gLungerShotSound | (((u16)ctx->placeKey >> 0xC) << 8);
+    sound = gLungerShotSound | (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     pan   = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 

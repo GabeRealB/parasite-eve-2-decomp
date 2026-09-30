@@ -5,7 +5,7 @@
 /// coordinate, give it a random orientation off `Gp_LcgState`, point it at its
 /// own light and colour matrices and step the task on. Bails to
 /// `Gp_DestroyEnemy` when the overlay is shutting down or the allocation fails.
-void incinBossSpinnerSpawn(GpEnemy* enemy, Task* task)
+void incinBossSpinnerSpawn(Enemy* enemy, Task* task)
 {
     Actor403200SpinnerWork* work;
 
@@ -44,7 +44,7 @@ void incinBossSpinnerSpawn(GpEnemy* enemy, Task* task)
     work->field_96 = 0;
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 16) & 0x4FF, 0);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;

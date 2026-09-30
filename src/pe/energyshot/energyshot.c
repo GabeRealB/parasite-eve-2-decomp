@@ -29,9 +29,9 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// One 8-byte row of `D_energyshot_801300E4`, indexed by `GpEffWork.index`
+/// One 8-byte row of `D_energyshot_801300E4`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the wedge count. `field_2` is
-/// the brightness cap state 1 grows `GpEffWork.scale` toward (and the ring
+/// the brightness cap state 1 grows `EffectWork.scale` toward (and the ring
 /// radius in state 2). `field_4` is the per-frame brightness step. `field_6` is
 /// the beam depth / spawn height.
 typedef struct EnergyShotScale {
@@ -65,7 +65,7 @@ static s16 D_energyshot_80130108[16];
 /// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_energyshot_80130128[16];
 
-/// Energy shot PE. `Task::spawnArg2` is the `GpEffWork` block; `Task::extra`
+/// Energy shot PE. `Task::spawnArg2` is the `EffectWork` block; `Task::extra`
 /// reaches the coordinate. Cancel (`Gp_StateC08.field_3 == -2` or
 /// `gRoomEffectState->peEffectControl >= 4`) releases the work block.
 ///
@@ -76,7 +76,7 @@ static s16 D_energyshot_80130128[16];
 /// advances to state 2, which shrinks brightness until it drops below 0x11.
 void func_energyshot_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpStateC08* state;
     s32         i;
@@ -370,9 +370,9 @@ static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg
 
 void func_energyshot_8012FFB8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        y;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         y;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;

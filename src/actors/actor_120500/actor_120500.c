@@ -491,7 +491,7 @@ static void func_actor_120500_80132028(Task* arg0)
             break;
         case 6:
             base = Player_Status.weapon;
-            if (Mc_SaveData[0].state.characterId == 1) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 anim = base + 1;
             } else {
                 anim = base + 0x22;
@@ -595,7 +595,7 @@ void func_actor_120500_8013241C(Task* arg0)
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 func_actor_120500_801322A0(arg0);
                 anim = Player_Status.weapon;
-                if (Mc_SaveData[0].state.characterId == 1) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     anim = anim + 1;
                 } else {
                     anim = anim + 0x22;
@@ -752,9 +752,9 @@ void func_actor_120500_80132920(void)
 }
 
 /// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it
-/// (sets `TmdObject` flag 0x80), 1 shows it and clears flag 0x4, and 2 hides
-/// it and sets 0x4, which keeps `Tmd_AllocMissingBuffers` from giving it
-/// buffers again. Payload 2 sets 0x4 and falls into payload 0, rather than
+/// (sets `TmdObject` flag 0x80), 1 shows it and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 2 hides
+/// it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, which keeps `Tmd_AllocMissingBuffers` from giving it
+/// buffers again. Payload 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and falls into payload 0, rather than
 /// setting both bits at once, and the branch layout follows that. `arg1` is
 /// the message id.
 void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)

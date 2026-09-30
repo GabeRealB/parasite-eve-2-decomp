@@ -41,7 +41,10 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+/// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
+/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
+/// `GlowCentreScratch`.
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_r08_8017F464[];
@@ -422,13 +425,13 @@ GpSprtRec D_dryfield_r08_80180918[6] = {
     { { .elements = D_dryfield_r08_801806A8 }, D_dryfield_r08_80180900, NULL },
 };
 
-GpPointLight D_dryfield_r08_80180960[1] = {
+WorldCoordPointLight D_dryfield_r08_80180960[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5215, -1041, 3017 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x3000, 0x3000, 0x3000 }, { 0, 0 } }, 381, 1500 },
 };
 
 GpRoomCoordSet D_dryfield_r08_801809C0 = { 0, NULL, 1, D_dryfield_r08_80180960, 0, NULL };
 
-GpPointLight D_dryfield_r08_801809D8[4] = {
+WorldCoordPointLight D_dryfield_r08_801809D8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5781, 225, 2364 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1150 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4644, 204, 2683 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3440, 4096, 4096 }, { 0, 0 } }, 400, 1000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6730, -2042, 2920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 409, 163 }, { 0, 0 } }, 0, 2200 },
@@ -439,7 +442,7 @@ GpRoomCoordSet D_dryfield_r08_80180B58 = { 0, NULL, 4, D_dryfield_r08_801809D8, 
 
 GpAreaTmdRec D_dryfield_r08_80180B70[2] = {
     { 132, 213, 0, 0, { 0, 0 }, D_8013D390 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_r08_80180B88[13] = {
@@ -565,11 +568,11 @@ void func_dryfield_r08_8017D5F8(Task* task)
 /// aborts.
 void func_dryfield_r08_8017D8B4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

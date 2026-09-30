@@ -82,7 +82,7 @@ typedef struct Actor107600Work {
     /* 0x04C */ u16                   field_4C;  // spawn position z
     /* 0x04E */ byte                  pad_4E[0x2];
     /* 0x050 */ u16                   field_50;  // fed to Gfx_RotMatrixX
-    /* 0x052 */ u16                   field_52;  // fed to Gfx_RotMatrixY
+    /* 0x052 */ u16                   field_52;  // fed to gfxRotMatrixY
     /* 0x054 */ u16                   field_54;  // fed to Gfx_RotMatrixZ
     /* 0x056 */ byte                  pad_56[0x2];
     /* 0x058 */ s16                   field_58;  // spin velocity added to field_50 while tumbling
@@ -106,7 +106,7 @@ typedef struct Actor107600Work {
     /* 0x148 */ s16  field_148; // waypoint index into the D_actor_107600_80135624 path
     /* 0x14A */ u8   field_14A; // rotating flag: gates the yaw advance in func_actor_107600_80132CD4
     /* 0x14B */ s8   field_14B; // scale percent applied to the model root coord.m[1][1]
-    /* 0x14C */ s32  field_14C; // XZ distance to the Gp_ActorSlots[0] actor's coord
+    /* 0x14C */ s32  field_14C; // XZ distance to the gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] actor's coord
     /* 0x150 */ s16  field_150; // Gp_GetIdParam2 of the last hit's id
     /* 0x152 */ byte pad_152[0x2];
     /* 0x154 */ u16  field_154; // countdown before the sub-state's sound cue
@@ -172,7 +172,7 @@ static void func_actor_107600_80132C4C(MATRIX* src, MATRIX* dst);
 static void func_actor_107600_80132CB8(Task* arg0);
 static void func_actor_107600_80132CD4(Task* arg0);
 static void func_actor_107600_80132D54(Task* arg0);
-static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2);
+static void func_actor_107600_80132DF0(Enemy* arg0, s32 arg1, s32 arg2);
 static void func_actor_107600_80132ED0(Task* arg0);
 static void func_actor_107600_80133024(Task* arg0);
 static void func_actor_107600_801332D4(Task* arg0);
@@ -181,7 +181,7 @@ static void func_actor_107600_801337FC(Task* arg0);
 static void func_actor_107600_801339A4(Task* arg0);
 static void func_actor_107600_80133FA8(GfxCoord* arg0, SVECTOR* arg1);
 static void func_actor_107600_80134248(GfxCoord* arg0, SVECTOR* arg1);
-static void func_actor_107600_80134608(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+static void func_actor_107600_80134608(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void        func_actor_107600_801348A0(Task* arg0);
 static void func_actor_107600_80134904(Task* arg0);
 static void func_actor_107600_80134920(Task* arg0);
@@ -212,11 +212,11 @@ extern Actor107600Pair D_actor_107600_80135730[];
  * is the trailing animation/data blob, not the leading rodata. */
 extern TaskDesc D_actor_107600_80134F94[];
 
-/* The pair-source record the spawn state hangs off the enemy's `GpEnemy.param`
+/* The pair-source record the spawn state hangs off the enemy's `Enemy.param`
  * (a zeroed pointer to `D_actor_107600_8013571C`, 0x32 and 0xFF000000) and the
  * 16-entry HP table it indexes with the spawn variant. Both are trailing-blob
  * data, after the collision tables. */
-/* Pair-source record the spawn state hangs off `GpEnemy.param`. */
+/* Pair-source record the spawn state hangs off `Enemy.param`. */
 extern EnemyParams D_actor_107600_80134F84;
 extern EnemyParams D_actor_107600_80135720;
 extern u16         D_actor_107600_80135750[];
@@ -782,7 +782,7 @@ static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode);
 static void func_actor_107600_80131F10(Task* arg0)
 {
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        target;
     void**           scratch;
@@ -852,7 +852,7 @@ static void func_actor_107600_80131F10(Task* arg0)
 static void func_actor_107600_80132160(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    GpEnemy*             enemy = arg0->spawnArg2.pointer;
+    Enemy*               enemy = arg0->spawnArg2.pointer;
     GfxCoord*            coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
@@ -960,7 +960,7 @@ static void func_actor_107600_80132160(Task* arg0)
 static void func_actor_107600_80132514(Task* arg0)
 {
     Actor107600Work*     work  = (Actor107600Work*)arg0->work;
-    GpEnemy*             enemy = arg0->spawnArg2.pointer;
+    Enemy*               enemy = arg0->spawnArg2.pointer;
     GfxCoord*            coord = arg0->extra.tmd->coords;
     Actor107600Waypoint* wp;
     s32                  d;
@@ -1254,7 +1254,7 @@ static void func_actor_107600_80132D54(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
     GfxCoord*        coord = arg0->extra.tmd->coords;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
 
     switch (work->field_140.step) {
         case 0:
@@ -1281,9 +1281,9 @@ static void func_actor_107600_80132D54(Task* arg0)
 /// arguments, and the spawned model takes `arg1`'s texture page - dropping the
 /// CLUT row to 0 once `arg1` reaches 10 - before the stream is processed twice
 /// (one half-buffer per call) and the enemy's light is set to 0x900.
-static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
+static void func_actor_107600_80132DF0(Enemy* arg0, s32 arg1, s32 arg2)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     GfxCoord*  coord;
     TmdObject* obj;
 
@@ -1302,7 +1302,7 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
         }
         tmdProcessStream(obj);
         tmdProcessStream(obj);
-        enemy->workType = 0x900;
+        enemy->workType = ENEMY_WORK_PLAIN;
     }
 }
 
@@ -1318,7 +1318,7 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
 static void func_actor_107600_80132ED0(Task* arg0)
 {
     Actor107600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
     u16              hp;
@@ -1367,7 +1367,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
 static void func_actor_107600_80133024(Task* arg0)
 {
     TaskFuncTable10  sp;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       ext;
     TmdObject*       obj;
     Actor107600Work* work;
@@ -1381,7 +1381,7 @@ static void func_actor_107600_80133024(Task* arg0)
     coord = ext->coords;
     obj   = ext;
     sp    = D_actor_107600_80131E84;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     v = SCRATCH_STACK_CURSOR(SVECTOR);
     switch (Gp_StateF0.field_4) {
         case 0:
@@ -1436,7 +1436,7 @@ static void func_actor_107600_80133024(Task* arg0)
 static void func_actor_107600_801332D4(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     Task*            player;
     GameActor*       actor;
     s32              pan;
@@ -1490,7 +1490,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 if ((s16)work->field_154 >= 4) {
                     work->field_15A++;
                     arg0->spawnArg1.value |= 0x20;
-                    Gp_SetLightMode(enemy, 0);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                     enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
                     work->obj.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
@@ -1508,7 +1508,7 @@ static void func_actor_107600_801332D4(Task* arg0)
             if ((s16)work->field_166 == 120) {
                 GfxCoord* o = arg0->extra.tmd->coords;
                 s32       p;
-                Gp_SetLightMode(enemy, 1);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 p = (s8)Gp_GetObjPan(o);
                 SndEvt_EnqueueType6(0x51140013, p, (s8)gpGetObjDepth(o));
             } else if ((s16)work->field_166 == 210) {
@@ -1518,7 +1518,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 c               = &player->extra.tmd->coords[4];
                 actor           = player->work;
                 work->field_166 = 0;
-                Gp_SetLightMode(enemy, 0);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
                 Gp_SpawnEff(0x601BD, c, 0, NULL);
                 p = (s8)Gp_GetObjPan(c);
                 SndEvt_EnqueueType6(0x5114000E, p, (s8)gpGetObjDepth(c));
@@ -1596,7 +1596,7 @@ static void func_actor_107600_80133668(Task* arg0)
 static void func_actor_107600_801337FC(Task* arg0)
 {
     Actor107600Work* work  = (Actor107600Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     GfxCoord*        obj;
     s32              pan;
 
@@ -1615,7 +1615,7 @@ static void func_actor_107600_801337FC(Task* arg0)
                 work->field_15A++;
                 work->field_16B = 0;
                 work->field_15C = 0;
-                Gp_SetLightMode(enemy, 2);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 pan = (s8)Gp_GetObjPan(obj);
                 SndEvt_EnqueueType6(0x51140009, pan, (s8)gpGetObjDepth(obj));
             }
@@ -1652,7 +1652,7 @@ static void func_actor_107600_801337FC(Task* arg0)
 static void func_actor_107600_801339A4(Task* arg0)
 {
     Actor107600Work*         work  = (Actor107600Work*)arg0->work;
-    GpEnemy*                 enemy = arg0->spawnArg2.pointer;
+    Enemy*                   enemy = arg0->spawnArg2.pointer;
     TmdObject*               tmd   = arg0->extra.tmd;
     GfxCoord*                obj   = tmd->coords;
     MistShootingGalleryWork* gal   = (MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work;
@@ -1671,7 +1671,7 @@ static void func_actor_107600_801339A4(Task* arg0)
             arg0->spawnArg1.value |= 0x40;
             work->field_16B        = 0;
             work->field_15C        = 0;
-            Gp_SetLightMode(enemy, 2);
+            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
             work->field_154 = 0;
             id              = arg0->spawnArg1.value & 0xF;
             gal->pad_0F[id]++;
@@ -1771,7 +1771,7 @@ static void func_actor_107600_801339A4(Task* arg0)
 static void func_actor_107600_80133DC4(Task* arg0)
 {
     Actor107600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        obj;
     s32              i;
     s16              damage;
@@ -1779,7 +1779,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
 
     work  = (Actor107600Work*)arg0->work;
     enemy = arg0->spawnArg2.pointer;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work->field_156 = 0;
     if (Gp_FindRec18(work->obj.context.contacts, 0) != 0) {
         for (i = 0; i < 8; i++) {
@@ -1835,7 +1835,7 @@ static void func_actor_107600_80133FA8(GfxCoord* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
     s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131ED8[i].vx + coord->coord.t[0]);
@@ -1894,7 +1894,7 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     POLY_FT4*               p;
     s32                     i;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor107600QuadScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor107600QuadScratch));
     s = SCRATCH_STACK_CURSOR(Actor107600QuadScratch);
     for (i = 0; i < 4; i++) {
         s->v[i].vx = pos->vx + (D_actor_107600_80131EE8[i].vx + coord->coord.t[0]);
@@ -1934,17 +1934,17 @@ static void func_actor_107600_80134248(GfxCoord* coord, SVECTOR* pos)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(Actor107600QuadScratch));
 }
 
-/// Mode 1 collapses each column of `m` to one weighted value plus a
-/// `gDisplayState.loopCount`-driven sine pulse; mode 2 clears the 3x3 part.
+/// Weighted mode collapses each column of `m` to one value plus a
+/// `gDisplayState.loopCount`-driven sine pulse; black clears the 3x3 part.
 static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
 {
     s32 i;
     s16 v;
 
     switch (mode) {
-        case 0:
+        case ENEMY_COLOR_DEFAULT:
             break;
-        case 1:
+        case ENEMY_COLOR_WEIGHTED:
             for (i = 0; i < 3; i++) {
                 v          = (m->m[0][i] * 7 + m->m[1][i] * 6 + m->m[2][i] * 3) / 33;
                 v         += (s16)(rsin(gDisplayState.loopCount * 198) + 0x1000);
@@ -1953,7 +1953,7 @@ static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
                 m->m[2][i] = v;
             }
             break;
-        case 2:
+        case ENEMY_COLOR_BLACK:
             m->m[0][0] = 0;
             m->m[0][1] = 0;
             m->m[0][2] = 0;
@@ -1967,10 +1967,10 @@ static void func_actor_107600_801344E8(void* arg0, MATRIX* m, s32 mode)
     }
 }
 
-/// Recolours the model's light matrix from the `field_4E` mode pair, blending
-/// the two remaps by `field_4F` while it counts down; a copy of
+/// Recolours the model's colour matrix from the `colorMode` pair, blending
+/// the two remaps by `colorBlend` while it counts down; a copy of
 /// `Gp_UpdateActorColor`.
-static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
+static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 {
     TmdObject*      extra;
     MATRIX*         colorMtx;
@@ -1982,7 +1982,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
 
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
-    mode     = arg0->colorMode & 3;
+    mode     = arg0->colorMode & ENEMY_COLOR_MODE_MASK;
     if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
         block = SCRATCH_STACK_RESERVE_BLOCK(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
@@ -1999,7 +1999,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
             block->mtx.m[2][1] = colorMtx->m[2][1];
             block->mtx.m[2][2] = colorMtx->m[2][2];
             func_actor_107600_801344E8(arg0, colorMtx, mode);
-            func_actor_107600_801344E8(arg0, &block->mtx, (arg0->colorMode >> 2) & 3);
+            func_actor_107600_801344E8(arg0, &block->mtx, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
             w0 = (s8)arg0->colorBlend << 8;
             w1 = 0x1000 - w0;
             for (i = 0; i < 3; i++) {
@@ -2118,7 +2118,7 @@ static void func_actor_107600_80134A50(Task* arg0)
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     Gfx_RotMatrixZ(m, (s16)work->field_54, 0);
     Gfx_RotMatrixX(m, (s16)work->field_50, 0);
-    Gfx_RotMatrixY(m, (s16)work->field_52, 0);
+    gfxRotMatrixY(m, (s16)work->field_52, 0);
     func_actor_107600_80134B2C(m, &coord->coord);
     SCRATCH_STACK_RELEASE_BYTES(0x20);
 }
@@ -2209,7 +2209,7 @@ static s32 func_actor_107600_80134BAC(Task* arg0)
 static void func_actor_107600_80134C54(Task* arg0)
 {
     Actor107600Work* work = (Actor107600Work*)arg0->work;
-    GpEnemy*         obj  = arg0->spawnArg2.pointer;
+    Enemy*           obj  = arg0->spawnArg2.pointer;
 
     switch (work->field_162) {
         case 0:
@@ -2221,7 +2221,7 @@ static void func_actor_107600_80134C54(Task* arg0)
             work->field_168 = 10;
             work->field_169 = 10;
             func_actor_107600_80134A50(arg0);
-            Gp_SetLightMode(obj, 2);
+            Gp_SetLightMode(obj, ENEMY_COLOR_BLACK);
             obj->colorBlend = 0;
             break;
         case 2:
@@ -2254,7 +2254,7 @@ static void func_actor_107600_80134D70(Task* arg0)
 }
 
 /// Measures the XZ offset from this model's own attach coordinate to the one on
-/// the `Gp_ActorSlots[0]` actor's model, in a 0x10-byte `VECTOR` carved off
+/// the `gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]` actor's model, in a 0x10-byte `VECTOR` carved off
 /// the scratch stack the way `func_actor_107600_80134E5C` carves its block, and
 /// leaves the distance in `Actor107600Work.field_14C`. With no slot-0 actor the
 /// carve is undone and nothing is measured. The distance is only stored once the
@@ -2276,11 +2276,11 @@ static void func_actor_107600_80134D9C(Task* arg0)
     head                           = SCRATCH_HEAD_AT(scratch, void);
     block                          = (VECTOR*)(head - 0x10);
     SCRATCH_HEAD_AT(scratch, void) = block;
-    if (Gp_ActorSlots[0] == NULL) {
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] == NULL) {
         SCRATCH_HEAD_AT(scratch, void) = head;
         return;
     }
-    target    = Gp_ActorSlots[0]->extra.tmd->coords;
+    target    = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     block->vx = target->coord.t[0] - self->coord.t[0];
     block->vy = target->coord.t[1] - self->coord.t[1];
     block->vz = target->coord.t[2] - self->coord.t[2];

@@ -7,7 +7,7 @@
 /// body's 0x8000 bit and the second's 0xC200 bits clear, parks
 /// `gBursterDropMsgTable` as the task's message table and moves the task to state
 /// 3, the drop.
-void bursterDropSpawnState(GpEnemy* arg0, Task* arg1)
+void bursterDropSpawnState(Enemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     GfxCoord*        coord;

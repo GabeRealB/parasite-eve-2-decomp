@@ -4,7 +4,7 @@
 /// enemy back to `Gp_DestroyEnemy` once `gIncinBossEnded` is set;
 /// otherwise keep the model's flag word cleared, so it is not drawn, and step
 /// the task on once `gIncinBossSpinnersReleased` is 1.
-void incinBossSpinnerWait(GpEnemy* arg0, Task* arg1)
+void incinBossSpinnerWait(Enemy* arg0, Task* arg1)
 {
     if (gIncinBossEnded == 1) {
         Gp_DestroyEnemy(arg0, arg1);

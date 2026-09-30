@@ -19,9 +19,9 @@
 
 #include "main/task_types.h"
 
-void strideWalkSpawn(GpEnemy* enemy, Task* task);
+void strideWalkSpawn(Enemy* enemy, Task* task);
 void strideWalkUpdate(Task* task);
-void strideWalkFrame(GpEnemy* enemy, Task* task);
+void strideWalkFrame(Enemy* enemy, Task* task);
 s32  strideWalkPlay(Task* task, s32 arg1, AnimationPlayRequest* args);
 s32  strideWalkSetVisibility(Task* task, s32 arg1, s32 flags);
 s32  strideWalkTo(Task* task, s32 arg1, ActorTransform* target);

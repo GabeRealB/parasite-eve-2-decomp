@@ -63,15 +63,14 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/jukebox.h"
 #include "../../shared/room_variants.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 extern GpObj4C D_dryfield_night_saloon_g_r_801887DC[21];
 
@@ -83,7 +82,7 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Saved `Mc_SaveData[0].state.location.loc.view` (area id), restored when the cutscene ends.
+/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -1688,7 +1687,7 @@ GpSprtRec D_dryfield_night_saloon_g_r_80187FC8[13] = {
     { { .empty = D_dryfield_night_saloon_g_r_80187FB8 }, D_dryfield_night_saloon_g_r_80187FB8, NULL },
 };
 
-GpPointLight D_dryfield_night_saloon_g_r_80188064[7] = {
+WorldCoordPointLight D_dryfield_night_saloon_g_r_80188064[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1392, 1556, 1720 }, { 0, 0 } }, 0x186A0, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 940, -1500, 5040 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3768, 3522, 2703 }, { 0, 0 } }, 1000, 2500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1850, -1500, -3210 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 2621 }, { 0, 0 } }, 1500, 3000 },
@@ -1752,18 +1751,18 @@ GpObj3A D_dryfield_night_saloon_g_r_80188E18[2] = {
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188E90[2] = {
     { 140, 356, 0, 0, { 0, 0 }, D_8013B0C4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188EA8[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_saloon_g_r_80188EC0[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
@@ -1825,12 +1824,7 @@ DryfieldNightSaloonGRStorage8FA4 D_dryfield_night_saloon_g_r_80188FA4 = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    16,
-    15,
-    0,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 16, 15, 0 } };
 
 RoomEventReq gRoomEventReq;
 
@@ -1845,7 +1839,7 @@ RoomEventReq gRoomEventReq;
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
     { func_dryfield_night_saloon_g_r_8017DF90, func_dryfield_night_saloon_g_r_8017E040, taskKill },
 };
-/// Room cutscene task: case 0 saves the area id, forces `Mc_SaveData[0].state.location.loc.view`
+/// Room cutscene task: case 0 saves the area id, forces `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`
 /// to 0xC, raises the script halt flags and starts cap command 0x13; the
 /// following states wait for the cap to go idle, then start the jukebox task,
 /// and case 4 restores the area id and kills the task.
@@ -1859,7 +1853,7 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             gGameSession->eventState                   = 1;
             gGameSession->hideHud                      = 1;
             Gp_StateF0.field_4                         = 2;
-            save                                       = &Mc_SaveData[0];
+            save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             temp                                       = save->state.location.loc.view;
             save->state.location.loc.view              = 0xC;
             D_dryfield_night_saloon_g_r_80188FA4.value = temp;
@@ -1881,11 +1875,11 @@ void func_dryfield_night_saloon_g_r_8017DB74(Task* task)
             task->state = task->state + 1;
             return;
         case 4:
-            gGameSession->eventState               = 0;
-            gGameSession->hideHud                  = 0;
-            D_80114D08                             = 0xA;
-            Gp_StateF0.field_4                     = 0;
-            Mc_SaveData[0].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
+            gGameSession->eventState                                   = 0;
+            gGameSession->hideHud                                      = 0;
+            D_80114D08                                                 = 0xA;
+            Gp_StateF0.field_4                                         = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.value;
             Gp_MsgPlayerWeapon(1);
             Gp_MsgPlayer3F3(1);
             break;
@@ -2055,11 +2049,11 @@ void func_dryfield_night_saloon_g_r_8017E050(Task* task)
 }
 
 /// Cutscene script callback: stores `arg0` as the session's room and in the
-/// main-executable byte `Mc_SaveData[0].state.location.loc.room`.
+/// main-executable byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
 {
-    Mc_SaveData[0].state.location.loc.room = arg0;
-    gGameSession->location.loc.room        = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
 }
 
 #include "../../shared/jukebox_row.inc.c"

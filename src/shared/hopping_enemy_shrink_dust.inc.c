@@ -37,7 +37,7 @@ void hopperShrinkWithDust(Task* arg0)
         Gp_SpawnEff(0x600A5, coord, 3, &ofs);
     }
     if ((s16)work->field_412 == 0x10) {
-        Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
+        Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     if ((s16)work->field_412 > 0x20) {
         obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

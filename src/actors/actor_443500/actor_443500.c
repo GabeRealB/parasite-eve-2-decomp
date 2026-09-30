@@ -2486,7 +2486,7 @@ void func_actor_443500_80132048(void)
 
 void func_actor_443500_8013206C(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 /// Spawn handler: allocates the work block, seeds its head from the parent
@@ -2519,7 +2519,7 @@ static void func_actor_443500_80132078(Task* task)
     spawned            = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
         sessionKey = &gGameSession->location.loc;
-        raw        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
+        raw        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
         model      = spawned->extra.tmd;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -2724,12 +2724,13 @@ s32 func_actor_443500_801327E0(Task* task, s32 anim, AnimationPlayRequest* param
 
 /// Message-0x7D5 handler: the four-way switch on `mode` over the `TmdObject`
 /// parked in `Task::extra`. `mode` drives `TmdObject::flags`: bit 0x80 marks
-/// the actor hidden and bit 0x4 the display buffers being live.
+/// the actor hidden, and `TMD_OBJECT_SKIP_AUTO_BUFFER` opts it out of
+/// missing-buffer recovery.
 ///
-///   mode 0  hide, drop 0x4
-///   mode 1  show, `Tmd_AllocBuffers`, drop 0x4
-///   mode 2  hide, latch `mode` in the work block's `field_4BC`, raise 0x4
-///   mode 3  show, raise 0x4
+///   mode 0  hide, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 1  show, `Tmd_AllocBuffers`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 2  hide, latch `mode` in the work block's `field_4BC`, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
+///   mode 3  show, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
 ///
 /// Any other mode returns 1; the four known ones return 0. Either way the
 /// resulting flags are mirrored onto `Actor443500Work::field_4C0`, the slot

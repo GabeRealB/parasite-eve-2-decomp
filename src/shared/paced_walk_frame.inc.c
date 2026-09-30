@@ -6,7 +6,7 @@
 /// model is shown and has a buffer, every other frame spawns effect 0x60070 on
 /// a randomly chosen part, with two `Gp_LcgState` draws packed into the effect
 /// argument.
-void pacedWalkFrame(GpEnemy* enemy, Task* task)
+void pacedWalkFrame(Enemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GfxCoord*        coord;

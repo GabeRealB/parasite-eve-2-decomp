@@ -150,8 +150,8 @@ static void func_mine_cavern_80182454(void);
 static void func_mine_cavern_801825C8(s16 arg0);
 static void func_mine_cavern_80182CEC(Task* arg0);
 static void func_mine_cavern_80182DA8(Task* task);
-static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1);
-static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task);
+static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1);
+static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task);
 
 /// Current screen id at 0x8007218B.
 
@@ -1960,7 +1960,7 @@ GpSprtRec D_mine_cavern_8018CD10[25] = {
     { { .elements = D_mine_cavern_8018A90C }, D_mine_cavern_8018AD94, NULL },
 };
 
-GpPointLight D_mine_cavern_8018CE3C[8] = {
+WorldCoordPointLight D_mine_cavern_8018CE3C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8770, -2001, 8760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 7000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 240, -2001, 4380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4560, -2001, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3799, 3112 }, { 0, 0 } }, 0, 5000 },
@@ -2042,27 +2042,27 @@ GpObj3A D_mine_cavern_8018E078[2] = {
 
 GpAreaTmdRec D_mine_cavern_8018E0F0[2] = {
     { 30, 30, 3, 0, { 0, 0 }, D_80158D58 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_cavern_8018E108[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_cavern_8018E120[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_cavern_8018E138[2] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_cavern_8018E150[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_cavern_8018E168[2] = {
@@ -2165,16 +2165,16 @@ MineCavernGlowPalette D_mine_cavern_8018E358 = { { 42, 25, 0 }, { 0, 0, 0 }, 196
 
 static void func_mine_cavern_80181CAC(s16 point);
 static void func_mine_cavern_80181D80(s16 point);
-static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1);
-static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1);
-static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1);
-static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task);
+static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1);
+static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
+static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1);
+static void func_mine_cavern_80183890(Enemy* enemy, Task* task);
 
 void func_mine_cavern_8017E330(void)
 {
-    Mc_SaveData[0].state.location.loc.room = 2;
-    gGameSession->location.loc.room        = 2;
-    gGameSession->roomObjsDirty            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+    gGameSession->location.loc.room                            = 2;
+    gGameSession->roomObjsDirty                                = 1;
 }
 
 void func_mine_cavern_8017E358(void)
@@ -2469,8 +2469,8 @@ static void func_mine_cavern_80181864(void)
 /// shared LCG.
 static void func_mine_cavern_80181CAC(s16 point)
 {
-    GpCoord64*    light = &Gp_RoomCoords[4 + point];
-    GpPointLight* work  = &light->light;
+    GpCoord64*            light = &Gp_RoomCoords[4 + point];
+    WorldCoordPointLight* work  = &light->light;
 
     light->framesLeft                              = 2;
     work->inner                                    = D_mine_cavern_8018E366;
@@ -2938,7 +2938,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_mine_cavern_8017D65C;
-    if (Mc_SaveData[0].state.demoScene != 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 3) {
         sp.funcs[arg0->state](arg0);
     }
 }
@@ -2958,7 +2958,7 @@ void func_mine_cavern_80182DC8(Task* arg0)
 /// read has to be a structure member: the scheduler lets a load from a plain
 /// scalar at a fixed address pass the stores into the body before it, and the
 /// original keeps it behind them.
-static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
 {
     MineCavernWork*     mem;
     MineCavernWork*     work;
@@ -3031,10 +3031,10 @@ static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
 /// 1 or 4, republishes the model's world position, and looks through the work
 /// block's contacts for one of class 2. A contact taken in place 1 or 4 without
 /// key bit 0x8000 costs the enemy the damage `D_mine_cavern_8018EAF4` gives its
-/// key; when that empties `GpEnemy::hp` the enemy's `Task::spawnArg1` bit is
+/// key; when that empties `Enemy::hp` the enemy's `Task::spawnArg1` bit is
 /// set in flag nibble 0xE2, the model is hidden, a sound is played at it and
 /// the task advances.
-static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
 {
     MineCavernWork*        work;
     Task*                  player;
@@ -3146,7 +3146,7 @@ found:
                 GameFlag_SetNibble(0xE2, blk->bits);
                 arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            id  = ((arg0->placeKey >> 12) << 8) | 0x54020014;
+            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)(gpGetObjDepth(arg1->extra.tmd->coords) / 2));
             arg1->state++;
@@ -3167,7 +3167,7 @@ found:
 /// `mem` and `work` are the same block: the original build tests and parks the
 /// allocation through `mem` and reaches the block through `work` afterwards,
 /// which is what keeps the two live ranges - and so `$v0` / `$a0` - apart.
-static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
 {
     MineCavernWork* mem;
     MineCavernWork* work;
@@ -3206,7 +3206,7 @@ static void func_mine_cavern_80183860(Task* arg0)
     }
 }
 
-static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
+static void func_mine_cavern_80183890(Enemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
@@ -3246,10 +3246,10 @@ static const GpEnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
 /// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the hidden bit on the
 /// work block's second object (`objC0`); 9 hands `objC0` to `Gp_UnlinkObj`;
 /// 0x3B advances `Task::state`.
-static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
+static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
 {
     MineCavernWork* work;
-    GpEffWork*      eff;
+    EffectWork*     eff;
     u16             state;
 
     work = (MineCavernWork*)arg1->work;
@@ -3320,7 +3320,7 @@ void func_mine_cavern_80183A68(Task* arg0)
 /// `ang` is declared and never read - the original build's frame reserved 8
 /// bytes for it ahead of nothing, so dropping it shrinks the frame from 0x38 to
 /// 0x30 and moves every spill.
-static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
+static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
 {
     MineCavernWork* work;
     MATRIX*         m;

@@ -9,7 +9,7 @@
 /// halves are kept in `field_2DC`/`field_2D6`; a low half of 1 matching the
 /// task's `bodyKind` steps the model's texture page and CLUT row and
 /// re-streams it twice.
-void bursterSpawnState(GpEnemy* arg0, Task* arg1)
+void bursterSpawnState(Enemy* arg0, Task* arg1)
 {
     Actor104600Work* work;
     TmdObject*       obj;

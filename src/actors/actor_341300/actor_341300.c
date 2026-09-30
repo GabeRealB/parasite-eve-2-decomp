@@ -262,7 +262,7 @@ ActorTransform D_actor_341300_80165330 = { { 2090, -3480, 1440, 0 }, { 0, 0, 204
 
 ActorCommand D_actor_341300_80165348 = { { .loc = { 4, 30 } }, 1 };
 
-GpOverlayIds D_actor_341300_8016534C = { 4, 13, 11 };
+EvsSceneKey D_actor_341300_8016534C = { 4, 13, 11 };
 
 GpEvsCmd D_actor_341300_80165354[52] = {
     { 19, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -594,7 +594,7 @@ void func_actor_341300_801625AC(void)
 
 void func_actor_341300_80162680(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 static void func_actor_341300_8016268C(void)
@@ -785,7 +785,7 @@ void func_actor_341300_80162878(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -947,7 +947,7 @@ void func_actor_341300_801631D4(Task* arg0)
             work->rot.vx += work->rotSpeed.vx;
             work->rot.vy += work->rotSpeed.vy;
             work->rot.vz += work->rotSpeed.vz;
-            Gfx_RotMatrixY(&coord->coord, work->rot.vy, 1);
+            gfxRotMatrixY(&coord->coord, work->rot.vy, 1);
             Gfx_RotMatrixX(&coord->coord, work->rot.vx, 0);
             Gfx_RotMatrixZ(&coord->coord, work->rot.vz, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -725,7 +725,7 @@ GpObj4C D_dryfield_night_junk_yard_80183778[10] = {
     { NULL, NULL, NULL, { 0x343F, -1345, 1280, 0 }, { { -1090, -2352, 2426, 0 }, { 1090, -2352, -2426, 0 }, { -1090, 2352, 2426, 0 }, { 1090, 2352, -2426, 0 } }, { -3741, 0, -1681, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 4, 7, 129, 0 },
 };
 
-GpPointLight D_dryfield_night_junk_yard_80183A70[7] = {
+WorldCoordPointLight D_dryfield_night_junk_yard_80183A70[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -340, -1140, 4782 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1121, 3124 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9395, -1941, 3919 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4016, 3761, 4096 }, { 0, 0 } }, 921, 2558 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5931, -2202, 4970 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1702, 4769 },
@@ -768,30 +768,30 @@ GpObj3A D_dryfield_night_junk_yard_80184318[1] = {
 
 GpAreaTmdRec D_dryfield_night_junk_yard_80184354[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_8018436C[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_80184390[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_801843A8[3] = {
     { 56, 56, 0, 0, { 0, 0 }, D_801482C0 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_junk_yard_801843CC[3] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_junk_yard_801843F0[22] = {

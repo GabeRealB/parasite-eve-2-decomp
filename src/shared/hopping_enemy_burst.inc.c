@@ -10,10 +10,10 @@ void hopperBurst(Task* arg0)
     Actor341700Work* work;
     Actor341700Work* work2;
     TmdObject*       model;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     model = arg0->extra.tmd;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     Tmd_FreeBuffers(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     hopperSpawnGibs(arg0);

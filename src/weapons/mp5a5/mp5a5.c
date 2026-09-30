@@ -93,14 +93,14 @@ void func_mp5a5_8011D1E0(Task* task)
 /// held, the ammo check passes and the burst timer has run out.
 static void func_mp5a5_8011DDA4(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    GpEffWork*    eff;
-    s32           anim;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    EffectWork*            eff;
+    s32                    anim;
 
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -180,7 +180,7 @@ static void func_mp5a5_8011DDA4(Task* arg0)
             if ((s8)func_801060E0(arg0) == 1 && func_80106264(1) > 0 && actor->field_940 == 0) {
                 goto fire;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0) {
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 func_80106550(arg0);
             }
             break;

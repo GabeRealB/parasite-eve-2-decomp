@@ -14,10 +14,10 @@
 ///
 /// Bails out -- destroying the enemy -- when the overlay is shutting down, the
 /// host actor has left the grab states, or the work block cannot be allocated.
-void incinBossThrowSpawn(GpEnemy* enemy, Task* task)
+void incinBossThrowSpawn(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
-    GpEnemy*             owner;
+    Enemy*               owner;
     Actor403200Work*     host;
     SVECTOR              pos;
     SVECTOR              vec;
@@ -47,7 +47,7 @@ void incinBossThrowSpawn(GpEnemy* enemy, Task* task)
     task->extra.tmd->coords->coord.t[2]   = vec.vz;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
     Gp_UpdateCoord(task->extra.tmd->coords);
 
     pos.vx = pos.vy = pos.vz = 0;

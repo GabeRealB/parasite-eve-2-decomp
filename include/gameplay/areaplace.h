@@ -3,7 +3,14 @@
 
 #include "common.h"
 
-/// End marker for an area placement's resource-entry ID.
+/// Reserved resource-entry ID that ends a placement-table walk.
+///
+/// The ending record stores this value in `entryId` and leaves every other
+/// field zero. A search that does not find its ID stops on that record, so
+/// the texture page and CLUT row read from it are zero. A record whose other
+/// fields are zero is still live when its ID is anything else, so only this
+/// value ends the walk. The resource-entry list matched against `entryId`
+/// ends on this same ID.
 enum { AREA_PLACEMENT_END = 0xFF };
 
 /// An actor placement and its resource-loading parameters in an area layout.

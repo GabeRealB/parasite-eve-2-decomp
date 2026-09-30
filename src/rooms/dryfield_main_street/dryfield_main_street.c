@@ -63,7 +63,10 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 #include "../../shared/main_street.h"
 
@@ -71,7 +74,7 @@
 
 /// Advances the gameplay LCG and yields the high half of the new state.
 
-extern u8 gRoomEventActive;
+extern RoomEventActiveBytes gRoomEventActive;
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -123,17 +126,8 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg gRoomEventStagedMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} DryfieldMainStreetStorage5634;
-STATIC_ASSERT_SIZEOF(DryfieldMainStreetStorage5634, 16);
-
-extern DryfieldMainStreetStorage5634 gRoomEventLatched;
+extern RoomEventMsg            gRoomEventStagedMsg;
+extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// Set by the message handler when its last 0xB/0xC message latched an event
 /// and spawned the room's event task; every such message clears it first.
@@ -832,29 +826,29 @@ GpObj4C D_dryfield_main_street_80184B5C[10] = {
 GpAreaTmdRec D_dryfield_main_street_80184E54[3] = {
     { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184E78[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184E90[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184EA8[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_main_street_80184ECC[3] = {
     { 101, 230, 2, 0, { 0, 0 }, D_80173A08 },
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_main_street_80184EF0[3] = {
@@ -879,7 +873,7 @@ GpAreaVariant D_dryfield_main_street_80184F20[13] = {
     { NULL, NULL },
 };
 
-GpPointLight D_dryfield_main_street_80184F88[16] = {
+WorldCoordPointLight D_dryfield_main_street_80184F88[16] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3910, -4583, -2531 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4642, 3808, 3733 }, { 0, 0 } }, 2050, 0x312B },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5600, -2355, -4127 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4097, 3734, 3714 }, { 0, 0 } }, 1303, 3024 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5140, -2738, -5045 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3502, 3033, 2983 }, { 0, 0 } }, 1421, 3621 },
@@ -959,18 +953,11 @@ DryfieldMainStreetStorage561C gMainStreetEventSpawned = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive = 0;
-
-/// Three bytes stored after the flag; nothing references them.
-u8 D_dryfield_main_street_8018562D = 3;
-
-u8 D_dryfield_main_street_8018562E = 190;
-
-u8 D_dryfield_main_street_8018562F = 28;
+RoomEventActiveBytes gRoomEventActive = { 0, { 3, 190, 28 } };
 
 Task* D_dryfield_main_street_80185630 = NULL;
 
-DryfieldMainStreetStorage5634 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 

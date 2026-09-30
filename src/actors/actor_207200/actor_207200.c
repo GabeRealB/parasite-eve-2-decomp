@@ -197,7 +197,7 @@ void glowPodAnimate(Task* arg0)
 /// 0x10-byte `VECTOR` off the scratch stack, fills it with that coordinate's
 /// world position and hands it to `Gp_UpdateActorColor` with no blend
 /// parameters. `arg0` is the colour target, passed straight through.
-void glowPodColour(GpEnemy* arg0, Task* task)
+void glowPodColour(Enemy* arg0, Task* task)
 {
     GfxCoord* coord;
     void**    scratch;

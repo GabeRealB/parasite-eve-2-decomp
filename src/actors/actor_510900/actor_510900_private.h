@@ -27,14 +27,14 @@ typedef struct Actor510900Work {
     /* 0x45C */ MATRIX             field_45C; ///< light matrix, handed to TmdObject::lightMtx
     /* 0x47C */ WorldCollisionBody obj47C;
     /// `obj47C`'s collision table (`Gp_InitRec18Table` seeds 3 records), and
-    /// the enemy's `GpEnemy::recs`.
+    /// the enemy's `Enemy::recs`.
     /* 0x49C */ WorldCollisionContact rec49C[3];
     /* 0x4E4 */ WorldCollisionBody    obj4E4;
     /* 0x504 */ WorldCollisionBody    obj504;
     /// Shared collision table of `obj4E4` and `obj504`; only `obj4E4`'s
     /// `Gp_InitRec18Table` seeds it.
     /* 0x524 */ WorldCollisionContact rec524[1];
-    /* 0x53C */ EffectSpawnArg        field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `GpEnemy::coord`
+    /* 0x53C */ EffectSpawnArg        field_53C; // record the hit's effect is spawned with; `coord` is the model's `coords[3]`, as the enemy's `Enemy::coord`
     /* 0x544 */ MATRIX                field_544;
     /* 0x564 */ s32*                  field_564; // 0x34 receives field_594 when it changes
                                                  /// Task of the second enemy the spawn creates from `D_actor_510900_80167A18`;
@@ -167,9 +167,9 @@ extern DamageAttack D_actor_510900_80167968;
 
 extern Actor510900MessageEntry D_actor_510900_80167A6C[7];
 
-void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1);
+void func_actor_510900_801350F8(Enemy* arg0, Task* arg1);
 
-void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1);
+void func_actor_510900_801355B4(Enemy* arg0, Task* arg1);
 
 void func_actor_510900_8013B424(s32 arg0);
 

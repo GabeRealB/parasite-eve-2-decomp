@@ -18,10 +18,10 @@
 ///
 /// Bails out -- destroying the enemy -- when the overlay is shutting down or
 /// the work block cannot be allocated.
-void incinBossRainSpawn(GpEnemy* enemy, Task* task)
+void incinBossRainSpawn(Enemy* enemy, Task* task)
 {
     Actor403200DropWork* work;
-    GpEnemy*             owner;
+    Enemy*               owner;
     Task*                parent;
     Task*                player;
     OverlayMat*          mtx;
@@ -128,12 +128,12 @@ void incinBossRainSpawn(GpEnemy* enemy, Task* task)
     mtx->ident.m11_m12 = 0x1000;
     mtx->ident.m20_m21 = 0;
     mtx->ident.m22     = 0x1000;
-    Gfx_RotMatrixY(&mtx->mat, 0, 1);
+    gfxRotMatrixY(&mtx->mat, 0, 1);
 
     actorLinkWorkObj(&work->coord, &work->obj, &work->rec, &vec, 0x100, 3, 1);
     work->obj.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    snd = ((owner->placeKey >> 12) << 8) | 0x4020000B;
+    snd = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;
     pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 

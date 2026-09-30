@@ -50,17 +50,17 @@ static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
 
 void func_pepper_spray_8012EF34(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    s32           i;
-    s32           age;
-    s32           tz;
-    s32           yaw;
-    s32           spread;
-    s32           pan;
-    u8            rgb[3];
+    EffectWork*           mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    s32                   i;
+    s32                   age;
+    s32                   tz;
+    s32                   yaw;
+    s32                   spread;
+    s32                   pan;
+    u8                    rgb[3];
 
     base  = Gp_RoomCoords;
     slot  = &base->light;

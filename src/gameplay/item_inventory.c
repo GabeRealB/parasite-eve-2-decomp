@@ -892,13 +892,13 @@ void func_800B8014(void)
     s32                  row;
     s32                  col;
 
-    for (j = 0, rec = Mc_SaveData[0].state.itemRows; j < ARRAY_SIZE(Mc_SaveData[0].state.itemRows); j++) {
+    for (j = 0, rec = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows; j < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows); j++) {
         rec->itemId = INVENTORY_ITEM_NONE;
         rec->qty    = 0;
         rec++;
     }
     for (i = 0x5F; i >= 0; i--) {
-        Mc_SaveData[0].state.itemSeenBits[i] = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits[i] = 0;
     }
 
     i = 0;
@@ -922,8 +922,8 @@ void func_800B8014(void)
         i++;
     } while (i < 0x180);
     Gp_ClearCollectedBits();
-    slots = Mc_SaveData[0].state.weaponItems;
-    for (j = 0; j < ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); j++) {
+    slots = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;
+    for (j = 0; j < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems); j++) {
         slots->primaryItemId   = INVENTORY_ITEM_NONE;
         slots->primaryQty      = 0;
         slots->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;
@@ -937,15 +937,15 @@ void func_800B8014(void)
         slots++;
     }
     Gp_ApplyItemMap();
-    Mc_SaveData[0].state.carriedItems.firstRow = 0;
-    Mc_SaveData[0].state.carriedItems.rowCount = 0x14;
-    Mc_SaveData[0].state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.firstRow = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.rowCount = 0x14;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
     for (row = 0; row < 4; row++) {
         for (col = 0; col < 3; col++) {
-            Mc_SaveData[0].state.attachLevels[col + row * 3] = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[col + row * 3] = 0;
         }
     }
-    save                        = &Mc_SaveData[0];
+    save                        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     scan                        = &save->state.carriedItems;
     save->state.attachLevels[0] = 1;
     cfg                         = &Player_Status;
@@ -980,11 +980,11 @@ void func_800B8014(void)
     Gp_GiveItem(scan, 0xAC, 0x14);
     Gp_GiveItem(scan, 0xA9, 8);
     Gp_SetCollectedBit(0x106);
-    stageAreaKey  = GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc);
+    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     if (stageAreaKey == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
-        Gp_GiveItem(&Mc_SaveData[0].state.carriedItems, 0x81, 1);
+        Gp_GiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 1);
         Gp_EquipHeld(0x81);
     }
 }
@@ -1002,7 +1002,7 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].state.itemRows;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     return table;

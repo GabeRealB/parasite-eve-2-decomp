@@ -9,7 +9,7 @@ void hopperPulledLimp(Task* arg0)
 {
     TmdObject*       obj;
     Actor341700Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        c;
     VECTOR           d;
@@ -21,7 +21,7 @@ void hopperPulledLimp(Task* arg0)
 
     obj   = arg0->extra.tmd;
     work  = (Actor341700Work*)arg0->work;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     coord = obj->coords;
     work->field_412++;
     work->field_428++;

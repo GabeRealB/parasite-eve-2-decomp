@@ -86,7 +86,7 @@ static SVECTOR D_m4a1_javelin_8011FA98 = { 0, 0x800, 0, 0 };
 /// the near end).
 static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 
-/// The four RGB444 beam colours `GpEffWork::step` fades through.
+/// The four RGB444 beam colours `EffectWork::step` fades through.
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
 static void func_m4a1_javelin_8011F0AC(M4a1JavelinVecLo* arg0, s16 arg1, s16 arg2, s16 arg3);
@@ -94,12 +94,12 @@ static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0);
 static void func_m4a1_javelin_8011F5D4(Task* arg0);
 
 /// Per-frame task for the javelin's guide beam. `Task::spawnArg2` is the
-/// `GpEffWork` and `Task::extra` reaches the coordinate the beam
+/// `EffectWork` and `Task::extra` reaches the coordinate the beam
 /// hangs on. Cancellation (`gRoomEffectState->effectControl` >=
 /// `ROOM_EFFECT_CONTROL_CANCEL_MIN`) tears the effect down; pause or hide
 /// freezes it.
 ///
-/// - State 0 hangs the coordinate off `GpEffWork::parent` at the fixed offset
+/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed offset
 ///   `D_m4a1_javelin_8011FA90` with an identity rotation, seeds the beam
 ///   parameters and falls through to state 1.
 /// - State 1 is the muzzle flare: it claims room-light slot 1 as a narrowing
@@ -107,7 +107,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   eight `func_m4a1_javelin_8011EE78` tracers around a ring that widens by
 ///   `0x20` a frame until `scale` reaches `0xC0`, which moves it to state 2.
 /// - State 2 is the beam itself. The far end is either the cached
-///   `D_m4a1_javelin_8012EB68` impact point or `GpEffWork::move` rotated
+///   `D_m4a1_javelin_8012EB68` impact point or `EffectWork::move` rotated
 ///   into world space, and `pos` is a sixth of the way back towards the
 ///   muzzle. Six segments are drawn with
 ///   `func_m4a1_javelin_8011DAB0`; while `gRoomEffectState->groundTraceEnabled` is set each
@@ -118,21 +118,21 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0);
 ///   and releases the work block when the last step runs out.
 void func_m4a1_javelin_8011D1E4(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GameActor*    actor;
-    GpCoord64*    base;
-    GfxCoord*     light;
-    GpPointLight* slot;
-    GpMtxWords*   dstm;
-    SVECTOR       pa;
-    SVECTOR       pb;
-    SVECTOR       qa;
-    SVECTOR       qb;
-    s32           i;
-    s32           lim;
-    s32           t;
-    u16           rnd;
+    EffectWork*           work;
+    GfxCoord*             coord;
+    GameActor*            actor;
+    GpCoord64*            base;
+    GfxCoord*             light;
+    WorldCoordPointLight* slot;
+    GpMtxWords*           dstm;
+    SVECTOR               pa;
+    SVECTOR               pb;
+    SVECTOR               qa;
+    SVECTOR               qb;
+    s32                   i;
+    s32                   lim;
+    s32                   t;
+    u16                   rnd;
 
     actor = gameGetPtrSlot(3)->work;
     base  = &Gp_RoomCoords[1];
@@ -747,9 +747,9 @@ static void func_m4a1_javelin_8011F4A4(M4a1JavelinVecLo* arg0)
 
 void func_m4a1_javelin_8011F4E8(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -797,16 +797,16 @@ void func_m4a1_javelin_8011F4E8(Task* arg0)
 /// the scheduler is free to move the load, and the block comes out reordered.
 static void func_m4a1_javelin_8011F5D4(Task* arg0)
 {
-    GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    GpEffWork* eff;
-    s32        anim;
-    s32        delay;
-    s32        tick;
-    u16        count;
+    GameActor*  actor;
+    GfxCoord*   coord;
+    GfxCoord*   spot;
+    EffectWork* eff;
+    s32         anim;
+    s32         delay;
+    s32         tick;
+    u16         count;
 
-    SCRATCH_PUSH_BYTES(0x58);
+    SCRATCH_STACK_RESERVE_BYTES(0x58);
     coord        = arg0->extra.tmd->coords;
     actor        = arg0->work;
     spot         = SCRATCH_STACK_CURSOR(GfxCoord);
@@ -931,7 +931,7 @@ static void func_m4a1_javelin_8011F5D4(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

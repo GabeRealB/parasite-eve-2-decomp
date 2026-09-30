@@ -154,7 +154,7 @@ static s32 func_replay_bonus_801173A8(void)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
         return -1;
     }
     i = 0;
@@ -171,7 +171,7 @@ static s32 func_replay_bonus_801173A8(void)
         }
     } while (0);
 
-    save = &Mc_SaveData[0];
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     idx += save->state.gameMode;
     i    = 0;
     if (idx >= 0xD) {
@@ -206,7 +206,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     spend = func_replay_bonus_80115CA4();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
-    if (Mc_SaveData[0].state.shopTiers == 0x1FFF) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
         result = -1;
     } else {
         i = 0;
@@ -223,7 +223,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
             }
         } while (0);
 
-        save = &Mc_SaveData[0];
+        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         idx += save->state.gameMode;
         i    = 0;
         if (idx >= 0xD) {

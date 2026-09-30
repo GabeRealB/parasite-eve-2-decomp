@@ -1153,7 +1153,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_110600_80134438(Task* arg0);
 static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
 static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
-static void            func_actor_110600_80134AB4(GpEnemy* enemy, Task* task);
+static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
 static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
 static __inline__ s32  Actor110600_TickShake(void);
@@ -1169,7 +1169,7 @@ static void            func_actor_110600_80137684(Task* arg0);
 static void            func_actor_110600_80137980(Task* arg0);
 static void            func_actor_110600_80137AF4(Task* arg0);
 static void            func_actor_110600_80137DB0(Task* arg0);
-static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
+static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
@@ -1214,7 +1214,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
     work->nav->field_4[0]    = 0;
     blk->m                   = work->coord->coord;
     for (blk->i = 1; blk->i < work->nav->count; blk->i++) {
-        Gfx_RotMatrixY(&blk->m, angle, 0);
+        gfxRotMatrixY(&blk->m, angle, 0);
         Gfx_MatrixCol2(&blk->m, &blk->v);
         gte_lddp(scale);
         gte_ldsv(&blk->v);
@@ -1241,7 +1241,7 @@ static void func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
-/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `scale` on all three axes. The working matrix lives in a frame carved off
 /// the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
@@ -1261,7 +1261,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = scale;
     blk->scale.vy = scale;
     blk->scale.vx = scale;
@@ -1298,7 +1298,7 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     Actor110600_ScaleRotation(task, (s16)work->walker.scale);
     work->field_8 = ratan2(-task->extra.tmd->coords->coord.m[2][0],
@@ -1523,7 +1523,7 @@ static void func_actor_110600_80134728(Task* arg0)
     Actor110600AnimWork* warmWork;
     Actor110600AnimWork* blendWork;
     Actor110600AnimWork* tickWork;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
     u32                  table;
     s32                  index;
     s32                  animation;
@@ -1654,7 +1654,7 @@ static void func_actor_110600_80134728(Task* arg0)
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {
-        soundId = sound | ((enemy->placeKey >> 12) << 8);
+        soundId = sound | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -1690,7 +1690,7 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
+static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
 {
     SVECTOR                pos;
     VECTOR                 world;
@@ -1809,7 +1809,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     }
     work->walker.field_6C          = 0;
     work->walker.field_6D          = 1;
-    work->walker.field_6E          = (u8)Mc_SaveData[0].state.characterId;
+    work->walker.field_6E          = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     work->walker.nav               = &work->walker.navData;
     work->walker.route             = &work->walker.routeData;
     work->walker.navData.count     = 2;
@@ -1818,7 +1818,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
     work->walker.navData.nodes     = work->field_BBC;
     work->walker.navData.field_4   = work->field_BCC;
     work->walker.routeData.nodes   = work->field_BD0;
-    work->walker.field_6E          = (u8)Mc_SaveData[0].state.characterId;
+    work->walker.field_6E          = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
     switch (task->spawnArg1.value & 0xF0) {
         case 0:
             work->field_896    = 20;
@@ -1846,7 +1846,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
             work->walker.scale = 0x1000;
             break;
     }
-    placement = enemy->placeKey >> 0xC;
+    placement = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     if ((s16)(placement & 1) == 1) {
         work->field_896 += placement >> 1;
     } else {
@@ -1928,7 +1928,7 @@ static void func_actor_110600_80135194(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -2018,7 +2018,7 @@ static void func_actor_110600_80135454(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     OverlayWalker*   walker;
@@ -2112,7 +2112,7 @@ static void func_actor_110600_80135A18(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -2195,7 +2195,7 @@ static void func_actor_110600_80135B84(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     u16              ramp;
 
@@ -2268,7 +2268,7 @@ static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
     SVECTOR* sc;
     s32      mag;
 
-    sc  = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
+    sc  = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
     mag = (arg1 >= 0) ? arg1 : -arg1;
     if (mag < 0x200) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2343,7 +2343,7 @@ static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact*
 static void func_actor_110600_80136210(Task* arg0)
 {
     Actor110600Work*       work;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              facing;
     s16                    angle;
     s16                    dz;
@@ -2366,7 +2366,7 @@ static void func_actor_110600_80136210(Task* arg0)
         work->field_A90.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
-    sc      = (Actor110600HitScratch*)SCRATCH_PUSH_BYTES(0x30);
+    sc      = (Actor110600HitScratch*)SCRATCH_STACK_RESERVE_BYTES(0x30);
     sc->key = Actor110600_FindHit(&sc->point, work->recs_8D8, 5);
     if (!sc->key) {
         sc->key = Actor110600_FindHit(&sc->point, work->recs_970, 12);
@@ -2458,10 +2458,10 @@ static void func_actor_110600_80136210(Task* arg0)
                 break;
         }
     }
-    if (enemy->reactionFlags & 0xC) {
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         sc->damage = Gp_TickObjFlag4(enemy);
         if (Gp_ObjFlag4Expired(enemy) != 0) {
-            enemy->reactionFlags &= 0xF3;
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
         if (sc->damage != 0) {
             enemy->hp = (u16)enemy->hp - (u16)sc->damage;
@@ -2493,7 +2493,7 @@ static void func_actor_110600_80136888(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     u32              rng;
     u16              ramp;
@@ -2548,14 +2548,14 @@ static void func_actor_110600_80136888(Task* arg0)
 /// cleared. Every tick after that steps the walker and the model; at 0x1D the
 /// `field_5C` bit 0 the walker sets on arrival moves the stage to 0x1E and
 /// re-seeds the walker block, and at 0x1E that same bit picks what the actor
-/// does next: 0xB while the enemy's `field_40` is still positive, 0xC once it
+/// does next: 0xB while the enemy's `hp` is still positive, 0xC once it
 /// has run out.
 static void func_actor_110600_801369D8(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
     OverlayWalker*   walker2;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
     u16              ramp2;
 
@@ -2622,7 +2622,7 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
     y                                         -= (work->field_BE0 - 0x12C) * 2;
     ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle                                 = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = page;
     blk->scale.vy = y;
     blk->scale.vz = page;
@@ -2645,7 +2645,7 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
 static void func_actor_110600_80136B20(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          pos;
     VECTOR           scale;
     s16              y;
@@ -2719,32 +2719,32 @@ static void func_actor_110600_80136B20(Task* arg0)
 static void func_actor_110600_80136ECC(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GameLocationKey  key;
     u8               areaByte0;
     u32              raw1, index1;
-    GpEffWork*       effect1;
+    EffectWork*      effect1;
     TmdObject*       model1;
     AreaPlacement*   entry1;
     GameLocationKey* sessionKey1;
     u32              raw2, index2;
-    GpEffWork*       effect2;
+    EffectWork*      effect2;
     TmdObject*       model2;
     AreaPlacement*   entry2;
     GameLocationKey* sessionKey2;
     u32              raw3, index3;
-    GpEffWork*       effect3;
+    EffectWork*      effect3;
     TmdObject*       model3;
     AreaPlacement*   entry3;
     GameLocationKey* sessionKey3;
     u32              raw4, index4;
-    GpEffWork*       effect4;
+    EffectWork*      effect4;
     TmdObject*       model4;
     AreaPlacement*   entry4;
     GameLocationKey* sessionKey4;
     u32              raw5, index5;
-    GpEffWork*       effect5;
+    EffectWork*      effect5;
     TmdObject*       model5;
     AreaPlacement*   entry5;
     GameLocationKey* sessionKey5;
@@ -2888,7 +2888,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
     SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
     ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle                                 = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vz = (s16)scale;
     blk->scale.vy = (s16)scale;
     blk->scale.vx = (s16)scale;
@@ -2910,7 +2910,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
 static void func_actor_110600_801372CC(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          vec;
     EffectSpawnArg*  d;
     EffectSpawnArg*  tailEffect;
@@ -2994,7 +2994,7 @@ static void func_actor_110600_801372CC(Task* arg0)
 static void func_actor_110600_80137684(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u32              rng;
 
     work = arg0->work;
@@ -3016,9 +3016,9 @@ static void func_actor_110600_80137684(Task* arg0)
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
         if (((rng >> 16) & 0xF) < 0xA) {
-            Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
         } else {
-            Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, -0x78, 0);
+            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x78, 0);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if ((work->field_892 == 0x16) && (work->field_894 >= 0x1F)) {
@@ -3036,7 +3036,7 @@ static void func_actor_110600_801377FC(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     SVECTOR          delta;
     SVECTOR*         d;
@@ -3081,7 +3081,7 @@ static void func_actor_110600_80137980(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -3142,7 +3142,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          vec;
     GfxCoord*        coord;
 
@@ -3213,7 +3213,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
 static void func_actor_110600_80137DB0(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              step;
     s32              state;
@@ -3320,7 +3320,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// — the matrix state 12 scales — and keeps `field_8B8` out of the ground
 /// effect's way by clearing bit 0x8000 while the actor is in a death or hit
 /// pose.
-static void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
+static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
 {
     VECTOR                pos;
     Actor110600StateTable states;
@@ -3437,7 +3437,7 @@ static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
 s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              state;
 
     state = arg2->animationId;
@@ -3469,18 +3469,22 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Display-object handler: `arg2` selects the mode and `GpEnemy.spawnState` -- the occupancy tag
-/// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
-/// Mode 0 hides it (bit 0x80 of `TmdObject.flags`) and reinstates its buffers;
-/// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
-/// otherwise clears `field_C` and reinstates the buffers; 2 only sets bit 0x4;
-/// 3 clears `field_C`, restarts `field_0` and then sets bit 0x4. `arg1` is
-/// unused; it exists because the dispatch passes three arguments.
+/// Display-object handler: `arg2` selects the mode. `Enemy.spawnState`, the
+/// occupancy tag `Gp_SaveEnemyPose` writes, chooses the flag word in modes 1
+/// and 3.
+///
+/// Mode 0 hides the model with `TMD_OBJECT_SKIP_ACTIVE_DRAW`, allocates its
+/// buffers and restarts `field_0`. Mode 1 shows it and allocates the buffers
+/// unless the tag is 4, in which case it hides the model and restarts
+/// `field_0`. Mode 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and restarts `field_0`.
+/// Mode 3 hides the model when the tag is 4 and otherwise clears the flag word,
+/// then restarts `field_0` and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. `arg1` is
+/// unused; the dispatch passes three arguments.
 s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject*       obj;
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
@@ -3523,9 +3527,9 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
 s32 func_actor_110600_80138538(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor110600Work*)arg0->work;
     if (enemy->hp > 0) {
         return 1;
@@ -3553,7 +3557,7 @@ static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
 
     ang        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     blk->angle = ang;
-    Gfx_RotMatrixY(&blk->m, ang, 1);
+    gfxRotMatrixY(&blk->m, ang, 1);
     blk->scale.vx = sx;
     blk->scale.vy = sy;
     blk->scale.vz = sz;
@@ -3586,12 +3590,12 @@ s32 func_actor_110600_801387C0(Task* arg0)
 static void func_actor_110600_801387F4(Task* task)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     Task*            helper;
     Task*            helper2;
 
     work  = (Actor110600Work*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work != NULL) {
         helper = work->field_BD4;
         if (helper != NULL) {
@@ -3617,11 +3621,11 @@ static void func_actor_110600_801388A4(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                         = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                  = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->field_A90.flags                                       = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_950.flags                                       = (u16)(work->field_950.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        obj                                                       = arg0->extra.tmd;
+        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                                                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        work->field_A90.flags                                     = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->field_950.flags                                     = (u16)(work->field_950.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -3654,7 +3658,7 @@ static void func_actor_110600_80138980(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -3718,7 +3722,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -3752,7 +3756,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -3785,7 +3789,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
 static void func_actor_110600_80138CA4(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              i;
 
@@ -3817,7 +3821,7 @@ static void func_actor_110600_80138CA4(Task* arg0)
 static void func_actor_110600_80138D7C(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              step;
 
@@ -3848,7 +3852,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (Gp_TickObjFlag2(enemy) == 1) {
-        enemy->reactionFlags &= 0xFD;
+        enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_0         = 3;
     }
 }

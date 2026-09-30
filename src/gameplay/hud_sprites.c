@@ -170,7 +170,7 @@ static __inline__ GpViewRec* gpViewAt(GpViewRec* records, s32 index)
     return result.record;
 }
 
-static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1);
+static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1);
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
 static inline void _gpRotateVector(MATRIX* m, SVECTOR* v);
@@ -541,7 +541,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
 }
 
-static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
+static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1)
 {
     GpHudScratch* block;
     s32           val;
@@ -646,7 +646,7 @@ void Gp_StartAreaBgm(s16* arg0)
     if (cfg->hp <= 0) {
         SndEvt_EnqueueType6((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
     } else {
-        type = Mc_SaveData[0].state.companionType;
+        type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType;
         if (type == 1) {
             SndEvt_EnqueueType6(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
         } else if (type == 3) {
@@ -669,7 +669,7 @@ u8* Gp_GetAttachLevels(void)
         cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
-        return Mc_SaveData[0].state.attachLevels;
+        return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
     return Gp_DebugAttachLevels;
 }
@@ -812,7 +812,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
     GameActor*       actor;
     WorldTargetNode* node;
 
-    work   = Gp_ActorSlots[0];
+    work   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     target = NULL;
     if (work != NULL) {
         actor = work->work;
@@ -912,7 +912,7 @@ s32 Gp_GetAttachLevel(s32 arg0)
             cond = p->resourceVariant == 4;
         }
         if (cond == 0) {
-            table = Mc_SaveData[0].state.attachLevels;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
             table = Gp_DebugAttachLevels;
         }
@@ -943,12 +943,12 @@ static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
         cond = p->resourceVariant == 4;
     }
     if (cond == 0) {
-        table = Mc_SaveData[0].state.attachLevels;
+        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
         table = Gp_DebugAttachLevels;
     }
     if (arg1 != 0) {
-        save = &Mc_SaveData[0];
+        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         do {
             if (arg1 > 0) {
                 do {
@@ -1059,7 +1059,7 @@ static s32 func_800A7E5C(s32 arg0)
     s32           flag;
 
     flag = 0;
-    work = Gp_ActorSlots[0];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (work != NULL) {
         actor = work->work;
         p     = &Player_Status;
@@ -1513,7 +1513,7 @@ void Gp_ViewGateTask(Task* task)
     if (task->state == 0) {
         task->state = 3;
     }
-    save = &Mc_SaveData[0];
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if (task->spawnArg1.value != save->state.location.loc.view) {
         gGameSession->viewDirty = 1;
     }

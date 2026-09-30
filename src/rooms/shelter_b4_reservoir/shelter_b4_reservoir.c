@@ -766,7 +766,7 @@ GpSprtRec D_shelter_b4_reservoir_80186730[10] = {
     { { .empty = D_shelter_b4_reservoir_80186720 }, D_shelter_b4_reservoir_80186720, NULL },
 };
 
-GpPointLight D_shelter_b4_reservoir_801867A8[8] = {
+WorldCoordPointLight D_shelter_b4_reservoir_801867A8[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -4450, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -4450, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2520, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 2000, 3000 },
@@ -816,26 +816,26 @@ GpObj4C D_shelter_b4_reservoir_80186F34[9] = {
 
 GpAreaTmdRec D_shelter_b4_reservoir_801871E0[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_reservoir_801871F8[4] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_reservoir_80187228[4] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
     { 71, 71, 1, 0, { 0, 0 }, &D_80151E60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b4_reservoir_80187258[2] = {
     { 4, 4, 0, 0, { 0, 0 }, &D_80147E48 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b4_reservoir_80187270[2] = {
@@ -1014,7 +1014,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             Gp_StateF0.field_4 = 0;
             if (Gp_GetCapEventKey() == 0xC) {
                 taskKill(task);
-                Mc_SaveData[0].state.location.loc.view = 5;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
                 Gp_MsgPlayerWeapon(1);
                 Gp_MsgPlayer3F3(1);
                 Gp_MsgAllyWeapon(1);
@@ -1030,9 +1030,9 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
             break;
         case 4:
             if (gGameSession->eventState == 0) {
-                Mc_SaveData[0].state.location.loc.room = 2;
-                gGameSession->location.loc.room        = 2;
-                gGameSession->roomObjsDirty            = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+                gGameSession->location.loc.room                            = 2;
+                gGameSession->roomObjsDirty                                = 1;
                 GameFlag_SetNibble(0xB7, 1);
                 GameFlag_SetNibble(0x1BF, 2);
                 GameFlag_SetNibble(0xB6, 1);
@@ -1093,10 +1093,10 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 5:
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_shelter_b4_reservoir_80187508.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_reservoir_80187508.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_reservoir_80187508.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_reservoir_80187508.areaId)[1];
             Task_Spawn(0, 0x11, 0x10, 0);
             taskKill(arg0);
             break;
@@ -1138,8 +1138,8 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, TaskMessa
         Gp_MsgAlly3F3(0);
         Gp_MsgPlayerWeapon(0);
         Gp_MsgAllyWeapon(0);
-        Mc_SaveData[0].state.location.loc.view = 6;
-        Gp_StateF0.field_4                     = 2;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+        Gp_StateF0.field_4                                         = 2;
         Task_SpawnFromTable(D_shelter_b4_reservoir_801848EC, 0, 0, 0);
     }
     return 0;
@@ -1211,7 +1211,7 @@ void func_shelter_b4_reservoir_8017E558(Task* arg0)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         coord->coord.t[1]  += 4;
     }
-    if (Mc_SaveData[0].state.location.loc.view != 8) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 8) {
         obj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         obj->flags    = 0;
@@ -1323,7 +1323,7 @@ static void func_shelter_b4_reservoir_8017E8EC(Task* task)
 {
     RoomWaterSurface* p = D_shelter_b4_reservoir_80184F90;
 
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
     } else {
         D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
@@ -1647,11 +1647,11 @@ void func_shelter_b4_reservoir_8017FADC(Task* task)
 }
 
 /// First state of the water task: clears the session counter the current
-/// display mode selects (`field_80` when `Mc_SaveData[0].state.companionType` is zero, `field_7E`
+/// display mode selects (`field_80` when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` is zero, `field_7E`
 /// otherwise) and moves on to the per-frame state.
 static void func_shelter_b4_reservoir_8017FB44(Task* arg0)
 {
-    if (Mc_SaveData[0].state.companionType == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
@@ -1819,10 +1819,10 @@ void func_shelter_b4_reservoir_80180864(Task* task)
 
 void func_shelter_b4_reservoir_801813F0(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s16        f2a;
-    u32        rng;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s16         f2a;
+    u32         rng;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         func_shelter_b4_reservoir_80181668(coord, work->index, work->scale);

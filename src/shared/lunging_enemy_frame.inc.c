@@ -3,7 +3,7 @@
 /// Per-frame tick: runs the state handler, integrates the forward step,
 /// advances or reseeds the animation slots, then draws. The same body as
 /// `Actor02000_Fn02A34` plus the dust effect.
-void lungerFrameState(GpEnemy* ctx, Task* actor)
+void lungerFrameState(Enemy* ctx, Task* actor)
 {
     TmdObject*       model;
     Actor105600Work* work;

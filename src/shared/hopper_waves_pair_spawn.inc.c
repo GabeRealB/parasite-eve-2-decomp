@@ -6,7 +6,7 @@
 void hopperWavePairSpawn(Task* arg0)
 {
     OverlayEncounterPairWork* work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
 

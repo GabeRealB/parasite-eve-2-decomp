@@ -56,9 +56,15 @@ enum {
 };
 
 enum {
-    TMD_CREATE_SKIP_AUTO_BUFFER = 1, // Creation bit: defer allocation and skip missing-buffer recovery
-    TMD_BUFFER_HALF_COUNT       = 2  // Primitive buffers alternate between two halves
+    TMD_CREATE_SKIP_AUTO_BUFFER = 1 // Creation bit: defer allocation and skip missing-buffer recovery
 };
+
+/// Number of primitive-buffer halves in one allocated block.
+///
+/// Each half holds `bufferHalfBytes` bytes. Allocation and the attached-buffer
+/// total both cover every half. A pass selects one half and then toggles
+/// `nextBufferHalf` between the first and the second, so the count is two.
+enum { TMD_BUFFER_HALF_COUNT = 2 };
 
 /// Number of cached vertex depths in the draw pass's CPU-stack table.
 enum { TMD_DRAW_VERTEX_DEPTH_COUNT = 1024 };
@@ -478,7 +484,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = modelLightingStreamPrimF3;
                 break;
             case 0x44:
-                handler = gpStreamPrimF4;
+                handler = modelLightingStreamPrimF4;
                 break;
             case 5:
                 handler = modelLightingStreamPrimF3PreXform;

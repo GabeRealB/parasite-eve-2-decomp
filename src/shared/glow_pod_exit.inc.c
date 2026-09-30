@@ -6,7 +6,7 @@
 void glowPodExit(Task* task)
 {
     GlowPodWork* work;
-    GpEnemy*     enemy;
+    Enemy*       enemy;
 
     enemy = task->spawnArg2.pointer;
     work  = (GlowPodWork*)task->work;

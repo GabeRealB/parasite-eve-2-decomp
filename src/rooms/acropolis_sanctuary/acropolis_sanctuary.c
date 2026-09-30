@@ -152,7 +152,7 @@ typedef struct AcsBlockerShift {
 
 /// Per-frame scratch the sanctuary's mosaic-shard task builds at
 /// the scratch stack: `v` holds the three corners of the shard's triangle,
-/// first scaled by `GpEffWork::angle` through the GTE's `gpf` interpolator
+/// first scaled by `EffectWork::angle` through the GTE's `gpf` interpolator
 /// and rotated by the task's own `workm`, then offset by that matrix's
 /// translation, and `otz` is the depth (`SZ3 >> 2`) the ordering-table slot is
 /// taken from. The block is 0x20 bytes even though only 0x1C are used, because
@@ -191,7 +191,7 @@ typedef struct AcsSpriteLevels {
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
 /// `gDisplayState.pendingMode` and `Gp_StateC08.field_A` gate the cutscene task's setup (the latter is
-/// the cutscene/among-us mode flag) and `Mc_SaveData[0].state.characterId` picks which of the two
+/// the cutscene/among-us mode flag) and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two
 /// weapon-id bases that record uses. `gDisplayState.spriteVariant` is set to 1 alongside the
 /// save writes when the task hands off to task 0x11, the same way the fountain
 /// and helicopter-pad rooms set it.
@@ -286,7 +286,7 @@ extern AnimationPlayRequest D_acropolis_sanctuary_80180AAC;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AC0;
 extern AnimationPlayRequest D_acropolis_sanctuary_80180AD4;
 extern GpCopyArg            D_acropolis_sanctuary_8018093C;
-extern GpOverlayIds         D_acropolis_sanctuary_80180AFC;
+extern EvsSceneKey          D_acropolis_sanctuary_80180AFC;
 extern ActorTransform       D_acropolis_sanctuary_80180844;
 extern ActorTransform       D_acropolis_sanctuary_8018085C;
 extern ActorTransform       D_acropolis_sanctuary_8018088C;
@@ -407,9 +407,9 @@ AnimationPlayRequest D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, ANIMA
 
 AnimationPlayRequest D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
+EvsSceneKey D_acropolis_sanctuary_80180AFC = { 1, 7, 11 };
 
-GpOverlayIds D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
+EvsSceneKey D_acropolis_sanctuary_80180B04 = { 1, 7, 21 };
 
 GpEvsCmd D_acropolis_sanctuary_80180B0C[121] = {
     { 32, { .value = 61 }, { .value = 64 }, { .value = 80 }, { .value = 0 }, { .value = 0 } },
@@ -618,7 +618,7 @@ AnimationSet* D_acropolis_sanctuary_801820E4[1] = {
     &D_acropolis_sanctuary_80181CC8,
 };
 
-GpOverlayIds D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
+EvsSceneKey D_acropolis_sanctuary_801820E8 = { 1, 14, 11 };
 
 GpEvsCmd D_acropolis_sanctuary_801820F0[9] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -892,12 +892,12 @@ GpObj4C D_acropolis_sanctuary_80183AE4[17] = {
 GpAreaTmdRec D_acropolis_sanctuary_80183FF0[3] = {
     { 27, 107, 0, 0, { 0, 0 }, D_8013BF94 },
     { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_sanctuary_80184014[2] = {
     { 102, 107, 1, 0, { 0, 0 }, D_801585CC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_sanctuary_8018402C[12] = {
@@ -915,7 +915,7 @@ GpAreaVariant D_acropolis_sanctuary_8018402C[12] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_sanctuary_8018408C[9] = {
+WorldCoordPointLight D_acropolis_sanctuary_8018408C[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7720, -3500, -5973 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 500, 4575 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4989, -3500, -6313 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 500, 4488 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5050, -3500, -0x2732 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 500, 4671 },
@@ -1615,7 +1615,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
         GameFlag_SetNibble(2, 2);
         func_800E8634(D_acropolis_sanctuary_80180B0C, 0, D_acropolis_sanctuary_80181664);
         Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
-        Mc_SaveData[0].state.sceneEvent = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         GameFlag_SetNibble(1, 5);
         GameFlag_SetNibble(0x25, 1);
         func_800E3FAC(0xA2, 6);
@@ -1796,7 +1796,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 }
                 slot     = (AcsCutsceneWork*)arg0->work;
                 weaponId = Player_Status.weapon;
-                idx      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                idx      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
 
                 weapon.rec.source.index         = idx;
                 weapon.rec.animationId          = 1;
@@ -1813,11 +1813,11 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 1:
             if (gGameSession->eventState == 0) {
                 SndEvt_EnqueueType7(0x80000000, 0);
-                Mc_SaveData[0].state.location.loc.area  = 0xD;
-                Mc_SaveData[0].state.location.loc.stage = 1;
-                Mc_SaveData[0].state.location.loc.warp  = 2;
-                Mc_SaveData[0].state.location.loc.room  = 1;
-                gDisplayState.spriteVariant             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0xD;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+                gDisplayState.spriteVariant                                 = 1;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
                 break;
@@ -1847,8 +1847,8 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                         rec.place.rot.vy  = 0;
                         rec.place.rot.vz  = 0;
                         Gp_DispatchMsgPtr(cutscene->target, 0x3E9, msg, 0);
-                        Mc_SaveData[0].state.location.loc.view = 0xE;
-                        cutscene->step                         = cutscene->step + 1;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
+                        cutscene->step                                             = cutscene->step + 1;
                     }
                     break;
             }
@@ -1984,17 +1984,17 @@ void func_acropolis_sanctuary_8017E00C(Task* task)
 /// own index, then a second pass over the 16 tiles listed in
 /// `D_acropolis_sanctuary_80182750` keyed by the tile index itself, so those
 /// sixteen get a second effect on top. Each spawn reuses the task's own
-/// `GpEffWork` offset triple: x is always 0, y and z come from the tile's grid
+/// `EffectWork` offset triple: x is always 0, y and z come from the tile's grid
 /// position scaled by 1145/128 and 2147/256 and shifted by the origin corner of
 /// the size class in `quad`. Any state but 0 just releases the work block.
 void func_acropolis_sanctuary_8017E134(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    AcsTile*   tile;
-    s32        quad;
-    s32        i;
-    s32        idx;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    AcsTile*    tile;
+    s32         quad;
+    s32         i;
+    s32         idx;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2050,7 +2050,7 @@ void func_acropolis_sanctuary_8017E134(Task* arg0)
 /// 0x10, tiles past x = -0x28C0 also age by 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017E338(Task* arg0)
 {
-    GpEffWork*      mem;
+    EffectWork*     mem;
     GfxCoord*       coord;
     void**          scratch;
     u8*             head;
@@ -2231,7 +2231,7 @@ void func_acropolis_sanctuary_8017E338(Task* arg0)
 /// also age by 0x3C, so they clear away.
 void func_acropolis_sanctuary_8017EC90(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -2386,7 +2386,7 @@ void func_acropolis_sanctuary_8017EC90(Task* arg0)
 /// level plus its flicker amplitude on odd frames.
 void func_acropolis_sanctuary_8017F4E8(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;

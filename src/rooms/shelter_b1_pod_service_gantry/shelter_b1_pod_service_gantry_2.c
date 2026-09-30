@@ -27,10 +27,20 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+/// Empty presence flag: this room supplies `waterDrawSpinU16` and
+/// `waterDrawTileU16`.
+///
+/// Defined, with no replacement list, immediately before `water_effects.h`.
+/// `defined()` is the only test. That header prototypes the shared drawers,
+/// whose parameters are `s32`, only when `WATER_SHARED_U16_DRAWERS` is set
+/// and this flag is not. This file prototypes and defines both drawers and
+/// includes `water_drift_task_u16.inc.c` instead of the shared bodies. The
+/// spin sprite uses texture page 0x2C. The tile grid starts at v 0 with clut
+/// 0x4393. Both drawers take a `u16` index and an `s16` scale; the spin
+/// drawer also takes an `s16` angle.
 #define WATER_OWN_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
-/* The drift task draws with this room's own sprites. */
 void waterDrawSpinU16(GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 void waterDrawTileU16(GfxCoord* arg0, u16 arg1, s16 arg2);
 
@@ -106,11 +116,11 @@ s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
 /// an event it only draws, and releases once the event state reaches 4.
 void func_shelter_b1_pod_service_gantry_8017D8F4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -626,8 +636,8 @@ void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 a
 /// releases it. Each draw picks one of six sprite CLUTs at random.
 void func_shelter_b1_pod_service_gantry_8017F8C8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

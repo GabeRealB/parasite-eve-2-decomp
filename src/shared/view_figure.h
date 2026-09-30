@@ -18,7 +18,7 @@
 
 #include "main/task_types.h"
 
-void viewFigureSpawnState(GpEnemy* enemy, Task* task);
+void viewFigureSpawnState(Enemy* enemy, Task* task);
 void viewFigureStepAnim(Task* task);
 void viewFigureResetAnim(void);
 void viewFigureReseedAnim(void);

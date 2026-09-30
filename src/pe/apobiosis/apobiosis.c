@@ -56,10 +56,10 @@ typedef struct ApobiosisShardScratch {
 STATIC_ASSERT_SIZEOF(ApobiosisShardScratch, 0x28);
 
 /// One 8-byte row of `D_apobiosis_80130B5C`, indexed by the effect's
-/// `GpEffWork.index` / `step` (`Gp_StateC08.field_0 % 10 - 1`, so the
+/// `EffectWork.index` / `step` (`Gp_StateC08.field_0 % 10 - 1`, so the
 /// burst scales with the combo counter). `field_0` is half the number of ring
 /// points the cast lays out, `field_2` the ring radius it draws them at and
-/// `field_4` the per-frame growth added to the cast's `GpEffWork.scale`.
+/// `field_4` the per-frame growth added to the cast's `EffectWork.scale`.
 /// `field_6` is the shard radius `func_apobiosis_8012FE10` hands to
 /// `func_apobiosis_8013017C` / `func_apobiosis_80130630` - doubled while the
 /// shard is still parented to the cast (state 1), plain once it flies free
@@ -103,7 +103,7 @@ static Task* D_apobiosis_80130BA0;
 /// The apobiosis cast. Six states drive one screen flash plus a growing ring
 /// of shards, scaled by `D_apobiosis_80130B5C[Gp_StateC08.field_0 % 10 - 1]`
 /// so a longer combo casts a wider burst. State 0 parents the effect
-/// coordinate on `GpEffWork.parent` at the origin, publishes the task in
+/// coordinate on `EffectWork.parent` at the origin, publishes the task in
 /// `D_apobiosis_80130BA0` so every shard can reparent onto it, plays the row's
 /// `SndEvt_EnqueueType6` id panned at the coordinate, and seeds
 /// `D_apobiosis_80130B80` with `field_0 * 2` angles - the ring's two rows of
@@ -117,7 +117,7 @@ static Task* D_apobiosis_80130BA0;
 /// state change, hardest on the widest row.
 void func_apobiosis_8012EF4C(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s32         i;
@@ -367,7 +367,7 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 }
 
 /// One shard of the apobiosis burst. Every frame it ticks the shard's life
-/// counter `GpEffWork.age` and bails out - handing the work block back -
+/// counter `EffectWork.age` and bails out - handing the work block back -
 /// once the player is dying (`Gp_StateC08.field_3`), parasite-energy effects are
 /// cancelled (`gRoomEffectState->peEffectControl`)
 /// or the shard has outlived its state. State 0 reparents the shard onto the
@@ -380,8 +380,8 @@ static void func_apobiosis_8012F9D0(GfxCoord* arg0, s32 arg1, s32 arg2, u8* rgb)
 /// pinned and at the plain radius once free.
 void func_apobiosis_8012FE10(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
+    EffectWork* mem;
+    GfxCoord*   coord;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;

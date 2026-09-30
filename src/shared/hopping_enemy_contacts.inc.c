@@ -17,7 +17,7 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
     s16              stepZ;
     u8               blocked;
     Actor341700Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     s16              amount;
     s32              dmg;
@@ -33,7 +33,7 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
     work    = (Actor341700Work*)arg0->work;
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work->field_41E = 0;
     for (i = 0; i < 8; i++) {
         switch (work->rec_2EC[i].key.value & 0xFFFF0000) {
@@ -111,15 +111,15 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
         }
     }
 
-    if (enemy->reactionFlags & 1) {
+    if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= 0xFE;
         work->field_448       = 5;
     }
-    if (enemy->reactionFlags & 2) {
+    if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= 0xFD;
         work->field_448       = 3;
     }
-    if (enemy->reactionFlags & 0xC) {
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         work->field_44E = 1;
         tmp             = Gp_TickObjFlag4(enemy);
         tick            = tmp;
@@ -133,7 +133,7 @@ void hopperApplyContacts(Task* arg0, s16 arg1)
             work->field_448 = 2;
         }
         if (Gp_ObjFlag4Expired(enemy) != 0) {
-            enemy->reactionFlags &= 0xF3;
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 

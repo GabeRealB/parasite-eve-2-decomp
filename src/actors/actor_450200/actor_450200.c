@@ -524,9 +524,9 @@ AnimationPlayRequest D_actor_450200_80137CB4 = { { .index = 1 }, 32, ANIMATION_B
 
 AnimationPlayRequest D_actor_450200_80137CC8 = { { .index = 1 }, 33, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpScriptCmd D_actor_450200_80137CDC[2] = {
-    { 257, 1 },
-    { 0, 0 },
+PadScriptCmd D_actor_450200_80137CDC[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_actor_450200_80137CE4[2] = {
@@ -1471,6 +1471,6 @@ void func_actor_450200_80132880(s32 arg0)
 
 void func_actor_450200_801328A0(u8 arg0)
 {
-    gGameSession->location.loc.room        = arg0;
-    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
 }

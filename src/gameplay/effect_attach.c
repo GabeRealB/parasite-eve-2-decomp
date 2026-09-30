@@ -37,21 +37,21 @@ u32 D_80114B7C = 0x323010CE;
 
 void Gp_EffAttachTask37(Task* arg0)
 {
-    SVECTOR    delta;
-    SVECTOR    dir;
-    SVECTOR    pos;
-    VECTOR     scale2;
-    VECTOR     scale;
-    TmdObject* extra;
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GfxCoord*  player;
-    SVECTOR*   rot;
-    MATRIX*    mtx;
-    s32        state;
-    s16        flag;
-    s16        trans;
-    s32        temp;
+    SVECTOR     delta;
+    SVECTOR     dir;
+    SVECTOR     pos;
+    VECTOR      scale2;
+    VECTOR      scale;
+    TmdObject*  extra;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    GfxCoord*   player;
+    SVECTOR*    rot;
+    MATRIX*     mtx;
+    s32         state;
+    s16         flag;
+    s16         trans;
+    s32         temp;
 
     extra  = arg0->extra.tmd;
     mem    = arg0->spawnArg2.pointer;

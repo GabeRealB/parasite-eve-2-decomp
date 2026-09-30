@@ -38,7 +38,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
 }
 static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     Task*      task;
     TmdObject* extra;
     GfxCoord*  coord;
@@ -53,14 +53,14 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                 if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
-                    enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                    enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                     enemy->workType     = place->field_2;
                     coord->coord.t[0]   = place->field_8;
                     coord->coord.t[1]   = place->field_A;
                     coord->coord.t[2]   = place->field_C;
                     coord->param.rot.vy = place->field_E;
                     if (coord->param.rot.vy != 0) {
-                        Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                        gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
@@ -221,7 +221,7 @@ static void Gp_SpawnPlaceById(u16 arg0)
     GpBit2Rec*       place;
     u16              id;
 
-    sess  = &Mc_SaveData[0].state.location.loc;
+    sess  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     lists = Gp_Bit2Banks[sess->stage].field_0;
     if (lists == NULL) {
         return;
@@ -248,7 +248,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
     GpBit2List*  lists;
     GpBit2Rec*   place;
     GpEnemyDesc* desc;
-    GpEnemy*     enemy;
+    Enemy*       enemy;
     Task*        task;
     TmdObject*   extra;
     GfxCoord*    coord;
@@ -279,14 +279,14 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
                         if (task->bodyKind != TASK_BODY_NONE) {
                             extra               = task->extra.tmd;
                             coord               = extra->coords;
-                            enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                            enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                             enemy->workType     = place->field_2;
                             coord->coord.t[0]   = place->field_8;
                             coord->coord.t[1]   = place->field_A;
                             coord->coord.t[2]   = place->field_C;
                             coord->param.rot.vy = place->field_E;
                             if (coord->param.rot.vy != 0) {
-                                Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                                gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                             }
                             coord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }

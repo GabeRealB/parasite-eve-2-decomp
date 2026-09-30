@@ -5,7 +5,7 @@
 /// lights the model at its root translation raised by 800, sets up the
 /// animation context and the task's message table, and runs the step body
 /// once with the plain reseed of clip 10 queued.
-void pacedWalkSpawn(GpEnemy* enemy, Task* task)
+void pacedWalkSpawn(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor160600Work* work;

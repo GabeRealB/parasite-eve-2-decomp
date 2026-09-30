@@ -1285,7 +1285,7 @@ Gfx_MatrixCol0               = 0x8003C728; // type:func
 Gfx_MatrixCol1               = 0x8003C748; // type:func
 Gfx_MatrixCol2               = 0x8003C768; // type:func
 Gfx_RotMatrixX               = 0x8003C788; // type:func
-Gfx_RotMatrixY               = 0x8003C98C; // type:func
+gfxRotMatrixY               = 0x8003C98C; // type:func
 Gfx_RotMatrixZ               = 0x8003CB80; // type:func
 Gfx_NormalizeLightDir               = 0x8003CD78; // type:func
 Gfx_OrthonormalBasis               = 0x8003CEC4; // type:func
@@ -2754,7 +2754,7 @@ _r_p                        = 0x80071700;
 //--------------------------------------------------------------------
 //--- PA: 0x61F10   VA: 0x80071710   subsegment: bss
 //--------------------------------------------------------------------
-Mc_SaveData                 = 0x80072168; // type:McSaveData size:0x1288
+gMcSaveData                 = 0x80072168; // type:McSaveData size:0x1288
 
 //--------------------------------------------------------------------
 //--- PA: 0x648A0   VA: 0x800740A0   subsegment: o, libgs/gs_107
@@ -2792,7 +2792,7 @@ Gpu_OrderingTables          = 0x8007A0E8; // type:GameOt size:0x28
 gTaskDisplayList            = 0x8007A110; // type:TaskNode
 AsyncCb_Queue               = 0x8007E2E0; // type:AsyncCbQueue size:0x54
 _gFontGlyphsMedium          = 0x8005EFB0; // type:u8 size:0xA80 // medium _FontGlyph[224], byte representation for splitting
-Font_Glyphs1                = 0x8005FA30; // type:u8 size:0xA80 // _FontGlyph[224] byte representation for splitting
+_gFontGlyphsLarge           = 0x8005FA30; // type:u8 size:0xA80 // large _FontGlyph[224], byte representation for splitting
 Font_Glyphs2                = 0x800604B0; // type:u8 size:0x444 // _FontGlyph[91] byte representation for splitting
 
 // SndScript / MIDI / LinInterp renames
@@ -3271,3 +3271,4 @@ GameFlag_NeoArkBanks = 0x80073838; // size:0x148
 Gp_FlagBanks = 0x80060A30; // size:0x18
 
 D_80067634 = 0x80067634; // size:0x4 defined:True
+gSndLoadBankId = 0x800689E4; // size:0x4

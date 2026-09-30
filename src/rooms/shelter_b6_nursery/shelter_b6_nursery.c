@@ -108,8 +108,8 @@ extern GpEvsCmd D_nursery_script_8013A8DC[];
 extern s32      D_8013AF8C;
 extern s32      D_8013BA84;
 
-/// `Mc_SaveData[0].state.companionType` (ally present). A distinct symbol so the restore
-/// path does not share the `Mc_SaveData` address with case 0.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
+/// path does not share the `gMcSaveData` address with case 0.
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -760,7 +760,7 @@ GpSprtRec D_shelter_b6_nursery_80186FD0[19] = {
     { { .empty = D_shelter_b6_nursery_80186FC0 }, D_shelter_b6_nursery_80186FC0, NULL },
 };
 
-GpPointLight D_shelter_b6_nursery_801870B4[5] = {
+WorldCoordPointLight D_shelter_b6_nursery_801870B4[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
@@ -783,7 +783,7 @@ GpAreaTmdRec D_shelter_b6_nursery_80187474[4] = {
     { 101, 508, 3, 0, { 0, 0 }, D_8014AC88 },
     { 20, 358, 4, 0, { 0, 0 }, D_801539DC },
     { 140, 508, 5, 3, { 0, 0 }, D_8014AC88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_b6_nursery_801874A4[13] = {
@@ -965,7 +965,7 @@ void func_shelter_b6_nursery_8017FBC0(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            if (Mc_SaveData[0].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 arg0->state++;
             }
             break;
@@ -1175,13 +1175,13 @@ void func_shelter_b6_nursery_801800A0(Task* task)
 
 void func_shelter_b6_nursery_80181314(Task* task)
 {
-    SVECTOR    step;
-    SVECTOR    pos;
-    SVECTOR    base;
-    TmdObject* obj;
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s16        effectControl;
+    SVECTOR     step;
+    SVECTOR     pos;
+    SVECTOR     base;
+    TmdObject*  obj;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
 
     obj   = task->extra.tmd;
     work  = task->spawnArg2.pointer;
@@ -1217,7 +1217,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
                 task->state++;
                 return;
             }
-            Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
+            Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
             MatrixNormal(&coord->coord, &coord->coord);
             gte_lddp(work->scale);
             gte_ldsv(&work->move);
@@ -1272,11 +1272,11 @@ void func_shelter_b6_nursery_80181314(Task* task)
 
 void func_shelter_b6_nursery_80181820(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        step;
-    s32        level;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         step;
+    s32         level;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1536,10 +1536,10 @@ static void func_shelter_b6_nursery_80182330(GfxCoord* coord, u16 arg1, s16 arg2
 
 void func_shelter_b6_nursery_80182730(Task* task)
 {
-    SVECTOR    step;
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s16        effectControl;
+    SVECTOR     step;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -1572,7 +1572,7 @@ void func_shelter_b6_nursery_80182730(Task* task)
             task->state++;
             return;
         }
-        Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&work->pos.vx, 0);
+        Gfx_RotMatrixXYZ(&coord->coord, &work->pos, 0);
         MatrixNormal(&coord->coord, &coord->coord);
         gte_lddp(work->scale);
         gte_ldsv(&work->move);

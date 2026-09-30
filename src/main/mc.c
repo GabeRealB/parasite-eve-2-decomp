@@ -91,9 +91,7 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 /// Work area of the memory-card dialogs, passed to every state handler.
 static McWork Mc_MenuWork;
 
-/// The save data, twice: the buffer slot fills, copies and compares both
-/// banks as one run from the first.
-McSaveData Mc_SaveData[2];
+McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
 
 GameFlagAcropolisBank GameFlag_AcropolisBanks[2];
 
@@ -639,7 +637,7 @@ static u8 Mc_DefaultChecksumSrc[] = {
 
 McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)Mc_DefaultChecksumSrc, 0x100, 4 },
-    { (McChecksumBlock*)&Mc_SaveData[0], 0x944, 0x26 },
+    { (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
     { (McChecksumBlock*)&Player_Status, PLAYER_STATUS_SAVE_RECORD_BYTES, 1 },
     { (McChecksumBlock*)GameFlag_AcropolisBanks, 0x6C, 2 },
     { (McChecksumBlock*)GameFlag_DryfieldBanks, 0xB0, 3 },
@@ -723,7 +721,7 @@ static void Mc_InitDualBankBuffers(void)
         Mem_Set(c + 1, 0xFF, 0x24);
         Mem_Set(d + 1, 0xFF, 0xE4);
         Mem_Set(e + 1, 0xFF, 0xA4);
-        p = &Mc_SaveData[0];
+        p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
     one                           = 1;
@@ -793,12 +791,12 @@ void Mc_InitBufferSlots(void)
     gDisplayState.spriteVariant = 1;
     Mc_InitDualBankBuffers();
 
-    Mc_SaveData[0].state.vibration    = 0;
-    Mc_SaveData[0].state.buttonLayout = 0;
-    Mc_SaveData[0].state.musicVolume  = 0;
-    Mc_SaveData[0].state.cursorMode   = 0;
-    Mc_SaveData[0].state.soundMode    = 0;
-    Mc_SaveData[0].state.moveMode     = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration    = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume  = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode   = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode    = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode     = 0;
     CdVol_SetMixMode(1);
     Snd_ApplyVolumeTable(0);
 }
@@ -1024,22 +1022,22 @@ static inline void Mc_UpdateTitleHeaderChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                                           = 0;
-    ptr                                           = (u8*)&Mc_SaveData[0];
-    ptr                                          += OFFSET_OF(McSavePreview, location);
-    limit                                         = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                             = 0;
-    Mc_SaveData[0].state.headerChecksum           = 0;
-    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF;
+    sum                                                               = 0;
+    ptr                                                               = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    ptr                                                              += OFFSET_OF(McSavePreview, location);
+    limit                                                             = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    i                                                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData[0].state.headerChecksum           = sum;
-    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF - (u32)sum;
-    Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = sum;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF - (u32)sum;
+    Mc_VerifySaveHdrChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 }
 
 static inline u8* Mc_CopyTitleBytes(u8* src, u8* dst)
@@ -1062,7 +1060,7 @@ static inline void Mc_UpdateTitleDataChecksum(void)
     sum                     = 0;
     count                   = 0x200;
     src                     = Mc_DefaultChecksumSrc;
-    dst                     = (McChecksumBlock*)&Mc_SaveData[0].state.titleChecksum;
+    dst                     = (McChecksumBlock*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     i                       = 0;
     dst->checksum           = sum;
     dst->checksumComplement = 0xFFFF - (u32)sum;
@@ -1090,7 +1088,7 @@ static void Mc_BuildSaveTitle(McWork* work)
     if (work->entryCount > 0) {
         for (i = 0; i < work->entryCount; i++) {
             slot = &work->previews[i];
-            if ((s8)slot->savePoint == (s8)Mc_SaveData[0].state.savePoint) {
+            if ((s8)slot->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint) {
                 if (slot->saveNumber >= number) {
                     number = slot->saveNumber + 1;
                 }
@@ -1101,7 +1099,7 @@ static void Mc_BuildSaveTitle(McWork* work)
                 available = 1;
                 for (i = 0; i < work->entryCount; i++) {
                     slot = &work->previews[i];
-                    if ((s8)slot->savePoint == (s8)Mc_SaveData[0].state.savePoint && slot->saveNumber == candidate) {
+                    if ((s8)slot->savePoint == (s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint && slot->saveNumber == candidate) {
                         available = 0;
                         break;
                     }
@@ -1113,26 +1111,26 @@ static void Mc_BuildSaveTitle(McWork* work)
             }
         }
     }
-    Mc_SaveData[0].state.saveNumber = number;
-    title                           = Mc_EncodeTitleLiteral("PE2 ", title);
-    title                           = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, Mc_SaveData[0].state.playTime), title);
-    title                           = Mc_EncodeTitleLiteral(" ", title);
-    Mc_DefaultChecksumSrc[0x43]     = 0;
-    Mc_DefaultChecksumSrc[0x42]     = 0;
-    title                           = (u16*)Mc_CopyTitleBytes(Mc_LocationTitleLabels[(s8)Mc_SaveData[0].state.savePoint], (u8*)title);
-    title                           = Mc_EncodeTitleLiteral("(", title);
-    title                           = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, Mc_SaveData[0].state.saveNumber), title);
-    title                           = Mc_EncodeTitleLiteral((s8*)McText_CloseParen, title);
-    *title                          = 0;
-    if (Mc_SaveData[0].state.saveCount == 0xFF) {
-        Mc_SaveData[0].state.saveCount = 0;
-    } else if (Mc_SaveData[0].state.saveCount < 99) {
-        Mc_SaveData[0].state.saveCount++;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber = number;
+    title                                               = Mc_EncodeTitleLiteral("PE2 ", title);
+    title                                               = Mc_EncodeTitleText((s8*)Text_FormatTime(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime), title);
+    title                                               = Mc_EncodeTitleLiteral(" ", title);
+    Mc_DefaultChecksumSrc[0x43]                         = 0;
+    Mc_DefaultChecksumSrc[0x42]                         = 0;
+    title                                               = (u16*)Mc_CopyTitleBytes(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], (u8*)title);
+    title                                               = Mc_EncodeTitleLiteral("(", title);
+    title                                               = Mc_EncodeTitleText((s8*)Text_ItoaSigned(buffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), title);
+    title                                               = Mc_EncodeTitleLiteral((s8*)McText_CloseParen, title);
+    *title                                              = 0;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount == 0xFF) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount = 0;
+    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount < 99) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount++;
     }
     Mc_UpdateTitleHeaderChecksum();
     Mc_UpdateTitleDataChecksum();
-    Mc_SaveData[0].state.bufferChecksum           = 0;
-    Mc_SaveData[0].state.bufferChecksumComplement = 0xFFFF;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = 0xFFFF;
 }
 
 static const char McText_CloseParen[] = ")";
@@ -1790,8 +1788,8 @@ static inline void _mcWriteFirstByteChecksum(void)
         next = sum + *(u8*)temp;
         sum  = next;
     } while (i < 9U);
-    Mc_SaveData[0].state.bufferChecksum           = next;
-    Mc_SaveData[0].state.bufferChecksumComplement = ~next;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum           = next;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksumComplement = ~next;
 }
 
 static void Mc_StateBackupBuffers(Task* task, McWork* work)
@@ -2216,7 +2214,7 @@ static inline s32 _mcVerifyFirstByteChecksum(void)
         p   += 1;
         i   += 1;
     } while (i < 9);
-    return ((u16)Mc_SaveData[0].state.bufferChecksum ^ (sum & 0xFFFF)) == 0;
+    return ((u16)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.bufferChecksum ^ (sum & 0xFFFF)) == 0;
 }
 
 static void Mc_StateVerifyFinish(Task* task, McWork* work)
@@ -2628,22 +2626,22 @@ static void Mc_WriteSaveHdrChecksum(void)
     s32 i;
     s16 tmp;
 
-    sum                                           = 0;
-    ptr                                           = (u8*)&Mc_SaveData[0];
-    ptr                                          += OFFSET_OF(McSavePreview, location);
-    limit                                         = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
-    i                                             = 0;
-    Mc_SaveData[0].state.headerChecksum           = 0;
-    Mc_SaveData[0].state.headerChecksumComplement = 0xFFFF;
+    sum                                                               = 0;
+    ptr                                                               = (u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    ptr                                                              += OFFSET_OF(McSavePreview, location);
+    limit                                                             = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
+    i                                                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    Mc_SaveData[0].state.headerChecksum           = sum;
-    Mc_SaveData[0].state.headerChecksumComplement = ~sum;
-    Mc_VerifySaveHdrChecksum(&Mc_SaveData[0]);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksum           = sum;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.headerChecksumComplement = ~sum;
+    Mc_VerifySaveHdrChecksum(&gMcSaveData[MEMORY_CARD_SAVE_LIVE]);
 }
 
 static s32 Mc_VerifySaveHdrChecksum(McSaveData* save)
@@ -2678,7 +2676,7 @@ void Mc_ResetSaveFlags(void)
 {
     McSaveData* p;
 
-    p                     = &Mc_SaveData[0];
+    p                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     p->state.vibration    = 0;
     p->state.buttonLayout = 0;
     p->state.musicVolume  = 0;
@@ -2837,7 +2835,7 @@ static void Mc_WriteDataChecksum(s32 arg0, McWork* work)
     count = 0x200;
     if (arg0 == 0) {
         src = Mc_DefaultChecksumSrc;
-        dst = (s16*)&Mc_SaveData[0].state.titleChecksum;
+        dst = (s16*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.titleChecksum;
     } else {
         src = work->buffer;
         dst = (s16*)&work->checksum;

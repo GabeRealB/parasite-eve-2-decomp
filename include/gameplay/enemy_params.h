@@ -9,7 +9,7 @@ struct DamageAttack;
 /// experience, battle points and magic points credited on release, and the
 /// critical-hit and reaction values a landed attack reads.
 ///
-/// `GpEnemy.param` points here. Several enemies of one kind share one record,
+/// `Enemy.param` points here. Several enemies of one kind share one record,
 /// and the record does not point back at them. The type has its own header so a
 /// unit can name the record without including the enemy API.
 ///

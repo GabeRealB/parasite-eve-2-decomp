@@ -99,10 +99,10 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             break;
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
-            Mc_SaveData[0].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
-            Mc_SaveData[0].state.location.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(arg0);
             break;

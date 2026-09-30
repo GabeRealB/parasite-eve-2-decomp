@@ -10,7 +10,7 @@ void patrolAvoidContacts(OverlayWalker* work)
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return;
     }
 
@@ -76,7 +76,7 @@ void patrolAvoidContacts(OverlayWalker* work)
             diff = ((u16)s->angle[s->i] - (u16)s->face) +
                    ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
             s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
+            gfxRotMatrixY(&s->m, diff, 1);
             Gfx_MatrixCol2(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);

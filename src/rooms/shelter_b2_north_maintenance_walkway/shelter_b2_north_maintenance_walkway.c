@@ -46,7 +46,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_LATCHED gRoomEventLatched.value
+// The latched-event symbol carries four unproven bytes after the event.
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
@@ -74,16 +75,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63B0, 8);
 
 extern ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenance_walkway_801863B0;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomLatchedEvent value;
-    u8               retained[4];
-} ShelterB2NorthMaintenanceWalkwayStorage63C4;
-STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63C4, 16);
-
-extern ShelterB2NorthMaintenanceWalkwayStorage63C4 gRoomEventLatched;
+extern RoomLatchedEventStorage                     gRoomEventLatched;
 
 /// The message and request the event gate latched for the event task.
 extern RoomEventMsg gRoomEventMsg;
@@ -540,7 +532,7 @@ GpSprtRec D_shelter_b2_north_maintenance_walkway_80185B04[8] = {
     { { .elements = D_shelter_b2_north_maintenance_walkway_801851A4 }, D_shelter_b2_north_maintenance_walkway_80185ADC, NULL },
 };
 
-GpPointLight D_shelter_b2_north_maintenance_walkway_80185B64[5] = {
+WorldCoordPointLight D_shelter_b2_north_maintenance_walkway_80185B64[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2022, -223, 4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2011, 2215, 2236 }, { 0, 0 } }, 1250, 2271 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2079, -223, -2367 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2169, 2457, 2416 }, { 0, 0 } }, 1500, 2762 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2334, -223, -615 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2457, 2416 }, { 0, 0 } }, 1500, 2681 },
@@ -568,32 +560,32 @@ GpObj4C D_shelter_b2_north_maintenance_walkway_80185F24[3] = {
 GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186008[3] = {
     { 3, 3, 0, 0, { 0, 0 }, D_80148110 },
     { 100, 413, 2, 2, { 0, 0 }, D_80165208 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_8018602C[3] = {
     { 70, 70, 0, 0, { 0, 0 }, D_8013F5F0 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186050[3] = {
     { 11, 11, 0, 0, { 0, 0 }, D_80147400 },
     { 70, 70, 1, 0, { 0, 0 }, &D_801575F0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186074[4] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_801860A4[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 20, 20, 1, 0, { 0, 0 }, D_8015FDF0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_north_maintenance_walkway_801860C8[3] = {
@@ -711,7 +703,7 @@ RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-ShelterB2NorthMaintenanceWalkwayStorage63C4 gRoomEventLatched = { { 0 }, { 0 } };
+RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
@@ -735,7 +727,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg     = *dst;
-            gRoomEventLatched.value = *event;
+            gRoomEventLatched.event = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

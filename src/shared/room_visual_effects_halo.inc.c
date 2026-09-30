@@ -183,7 +183,7 @@ static void RoomFx_DrawHaloDisc(GfxCoord* arg0, s16 arg1, u8* rgb)
 static inline void RoomFx_HaloTask(Task* arg0)
 {
     u8          rgb[3];
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
@@ -270,11 +270,11 @@ kill:
 /// reaches 4.
 static inline void RoomFx_OrangeBurstTask(Task* arg0)
 {
-    u8         rgb[3];
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    s16        step;
+    u8          rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         step;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;

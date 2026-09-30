@@ -66,7 +66,7 @@ STATIC_ASSERT_SIZEOF(EquipmentWeaponLoad, 0x8);
 
 /// Row storage selectors for `InventoryItemRange::tableId`.
 enum {
-    INVENTORY_ITEM_TABLE_SAVED       = 0, // `Mc_SaveData[0].state.itemRows`
+    INVENTORY_ITEM_TABLE_SAVED       = 0, // `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows`
     INVENTORY_ITEM_TABLE_INDIRECT    = 1, // Rows addressed by `Gp_ItemTable1`; backing and lifetime unproven
     INVENTORY_ITEM_TABLE_AREA_GRANTS = 2, // `Gp_ItemTable2`, holding items granted on area entry
 };
@@ -222,14 +222,43 @@ STATIC_ASSERT_SIZEOF(McSavePreview, 0x80);
 STATIC_ASSERT(OFFSET_OF(McSavePreview, location) == 4, McSavePreview_location);
 STATIC_ASSERT(OFFSET_OF(McSavePreview, remainingBytes) == 0x20, McSavePreview_remainingBytes);
 
-/// Full save image and its bounded cached-preview representation.
-/// Both records have the same initial fields through the checksum pair.
+/// One memory-card save image, also readable as its preview-sector prefix.
+///
+/// `state` is the complete record: the signed checksum of the 0x940-byte
+/// payload, then that payload, 0x944 bytes in all. `preview` is that same
+/// storage's first 128 bytes in `McSavePreview` layout. A header check written
+/// for a cached slot preview takes `&save->preview` and reads this resident
+/// prefix. Named fields agree through `headerChecksumComplement`. The following
+/// 0x60 bytes are `preview.remainingBytes` and the continuation of `state`.
+/// The union's size is the full image.
 typedef union {
-    McSaveState   state;
-    McSavePreview preview;
+    McSaveState   state;   // Complete save record
+    McSavePreview preview; // First 128 bytes, in preview-sector layout
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
+STATIC_ASSERT(sizeof(McSaveState) == sizeof(McSaveData), McSaveData_stateExtent);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.location) == 4, McSaveData_location);
+STATIC_ASSERT(OFFSET_OF(McSaveData, preview.location) == OFFSET_OF(McSaveData, state.location), McSaveData_sharedLocation);
+STATIC_ASSERT(OFFSET_OF(McSaveData, state.headerChecksumComplement) == OFFSET_OF(McSaveData, preview.headerChecksumComplement), McSaveData_sharedHeader);
+STATIC_ASSERT(OFFSET_OF(McSaveData, preview.remainingBytes) == 0x20, McSaveData_previewRemainder);
 STATIC_ASSERT(OFFSET_OF(McSaveData, state.playTime) == 0xC, McSaveData_playTime);
+
+/// Indices of the two resident save images in `gMcSaveData`.
+enum {
+    /// Index of the resident save image the game reads and writes.
+    ///
+    /// The next image is the backup. Initialization zeroes this image and fills
+    /// the backup with 0xFF, then stores the new-game location, scene and
+    /// character here. Saving checksums this image, stores two copies of it on
+    /// the card, and then copies it over the resident backup. Loading replaces
+    /// both images from the card.
+    MEMORY_CARD_SAVE_LIVE   = 0,
+    MEMORY_CARD_SAVE_BACKUP = 1, // Copy kept immediately after the live image
+    MEMORY_CARD_SAVE_COUNT  = 2  // Live image followed by its backup
+};
+
+/// 128-byte card sectors occupied by both resident save images.
+enum { MEMORY_CARD_SAVE_CARD_SECTORS = (sizeof(McSaveData) * MEMORY_CARD_SAVE_COUNT + 0x7F) >> 7 };
+STATIC_ASSERT(MEMORY_CARD_SAVE_CARD_SECTORS == 0x26, McSaveData_cardSectors);
 
 #endif // MAIN_MC_TYPES_H

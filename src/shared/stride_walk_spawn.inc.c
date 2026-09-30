@@ -5,13 +5,13 @@
 /// spawnArg1 is set spawns the carried model from gStrideWalkTasks and starts
 /// clip 2 (else clip 1). Lights the model from 0x320 above its root, builds the
 /// rig, installs gStrideWalkMessages and runs the first update.
-void strideWalkSpawn(GpEnemy* enemy, Task* task)
+void strideWalkSpawn(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;

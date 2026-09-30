@@ -31,10 +31,10 @@
 #include "main/tmd_types.h"
 #include "../../shared/glow_draw.h"
 
-/// One 14-byte row of `D_antibody_80130BD4`, indexed by `GpEffWork.index`
+/// One 14-byte row of `D_antibody_80130BD4`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`, so the effect scales with the combo
 /// counter). `field_6` is the draw parameter `func_antibody_8012F734` seeds
-/// `GpEffWork.scale` with, and `field_8` is the base it is re-rolled from
+/// `EffectWork.scale` with, and `field_8` is the base it is re-rolled from
 /// on later frames (doubled in state 3). The remaining fields belong to the
 /// draw helpers.
 typedef struct AntibodyStep {
@@ -93,7 +93,7 @@ static void func_antibody_80130428(GfxCoord* arg0, s16 arg1, s16 arg2);
 /// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-/// Runs one frame of an antibody cast. `Task::spawnArg2` is the `GpEffWork`
+/// Runs one frame of an antibody cast. `Task::spawnArg2` is the `EffectWork`
 /// block and `Task::extra` reaches the effect coordinate. Cancel
 /// (`Gp_StateC08.field_3 == -2` or `gRoomEffectState->peEffectControl >= 4`) releases the
 /// work block.
@@ -111,7 +111,7 @@ static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 void func_antibody_8012EF34(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpStateC08* state;
     s32         i;
@@ -168,7 +168,7 @@ void func_antibody_8012EF34(Task* arg0)
             case 1: {
                 AntibodyStep* table;
                 AntibodyStep* t2;
-                GpEffWork*    eff;
+                EffectWork*   eff;
                 s32           rng;
                 s16           ang;
                 s16*          p;
@@ -284,7 +284,7 @@ release:
 }
 
 /// Runs one frame of an antibody mote. State 0 re-bases the effect coordinate
-/// on the `GpEffWork.parent` parent with an identity rotation and the work
+/// on the `EffectWork.parent` parent with an identity rotation and the work
 /// block's `pos` offset, then GPF-scales that offset by 0x100
 /// (a sixteenth) into `move` as the per-frame step, and seeds
 /// the intensity `index` from the combo counter, the draw parameter
@@ -299,7 +299,7 @@ release:
 /// effect at tick 0x15.
 void func_antibody_8012F734(Task* arg0)
 {
-    GpEffWork*  mem;
+    EffectWork* mem;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s32         rng0;

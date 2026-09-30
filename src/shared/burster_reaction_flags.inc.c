@@ -9,7 +9,7 @@
 void bursterReactionFlags(Task* arg0)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              tick;
     u8               flags;
 
@@ -28,20 +28,20 @@ void bursterReactionFlags(Task* arg0)
                 enemy->hp           = 0;
             }
         }
-        if (enemy->reactionFlags & 2) {
+        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
             enemy->reactionFlags &= 0xFD;
             work->field_2B2       = 3;
             work->field_2B6       = 0;
             work->field_2BE       = 0;
             work->field_2D2       = 1;
         }
-        if (enemy->reactionFlags & 0xC) {
+        if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             tick = Gp_TickObjFlag4(enemy);
             if (tick != 0) {
                 bursterTakeDamage(arg0, tick);
             }
             if (Gp_ObjFlag4Expired(enemy) != 0) {
-                enemy->reactionFlags &= 0xF3;
+                enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
             }
         }
     }

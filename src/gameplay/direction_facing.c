@@ -135,7 +135,7 @@ void Gp_CommitDirWarp(void)
     loc->queryOnly    = ROOM_EVENT_EXECUTE;
     Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
-    save                          = &Mc_SaveData[0];
+    save                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.location.loc.area = (u8)Gp_WarpLoc.areaId;
     save->state.location.loc.warp = loc->warp;
     save->state.location.loc.room = loc->room;
@@ -223,7 +223,7 @@ void Gp_ApplyAreaRecs(GpAreaApplyRec* recs)
         if (mask == 0) {
             apply = 1;
         } else {
-            mode = Mc_SaveData[0].state.gameMode;
+            mode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
             if (mode == 0 || mode == 2) {
                 if (mask == 0x10) {
                     apply = 1;

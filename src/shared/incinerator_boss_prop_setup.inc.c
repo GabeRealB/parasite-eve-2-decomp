@@ -4,7 +4,7 @@
 /// area placement the parent's spawn record names (its top nibble) under the
 /// current session location, give the model that placement's texture page and
 /// CLUT, run its stream twice when it has one, and step the task on.
-void incinBossPropSetup(GpEnemy* enemy, Task* task)
+void incinBossPropSetup(Enemy* enemy, Task* task)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;

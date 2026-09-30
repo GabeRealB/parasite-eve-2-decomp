@@ -2,7 +2,7 @@
 
 /// Per-frame state of the same table: refresh the model's root coordinate. The
 /// world position it then copies into a local is never used.
-void incinBossPropTick(GpEnemy* enemy, Task* arg1)
+void incinBossPropTick(Enemy* enemy, Task* arg1)
 {
     VECTOR sp10;
 

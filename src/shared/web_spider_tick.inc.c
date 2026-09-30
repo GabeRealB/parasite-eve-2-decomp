@@ -8,7 +8,7 @@
 /// collision records, runs the behaviour state, the effect step while
 /// `field_3B0` is set and the turn step while `field_3A6` is, moves and
 /// animates the actor and refreshes its coordinate.
-void spiderTick(GpEnemy* arg0, Task* arg1)
+void spiderTick(Enemy* arg0, Task* arg1)
 {
     s32              state;
     TmdObject*       obj;

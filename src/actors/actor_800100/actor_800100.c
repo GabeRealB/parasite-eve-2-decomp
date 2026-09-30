@@ -1075,14 +1075,14 @@ static void func_actor_800100_80166F50(Task* arg0);
 /// `age` back down instead of advancing.
 void func_actor_800100_80161F20(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GfxCoord*     light;
-    GpMtxWords*   rot;
-    GpEffWork*    eff;
-    u32           ang;
+    EffectWork*           work;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GfxCoord*             light;
+    GpMtxWords*           rot;
+    EffectWork*           eff;
+    u32                   ang;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1199,7 +1199,7 @@ void func_actor_800100_801624F0(Task* task)
     SVECTOR          after;
     SVECTOR          before;
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
     Actor800100Beam* beam;
     s32              effectControl;
     u32              ang0;
@@ -1417,7 +1417,7 @@ static void func_actor_800100_80163214(Task* arg0)
     WorldCollisionContact* recs;
     WorldCollisionBody*    obj;
     GpActorD4*             d4;
-    GpEffWork*             eff;
+    EffectWork*            eff;
     Task*                  task;
     SVECTOR3*              scratch;
     s32                    idx;
@@ -1432,13 +1432,13 @@ static void func_actor_800100_80163214(Task* arg0)
     extra                      = arg0->extra.tmd;
     coord                      = extra->coords;
     arg0->state++;
-    arg0->msgTable      = D_actor_800100_80167130;
-    arg0->exitCallback  = func_actor_800100_80163C04;
-    actor->field_938    = 0x14;
-    Gp_ActorSlots[1]    = arg0;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
+    arg0->msgTable                                 = D_actor_800100_80167130;
+    arg0->exitCallback                             = func_actor_800100_80163C04;
+    actor->field_938                               = 0x14;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
+    coord->parent                                  = &gGfxViewCoord;
+    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
+    extra->flags                                   = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
     func_8010BFCC(arg0);
     actor->field_985 = 0x10;
@@ -1452,7 +1452,7 @@ static void func_actor_800100_80163214(Task* arg0)
     obj->context.motion         = &actor->field_88[0];
     obj->coord                  = coord;
     actor->field_88[0].contacts = recs;
-    save                        = &Mc_SaveData[0];
+    save                        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     obj->pos.vy                 = -0x12C;
     obj->pos.vx                 = 0;
     obj->pos.vz                 = 0;
@@ -1588,7 +1588,7 @@ static void func_actor_800100_801635F4(Task* arg0)
     }
 
     d4->coord = *arg0->extra.tmd->coords;
-    Gfx_RotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
+    gfxRotMatrixY(&d4->coord.workm, d4->scanAngle, 0);
 
     objs[0] = (WorldCollisionBody*)actor->field_AC;
     objs[1] = (WorldCollisionBody*)actor->field_EC;
@@ -1733,10 +1733,10 @@ static void func_actor_800100_80163C04(Task* arg0)
     GpActorD4* d4;
     Task*      task;
 
-    actor            = arg0->work;
-    d4               = actor->field_910;
-    Gp_ActorSlots[1] = NULL;
-    task             = actor->field_914;
+    actor                                          = arg0->work;
+    d4                                             = actor->field_910;
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
+    task                                           = actor->field_914;
     if (task != NULL) {
         taskKill(task);
     }
@@ -1902,14 +1902,14 @@ static void func_actor_800100_80163F04(Task* arg0)
         if ((u16)actor->field_96C != 0) {
             func_8010B9A4(arg0);
             pan = (s8)Gp_GetObjPan(coord);
-            SndEvt_EnqueueType6(((Mc_SaveData[0].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
+            SndEvt_EnqueueType6(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)gpGetObjDepth(coord));
         }
     }
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
     Gp_TurnPlayer(arg0);
     Gp_StepPlayerMove(arg0);
-    if (Mc_SaveData[0].state.companionHp <= 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         Gp_StopPlayerAnim(arg0, 0);
     }
 }
@@ -2200,8 +2200,8 @@ static void func_actor_800100_80164710(Task* arg0)
                     *&actor->field_90C = NULL;
                     actor->field_97E   = 1;
                     actor->field_12A  &= 0x3FFF;
-                    if ((u8)Mc_SaveData[0].state.companionVariant == 4) {
-                        func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant], 0);
+                    if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == 4) {
+                        func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
                     }
                     actor3            = arg0->work;
                     actor3->field_954 = 0;
@@ -2449,7 +2449,7 @@ static void func_actor_800100_80164E60(Task* arg0)
     d4    = actor->field_910;
     rec   = Gp_AnimGetRec((AnimationContext*)actor->field_424, actor->field_438 + 1);
     coord = actor->field_91C->extra.tmd->coords;
-    sel   = D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant];
+    sel   = D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
 
     switch (sel) {
         case 3:
@@ -2488,7 +2488,7 @@ static void func_actor_800100_80164E60(Task* arg0)
             break;
     }
 
-    d4->actionCount = D_actor_800100_80167230[Mc_SaveData[0].state.companionVariant];
+    d4->actionCount = D_actor_800100_80167230[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
     if (rec != NULL && func_80105894(arg0, 1, 0, 0) == 0) {
         target            = arg0->work;
         target->field_954 = 0;
@@ -2908,7 +2908,7 @@ static void func_actor_800100_80165930(Task* arg0)
     actor = arg0->work;
     sp.funcs[(u16)actor->field_956](arg0);
     Gp_TurnPlayer(arg0);
-    if (Mc_SaveData[0].state.companionHp <= 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
         func_8010BFCC(arg0);
         Gp_StopPlayerAnim(arg0, 0);
     }
@@ -3078,7 +3078,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->field_940 = 0x28;
-                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6006C, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 func_80104490(arg0, 1, 2, 0x110C0A);
                 return;
             }
@@ -3093,7 +3093,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
     }
 }
 
-/// Handlers `func_actor_800100_80166EE8` runs, indexed by `Mc_SaveData[0].state.companionVariant`.
+/// Handlers `func_actor_800100_80166EE8` runs, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`.
 static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
     func_actor_800100_80165C38,
     func_actor_800100_80165C38,
@@ -3147,7 +3147,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 d4->actionCount  -= 1;
                 actor->field_12A |= 0xC000;
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
-                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
+                Gp_SpawnEff(0x6002B, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 Gp_AnimPlayChildSlotsEx(arg0, 0xA, 1, 2);
             }
             break;
@@ -3245,7 +3245,7 @@ static void func_actor_800100_80166190(Task* arg0)
                         actor->field_93E = 0;
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
-                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant] | 0x10000, NULL);
+                    Gp_SpawnEff(0x6006B, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                     Gp_AnimPlayChildSlotsEx(arg0, 0xA, 0, 2);
                     break;
                 } else {
@@ -3316,7 +3316,7 @@ static void func_actor_800100_80166514(Task* arg0)
     blk                                               = head - 1;
     SCRATCH_HEAD_AT(scratch, Actor800100PlaceScratch) = blk;
 
-    Gp_FindRec18(obj->context.capsule->recs, 0);
+    Gp_FindRec18(obj->context.capsule->contacts, 0);
     Gfx_RotMatrixX(&sp10.workm, 0x400, 0);
     blk->rot.vx = 0;
     blk->rot.vy = 0x120;
@@ -3576,7 +3576,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     actor->field_95E = 0;
     actor->field_90C = NULL;
     actor->field_97E = 1;
-    func_80106350(arg0, D_actor_800100_80167218[Mc_SaveData[0].state.companionVariant], 0);
+    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     Gp_AnimPlayChildSlotsEx(arg0, 8, 1, 6);
 }
 
@@ -3601,43 +3601,43 @@ static void func_actor_800100_80166EE8(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_actor_800100_80161EC8;
-    sp.funcs[Mc_SaveData[0].state.companionVariant](arg0);
+    sp.funcs[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant](arg0);
 }
 
 static void func_actor_800100_80166F50(Task* arg0)
 {
-    GameActor*          actor;
-    WorldCollisionBody* obj;
-    GpActorD4Rec*       rec;
-    GfxCoord*           src;
-    Task*               task;
+    GameActor*             actor;
+    WorldCollisionBody*    obj;
+    WorldCollisionCapsule* rec;
+    GfxCoord*              src;
+    Task*                  task;
 
     actor = arg0->work;
     task  = actor->field_91C;
     if (task != NULL) {
         obj              = (WorldCollisionBody*)actor->field_12C;
-        rec              = (GpActorD4Rec*)actor->pad_164;
+        rec              = (WorldCollisionCapsule*)actor->pad_164;
         src              = task->extra.tmd->coords;
         actor->field_3D4 = *src;
         Gfx_RotMatrixX(&actor->field_3D4.workm, 0x400, 0);
         obj->coord           = &actor->field_3D4;
-        obj->context.capsule = (GpActorD4Rec*)actor->pad_164;
+        obj->context.capsule = (WorldCollisionCapsule*)actor->pad_164;
         obj->key             = 0x60000;
         obj->flags           = WORLD_COLLISION_BODY_CAPSULE;
         obj->pos.vx          = 0;
         obj->pos.vy          = 0;
         obj->pos.vz          = 0;
-        rec->end1.vx         = 0;
-        rec->end1.vy         = -0x10;
-        rec->end0.vx         = rec->end1.vx;
-        rec->end1.vz         = 0x20;
-        rec->end0.vy         = rec->end1.vy;
-        rec->end0.vz         = rec->end1.vz + D_80112F60[Player_Status.weapon];
+        rec->ends[1].vx      = 0;
+        rec->ends[1].vy      = -0x10;
+        rec->ends[0].vx      = rec->ends[1].vx;
+        rec->ends[1].vz      = 0x20;
+        rec->ends[0].vy      = rec->ends[1].vy;
+        rec->ends[0].vz      = rec->ends[1].vz + D_80112F60[Player_Status.weapon];
         rec->end1Radius      = 1;
         rec->end0Radius      = 1;
-        rec->recs            = actor->aimContacts;
+        rec->contacts        = actor->aimContacts;
         Gp_LinkObj(1, obj);
-        Gp_InitRec18Table(rec->recs, 1, 0);
+        Gp_InitRec18Table(rec->contacts, 1, 0);
         obj->flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
     }
 }

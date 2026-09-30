@@ -42,7 +42,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
 /// The 0xFFFF-terminated item id lists `func_shelter_b1_armory_8017D768`
@@ -261,7 +262,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
         case 0:
             gGameSession->eventState           = 1;
             gGameSession->hideHud              = 1;
-            save                               = &Mc_SaveData[0];
+            save                               = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             view                               = save->state.location.loc.view;
             save->state.location.loc.view      = 0xD;
             D_shelter_b1_armory_8018557C.value = view;
@@ -281,7 +282,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
             gGameSession->hideHud    = 0;
             Gp_MsgPlayer3F3(1);
             Gp_MsgPlayerWeapon(1);
-            Mc_SaveData[0].state.location.loc.view = D_shelter_b1_armory_8018557C.value;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_armory_8018557C.value;
         advance:
             task->state = task->state + 1;
             break;

@@ -59,8 +59,10 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive.value
-#define ROOM_EVENT_REQ    gRoomEventReq.value
+// The flag symbol carries seven unproven bytes after the flag.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The request symbol carries twelve unproven bytes after the request.
+#define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -87,30 +89,12 @@ extern SVECTOR D_shelter_b2_south_maintenance_walkway_80182578[];
 extern RoomFadeStorage gRoomEventFade;
 
 /// The message and request the event gate latched for its event task.
-extern RoomEventMsg gRoomEventMsg;
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomEventReq value;
-    u8           retained[12];
-} ShelterB2SouthMaintenanceWalkwayStorage38F8;
-STATIC_ASSERT_SIZEOF(ShelterB2SouthMaintenanceWalkwayStorage38F8, 32);
-
-extern ShelterB2SouthMaintenanceWalkwayStorage38F8 gRoomEventReq;
+extern RoomEventMsg        gRoomEventMsg;
+extern RoomEventReqStorage gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} ShelterB2SouthMaintenanceWalkwayStorage38E4;
-STATIC_ASSERT_SIZEOF(ShelterB2SouthMaintenanceWalkwayStorage38E4, 8);
-
-extern ShelterB2SouthMaintenanceWalkwayStorage38E4 gRoomEventActive;
+extern RoomEventActiveStorage gRoomEventActive;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
@@ -310,7 +294,7 @@ GpSprtRec D_shelter_b2_south_maintenance_walkway_80183018[5] = {
     { { .empty = D_shelter_b2_south_maintenance_walkway_80183008 }, D_shelter_b2_south_maintenance_walkway_80183008, NULL },
 };
 
-GpPointLight D_shelter_b2_south_maintenance_walkway_80183054[6] = {
+WorldCoordPointLight D_shelter_b2_south_maintenance_walkway_80183054[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2022, -223, -3929 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2348, 2757, 2798 }, { 0, 0 } }, 1852, 2632 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 367, -223, -4032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2570, 3039, 3058 }, { 0, 0 } }, 1540, 3660 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2187, -303, -4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1365, 1697, 1877 }, { 0, 0 } }, 1821, 2131 },
@@ -338,32 +322,32 @@ GpObj4C D_shelter_b2_south_maintenance_walkway_80183474[2] = {
 GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_8018350C[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 24, 24, 1, 0, { 0, 0 }, D_8014E47C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183530[3] = {
     { 49, 49, 0, 0, { 0, 0 }, D_80147400 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183554[4] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_80183584[3] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
     { 55, 55, 1, 0, { 0, 0 }, D_801528DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 23, 23, 1, 0, { 0, 0 }, D_8015FAB8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_south_maintenance_walkway_801835CC[9] = {
@@ -469,7 +453,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB2SouthMaintenanceWalkwayStorage38E4 gRoomEventActive = { 0 };
+RoomEventActiveStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -480,7 +464,7 @@ u8 D_shelter_b2_south_maintenance_walkway_801838F4[4] = {
     189,
 };
 
-ShelterB2SouthMaintenanceWalkwayStorage38F8 gRoomEventReq;
+RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 

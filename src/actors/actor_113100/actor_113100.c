@@ -1221,7 +1221,7 @@ static void func_actor_113100_80131E58(Task* task)
     child2 = Task_SpawnFromTable(D_actor_113100_80144308, 2, 4, task);
     if (child2 != NULL) {
         sessionKey2 = &gGameSession->location.loc;
-        raw2        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
+        raw2        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
         model2      = child2->extra.tmd;
         key.stage   = sessionKey2->stage;
         key.area    = sessionKey2->area;
@@ -1242,7 +1242,7 @@ static void func_actor_113100_80131E58(Task* task)
     child3 = Task_SpawnFromTable(D_actor_113100_80144308, 3, 2, task);
     if (child3 != NULL) {
         sessionKey3 = &gGameSession->location.loc;
-        raw3        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
+        raw3        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
         model3      = child3->extra.tmd;
         key.stage   = sessionKey3->stage;
         key.area    = sessionKey3->area;

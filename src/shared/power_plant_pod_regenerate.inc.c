@@ -7,7 +7,7 @@
 void podRegenerate(Task* arg0)
 {
     Actor05300Work* work;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
     s16             timer;
 
     work  = arg0->work;

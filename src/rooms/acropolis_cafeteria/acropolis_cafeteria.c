@@ -233,9 +233,9 @@ AnimationPlayRequest D_acropolis_cafeteria_80182E34 = { { .index = 0 }, 3, ANIMA
 
 AnimationPlayRequest D_acropolis_cafeteria_80182E48 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
+EvsSceneKey D_acropolis_cafeteria_80182E5C = { 1, 4, 11 };
 
-GpOverlayIds D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
+EvsSceneKey D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
 
 GpOverrideArg D_acropolis_cafeteria_80182E6C = { 19, 1 };
 
@@ -872,34 +872,34 @@ GpAreaTmdRec D_acropolis_cafeteria_80189D0C[4] = {
     { 10, 106, 0, 0, { 0, 0 }, D_80148670 },
     { 29, 29, 1, 0, { 0, 0 }, D_80156E24 },
     { 102, 106, 2, 0, { 0, 0 }, D_801796A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_cafeteria_80189D3C[4] = {
     { 10, 106, 0, 0, { 0, 0 }, D_80148670 },
     { 19, 106, 1, 0, { 0, 0 }, D_8015A4EC },
     { 102, 106, 2, 0, { 0, 0 }, D_801796A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_cafeteria_80189D6C[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_cafeteria_80189D84[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_cafeteria_80189D9C[2] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_cafeteria_80189DB4[2] = {
     { 57, 57, 0, 0, { 0, 0 }, D_801491F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_cafeteria_80189DCC[11] = {
@@ -916,7 +916,7 @@ GpAreaVariant D_acropolis_cafeteria_80189DCC[11] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_cafeteria_80189E24[15] = {
+WorldCoordPointLight D_acropolis_cafeteria_80189E24[15] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1495, -3075, -3183 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3400, 3051, 2214 }, { 0, 0 } }, 1021, 1963 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2998, -2896, -1504 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2578, 2319, 1751 }, { 0, 0 } }, 3000, 0x2F46 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1010, -2896, -1501 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3380, 3031, 2354 }, { 0, 0 } }, 1221, 3424 },
@@ -2549,9 +2549,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             break;
         case 2:
             blackout                        = 1;
-            gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = 2;
-            gGameSession->roomObjsDirty                                              = 1;
-            task->state                                                             += 1;
+            gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+            gGameSession->roomObjsDirty                                                                  = 1;
+            task->state                                                                                 += 1;
             break;
         case 3:
             blackout = 1;
@@ -2582,9 +2582,9 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
         case 7:
             blackout = 1;
             if (CdCmd_IsIdle()) {
-                areaSetPlacementVariant(&Mc_SaveData[0].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
-                areaSyncLocationVariant(&Mc_SaveData[0].state.location.loc);
-                Gp_SpawnArea(&Mc_SaveData[0].state.location.loc);
+                areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+                areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+                Gp_SpawnArea(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }
@@ -2718,16 +2718,16 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             GameFlag_SetNibble(0x155, 4);
             GameFlag_SetNibble(0xE, 1);
             Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
-            Mc_SaveData[0].state.sceneEvent = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
             func_800E3FAC(0xA2, 4);
             func_800ABFF8();
             func_800AC000();
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.area  = 3;
-            Mc_SaveData[0].state.location.loc.warp  = 3;
-            Mc_SaveData[0].state.location.loc.room  = 3;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

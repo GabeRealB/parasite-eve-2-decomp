@@ -58,10 +58,10 @@
 static void Actor05700_Fn02554(Task* arg0);
 static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);
 
-static void Actor05700_Fn0509C(GpEnemy* arg0, Task* task);
-static void Actor05700_Fn050E0(GpEnemy* enemy, Task* task);
-static void Actor05700_Fn051D8(GpEnemy* arg0, Task* arg1);
-static void Actor05700_Fn052CC(GpEnemy* arg0, Task* task);
+static void Actor05700_Fn0509C(Enemy* arg0, Task* task);
+static void Actor05700_Fn050E0(Enemy* enemy, Task* task);
+static void Actor05700_Fn051D8(Enemy* arg0, Task* arg1);
+static void Actor05700_Fn052CC(Enemy* arg0, Task* task);
 
 /// Sound ids this actor's cues play, indexed by `Actor105600Work.field_6D6`
 /// (row `field_6D6` starts at the second word, the `- 1` in the body).
@@ -1286,7 +1286,7 @@ extern TaskDesc Actor05700_D173D8[];
 /// Per-stage tables of per-area CD cue ids; a NULL stage has no cue.
 extern u16* Actor05700_D173B0[];
 
-/// Enemy parameter record the spawn hands to its `GpEnemy`.
+/// Enemy parameter record the spawn hands to its `Enemy`.
 extern EnemyParams Actor05700_D17108[];
 
 /// Per-state handlers of the approach cycle, indexed by `field_6A6`.
@@ -1296,10 +1296,10 @@ extern TaskFunc gLungerStates[];
 /// context block's room/channel bits.
 extern s32 gLungerBurstCue;
 
-static void            Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1);
-static void            Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1);
-static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx);
-static void            Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor);
+static void            Actor05700_Fn031BC(Enemy* arg0, Task* arg1);
+static void            Actor05700_Fn035FC(Enemy* arg0, Task* arg1);
+static __inline__ void _actor05700TintSpawn(Enemy* spawned, Enemy* ctx);
+static void            Actor05700_Fn03CC4(Enemy* ctx, Task* actor);
 
 /// Hit and push tick. Applies the `field_584` / `field_4EC` collision deltas
 /// to the root coordinate, then walks the five `field_4EC` records: kind 2 is a
@@ -1316,7 +1316,7 @@ void lungerTakeHits(Task* arg0)
     Actor105600Work*       work;
     GpDeltaScratch*        head;
     Actor105600HitScratch* scratch;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              self;
     GfxCoord*              other;
     GfxCoord*              part;
@@ -1342,7 +1342,7 @@ void lungerTakeHits(Task* arg0)
     self    = arg0->extra.tmd->coords;
     SCRATCH_STACK_RESERVE_BLOCK(Actor105600HitScratch);
     scratch = SCRATCH_STACK_CURSOR(Actor105600HitScratch);
-    enemy   = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy   = (Enemy*)arg0->spawnArg2.pointer;
 
     switch (func_800E0C10(work->field_584, head - 4, 4, NULL)) {
         case 0:
@@ -1390,7 +1390,7 @@ void lungerTakeHits(Task* arg0)
                 if (work->field_69A != 0) {
                     break;
                 }
-                other               = Gp_ActorSlots[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
+                other               = gPlayerActorTasks[((u32)work->field_4EC[i].key.value >> 7) & 1]->extra.tmd->coords;
                 scratch->delta.vx.w = other->coord.t[0] - self->coord.t[0];
                 scratch->delta.vy.w = other->coord.t[1] - self->coord.t[1];
                 dz                  = other->coord.t[2] - self->coord.t[2];
@@ -1651,23 +1651,23 @@ void Actor05700_Fn00E44(Task* arg0)
                 work->field_6B8        = 2;
                 work->field_4CC.pos.vz = 0x109;
             }
-            work->field_4CC.radius                             = 0x15E;
-            work->field_69C                                    = 0;
-            work->field_69E                                    = 0;
-            work->field_6DE                                    = 1;
-            work->field_4CC.flags                              = (u16)(work->field_4CC.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-            work->field_564.flags                              = (u16)(work->field_564.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-            ((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
-            work->field_6D4                                    = 1;
+            work->field_4CC.radius                           = 0x15E;
+            work->field_69C                                  = 0;
+            work->field_69E                                  = 0;
+            work->field_6DE                                  = 1;
+            work->field_4CC.flags                            = (u16)(work->field_4CC.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->field_564.flags                            = (u16)(work->field_564.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags = 0;
+            work->field_6D4                                  = 1;
             break;
         case 1:
             if (work->field_698 == 0x14) {
-                snd = gLungerVoiceCues[work->field_6D6 + 0xC] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gLungerVoiceCues[work->field_6D6 + 0xC] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(self));
             }
             if (work->field_698 == 0x2C) {
-                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan2 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan2, (s8)gpGetObjDepth(self));
             }
@@ -1677,7 +1677,7 @@ void Actor05700_Fn00E44(Task* arg0)
                 random          = (Gp_LcgState * 5) + 0x71357911;
                 work->field_6AE = (u16)((random >> 0x10) & 0x3F);
                 Gp_LcgState     = (s32)random;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp > 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
                     arg0->state     = 2;
@@ -1691,7 +1691,7 @@ void Actor05700_Fn00E44(Task* arg0)
             break;
         case 2:
             if (work->field_698 == 0x19) {
-                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd  = gLungerVoiceCues[work->field_6D6 + 8] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 pan3 = (s8)Gp_GetObjPan(self);
                 SndEvt_EnqueueType6(snd, (s32)pan3, (s8)gpGetObjDepth(self));
             }
@@ -1701,7 +1701,7 @@ void Actor05700_Fn00E44(Task* arg0)
                 random2         = (Gp_LcgState * 5) + 0x71357911;
                 work->field_6AE = (u16)((random2 >> 0x10) & 0x3F);
                 Gp_LcgState     = (s32)random2;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp > 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp > 0) {
                     work->field_6A8 = 3;
                 } else {
                     arg0->state     = 2;
@@ -1774,7 +1774,7 @@ void Actor05700_Fn01E28(Task* arg0)
     Actor105600Work* work;
     GfxCoord*        coord;
 
-    delta = (VECTOR*)SCRATCH_PUSH_BYTES(0x20);
+    delta = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x20);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     switch (work->field_6A8) {
@@ -1979,8 +1979,8 @@ void Actor05700_Fn023AC(Task* arg0)
 
 /// Converts the root coordinate's world matrix into the frame of part 7 and
 /// parks the (0, 100, -100) offset rotated through it, plus its translation,
-/// in `field_63C.end1`; then stores the (0, -0x514, 10000) vector rotated by
-/// the (-5, -5, 0) matrix in `field_63C.end0` and raises the fifth body
+/// in `field_63C.ends[1]`; then stores the (0, -0x514, 10000) vector rotated by
+/// the (-5, -5, 0) matrix in `field_63C.ends[0]` and raises the fifth body
 /// object's 0xC000 flags. While `field_6AE` is non-zero, the parked point is
 /// taken back to world space, the distance to the first `field_654` hit (10000
 /// with none, plus 1000 for a kind-0x1 hit) replaces the vector's depth, and
@@ -1991,7 +1991,7 @@ static void Actor05700_Fn02554(Task* arg0)
     Actor105600Work*       work;
     GfxCoord*              self;
 
-    scratch              = (Actor105600AimScratch*)SCRATCH_PUSH_BYTES(0x40);
+    scratch              = (Actor105600AimScratch*)SCRATCH_STACK_RESERVE_BYTES(0x40);
     self                 = arg0->extra.tmd->coords;
     work                 = arg0->work;
     self[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2005,12 +2005,12 @@ static void Actor05700_Fn02554(Task* arg0)
     gte_ldv0(&scratch->vec);
     gte_rtv0();
     gte_stlvnl(&scratch->pos);
-    work->field_63C.end1.vx = scratch->mtx.t[0] + scratch->pos.vx;
-    work->field_63C.end1.vy = scratch->mtx.t[1] + scratch->pos.vy;
-    work->field_63C.end1.vz = scratch->mtx.t[2] + scratch->pos.vz;
-    scratch->rot.vx         = -5;
-    scratch->rot.vy         = -5;
-    scratch->rot.vz         = 0;
+    work->field_63C.ends[1].vx = scratch->mtx.t[0] + scratch->pos.vx;
+    work->field_63C.ends[1].vy = scratch->mtx.t[1] + scratch->pos.vy;
+    work->field_63C.ends[1].vz = scratch->mtx.t[2] + scratch->pos.vz;
+    scratch->rot.vx            = -5;
+    scratch->rot.vy            = -5;
+    scratch->rot.vz            = 0;
     RotMatrix(&scratch->rot, &scratch->mtx);
     scratch->rot.vx = 0;
     scratch->rot.vy = -0x514;
@@ -2019,26 +2019,26 @@ static void Actor05700_Fn02554(Task* arg0)
     gte_ldv0(&scratch->rot);
     gte_rtv0();
     gte_stlvnl(&scratch->pos);
-    work->field_63C.end0.vx = scratch->pos.vx;
-    work->field_63C.end0.vy = scratch->pos.vy;
-    work->field_63C.end0.vz = scratch->pos.vz;
-    work->field_61C.flags  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->field_63C.ends[0].vx = scratch->pos.vx;
+    work->field_63C.ends[0].vy = scratch->pos.vy;
+    work->field_63C.ends[0].vz = scratch->pos.vz;
+    work->field_61C.flags     |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     if (work->field_6AE == 0) {
         SCRATCH_STACK_RELEASE_BYTES(0x40);
         return;
     }
     gte_SetRotMatrix(&self->workm);
-    scratch->vec.vx = work->field_63C.end1.vx;
-    scratch->vec.vy = work->field_63C.end1.vy;
-    scratch->vec.vz = work->field_63C.end1.vz;
+    scratch->vec.vx = work->field_63C.ends[1].vx;
+    scratch->vec.vy = work->field_63C.ends[1].vy;
+    scratch->vec.vz = work->field_63C.ends[1].vz;
     gte_ldv0(&scratch->vec);
     gte_rtv0();
     gte_stlvnl(&scratch->pos);
     scratch->vec.vx = scratch->pos.vx + self->workm.t[0];
     scratch->vec.vy = scratch->pos.vy + self->workm.t[1];
     scratch->vec.vz = scratch->pos.vz + self->workm.t[2];
-    scratch->rot.vx = work->field_63C.end0.vx;
-    scratch->rot.vy = work->field_63C.end0.vy;
+    scratch->rot.vx = work->field_63C.ends[0].vx;
+    scratch->rot.vy = work->field_63C.ends[0].vy;
     if (Gp_FindRec18(work->field_654, 0) != 0) {
         scratch->pos.vx = work->field_654[0].point.vx - scratch->vec.vx;
         scratch->pos.vy = work->field_654[0].point.vy - scratch->vec.vy;
@@ -2059,9 +2059,9 @@ static void Actor05700_Fn02554(Task* arg0)
     scratch->rot.vx = scratch->pos.vx;
     scratch->rot.vy = scratch->pos.vy;
     scratch->rot.vz = scratch->pos.vz;
-    scratch->vec.vx = work->field_63C.end1.vx;
-    scratch->vec.vy = work->field_63C.end1.vy;
-    scratch->vec.vz = work->field_63C.end1.vz;
+    scratch->vec.vx = work->field_63C.ends[1].vx;
+    scratch->vec.vy = work->field_63C.ends[1].vy;
+    scratch->vec.vz = work->field_63C.ends[1].vz;
     Actor05700_Fn0295C(arg0, &scratch->rot, &scratch->vec);
     SCRATCH_STACK_RELEASE_BYTES(0x40);
 }
@@ -2082,7 +2082,7 @@ static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
     s32                     j;
     s32                     depth;
 
-    s          = (Actor105600BeamScratch*)SCRATCH_PUSH_BYTES(0x48);
+    s          = (Actor105600BeamScratch*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     self       = arg0->extra.tmd->coords;
     s->step.vx = (arg1->vx - arg2->vx) / 8;
     s->step.vy = (arg1->vy - arg2->vy) / 8;
@@ -2176,11 +2176,11 @@ static void Actor05700_Fn0295C(Task* arg0, SVECTOR* arg1, SVECTOR* arg2)
     SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
-static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
+static void Actor05700_Fn031BC(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork*       work;
     Actor105600PlaceScratch* scratch;
-    GpEnemy*                 ctx;
+    Enemy*                   ctx;
     GfxCoord*                coord;
     GfxCoord*                parentCoord;
     TmdObject*               tmd;
@@ -2199,7 +2199,7 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     }
     arg1->work    = work;
     tmd->flags    = 0;
-    scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(0x38);
+    scratch       = (Actor105600PlaceScratch*)SCRATCH_STACK_RESERVE_BYTES(0x38);
     tmd->lightMtx = &work->lightMtx;
     tmd->colorMtx = &work->colorMtx;
 
@@ -2261,15 +2261,15 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(1, &work->obj78);
     work->obj78.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    work->d4rec.end0.vx         = 0;
-    work->d4rec.end0.vy         = 0;
-    work->d4rec.end0.vz         = 0;
-    work->d4rec.end1.vx         = 0;
-    work->d4rec.end1.vy         = -0x1F4;
-    work->d4rec.end1.vz         = 0;
+    work->d4rec.ends[0].vx      = 0;
+    work->d4rec.ends[0].vy      = 0;
+    work->d4rec.ends[0].vz      = 0;
+    work->d4rec.ends[1].vx      = 0;
+    work->d4rec.ends[1].vy      = -0x1F4;
+    work->d4rec.ends[1].vz      = 0;
     work->d4rec.end0Radius      = 1;
     work->d4rec.end1Radius      = 1;
-    work->d4rec.recs            = work->recD0;
+    work->d4rec.contacts        = work->recD0;
     work->obj98.context.capsule = &work->d4rec;
     work->obj98.coord           = coord;
     work->obj98.pos.vx          = 0;
@@ -2289,7 +2289,7 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     Gp_UpdateCoord(coord);
 
     ctx   = arg1->spawnArg2.pointer;
-    sound = Actor05700_D17228 | ((ctx->placeKey >> 0xC) << 8);
+    sound = Actor05700_D17228 | ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     pan   = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
 
@@ -2301,13 +2301,13 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
 /// an effect every fourth frame and ends the cycle - burst, sound cue and
 /// state 2 - on a hit, an empty room-parameter slot, or after 0x5A frames.
 
-static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
+static void Actor05700_Fn035FC(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork* work;
     GfxCoord*          coord;
     TmdObject*         tmd;
     SVECTOR*           scratch;
-    GpEnemy*           ctx;
+    Enemy*             ctx;
     s32                found;
     s32                idx;
     s32                sound;
@@ -2338,7 +2338,7 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
     coord->coord.t[1]  += (coord->coord.m[1][1] * 75) >> 11;
     coord->coord.t[2]  += (coord->coord.m[2][1] * 75) >> 11;
 
-    scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(0x28);
+    scratch = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x28);
     if (++work->field_E8 >= 4) {
         scratch->vx = 0;
         scratch->vy = 0x64;
@@ -2362,7 +2362,7 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
         Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
         arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         ctx                    = arg1->spawnArg2.pointer;
-        sound                  = Actor05700_D1722C | ((ctx->placeKey >> 0xC) << 8);
+        sound                  = Actor05700_D1722C | ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan                    = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         arg1->state = 2;
@@ -2376,7 +2376,7 @@ static void Actor05700_Fn035FC(GpEnemy* arg0, Task* arg1)
 #include "../../shared/lunging_enemy_silence_scream.inc.c"
 
 /// `actorTintModel` for a spawned enemy's model.
-static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx)
+static __inline__ void _actor05700TintSpawn(Enemy* spawned, Enemy* ctx)
 {
     actorTintModel(spawned->task->extra.tmd, ctx);
 }
@@ -2385,7 +2385,7 @@ static __inline__ void _actor05700TintSpawn(GpEnemy* spawned, GpEnemy* ctx)
 /// animation, spawns the model and effect children, then by the enemy's spawn
 /// state either links the enemy and sets up its five collision bodies (state
 /// 0) or parks it on one of the two resume animations (states 1 and 2).
-static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
+static void Actor05700_Fn03CC4(Enemy* ctx, Task* actor)
 {
     Actor105600Work* work;
     TmdObject*       obj;
@@ -2396,7 +2396,7 @@ static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
     GfxCoord*        partsC;
     GfxCoord*        partsD;
     GfxCoord*        effParts;
-    GpEnemy*         eff;
+    Enemy*           eff;
     u16*             tbl;
     u8               param1[8];
     u8               param2[8];
@@ -2471,15 +2471,15 @@ static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
             }
 
             work->field_6D0                 = 0xFA;
-            work->field_49C.end0.vz         = 0x1F40;
+            work->field_49C.ends[0].vz      = 0x1F40;
             work->field_49C.end0Radius      = 0x3E8;
             work->field_49C.end1Radius      = 0x5DC;
-            work->field_49C.end0.vx         = 0;
-            work->field_49C.end0.vy         = 0;
-            work->field_49C.end1.vx         = 0;
-            work->field_49C.end1.vy         = 0;
-            work->field_49C.end1.vz         = 0;
-            work->field_49C.recs            = work->field_4B4;
+            work->field_49C.ends[0].vx      = 0;
+            work->field_49C.ends[0].vy      = 0;
+            work->field_49C.ends[1].vx      = 0;
+            work->field_49C.ends[1].vy      = 0;
+            work->field_49C.ends[1].vz      = 0;
+            work->field_49C.contacts        = work->field_4B4;
             lcg                             = Gp_LcgState * 5 + 0x71357911;
             work->field_6C4                 = ((lcg >> 16) & 1) + 1;
             Gp_LcgState                     = lcg;
@@ -2534,15 +2534,15 @@ static void Actor05700_Fn03CC4(GpEnemy* ctx, Task* actor)
             Gp_LinkObj(3, &work->field_5E4);
             Gp_InitRec18Table(work->field_604, 1, 0);
 
-            work->field_63C.end0.vx         = 0;
-            work->field_63C.end0.vy         = 0;
-            work->field_63C.end0.vz         = 0;
-            work->field_63C.end1.vx         = 0;
-            work->field_63C.end1.vy         = 0;
-            work->field_63C.end1.vz         = 0;
+            work->field_63C.ends[0].vx      = 0;
+            work->field_63C.ends[0].vy      = 0;
+            work->field_63C.ends[0].vz      = 0;
+            work->field_63C.ends[1].vx      = 0;
+            work->field_63C.ends[1].vy      = 0;
+            work->field_63C.ends[1].vz      = 0;
             work->field_63C.end0Radius      = 1;
             work->field_63C.end1Radius      = 1;
-            work->field_63C.recs            = work->field_654;
+            work->field_63C.contacts        = work->field_654;
             work->field_5E4.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             partsD                          = actor->extra.tmd->coords;
             work->field_61C.context.capsule = &work->field_63C;
@@ -2815,7 +2815,7 @@ void Actor05700_Fn05040(Task* arg0)
 /// Spawn state of the model child hung off the actor: parents the child's
 /// root coordinate to part 7 of the actor's model, points the child's model
 /// at the actor's light and colour matrices and advances to state 1.
-static void Actor05700_Fn0509C(GpEnemy* arg0, Task* task)
+static void Actor05700_Fn0509C(Enemy* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;
@@ -2841,10 +2841,10 @@ static void Actor05700_Fn0509C(GpEnemy* arg0, Task* task)
 /// its own, and when the actor raises `field_6BA` spawns entry 2 of the
 /// actor's spawn table and hands it this child's texture page and CLUT row,
 /// reprocessing its model stream for both half-buffers.
-static void Actor05700_Fn050E0(GpEnemy* enemy, Task* task)
+static void Actor05700_Fn050E0(Enemy* enemy, Task* task)
 {
     Actor105600Work* work;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
     TmdObject*       src;
     TmdObject*       dst;
 
@@ -2883,7 +2883,7 @@ void Actor05700_Fn0517C(Task* arg0)
 /// Teardown state of the effect child set up by `Actor05700_Fn031BC`: step 0
 /// unlinks its three collision bodies and restarts the frame counter, step 1
 /// destroys the child once 0x3D frames have passed.
-static void Actor05700_Fn051D8(GpEnemy* arg0, Task* arg1)
+static void Actor05700_Fn051D8(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork* work;
     u16                temp_v0;
@@ -2927,7 +2927,7 @@ void Actor05700_Fn05270(Task* arg0)
 /// child's root coordinate to part 11 of the actor's model, points the
 /// child's model at the actor's light and colour matrices and advances to
 /// state 1.
-static void Actor05700_Fn052CC(GpEnemy* arg0, Task* task)
+static void Actor05700_Fn052CC(Enemy* arg0, Task* task)
 {
     Task*            parent;
     TmdObject*       obj;

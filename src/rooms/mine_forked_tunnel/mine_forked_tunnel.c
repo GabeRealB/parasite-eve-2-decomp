@@ -1320,7 +1320,7 @@ GpSprtRec D_mine_forked_tunnel_80184D64[7] = {
     { { .empty = D_mine_forked_tunnel_80184D54 }, D_mine_forked_tunnel_80184D54, NULL },
 };
 
-GpPointLight D_mine_forked_tunnel_80184DB8[4] = {
+WorldCoordPointLight D_mine_forked_tunnel_80184DB8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2240, -1639, 9120 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3316, 2385 }, { 0, 0 } }, 259, 2501 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2310, -657, 6485 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3211, 2810, 1964 }, { 0, 0 } }, 201, 3004 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2240, -900, 3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3397, 2467 }, { 0, 0 } }, 259, 2500 },
@@ -1350,29 +1350,29 @@ GpObj4C D_mine_forked_tunnel_80185118[6] = {
 };
 
 GpAreaTmdRec D_mine_forked_tunnel_801852E0[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_forked_tunnel_801852EC[2] = {
     { 16, 16, 1, 0, { 0, 0 }, D_8015C5DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_forked_tunnel_80185304[3] = {
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_forked_tunnel_80185328[3] = {
     { 25, 25, 1, 0, { 0, 0 }, D_8014F9A8 },
     { 15, 15, 2, 0, { 0, 0 }, D_8016BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_forked_tunnel_8018534C[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_forked_tunnel_80185364[1] = {
@@ -1700,9 +1700,10 @@ static s32 func_mine_forked_tunnel_8017DC8C(Task* task, s32 arg1, ActorTransform
 
 /// `Task::msgTable` handler for message id 0x7D5: switches the draw and
 /// buffer-alloc bits of the task's `TmdObject` extra. Modes 0 and 1 set and
-/// clear bit 0x80 - hiding and showing the model - and leave bit 0x4 clear so
-/// the model keeps its buffers, mode 1 reinstating them through
-/// `Tmd_AllocBuffers` first. Modes 2 and 3 set 0x4 instead, skipping that
+/// clear bit 0x80 - hiding and showing the model - and leave
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` clear so the model keeps its buffers, mode 1
+/// reinstating them through `Tmd_AllocBuffers` first. Modes 2 and 3 set
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` instead, skipping that
 /// allocation; mode 2 also stores itself in the work block's lifetime counter,
 /// `MineForkedTunnelWork::field_44`, which `func_mine_forked_tunnel_8017D724`
 /// counts down before freeing the child. Any other mode touches nothing and

@@ -996,11 +996,11 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 
 void func_acropolis_cafeteria_8017E708(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (task->state != 0) {
         return;
@@ -1038,16 +1038,16 @@ void func_acropolis_cafeteria_8017E708(Task* task)
 /// remains active. Releases the work block when the room effect gate clears.
 void func_acropolis_cafeteria_8017E89C(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        i;
-    u16        count;
-    s32        flags;
-    s32        spawnArg;
-    u8         mode;
-    u16        rnd;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         i;
+    u16         count;
+    s32         flags;
+    s32         spawnArg;
+    u8          mode;
+    u16         rnd;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC == 0) {
         Gp_ReleaseState1CMem(work, task);
@@ -1091,7 +1091,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
 /// view mode no longer hold.
 void func_acropolis_cafeteria_8017EA90(Task* task)
 {
-    GpEffWork*            work;
+    EffectWork*           work;
     GfxCoord*             coord;
     OverlaySpriteScratch* head;
     OverlaySpriteScratch* block;
@@ -1196,7 +1196,7 @@ void func_acropolis_cafeteria_8017EA90(Task* task)
 void func_acropolis_cafeteria_8017F390(Task* task)
 {
     TmdObject*  obj;
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s16         state;
@@ -1207,7 +1207,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     s32         pan;
 
     obj   = task->extra.tmd;
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     state = gRoomEffectState->effectControl;
     coord = obj->coords;
     if (state >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -1232,7 +1232,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
             work->angle  = 0;
             work->period = 0xB00;
         }
-        Gfx_RotMatrixY(&coord->coord, work->scale, 0);
+        gfxRotMatrixY(&coord->coord, work->scale, 0);
         task->state++;
         return;
     }
@@ -1318,7 +1318,7 @@ void func_acropolis_cafeteria_8017F390(Task* task)
     rot->m11_m12 = 0x1000;
     rot->m20_m21 = 0;
     rot->m22     = 0x1000;
-    Gfx_RotMatrixY(&coord->coord, work->scale, 0);
+    gfxRotMatrixY(&coord->coord, work->scale, 0);
     gte_ReadMatrixColumn(&coord->coord, 2, &work->move);
     work->move.vx       = (work->move.vx * work->angle) >> 16;
     work->move.vy       = (work->move.vy * work->angle) >> 16;

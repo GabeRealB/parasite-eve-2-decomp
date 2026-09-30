@@ -18,7 +18,7 @@ void hopperTrackPlayer(Task* arg0)
 
     work              = (Actor341700Work*)arg0->work;
     coord             = arg0->extra.tmd->coords;
-    player            = Gp_ActorSlots[0];
+    player            = gPlayerActorTasks[0];
     work->field_60.vx = coord->coord.t[0];
     work->field_60.vy = coord->coord.t[1];
     work->field_60.vz = coord->coord.t[2];
@@ -28,8 +28,8 @@ void hopperTrackPlayer(Task* arg0)
         d0.vy = other->coord.t[1] - coord->coord.t[1];
         d0.vz = other->coord.t[2] - coord->coord.t[2];
         dist  = SquareRoot0(d0.vx * d0.vx + d0.vz * d0.vz);
-        if (Gp_ActorSlots[1] != NULL) {
-            other = Gp_ActorSlots[1]->extra.tmd->coords;
+        if (gPlayerActorTasks[1] != NULL) {
+            other = gPlayerActorTasks[1]->extra.tmd->coords;
             d1.vx = other->coord.t[0] - coord->coord.t[0];
             d1.vy = other->coord.t[1] - coord->coord.t[1];
             d1.vz = other->coord.t[2] - coord->coord.t[2];

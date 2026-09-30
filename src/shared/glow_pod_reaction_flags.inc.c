@@ -6,25 +6,25 @@
 /// byte.
 void glowPodReactionFlags(Task* arg0)
 {
-    GpEnemy*     enemy;
+    Enemy*       enemy;
     GlowPodWork* work;
     u8           flags;
 
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = arg0->work;
     flags = enemy->reactionFlags;
     if (flags != 0) {
         if (flags & 1) {
             enemy->reactionFlags = flags & 0xFE;
         }
-        if (enemy->reactionFlags & 2) {
-            enemy->reactionFlags = enemy->reactionFlags & 0xFD;
+        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+            enemy->reactionFlags = enemy->reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
             work->field_286      = 3;
             work->field_28A      = 0;
         }
         flags = enemy->reactionFlags;
-        if (flags & 0xC) {
-            enemy->reactionFlags = flags & 0xF3;
+        if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+            enemy->reactionFlags = flags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }

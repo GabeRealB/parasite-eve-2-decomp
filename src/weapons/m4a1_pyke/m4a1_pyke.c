@@ -96,14 +96,14 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0);
 /// `age` back down instead of advancing.
 void func_m4a1_pyke_8011D1F8(Task* task)
 {
-    GpEffWork*    work;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GfxCoord*     light;
-    GpMtxWords*   rot;
-    GpEffWork*    eff;
-    u32           ang;
+    EffectWork*           work;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    GfxCoord*             light;
+    GpMtxWords*           rot;
+    EffectWork*           eff;
+    u32                   ang;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -200,7 +200,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
 #include "../../shared/pyke_flame_nozzle.inc.c"
 
 /// Per-frame task for one dart the Pyke throws. `Task::spawnArg2` is the
-/// `GpEffWork` holding the dart's velocity (`move` / `move.vy`
+/// `EffectWork` holding the dart's velocity (`move` / `move.vy`
 /// / `move.vz`), its age (`age`), its flare width (`scale`) and its
 /// spin angle (`angle`); `Task::extra` reaches the coordinate the dart flies
 /// on. Everything stops on cancellation (`gRoomEffectState->effectControl >=
@@ -221,7 +221,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
     SVECTOR       after;
     SVECTOR       before;
     GfxCoord*     coord;
-    GpEffWork*    work;
+    EffectWork*   work;
     M4a1PykeBeam* beam;
     s32           effectControl;
     u32           ang0;
@@ -422,7 +422,7 @@ static void func_m4a1_pyke_8011E168(VECTOR3* pos, s32 width)
 }
 
 /// Exit callback: unlinks the collision node leading `Task::work`, if one was
-/// linked, and releases the `GpEffWork` in `Task::spawnArg2`.
+/// linked, and releases the `EffectWork` in `Task::spawnArg2`.
 /// Hypervelocity carries an identical copy.
 static void func_m4a1_pyke_8011E4AC(Task* task)
 {
@@ -461,7 +461,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
@@ -568,7 +568,7 @@ static void func_m4a1_pyke_8011E4F8(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

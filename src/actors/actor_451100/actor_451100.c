@@ -83,9 +83,9 @@ extern u8                  D_actor_451100_8014E6FC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_451100_80132330(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80132330(Enemy* enemy, Task* task);
 static void func_actor_451100_801323B4(Task* task);
-static void func_actor_451100_80132C28(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80132C28(Enemy* enemy, Task* task);
 static void func_actor_451100_80132CAC(Task* task);
 static void func_actor_451100_80132CD4(Task* task);
 
@@ -325,7 +325,7 @@ AnimationPlayRequest D_actor_451100_801350F8 = { { .index = 1 }, 8, ANIMATION_BL
 
 Actor451100AnimStorage510C D_actor_451100_8013510C = { .data = { { &D_actor_451100_80134D70, &D_actor_451100_801333FC, &D_actor_451100_80133AF8, &D_actor_451100_80133D70 }, { { .words = D_actor_451100_8013510C.words }, 32 }, { { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE } }, { { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_451100_80134FC8 }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_451100_80134E88 }, { .value = 0 } }, { 4, { .value = 31 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 0 }, { .value = 2003 }, { .storage = &D_actor_451100_80134E9C }, { .value = 0 } }, { 1, { .value = 4 }, { .value = 1 }, { .value = 2003 }, { .storage = &D_actor_451100_80134FDC }, { .value = 0 } }, { 45, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } } } } };
 
-GpOverlayIds D_actor_451100_80135218 = { 5, 11, 11 };
+EvsSceneKey D_actor_451100_80135218 = { 5, 11, 11 };
 
 GpEvsCmd D_actor_451100_80135220[146] = {
     { 12, { .overlays = &D_actor_451100_80135218 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1450,8 +1450,8 @@ Task* D_actor_451100_8014E748;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task);
-static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80131E24(Enemy* enemy, Task* task);
+static void func_actor_451100_801328A8(Enemy* enemy, Task* task);
 
 /// State 0 of the `func_actor_451100_801322D4` dispatcher: allocates the work
 /// block, publishes it in `gFootstepWalkWork` and on the task's work
@@ -1461,7 +1461,7 @@ static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
 /// Every access to the block after the null check goes through
 /// `gFootstepWalkWork` rather than the `memCalloc` result, which is why
 /// the pointer is reloaded at each use.
-static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor260500Work* work;
@@ -1511,7 +1511,7 @@ static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task)
 /// task.
 void func_actor_451100_801322D4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_451100_80131E24,
         func_actor_451100_80132330,
     };
@@ -1612,13 +1612,13 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 /// callee-saved home it needs across the calls below. Assigning the call result
 /// straight to `work` collapses the two into one pseudo and puts `$s1` in all
 /// three places.
-static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
+static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
     void*            block;
 
     obj        = task->extra.tmd;
@@ -1661,10 +1661,10 @@ static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
 /// Task handler of the actor whose work block lives only on its task, entry 0
 /// of `D_actor_451100_8014E6E4`: runs the handler for the task's state from a
 /// two-entry table built on the stack (0 spawns, 1 runs a frame), passing the
-/// task's `GpEnemy` as well as the task.
+/// task's `Enemy` as well as the task.
 void func_actor_451100_80132BD4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_451100_801328A8,
         func_actor_451100_80132C28,
     };
@@ -1751,7 +1751,7 @@ s32 func_actor_451100_80132FE8(Task* task, s32 arg1, VECTOR* target)
     dz           = target->vz - coord->coord.t[2];
     yaw          = ratan2(dx, dz);
     work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
+    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
     work->st.travel = SquareRoot0(dx * dx + dz * dz) / 17;
     return 0;
 }

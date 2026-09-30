@@ -27,7 +27,7 @@ static __inline__ void lungerSpawnDust(Task* actor)
 /// the `field_6A6` table with animation 0x14.
 static inline void lungerApplyReaction(Task* actor)
 {
-    GpEnemy*         spawn;
+    Enemy*           spawn;
     Actor105600Work* work;
     u8               flags;
 

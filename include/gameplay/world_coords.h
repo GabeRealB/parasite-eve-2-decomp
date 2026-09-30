@@ -13,21 +13,21 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-struct GpEnemy;
+struct Enemy;
 
 extern GpCoord64 Gp_RoomCoords[8];
 
 void func_800D7A9C(TmdObject* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
-/// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
+/// from `colorMode` (`Gp_RemapActorColor`). While `colorBlend` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
-/// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
+/// (`colorMode` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `gGameSession->sceneUpdatesPaused == 1` unless `TmdObject.flags` bit
 /// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
-void Gp_UpdateActorColor(struct GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void Gp_UpdateActorColor(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 
-void Gp_SetLightMode(struct GpEnemy* arg0, s32 arg1);
+void Gp_SetLightMode(struct Enemy* arg0, s32 arg1);
 
 /// How far a coordinate's origin lies from the current view's projection plane,
 /// in the form the sound events take their depth argument: saturated to ±0x7FFF

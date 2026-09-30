@@ -7,7 +7,7 @@
 /// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. The task's message table
 /// becomes the one holding the animation-start and visibility handlers.
-void viewFigureSpawnState(GpEnemy* enemy, Task* task)
+void viewFigureSpawnState(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     void*      work;

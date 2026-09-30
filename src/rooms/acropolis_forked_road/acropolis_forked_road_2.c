@@ -75,12 +75,12 @@
 extern SVECTOR D_acropolis_forked_road_80180F80[];
 
 /// The script pair the streamed scene runs.
-extern GpScriptCmd D_acropolis_forked_road_80185058[6];
-extern GpScriptRec D_acropolis_forked_road_80185070[2];
+extern PadScriptCmd D_acropolis_forked_road_80185058[6];
+extern GpScriptRec  D_acropolis_forked_road_80185070[2];
 
 /// The script pair the return ride runs.
-extern GpScriptCmd D_acropolis_forked_road_80185038[6];
-extern GpScriptRec D_acropolis_forked_road_80185050[2];
+extern PadScriptCmd D_acropolis_forked_road_80185038[6];
+extern GpScriptRec  D_acropolis_forked_road_80185050[2];
 
 /// The fourteen spawn offsets of the forked road's ambient effects, indexed
 /// 0..13 by the first-frame burst below.
@@ -654,81 +654,81 @@ GpObj4C D_acropolis_forked_road_80182DDC[7] = {
 
 GpAreaTmdRec D_acropolis_forked_road_80182FF0[2] = {
     { 19, 19, 2, 0, { 0, 0 }, D_80179120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183008[3] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018302C[2] = {
     { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183044[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183068[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183080[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183098[3] = {
     { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830BC[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830D4[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_801830EC[2] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183104[2] = {
     { 37, 37, 0, 0, { 0, 0 }, D_80139DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018311C[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183134[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_8018314C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183164[3] = {
     { 46, 46, 0, 0, { 0, 0 }, D_80137698 },
     { 47, 47, 0, 0, { 0, 0 }, D_801382BC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_forked_road_80183188[5] = {
@@ -736,7 +736,7 @@ GpAreaTmdRec D_acropolis_forked_road_80183188[5] = {
     { 71, 71, 0, 0, { 0, 0 }, D_80139E60 },
     { 72, 72, 1, 0, { 0, 0 }, D_80153EC8 },
     { 73, 73, 1, 0, { 0, 0 }, D_8014E7A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_forked_road_801831C4[24] = {
@@ -1094,7 +1094,7 @@ GpSprtRec D_acropolis_forked_road_801844E0[12] = {
     { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },
 };
 
-GpPointLight D_acropolis_forked_road_80184570[24] = {
+WorldCoordPointLight D_acropolis_forked_road_80184570[24] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5613, -698, -1760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2621, 2621 }, { 0, 0 } }, 109, 4700 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8121, -599, -1760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2703, 2621, 2621 }, { 0, 0 } }, 701, 3078 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6800, -720, -1259 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 2703, 2621 }, { 0, 0 } }, 759, 3078 },
@@ -1140,13 +1140,13 @@ GpViewRec D_acropolis_forked_road_80184E88[12] = {
     { { { { 1174, 0, -3924 }, { -167, 4092, -50 }, { 3920, 174, 1173 } }, { 5150, 1500, 1530 } }, 235 },
 };
 
-GpScriptCmd D_acropolis_forked_road_80185038[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 4099, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_forked_road_80185038[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 16), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_forked_road_80185050[2] = {
@@ -1154,13 +1154,13 @@ GpScriptRec D_acropolis_forked_road_80185050[2] = {
     { 60, 60, 1, 0 },
 };
 
-GpScriptCmd D_acropolis_forked_road_80185058[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 9731, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_forked_road_80185058[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 38), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_forked_road_80185070[2] = {
@@ -1283,11 +1283,11 @@ void func_acropolis_forked_road_8017DA24(Task* task)
             Gp_StateF0.field_4 = 0;
             func_800E9BDC(2, 0x9FF);
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0xA;
-            Mc_SaveData[0].state.location.loc.warp  = 4;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0xA;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Task_Spawn(0, 0x11, 0, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
@@ -1336,7 +1336,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA4, 0, 0);
             weaponId                 = Player_Status.weapon;
-            rec.source.index         = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
             rec.blendFrames          = 0;
@@ -1399,7 +1399,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(5);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
@@ -1501,14 +1501,14 @@ void func_acropolis_forked_road_8017E410(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
-    GpEffWork*        work;
+    EffectWork*       work;
     GfxCoord*         coord;
     POLY_FT4*         prim;
     s32               rgb;
     s32               flicker;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {

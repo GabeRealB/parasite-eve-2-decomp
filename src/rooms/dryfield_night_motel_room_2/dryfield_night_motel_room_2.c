@@ -65,7 +65,7 @@ extern GpObj4C        D_dryfield_night_motel_room_2_801803B8[6];
 extern GpRoomCoordSet D_dryfield_night_motel_room_2_80180928[1];
 
 extern DryfieldNightMotelRoom2SpotLightStorage D_dryfield_night_motel_room_2_80180778;
-extern GpPointLight                            D_dryfield_night_motel_room_2_801805F8[4];
+extern WorldCoordPointLight                    D_dryfield_night_motel_room_2_801805F8[4];
 
 GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMainStreetMsg },
@@ -624,7 +624,7 @@ GpObj3A D_dryfield_night_motel_room_2_80180580[2] = {
     { NULL, NULL, { 1600, -1312, 4896, 0 }, { { 0, -1952, 1024, 0 }, { 0, -1952, -1024, 0 }, { 0, 1952, 1024, 0 }, { 0, 1952, -1024, 0 } }, { -4101, 0, 0, 0 }, { -102, 8 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_night_motel_room_2_801805F8[4] = {
+WorldCoordPointLight D_dryfield_night_motel_room_2_801805F8[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2346, -1185, 535 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3690, 3360, 3150 }, { 0, 0 } }, 561, 1501 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3813, -1893, 4098 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2900, 3200, 3450 }, { 0, 0 } }, 1161, 2993 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2482, -2113, 2033 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1064, 983, 901 }, { 0, 0 } }, 700, 3100 },
@@ -970,18 +970,18 @@ GpRoomCoordSet D_dryfield_night_motel_room_2_80180928[1] = {
 GpAreaTmdRec D_dryfield_night_motel_room_2_80180940[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_room_2_80180964[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_room_2_8018097C[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_motel_room_2_801809A0[22] = {

@@ -17,11 +17,11 @@ extern AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2];
 
 extern TaskDesc D_acropolis_observatory_8017FE6C;
 
-extern GpScriptCmd D_acropolis_observatory_80183480[6];
+extern PadScriptCmd D_acropolis_observatory_80183480[6];
 
 extern GpScriptRec D_acropolis_observatory_80183498[2];
 
-extern GpScriptCmd D_acropolis_observatory_801834A0[6];
+extern PadScriptCmd D_acropolis_observatory_801834A0[6];
 
 extern GpScriptRec D_acropolis_observatory_801834B8[2];
 

@@ -247,7 +247,7 @@ GpSprtRec D_shelter_b1_golem_freezer_1_8017EDB0[7] = {
     { { .empty = D_shelter_b1_golem_freezer_1_8017EDA0 }, D_shelter_b1_golem_freezer_1_8017EDA0, NULL },
 };
 
-GpPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
+WorldCoordPointLight D_shelter_b1_golem_freezer_1_8017EE04[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2916, -3502, -3635 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 2048, 1865 }, { 0, 0 } }, 6500, 8500 },
 };
 
@@ -269,12 +269,12 @@ GpObj4C D_shelter_b1_golem_freezer_1_8017EFAC[5] = {
 };
 
 GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F128[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_golem_freezer_1_8017F134[2] = {
     { 143, 607, 0, 0, { 0, 0 }, D_801416A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_golem_freezer_1_8017F14C[1] = {
@@ -531,12 +531,12 @@ void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
 
 void func_shelter_b1_golem_freezer_1_8017DFFC(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {

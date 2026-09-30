@@ -269,7 +269,7 @@ AnimationPlayRequest D_acropolis_roof_garden_80183D44 = { { .index = 0 }, 4, ANI
 
 AnimationPlayRequest D_acropolis_roof_garden_80183D58 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
+EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
 GpEvsCmd D_acropolis_roof_garden_80183D74[44] = {
     { 12, { .overlays = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -536,25 +536,25 @@ GpObj4C D_acropolis_roof_garden_80185690[7] = {
 GpAreaTmdRec D_acropolis_roof_garden_801858A4[3] = {
     { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
     { 55, 55, 1, 0, { 0, 0 }, D_801528DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_roof_garden_801858C8[3] = {
     { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_roof_garden_801858EC[3] = {
     { 110, 108, 0, 0, { 0, 0 }, D_80139EDC },
     { 26, 26, 1, 0, { 0, 0 }, D_801528D4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_roof_garden_80185910[3] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_roof_garden_80185934[12] = {
@@ -795,7 +795,7 @@ GpSprtRec D_acropolis_roof_garden_80186648[7] = {
     { { .empty = D_acropolis_roof_garden_80186638 }, D_acropolis_roof_garden_80186638, NULL },
 };
 
-GpPointLight D_acropolis_roof_garden_8018669C[14] = {
+WorldCoordPointLight D_acropolis_roof_garden_8018669C[14] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5884, -700, -9680 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6210, -700, -2566 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 3276 }, { 0, 0 } }, 500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4984, -100, -5134 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 3276, 4096 }, { 0, 0 } }, 100, 1500 },
@@ -1087,8 +1087,8 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
 {
     arg0->msgTable = D_acropolis_roof_garden_80183BDC;
     Game_SetPtrSlot(arg0, 7);
-    if (Mc_SaveData[0].state.sceneEvent == 6) {
-        Mc_SaveData[0].state.sceneEvent = 5;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }
     Task_SpawnFromTable(D_acropolis_roof_garden_80183C10, 0, 0, 0);
     arg0->state += 1;
@@ -1131,10 +1131,10 @@ void func_acropolis_roof_garden_8017DCCC(void)
 /// `0x30 >> view - 1` bit test) and one while it is 7.
 void func_acropolis_roof_garden_8017DCDC(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        i;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         i;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -1184,7 +1184,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
 /// frames so the sprite flickers.
 void func_acropolis_roof_garden_8017DE90(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;

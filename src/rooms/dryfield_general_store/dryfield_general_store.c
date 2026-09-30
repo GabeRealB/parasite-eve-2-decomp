@@ -56,9 +56,9 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc gStoreTaskDescs[];
 
-/// The stage byte `Mc_SaveData[0].state.location.loc.view` held when the cutscene began, saved by
+/// The stage byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` held when the cutscene began, saved by
 /// `storeCutsceneTask`'s first state and restored into
-/// `Mc_SaveData[0].state.location.loc.view` when the cutscene is cut short.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` when the cutscene is cut short.
 extern u8 gStoreSavedView;
 
 /// The two script arguments, latched from the message that armed the cutscene
@@ -1440,7 +1440,7 @@ GpObj3A D_dryfield_general_store_80184F78[4] = {
     { NULL, NULL, { 1824, -64, 1568, 0 }, { { 0, -768, 1376, 0 }, { 0, -640, -1376, 0 }, { 0, 640, 1376, 0 }, { 0, 768, -1376, 0 } }, { -4100, 0, 0, 0 }, { 36, 6 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_general_store_80185068[12] = {
+WorldCoordPointLight D_dryfield_general_store_80185068[12] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
@@ -1481,13 +1481,13 @@ WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {
 
 GpAreaTmdRec D_dryfield_general_store_80185588[2] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_general_store_801855A0[3] = {
     { 140, 236, 1, 0, { 0, 0 }, D_80150B48 },
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_general_store_801855C4[9] = {

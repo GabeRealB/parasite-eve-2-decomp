@@ -146,10 +146,10 @@ void func_acropolis_fountain_8017D868(Task* task)
 
         case 2:
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 3;
-            Mc_SaveData[0].state.location.loc.room = 3;
-            Mc_SaveData[0].state.location.loc.warp = D_acropolis_fountain_80183BB0;
-            gDisplayState.spriteVariant            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_fountain_80183BB0;
+            gDisplayState.spriteVariant                                = 1;
             Task_Spawn(0, 0x11, 0, 0);
             GameFlag_SetNibble(0, 5);
             taskKill(task);

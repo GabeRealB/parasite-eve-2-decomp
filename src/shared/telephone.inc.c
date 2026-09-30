@@ -84,7 +84,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A20);
-            Text_FormatTime(p, Mc_SaveData[0].state.playTime);
+            Text_FormatTime(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
         }
@@ -101,7 +101,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A50);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.saveCount);
+            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
             Text_Strcat(p, Telephone_Data_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -119,7 +119,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A28);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.battlesWon);
+            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
             Text_Strcat(p, Telephone_Data_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -137,7 +137,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A2C);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.battlesEscaped);
+            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             Text_Strcat(p, Telephone_Data_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -160,10 +160,10 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A34);
-            if (Mc_SaveData[0].state.battlesWon == 0) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon == 0) {
                 pct = 0;
             } else {
-                pct = (Mc_SaveData[0].state.battlesWon * 10000) / (Mc_SaveData[0].state.battlesWon + Mc_SaveData[0].state.battlesEscaped);
+                pct = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon * 10000) / (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
             }
             if (pct < 100) {
                 Text_ItoaPadded(p, pct, 3);
@@ -201,7 +201,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             s32         i;
             u8*         q;
 
-            total          = Mc_SaveData[0].state.battlesWon;
+            total          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon;
             req.x          = arg1->panel.contentOriginX.unsignedValue + (u16)arg0->field_18;
             y              = arg1->panel.contentOriginY.unsignedValue - 6;
             req.y          = (u16)arg0->field_1A + y;
@@ -258,7 +258,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A58);
-            Text_ItoaUnsigned(p, Mc_SaveData[0].state.clearCount);
+            Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
             Text_Strcat(p, Telephone_Data_80181A70);
             Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, buf, arg0->field_1C, 3, 2);
             break;
@@ -276,7 +276,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A60);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.maxExp), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp), arg0->field_1C, 3, 2);
             break;
         }
         case 8: {
@@ -292,7 +292,7 @@ static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1)
             req.alignment  = TEXT_ALIGNMENT_LEFT;
             req.drawMode   = TEXT_DRAW_OUTLINED;
             Text_DrawString(&req, Telephone_Data_80181A68);
-            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, Mc_SaveData[0].state.maxBp), arg0->field_1C, 3, 2);
+            Text_DrawPrompt(arg1, -arg0->field_18, arg0->field_1A, Text_ItoaUnsigned(p, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp), arg0->field_1C, 3, 2);
             break;
         }
     }
@@ -437,7 +437,7 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
 }
 
 /// Builds the "Play Data" item-usage panel's three parallel arrays from the
-/// save's per-item use counters (`Mc_SaveData[0].state.weaponUseCounts`, ids 0x80-0x9F).
+/// save's per-item use counters (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts`, ids 0x80-0x9F).
 ///
 /// Every id whose name is non-empty (a leading 0 or 0xA marks an unused row)
 /// and whose counter is non-zero is marked seen and appended to `itemIds`,
@@ -472,19 +472,19 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
     for (i = 0; i < 0x20; i++) {
         id = i + 0x80;
         c  = *Gp_GetItemText(id, 0, 1);
-        if ((c != 0) && (c != 0xA) && (Mc_SaveData[0].state.weaponUseCounts[i] > 0)) {
+        if ((c != 0) && (c != 0xA) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i] > 0)) {
             Gp_SetItemSeenBit(id, 1);
             *p++ = id;
             count++;
-            total += Mc_SaveData[0].state.weaponUseCounts[i];
+            total += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
-            uses = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80];
+            uses = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[i] - 0x80];
             for (j = 0; j < i; j++) {
-                if (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[j] - 0x80] < uses) {
                     tmp = work->itemIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->itemIds[k + 1] = work->itemIds[k];
@@ -498,7 +498,7 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 
     if (count > 0) {
         scale = 0x4E20;
-        top   = Mc_SaveData[0].state.weaponUseCounts[work->itemIds[0] - 0x80];
+        top   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[0] - 0x80];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -508,9 +508,9 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             work->percents[i] =
-                (u32)((Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
+                (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[i] - 0x80] * scale) / total + 1) >> 1;
             work->barWidths[i] =
-                (Mc_SaveData[0].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
+                (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[work->itemIds[i] - 0x80] << shift) / top;
         }
     }
 
@@ -524,10 +524,10 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
 /// per-slot use counters.
 ///
 /// Each of the twelve Parasite Energy slots owns three consecutive ids starting
-/// at 0xF, one per level, so slot `i` at level `Mc_SaveData[0].state.attachLevels[i]`
+/// at 0xF, one per level, so slot `i` at level `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[i]`
 /// prints as `i * 3 + 0xF + level - 1` (a slot the player has never levelled
 /// keeps the base id). Every slot with a non-zero counter in
-/// `Mc_SaveData[0].state.attachUseCounts` is appended and its counter summed. Levels
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts` is appended and its counter summed. Levels
 /// are addressed by page and column, with three slots per page. The ids are
 /// then insertion-sorted by use count, most-used first, and each row gets
 /// `percents`, its share of all recorded uses in hundredths of a percent, and
@@ -560,7 +560,7 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
     for (; i < 12; i++) {
         s32 useCount;
 
-        useCount = Mc_SaveData[0].state.attachUseCounts[i];
+        useCount = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[i];
         id       = i * 3 + 0xF;
         if (useCount > 0) {
             s32 page;
@@ -569,22 +569,22 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
             page   = i / 3;
             column = i % 3;
             *p     = id;
-            if (Mc_SaveData[0].state.attachLevels[column + page * 3] != 0) {
-                *p = id + (Mc_SaveData[0].state.attachLevels[column + page * 3] - 1u);
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[column + page * 3] != 0) {
+                *p = id + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[column + page * 3] - 1u);
             }
             p++;
             count++;
-            total += Mc_SaveData[0].state.attachUseCounts[i];
+            total += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[i];
         }
     }
 
     if (count >= 2) {
         for (i = 1; i < count; i++) {
             slot = (work->peIds[i] - 0xF) / 3;
-            uses = Mc_SaveData[0].state.attachUseCounts[slot];
+            uses = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot];
             for (j = 0; j < i; j++) {
                 slot = (work->peIds[j] - 0xF) / 3;
-                if (Mc_SaveData[0].state.attachUseCounts[slot] < uses) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] < uses) {
                     tmp = work->peIds[i];
                     for (k = i - 1; k >= j; k--) {
                         work->peIds[k + 1] = work->peIds[k];
@@ -599,7 +599,7 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
     if (count > 0) {
         scale = 0x4E20;
         slot  = (work->peIds[0] - 0xF) / 3;
-        top   = Mc_SaveData[0].state.attachUseCounts[slot];
+        top   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot];
         shift = 0xC;
         while (top > 0x1869F) {
             top   >>= 1;
@@ -609,9 +609,9 @@ static void Telephone_BuildPeUsage(UiList* list, UiObject* obj)
         }
         for (i = 0; i < count; i++) {
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->percents[i]  = (u32)((Mc_SaveData[0].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
+            work->percents[i]  = (u32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] * scale) / total + 1) >> 1;
             slot               = (work->peIds[i] - 0xF) / 3;
-            work->barWidths[i] = (Mc_SaveData[0].state.attachUseCounts[slot] << shift) / top;
+            work->barWidths[i] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[slot] << shift) / top;
         }
     }
 
@@ -700,10 +700,10 @@ static inline void Telephone_MenuTask(Task* task)
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    ready       = Mc_SaveData[0].state.demoScene == 1;
+    ready       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1;
     list        = &Telephone_Data_80181CF4;
     one         = 1;
-    if (Mc_SaveData[0].state.clearCount > 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         ready = one;
     }
     if (ready == 0) {

@@ -17,7 +17,7 @@ void stalkerHoldCueTimer(Task* arg0)
     slot  = gameGetPtrSlot(3);
     if (work->field_718 != 0) {
         if (work->field_71A == 0x14) {
-            sound = gStalkerHoldCue | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+            sound = gStalkerHoldCue | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan   = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
         }

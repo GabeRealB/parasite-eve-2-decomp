@@ -7,9 +7,9 @@ void hopperSetAlertHold(Task* arg0, s32 arg1)
 {
     if ((arg1 << 0x10) != 0) {
         if (!((s8)Gp_StateF0.field_1F & 0x80)) {
-            Gp_StateF0.field_1F = (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) | 0x80;
+            Gp_StateF0.field_1F = (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) | 0x80;
         }
-    } else if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
+    } else if ((Gp_StateF0.field_1F & 0xF) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         Gp_StateF0.field_1F = 0;
     }
 }

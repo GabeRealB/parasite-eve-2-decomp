@@ -139,8 +139,8 @@ void func_800E44A0(Task* task)
         if (spawnDelay != 0) {
             return;
         }
-        D_8011566D                             = Mc_SaveData[0].state.location.loc.view;
-        Mc_SaveData[0].state.location.loc.view = D_80115694;
+        D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
         Stage_RequestImageCapture();
         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
@@ -174,7 +174,7 @@ void func_800E44A0(Task* task)
     return;
 resumeView:
     if (D_801156A4 & 0x20) {
-        if (Mc_SaveData[0].state.demoScene == 5) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 5) {
             SndEvt_EnqueueType6(0, 0, 0);
         }
         D_801155BB  = 0;
@@ -224,10 +224,10 @@ resumeView:
                 D_801155B6 = Gp_CapTextHeight(Gp_CapTable[(s16)D_801155AE].field_8.text);
                 nextView   = view & 0xFF;
                 D_801155BB = 0;
-                if ((nextView != 0) && (nextView != Mc_SaveData[0].state.location.loc.view)) {
+                if ((nextView != 0) && (nextView != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
                     if (D_80115688 == 0) {
-                        Mc_SaveData[0].state.location.loc.view = view;
-                        D_801155BB                             = 1;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
+                        D_801155BB                                                 = 1;
                         if (gDisplayState.debugMode != 0) {
                             if (D_8011564A == -1) {
                                 D_8011564A = 0;
@@ -293,8 +293,8 @@ resumeView:
                 spawnDialog:
                     D_801155A0.done = 0;
                     if (D_80115666 == 1) {
-                        D_8011566D                             = Mc_SaveData[0].state.location.loc.view;
-                        Mc_SaveData[0].state.location.loc.view = D_80115694;
+                        D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
                         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
@@ -307,7 +307,7 @@ resumeView:
                 }
                 if (D_801155A0.done != 0) {
                     if (D_80115666 != 0) {
-                        Mc_SaveData[0].state.location.loc.view = D_8011566D;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566D;
                     }
                     D_801155AC = 0;
                     if (D_801155A0.field_3 == 0) {
@@ -687,7 +687,7 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 } else {
                     sel = Gp_FindViewIndex(code & 0xFF);
                 }
-                if (Mc_SaveData[0].state.location.loc.view != sel) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != sel) {
                     if (D_80115666 != 0) {
                         Stage_BeginTransition(sel, 1);
                         D_801155BC = 2;
@@ -696,9 +696,9 @@ u16 func_800E5578(u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                             Gp_MsgPlayer3F3(0);
                             Gp_MsgAlly3F3(0);
                         }
-                        Mc_SaveData[0].state.location.loc.view = sel;
-                        gGameSession->hideHud                  = 1;
-                        Gp_StateF0.field_4                     = 2;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = sel;
+                        gGameSession->hideHud                                      = 1;
+                        Gp_StateF0.field_4                                         = 2;
                     }
                 }
                 i++;
@@ -873,7 +873,7 @@ void Gp_CapExit(Task* arg0)
         Gp_DispatchMsg(gameGetPtrSlot(5), 0xBB8, 0, 0);
     }
     if (D_80115666 != 0) {
-        if (Mc_SaveData[0].state.location.loc.view == D_8011566C) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == D_8011566C) {
             Stage_SetEndingFlag();
         } else {
             queue->imageMdecMode = D_8011565C;
@@ -885,8 +885,8 @@ void Gp_CapExit(Task* arg0)
         Gp_StateF0.field_4 = 0;
     }
     if (gGameSession->eventState == 0) {
-        gGameSession->hideHud                  = 0;
-        Mc_SaveData[0].state.location.loc.view = D_8011566C;
+        gGameSession->hideHud                                      = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
         Gp_MsgPlayer3F3(1);
         Gp_MsgAlly3F3(1);
         if (gDisplayState.debugMode != 0) {
@@ -897,8 +897,8 @@ void Gp_CapExit(Task* arg0)
     block_11:
         if (gDisplayState.debugMode != 0 && D_801156F4.overlays != 0) {
             sprintf(
-                buf, Gp_StrEvsFmt, D_801156F4.overlays->field_0, D_801156F4.overlays->field_2,
-                D_801156F4.overlays->field_4);
+                buf, Gp_StrEvsFmt, D_801156F4.overlays->group, D_801156F4.overlays->streamId,
+                D_801156F4.overlays->subId);
             func_807244CC(buf);
         }
     }

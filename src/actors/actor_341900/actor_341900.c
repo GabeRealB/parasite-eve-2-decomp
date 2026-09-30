@@ -180,14 +180,14 @@ typedef struct Actor341900AnimCmd {
 STATIC_ASSERT_SIZEOF(Actor341900AnimCmd, 0x14);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
-/// base weapon id records are numbered from, and `Mc_SaveData[0].state.characterId` selects the
+/// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
 /// beside `gStageSceneMusicEntry`.
 
-extern void func_80143490(s32 arg0);
-extern s32  D_80144A74;
-extern s32  D_80144A7C;
+extern void         func_80143490(s32 arg0);
+extern PadScriptCmd D_80144A74[2];
+extern s32          D_80144A7C;
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];
@@ -230,26 +230,26 @@ extern GpEvsCmd D_actor_341900_80163B48[];
 extern GpEvsCmd D_actor_341900_80163FB0[];
 extern TaskDesc D_actor_341900_80164190[];
 
-extern GpOverlayIds D_actor_341900_80163B40;
-void                func_actor_341900_80162200(Task*);
-void                func_actor_341900_801625B4(Task*);
-void                func_actor_341900_80162708(Task*);
-void                func_actor_341900_80162EFC(Task*);
-void                func_actor_341900_80163148(Task*);
-void                func_actor_341900_80163334(s16);
-void                func_actor_341900_80163388(s32);
-void                func_actor_341900_801633C0(s32);
-void                func_actor_341900_801633F8(void);
-void                func_actor_341900_80163438(void);
-void                func_actor_341900_80163488(void);
-void                func_actor_341900_801634D0(void);
-void                func_actor_341900_80163534(void);
-void                func_actor_341900_80163564(s16);
-void                func_actor_341900_80163584(s16);
-void                func_actor_341900_801635A4(void);
-void                func_actor_341900_80163638(void);
-void                func_actor_341900_80163658(void);
-void                func_actor_341900_80163678(void);
+extern EvsSceneKey D_actor_341900_80163B40;
+void               func_actor_341900_80162200(Task*);
+void               func_actor_341900_801625B4(Task*);
+void               func_actor_341900_80162708(Task*);
+void               func_actor_341900_80162EFC(Task*);
+void               func_actor_341900_80163148(Task*);
+void               func_actor_341900_80163334(s16);
+void               func_actor_341900_80163388(s32);
+void               func_actor_341900_801633C0(s32);
+void               func_actor_341900_801633F8(void);
+void               func_actor_341900_80163438(void);
+void               func_actor_341900_80163488(void);
+void               func_actor_341900_801634D0(void);
+void               func_actor_341900_80163534(void);
+void               func_actor_341900_80163564(s16);
+void               func_actor_341900_80163584(s16);
+void               func_actor_341900_801635A4(void);
+void               func_actor_341900_80163638(void);
+void               func_actor_341900_80163658(void);
+void               func_actor_341900_80163678(void);
 
 void func_actor_341900_80161FD0(Task*, s32, Actor341900AnimCmd*);
 void func_actor_341900_8016332C(void);
@@ -351,7 +351,7 @@ ActorTransform D_actor_341900_80163B10 = { { 1000, 0, -1900, 0 }, { 0, 3072, 0, 
 
 ActorTransform D_actor_341900_80163B28 = { { 4000, 0, -1900, 0 }, { 0, 3072, 0, 0 } };
 
-GpOverlayIds D_actor_341900_80163B40 = { 4, 19, 11 };
+EvsSceneKey D_actor_341900_80163B40 = { 4, 19, 11 };
 
 GpEvsCmd D_actor_341900_80163B48[47] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
@@ -747,7 +747,7 @@ static void func_actor_341900_801628B8(Task* arg0)
                 s32 anim;
 
                 weaponId                 = Player_Status.weapon;
-                anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 msg.source.index         = anim;
                 msg.animationId          = 1;
                 msg.blend                = ANIMATION_BLEND_RESET;
@@ -787,7 +787,7 @@ static void func_actor_341900_801628B8(Task* arg0)
             s32 anim;
 
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 9;
             msg.blend                = ANIMATION_BLEND_RESET;
@@ -970,8 +970,8 @@ void func_actor_341900_80162EFC(Task* arg0)
             gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             goto next;
         case 1:
-            gStageSceneMusicEntry           = 4;
-            Mc_SaveData[0].state.sceneEvent = 0xC;
+            gStageSceneMusicEntry                               = 4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xC;
             func_800E8634(D_actor_341900_80163B48, 0, D_actor_341900_80163FB0);
         next:
             arg0->state += 1;
@@ -1140,7 +1140,7 @@ void func_actor_341900_801635A4(void)
 
     work                     = (Actor341900Work*)D_actor_341900_80164208->work;
     weaponId                 = Player_Status.weapon;
-    anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     msg.source.index         = anim;
     msg.animationId          = 9;
     msg.blend                = ANIMATION_BLEND_RESET;

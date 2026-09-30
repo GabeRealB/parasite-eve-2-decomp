@@ -1191,10 +1191,10 @@ void func_actor_160600_80131E24(void)
 
 /// The actor's task body: dispatches on `Task::state` to the spawn routine
 /// (state 0) or the per-frame body (state 1), handing each the task's
-/// `GpEnemy` from `Task::spawnArg2`. The handler table is built on the stack.
+/// `Enemy` from `Task::spawnArg2`. The handler table is built on the stack.
 void func_actor_160600_801321B4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         pacedWalkSpawn,
         pacedWalkFrame,
     };
@@ -1204,7 +1204,7 @@ void func_actor_160600_801321B4(Task* task)
 
 #include "../../shared/paced_walk_spawn.inc.c"
 
-/// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
+/// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
 void pacedWalkExit(Task* task)
 {

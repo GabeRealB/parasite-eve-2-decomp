@@ -45,12 +45,11 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The event the room's gate `roomEventGate`
 /// latched: the incoming message and the request, kept for the event task it
@@ -189,7 +188,7 @@ GpSprtRec D_dryfield_night_g_r_kitchen_8017E6A8[3] = {
     { { .empty = D_dryfield_night_g_r_kitchen_8017E698 }, D_dryfield_night_g_r_kitchen_8017E698, NULL },
 };
 
-GpPointLight D_dryfield_night_g_r_kitchen_8017E6CC[4] = {
+WorldCoordPointLight D_dryfield_night_g_r_kitchen_8017E6CC[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2400, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 3200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1800, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1300, -1800, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
@@ -218,20 +217,20 @@ GpObj4C D_dryfield_night_g_r_kitchen_8017E8FC[7] = {
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB10[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB34[4] = {
     { 40, 40, 0, 0, { 0, 0 }, D_8013E500 },
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_g_r_kitchen_8017EB64[3] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
     { 40, 40, 1, 0, { 0, 0 }, D_80156500 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_g_r_kitchen_8017EB88[12] = {
@@ -276,12 +275,7 @@ GpRoomParamRec* D_dryfield_night_g_r_kitchen_8017EC04[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    0,
-    222,
-    254,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 0, 222, 254 } };
 
 RoomEventReq gRoomEventReq;
 

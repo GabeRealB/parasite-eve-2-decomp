@@ -9,7 +9,7 @@
 /// forward axis by `field_3A`, and the counter is bumped; at 0xF frames the
 /// object is unlinked and the actor switches to state 2, otherwise `field_3A`
 /// decays by an LCG-derived 0..0x1F and clamps at zero.
-void spiderPuffTick(GpEnemy* arg0, Task* arg1)
+void spiderPuffTick(Enemy* arg0, Task* arg1)
 {
     ActorsShared80135c4cObjWork* work;
     GfxCoord*                    coord;

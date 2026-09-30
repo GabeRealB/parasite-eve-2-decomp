@@ -56,6 +56,28 @@ typedef struct {
 } WorldCollisionContact;
 STATIC_ASSERT_SIZEOF(WorldCollisionContact, 0x18);
 
+/// Segment-and-radii shape carried by a kind-3 collision body.
+///
+/// `ends[0]` and `ends[1]` are offsets from the body's position, in the body's
+/// own frame, so the shape moves with it. The grid walk uses the XZ of both
+/// endpoints; the hit test uses the full segment. Pair passes test the cylinder
+/// that segment and the two end radii describe: a capsule when the radii are
+/// equal, and a taper between them when they are not. Endpoint components and
+/// radii are game-coordinate units.
+///
+/// `contacts` is the table the passes fill as this body makes contacts. The
+/// owner initializes it, including its final-entry flag, and keeps it alive
+/// until the body is unlinked. Several bodies may share one table. A weapon
+/// re-arms the shape as it unfolds, moving one endpoint out along its reach
+/// and widening that end's radius with the spread.
+typedef struct {
+    SVECTOR                ends[2];    // Local segment endpoints, [0] then [1]
+    s16                    end0Radius; // Radius at ends[0], in game-coordinate units
+    s16                    end1Radius; // Radius at ends[1]; equal to end0Radius unless the cylinder tapers
+    WorldCollisionContact* contacts;   // Borrowed contact table, terminated by the final-entry flag
+} WorldCollisionCapsule;
+STATIC_ASSERT_SIZEOF(WorldCollisionCapsule, 0x18);
+
 /// Motion direction and contact storage for a kind-4 spherical collision body.
 ///
 /// The direction uses the body's cached transform's composition space, with

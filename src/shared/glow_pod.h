@@ -26,7 +26,7 @@
 
 /// The pod enemy's 0x2B0-byte work block, allocated by its
 /// spawn state and parked in `Task::work`. It carries three `WorldCollisionBody` bodies:
-/// the first points its `context.capsule` at the `GpActorD4Rec` after it, the other
+/// the first points its `context.capsule` at the `WorldCollisionCapsule` after it, the other
 /// two point at their own `WorldCollisionContact` tables.
 typedef struct GlowPodWork {
     /* 0x000 */ AnimationContext      context;
@@ -35,7 +35,7 @@ typedef struct GlowPodWork {
     /* 0x0BC */ MATRIX                field_BC;       // colour matrix, TmdObject::colorMtx
     /* 0x0DC */ MATRIX                field_DC;       // light matrix, TmdObject::lightMtx
     /* 0x0FC */ WorldCollisionBody    field_FC;
-    /* 0x11C */ GpActorD4Rec          field_11C;
+    /* 0x11C */ WorldCollisionCapsule field_11C;
     /* 0x134 */ WorldCollisionContact field_134[1];
     /* 0x14C */ WorldCollisionBody    field_14C;
     /* 0x16C */ WorldCollisionContact field_16C[1];
@@ -69,11 +69,11 @@ typedef struct GlowPodWork {
 } GlowPodWork;
 STATIC_ASSERT_SIZEOF(GlowPodWork, 0x2B0);
 
-void glowPodSpawnState(GpEnemy* arg0, Task* arg1);
+void glowPodSpawnState(Enemy* arg0, Task* arg1);
 void glowPodIdleTick(Task* arg0);
 void glowPodHits(Task* arg0);
-void glowPodDeathState(GpEnemy* arg0, Task* arg1);
-void glowPodUpdateState(GpEnemy* arg0, Task* arg1);
+void glowPodDeathState(Enemy* arg0, Task* arg1);
+void glowPodUpdateState(Enemy* arg0, Task* arg1);
 void glowPodReactionFlags(Task* arg0);
 void glowPodReactionDispatch(Task* task);
 void glowPodLightRamp(Task* task);
@@ -82,7 +82,7 @@ void glowPodExit(Task* task);
 
 /* Defined by each package. */
 void glowPodAnimate(Task* arg0);
-void glowPodColour(GpEnemy* arg0, Task* task);
+void glowPodColour(Enemy* arg0, Task* task);
 
 static inline void glowEnemy2TickAnim(Task* task);
 

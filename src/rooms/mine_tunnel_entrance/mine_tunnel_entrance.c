@@ -323,7 +323,7 @@ GpSprtRec D_mine_tunnel_entrance_8017EA4C[6] = {
     { { .elements = D_mine_tunnel_entrance_8017E958 }, D_mine_tunnel_entrance_8017EA34, NULL },
 };
 
-GpPointLight D_mine_tunnel_entrance_8017EA94[6] = {
+WorldCoordPointLight D_mine_tunnel_entrance_8017EA94[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9530, -3860, 1830 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1155, 1608, 1468 }, { 0, 0 } }, 0, 0x2710 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3BEC, -2000, 3640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2539 }, { 0, 0 } }, 800, 3600 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3016, -2000, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2457 }, { 0, 0 } }, 800, 4000 },
@@ -357,28 +357,28 @@ GpObj4C D_mine_tunnel_entrance_8017EF4C[4] = {
 GpAreaTmdRec D_mine_tunnel_entrance_8017F07C[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0A0[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0B8[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0D0[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_tunnel_entrance_8017F0F4[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_tunnel_entrance_8017F10C[8] = {
@@ -521,8 +521,8 @@ static void func_mine_tunnel_entrance_8017D644(Task* arg0)
 /// State 1 of the room task: moves the saved scene event from 9 on to 10.
 static void func_mine_tunnel_entrance_8017D690(Task* task)
 {
-    if (Mc_SaveData[0].state.sceneEvent == 9) {
-        Mc_SaveData[0].state.sceneEvent = 0xA;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 9) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xA;
     }
 }
 

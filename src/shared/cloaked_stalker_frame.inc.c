@@ -8,7 +8,7 @@
 /// sequence dispatch, the step forward, the animation reseed, the vocal cue,
 /// the coordinate refresh, the tint and shadow, the projection at depth +0xC,
 /// the fade and `func_8009EA50`.
-void stalkerFrameState(GpEnemy* arg0, Task* arg1)
+void stalkerFrameState(Enemy* arg0, Task* arg1)
 {
     Actor402200Work* temp_s1;
     TmdObject*       temp_a1;

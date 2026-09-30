@@ -8,13 +8,13 @@
 /// message 0x7DB and places it at the requested point.
 void roamerTickPoolA(Task* task)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
@@ -86,8 +86,8 @@ void roamerTickPoolA(Task* task)
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[1]   = 0;
                     Gp_LookupSlot4(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].z;
                     Gp_LookupSlot4(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
-                                   gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].rotY, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(i)->extra.tmd->coords->coord,
+                                  gRoamerSpawnPointsA[gRoamerSpawnRequest - 1].rotY, 1);
                 }
                 break;
             }

@@ -7,7 +7,7 @@
 /// hiding the node's HP: the hit handler, the idle schedule, the pose
 /// tick, the model's coordinate refresh, the colour update and the
 /// regeneration step.
-void podTickState(GpEnemy* arg0, Task* arg1)
+void podTickState(Enemy* arg0, Task* arg1)
 {
     GfxCoord*  temp_s1;
     TmdObject* temp_a1;

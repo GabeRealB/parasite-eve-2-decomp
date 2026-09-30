@@ -2,7 +2,7 @@
 
 /// Spawns the effect burst for the owner's coordinate, hands that coordinate
 /// to the pan/depth sound cue, then parks the work block in state 2.
-void lungerBurstPartTick(GpEnemy* arg0, Task* arg1)
+void lungerBurstPartTick(Enemy* arg0, Task* arg1)
 {
     Task*            owner;
     TmdObject*       obj;
@@ -32,7 +32,7 @@ void lungerBurstPartTick(GpEnemy* arg0, Task* arg1)
             Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
             work->field_6D2 = 2;
             snd             = gLungerBurstCue |
-                  ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                  ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
             pan = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
             return;

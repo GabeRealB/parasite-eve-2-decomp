@@ -23,7 +23,8 @@
 #include "main/task_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 

@@ -5,7 +5,7 @@
 void hopperWavePairRevealFirst(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
     ActorCommand              msg;
@@ -16,7 +16,7 @@ void hopperWavePairRevealFirst(Task* arg0)
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 3;
         obj->clutRowOffset     = 5;
-        enemy->workType        = 0x900;
+        enemy->workType        = ENEMY_WORK_PLAIN;
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2E;
         msg.command            = arg0->spawnArg1.value;

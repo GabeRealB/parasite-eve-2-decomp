@@ -112,7 +112,7 @@ ActorTransform D_dryfield_toilet_80180C20[2] = {
     { { -1664, 0, -1222, 0 }, { 0, 0, 0, 0 } },
 };
 
-GpOverlayIds D_dryfield_toilet_80180C50 = { 2, 33, 11 };
+EvsSceneKey D_dryfield_toilet_80180C50 = { 2, 33, 11 };
 
 GpEvsCmd D_dryfield_toilet_80180C58[31] = {
     { 19, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -494,7 +494,7 @@ GpObj3A D_dryfield_toilet_801826F0[1] = {
     { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, { 124, 9 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_toilet_8018272C[4] = {
+WorldCoordPointLight D_dryfield_toilet_8018272C[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -810, -1260, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 0x186A0, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2290, -1470, -510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -310, -1470, -1790 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 2000 },
@@ -508,17 +508,17 @@ GpRoomCoordSet D_dryfield_toilet_801828AC[1] = {
 GpAreaTmdRec D_dryfield_toilet_801828C4[3] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
     { 9, 233, 2, 0, { 0, 0 }, D_8017255C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_toilet_801828E8[2] = {
     { 12, 12, 0, 0, { 0, 0 }, D_80138E98 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_toilet_80182900[2] = {
     { 24, 24, 0, 0, { 0, 0 }, D_8013647C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_toilet_80182918[13] = {
@@ -2510,9 +2510,9 @@ SVECTOR D_dryfield_toilet_8018705C[1604] = { 0 };
 
 void func_dryfield_toilet_8017DCF0(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    GpEffWork* spawned;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2557,7 +2557,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
 
 void func_dryfield_toilet_8017DEF4(Task* arg0)
 {
-    GpEffWork*            mem;
+    EffectWork*           mem;
     GfxCoord*             coord;
     OverlaySpriteScratch* head;
     OverlaySpriteScratch* block;

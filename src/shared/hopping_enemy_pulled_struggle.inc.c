@@ -10,7 +10,7 @@ void hopperPulledStruggle(Task* arg0)
 {
     TmdObject*       obj;
     Actor341700Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        c;
     VECTOR           d;
@@ -26,7 +26,7 @@ void hopperPulledStruggle(Task* arg0)
     obj   = arg0->extra.tmd;
     work  = (Actor341700Work*)arg0->work;
     coord = obj->coords;
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     work->field_412++;
     if (enemy->hp > 0) {
         Actor341700Work* w;
@@ -99,7 +99,7 @@ void hopperPulledStruggle(Task* arg0)
             cond = 0;
         }
         if (cond) {
-            soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402C0001;
+            soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
             pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
             SndEvt_EnqueueType6(soundId, pan, (s8)gpGetObjDepth(arg0->extra.tmd->coords));
         }

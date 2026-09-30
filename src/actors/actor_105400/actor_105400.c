@@ -277,7 +277,7 @@ AnimationSet* D_actor_105400_8013CEB8[4] = {
     &D_actor_105400_8013CE08,
 };
 
-static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1);
+static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/power_plant_pod_body_hit.inc.c"
 
@@ -306,7 +306,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1);
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
 /// handler.
-static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
+static void func_actor_105400_8013310C(Enemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
     TmdObject*       model;
@@ -382,7 +382,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
     Gp_LinkObj(2, &work->node1);
     work->node1.flags = (u16)(work->node1.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     model             = Gp_SpawnEnemyFromTable(D_actor_105400_8013CEA0, 1, 0, arg0)->task->extra.tmd;
-    idx               = arg0->placeKey >> 12;
+    idx               = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     sessionKey        = &gGameSession->location.loc;
     key.stage         = sessionKey->stage;
     key.area          = sessionKey->area;
@@ -397,7 +397,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    sound           = D_actor_105400_8013CE60 | ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8);
+    sound           = D_actor_105400_8013CE60 | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->field_31C = sound;
     SndEvt_EnqueueType6(sound, gPodViewSound[gGameSession->location.loc.view].field_0,
                         gPodViewSound[gGameSession->location.loc.view].field_2);

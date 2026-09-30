@@ -41,10 +41,15 @@
 #include "../../shared/scripted_walk.h"
 #include "../../shared/walker.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
+/// Bytes at the scripted-walk mode's address. The first halfword is
+/// `gScriptedWalkModeValue`. Nothing reads or writes the second halfword;
+/// its role, including padding, is unproven.
 extern s16 gScriptedWalkMode[2];
-// Scalar symbol view preserves the original byte/halfword address formation.
+
+/// Approach mode the last `scriptedWalkTo` selected for the first variant
+/// (0 faces the target, step 60; 1 faces away, step 15 backward; 2 faces the
+/// target, step 25). Halfword view of `gScriptedWalkMode`, which is how the
+/// walk code addresses the mode.
 extern s16 gScriptedWalkModeValue __asm__("gScriptedWalkMode");
 
 extern Actor461800Work* gScriptedWalkWork;
@@ -97,14 +102,12 @@ extern s16 gScriptedWalkBlendFrames;
 /// Reset argument the second variant forwards to every reseeded slot.
 extern s16 gFootstepWalkBlendFrames;
 
-/// Approach mode the last `scriptedWalkTo` call selected.
-
 /// Approach mode the last `footstepWalkTo` call selected.
 extern s16 gFootstepWalkMode;
 
-static void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task);
+static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
 static void func_actor_461800_80132A90(Task* task);
-static void func_actor_461800_801335B0(GpEnemy* enemy, Task* task);
+static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
 static void func_actor_461800_80133B98(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
@@ -175,7 +178,7 @@ AnimationSet* D_actor_461800_80133F7C[1] = {
 
 GpCopyArg D_actor_461800_80133F80 = { { .sets = D_actor_461800_80133F7C }, 1 };
 
-GpOverlayIds D_actor_461800_80133F88 = { 6, 18, 11 };
+EvsSceneKey D_actor_461800_80133F88 = { 6, 18, 11 };
 
 GpEvsCmd D_actor_461800_80133F90[52] = {
     { 12, { .overlays = &D_actor_461800_80133F88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -889,7 +892,7 @@ Task* gFootstepWalkTask;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
+static void func_actor_461800_80132390(Enemy* enemy, Task* task);
 
 void func_actor_461800_80131E38(Task* task)
 {
@@ -1027,10 +1030,10 @@ void func_actor_461800_8013223C(s32 arg0)
 /// been seen. With neither seen the session bails out (`restartMode` / `deathFadeFrames`
 /// are the stage-load sentinels); otherwise the save header is primed and the
 /// boot loader started, with the stream RNG restored behind it. Skipped whole
-/// when `Mc_SaveData[0].state.demoScene` (the current screen id) is 9.
+/// when `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` (the current screen id) is 9.
 void func_actor_461800_8013229C(void)
 {
-    if (Mc_SaveData[0].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (GameFlag_GetNibble(0xEA) == 2) {
             Gp_SetCollectedBit(0x130);
         }
@@ -1042,13 +1045,13 @@ void func_actor_461800_8013229C(void)
             gGameSession->deathFadeFrames = 0xF;
             return;
         }
-        Mc_SaveData[0].state.location.loc.stage = 4;
-        Mc_SaveData[0].state.location.loc.area  = 0x24;
-        Mc_SaveData[0].state.location.loc.warp  = 1;
-        Mc_SaveData[0].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant             = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 4;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x24;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+        gDisplayState.spriteVariant                                 = 1;
         Task_Spawn(0, 0x11, 0, 0);
-        Fs_BeginBootLoad((u8*)&Mc_SaveData[0].state.location.loc, 0);
+        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
         Gp_RestoreStreamRng();
     }
 }
@@ -1058,7 +1061,7 @@ void func_actor_461800_8013229C(void)
 /// tasks. Each helper takes its texture page and CLUT row from the nested area
 /// record the actor's spawn index selects, and is streamed twice once its aux
 /// buffer exists.
-static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
+static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -1096,13 +1099,13 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         gScriptedWalkWork->helper1 = spawned1;
-        actorTintModel(spawned1->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned2 = Task_SpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         gScriptedWalkWork->helper2 = spawned2;
-        actorTintModel(spawned2->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     gScriptedWalkWork->st.travel  = 0;
@@ -1119,7 +1122,7 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 /// state selects.
 void func_actor_461800_801329B0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_461800_80132390,
         func_actor_461800_80132A0C,
     };
@@ -1136,7 +1139,7 @@ void func_actor_461800_801329B0(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the first variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the first variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
 /// `Gp_DestroyEnemy`, then kills the two helper tasks the spawn routine
 /// started.
@@ -1207,10 +1210,11 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
     return -1;
 }
 
-/// Applies a `Tmd_Create` flag word to the three model objects this actor owns:
+/// Sets `TmdObject.flags` on the three model objects this actor owns:
 /// the one on its own task and the two helper tasks' models in the work block.
-/// `arg2 & 1` picks the base value -- 0x80 normally, 0 when set -- and
-/// `arg2 & 2` ORs bit 0x4 in on top of it.
+/// `arg2 & 1` shows them (flags 0); otherwise each gets `TMD_OBJECT_SKIP_ACTIVE_DRAW`.
+/// `arg2 & 2` also sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on each. These are object
+/// flags, not `Tmd_Create`'s buffer-flag argument.
 s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject* own    = D_actor_461800_80143898->extra.tmd;
@@ -1255,7 +1259,7 @@ s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, ActorCommand* request, s32 
 /// rest of the overlay can reach it without the task.
 void func_actor_461800_80133554(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         footstepWalkSpawn,
         func_actor_461800_801335B0,
     };
@@ -1272,7 +1276,7 @@ void func_actor_461800_80133554(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the second variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the second variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
 /// `Gp_DestroyEnemy`.
 void footstepWalkExit(Task* task)

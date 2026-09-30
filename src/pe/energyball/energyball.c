@@ -38,9 +38,9 @@
 
 #include "overlay.h"
 
-/// One 4-byte row of `D_energyball_80131194`, indexed by `GpEffWork.index`
+/// One 4-byte row of `D_energyball_80131194`, indexed by `EffectWork.index`
 /// (`Gp_StateC08.field_0 % 10 - 1`). `field_0` is the full size the ball grows
-/// to before it is launched (`GpEffWork.angle`; half of it is the linked
+/// to before it is launched (`EffectWork.angle`; half of it is the linked
 /// `WorldCollisionBody.radius`, twice it the burst's final size) and `field_2` the
 /// per-frame growth step, also the initial upward speed while charging.
 typedef struct EnergyBallStep {
@@ -96,11 +96,11 @@ static s16 D_energyball_801311A0[16];
 
 void func_energyball_8012EF48(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s32        i;
-    s32        level;
-    s32        rng;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         i;
+    s32         level;
+    s32         rng;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
@@ -139,7 +139,7 @@ void func_energyball_8012EF48(Task* arg0)
 }
 
 /// One ball of the energy ball cast; `spawnArg1` picks the `Gp_RoomCoords`
-/// slot it owns and `spawnArg2` the `GpEffWork` block. With nonzero
+/// slot it owns and `spawnArg2` the `EffectWork` block. With nonzero
 /// `gRoomEffectState->peEffectControl` it only redraws; cancellation at 4 or more
 /// drops the ball. Otherwise it walks `Task::state`: 0 allocates the
 /// `EnergyBallWork` collision block, picks the charge row of
@@ -155,21 +155,21 @@ void func_energyball_8012EF48(Task* arg0)
 /// ball in flight (`D_80115724`) queues the row's stop sound.
 void func_energyball_8012F180(Task* arg0)
 {
-    GpEffWork*      mem;
-    GfxCoord*       coord;
-    EnergyBallWork* work;
-    GpCoord64*      slot;
-    GfxCoord*       sc;
-    GpPointLight*   tail;
-    GfxCoord        ground;
-    VECTOR          vec;
-    GfxCoord*       player;
-    GpEffWork*      spawned;
-    SVECTOR*        dir;
-    u16             r;
-    s32*            snd;
-    s16             peEffectControl;
-    s32             cur;
+    EffectWork*           mem;
+    GfxCoord*             coord;
+    EnergyBallWork*       work;
+    GpCoord64*            slot;
+    GfxCoord*             sc;
+    WorldCoordPointLight* tail;
+    GfxCoord              ground;
+    VECTOR                vec;
+    GfxCoord*             player;
+    EffectWork*           spawned;
+    SVECTOR*              dir;
+    u16                   r;
+    s32*                  snd;
+    s16                   peEffectControl;
+    s32                   cur;
 
     slot            = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
     sc              = &slot->light.head.transform.coord;
@@ -727,12 +727,12 @@ static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
 
 void func_energyball_8013107C(Task* arg0)
 {
-    GpEffWork* mem;
-    GfxCoord*  coord;
-    s16        flag;
-    u8         rgb[3];
-    s32        scale;
-    s32        angle;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    u8          rgb[3];
+    s32         scale;
+    s32         angle;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->peEffectControl;

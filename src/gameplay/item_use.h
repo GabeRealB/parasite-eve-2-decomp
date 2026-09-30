@@ -24,7 +24,7 @@ extern MATRIX Gp_DefaultMtx;
 extern MATRIX Gp_DefaultMtx2;
 
 /// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
-/// `TmdObject.lightMtx` / `colorMtx` for the `Gp_ActorSlots[1]` actor and
+/// `TmdObject.lightMtx` / `colorMtx` for the `gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]` actor and
 /// its `field_918` / `field_920` child tasks (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
 extern MATRIX D_80114ED8;
@@ -46,11 +46,11 @@ extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].state.gameMode` is 0 or 2. Indexed by `GameSession.location.loc.stage`.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is 0 or 2. Indexed by `GameSession.location.loc.stage`.
 extern GpGiveRec* D_8010F9F4[];
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
-/// `Mc_SaveData[0].state.gameMode` is not 0 or 2. Indexed by `GameSession.location.loc.stage`.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is not 0 or 2. Indexed by `GameSession.location.loc.stage`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers

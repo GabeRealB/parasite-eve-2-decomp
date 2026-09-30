@@ -11,7 +11,7 @@
 void bursterAwakeTick(Task* arg0)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     u16              countdown;
     s16              mode;
@@ -31,10 +31,10 @@ void bursterAwakeTick(Task* arg0)
                 Gp_LcgState     = rng;
                 work->field_2D0 = (u16)((rng >> 16) % 100 + 0x50);
                 if (work->field_2D6 != 0) {
-                    soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40460009;
+                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
                     SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
-                    soundId = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x402E0001;
+                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
                     SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }

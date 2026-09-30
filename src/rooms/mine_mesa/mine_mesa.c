@@ -180,7 +180,7 @@ extern RoomFadeStorage     gRoomEventFade;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;
-extern GpEnemy*            D_mine_mesa_80189B74[2];
+extern Enemy*              D_mine_mesa_80189B74[2];
 
 static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
@@ -219,7 +219,7 @@ extern ActorCommand         D_mine_mesa_80184650;
 extern ActorCommand         D_mine_mesa_80184654;
 extern GpCopyArg            D_mine_mesa_80184344;
 extern GpCopyArg            D_mine_mesa_80184484;
-extern GpScriptCmd          D_mine_mesa_80189A80[4];
+extern PadScriptCmd         D_mine_mesa_80189A80[4];
 extern GpScriptRec          D_mine_mesa_80189A90[3];
 extern ActorTransform       D_mine_mesa_801843C4;
 extern ActorTransform       D_mine_mesa_801843DC;
@@ -280,7 +280,7 @@ void                              func_mine_mesa_8017EAC0(void);
 void                              func_mine_mesa_8017EB18(void);
 void                              func_mine_mesa_8017EB54(s32);
 
-extern GpPointLight             D_mine_mesa_801887C8[8];
+extern WorldCoordPointLight     D_mine_mesa_801887C8[8];
 extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
 s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                            func_mine_mesa_80181894(Task*);
@@ -713,7 +713,7 @@ ActorCommand D_mine_mesa_80184654 = { { .loc = { 4, 1 } }, 1 };
 
 ActorCommand D_mine_mesa_80184658 = { { .loc = { 4, 1 } }, 2 };
 
-GpOverlayIds D_mine_mesa_8018465C = { 4, 1, 11 };
+EvsSceneKey D_mine_mesa_8018465C = { 4, 1, 11 };
 
 GpEvsCmd D_mine_mesa_80184664[56] = {
     { 35, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1544,7 +1544,7 @@ GpSprtRec D_mine_mesa_80188744[11] = {
     { { .empty = D_mine_mesa_80188734 }, D_mine_mesa_80188734, NULL },
 };
 
-GpPointLight D_mine_mesa_801887C8[8] = {
+WorldCoordPointLight D_mine_mesa_801887C8[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7697, -4012, 1391 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1173, 1575, 1726 }, { 0, 0 } }, 1258, 8401 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -812, -1993, 3861 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3194, 2867, 2129 }, { 0, 0 } }, 0, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6812, -1806, 8035 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4014, 3522, 2703 }, { 0, 0 } }, 600, 3000 },
@@ -2358,36 +2358,36 @@ GpObj4C D_mine_mesa_801890A0[19] = {
 
 GpAreaTmdRec D_mine_mesa_80189644[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_mesa_8018965C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_mesa_80189674[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_mesa_80189698[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 15, 15, 1, 0, { 0, 0 }, D_80153E28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_mesa_801896BC[3] = {
     { 20, 20, 0, 0, { 0, 0 }, D_80147DF0 },
     { 57, 57, 1, 0, { 0, 0 }, D_801611F8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_mine_mesa_801896E0[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 37, 37, 1, 0, { 0, 0 }, D_80151DAC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_mine_mesa_80189704[2] = {
@@ -2511,11 +2511,11 @@ GpRoomParamRec* D_mine_mesa_80189A60[8] = {
     D_mine_mesa_80189A38,
 };
 
-GpScriptCmd D_mine_mesa_80189A80[4] = {
-    { 0, 513 },
-    { 0, 257 },
-    { 0, 513 },
-    { 0, 0 },
+PadScriptCmd D_mine_mesa_80189A80[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_mine_mesa_80189A90[3] = {
@@ -2565,7 +2565,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 MineMesaSpawnCounters D_mine_mesa_80189B6C = { 0 };
 
-GpEnemy* D_mine_mesa_80189B74[2] = {
+Enemy* D_mine_mesa_80189B74[2] = {
     NULL,
     NULL,
 };
@@ -2716,7 +2716,7 @@ static void func_mine_mesa_8017DC80(Task* arg0)
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0x90) == 0) {
         if (gameGetPtrSlot(0xA) != NULL) {
-            Mc_SaveData[0].state.companionHp = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 5;
             Task_SpawnFromTable(D_mine_mesa_80181990, 0, 0, 0);
         }
         GameFlag_SetNibble(0x1BD, 0);
@@ -3224,7 +3224,7 @@ void func_mine_mesa_8017EA24(void)
 {
     if (GameFlag_GetNibble(0x4C) != 0) {
         GameFlag_SetNibble(0x4C, 0);
-        Mc_SaveData[0].state.companionType = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
         Task_CallExit(gameGetPtrSlot(0xA));
         Game_SetPtrSlot(NULL, 0xA);
     }
@@ -3462,7 +3462,7 @@ void func_mine_mesa_801811C4(s32 height)
 static void func_mine_mesa_80181358(Task* arg0)
 {
     GameLocationKey      key;
-    GpEnemy              result;
+    Enemy                result;
     s32                  i;
     s32                  pick;
     u32                  rnd;
@@ -3472,7 +3472,7 @@ static void func_mine_mesa_80181358(Task* arg0)
     GameLocationKey*     loc;
     AreaPlacement*       place;
     GfxCoord*            coords;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
 
     for (i = 0; i < 2; i++) {
         if (MineMesaCooldown > 0) {
@@ -3494,8 +3494,8 @@ static void func_mine_mesa_80181358(Task* arg0)
         if (enemy == NULL) {
             break;
         }
-        enemy->workType                    = 0x900;
-        D_mine_mesa_80189B74[i]->placeKey |= i << 12;
+        enemy->workType                    = ENEMY_WORK_PLAIN;
+        D_mine_mesa_80189B74[i]->placeKey |= i << ENEMY_PLACE_INDEX_SHIFT;
         switch (Gp_GetViewIndex() & 0xFF) {
             case 2:
                 pick = MINE_MESA_RAND() % 3 + 1;
@@ -3535,15 +3535,15 @@ static void func_mine_mesa_80181358(Task* arg0)
         place                  = Gp_GetNestedAreaRec(&key)->field_0;
         tmd->texturePageOffset = place->texturePageOffset;
         tmd->clutRowOffset     = place->clutRowOffset;
-        if (Mc_SaveData[0].state.demoScene == 10) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", place->texturePageOffset, place->clutRowOffset, 0);
         }
         if (tmd->buffer != NULL) {
             tmdProcessStream(tmd);
             tmdProcessStream(tmd);
         }
-        Gfx_RotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
-                       pt->yaw, 1);
+        gfxRotMatrixY(&D_mine_mesa_80189B74[i]->task->extra.tmd->coords->coord,
+                      pt->yaw, 1);
         coords               = D_mine_mesa_80189B74[i]->task->extra.tmd->coords;
         MineMesaCooldown     = 0x50;
         coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3552,10 +3552,10 @@ static void func_mine_mesa_80181358(Task* arg0)
         return;
     }
 end:
-    Mc_SaveData[0].state.companionType = 0;
-    arg0->spawnArg2.pointer            = &result;
-    result.param                       = NULL;
-    Gp_StateF0.field_6                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 0;
+    arg0->spawnArg2.pointer                                = &result;
+    result.param                                           = NULL;
+    Gp_StateF0.field_6                                     = 1;
     Gp_ReleaseStateF0(arg0, 0);
     gStageSceneMusicEntry = 1;
     arg0->state++;

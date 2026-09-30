@@ -115,7 +115,7 @@ static const GpPromptTexts Gp_ItemPromptTexts;
 static const VECTOR D_80093DB0;
 
 /// Task callback for the item-move UI. `spawnArg2` is the `UiObject`.
-/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `Mc_SaveData[0].state.carriedItems`
+/// First run copies `Gp_ScanPtrs[Gp_PubItemLoc]` / `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`
 /// into `Gp_MoveScanSrc` / `Gp_MoveScanDst`, spawns the `D_8010D6F4` pair
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
 /// `Gp_ItemMoveChild`. Always writes `resultValue = 0x34`.
@@ -146,7 +146,7 @@ void func_800BDF6C(Task* task);
 /// List-item callback for All / Select / Discard / End. Draws
 /// `Gp_ItemPromptTexts[field_8]`. Confirm: All → `result = 0x26`, Select → confirm,
 /// Discard zeroes loaded ammunition quantities whose item is absent from
-/// `Mc_SaveData[0].state.carriedItems` and sets `result = 0x27`. Cancel once sets
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems` and sets `result = 0x27`. Cancel once sets
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1);
@@ -406,7 +406,7 @@ void Gp_ItemMoveTask(Task* arg0)
                 src            = scans[item & 0xFF];
                 Gp_MoveItemKey = item;
             } else {
-                src = &Mc_SaveData[0].state.carriedItems;
+                src = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             }
             (&Gp_MoveScanSrc)[i] = *src;
             i++;
@@ -511,7 +511,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData[0].state.location.loc.stage == 1)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == 1)) {
                     flag = 1;
                 }
                 if (flag) {
@@ -732,7 +732,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 restricted = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.location.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
                 restricted = 1;
             }
             if (restricted != 0) {
@@ -803,7 +803,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
             if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData[0].state.location.loc.stage == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
                 flag = 1;
             }
             if (flag) {
@@ -1199,7 +1199,7 @@ static inline void _gpDropOrphanedWeaponLoads(void)
     s32                  i;
     s32                  loadedItemId;
 
-    scan = &Mc_SaveData[0].state.carriedItems;
+    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     rec  = Gp_GetItemTable(scan);
     i    = 0;
     rec  = &rec[scan->firstRow];
@@ -1515,7 +1515,7 @@ static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
     if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData[0].state.location.loc.stage == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == 1)) {
         ret = 1;
     }
     return ret;

@@ -10,7 +10,7 @@
 /// the light mode. After 0x51 steps both nodes are unlinked and the task steps
 /// on; until then the two collision-record tables are wiped each step. The
 /// model's own `workm` translation is handed to `Gp_UpdateActorColor`.
-void incinBossChunkSettle(GpEnemy* enemy, Task* task)
+void incinBossChunkSettle(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work = task->work;
     VECTOR               pos;
@@ -27,8 +27,8 @@ void incinBossChunkSettle(GpEnemy* enemy, Task* task)
         work->field_1AC = 0;
         work->vel.vx   /= 9;
         work->vel.vz   /= 9;
-        Gp_SetLightMode(enemy, 0);
-        Gp_SetLightMode(enemy, 1);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_DEFAULT);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         work->obj1.flags      &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         work->obj0.flags      &= ~WORLD_COLLISION_BODY_PAIR_ENABLED;
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -54,7 +54,7 @@ void incinBossChunkSettle(GpEnemy* enemy, Task* task)
         case 3:
         case 7:
             Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 1, NULL);
-            Gp_SetLightMode(enemy, 2);
+            Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
             break;
         case 0:
         case 1:

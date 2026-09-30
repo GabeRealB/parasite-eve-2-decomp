@@ -7,15 +7,15 @@ void hopperVanish(Task* arg0)
 {
     Actor341700Work* work2;
     Actor341700Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       model;
 
     work            = (Actor341700Work*)arg0->work;
-    enemy           = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy           = (Enemy*)arg0->spawnArg2.pointer;
     model           = arg0->extra.tmd;
     work->field_412 = 0;
     SndEvt_EnqueueType7(0x402C0002, 1);
-    if ((Gp_StateF0.field_1F & 0xF) == (((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC)) {
+    if ((Gp_StateF0.field_1F & 0xF) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         Gp_StateF0.field_1F = 0;
     }
     Gp_UnlinkNode(&enemy->node);

@@ -117,7 +117,7 @@ extern u16*        D_actor_205200_8014CA34[];
 static void func_actor_205200_8014AB98(Task* arg0);
 static void func_actor_205200_8014ACD4(Task* arg0);
 static s32  func_actor_205200_8014B914(s32 arg0);
-static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1);
 static void func_actor_205200_8014BA94(Task* arg0);
 
 void func_actor_205200_8014B8C0(Task*);
@@ -237,15 +237,15 @@ TmdSource D_actor_205200_801517EC = {
     D_actor_205200_8014E1D0,
 };
 
-static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task);
-static void func_actor_205200_8014A958(GpEnemy* enemy, Task* task);
-static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014A72C(Enemy* enemy, Task* task);
+static void func_actor_205200_8014A958(Enemy* enemy, Task* task);
+static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1);
 static void func_actor_205200_8014B048(Task* arg0, s32 arg1);
-static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
-static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
 {
     Actor205200CtrlWork* work;
     u16                  kind;
@@ -300,7 +300,7 @@ static void func_actor_205200_8014A72C(GpEnemy* enemy, Task* task)
     task->state    = 1;
 }
 
-static void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
 {
     Actor205200CtrlWork* work = task->work;
     s16                  state;
@@ -328,7 +328,7 @@ static void func_actor_205200_8014A958(GpEnemy* enemy, Task* task)
                 if ((u16)--work->field_2A == 0) {
                     func_actor_205200_8014ACD4(task);
                     if (work->field_C != NULL) {
-                        work->field_14 = ((enemy->placeKey >> 12) << 8) | 0x40340001;
+                        work->field_14 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340001;
                         SndEvt_EnqueueType6(
                             work->field_14, 0, (s8)func_actor_205200_8014B914(work->field_10));
                         work->field_24 = 1;
@@ -380,7 +380,7 @@ static void func_actor_205200_8014AB98(Task* arg0)
                     Task_SpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     Gp_ArmStateF0(1);
                     work->field_28 = 1;
-                    SndEvt_EnqueueType6(((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40340002, 0, 0);
+                    SndEvt_EnqueueType6(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
                 }
                 work->field_22 = 20;
                 work->field_26 = 1;
@@ -425,7 +425,7 @@ static void func_actor_205200_8014ACD4(Task* arg0)
     }
 }
 
-static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014AE0C(Enemy* arg0, Task* arg1)
 {
     GfxCoord*            coord;
     Actor205200CtrlWork* pwork;
@@ -496,7 +496,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
 {
     VECTOR*              vec;
     Actor205200Part*     part;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
     GfxCoord*            coord;
     Actor205200CtrlWork* parentWork;
     s32                  damage;
@@ -547,7 +547,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 Gp_SpawnEff(0x6005C, coord, 0x01002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
                 Gp_SpawnEff(0x6005C, coord, 0x02002600, NULL);
-                snd = ((enemy->placeKey >> 12) << 8) | 0x40340004;
+                snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340004;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
             } else if (damage > 0) {
@@ -568,7 +568,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 if (hitTime > 0) {
                     part->field_70 = hitTime;
                 }
-                snd = ((enemy->placeKey >> 12) << 8) | 0x40340003;
+                snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340003;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
         }
@@ -577,7 +577,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
     GfxCoord*            coord;
@@ -639,7 +639,7 @@ static void func_actor_205200_8014B484(GpEnemy* arg0, Task* arg1)
                 d.vy = view->mtx.t[1] + coord->coord.t[1];
                 d.vz = view->mtx.t[2] + coord->coord.t[2];
                 dist = SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz);
-                snd  = ((arg0->placeKey >> 12) << 8) | 0x40340005;
+                snd  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340005;
                 pan  = (s8)Gp_GetObjPan(coord);
                 vol  = dist - gDisplayState.screenDistance;
                 if (vol >= 0x7FFF) {
@@ -734,7 +734,7 @@ void func_actor_205200_8014B978(Task* arg0)
 /// The dispatch is written as gotos because that is the shape the switch's
 /// binary decision tree leaves behind - mode 0 shares the body with the
 /// default path, so its `break` is a jump into it.
-static void func_actor_205200_8014B9D4(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014B9D4(Enemy* arg0, Task* arg1)
 {
     Actor205200Part*     part;
     Actor205200CtrlWork* parentWork;

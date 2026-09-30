@@ -270,7 +270,7 @@ STATIC_ASSERT_SIZEOF(OverlayEncounterCtrlWork, 0x6);
 /// Work block of an encounter slot task that holds one enemy: the enemy, and
 /// the frames counted before it is released.
 typedef struct OverlayEncounterSingleWork {
-    GpEnemy* enemy;
+    Enemy* enemy;
     s16      frames;
     byte     pad_6[0x2];
 } OverlayEncounterSingleWork;
@@ -281,8 +281,8 @@ STATIC_ASSERT_SIZEOF(OverlayEncounterSingleWork, 0x8);
 /// bit 0 set once the first is gone and bit 1 once the second is; the task
 /// ends when both are.
 typedef struct OverlayEncounterPairWork {
-    GpEnemy* enemy0;
-    GpEnemy* enemy1;
+    Enemy* enemy0;
+    Enemy* enemy1;
     s16      frames;
     s16      goneMask;
 } OverlayEncounterPairWork;

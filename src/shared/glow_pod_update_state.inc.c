@@ -7,7 +7,7 @@
 /// by 0x80, runs the reaction dispatch, the light blend, the flag reactions,
 /// the hit handler and the animation, clears the first two parts' flags and
 /// recomputes the second one's matrix; the tail colours the enemy.
-void glowPodUpdateState(GpEnemy* arg0, Task* arg1)
+void glowPodUpdateState(Enemy* arg0, Task* arg1)
 {
     s32 state;
     s32 one;

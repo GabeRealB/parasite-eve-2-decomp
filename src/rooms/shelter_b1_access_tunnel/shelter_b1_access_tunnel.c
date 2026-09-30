@@ -52,8 +52,10 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive.value
-#define ROOM_EVENT_REQ    gRoomEventReq.value
+// The flag symbol carries seven unproven bytes after the flag.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
+// The request symbol carries twelve unproven bytes after the request.
+#define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -84,31 +86,13 @@ extern RoomEventMsg gRoomEventMsg;
 
 /// Set by `roomEventGate` when the event it gates has
 /// just fired, clear otherwise.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    u8 value;
-    u8 retained[7];
-} ShelterB1AccessTunnelStorageFF5C;
-STATIC_ASSERT_SIZEOF(ShelterB1AccessTunnelStorageFF5C, 8);
-
-extern ShelterB1AccessTunnelStorageFF5C gRoomEventActive;
+extern RoomEventActiveStorage gRoomEventActive;
 
 extern RoomEventMsg gRoomEventStagedMsg;
 
 /// Copy of the request that fired a gated event, whose cap command and voice
 /// lines the task `roomEventTask` plays.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
-typedef struct {
-    RoomEventReq value;
-    u8           retained[12];
-} ShelterB1AccessTunnelStorageFF70;
-STATIC_ASSERT_SIZEOF(ShelterB1AccessTunnelStorageFF70, 32);
-
-extern ShelterB1AccessTunnelStorageFF70 gRoomEventReq;
+extern RoomEventReqStorage gRoomEventReq;
 
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -397,7 +381,7 @@ WorldCoordLight D_shelter_b1_access_tunnel_8017F6DC[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 409, 409 }, { 0, 0 } },
 };
 
-GpPointLight D_shelter_b1_access_tunnel_8017F83C[5] = {
+WorldCoordPointLight D_shelter_b1_access_tunnel_8017F83C[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4500, -2620, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3200, -2159, -922 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2220, 3442 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -766, -2000, -4618 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1319, 2059 },
@@ -429,17 +413,17 @@ GpObj3A D_shelter_b1_access_tunnel_8017FD2C[1] = {
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD68[2] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD80[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_access_tunnel_8017FD98[2] = {
     { 39, 39, 3, 0, { 0, 0 }, D_801540E0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_access_tunnel_8017FDB0[6] = {
@@ -524,7 +508,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-ShelterB1AccessTunnelStorageFF5C gRoomEventActive = { 0 };
+RoomEventActiveStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -535,7 +519,7 @@ u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
     210,
 };
 
-ShelterB1AccessTunnelStorageFF70 gRoomEventReq;
+RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 

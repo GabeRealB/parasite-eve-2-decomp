@@ -6,7 +6,7 @@
 /// countdown `field_32A` has run out, and on that table's terminator row
 /// resets the row index, reseeds the countdown from the gameplay LCG and plays
 /// the sound id `gPodPulseSoundId` with the placement number in the
-/// high nibble of `GpEnemy::placeKey`; state 1 (entered on a hit) walks
+/// high nibble of `Enemy::placeKey`; state 1 (entered on a hit) walks
 /// `gPodHitPulse` and moves to state 2 on its terminator; state 2
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
 /// entry of `gPodPoseStartFrames`. The row's `field_2` is the scale
@@ -34,7 +34,7 @@ void podPulse(Task* arg0)
                     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                     work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
                     sndId           = gPodPulseSoundId |
-                            ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+                            ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
                 } else {

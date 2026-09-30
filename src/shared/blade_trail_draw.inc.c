@@ -20,7 +20,7 @@ void bladeTrailDraw(s16 slot, s16 flags)
     s32                lo;
     s32                fade;
 
-    SCRATCH_PUSH_BYTES(sizeof(BladeTrailScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(BladeTrailScratch));
     blk = SCRATCH_STACK_CURSOR(BladeTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);

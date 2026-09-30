@@ -272,7 +272,7 @@ extern GpObj4A D_acropolis_plaza_8019923C[4];
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on, and
-/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses.
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses.
 
 /// Script block the plaza hands to slot 3 as msg 0x3F4 entry 0xB; it lives in
 /// the main executable, not in this overlay.
@@ -2709,7 +2709,7 @@ GpObj4C D_acropolis_plaza_8019923C[4] = {
 GpAreaTmdRec D_acropolis_plaza_8019936C[3] = {
     { 109, 101, 2, 0, { 0, 0 }, D_actor_310100_80179920 },
     { 108, 101, 2, 0, { 0, 0 }, D_actor_310100_801798FC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_plaza_80199390[3] = {
@@ -2718,7 +2718,7 @@ GpAreaVariant D_acropolis_plaza_80199390[3] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_plaza_801993A8[30] = {
+WorldCoordPointLight D_acropolis_plaza_801993A8[30] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x6952, -0x2A27, -9776 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2638, 1975, 1619 }, { 0, 0 } }, 10, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x45ED, -2152, 16 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2161, 2161, 1577 }, { 0, 0 } }, 6000, 7400 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2F00, -1488, 1096 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1507, 152, 27 }, { 0, 0 } }, 2500, 3000 },
@@ -3596,7 +3596,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
             if (q->movieFrame >= 0x60) {
                 rec                                 = &buf.weapon.rec;
                 weaponId                            = Player_Status.weapon;
-                id                                  = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+                id                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
                 buf.weapon.rec.source.index         = id;
                 rec->animationId                    = 1;
                 buf.weapon.rec.blend                = ANIMATION_BLEND_RESET;
@@ -3781,7 +3781,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             }
         found6:
             Gp_DispatchMsgPtr(
-                Gp_FindWorkById((idx << 12) | (sessionKey->stage << 8) |
+                Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                 sessionKey->area)
                     ->field_0,
                 0x7D3, &roomRec, 0);
@@ -3823,7 +3823,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 }
             found8:
                 Gp_DispatchMsg(
-                    Gp_FindWorkById((idx << 12) | (sessionKey->stage << 8) |
+                    Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                     sessionKey->area)
                         ->field_0,
                     0x7D7, 1, 0);
@@ -3929,7 +3929,7 @@ void func_acropolis_plaza_8017F48C(Task* task)
     switch (state) {
         case 0:
             weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
@@ -3979,7 +3979,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     switch (task->state) {
         case 0:
             weaponId                 = Player_Status.weapon;
-            id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.source.index         = id;
             rec.animationId          = 1;
             rec.blend                = ANIMATION_BLEND_RESET;
@@ -4330,11 +4330,11 @@ void func_acropolis_plaza_80180054(Task* task)
             task->state = task->state + 1;
             return;
         case 5:
-            Mc_SaveData[0].state.location.loc.stage = 1;
-            Mc_SaveData[0].state.location.loc.warp  = 1;
-            Mc_SaveData[0].state.location.loc.area  = 0x11;
-            Mc_SaveData[0].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 0x11;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+            gDisplayState.spriteVariant                                 = 1;
             Gp_EnqueueHeldWeaponCd();
             SndEvt_EnqueueType7(0x80000000, 0);
             Task_Spawn(0, 0x11, 0, 0);
@@ -4355,7 +4355,7 @@ void func_acropolis_plaza_80180270(Task* arg0)
 void func_acropolis_plaza_801802C0(Task* task)
 {
     GpCoord64*                 entry;
-    GpPointLight*              light;
+    WorldCoordPointLight*      light;
     GfxCoord*                  coord;
     GfxCoord*                  lightCoord;
     AcropolisPlazaBeamWork*    work;
@@ -4381,7 +4381,7 @@ void func_acropolis_plaza_801802C0(Task* task)
         work->yaw   = (slot & 1) << 11;
         task->state = task->state + 1;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     blk            = SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaBeamScratch);
@@ -4601,7 +4601,7 @@ void func_acropolis_plaza_801811D0(Task* task)
         work->yaw   = yawInit;
         task->state = task->state + 1;
     }
-    Gfx_RotMatrixY(&coord->coord, work->yaw, 1);
+    gfxRotMatrixY(&coord->coord, work->yaw, 1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
     SCRATCH_STACK_RESERVE_BLOCK(AcropolisPlazaFlareScratch);

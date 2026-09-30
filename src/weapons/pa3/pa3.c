@@ -52,7 +52,7 @@ static void func_pa3_8011D1DC(Task* arg0)
     s32        anim;
     s32        hit;
 
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot  = SCRATCH_STACK_CURSOR(GfxCoord);
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -126,7 +126,7 @@ static void func_pa3_8011D1DC(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 1;
                 func_80106550(arg0);

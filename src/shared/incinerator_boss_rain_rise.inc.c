@@ -6,7 +6,7 @@
 /// a fresh 0..0x1F bias for the next leg, flag the list object and step the task
 /// on. Either way the work block's own coordinate is left tracking the model.
 /// Bails to `Gp_DestroyEnemy` when the overlay is shutting down.
-void incinBossRainRise(GpEnemy* enemy, Task* task)
+void incinBossRainRise(Enemy* enemy, Task* task)
 {
     Actor403200DropWork* work;
     s32                  y;

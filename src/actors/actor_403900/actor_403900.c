@@ -78,7 +78,7 @@ extern s32 gStalkerFadeCue;
 /// Cue word the approach's frame 0x12 queues.
 extern s32 gStalkerStrikeCue;
 
-/// Base id of the actor's vocal cue: the `GpEnemy` work id's high nibble is
+/// Base id of the actor's vocal cue: the `Enemy` work id's high nibble is
 /// OR'd in as bits 8-11 of the cue id.
 extern s32 gStalkerHoldCue;
 
@@ -136,7 +136,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void func_actor_403900_80135D5C(Task* arg0);
-static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1);
+static void func_actor_403900_80137444(Enemy* arg0, Task* arg1);
 
 s32 func_actor_403900_801381E4(Task*);
 
@@ -1239,7 +1239,7 @@ AnimationSet* D_actor_403900_801540EC[22] = {
 /// `field_504` and (while bit 0x4000 of `field_49A` is set) `field_49C`
 /// record tables to the root coordinate, ticks the `field_6C6` flinch
 /// countdown, and for each kind-2 hit record in `field_49C` computes the
-/// damage from the distance to the player, applies it to the `GpEnemy`,
+/// damage from the distance to the player, applies it to the `Enemy`,
 /// spawns the hit sparks once per distinct id and hands the damage to
 /// `stalkerPickHitReaction` unless the vocal cue is armed.
 void stalkerTakeHits(Task* arg0)
@@ -1249,7 +1249,7 @@ void stalkerTakeHits(Task* arg0)
     Actor402200HitScratch* head;
     Actor402200HitScratch* sc;
     Actor402200HitScratch* blk;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              coord;
     s32                    i;
     s32                    damage;
@@ -1559,7 +1559,7 @@ void stalkerGrabSeq(Task* arg0)
     work   = arg0->work;
     coord  = arg0->extra.tmd->coords;
     player = gameGetPtrSlot(3);
-    SCRATCH_PUSH_BYTES(sizeof(Actor402200GrabScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200GrabScratch));
     sc     = SCRATCH_STACK_CURSOR(Actor402200GrabScratch);
     pcoord = player->extra.tmd->coords;
     flag   = 0;
@@ -1595,7 +1595,7 @@ void stalkerGrabSeq(Task* arg0)
                     sc->place.rot.vz = 0;
                     Gp_DispatchMsgPtr(player, 0x3E9, &sc->place, 0);
                     Gp_SpawnPadLerp(0xA, 0xFF, 0x80);
-                    snd = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
+                    snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(pcoord), (s8)gpGetObjDepth(pcoord));
                 } else {
                     work->field_6CC = 0;
@@ -1614,7 +1614,7 @@ void stalkerGrabSeq(Task* arg0)
             work->field_6DC = 0x3C;
             work->field_6DA = 1;
             work->field_6DE = 0x1E;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             break;
         case 2:
@@ -1699,7 +1699,7 @@ void stalkerGrabSeq(Task* arg0)
                         work->field_6DC = 0x4B;
                         work->field_71A = 0;
                         work->field_6DE = 0x1E;
-                        work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                        work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                         SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     }
                 } else {
@@ -1746,7 +1746,7 @@ void stalkerGrabSeq(Task* arg0)
                     work->field_6DC = 0x4B;
                     work->field_6CE = 4;
                     work->field_6DE = 0x1E;
-                    work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             } else if (work->field_6C4 == 0x1A) {
@@ -1849,7 +1849,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             work->field_6DA = 1;
             work->field_6DC = 0x14;
             work->field_6DE = 0xA;
-            work->field_6B8 = gStalkerApproachCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+            work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
             SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             Gp_ArmStateF0(1);
             if (work->field_6C6 == 0) {
@@ -1907,7 +1907,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                     work->field_6F2  = 0;
                     work->field_6D4  = work->field_6DC + 0xA;
                     work->field_62A &= 0x3FFF;
-                    work->field_6BC  = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                    work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                     SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -1924,7 +1924,7 @@ void stalkerBoxApproachSeq(Task* arg0)
             }
             work->field_6C8 = D_actor_403900_801383DC[i].value;
             if (work->field_6C4 == 0x12) {
-                snd = gStalkerStrikeCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                snd = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 == 0x14) {
@@ -1946,7 +1946,7 @@ void stalkerBoxApproachSeq(Task* arg0)
                 work->field_6DE = 0xA;
                 work->field_6CE = 4;
                 work->field_6D4 = work->field_6DC + 0xA;
-                work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             break;
@@ -1979,7 +1979,7 @@ void stalkerRecoverSeq(Task* arg0)
     u32              random;
     s16              timer;
 
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     work  = arg0->work;
     state = work->field_6CE;
     coord = arg0->extra.tmd->coords;
@@ -2005,7 +2005,7 @@ void stalkerRecoverSeq(Task* arg0)
                 work->field_6CE = 0;
                 work->field_6DE = 5;
                 work->field_6E0 = 0;
-                work->field_6BC = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
                 pan             = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(work->field_6BC, pan, (s8)gpGetObjDepth(coord));
             }
@@ -2135,13 +2135,13 @@ static void func_actor_403900_80135D5C(Task* arg0)
 
 /// Spawn handler. Allocates the 0x71C-byte work block, points the model at its
 /// light / colour matrices and loads the animation context, then branches on
-/// the enemy's `field_4B` variant. Variant 0 is the full setup: it links the
+/// the enemy's `spawnState`. State 0 is the full setup: it links the
 /// enemy node, picks the box table and count for the current stage / room out
 /// of `D_actor_403900_80153C7C`, requests the room's cue bank, and links the
 /// work block's five collision objects with their `WorldCollisionContact` tables before
-/// moving the task on (`field_30` 1). Variants 1 and 2 only seed the animation
+/// moving the task on (`field_30` 1). States 1 and 2 only seed the animation
 /// and sequence state.
-static void func_actor_403900_80137444(GpEnemy* arg0, Task* arg1)
+static void func_actor_403900_80137444(Enemy* arg0, Task* arg1)
 {
     u8                     param1[4];
     u8                     param2[4];

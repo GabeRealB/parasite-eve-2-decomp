@@ -16,8 +16,8 @@ void jukeboxDrawRow(UiList* prompt, UiObject* obj)
     menu = _gJukeboxTrackLists;
 
     list = 4;
-    if (Mc_SaveData[0].state.clearCount != 0) {
-        list = Mc_SaveData[0].state.gameMode;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount != 0) {
+        list = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     }
     if (Gp_IsDebugAttachRoom() == 0) {
         list += 5;

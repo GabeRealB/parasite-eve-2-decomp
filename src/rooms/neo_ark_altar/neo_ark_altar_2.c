@@ -732,7 +732,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
     s16              found;
 
     work          = (NeoArkAltarWork*)task->work;
-    actor         = *Gp_ActorSlots;
+    actor         = *gPlayerActorTasks;
     work->field_6 = work->field_8;
     grow          = 0;
     coord         = actor->extra.tmd->coords;
@@ -1204,13 +1204,13 @@ static void func_neo_ark_altar_8017EF00(Task* arg0)
     s16* viewDirty;
 
     /* Through a pointer rather than as a member: a member store is struct
-       memory, which the scheduler lets the store to `Mc_SaveData[0].state.location.loc.room` pass, and the
+       memory, which the scheduler lets the store to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` pass, and the
        original keeps the two in source order. */
-    viewDirty                              = &gGameSession->viewDirty;
-    *viewDirty                             = 1;
-    Mc_SaveData[0].state.location.loc.room = 2;
-    gGameSession->location.loc.room        = 2;
-    arg0->state                            = (s32)(arg0->state + 1);
+    viewDirty                                                  = &gGameSession->viewDirty;
+    *viewDirty                                                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+    gGameSession->location.loc.room                            = 2;
+    arg0->state                                                = (s32)(arg0->state + 1);
 }
 
 static void func_neo_ark_altar_8017EF34(Task* arg0)

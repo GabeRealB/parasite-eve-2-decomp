@@ -34,21 +34,21 @@ void lungerDownedFinishState(Task* arg0);
 void lungerTurnTowardTarget(Task* arg0);
 void lungerDecayHitTilt(Task* arg0);
 void lungerPlayAnimCues(Task* arg0);
-void lungerDeadState(GpEnemy* arg0, Task* arg1);
+void lungerDeadState(Enemy* arg0, Task* arg1);
 
 void lungerHitTick(Task* arg0);
 void lungerKnockdownState(Task* arg0);
 void lungerLungeStrikeState(Task* arg0);
 void lungerAimLaserSight(Task* arg0);
 void lungerDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);
-void lungerBulletSpawn(GpEnemy* arg0, Task* arg1);
-void lungerBulletFly(GpEnemy* arg0, Task* arg1);
-void lungerGunTick(GpEnemy* enemy, Task* task);
-void lungerBulletDestroy(GpEnemy* arg0, Task* arg1);
+void lungerBulletSpawn(Enemy* arg0, Task* arg1);
+void lungerBulletFly(Enemy* arg0, Task* arg1);
+void lungerGunTick(Enemy* enemy, Task* task);
+void lungerBulletDestroy(Enemy* arg0, Task* arg1);
 
 void lungerSilenceScreamState(Task* arg0);
-void lungerFrameState(GpEnemy* ctx, Task* actor);
-void lungerBurstPartTick(GpEnemy* arg0, Task* arg1);
+void lungerFrameState(Enemy* ctx, Task* actor);
+void lungerBurstPartTick(Enemy* arg0, Task* arg1);
 
 /* Defined by each package. */
 void lungerTakeHits(Task* arg0);

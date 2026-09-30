@@ -2590,7 +2590,7 @@ GpSprtRec D_dryfield_night_motel_balcony_8018D078[39] = {
     { { .elements = D_dryfield_night_motel_balcony_8018CA74 }, D_dryfield_night_motel_balcony_8018D050, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_balcony_8018D24C[22] = {
+WorldCoordPointLight D_dryfield_night_motel_balcony_8018D24C[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4417, -2000, 2032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6862, -2000, 316 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2611, -5200, 0x2A75 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2500 },
@@ -2619,7 +2619,7 @@ GpRoomCoordSet D_dryfield_night_motel_balcony_8018DA8C[1] = {
     { 0, NULL, 22, D_dryfield_night_motel_balcony_8018D24C, 0, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_balcony_8018DAA4[22] = {
+WorldCoordPointLight D_dryfield_night_motel_balcony_8018DAA4[22] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4417, -2000, 2032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6862, -2000, 316 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2611, -5200, 0x2A75 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2500 },
@@ -2683,24 +2683,24 @@ GpObj4C D_dryfield_night_motel_balcony_8018E854[6] = {
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA1C[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA34[4] = {
     { 31, 31, 3, 0, { 0, 0 }, D_8015560C },
     { 106, 358, 2, 0, { 0, 0 }, D_8016EADC },
     { 114, 358, 5, 0, { 0, 0 }, D_80172E9C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA64[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_balcony_8018EA7C[2] = {
     { 15, 15, 0, 0, { 0, 0 }, D_8013BE28 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_motel_balcony_8018EA94[13] = {
@@ -2886,15 +2886,15 @@ GpRoomParamRec* D_dryfield_night_motel_balcony_8018F2AC[8] = {
 /// block's two counters.
 void func_dryfield_night_motel_balcony_8017E554(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    s32        hi;
-    s32        mask;
-    s32        i;
-    s32        n;
-    s16        cnt;
-    SVECTOR    pos;
-    SVECTOR    ofs;
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         hi;
+    s32         mask;
+    s32         i;
+    s32         n;
+    s16         cnt;
+    SVECTOR     pos;
+    SVECTOR     ofs;
 
     work                                = task->spawnArg2.pointer;
     coord                               = task->extra.coordBody->coord;
@@ -3089,14 +3089,14 @@ void func_dryfield_night_motel_balcony_8017F6C8(s32 arg0, s16 arg1, s16 arg2, s1
 /// release it at once, and event state 1 freezes the tick and the motion.
 void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    MATRIX*    m;
-    s32        half;
-    SVECTOR    delta;
-    SVECTOR    dir;
-    SVECTOR    pos;
-    u8         color[3];
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    MATRIX*     m;
+    s32         half;
+    SVECTOR     delta;
+    SVECTOR     dir;
+    SVECTOR     pos;
+    u8          color[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3240,7 +3240,7 @@ void func_dryfield_night_motel_balcony_8017F84C(Task* task)
 /// unused.
 static void func_dryfield_night_motel_balcony_8017FF78(Task* task, u8* color, s32 arg)
 {
-    GpEffWork*       work  = task->spawnArg2.pointer;
+    EffectWork*      work  = task->spawnArg2.pointer;
     GfxCoord*        coord = task->extra.coordBody->coord;
     GpFxQuadScratch* block;
     POLY_FT4*        prim;
@@ -3390,7 +3390,7 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
 
 void func_dryfield_night_motel_balcony_801809CC(Task* task)
 {
-    GpEffWork*  work;
+    EffectWork* work;
     GfxCoord*   coord;
     GpMtxWords* rot;
     s16         flag;
@@ -3478,7 +3478,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 /// caller passes 0.
 static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s32 unused)
 {
-    GpEffWork*     work;
+    EffectWork*    work;
     GfxCoord*      coord;
     GpRingScratch* block;
     POLY_FT4*      prim;
@@ -3555,10 +3555,10 @@ static void func_dryfield_night_motel_balcony_80180C60(Task* task, u8* color, s3
 /// a fixed height of 0xC00.
 void func_dryfield_night_motel_balcony_80181024(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        lo;
-    s32        arg;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         lo;
+    s32         arg;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3657,10 +3657,10 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
 /// above release it at once, and state 1 freezes the drift and the tick.
 void func_dryfield_night_motel_balcony_8018158C(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    MATRIX*    m;
-    s32        half; // default drift length and the centre of the wide drift rolls
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    MATRIX*     m;
+    s32         half; // default drift length and the centre of the wide drift rolls
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3763,7 +3763,7 @@ void func_dryfield_night_motel_balcony_8018158C(Task* task)
 /// `pos.vx * 47 / (otz + 1)` on both axes.
 static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 {
-    GpEffWork*     work;
+    EffectWork*    work;
     GfxCoord*      coord;
     u8*            head;
     GpRingScratch* block;
@@ -3841,13 +3841,13 @@ static void func_dryfield_night_motel_balcony_801819E0(Task* task, s32 arg)
 /// state below that freezes the drift and the lifetime tick.
 void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    MATRIX*    m;
-    s32        seed;
-    s16        tick;
-    s16        end;
-    u8         color[3];
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    MATRIX*     m;
+    s32         seed;
+    s16         tick;
+    s16         end;
+    u8          color[3];
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -3937,7 +3937,7 @@ void func_dryfield_night_motel_balcony_80181E7C(Task* task)
 /// `tick` is unused.
 static void func_dryfield_night_motel_balcony_8018221C(Task* task, u8* color, s16 tick)
 {
-    GpEffWork*     work = task->spawnArg2.pointer;
+    EffectWork*    work = task->spawnArg2.pointer;
     GfxCoord*      coord;
     GpRingScratch* block;
     POLY_FT4*      prim;

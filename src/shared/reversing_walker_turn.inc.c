@@ -7,7 +7,7 @@
 /// widening of the extracted yaw -- and otherwise snaps the yaw to the target
 /// and plays anim 0x7D3, clearing the two body counters. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, which
-/// `_gpUpdateCoordTree` picks up once `composeStamp` is cleared.
+/// `actorRenderComposeCoordChain` picks up once `composeStamp` is cleared.
 void reverseWalkTurnToYaw(Task* arg0)
 {
     Actor350500Work*     work;

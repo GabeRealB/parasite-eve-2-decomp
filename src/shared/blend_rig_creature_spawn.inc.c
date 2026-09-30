@@ -7,7 +7,7 @@
 /// publishes the message table, parents the root to the view, takes its world
 /// position as the actor colour, fills the effect record and advances the
 /// task to the per-frame driver.
-void rigSpawn(GpEnemy* enemy, Task* task)
+void rigSpawn(Enemy* enemy, Task* task)
 {
     SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
     VECTOR           pos;

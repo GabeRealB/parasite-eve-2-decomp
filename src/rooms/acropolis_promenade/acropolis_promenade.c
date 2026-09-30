@@ -121,9 +121,9 @@ extern TaskDesc D_acropolis_promenade_80181148[];
 /// Per-frame path the promenade's streamed scene walks the player's matrix
 /// along, indexed backwards by `0x45 - gCdCmdQueue.movieFrame`, plus the script
 /// pair the scene runs.
-extern SVECTOR     D_acropolis_promenade_80181184[];
-extern GpScriptCmd D_acropolis_promenade_80186224[6];
-extern GpScriptRec D_acropolis_promenade_8018623C[2];
+extern SVECTOR      D_acropolis_promenade_80181184[];
+extern PadScriptCmd D_acropolis_promenade_80186224[6];
+extern GpScriptRec  D_acropolis_promenade_8018623C[2];
 
 extern ApmGlowCorner D_acropolis_promenade_80181AE4[];
 
@@ -739,30 +739,30 @@ GpObj4C D_acropolis_promenade_80182DBC[6] = {
 
 GpAreaTmdRec D_acropolis_promenade_80182F84[2] = {
     { 11, 11, 2, 0, { 0, 0 }, D_80177400 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182F9C[3] = {
     { 7, 7, 1, 0, { 0, 0 }, D_80150C80 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FC0[3] = {
     { 55, 55, 0, 0, { 0, 0 }, D_8013A8DC },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FE4[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_promenade_80182FFC[3] = {
     { 26, 26, 0, 0, { 0, 0 }, D_8013A8D4 },
     { 8, 7, 1, 0, { 0, 0 }, D_801513C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_promenade_80183020[17] = {
@@ -785,7 +785,7 @@ GpAreaVariant D_acropolis_promenade_80183020[17] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_promenade_801830A8[25] = {
+WorldCoordPointLight D_acropolis_promenade_801830A8[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1367, -507, 6799 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2457 }, { 0, 0 } }, 500, 6000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -335, -2500, 3516 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 4096, 4096 }, { 0, 0 } }, 0, 0x2B5C },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1970, -507, 8207 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2457 }, { 0, 0 } }, 500, 6000 },
@@ -1441,13 +1441,13 @@ GpViewRec D_acropolis_promenade_80186050[13] = {
     { { { { 3076, 0, -2704 }, { -116, 4092, -133 }, { 2701, 177, 3073 } }, { 1791, 1265, 5187 } }, 257 },
 };
 
-GpScriptCmd D_acropolis_promenade_80186224[6] = {
-    { 1, 256 },
-    { 514, 0 },
-    { 257, 0 },
-    { 5635, 0 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_promenade_80186224[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 22), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_promenade_8018623C[2] = {
@@ -1543,8 +1543,8 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
             Task_SpawnFromTable(D_acropolis_promenade_80181148, 2, 0, 0);
         }
     }
-    if (Mc_SaveData[0].state.sceneEvent == 6) {
-        Mc_SaveData[0].state.sceneEvent = 5;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
     }
     temp = gGameSession->location.loc.variant;
     if (temp == 1) {
@@ -1573,7 +1573,7 @@ static void func_acropolis_promenade_8017D5E4(Task* task)
 /// not yet at 4; the first pass at 4 advances it to 5 instead of refusing.
 /// Message 0xC, while nibble 2 is still 0, refuses with code 3, latches the
 /// answered record into `D_acropolis_promenade_801862D0` for the room's own
-/// script to pick up, and arms `Mc_SaveData[0].state.sceneEvent` with 4. Message 0xE spawns the
+/// script to pick up, and arms `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` with 4. Message 0xE spawns the
 /// capsule sequence the first time (nibble 2 still 0) and afterwards reports
 /// through `room` whether nibble 2 has reached 3.
 ///
@@ -1596,9 +1596,9 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     }
     if (in->areaId == 0xC && GameFlag_GetNibble(2) == 0) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->warp                       = 3;
-            D_acropolis_promenade_801862D0  = *out;
-            Mc_SaveData[0].state.sceneEvent = 4;
+            out->warp                                           = 3;
+            D_acropolis_promenade_801862D0                      = *out;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
         }
         return 1;
     }
@@ -1782,7 +1782,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.source.index                      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;
             rec.blendFrames                       = 0;
@@ -1839,7 +1839,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
                 Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA5, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
                 func_800E9BDC(2, 0x9FF);
                 Gp_StateF0.field_4            = 0;
                 gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
@@ -1891,12 +1891,12 @@ void func_acropolis_promenade_8017DFD4(Task* arg0)
 /// frame. View 7 spawns nothing.
 void func_acropolis_promenade_8017E03C(Task* task)
 {
-    GfxCoord*  coord;
-    GpEffWork* work;
-    u8         view;
-    s32        i;
-    s32        mask;
-    s16        prev;
+    GfxCoord*   coord;
+    EffectWork* work;
+    u8          view;
+    s32         i;
+    s32         mask;
+    s16         prev;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
@@ -1962,15 +1962,15 @@ void func_acropolis_promenade_8017E03C(Task* task)
 /// away, the lifetime runs out, or the drip falls off the bottom of the screen.
 void func_acropolis_promenade_8017E394(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        onScreen;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         onScreen;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -2032,7 +2032,7 @@ void func_acropolis_promenade_8017E394(Task* task)
 void func_acropolis_promenade_8017E634(Task* task)
 {
     GfxCoord*             coord;
-    GpEffWork*            work;
+    EffectWork*           work;
     void**                scratch;
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -2144,7 +2144,7 @@ void func_acropolis_promenade_8017E634(Task* task)
 void func_acropolis_promenade_8017ED44(Task* task)
 {
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
     void**           scratch;
     u8*              head;
     RoomQuadScratch* blk;
@@ -2232,7 +2232,7 @@ void func_acropolis_promenade_8017ED44(Task* task)
 void func_acropolis_promenade_8017F0BC(Task* task)
 {
     GfxCoord*              coord;
-    GpEffWork*             work;
+    EffectWork*            work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
     s32                    grey;

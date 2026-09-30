@@ -528,7 +528,7 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(3, 0, 0);
-            Gp_SortItems(&Mc_SaveData[0].state.carriedItems, 1);
+            Gp_SortItems(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 1);
         }
     }
 }
@@ -543,7 +543,7 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
 
     count = 0;
     p     = &Player_Status;
-    scan  = &Mc_SaveData[0].state.carriedItems;
+    scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->firstRow];
@@ -2053,7 +2053,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     mode        = 0x10;
     if (Gp_ItemDescs[id].field_3 & 1) {
         mode = 1;
-    } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&Mc_SaveData[0].state.carriedItems, id) > 0)) {
+    } else if (((u32)(id - 0xA0) < 0x20U) && (Gp_CountEquippedRelated(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id) > 0)) {
         mode = 3;
     } else if (Gp_IsEquippedItem(id) != 0) {
         mode = 2;
@@ -2112,13 +2112,13 @@ void Gp_DiscardWarnTask(Task* arg0)
                 } else if ((u32)(id - 0x60) < 0x20U) {
                     PlayerStatus* cfg;
 
-                    Mc_SaveData[0].state.itemLevelBonus[id - 0x60] = 0;
-                    cfg                                            = &Player_Status;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[id - 0x60] = 0;
+                    cfg                                                                = &Player_Status;
                     if (cfg->armor == (id - 0x5F)) {
                         cfg->armor = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
                 }
-                Gp_RemoveItem(&Mc_SaveData[0].state.carriedItems, rec, -1);
+                Gp_RemoveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, rec, -1);
             }
             parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -2139,7 +2139,7 @@ void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
 
     idx   = arg1->owner->spawnArg1.value;
     slot  = arg0->field_8;
-    count = Mc_SaveData[0].state.attachLevels[slot + idx * 3];
+    count = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[slot + idx * 3];
     off   = idx * 16;
     base  = slot * 4 + 0x300;
     item  = off + base + count;
@@ -2201,7 +2201,7 @@ void func_800D29B0(Task* arg0)
         menu->field_8   = 0;
         menu->field_9.u = 0;
         Ui_LayoutListPanel(menu, &(obj)->panel);
-        levels = &Mc_SaveData[0].state.attachLevels[arg0->spawnArg1.value * 3];
+        levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
         if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
             menu->field_4 = menu->field_5.u = 3;
         } else {
@@ -2215,7 +2215,7 @@ void func_800D29B0(Task* arg0)
         }
         arg0->state++;
     }
-    levels = &Mc_SaveData[0].state.attachLevels[arg0->spawnArg1.value * 3];
+    levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
     if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
         menu->field_4 = menu->field_5.u = 3;
     } else {
@@ -2442,9 +2442,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     col  = ((id + 1) & 0xC) >> 2;
     lvl  = (id + 1) & 3;
     cost = Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].field[0];
-    if (Mc_SaveData[0].state.gameMode > 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
         cost = (cost * 4) / 5;
-    } else if (Mc_SaveData[0].state.clearCount > 0) {
+    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         cost = (cost * 2) / 5;
     }
     Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, 2);
@@ -2488,9 +2488,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                 if (childObj->resultValue == 0x33) {
                     cfg   = &Player_Status;
                     price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
-                    if (Mc_SaveData[0].state.gameMode > 0) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                         price = (price * 4) / 5;
-                    } else if (Mc_SaveData[0].state.clearCount > 0) {
+                    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
                         price = (price * 2) / 5;
                     }
                     if (cfg->exp < (price & 0xFFFF)) {
@@ -2498,13 +2498,13 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         Ui_TeardownTree(childObj, childObj->owner);
                     } else {
                         price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].field[0];
-                        if (Mc_SaveData[0].state.gameMode > 0) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                             price = (price * 4) / 5;
-                        } else if (Mc_SaveData[0].state.clearCount > 0) {
+                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
                             price = (price * 2) / 5;
                         }
-                        cfg->exp                                                                     -= price & 0xFFFF;
-                        Mc_SaveData[0].state.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
+                        cfg->exp                                                                                         -= price & 0xFFFF;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
                         cfg->mp             = cfg->mpMax;
                         Gp_HpMpWork.field_4 = cfg->mp;
@@ -2557,9 +2557,9 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
         raw = Gp_IdParamHi.rows[(((a * 3) + b) * 3) + c].field[arg5];
     }
     if (arg5 == 0) {
-        if (Mc_SaveData[0].state.gameMode > 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
             raw = (raw * 4) / 5;
-        } else if (Mc_SaveData[0].state.clearCount > 0) {
+        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
             raw = (raw * 2) / 5;
         }
         width = arg0->panel.contentRight.signedValue;
@@ -2597,9 +2597,9 @@ static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
             rawPrev = Gp_IdParamHi.rows[(((aPrev * 3) + bPrev) * 3) + cPrev].field[arg5];
         }
         if (arg5 == 0) {
-            if (Mc_SaveData[0].state.gameMode > 0) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
                 rawPrev = (rawPrev * 4) / 5;
-            } else if (Mc_SaveData[0].state.clearCount > 0) {
+            } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
                 rawPrev = (rawPrev * 2) / 5;
             }
         }
@@ -3098,7 +3098,7 @@ s32 func_800D4D2C(s32 arg0)
 {
     s32 val;
 
-    val                           = *(volatile s32*)&Mc_SaveData[0].state.location.loc;
+    val                           = *(volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:
@@ -3227,9 +3227,9 @@ s32 func_800D50D4(s32 arg0, s32 arg1)
     c   = arg0 & 3;
     val = Gp_IdParamHi.rows[(a * 3 + b) * 3 + c].field[arg1];
     if (arg1 == 0) {
-        if (Mc_SaveData[0].state.gameMode > 0) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
             val = (val * 4) / 5;
-        } else if (Mc_SaveData[0].state.clearCount > 0) {
+        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
             val = (val * 2) / 5;
         }
     }

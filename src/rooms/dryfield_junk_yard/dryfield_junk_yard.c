@@ -126,7 +126,7 @@ extern TaskDesc                   D_8014D8A4;
 void                              func_dryfield_junk_yard_8017DC54(s8);
 
 extern DryfieldJunkYardSpotLightStorage D_dryfield_junk_yard_80181854;
-extern GpPointLight                     D_dryfield_junk_yard_80181554[8];
+extern WorldCoordPointLight             D_dryfield_junk_yard_80181554[8];
 
 GpMsgEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
@@ -358,17 +358,17 @@ GpGridParams D_dryfield_junk_yard_8017F4C8[1] = {
 };
 
 GpAreaTmdRec D_dryfield_junk_yard_8017F4EC[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_junk_yard_8017F4F8[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_junk_yard_8017F510[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_junk_yard_8017F528[3] = {
@@ -785,7 +785,7 @@ GpObj3A D_dryfield_junk_yard_80181518[1] = {
     { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, { -88, 5 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_junk_yard_80181554[8] = {
+WorldCoordPointLight D_dryfield_junk_yard_80181554[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 505, -2000, 6031 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3094, 3094, 3094 }, { 0, 0 } }, 0, 7200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1931, -2000, -3662 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3094, 3094, 3094 }, { 0, 0 } }, 0, 7200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9505, 161, -2977 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3278, 3278, 3278 }, { 0, 0 } }, 0, 9103 },
@@ -1710,10 +1710,10 @@ s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionReque
 }
 
 /// Room script callback, named by two of the room's script records (command
-/// 0xD, argument 5): stores its argument into `Mc_SaveData[0].state.sceneEvent`.
+/// 0xD, argument 5): stores its argument into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`.
 void func_dryfield_junk_yard_8017DC54(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 /// State 1 of the room task: once `gDisplayState.debugMode` is non-zero and a slot-0xA

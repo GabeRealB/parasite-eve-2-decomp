@@ -166,7 +166,7 @@ Two consequences:
   entries. Use the established asset boundaries for total geometry lengths;
   neither total length is stored in `TmdSource`.
 
-  Composing those through the parent the way `_gpUpdateCoordTree` does —
+  Composing those through the parent the way `actorRenderComposeCoordChain` does —
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
   parent.workm.t` — assembles the character. For Kyle it yields a
   pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at
@@ -431,8 +431,8 @@ per vertex; `tmdDrawStreamPrimGt3PreXform` then reads its refs as
 `ws->szTable + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
 stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
 slot maps to a vertex one-to-one. The negative-value check either side of it
-(`bltz` on the loaded word) is the off-screen flag `tmdXformStreamVerts` sets
-from GTE `FLAG`.
+(`bltz` on the loaded word) is `TMD_VERTEX_DEPTH_INVALID`. `tmdXformStreamVerts`
+sets that bit when GTE FLAG bit 31, `TMD_GTE_ERROR_FLAG`, is set.
 
 What either handler leaves at a destination is the GTE's colour register, and
 that is a whole primitive colour word: the R, G and B the lighting produced,
@@ -442,7 +442,9 @@ handler that completes a pre-transformed record (`0x39`, `0x79`) runs after the
 pre-pass and writes its own code over the first corner's.
 
 `0xC4`'s handler is decompiled C (`gpXformStreamVertsUnlit` in
-`src/gameplay/model_lighting.c`) and spells out what the hasm versions do:
+`src/gameplay/model_lighting.c`). The handwritten pre-passes do this depth
+update from a fresh FLAG read (`cfc2` $31, then `bgez`); this handler tests
+the saved `gteFlag` word as the walk left it:
 
 ```c
 idx = rec[0];
@@ -450,8 +452,8 @@ if (idx != prev) {                                  // the caching branch
     gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));    // vertex array, 8-byte aligned
     gte_rtps_real();
     gte_stsz(&ws->gteResult);                        // keep Z
-    if (ws->gteFlag & 0x80000000)
-        ws->gteResult |= 0x80000000;                 // mark culled
+    if (ws->gteFlag & TMD_GTE_ERROR_FLAG)
+        ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;   // failed projection
     ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;  // cache[vertex index]
 }
 gte_stsxy(ws->preXformWrite + rec[1]);                    // screen XY into the prim
@@ -463,9 +465,9 @@ Three things fall out of it:
   and holds one word each. That independently confirms the bit `0x01` reading
   in §3.2: those opcodes' refs are byte offsets into this word array, so the
   vertex index is `ref / 4`.
-- **A negative cache entry means culled.** The sign bit is forced from
-  `ws->gteFlag`, and the `0x01` handlers `bltz`-test the entry and skip the
-  face.
+- **A negative cache entry means the projection failed.** Its sign bit is
+  `TMD_VERTEX_DEPTH_INVALID`, copied from `TMD_GTE_ERROR_FLAG` in the saved
+  FLAG word. The `0x01` handlers `bltz`-test the entry and skip the face.
 - **`idx & 0xFFF8`** masks the low three bits before use, so they carry flags
   rather than address.
 

@@ -672,7 +672,7 @@ static void func_actor_135400_80132064(Task* arg0)
     spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
-        actorTintTask(spawned, (GpEnemy*)arg0->spawnArg2.pointer);
+        actorTintTask(spawned, (Enemy*)arg0->spawnArg2.pointer);
     }
     spawned = Task_SpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {
@@ -808,8 +808,10 @@ static void func_actor_135400_80132634(Task* task)
 
 /// The main task's 0x7D5 handler, a four-way model mode switch on the
 /// `TmdObject` in `Task::extra`. Mode 0 hides the model (flag 0x80) and clears
-/// flag 0x4; 1 shows it, allocates its buffers and clears 0x4; 2 hides it,
-/// frees the buffers and sets 0x4; 3 shows it and sets 0x4. Anything else
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, allocates its buffers and clears
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it,
+/// frees the buffers and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`; 3 shows it and sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Anything else
 /// returns 1 and leaves the model alone; the handled modes return 0. Either
 /// way the resulting flags are copied onto the first part task's model
 /// (`Actor135400MainWork::field_4B8`), keeping the pair in step.

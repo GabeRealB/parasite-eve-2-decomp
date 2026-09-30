@@ -11,12 +11,12 @@
 /// call (sched2 then sinks the `li` below the `jal`).
 void hopperSpawn(Task* task)
 {
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        root;
     Actor341700Work* work;
     TmdObject*       obj;
     Actor341700Work* w;
-    GpEnemy*         e;
+    Enemy*           e;
     GfxCoord*        coord;
     Actor341700Work* w2;
     Actor341700Work* w3;

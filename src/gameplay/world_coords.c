@@ -194,9 +194,9 @@ extern GpLightCapture* D_80760618;
 /// Re-evaluates each lit transient light slot against the view.
 static inline void _gpUpdateRoomCoordSlots(void);
 
-static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos);
+static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos);
 
-static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos);
+static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos);
 
 static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos);
 
@@ -226,14 +226,15 @@ static inline void _gpSetColorMtx(MATRIX* mtx, s16 r, s16 g, s16 b);
 static void Gp_DebugPanTask(Task* arg0);
 
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
-/// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
-/// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
+/// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
+/// collapses RGB as (7,6,3)/33 then *4/*2/*1. Black zeros the matrix. Tint
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
-/// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
-/// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
-static void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+/// `reactionFlags` has damage over time set. `ENEMY_COLOR_HIT_FLASH` with
+/// `spawnState == 0` applies a `rsin(gDisplayState.loopCount << 6)` flicker
+/// and clears the bit.
+static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2);
 
-static void Gp_LightFalloff(GpPointLight* light);
+static void Gp_LightFalloff(WorldCoordPointLight* light);
 
 static WorldCoordRoomAmbientEntry* Gp_GetRoomBound(GameLocationKey* arg0);
 
@@ -291,14 +292,14 @@ static inline void _gpUpdateRoomCoordSlots(void)
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
-    GpRoomCoordSet*      set;
-    SVECTOR*             vec;
-    WorldCoordLight*     light;
-    GpPointLight*        point;
-    WorldCoordSpotLight* spot;
-    GfxCoord*            coord;
-    s32                  i;
-    s32                  j;
+    GpRoomCoordSet*       set;
+    SVECTOR*              vec;
+    WorldCoordLight*      light;
+    WorldCoordPointLight* point;
+    WorldCoordSpotLight*  spot;
+    GfxCoord*             coord;
+    s32                   i;
+    s32                   j;
 
     set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     if (set == NULL) {
@@ -306,7 +307,7 @@ void Gp_UpdateRoomCoords(Task* task)
         return;
     }
 
-    vec = SCRATCH_PUSH_BYTES(0x1C);
+    vec = SCRATCH_STACK_RESERVE_BYTES(0x1C);
     if (task->state == 0) {
         point = set->arr60;
         for (i = 0; i < set->n60; i++, point++) {
@@ -380,7 +381,7 @@ void Gp_UpdateRoomCoords(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPointRoom(WorldCoordPointLight* light, VECTOR3* pos)
 {
     WorldCoordLight* base;
     GpAttnScratch*   block;
@@ -439,7 +440,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
+static s32 Gp_LightPoint(WorldCoordPointLight* light, VECTOR3* pos)
 {
     GpAttnScratch*   block;
     s32              result;
@@ -569,14 +570,14 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
-    GpRoomCoordSet*      set;
-    GpPointLight*        point;
-    WorldCoordLight*     light;
-    WorldCoordSpotLight* cone;
-    VECTOR*              delta;
-    u32                  best;
-    u32                  dist;
-    s32                  i;
+    GpRoomCoordSet*       set;
+    WorldCoordPointLight* point;
+    WorldCoordLight*      light;
+    WorldCoordSpotLight*  cone;
+    VECTOR*               delta;
+    u32                   best;
+    u32                   dist;
+    s32                   i;
 
     set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
@@ -584,7 +585,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     arg1->field_4 = 0;
     arg1->light   = NULL;
     if (set != NULL) {
-        SCRATCH_PUSH_BYTES(0x10);
+        SCRATCH_STACK_RESERVE_BYTES(0x10);
         delta = SCRATCH_STACK_CURSOR(VECTOR);
         if (set->n60 > 0) {
             point = set->arr60;
@@ -753,14 +754,14 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     register MATRIX*              colorMtx;
     register GpLightSolveScratch* block;
 
-    s32           n;
-    s32           nOcc;
-    s32           idx;
-    s32           i;
-    s32           sum;
-    s32           val;
-    void**        cutoffPtr;
-    GpPointLight* light;
+    s32                   n;
+    s32                   nOcc;
+    s32                   idx;
+    s32                   i;
+    s32                   sum;
+    s32                   val;
+    void**                cutoffPtr;
+    WorldCoordPointLight* light;
 
     startr   = start;
     set      = Gp_GetRoomCoordSet(&gGameSession->location.loc);
@@ -1152,7 +1153,7 @@ static void Gp_DebugPanTask(Task* arg0)
         }
     }
 
-    work = Gp_ActorSlots[1];
+    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION];
     if (work != NULL) {
         TmdObject* model;
 
@@ -1191,23 +1192,24 @@ static void Gp_DebugPanTask(Task* arg0)
 }
 
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
-/// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
-/// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
+/// (`colorMode` bits 0-1, or bits 2-3 when blending). Weighted mode
+/// collapses RGB as (7,6,3)/33 then *4/*2/*1. Black zeros the matrix. Tint
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
-/// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
-/// a `rsin(gDisplayState.loopCount << 6)` flicker and clears the bit.
-static void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
+/// `reactionFlags` has damage over time set. `ENEMY_COLOR_HIT_FLASH` with
+/// `spawnState == 0` applies a `rsin(gDisplayState.loopCount << 6)` flicker
+/// and clears the bit.
+static void Gp_RemapActorColor(Enemy* arg0, MATRIX* arg1, s32 arg2)
 {
     s32 i;
     s32 val;
 
-    if (arg2 == 1) {
+    if (arg2 == ENEMY_COLOR_WEIGHTED) {
         goto case1;
-    } else if (arg2 < 2) {
+    } else if (arg2 < ENEMY_COLOR_BLACK) {
         goto def;
-    } else if (arg2 == 2) {
+    } else if (arg2 == ENEMY_COLOR_BLACK) {
         goto case2;
-    } else if (arg2 == 3) {
+    } else if (arg2 == ENEMY_COLOR_TINT) {
         goto case3;
     } else {
         goto def;
@@ -1225,7 +1227,7 @@ case1: {
     return;
 
 case3:
-    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
+    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
         goto flicker;
     }
     arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
@@ -1234,7 +1236,7 @@ case3:
     return;
 
 case2:
-    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
+    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
         goto flicker;
     }
     arg1->m[0][0] = 0;
@@ -1249,7 +1251,7 @@ case2:
     return;
 
 def:
-    if ((arg0->colorMode & 0x80) && (arg0->spawnState == 0)) {
+    if ((arg0->colorMode & ENEMY_COLOR_HIT_FLASH) && (arg0->spawnState == 0)) {
     flicker:
         val = rsin(gDisplayState.loopCount << 6) + 0x1800;
         if ((gDisplayState.loopCount & 1) == 0) {
@@ -1258,8 +1260,8 @@ def:
         arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
         arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
         arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
-        arg0->colorMode                              &= 0x7F;
-    } else if (arg0->reactionFlags & 0xC) {
+        arg0->colorMode                              &= ENEMY_COLOR_HIT_FLASH_CLEAR;
+    } else if (arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         s32 t;
         for (i = 0; i < 3; i++) {
             t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
@@ -1270,7 +1272,7 @@ def:
     }
 }
 
-void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
+void Gp_UpdateActorColor(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 {
     TmdObject*      extra;
     MATRIX*         colorMtx;
@@ -1282,7 +1284,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
-    mode     = arg0->colorMode & 3;
+    mode     = arg0->colorMode & ENEMY_COLOR_MODE_MASK;
     if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
         block = SCRATCH_STACK_RESERVE_BLOCK(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
@@ -1299,7 +1301,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
             block->mtx.m[2][1] = colorMtx->m[2][1];
             block->mtx.m[2][2] = colorMtx->m[2][2];
             Gp_RemapActorColor(arg0, colorMtx, mode);
-            Gp_RemapActorColor(arg0, &block->mtx, (arg0->colorMode >> 2) & 3);
+            Gp_RemapActorColor(arg0, &block->mtx, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
             w0 = (s8)arg0->colorBlend << 8;
             w1 = 0x1000 - w0;
             for (i = 0; i < 3; i++) {
@@ -1328,7 +1330,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
     }
 }
 
-static void Gp_LightFalloff(GpPointLight* light)
+static void Gp_LightFalloff(WorldCoordPointLight* light)
 {
     GpAttnScratch*   block;
     s32              result;
@@ -1365,15 +1367,15 @@ static void Gp_LightFalloff(GpPointLight* light)
     SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
 }
 
-void Gp_SetLightMode(GpEnemy* arg0, s32 arg1)
+void Gp_SetLightMode(Enemy* arg0, s32 arg1)
 {
     u8 val;
 
     val   = arg0->colorMode;
-    arg1 &= 3;
-    if ((val & 3) != arg1) {
-        arg0->colorMode  = (val & 0xF0) | ((val & 3) << 2) | arg1;
-        arg0->colorBlend = 0x10;
+    arg1 &= ENEMY_COLOR_MODE_MASK;
+    if ((val & ENEMY_COLOR_MODE_MASK) != arg1) {
+        arg0->colorMode  = (val & ENEMY_COLOR_KEPT_BITS) | ((val & ENEMY_COLOR_MODE_MASK) << ENEMY_COLOR_PREVIOUS_SHIFT) | arg1;
+        arg0->colorBlend = ENEMY_COLOR_BLEND_STEPS;
     }
 }
 

@@ -27,12 +27,11 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
 
@@ -57,12 +56,7 @@ GpAreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    115,
-    55,
-    136,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 115, 55, 136 } };
 
 RoomEventReq gRoomEventReq;
 

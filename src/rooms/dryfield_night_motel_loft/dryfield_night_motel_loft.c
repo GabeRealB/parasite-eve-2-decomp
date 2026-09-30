@@ -77,7 +77,7 @@ GpSprtRec D_dryfield_night_motel_loft_8017FBE4[14] = {
     { { .empty = D_dryfield_night_motel_loft_8017FBD4 }, D_dryfield_night_motel_loft_8017FBD4, NULL },
 };
 
-GpPointLight D_dryfield_night_motel_loft_8017FC8C[10] = {
+WorldCoordPointLight D_dryfield_night_motel_loft_8017FC8C[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4605, -1890, 1498 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2703, 2293 }, { 0, 0 } }, 2081, 4561 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4638, -1878, 1027 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2703, 2293 }, { 0, 0 } }, 1441, 2901 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2362, -1878, 5 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 2048, 2867 }, { 0, 0 } }, 1000, 2000 },
@@ -128,23 +128,23 @@ GpObj4C D_dryfield_night_motel_loft_801803F4[14] = {
 
 GpAreaTmdRec D_dryfield_night_motel_loft_8018081C[2] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_loft_80180834[3] = {
     { 6, 6, 3, 0, { 0, 0 }, D_80151B10 },
     { 16, 16, 2, 0, { 0, 0 }, D_801745DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_loft_80180858[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_night_motel_loft_80180870[2] = {
     { 16, 16, 0, 0, { 0, 0 }, D_801445DC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_night_motel_loft_80180888[13] = {
@@ -259,11 +259,11 @@ void func_dryfield_night_motel_loft_8017D6F8(Task* arg0)
     }
 }
 
-/// Sets the session's current room to `arg0` and mirrors it in `Mc_SaveData[0].state.location.loc.room`.
+/// Sets the session's current room to `arg0` and mirrors it in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`.
 void func_dryfield_night_motel_loft_8017D7EC(u8 arg0)
 {
-    gGameSession->location.loc.room        = arg0;
-    Mc_SaveData[0].state.location.loc.room = arg0;
+    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
 }
 
 /// First state of the room task: publishes the room's message table, claims
@@ -299,7 +299,7 @@ static void func_dryfield_night_motel_loft_8017D8B0(Task* arg0)
         GameFlag_SetNibble(0x96, 1);
         func_800E8614(D_dryfield_night_motel_loft_8017EB78, 0);
         func_800E3FAC(0xA2, 0x15);
-        Mc_SaveData[0].state.sceneEvent = 3;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
     }
 }
 

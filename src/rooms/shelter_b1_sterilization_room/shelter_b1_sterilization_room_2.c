@@ -746,7 +746,7 @@ GpSprtRec D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = D_shelter_b1_sterilization_room_8018AFFC }, D_shelter_b1_sterilization_room_8018AFFC, NULL },
 };
 
-GpPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
+WorldCoordPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -2000, 0x30D4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2129, 3686, 3276 }, { 0, 0 } }, 3500, 3750 },
 };
 
@@ -811,12 +811,12 @@ GpObj4C D_shelter_b1_sterilization_room_8018B8A8[28] = {
 };
 
 GpAreaTmdRec D_shelter_b1_sterilization_room_8018C0F8[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_b1_sterilization_room_8018C104[2] = {
     { 117, 606, 0, 0, { 0, 0 }, D_8013DFA0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b1_sterilization_room_8018C11C[1] = {
@@ -956,9 +956,9 @@ void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
 
 void func_shelter_b1_sterilization_room_801814B0(void)
 {
-    Mc_SaveData[0].state.location.loc.area = 0x27;
-    Mc_SaveData[0].state.location.loc.warp = 3;
-    Mc_SaveData[0].state.location.loc.room = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x27;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
     Task_Spawn(0, 0x11, 0, 0);
 }
 
@@ -972,10 +972,10 @@ void func_shelter_b1_sterilization_room_801814FC(Task* arg0)
             arg0->state            += 1;
             break;
         case 1:
-            Mc_SaveData[0].state.location.loc.room = 2;
-            gGameSession->location.loc.room        = 2;
-            gGameSession->roomObjsDirty            = state;
-            arg0->state                           += 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+            gGameSession->location.loc.room                            = 2;
+            gGameSession->roomObjsDirty                                = state;
+            arg0->state                                               += 1;
             break;
         default:
             taskKill(arg0);
@@ -1371,10 +1371,10 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
 /// and the task is released once ten frames have passed.
 void func_shelter_b1_sterilization_room_801823D8(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    SVECTOR*   vec;
-    s32        base;
+    EffectWork* work;
+    GfxCoord*   coord;
+    SVECTOR*    vec;
+    s32         base;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;

@@ -17,11 +17,11 @@
 ///
 /// Bails out -- unlinking the display node and stepping the task on -- when the
 /// overlay is shutting down or the host actor has left the grab states.
-void incinBossThrowFly(GpEnemy* enemy, Task* task)
+void incinBossThrowFly(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
     Actor403200Work*     host;
-    GpEnemy*             owner;
+    Enemy*               owner;
     u8*                  head;
     SVECTOR*             dir;
     /// Second live alias of `dir`: the GTE operand is kept in its own register
@@ -76,7 +76,7 @@ void incinBossThrowFly(GpEnemy* enemy, Task* task)
         Gp_ClearRec18Occupied(&work->rec0);
 
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
@@ -93,7 +93,7 @@ void incinBossThrowFly(GpEnemy* enemy, Task* task)
         }
     } else {
         work->coord.parent = &gGfxViewCoord;
-        Gfx_RotMatrixY(&work->coord.coord, 0, 1);
+        gfxRotMatrixY(&work->coord.coord, 0, 1);
         work->coord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
         work->coord.coord.t[1]   = 0;
         work->coord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];

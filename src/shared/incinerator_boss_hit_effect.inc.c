@@ -7,7 +7,7 @@
 /// scratchpad stack for the duration of the call.
 void incinBossHitEffect(GfxCoord* coord, s32 id)
 {
-    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor403200EffScratch));
+    Actor403200EffScratch* sc = (Actor403200EffScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor403200EffScratch));
 
     sc->eff.spawnArgLo = 0x500;
     sc->eff.coord      = coord;

@@ -13,10 +13,10 @@
 /// model is spun to a random yaw, and the two nodes are linked with their
 /// collision-record tables before the task's colour and light matrices are
 /// pointed into the work block.
-void incinBossChunkSpawn(GpEnemy* enemy, Task* task)
+void incinBossChunkSpawn(Enemy* enemy, Task* task)
 {
     Actor403200GrabWork* work;
-    GpEnemy*             owner;
+    Enemy*               owner;
     Task*                player;
     SVECTOR              vec;
     s32                  sfx;
@@ -51,12 +51,12 @@ void incinBossChunkSpawn(GpEnemy* enemy, Task* task)
     work->field_1AC = 0;
     task->state++;
 
-    sfx = ((owner->placeKey >> 0xC) << 8) | 0x4020000B;
+    sfx = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000B;
     pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
 
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, ((u32)Gp_LcgState >> 0x10) & 0x1FF, 1);
 
     vec.vx = vec.vy = vec.vz = 0;
 

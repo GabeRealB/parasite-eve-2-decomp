@@ -377,7 +377,7 @@ GpViewRec D_dryfield_underpass_8017F4A8[26] = {
 
 GpAreaTmdRec D_dryfield_underpass_8017F850[2] = {
     { 5, 5, 3, 0, { 0, 0 }, D_80153D60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_underpass_8017F868[13] = {
@@ -726,7 +726,7 @@ GpObj3A D_dryfield_underpass_80180AA8[3] = {
     { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, { 33, 27 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_underpass_80180B5C[9] = {
+WorldCoordPointLight D_dryfield_underpass_80180B5C[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3214, -1973, -3920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1966, 2621, 3276 }, { 0, 0 } }, 2500, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44C0, -3483, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3C28, -3483, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
@@ -742,7 +742,7 @@ GpRoomCoordSet D_dryfield_underpass_80180EBC[1] = {
     { 0, NULL, 9, D_dryfield_underpass_80180B5C, 0, NULL },
 };
 
-GpPointLight D_dryfield_underpass_80180ED4[6] = {
+WorldCoordPointLight D_dryfield_underpass_80180ED4[6] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4268, -2483, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -2483, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3F48, -2483, -8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
@@ -856,7 +856,7 @@ static void func_dryfield_underpass_8017DA00(Task* task)
 /// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
 /// same choice the switch task `underpassSwitchTask` makes when it
 /// toggles nibble 0x51, and writes it to the session's room and to
-/// `Mc_SaveData[0].state.location.loc.room`, then flags the room objects dirty. Reached from the room's
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`, then flags the room objects dirty. Reached from the room's
 /// script data.
 void func_dryfield_underpass_8017DA08(void)
 {
@@ -889,11 +889,11 @@ void func_dryfield_underpass_8017DA08(void)
             }
         }
     }
-    session                                = gGameSession;
-    room                                   = dst.room;
-    session->location.loc.room             = room;
-    Mc_SaveData[0].state.location.loc.room = room;
-    gGameSession->roomObjsDirty            = 1;
+    session                                                    = gGameSession;
+    room                                                       = dst.room;
+    session->location.loc.room                                 = room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
+    gGameSession->roomObjsDirty                                = 1;
 }
 
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed

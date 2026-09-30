@@ -12,16 +12,16 @@
 void hopperSpawnHidden(Task* task)
 {
     TmdObject*       model;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        root;
     Actor341700Work* work;
     TmdObject*       obj;
     Actor341700Work* w;
-    GpEnemy*         e;
+    Enemy*           e;
     GfxCoord*        coord;
     Actor341700Work* w2;
     Actor341700Work* w3;
-    GpEnemy*         e2;
+    Enemy*           e2;
     s32              flags;
     s32              kind;
     s32              two;

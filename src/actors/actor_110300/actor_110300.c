@@ -58,7 +58,7 @@ STATIC_ASSERT_SIZEOF(Actor110300MsgEntry, 8);
 
 extern Actor110300MsgEntry gViewFigureMessages[];
 
-static void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
+static void func_actor_110300_80132020(Enemy* enemy, Task* task);
 
 extern TmdSource D_actor_110300_80137AF0;
 extern TmdSource D_actor_110300_80137EF8;
@@ -295,7 +295,7 @@ Task* gActorHelperTask;
 /// overlay's other functions reach the block without the task.
 void func_actor_110300_80131F9C(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         viewFigureSpawnState,
         func_actor_110300_80132020,
     };
@@ -323,10 +323,10 @@ void func_actor_110300_80131FF8(Task* arg0)
 /// model object itself.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
-/// is copied into `$a0` (the first, unused, is the `GpEnemy*`): that copy is
+/// is copied into `$a0` (the first, unused, is the `Enemy*`): that copy is
 /// what the first call's argument, and the `Task::extra` load feeding it, are
 /// both read off.
-static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
+static void func_actor_110300_80132020(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
     GfxCoord*  coord;

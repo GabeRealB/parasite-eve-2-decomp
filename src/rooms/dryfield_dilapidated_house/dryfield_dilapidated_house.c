@@ -274,9 +274,9 @@ extern GpObj4C                    D_dryfield_dilapidated_house_80188D08[9];
 extern GpObj4C                    D_dryfield_dilapidated_house_80188FB4[9];
 extern WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22];
 extern GpRoomCoordSet             D_dryfield_dilapidated_house_801898FC[1];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B30[2];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B40[4];
-extern GpScriptCmd                D_dryfield_dilapidated_house_80189B5C[2];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B30[2];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B40[4];
+extern PadScriptCmd               D_dryfield_dilapidated_house_80189B5C[2];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B38[2];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B50[3];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B64[2];
@@ -484,9 +484,9 @@ ActorTransform D_dryfield_dilapidated_house_801843D8 = { { 1000, 0, 0, 0 }, { 0,
 
 GpOverrideArg D_dryfield_dilapidated_house_801843F0 = { 19, 1 };
 
-GpOverlayIds D_dryfield_dilapidated_house_801843F8 = { 2, 11, 11 };
+EvsSceneKey D_dryfield_dilapidated_house_801843F8 = { 2, 11, 11 };
 
-GpOverlayIds D_dryfield_dilapidated_house_80184400 = { 2, 12, 11 };
+EvsSceneKey D_dryfield_dilapidated_house_80184400 = { 2, 12, 11 };
 
 GpEvsCmd D_dryfield_dilapidated_house_80184408[89] = {
     { 1, { .value = 4 }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
@@ -1497,7 +1497,7 @@ GpObj3A D_dryfield_dilapidated_house_80189260[1] = {
     { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, { 36, 14 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_dilapidated_house_8018929C[8] = {
+WorldCoordPointLight D_dryfield_dilapidated_house_8018929C[8] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1847, 1847, 1847 }, { 0, 0 } }, 2000, 3549 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2666 }, { 0, 0 } }, 2256, 3000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -1500, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2666, 2666, 2666 }, { 0, 0 } }, 2000, 3000 },
@@ -1517,7 +1517,7 @@ GpRoomCoordSet D_dryfield_dilapidated_house_801898FC[1] = {
 GpAreaTmdRec D_dryfield_dilapidated_house_80189914[3] = {
     { 34, 211, 4, 0, { 0, 0 }, D_8015F6E4 },
     { 29, 212, 4, 0, { 0, 0 }, D_8016A388 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_dilapidated_house_80189938[13] = {
@@ -1638,9 +1638,9 @@ GpAreaApplyRec D_dryfield_dilapidated_house_80189B24[3] = {
     { 255, 0, 0, 0 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B30[2] = {
-    { 1, 257 },
-    { 0, 0 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B30[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B38[2] = {
@@ -1648,11 +1648,11 @@ GpScriptRec D_dryfield_dilapidated_house_80189B38[2] = {
     { 200, 255, 8, 1 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B40[4] = {
-    { 0, 1 },
-    { 513, 514 },
-    { 4, 257 },
-    { 0, 0 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B40[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B50[3] = {
@@ -1661,9 +1661,9 @@ GpScriptRec D_dryfield_dilapidated_house_80189B50[3] = {
     { 180, 60, 1, 0 },
 };
 
-GpScriptCmd D_dryfield_dilapidated_house_80189B5C[2] = {
-    { 1, 257 },
-    { 0, 512 },
+PadScriptCmd D_dryfield_dilapidated_house_80189B5C[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2) }
 };
 
 GpScriptRec D_dryfield_dilapidated_house_80189B64[2] = {
@@ -1871,14 +1871,14 @@ void func_dryfield_dilapidated_house_8017E144(Task* task)
 /// state 1 fires when the session is back in play (`gGameSession->eventState`
 /// is 2) and hands slot 0 the release event 0x1B, state 6 waits for the room
 /// message (`gGameSession->battleResetPending`), and state 7 -- reached once the save
-/// has not already banked this clear (`Mc_SaveData[0].state.demoScene`) -- applies the
+/// has not already banked this clear (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene`) -- applies the
 /// room's two area records, raises the progression flags, refills the party
 /// and hands off to the results screen with `Task_Spawn(0, 0x11, 0, 0)`.
 /// States 0..6 share the `advance` tail that walks the task one state on;
 /// `goto advance` from state 1 is the `acropolis_patio` idiom, and the
 /// `do/while (0)` around the shared increment is this project's allocation
 /// lever, not a loop: it weights the task pointer's references by loop depth
-/// so it outranks the `Mc_SaveData` base and takes `$s0` instead of `$s1`.
+/// so it outranks the `gMcSaveData` base and takes `$s0` instead of `$s1`.
 void func_dryfield_dilapidated_house_8017E2B0(Task* task)
 {
     switch (task->state) {
@@ -1909,7 +1909,7 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             } while (0);
             return;
         case 7:
-            if (Mc_SaveData[0].state.demoScene != 9) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
                 Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189AA0);
                 if (GameFlag_GetNibble(0xCE) != 0) {
                     Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189B24);
@@ -1924,12 +1924,12 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
                 GameFlag_SetNibble(0x155, 0);
                 Gp_FillPlayerHpMp();
                 Gp_FillAllyHp();
-                Mc_SaveData[0].state.sceneEvent         = 1;
-                Mc_SaveData[0].state.location.loc.stage = 2;
-                Mc_SaveData[0].state.location.loc.warp  = 1;
-                Mc_SaveData[0].state.location.loc.room  = 1;
-                Mc_SaveData[0].state.location.loc.area  = 8;
-                gDisplayState.spriteVariant             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 8;
+                gDisplayState.spriteVariant                                 = 1;
                 Task_Spawn(0, 0x11, 0, 0);
             }
             taskKill(task);
@@ -3324,14 +3324,14 @@ static void func_dryfield_dilapidated_house_801815E8(GfxCoord* coord, s16 arg1)
 /// is 2 or more.
 void func_dryfield_dilapidated_house_80181F08(Task* task)
 {
-    GfxCoord   coord;
-    GfxCoord*  objCoord;
-    GfxCoord*  dst;
-    GpEffWork* work;
-    SVECTOR*   vec;
-    s32        i;
+    GfxCoord    coord;
+    GfxCoord*   objCoord;
+    GfxCoord*   dst;
+    EffectWork* work;
+    SVECTOR*    vec;
+    s32         i;
 
-    work     = (GpEffWork*)task->spawnArg2.pointer;
+    work     = (EffectWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -3491,17 +3491,17 @@ static void func_dryfield_dilapidated_house_801823B8(s16 slot, s16 flags)
 /// 0x580.
 void func_dryfield_dilapidated_house_80182744(Task* task)
 {
-    DdhEffWork*   work;
-    GfxCoord*     coord;
-    GpCoord64*    rc;
-    GpPointLight* tail;
-    GpEffWork*    eff;
-    u16           tick;
-    u16           tick1;
-    s16           size;
-    s32           angle;
-    s32           i;
-    u8            rgb[3];
+    DdhEffWork*           work;
+    GfxCoord*             coord;
+    GpCoord64*            rc;
+    WorldCoordPointLight* tail;
+    EffectWork*           eff;
+    u16                   tick;
+    u16                   tick1;
+    s16                   size;
+    s32                   angle;
+    s32                   i;
+    u8                    rgb[3];
 
     work           = task->spawnArg2.pointer;
     coord          = task->extra.coordBody->coord;

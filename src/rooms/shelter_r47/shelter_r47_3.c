@@ -46,11 +46,11 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
-static TaskDesc     D_shelter_r47_8018760C;
-static SVECTOR      D_shelter_r47_80187624[10];
-static GpPointLight D_shelter_r47_80189E90[9];
-static void         func_shelter_r47_80185214(Task*);
-static void         func_shelter_r47_8018580C(Task*);
+static TaskDesc             D_shelter_r47_8018760C;
+static SVECTOR              D_shelter_r47_80187624[10];
+static WorldCoordPointLight D_shelter_r47_80189E90[9];
+static void                 func_shelter_r47_80185214(Task*);
+static void                 func_shelter_r47_8018580C(Task*);
 
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
@@ -154,7 +154,7 @@ GpObj4C D_shelter_r47_8018787C[13] = {
 
 GpAreaTmdRec D_shelter_r47_80187C58[2] = {
     { 143, 435, 3, 0, { 0, 0 }, D_8015873C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r47_80187C70[2] = {
@@ -164,7 +164,7 @@ AreaPlacement D_shelter_r47_80187C70[2] = {
 
 GpAreaTmdRec D_shelter_r47_80187C90[2] = {
     { 100, 434, 0, 0, { 0, 0 }, NULL },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_r47_80187CA8[1] = {
@@ -796,7 +796,7 @@ GpSprtRec D_shelter_r47_80189C68[46] = {
     { { .empty = D_shelter_r47_80189C58 }, D_shelter_r47_80189C58, NULL },
 };
 
-static GpPointLight D_shelter_r47_80189E90[9] = {
+static WorldCoordPointLight D_shelter_r47_80189E90[9] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x310C, -2576, 7191 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1756, 3216, 2480 }, { 0, 0 } }, 100, 200 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x309F, -2482, 7439 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1019, 3392, 1019 }, { 0, 0 } }, 100, 461 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x38B7, -3643, 7891 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2170, 2209, 2195 }, { 0, 0 } }, 1878, 3562 },
@@ -1705,15 +1705,15 @@ static void func_shelter_r47_8018431C(Task* task)
     spriteX                    = -0x9C;
     do {
     } while (0);
-    view                                   = Mc_SaveData[0].state.location.loc.view;
-    state->field_20                        = -0x104;
-    state->field_E                         = quadW;
-    state->field_10                        = quadH;
-    state->field_16                        = quad2W;
-    state->field_18                        = quad2H;
-    state->field_1E                        = spriteX;
-    state->field_29                        = view;
-    Mc_SaveData[0].state.location.loc.view = 0x25;
+    view                                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    state->field_20                                            = -0x104;
+    state->field_E                                             = quadW;
+    state->field_10                                            = quadH;
+    state->field_16                                            = quad2W;
+    state->field_18                                            = quad2H;
+    state->field_1E                                            = spriteX;
+    state->field_29                                            = view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x25;
     if ((arg = task->spawnArg1.value) == 1 || arg == 2) {
         state->fade     = 0xFF;
         level           = (u8)state->fade;
@@ -2037,10 +2037,10 @@ static void func_shelter_r47_80185510(Task* task)
     Gp_MsgPlayer3F3(1);
     SndEvt_EnqueueType7(0x542F0005, 1);
     Display_ReleaseRef();
-    Mc_SaveData[0].state.location.loc.view = state->field_29;
-    gGameSession->eventState               = 0;
-    gGameSession->hideHud                  = 0;
-    gGameSession->cutsceneHold             = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_29;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->cutsceneHold                                 = 0;
     taskKill((Task*)task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
@@ -2061,14 +2061,14 @@ static void func_shelter_r47_801855B8(Task* task)
                 if (state->field_1C < 0) {
                     state->field_1C = 4;
                 }
-                Mc_SaveData[0].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
             case 3:
                 state->field_1C++;
                 if (state->field_1C >= 5) {
                     state->field_1C = 0;
                 }
-                Mc_SaveData[0].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_801873FC[state->field_1C];
                 break;
         }
         task->state++;

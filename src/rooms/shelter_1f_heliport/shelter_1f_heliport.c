@@ -466,7 +466,7 @@ GpSprtRec D_shelter_1f_heliport_80181EC0[12] = {
     { { .empty = D_shelter_1f_heliport_80181EB0 }, D_shelter_1f_heliport_80181EB0, NULL },
 };
 
-GpPointLight D_shelter_1f_heliport_80181F50[1] = {
+WorldCoordPointLight D_shelter_1f_heliport_80181F50[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5450, -4000, 3600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3194, 3112 }, { 0, 0 } }, 4500, 5000 },
 };
 
@@ -539,13 +539,13 @@ WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13] = {
 GpAreaTmdRec D_shelter_1f_heliport_80182BAC[3] = {
     { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
     { 115, 605, 1, 0, { 0, 0 }, D_80159DB0 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_shelter_1f_heliport_80182BD0[3] = {
     { 116, 615, 0, 0, { 0, 0 }, D_801401B0 },
     { 144, 604, 1, 0, { 0, 0 }, D_80154C18 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_shelter_1f_heliport_80182BF4[13] = {
@@ -835,7 +835,7 @@ void func_shelter_1f_heliport_80180768(Task* task)
 static void func_shelter_1f_heliport_801807C0(void)
 {
     s32 i;
-    s32 idx = Mc_SaveData[0].state.location.loc.view;
+    s32 idx = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
 
     if (gGameSession->location.loc.variant < 3 && idx < 12) {
         if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {

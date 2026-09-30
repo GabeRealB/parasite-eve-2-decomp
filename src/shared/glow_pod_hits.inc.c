@@ -13,7 +13,7 @@ void glowPodHits(Task* arg0)
     ActorDeltaFrame38* head;
     TmdObject*         obj;
     GfxCoord*          coord;
-    GpEnemy*           enemy;
+    Enemy*             enemy;
     s32                i;
     s32                sndHit;
     s32                sndHit2;
@@ -49,10 +49,10 @@ void glowPodHits(Task* arg0)
         switch (work->field_1A4[i].key.value & 0xFFFF0000) {
             case 0x10000:
                 if (work->field_2AC != 0) {
-                    snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit;
+                    snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
-                    snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit2;
+                    snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
                     SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
                 Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gGlowPodSparkOffset);
@@ -83,10 +83,10 @@ void glowPodHits(Task* arg0)
                 func_800DA6E8(&enemy->node, damage, 0);
                 if (damage != 0) {
                     if (work->field_2AC != 0) {
-                        snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit;
+                        snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit;
                         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     } else {
-                        snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | sndHit2;
+                        snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | sndHit2;
                         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                     }
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &gGlowPodSparkOffset);

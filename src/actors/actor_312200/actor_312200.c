@@ -320,8 +320,8 @@ TaskDesc D_actor_312200_80169F7C = { (TASK_BODY_TMD | 0x100), 96, func_actor_312
 SVECTOR ActorContact_ScratchPosition;
 
 static void func_actor_312200_80162FB4(Task* task);
-static void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
-static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
+static void func_actor_312200_80163178(Enemy* enemy, Task* task);
+static void func_actor_312200_80163370(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -400,7 +400,7 @@ static void func_actor_312200_80162FB4(Task* task)
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
 /// its translation is propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3).
-static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163178(Enemy* enemy, Task* task)
 {
     VECTOR              vec;
     GfxCoord*           coord;
@@ -479,7 +479,7 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 ///
 /// The trailing `vec` is the original's own - three dead stores, but the frame
 /// and the rest of the schedule are built around them.
-static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 {
     TmdObject*       obj;
     VECTOR           vec;
@@ -526,7 +526,7 @@ static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
 
 /// Id 0x7D5 command handler, listed first in `D_actor_312200_80169F5C`. `arg2`
 /// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
-/// them, 2 raises bit 0x4, and 3 clears them and then raises bit 0x4. Modes 0
+/// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
 /// and 1 re-run `Tmd_AllocBuffers` on the model, and every mode except 1 resets
 /// the work block's `field_0` state word. `arg1` is unused.
 s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
@@ -575,7 +575,7 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement)
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     Gfx_RotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, 1);
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
     Gfx_RotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = task->extra.tmd->coords;
@@ -631,17 +631,17 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg)
 
 /// On a live actor, marks the enemy's target node not lockable, raises the model's
 /// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
-/// `GpEnemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
+/// `Enemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
 static void func_actor_312200_80163778(Task* task)
 {
     Actor312200Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
 
     work = (Actor312200Work*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
-        enemy                         = (GpEnemy*)task->spawnArg2.pointer;
+        enemy                         = (Enemy*)task->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->field_4D               = 0;

@@ -24,7 +24,7 @@
 #include "main/task_types.h"
 
 /// 0x28-byte scratch from the scratch stack used by `Gp_FindNearestSlot`.
-/// `local` is the collider's `end1` plus `WorldCollisionBody.pos`,
+/// `local` is the collider's `ends[1]` plus `WorldCollisionBody.pos`,
 /// rotated by `coord->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
 typedef struct _GpNearScratch {
@@ -336,7 +336,7 @@ void Gp_ObjWorldPos(WorldCollisionBody* arg0, VECTOR3* arg1)
 {
     VECTOR3* vec;
 
-    SCRATCH_PUSH_BYTES(0x30);
+    SCRATCH_STACK_RESERVE_BYTES(0x30);
     vec = SCRATCH_STACK_CURSOR(VECTOR3);
     gte_SetRotMatrix(&arg0->coord->workm);
     gte_ldv0(&arg0->pos.vx);
@@ -353,7 +353,7 @@ void func_800E0994(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2)
     GpAxisScratch* block;
     s32            i;
 
-    SCRATCH_PUSH_BYTES(0x20);
+    SCRATCH_STACK_RESERVE_BYTES(0x20);
     block              = SCRATCH_STACK_CURSOR(GpAxisScratch);
     block->local[0].vx = 0;
     block->local[0].vy = (u16)arg0->pos.vy + arg0->radius;
@@ -588,7 +588,7 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
 {
     u8*                    head;
     GpNearScratch*         block;
-    GpActorD4Rec*          rec;
+    WorldCollisionCapsule* rec;
     WorldCollisionContact* slot;
     s32                    minDist;
     s32                    index;
@@ -603,13 +603,13 @@ static s32 Gp_FindNearestSlot(WorldCollisionBody* arg0, s32 arg1)
     best                       = index;
     rec                        = arg0->context.capsule;
     head                       = SCRATCH_STACK_CURSOR(u8);
-    slot                       = rec->recs;
+    slot                       = rec->contacts;
     SCRATCH_STACK_CURSOR(void) = (void*)(head - 0x28);
     block                      = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&arg0->coord->workm);
-    block->local.vx = (u16)rec->end1.vx + (u16)arg0->pos.vx;
-    block->local.vy = (u16)rec->end1.vy + (u16)arg0->pos.vy;
-    block->local.vz = (u16)rec->end1.vz + (u16)arg0->pos.vz;
+    block->local.vx = (u16)rec->ends[1].vx + (u16)arg0->pos.vx;
+    block->local.vy = (u16)rec->ends[1].vy + (u16)arg0->pos.vy;
+    block->local.vz = (u16)rec->ends[1].vz + (u16)arg0->pos.vz;
     gte_ldv0((SVECTOR*)(head - 8));
     gte_rtv0();
     gte_stlvnl(block);
@@ -968,7 +968,7 @@ void Gp_CommitObj4CSave(void)
         if (node->field_4B != 0) {
             node->field_4B = 0;
             if (gGameSession->location.loc.view == node->field_48) {
-                Mc_SaveData[0].state.location.loc.view = node->field_49;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = node->field_49;
             }
         }
     }
@@ -990,7 +990,7 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-void Gp_ClaimSlot18(GpEnemy* arg0, s32 arg1)
+void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
 {
     WorldCollisionContact* slot;
     WorldCollisionContact* temp;

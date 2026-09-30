@@ -3,7 +3,7 @@
 /// Teardown state of the effect child set up by `lungerBulletSpawn`: step 0
 /// unlinks its three collision bodies and restarts the frame counter, step 1
 /// destroys the child once 0x3D frames have passed.
-void lungerBulletDestroy(GpEnemy* arg0, Task* arg1)
+void lungerBulletDestroy(Enemy* arg0, Task* arg1)
 {
     Actor105600FxWork* work;
     u16                temp_v0;

@@ -222,7 +222,7 @@ typedef struct Actor503500Work {
                                   /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
                                   /// hit-effect argument.
     /* 0x6E4 */ EffectSpawnArg field_6E4;
-    /* 0x6EC */ GpEnemy*       enemies[0x11];
+    /* 0x6EC */ Enemy*         enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
     /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on
@@ -530,7 +530,7 @@ extern SVECTOR D_actor_503500_8017158C;
 
 extern SVECTOR D_actor_503500_80171594;
 
-extern GpScriptCmd D_actor_503500_8017159C[2];
+extern PadScriptCmd D_actor_503500_8017159C[2];
 
 extern GpScriptRec D_actor_503500_801715A4[2];
 
@@ -561,7 +561,7 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1);
 void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
 
 /// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
-GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1);
+Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1);
 
 /// Reports whether slot `arg1` of the boss work block's `enemies` array is
 /// empty. `arg0` is loaded by every caller but the body ignores it.

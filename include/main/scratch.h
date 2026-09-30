@@ -86,8 +86,27 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// caller variables and evaluates no value argument.
 #define SCRATCH_STACK_RELEASE_BLOCK(blockType) ((blockType*)(*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + sizeof(blockType)))
 
-/// Takes `n` bytes off the stack.
-#define SCRATCH_PUSH_BYTES(n) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - (n))
+/// Reserves `byteCount` uninitialized bytes on the downward-growing scratch stack.
+///
+/// `byteCount` is the length of the reservation in bytes. The shared cursor in
+/// `SCRATCH_STACK_CURSOR_SLOT` moves down by that many bytes, and the
+/// expression returns the new cursor as `void*`. That pointer addresses the
+/// reserved block. No data is copied, cleared, or read from those bytes.
+/// The length is not required to equal `sizeof` of the caller's view;
+/// `SCRATCH_STACK_RESERVE_BLOCK` reserves one complete object instead.
+///
+/// Initialize the cursor before use. The reserved bytes must fit below the
+/// cursor slot, clear of other live scratchpad storage, and the new cursor
+/// must be aligned for the view that reads them. No bounds or alignment
+/// checks or rounding are performed.
+///
+/// Release the reservation in reverse order with `SCRATCH_STACK_RELEASE_BYTES`
+/// of the same length, with `SCRATCH_STACK_RELEASE_BLOCK` when that object's
+/// size is the reservation, or by restoring a saved cursor. The slot is read
+/// and written once. `byteCount` is evaluated once. This expression captures
+/// no caller variables. The result is a pointer value, not a writable cursor
+/// lvalue.
+#define SCRATCH_STACK_RESERVE_BYTES(byteCount) (*SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT - (byteCount))
 
 /// Releases `byteCount` bytes from the downward-growing scratch stack.
 ///
@@ -117,7 +136,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 
 #define SCRATCH_POP_AT(head, type) (*(type**)(head) += 1)
 
-/// `SCRATCH_PUSH_BYTES` / `SCRATCH_STACK_RELEASE_BYTES` through such a local.
+/// `SCRATCH_STACK_RESERVE_BYTES` / `SCRATCH_STACK_RELEASE_BYTES` through such a local.
 #define SCRATCH_PUSH_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) - (n))
 
 #define SCRATCH_POP_BYTES_AT(head, n) (*(void**)(head) = (u8*)*(void**)(head) + (n))

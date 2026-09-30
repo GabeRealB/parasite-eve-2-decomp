@@ -58,7 +58,7 @@
 #include <psyq/rand.h>
 
 /// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::work`.
-/// `field_0` / `field_4` are `Mc_SaveData[0].state.playTime` split into minutes and
+/// `field_0` / `field_4` are `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime` split into minutes and
 /// seconds. `field_8` snapshots `gDisplayState.gameTick`. `extra` is the
 /// +0xC overlay passed to `Gp_ResetHudFx`.
 typedef struct _GpIdMap30 {
@@ -2157,7 +2157,7 @@ u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
+u32* modelLightingStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F4* poly;
     s32      color;
@@ -2168,6 +2168,7 @@ u32* gpStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
             color = stream[2];
             setlen(poly, 5);
             GPU_PRIMITIVE_COLOR_WORD(poly, 0) = color;
+            // The colour word includes the command byte, so the flat code follows it.
             setcode(poly, 0x28);
             poly++;
             stream += ws->elemStride;
@@ -2552,8 +2553,8 @@ void Gp_InitPlayClock(Task* task)
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     task->work   = rec;
-    rec->field_0 = Mc_SaveData[0].state.playTime / 60;
-    rec->field_4 = Mc_SaveData[0].state.playTime % 60;
+    rec->field_0 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
+    rec->field_4 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime % 60;
     ds           = &gDisplayState;
     rec->field_8 = ds->gameTick;
     func_800B25B0();
@@ -2602,7 +2603,7 @@ void Gp_TickPlayClock(Task* task)
     if (D_8005ED68 >= 0xE10) {
         McSaveData* p;
         D_8005ED68 -= 0xE10;
-        p           = &Mc_SaveData[0];
+        p           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (p->state.playTime <= 0xEA5E) {
             p->state.playTime++;
             rec->field_4++;
@@ -2617,7 +2618,7 @@ void Gp_TickPlayClock(Task* task)
         }
     }
 
-    save = &Mc_SaveData[0];
+    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     one  = 1;
     if (save->state.demoScene == one) {
         req.x          = -0x96;
@@ -2673,7 +2674,7 @@ void Gp_TickPlayClock(Task* task)
 
     block_companion: {
         McSaveData* p;
-        p = &Mc_SaveData[0];
+        p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         if (p->state.companionHp <= 0) {
             if (gGameSession->eventState != 0) {
                 p->state.companionHp = 1;

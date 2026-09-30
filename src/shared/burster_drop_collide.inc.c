@@ -14,7 +14,7 @@ void bursterDropCollide(Task* arg0)
     s32                movement;
 
     work     = (Actor104600Work*)arg0->work;
-    scratch  = (ActorDeltaFrame48*)SCRATCH_PUSH_BYTES(0x48);
+    scratch  = (ActorDeltaFrame48*)SCRATCH_STACK_RESERVE_BYTES(0x48);
     coord    = arg0->extra.tmd->coords;
     movement = func_800E0C10(&work->rec154[0], &scratch->delta, 4, NULL);
     switch (movement) {

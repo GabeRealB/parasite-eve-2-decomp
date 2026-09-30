@@ -64,7 +64,7 @@ STATIC_ASSERT_SIZEOF(NaetUtilParam, 0x6);
 
 /// Staging save location the room commits when the tunnel's save is taken:
 /// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
-/// later copies into `Mc_SaveData[0].state.location.loc.area` / `warp` / `room`.
+/// later copies into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
 /// The staged event descriptor, read by the task spawned above.
@@ -326,7 +326,7 @@ GpSprtRec D_neo_ark_eve_access_tunnel_801800A0[7] = {
     { { .empty = D_neo_ark_eve_access_tunnel_80180090 }, D_neo_ark_eve_access_tunnel_80180090, NULL },
 };
 
-GpPointLight D_neo_ark_eve_access_tunnel_801800F4[5] = {
+WorldCoordPointLight D_neo_ark_eve_access_tunnel_801800F4[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -246, -254, 933 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1061, -254, 1859 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1806, 1806, 1855 }, { 0, 0 } }, 600, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1241, -2216, 6212 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 3000, 6000 },
@@ -358,13 +358,13 @@ GpObj4C D_neo_ark_eve_access_tunnel_801804B4[6] = {
 
 GpAreaTmdRec D_neo_ark_eve_access_tunnel_8018067C[2] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_eve_access_tunnel_80180694[3] = {
     { 21, 21, 0, 0, { 0, 0 }, D_80135C30 },
     { 52, 52, 1, 0, { 0, 0 }, D_8014CA60 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
@@ -498,7 +498,7 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
 /// 2, step 1 waits for the CAP system to go idle, step 2 latches the save flag
 /// into CAP and waits for the event key it answers with, step 3 waits for the
 /// queued sound to finish, and step 4 commits the staged save location to
-/// `Mc_SaveData` and spawns the outgoing task.
+/// `gMcSaveData` and spawns the outgoing task.
 void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
 {
     s32 var_v0;
@@ -531,10 +531,10 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             return;
         case 4:
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
-            Mc_SaveData[0].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
-            Mc_SaveData[0].state.location.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1];
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;
@@ -569,7 +569,7 @@ s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg*
                     break;
                 default:
                     if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                        Mc_SaveData[0].state.sceneEvent                        = 0x18;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = 0x18;
                         D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)dst->areaId;
                         D_neo_ark_eve_access_tunnel_801807A0.field_4           = dst->warp;
                         ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = dst->room;

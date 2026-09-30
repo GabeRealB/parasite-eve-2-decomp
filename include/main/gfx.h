@@ -26,13 +26,17 @@ extern GfxCoord gGfxViewRotCoord;
 /// The root of the view chain, whose `coord` offsets the view along z.
 extern GfxCoord Gfx_ViewOffsetCoord;
 
-/// The view coordinate: every world-space object is parented to it, so a
-/// coordinate composed against it comes out in view space.
+/// View coordinate, and the parent of nodes stored in world space.
 ///
-/// Its `coord` carries the view translation and its `workm` the view matrix the
-/// world is drawn and projected through. The view rotation and the view offset
-/// are the two coordinates above it in the chain, which is why its own matrix
-/// holds a translation alone.
+/// A node parented here keeps a world-space local matrix. Composing that node
+/// includes this coordinate's `workm`, the view matrix the world is drawn and
+/// projected through, so the result is in view space. This node is parented to
+/// `gGfxViewRotCoord`; the view rotation and `Gfx_ViewOffsetCoord` are the two
+/// coordinates above it. Its own `coord` keeps the identity rotation from
+/// initialization and carries the view translation in `t`. View updates store
+/// that translation and clear `composeStamp` so the next composition rebuilds
+/// `workm`. `composeStamp & GRAPHICS_COORD_STAMP_MASK` is that rebuild's
+/// generation; bit 31 is visit parity.
 extern GfxCoord gGfxViewCoord;
 
 void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx);
@@ -43,7 +47,18 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag);
 
 void Gfx_RotMatrixX(MATRIX* matrix, s32 angle, s32 flag);
 
-void Gfx_RotMatrixY(MATRIX* matrix, s32 angle, s32 flag);
+/// Rotates `matrix` about Y and leaves its translation unchanged.
+///
+/// `angle` is signed, with 4096 units per turn, and is passed to `rsin` and
+/// `rcos`. Those results are stored directly as matrix elements. The pure
+/// rotation has `cos` at `m[0][0]` and `m[2][2]`, `sin` at `m[0][2]`, `-sin`
+/// at `m[2][0]`, and the identity along Y.
+///
+/// Nonzero `replace` overwrites the nine rotation elements with that rotation.
+/// Zero right-multiplies the current rotation by it. For a local-to-parent
+/// matrix, overwriting yaws in the parent frame and right-multiplying turns
+/// about the matrix's own Y.
+void gfxRotMatrixY(MATRIX* matrix, s32 angle, s32 replace);
 
 void Gfx_RotMatrixZ(MATRIX* matrix, s32 angle, s32 flag);
 

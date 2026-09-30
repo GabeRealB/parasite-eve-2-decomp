@@ -515,7 +515,7 @@ GpEvsCmd D_acropolis_patio_80180C64[16] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpOverlayIds D_acropolis_patio_80180DE4 = { 1, 29, 11 };
+EvsSceneKey D_acropolis_patio_80180DE4 = { 1, 29, 11 };
 
 GpEvsCmd D_acropolis_patio_80180DEC[10] = {
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_801803FC }, { .value = 0 } },
@@ -959,34 +959,34 @@ GpObj3A D_acropolis_patio_80184964[2] = {
 GpAreaTmdRec D_acropolis_patio_801849DC[3] = {
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
     { 107, 122, 2, 0, { 0, 0 }, D_80169F7C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A00[3] = {
     { 10, 170, 2, 0, { 0, 0 }, D_8016CF44 },
     { 19, 19, 0, 0, { 0, 0 }, D_80149120 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A24[3] = {
     { 7, 7, 0, 0, { 0, 0 }, D_80138C80 },
     { 8, 7, 0, 0, { 0, 0 }, D_801393C8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A48[3] = {
     { 8, 7, 2, 0, { 0, 0 }, D_80165B88 },
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A6C[2] = {
     { 10, 10, 3, 0, { 0, 0 }, D_80155004 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_patio_80184A84[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_patio_80184A90[12] = {
@@ -1481,7 +1481,7 @@ GpSprtRec D_acropolis_patio_80186360[19] = {
     { { .elements = D_acropolis_patio_801860F0 }, D_acropolis_patio_80186348, NULL },
 };
 
-GpPointLight D_acropolis_patio_80186444[24] = {
+WorldCoordPointLight D_acropolis_patio_80186444[24] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -700, -200, 2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2375, 2211 }, { 0, 0 } }, 150, 3500 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -700, -200, 2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2293, 2211, 2129 }, { 0, 0 } }, 150, 5000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 450, -3147, -3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2293, 2293, 2211 }, { 0, 0 } }, 10, 7500 },
@@ -1590,7 +1590,7 @@ static void func_acropolis_patio_8017D5EC(Task* arg0)
     arg0->msgTable = D_acropolis_patio_8018028C;
     Game_SetPtrSlot(arg0, 7);
     if (GameFlag_GetNibble(0) < 2) {
-        if (Mc_SaveData[0].state.location.loc.room == 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7D4, &D_acropolis_patio_80180428, 0);
             Gp_DispatchMsgPtr(Gp_LookupSlot4(0), 0x7DB, &D_acropolis_patio_8018044C, 0);
             Gp_DispatchMsg(Gp_LookupSlot4(0), 0x7D5, 1, 0);
@@ -1725,10 +1725,10 @@ void func_acropolis_patio_8017DA5C(Task* task)
                 return;
             }
             SndEvt_EnqueueType7(0x80000000, 0);
-            Mc_SaveData[0].state.location.loc.area = 4;
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = D_acropolis_patio_80187064;
-            Mc_SaveData[0].state.location.loc.room = D_acropolis_patio_80187065;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 4;
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
             Task_Spawn(0, 0x11, 0, 0);
         kill:
             taskKill(task);
@@ -1743,8 +1743,8 @@ void func_acropolis_patio_8017DBAC(s32 arg0, s32 arg1, AcropolisPatioMsg8* arg2)
     if ((arg2->field_2 == 0) && (GameFlag_GetNibble(0x21) < 2)) {
         GameFlag_SetNibble(0x21, 3);
         func_800E8634(D_acropolis_patio_80180484, 0, D_acropolis_patio_801806AC);
-        Mc_SaveData[0].state.sceneEvent = 3;
-        gGameSession->flowFlags         = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
+        gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((arg2->field_2 == 1) && (GameFlag_GetNibble(0x21) == 3) &&
         (Gp_DispatchMsg(Gp_LookupSlot4(1), 0x7D6, 0, 0) == 0)) {
@@ -1854,8 +1854,8 @@ void func_acropolis_patio_8017DF38(s32 arg0)
 
 void func_acropolis_patio_8017DF48(void)
 {
-    gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = 2;
-    gGameSession->roomObjsDirty                                              = 1;
+    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+    gGameSession->roomObjsDirty                                                                  = 1;
 }
 void func_acropolis_patio_8017DF70(u8 arg0)
 {
@@ -1935,19 +1935,19 @@ void func_acropolis_patio_8017E054(Task* task)
 /// index rides in the low byte and the flags pick the jet's size and blend.
 ///
 /// The three main jets then get three puffs of mist each (effect 0x6008F).
-/// Every puff re-uses the task's own `GpEffWork.move` triple as a scratch
+/// Every puff re-uses the task's own `EffectWork.move` triple as a scratch
 /// offset: three 11-bit LCG draws centred on 0x400 give a `+/-0x400` jitter,
 /// which is added to the jet's anchor before the spawn reads it. The work block
 /// is scratch, not state - each spawn copies the vector out immediately - so
 /// all nine puffs share it.
 void func_acropolis_patio_8017E100(Task* task)
 {
-    GfxCoord*  objCoord;
-    GpEffWork* work;
-    s32        i;
-    s32        j;
+    GfxCoord*   objCoord;
+    EffectWork* work;
+    s32         i;
+    s32         j;
 
-    work     = (GpEffWork*)task->spawnArg2.pointer;
+    work     = (EffectWork*)task->spawnArg2.pointer;
     objCoord = task->extra.coordBody->coord;
 
     if (task->state == 0) {
@@ -1996,13 +1996,13 @@ void func_acropolis_patio_8017E324(Task* task)
 {
     void**            scratch;
     RoomShaftScratch* block;
-    GpEffWork*        work;
+    EffectWork*       work;
     GfxCoord*         coord;
     POLY_FT4*         prim;
     u8                rgb;
     s16               xy;
 
-    work  = (GpEffWork*)task->spawnArg2.pointer;
+    work  = (EffectWork*)task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value & 0xF] >> (gGameSession->location.loc.view - 1)) & 1)) {
@@ -2078,8 +2078,8 @@ void func_acropolis_patio_8017E324(Task* task)
 /// `D_acropolis_patio_80182E4C` names, and the whole draw stops once
 /// `gRoomEffectState->effectControl` reaches 4 (effects are cancelled).
 ///
-/// `GpEffWork::index` is the puff's mode and the per-frame step in
-/// `GpEffWork.move` is its velocity. In drift mode (0) the velocity is
+/// `EffectWork::index` is the puff's mode and the per-frame step in
+/// `EffectWork.move` is its velocity. In drift mode (0) the velocity is
 /// re-rolled every frame as `0x10 - rand[0,0x1F]` per axis, a random walk
 /// centred just above zero, and a 1-in-60 draw flips the puff into gather
 /// mode. In gather mode (non-zero) the velocity is instead re-aimed at the
@@ -2093,7 +2093,7 @@ void func_acropolis_patio_8017E324(Task* task)
 /// so the mist shimmers; the tile is dropped entirely inside `otz` 0x11.
 void func_acropolis_patio_8017E730(Task* task)
 {
-    GpEffWork*       work;
+    EffectWork*      work;
     GfxCoord*        coord;
     RoomMoteScratch* sc;
     SVECTOR*         dir;
@@ -2105,7 +2105,7 @@ void func_acropolis_patio_8017E730(Task* task)
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
         ((D_acropolis_patio_80182E4C[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
-        sc = (RoomMoteScratch*)SCRATCH_PUSH_BYTES(0xC);
+        sc = (RoomMoteScratch*)SCRATCH_STACK_RESERVE_BYTES(0xC);
         Gp_UpdateCoord(coord);
         if (task->state == 0) {
             Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;

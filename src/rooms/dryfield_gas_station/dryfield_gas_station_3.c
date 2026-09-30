@@ -460,12 +460,12 @@ GpObj4C D_dryfield_gas_station_80184694[10] = {
 };
 
 GpAreaTmdRec D_dryfield_gas_station_8018498C[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_gas_station_80184998[2] = {
     { 44, 44, 0, 0, { 0, 0 }, &D_80142604 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_gas_station_801849B0[5] = {
@@ -478,7 +478,7 @@ AreaPlacement D_dryfield_gas_station_801849B0[5] = {
 
 GpAreaTmdRec D_dryfield_gas_station_80184A00[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_gas_station_80184A18[2] = {

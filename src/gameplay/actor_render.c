@@ -17,7 +17,7 @@
 #include "main/gfx.h"
 #include "main/tmd.h"
 
-static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
+static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 /// Last node explicitly submitted for composition through its full parent chain.
 ///
@@ -142,7 +142,7 @@ static GfxCoord* _gActorRenderLastFullChainCoord = NULL;
 ///
 /// The supplied root is excluded. `gte_RotTransLV` preserves the full signed
 /// translation range while the rotation is composed with the GTE.
-static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
+static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
     GfxCoord* parent;
 
@@ -156,7 +156,7 @@ static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, G
         }
     } else {
         if ((parent->composeStamp == GRAPHICS_COORD_DIRTY) || ((parent->composeStamp >> 31) != parity)) {
-            _gpUpdateCoordTree(parent, stamp, parity, root);
+            actorRenderComposeCoordChain(parent, stamp, parity, root);
         }
         if (coord->composeStamp < (parent->composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
             gte_CompMatrix(&parent->workm, &coord->coord, &coord->workm);
@@ -198,13 +198,13 @@ static __inline__ void _gpRefreshAllCoords(void)
     parity = D_80071210 & 1;
     for (display = PARENT_OF(gModelObjectCoordBodyList.next, ModelObjectCoordBody, link); display != NULL;
          display = PARENT_OF(display->link.next, ModelObjectCoordBody, link)) {
-        _gpRefreshCoord(display->coord, stamp, parity, NULL);
+        _actorRenderRefreshCoord(display->coord, stamp, parity, NULL);
     }
     for (model = PARENT_OF(gTmdList.next, TmdObject, link); model != NULL;
          model = PARENT_OF(model->link.next, TmdObject, link)) {
         coord = model->coords;
         for (partIndex = 0; partIndex < model->partCount; partIndex++) {
-            _gpRefreshCoord(coord, stamp, parity, NULL);
+            _actorRenderRefreshCoord(coord, stamp, parity, NULL);
             coord++;
         }
     }
@@ -229,16 +229,16 @@ void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 void Gp_UpdateCoord(GfxCoord* coord)
 {
     _gActorRenderLastFullChainCoord = coord;
-    _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
+    actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
 }
 
 void Gp_UpdateCoordEx(GfxCoord* coord, GfxCoord* root)
 {
     if (coord->parent == NULL) {
         _gActorRenderLastFullChainCoord = coord;
-        _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
+        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, 0);
         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
     } else {
-        _gpUpdateCoordTree(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, root);
+        actorRenderComposeCoordChain(coord, D_80071210 & GRAPHICS_COORD_STAMP_MASK, D_80071210 & 1, root);
     }
 }

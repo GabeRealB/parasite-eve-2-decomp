@@ -24,7 +24,7 @@ void stalkerStrikeSeq(Task* arg0)
     s16                       part;
     s16                       timer;
 
-    SCRATCH_PUSH_BYTES(sizeof(Actor402200OffsetScratch));
+    SCRATCH_STACK_RESERVE_BYTES(sizeof(Actor402200OffsetScratch));
     sc    = SCRATCH_STACK_CURSOR(Actor402200OffsetScratch);
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -65,7 +65,7 @@ void stalkerStrikeSeq(Task* arg0)
                     work->field_6DE = 0xA;
                 }
                 work->field_6DA = 1;
-                work->field_6B8 = gStalkerApproachCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6B8 = gStalkerApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(work->field_6B8, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 work->field_70A = 0;
                 work->field_6F2 = 1;
@@ -104,7 +104,7 @@ void stalkerStrikeSeq(Task* arg0)
                     work->field_6DE = 8;
                     work->field_6D4 = work->field_6DC + work->field_6DE;
                 }
-                Gp_ClearNodeSlots(&((GpEnemy*)arg0->spawnArg2.pointer)->node);
+                Gp_ClearNodeSlots(&((Enemy*)arg0->spawnArg2.pointer)->node);
             }
             break;
         case 3:
@@ -160,11 +160,11 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_580  = 0x12C;
                 work->field_57C  = Gp_PackPair(gStalkerAttacks, 1);
                 work->field_582 |= 0x8000;
-                cue              = gStalkerStrikeCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                cue              = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else if (work->field_6C4 == 0x1C) {
                 work->field_56C = &arg0->extra.tmd->coords[12];
-                cue             = gStalkerStrikeCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                cue             = gStalkerStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(cue, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             if (work->field_6C4 == 0x23) {
@@ -174,7 +174,7 @@ void stalkerStrikeSeq(Task* arg0)
                 work->field_6DC  = 0x14;
                 work->field_6DE  = 0xA;
                 work->field_582 &= 0x7FFF;
-                work->field_6BC  = gStalkerPainCue | (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8);
+                work->field_6BC  = gStalkerPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(work->field_6BC, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
             break;

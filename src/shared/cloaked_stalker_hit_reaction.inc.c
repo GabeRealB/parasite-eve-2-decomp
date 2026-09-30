@@ -10,7 +10,7 @@
 /// sequence already held by `field_6F2` running.
 void stalkerPickHitReaction(Task* arg0, s32 arg1)
 {
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     s16              hp    = enemy->hp;
     Actor402200Work* work  = arg0->work;
     u32              state = 0;

@@ -6,13 +6,13 @@
 /// on screen. The sprite's brightness flickers with the frame counter.
 void glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2)
 {
-    RoomDraw13Scratch* block;
+    GlowCentreScratch* block;
     POLY_FT4*          prim;
     s32                idx;
     s32                blend;
     s16                xy;
 
-    block = SCRATCH_STACK_RESERVE_BLOCK(RoomDraw13Scratch);
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreScratch);
 
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -49,5 +49,5 @@ void glowDrawFlare(SVECTOR* arg0, s32 arg1, s32 arg2)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 prim);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(RoomDraw13Scratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }

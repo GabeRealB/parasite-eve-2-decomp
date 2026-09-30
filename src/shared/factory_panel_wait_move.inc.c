@@ -14,9 +14,9 @@ void factoryPanelWaitMove(Task* task)
     prompt->mode     = 0;
     if (work->field_A != 0) {
         if (GameFlag_GetNibble(0x48) == 0) {
-            Mc_SaveData[0].state.location.loc.view = 0xC;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
         } else {
-            Mc_SaveData[0].state.location.loc.view = 5;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
         }
         work->field_8 = 0xA;
         work->field_A = 0;

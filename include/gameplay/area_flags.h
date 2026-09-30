@@ -11,11 +11,11 @@
 /// `field_0`, publishes `field_2` as the item id to `Gp_PubItemLoc` and `field_6`
 /// to `D_80114DDE`, and writes the low 2 bits of `field_6` into the bank. The
 /// placement spawn (`Gp_SpawnAtPlace` / `Gp_SpawnPlaces` /
-/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `GpEnemy.placeKey` as
+/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `Enemy.placeKey` as
 /// `field_0 | (field_4 << 8)`, spawns the room's `GpEnemyDesc` whose id is
-/// `field_2` and copies `field_2` to `GpEnemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
+/// `field_2` and copies `field_2` to `Enemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
 /// (`GfxCoord.coord.t`) and `field_E` the yaw stored at coord +0x46 and passed to
-/// `Gfx_RotMatrixY` when non-zero.
+/// `gfxRotMatrixY` when non-zero.
 typedef struct _GpBit2Rec {
     /* 0x00 */ u16 field_0;
     /* 0x02 */ u16 field_2;
@@ -58,7 +58,7 @@ STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 /// `field_0` indexes `Gp_AreaTables` (same role as `GameLocationKey.stage`);
 /// `field_1` indexes that table (same role as `GameLocationKey.area`);
 /// `field_2` is the id written by `areaSetPlacementVariant`. High nibble of `field_3`
-/// is a `Mc_SaveData[0].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
+/// is a `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` filter (0 = always, 0x10 if 0 or 2, 0x20 if
 /// 1 or 3); low nibble nonzero sets `GpAreaObj.spawnFlags` bit 2, else clears.
 typedef struct _GpAreaApplyRec {
     /* 0x0 */ u8 field_0;

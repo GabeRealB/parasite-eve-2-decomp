@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include "main/sound_types.h"
+
 /// Per-frame audio callback; return -1 to remove the registration.
 typedef s32 (*AudioTickPoll)(s32* arg);
 
@@ -71,9 +73,10 @@ enum { SOUND_BANK_TYPE_MASK = 0xF000 };
 /// this with a descriptor id masked by `SOUND_BANK_TYPE_MASK`, so the loaded
 /// type-1 bank matches whatever number it carries in the low 12 bits. Retail
 /// ids in this band fall between 0x1101 and 0x1521; 0x1000 is the type key,
-/// not one of those ids. A script request stores the key in bits 16..31 to
-/// mean the loaded type-1 bank. Slot-map index 1 selects its slot.
+/// not one of those ids. `SOUND_SCRIPT_REQUEST_TYPE_1` is this key stored in
+/// a script request's high half. Slot-map index 1 selects its slot.
 enum { SOUND_BANK_TYPE_1 = 0x1000 };
+STATIC_ASSERT(SOUND_SCRIPT_REQUEST_TYPE_1 == (SOUND_BANK_TYPE_1 << 16), sound_script_request_type_1);
 
 // Sequence table storage is retained across reloads; the free id belongs to
 // that same band.

@@ -149,11 +149,21 @@ typedef struct {
 } _AnimationTickScratch;
 STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 
-// Interpolation weights have twelve fractional bits; packed angle steps have three.
-enum {
-    ANIMATION_BLEND_FRACTION_BITS = 12,
-    ANIMATION_PACKED_ANGLE_SHIFT  = 3
-};
+/// Fractional bits of a keyframe interpolation weight.
+///
+/// For distinct endpoints, `(timeLeft << ANIMATION_BLEND_FRACTION_BITS) /
+/// timeSpan` is the current endpoint's weight in the same 1/4096 units as
+/// `ONE`. Division truncates toward zero, and the other endpoint's weight is
+/// `ONE` minus that quotient, so the discarded fraction stays with the next
+/// endpoint. `gte_gpf12` and `gte_gpl12` consume this scale. Identical
+/// endpoints use weights 0 and `ONE` instead. This is not
+/// `ANIMATION_TIME_FRACTION_BITS`, and it does not select
+/// `ANIMATION_BLEND_RESET` or `ANIMATION_BLEND_INTERPOLATE`.
+enum { ANIMATION_BLEND_FRACTION_BITS = 12 };
+STATIC_ASSERT((1 << ANIMATION_BLEND_FRACTION_BITS) == ONE, animation_blend_fraction_matches_one);
+
+// Packed angle steps have three.
+enum { ANIMATION_PACKED_ANGLE_SHIFT = 3 };
 
 /// 8-byte mask/flag record. `Gp_SndMaskTable` is a 0-terminated table of these.
 /// `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks` walk it: if `arg0 & mask`, apply `flags`
@@ -258,13 +268,13 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 static void Gp_ApplySndMasks(u16 arg0);
 
-static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
+static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent);
 
-static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent);
+static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent);
 
-static void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task);
+static void Gp_EnemyWaitStart(Enemy* enemy, Task* task);
 
-static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task);
+static void Gp_EnemyWaitTick(Enemy* enemy, Task* task);
 
 static s32 Gp_TryEnqueueSndCd(s32 arg0);
 
@@ -357,7 +367,7 @@ extern TaskDesc D_801637C8[];
 
 GpSndMaskRec Gp_SndMaskTable[7] = {
     { 1, 0 },
-    { 4, 0x10000000 },
+    { 4, SOUND_SCRIPT_REQUEST_TYPE_1 },
     { 8, 0x50000000 },
     { 2, 0x20000000 },
     { 16, 0x40000000 },
@@ -666,7 +676,7 @@ void Gp_StepCdAudioCmd(void)
             if (cmd != CD_COMMAND_PLAY_SCENE_AUDIO) {
                 break;
             }
-            save23            = Mc_SaveData[0].state.demoScene;
+            save23            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
             p->sceneAudioMode = one;
             if (save23 != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
@@ -691,7 +701,7 @@ void Gp_StepCdAudioCmd(void)
             if (CdAudio_Phase.field_1 != 4) {
                 break;
             }
-            if (Mc_SaveData[0].state.demoScene != 0) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
                 SndEvt_EnqueueType6(0, 0, 0);
             }
             Mem_Set(&p->activeRequest, 0, sizeof(p->activeRequest));
@@ -856,10 +866,10 @@ void Gp_SetStreamBuf(void* arg0)
     gCdCmdQueue.externalScenePayloadBuffer = arg0;
 }
 
-static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
+static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent)
 {
-    Task*    task;
-    GpEnemy* ret;
+    Task*  task;
+    Enemy* ret;
 
     task = Task_Spawn(bank, type, arg2, 0);
     if (task != NULL) {
@@ -870,10 +880,10 @@ static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
     return ret;
 }
 
-GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
+Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
 {
-    Task*    task;
-    GpEnemy* ret;
+    Task*  task;
+    Enemy* ret;
 
     task = Task_SpawnFromTable(table, idx, arg2, 0);
     if (task != NULL) {
@@ -884,7 +894,7 @@ GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* par
     return ret;
 }
 
-void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
+void Gp_DestroyEnemy(Enemy* enemy, Task* task)
 {
     Gp_UnlinkNode(&enemy->node);
     memFree(enemy);
@@ -893,7 +903,7 @@ void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
 
 void Gp_EnemyTaskExit(Task* task)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     enemy = task->spawnArg2.pointer;
     Gp_UnlinkNode(&enemy->node);
@@ -911,7 +921,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
         return NULL;
     }
 
-    SCRATCH_PUSH_BYTES(8);
+    SCRATCH_STACK_RESERVE_BYTES(8);
     world = &gGfxViewCoord;
     body  = arg0->extra.coordBody;
     dest  = body->coord;
@@ -938,11 +948,11 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
     return arg0;
 }
 
-static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
+static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
-    enemy = memCalloc(0x60, 0);
+    enemy = memCalloc(sizeof(Enemy), 0);
     if (enemy == NULL) {
         printf(Gp_StrNewEnemyNull);
         taskKill(task);
@@ -961,13 +971,13 @@ static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     return enemy;
 }
 
-static void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitStart(Enemy* enemy, Task* task)
 {
-    enemy->waitTicks = 0x78;
+    enemy->waitTicks = ENEMY_WAIT_FRAMES;
     task->state++;
 }
 
-static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitTick(Enemy* enemy, Task* task)
 {
     enemy->waitTicks--;
     if (enemy->waitTicks == 0) {
@@ -1819,7 +1829,7 @@ void Gp_FadeWorkTask(Task* t)
 
 void func_800B25B0(void)
 {
-    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(5, 27, 0, 0):
             Task_SpawnFromTable(&D_neo_ark_bridge_80181F18, 0, 0, 0);
             break;
@@ -1972,7 +1982,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
-            // The scaled remainder is stored, then replaced by its quotient.
+            // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
@@ -2037,7 +2047,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
-            // The scaled remainder is stored, then replaced by its quotient.
+            // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
@@ -2330,7 +2340,7 @@ void func_800B3AA4(AnimationContext* context, AnimationSlot* arg1, s32 arg2, s32
     u8                     recordFlags;
     s32                    setIndex;
 
-    if (Mc_SaveData[0].state.demoScene == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
         u8  slotIndex;
         s32 poseBufferOffset;
 
@@ -2770,7 +2780,7 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, GpAnimPose* arg2, u16 
     slot->usesBufferedPose             = 0;
 }
 
-void Gp_SaveEnemyPose(GpEnemy* enemy)
+void Gp_SaveEnemyPose(Enemy* enemy)
 {
     AreaSavedEnemyPose* savedPose;
     GameLocationKey*    savedLocation;
@@ -2780,8 +2790,8 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     u16                 placementKey;
     s32                 poseIndex;
 
-    savedPose     = Mc_SaveData[0].state.enemyPoses;
-    savedLocation = &Mc_SaveData[0].state.location.loc;
+    savedPose     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
+    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     model         = enemy->task->extra.tmd;
     coord         = model->coords;
     if (enemy->spawnState == 0) {
@@ -2789,31 +2799,31 @@ void Gp_SaveEnemyPose(GpEnemy* enemy)
     }
     placementKey = enemy->placeKey;
     // Keep the first saved transform and resume state for this placement.
-    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->placeKey == placementKey) {
             return;
         }
     }
 
     euler     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    savedPose = Mc_SaveData[0].state.enemyPoses;
-    for (poseIndex = 0; poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); poseIndex++, savedPose++) {
+    savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
+    for (poseIndex = 0; poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); poseIndex++, savedPose++) {
         if (savedPose->resumeState == AREA_SAVED_ENEMY_POSE_FREE) {
             break;
         }
     }
-    if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+    if (poseIndex == ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses)) {
         u32 stageAreaKey;
 
         // Evict a pose from another area, using the final slot as the fallback.
-        savedPose    = Mc_SaveData[0].state.enemyPoses;
+        savedPose    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
         stageAreaKey = (savedLocation->stage << AREA_PLACEMENT_STAGE_SHIFT) | savedLocation->area;
-        for (poseIndex = 0; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (poseIndex = 0; poseIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             if ((savedPose->placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) != stageAreaKey) {
                 break;
             }
         }
-        for (; poseIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); poseIndex++, savedPose++) {
+        for (; poseIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); poseIndex++, savedPose++) {
             savedPose[0] = savedPose[1];
         }
     }
@@ -2840,7 +2850,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaObj*     areaState;
     AreaPlacement* placement;
     GpAreaTmdRec*  resource;
-    GpEnemy*       enemy;
+    Enemy*         enemy;
     Task*          task;
     TmdObject*     model;
     GfxCoord*      coord;
@@ -2871,7 +2881,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     do {
         resource   = variants[location->variant].field_4;
         resourceId = resource->field_0;
-        if (resourceId != AREA_TABLE_END_ID) {
+        if (resourceId != AREA_PLACEMENT_END) {
             do {
                 if (resourceId == placement->entryId) {
                     if (areaState->spawnFlags & AREA_SPAWN_RESTORE_SAVED_POSES) {
@@ -2879,9 +2889,9 @@ void Gp_SpawnArea(GameLocationKey* location)
                         s32                       poseFound;
                         s32                       savedPoseIndex;
 
-                        savedPose = Mc_SaveData[0].state.enemyPoses;
+                        savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
                         poseFound = 0;
-                        for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses); savedPoseIndex++, savedPose++) {
+                        for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); savedPoseIndex++, savedPose++) {
                             if (savedPose->placeKey == ((placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area)) {
                                 poseFound = 1;
                                 break;
@@ -2897,7 +2907,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                         u16 placementKey;
 
                         placementKey    = (placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area;
-                        enemy->workType = 0x900;
+                        enemy->workType = ENEMY_WORK_PLAIN;
                         enemy->place    = placement;
                         enemy->placeKey = placementKey;
                         task            = enemy->task;
@@ -2917,11 +2927,11 @@ void Gp_SpawnArea(GameLocationKey* location)
                                 coord->coord.t[1]   = placement->y;
                                 coord->coord.t[2]   = placement->z;
                                 coord->param.rot.vy = placement->yaw;
-                                Gfx_RotMatrixY(&coord->coord, placement->yaw, 1);
+                                gfxRotMatrixY(&coord->coord, placement->yaw, 1);
                             } else {
                                 const AreaSavedEnemyPose* savedPose;
 
-                                savedPose = Mc_SaveData[0].state.enemyPoses;
+                                savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
                                 poseIndex = 0;
                                 do {
                                     if (savedPose->placeKey == enemy->placeKey) {
@@ -2939,8 +2949,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                                     }
                                     poseIndex++;
                                     savedPose++;
-                                } while (poseIndex < ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses));
-                                if (poseIndex == ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses)) {
+                                } while (poseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses));
+                                if (poseIndex == ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses)) {
                                     Gp_DestroyEnemy(enemy, enemy->task);
                                 }
                             }
@@ -2950,7 +2960,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                 }
                 resource++;
                 resourceId = resource->field_0;
-            } while (resourceId != AREA_TABLE_END_ID);
+            } while (resourceId != AREA_PLACEMENT_END);
         }
         placementIndex++;
         placement++;
@@ -3069,7 +3079,7 @@ static void func_800B51F4(Task* task)
     if (task->spawnArg1.value == 0x10) {
         count = 2;
     }
-    if (Mc_SaveData[0].state.demoScene == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 1) {
         return;
     }
 
@@ -3194,7 +3204,7 @@ void Gp_ApplyAreaTmdFlags(void)
         do {
             work = iter->spawnArg2.pointer;
             if (iter->bodyKind == TASK_BODY_TMD) {
-                key   = &Mc_SaveData[0].state.location.loc;
+                key   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
                 rec   = Gp_AreaTables[idx];
@@ -3288,7 +3298,7 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
     GpAreaObj*       areaState;
     GameLocationKey* key;
 
-    key         = &Mc_SaveData[0].state.location.loc;
+    key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
     areaRecords = Gp_AreaTables[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].field_4;
@@ -3349,17 +3359,17 @@ static void _areaPrepareSpawnState(GameLocationKey* key, GpAreaObj* areaState)
     // A changed layout invalidates saved poses for every placement in this area.
     if (areaState->spawnFlags & AREA_SPAWN_RESET_SAVED_POSES) {
         areaState->spawnFlags &= 0xFF ^ (AREA_SPAWN_RESET_SAVED_POSES | AREA_SPAWN_RESTORE_SAVED_POSES);
-        poseIndex              = (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1);
-        savedPoses             = Mc_SaveData[0].state.enemyPoses;
+        poseIndex              = (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1);
+        savedPoses             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
         do {
             if ((savedPoses[poseIndex].placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) == ((key->stage << AREA_PLACEMENT_STAGE_SHIFT) | key->area)) {
-                if (poseIndex != (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)) {
-                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1); shiftIndex++) {
+                if (poseIndex != (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)) {
+                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); shiftIndex++) {
                         savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
                     }
                 }
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
-                savedPoses[(ARRAY_SIZE(Mc_SaveData[0].state.enemyPoses) - 1)].placeKey    = 0;
+                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
+                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = 0;
             }
             poseIndex--;
         } while (poseIndex >= 0);
@@ -3686,7 +3696,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
 /// `place->field_2` and spawns that enemy at `place`.
 static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     Task*      task;
     TmdObject* extra;
     GfxCoord*  coord;
@@ -3701,14 +3711,14 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                 if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
-                    enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                    enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                     enemy->workType     = place->field_2;
                     coord->coord.t[0]   = place->field_8;
                     coord->coord.t[1]   = place->field_A;
                     coord->coord.t[2]   = place->field_C;
                     coord->param.rot.vy = place->field_E;
                     if (coord->param.rot.vy != 0) {
-                        Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                        gfxRotMatrixY(&coord->coord, (s16)place->field_E, 1);
                     }
                     coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 }
@@ -3720,7 +3730,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
     }
 }
 
-/// Walks `Gp_Bit2Banks[Mc_SaveData[0].state.location.loc.area / stage]` for a `GpBit2Rec`
+/// Walks `Gp_Bit2Banks[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area / stage]` for a `GpBit2Rec`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `Gp_Bit2Banks[gGameSession->location.loc.stage].field_4` is non-zero, spawns that
 /// placement via `Gp_SpawnEnemyFromTable` (same coord/yaw writeback as `Gp_SpawnPlaces`).

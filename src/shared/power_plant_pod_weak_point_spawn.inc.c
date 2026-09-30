@@ -6,7 +6,7 @@
 /// the two per-enemy death flags. A failed allocation tears the enemy down
 /// instead and leaves the task on this handler; otherwise the task moves to the
 /// tick handler (`state` 1).
-void podWeakPointSpawn(GpEnemy* arg0, Task* arg1)
+void podWeakPointSpawn(Enemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
     Actor05300Work*        work;

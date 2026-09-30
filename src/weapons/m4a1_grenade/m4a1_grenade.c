@@ -83,7 +83,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
        caller-saved register and the copy into `spot` is a second read of
        `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
        two uses in separate registers. */
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     sfx  = slot->secondaryItemId - 0x9F;
     if (sfx < 0) {
@@ -184,7 +184,7 @@ static void func_m4a1_grenade_8011D1EC(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);
@@ -260,24 +260,24 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
     Gp_InitRec18Table(work->obj.context.contacts, 1, 0);
     work->obj2.context.capsule = &work->d4rec;
     work->obj2.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->d4rec.recs           = work->rec1;
+    work->d4rec.contacts       = work->rec1;
     work->obj2.coord           = coord;
     work->obj2.pos.vx          = 0;
     work->obj2.pos.vy          = 0;
     work->obj2.pos.vz          = 0;
     work->obj2.key             = 0;
     work->obj2.radius          = 0;
-    work->d4rec.end0.vx        = 0;
-    work->d4rec.end0.vy        = 0;
-    work->d4rec.end0.vz        = 0;
-    work->d4rec.end1.vx        = 0;
-    work->d4rec.end1.vz        = 0;
+    work->d4rec.ends[0].vx     = 0;
+    work->d4rec.ends[0].vy     = 0;
+    work->d4rec.ends[0].vz     = 0;
+    work->d4rec.ends[1].vx     = 0;
+    work->d4rec.ends[1].vz     = 0;
     work->d4rec.end0Radius     = 1;
     work->d4rec.end1Radius     = 1;
     work->obj.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->d4rec.end1.vy        = -(work->field_88.w >> 10);
+    work->d4rec.ends[1].vy     = -(work->field_88.w >> 10);
     Gp_LinkObj(1, &work->obj2);
-    Gp_InitRec18Table(work->d4rec.recs, 1, 0);
+    Gp_InitRec18Table(work->d4rec.contacts, 1, 0);
     work->obj2.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
     SCRATCH_STACK_RELEASE_BYTES(0x28);
 }
@@ -344,7 +344,7 @@ check:
         arg0->state = 3;
         goto move;
     }
-    if (idx == 1 && Mc_SaveData[0].state.location.loc.area == 0x14 && (u32)(Mc_SaveData[0].state.location.loc.stage - 2) < 2U) {
+    if (idx == 1 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area == 0x14 && (u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage - 2) < 2U) {
         goto explode;
     }
     goto move;
@@ -355,14 +355,14 @@ try_rec0:
         goto check;
     }
 move:
-    blk->delta.vx.w     = work->dir.vx / work->field_88.h.hi;
-    blk->delta.vy.w     = work->dir.vy / work->field_88.h.hi;
-    blk->delta.vz.w     = work->dir.vz / work->field_88.h.hi;
-    coord->coord.t[0]  += blk->delta.vx.w;
-    coord->coord.t[1]  += blk->delta.vy.w;
-    coord->coord.t[2]  += blk->delta.vz.w;
-    work->d4rec.end1.vy = -(work->field_88.w >> 10);
-    work->field_88.w   += 0x1800;
+    blk->delta.vx.w        = work->dir.vx / work->field_88.h.hi;
+    blk->delta.vy.w        = work->dir.vy / work->field_88.h.hi;
+    blk->delta.vz.w        = work->dir.vz / work->field_88.h.hi;
+    coord->coord.t[0]     += blk->delta.vx.w;
+    coord->coord.t[1]     += blk->delta.vy.w;
+    coord->coord.t[2]     += blk->delta.vz.w;
+    work->d4rec.ends[1].vy = -(work->field_88.w >> 10);
+    work->field_88.w      += 0x1800;
     if (work->field_88.w > 0xFFFFF) {
         goto explode;
     }

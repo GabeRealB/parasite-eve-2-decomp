@@ -66,7 +66,7 @@ extern GpEvsCmd             D_actor_160700_80135BD4[];
 extern GpEvsCmd             D_actor_160700_801362F4[];
 extern GpEvsCmd             D_actor_160700_80136414[];
 
-static void func_actor_160700_80132390(GpEnemy* enemy, Task* task);
+static void func_actor_160700_80132390(Enemy* enemy, Task* task);
 static void func_actor_160700_80132414(Task* task);
 
 extern AnimationPlayRequest D_actor_160700_80135288;
@@ -1480,7 +1480,7 @@ u8 D_actor_160700_801416C0[100] = {
 
 static void func_actor_160700_80131E24(void);
 static void func_actor_160700_80131E70(void);
-static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task);
+static void func_actor_160700_80131F70(Enemy* enemy, Task* task);
 
 static void func_actor_160700_80131E24(void)
 {
@@ -1522,14 +1522,14 @@ static void func_actor_160700_80131E70(void)
 /// CLUT from the area placement the enemy's `placeKey` selects, sets up the
 /// animation context on clip 1, installs the message table whose handlers are
 /// the actor's script opcodes, and starts the animation.
-static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
+static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor160600Work* work;
     Actor160600Work* mem;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -1571,11 +1571,11 @@ static void func_actor_160700_80131F70(GpEnemy* enemy, Task* task)
 #include "../../shared/paced_walk_update.inc.c"
 
 /// Two-state dispatcher, its handler table built on the stack: state 0 spawns
-/// the actor, state 1 runs it. Both handlers take the task's `GpEnemy` as
+/// the actor, state 1 runs it. Both handlers take the task's `Enemy` as
 /// well as the task.
 void func_actor_160700_8013233C(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_160700_80131F70,
         func_actor_160700_80132390,
     };
@@ -1591,7 +1591,7 @@ void func_actor_160700_8013233C(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
+/// Exit callback: hands the task's `Enemy` back to `Gp_DestroyEnemy`.
 static void func_actor_160700_80132414(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);

@@ -62,11 +62,11 @@ void spiderPounceState(Task* arg0)
                 }
             }
             if ((s16)work->field_396 == 0x28) {
-                sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401A0002;
+                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan   = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 0;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp <= 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
                     work->field_39A = 9;
                     work->field_39C = 0;
                     arg0->state     = 2;
@@ -77,7 +77,7 @@ void spiderPounceState(Task* arg0)
                 work->field_39C = 0;
                 work->field_392 = 1;
                 random          = (Gp_LcgState * 5) + 0x71357911;
-                work->field_39E = gSpiderIdleDelay[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
+                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
                 Gp_LcgState     = random;
             }
             break;
@@ -98,11 +98,11 @@ void spiderPounceState(Task* arg0)
                 coord->coord.t[2] += (s32)(rsin((s32)work->field_3A2) * 0xB) >> 0xC;
             }
             if ((s16)work->field_396 == 0x10) {
-                sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x401A0002;
+                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
                 pan1  = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, (s32)pan1, (s8)gpGetObjDepth(coord));
                 work->field_3C8 = 2;
-                if (((GpEnemy*)arg0->spawnArg2.pointer)->hp <= 0) {
+                if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
                     rotation->vx    = 0;
                     rotation->vy    = (u16)work->field_3A2 + 0x800;
@@ -117,7 +117,7 @@ void spiderPounceState(Task* arg0)
                 work->field_39A = 3;
                 work->field_39C = 0;
                 work->field_392 = 1;
-                work->field_39E = gSpiderIdleDelay[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
+                work->field_39E = gSpiderIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + (((Gp_LcgState = (Gp_LcgState * 5) + 0x71357911) >> 0x10) & 0xF);
                 work->field_3AA = 1;
                 if (work->field_3C8 == 2) {
                     work->field_3A2 = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;

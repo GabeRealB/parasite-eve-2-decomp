@@ -289,7 +289,7 @@ static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
             table = Gp_ItemTable1;
             break;
         default:
-            table = Mc_SaveData[0].state.itemRows;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     return table;
@@ -326,7 +326,7 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
                     tmp = Gp_ItemTable1;
                     break;
                 default:
-                    tmp = Mc_SaveData[0].state.itemRows;
+                    tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
                     break;
             }
             table = tmp;
@@ -361,7 +361,7 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
             minKey = key;
 
             if (arg0->tableId != INVENTORY_ITEM_TABLE_INDIRECT) {
-                tmp = Mc_SaveData[0].state.itemRows;
+                tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
                 if (arg0->tableId == INVENTORY_ITEM_TABLE_AREA_GRANTS) {
                     tmp = Gp_ItemTable2;
                 }
@@ -454,7 +454,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].state.itemRows;
+            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     table    = tmp;
@@ -491,7 +491,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData[0].state.itemRows;
+                table2 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
                 break;
         }
         if (arg2 < 0) {
@@ -558,7 +558,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].state.itemRows;
+            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     table    = tmp;
@@ -595,7 +595,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
                 table2 = Gp_ItemTable1;
                 break;
             default:
-                table2 = Mc_SaveData[0].state.itemRows;
+                table2 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
                 break;
         }
         i      = 0;
@@ -765,7 +765,7 @@ static inline s32 _gpHasItemSeenBit(s32 item)
     if ((u32)item >= 0x180) {
         return 1;
     }
-    p   = &Mc_SaveData[0];
+    p   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     val = p->state.itemSeenBits[word] & bit;
     return val != 0;
 }
@@ -874,7 +874,7 @@ static inline void _gpClearEquipSlot(s32 item)
         return;
     }
 
-    slot = &Mc_SaveData[0].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
+    slot = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
     for (i = 0; i < 8; i++) {
         if (item == Gp_ItemMaps[i].field_1) {
             found = 1;
@@ -920,7 +920,7 @@ void Gp_RefreshItemRow(InventoryItemRow* arg0)
 
 void func_800B92CC(Task* task)
 {
-    switch (GAME_LOCATION_WORD(Mc_SaveData[0].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
             func_acropolis_square_80180804(task);
             break;

@@ -28,11 +28,11 @@ void spiderHurtState(Task* arg0);
 void spiderEntranceState(Task* arg0);
 void spiderBurnStep(Task* arg0);
 void spiderTurnStep(Task* arg0);
-void spiderDyingState(GpEnemy* arg0, Task* arg1);
-void spiderPuffTick(GpEnemy* arg0, Task* arg1);
+void spiderDyingState(Enemy* arg0, Task* arg1);
+void spiderPuffTick(Enemy* arg0, Task* arg1);
 void spiderDrawPuff(Task* actor, s32 frame);
 void spiderDrawThread(Task* actor);
-void spiderTick(GpEnemy* arg0, Task* arg1);
+void spiderTick(Enemy* arg0, Task* arg1);
 void spiderApplyStatus(Task* arg0);
 void spiderStunState(Task* arg0);
 void spiderMoveStep(Task* arg0);
@@ -40,7 +40,7 @@ void spiderDrawShadow(Task* arg0);
 void spiderSquash(Task* arg0);
 void spiderSpawnHusk(Task* actor);
 void spiderShrinkNode2(Task* actor);
-void spiderPuffSetup(GpEnemy* enemy, Task* task);
+void spiderPuffSetup(Enemy* enemy, Task* task);
 
 /* Defined by each package. */
 void spiderResolveContacts(Task* arg0);

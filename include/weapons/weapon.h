@@ -18,7 +18,7 @@
 /// Kyle's thrown-object task carry the same code. It leads with the two
 /// `WorldCollisionBody` list nodes the exit callback hands back to `Gp_UnlinkObj`: `obj`
 /// is a node whose `context.contacts` is `rec0` directly, and `obj2` a node whose
-/// `context.capsule` is `d4rec`, reaching `rec1` through that shape's `recs`.
+/// `context.capsule` is `d4rec`, reaching `rec1` through that shape's `contacts`.
 /// `field_88` is 16.16: the whole word is the flight timer the flight state
 /// counts, and its high half the per-frame divisor the grenade's step along
 /// `dir` is taken by, so the grenade slows as the timer runs. `dir` is the
@@ -28,7 +28,7 @@ typedef struct WeaponGrenadeWork {
     WorldCollisionBody    obj2;
     WorldCollisionContact rec0[1];
     WorldCollisionContact rec1[1];
-    GpActorD4Rec          d4rec;
+    WorldCollisionCapsule d4rec;
     GpFixed16             field_88;
     s32                   field_8C;
     s32                   field_90;

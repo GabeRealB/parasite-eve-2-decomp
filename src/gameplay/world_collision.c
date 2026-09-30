@@ -174,7 +174,7 @@ static inline WorldCollisionContact* _worldCollisionGetObjectContacts(WorldColli
             recs = obj->context.contactOwner->context.contacts;
             break;
         case WORLD_COLLISION_BODY_CAPSULE:
-            recs = obj->context.capsule->recs;
+            recs = obj->context.capsule->contacts;
             break;
         case WORLD_COLLISION_BODY_MOTION_SPHERE:
             recs = obj->context.motion->contacts;
@@ -350,7 +350,7 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     u8*                            head;
     _WorldCollisionCapsuleScratch* block;
     VECTOR*                        ends;
-    GpActorD4Rec*                  rec;
+    WorldCollisionCapsule*         rec;
     s32                            proj;
     s32                            ret;
     s32                            tapered;
@@ -428,9 +428,9 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
 
     if (arg1->flags & (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT)) {
         gte_SetRotMatrix(&arg1->coord->workm);
-        block->scaled.vx = (u16)rec->end0.vx + (u16)arg1->pos.vx;
-        block->scaled.vy = (u16)rec->end0.vy + (u16)arg1->pos.vy;
-        block->scaled.vz = (u16)rec->end0.vz + (u16)arg1->pos.vz;
+        block->scaled.vx = (u16)rec->ends[0].vx + (u16)arg1->pos.vx;
+        block->scaled.vy = (u16)rec->ends[0].vy + (u16)arg1->pos.vy;
+        block->scaled.vz = (u16)rec->ends[0].vz + (u16)arg1->pos.vz;
         gte_ldv0((SVECTOR*)(head - 8));
         gte_rtv0();
         gte_stlvnl(ends);

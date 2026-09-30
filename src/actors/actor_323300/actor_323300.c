@@ -542,12 +542,14 @@ static void func_actor_323300_80161FE8(Task* arg0)
 ///
 /// Mode 0 hides the model -- `TmdObject::flags` bit 0x80, the bit
 /// `func_actor_323300_80161FE8` tests before drawing the ground shadow -- and
-/// clears bit 4 so the buffers get reallocated; 1 shows it, puts the node back
-/// in the pair walk and allocates the aux buffers; 2 hides it and arms the
-/// `field_502` countdown that same per-frame runner frees the buffers with; 3
-/// shows it while keeping them. Modes 2 and 3 set bit 4, so the update path
-/// skips the realloc for the two frames the countdown runs. Anything else
-/// returns 1 and leaves the object alone; the handled modes return 0.
+/// clears `TMD_OBJECT_SKIP_AUTO_BUFFER` without allocating. Mode 1 shows it,
+/// puts the node back in the pair walk, allocates the buffers and clears
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Mode 2 hides it, arms the `field_502`
+/// countdown the per-frame runner frees the buffers with, and sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` so the missing-buffer sweep does not refill
+/// them. Mode 3 shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The countdown
+/// itself does not test that bit. Anything else returns 1 and leaves the
+/// object alone; the handled modes return 0.
 ///
 /// The node's `WorldCollisionBody::flags` halfword is the induction variable, strided by one
 /// `WorldCollisionBody` per step: the block owns a single node, so the walk covers one

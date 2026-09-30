@@ -277,7 +277,7 @@ GpSprtRec D_shelter_b2_elevator_8017E7BC[3] = {
     { { .empty = D_shelter_b2_elevator_8017E7AC }, D_shelter_b2_elevator_8017E7AC, NULL },
 };
 
-GpPointLight D_shelter_b2_elevator_8017E7E0[1] = {
+WorldCoordPointLight D_shelter_b2_elevator_8017E7E0[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2FD1, -1742, -381 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2950, 3487, 3402 }, { 0, 0 } }, 679, 5240 },
 };
 
@@ -294,7 +294,7 @@ GpObj4C D_shelter_b2_elevator_8017E8F0[1] = {
 
 GpAreaTmdRec D_shelter_b2_elevator_8017E93C[2] = {
     { 101, 429, 0, 0, { 0, 0 }, D_80137600 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_shelter_b2_elevator_8017E954[1] = {
@@ -352,7 +352,7 @@ static void             func_shelter_b2_elevator_8017D5E8(Task* task);
 
 /// The room entry task's first state: installs the room's message table, takes
 /// pointer slot 7 and spawns the two elevator cars. Unless the byte
-/// `Mc_SaveData[0].state.demoScene` is 9, it then either runs the first-visit sequence, setting
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, it then either runs the first-visit sequence, setting
 /// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
 /// and runs CAP command 3.
 /// Spawn one of this room's task descriptors with its signed travel direction.
@@ -367,7 +367,7 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
     Game_SetPtrSlot(task, 7);
     D_shelter_b2_elevator_8017EA00[0] = ShelterElevator_SpawnTask(0, -1);
     D_shelter_b2_elevator_8017EA00[1] = ShelterElevator_SpawnTask(1, 1);
-    if (Mc_SaveData[0].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
         if (GameFlag_GetNibble(0xCF) == 0) {
             GameFlag_SetNibble(0xCF, 1);
             func_800E8634(&D_801378D0, 0, &D_801380F8);
@@ -468,16 +468,16 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 2:
             switch (Gp_GetCapEventKey()) {
                 case 0xB:
-                    Mc_SaveData[0].state.location.loc.area = 9;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 9;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
                 case 0xC:
-                    Mc_SaveData[0].state.location.loc.area = 0x1B;
-                    Mc_SaveData[0].state.location.loc.warp = 2;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
                     break;
                 case 0xD:
-                    Mc_SaveData[0].state.location.loc.area = 0x2A;
-                    Mc_SaveData[0].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x2A;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
                     break;
             }
             task->state++;
@@ -488,14 +488,14 @@ void func_shelter_b2_elevator_8017D888(Task* task)
         case 4:
             SndEvt_EnqueueType7(0x80000000, 0);
             msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = Mc_SaveData[0].state.location.loc.area;
-            msg.warp      = Mc_SaveData[0].state.location.loc.warp;
-            msg.room      = Mc_SaveData[0].state.location.loc.room;
+            msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
+            msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
+            msg.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room;
             msg2          = msg;
             func_map_shelter_80179A04(&msg, &msg2);
-            gDisplayState.spriteVariant            = 1;
-            Mc_SaveData[0].state.location.loc.warp = msg2.warp;
-            Mc_SaveData[0].state.location.loc.room = msg2.room;
+            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;
             Task_Spawn(0, 0x11, 0, 0);
             taskKill(task);
             break;

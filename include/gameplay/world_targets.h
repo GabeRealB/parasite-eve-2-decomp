@@ -26,7 +26,7 @@ void Gp_UnlinkNode(WorldTargetNode* node);
 /// it lockable.
 void Gp_LinkNode(WorldTargetNode* node);
 
-/// Two-bit mask of `Gp_ActorSlots[]`: the slots whose actor is locked onto
+/// Two-bit mask of `gPlayerActorTasks[]`: the slots whose actor is locked onto
 /// `node`.
 s32 Gp_NodeSlotMask(WorldTargetNode* node);
 

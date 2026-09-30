@@ -31,7 +31,7 @@ typedef struct {
     union {
         s32 (*empty)(void);
         s32 (*start)(s32, s32, s16);
-        s32 (*overlay)(s32, s32, GpOverlayIds*);
+        s32 (*overlay)(s32, s32, EvsSceneKey*);
         s32 (*value)(s32, s32, s32);
     } handler;
 } GpCapControlEntry;
@@ -52,7 +52,7 @@ s32 func_800E73E8(void);
 
 s32 func_800E7434(void);
 
-s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2);
+s32 func_800E7498(s32 arg0, s32 arg1, EvsSceneKey* sceneKey);
 
 s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2);
 
@@ -138,7 +138,7 @@ s32 func_800E7358(void)
 
 s32 func_800E7378(void)
 {
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 != NULL) {
             return 0;
         }
@@ -153,7 +153,7 @@ s32 func_800E73E8(void)
 {
     Task* task;
 
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         task = D_801156B8;
         if (task != NULL) {
             task->spawnArg1.value = 1;
@@ -168,7 +168,7 @@ s32 func_800E73E8(void)
 
 s32 func_800E7434(void)
 {
-    if (Mc_SaveData[0].state.demoScene == 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
         if (D_801156B8 == NULL) {
             return 0;
         }
@@ -180,13 +180,13 @@ s32 func_800E7434(void)
     return 0;
 }
 
-s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
+s32 func_800E7498(s32 arg0, s32 arg1, EvsSceneKey* sceneKey)
 {
-    if (arg2 != NULL) {
-        CdCmd_StartOverlay(arg2->field_0, arg2->field_2, arg2->field_4);
+    if (sceneKey != NULL) {
+        CdCmd_StartOverlay(sceneKey->group, sceneKey->streamId, sceneKey->subId);
     }
     D_801156B4 = 1;
-    D_801156B1 = arg2 != NULL;
+    D_801156B1 = sceneKey != NULL;
     return 0;
 }
 

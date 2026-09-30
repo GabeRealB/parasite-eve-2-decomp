@@ -12,7 +12,7 @@
 s32 bursterMessage(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor104600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
     SVECTOR          rot;
@@ -59,7 +59,7 @@ s32 bursterMessage(Task* arg0, s32 arg1, ActorCommand* request)
                 coord->coord.t[0] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
                 coord->coord.t[1] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
                 coord->coord.t[2] = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
-                sound             = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x54270006);
+                sound             = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54270006);
                 pan               = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(sound, pan, (s8)gpGetObjDepth(coord));
             } else if (gGameSession->location.loc.area == 0x28) {

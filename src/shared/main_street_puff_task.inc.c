@@ -6,12 +6,12 @@
 /// frames, releasing after cell 9.
 void mainStreetPuffTask(Task* task)
 {
-    GpEffWork* work  = task->spawnArg2.pointer;
-    GfxCoord*  coord = task->extra.coordBody->coord;
-    s32        vz;
-    s16        f2a;
-    u32        rng2;
-    u32        rng3;
+    EffectWork* work  = task->spawnArg2.pointer;
+    GfxCoord*   coord = task->extra.coordBody->coord;
+    s32         vz;
+    s16         f2a;
+    u32         rng2;
+    u32         rng3;
 
     work->age++;
     if (task->state == 0) {

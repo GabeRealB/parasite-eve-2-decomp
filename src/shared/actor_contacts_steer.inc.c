@@ -6,7 +6,7 @@
 /// discards any pair more than 0x400 apart, and for each remaining bearing
 /// nudges both `coord`'s translation and `*pos` a short step away from it. `*pos`
 /// accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen`
+/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
 /// is 1.
 static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
@@ -14,7 +14,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
     OverlayAvoidScratch* s;
     s16                  diff;
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gGameSession->viewReady == 1 || gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
 
@@ -78,7 +78,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
             diff = ((u16)s->angle[s->i] - (u16)s->face) +
                    ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
             s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
+            gfxRotMatrixY(&s->m, diff, 1);
             Gfx_MatrixCol2(&s->m, &s->dir);
             VectorNormalSS(&s->dir, &s->dir);
             gte_lddp(-10);

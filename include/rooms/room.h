@@ -47,7 +47,7 @@ STATIC_ASSERT_SIZEOF(RoomCutsceneRec, 0x18);
 
 /// One row of a shop's price ladder, a table of thirteen in the room's data.
 /// The row's three items join the shop's stock once the row's bit is set in
-/// `Mc_SaveData[0].state.shopTiers`. The rooms read only `items`; the leading word grows
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers`. The rooms read only `items`; the leading word grows
 /// row by row up to `S32_MAX` in the last, which reads as the spend that
 /// unlocks the row, but nothing here confirms it.
 typedef struct RoomShopTier {
@@ -80,6 +80,26 @@ typedef struct {
     s32  sndEvent;   // Type-6 sound event played before the room change; 0 skips it
 } RoomDeparture;
 STATIC_ASSERT_SIZEOF(RoomDeparture, 0xC);
+
+/// A room's `gRoomDeparture` when that symbol is sixteen bytes.
+///
+/// `departure` is the record the departure task reads. The four bytes after
+/// it are zero in both rooms with this extent. Their role is unproven.
+typedef struct {
+    RoomDeparture departure;  // Departure the handler staged for the task
+    u8            unknown[4]; // Role unproven; zero, with no recovered access
+} RoomDepartureStorage;
+STATIC_ASSERT_SIZEOF(RoomDepartureStorage, 0x10);
+
+/// A room's `gRoomEventLatched` when that symbol is sixteen bytes.
+///
+/// `event` is the record the staged event task reads. The four bytes after
+/// it are zero wherever this extent occurs. Their role is unproven.
+typedef struct {
+    RoomLatchedEvent event;      // Event the staged task runs
+    u8               unknown[4]; // Role unproven; zero, with no recovered access
+} RoomLatchedEventStorage;
+STATIC_ASSERT_SIZEOF(RoomLatchedEventStorage, 0x10);
 
 /// The scratchpad block a mirror task takes while it rebuilds the reflected
 /// coordinate frame in its `RoomMirrorWork`. A floor mirror only needs

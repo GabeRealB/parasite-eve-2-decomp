@@ -73,8 +73,8 @@ void Gp_InitStarterInv(void)
     s32                  flag105;
     s32                  flag107;
 
-    scan                          = &Mc_SaveData[0].state.carriedItems;
-    save                          = &Mc_SaveData[0];
+    scan                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    save                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.itemLevelBonus[5] = 0;
     save->state.itemLevelBonus[0] = 0;
     cfg                           = &Player_Status;
@@ -86,7 +86,7 @@ void Gp_InitStarterInv(void)
             tmp = Gp_ItemTable1;
             break;
         default:
-            tmp = Mc_SaveData[0].state.itemRows;
+            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
     rec  = &tmp[scan->firstRow];
@@ -115,8 +115,8 @@ void Gp_InitStarterInv(void)
     scans = Gp_ScanPtrs;
     Gp_ClearScanItems(scans[1]);
     Gp_ClearScanItems(scans[2]);
-    slots = Mc_SaveData[0].state.weaponItems;
-    for (j = 0; j < ARRAY_SIZE(Mc_SaveData[0].state.weaponItems); j++) {
+    slots = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems;
+    for (j = 0; j < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems); j++) {
         slots->primaryItemId   = INVENTORY_ITEM_NONE;
         slots->primaryQty      = 0;
         slots->secondaryItemId = EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE;

@@ -17,7 +17,7 @@
 
 void rigBlendTick(Task* task);
 void rigAnimTick(Task* task);
-void rigSpawn(GpEnemy* enemy, Task* task);
+void rigSpawn(Enemy* enemy, Task* task);
 s32  rigSetVisibility(Task* task, s32 arg1, s32 arg2);
 
 /* Defined by each package. */

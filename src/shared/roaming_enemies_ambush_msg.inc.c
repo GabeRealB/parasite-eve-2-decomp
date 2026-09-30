@@ -7,9 +7,9 @@
 /// for command 2.
 s32 roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
 {
-    s32      result;
-    u16      cmd;
-    GpEnemy* obj;
+    s32    result;
+    u16    cmd;
+    Enemy* obj;
 
     result = 0;
     if (msg.command->context.key == 0xB05) {
@@ -36,8 +36,8 @@ s32 roamerAmbushMsg(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg
                         gRoamerReserveHp[0] = 0;
                         obj->reactionFlags  = 0;
                     }
-                    Gfx_RotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
-                                   0x400, 1);
+                    gfxRotMatrixY(&Gp_LookupSlot4(0)->extra.tmd->coords->coord,
+                                  0x400, 1);
                     gRoamerCooldown = 0x5A;
                 }
                 return result;

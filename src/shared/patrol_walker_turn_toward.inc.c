@@ -11,7 +11,7 @@ void patrolTurnToward(OverlayWalker* work, SVECTOR3* pos)
     s16                       diff, t;
     s32                       angle;
 
-    if (Mc_SaveData[0].state.unknown_5C0 == 1)
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.unknown_5C0 == 1)
         return;
     head                     = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_CURSOR(u8) = head - 0x1C;
@@ -55,6 +55,6 @@ void patrolTurnToward(OverlayWalker* work, SVECTOR3* pos)
         s->angle = 0;
     s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
     memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    Gfx_RotMatrixY(&work->coord->coord, s->angle, 0);
+    gfxRotMatrixY(&work->coord->coord, s->angle, 0);
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }

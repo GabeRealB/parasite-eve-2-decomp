@@ -7,7 +7,7 @@
 /// did for this sub-state (chosen by `field_46`): the same room call with 0
 /// instead of 1, and game flag 0x147 or 0x148 set to 1 where the spawn set it
 /// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
-void podWeakPointTeardown(GpEnemy* arg0, Task* arg1)
+void podWeakPointTeardown(Enemy* arg0, Task* arg1)
 {
     Actor05300Part* part;
     Actor05300Work* parentWork;

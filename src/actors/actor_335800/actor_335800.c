@@ -231,8 +231,8 @@ extern ActorCommand         D_actor_335800_8016503C;
 extern ActorCommand         D_actor_335800_80165040;
 extern ActorCommand         D_actor_335800_80165044;
 extern GpCopyArg            D_actor_335800_80164E24;
-extern GpOverlayIds         D_actor_335800_80165050;
-extern GpOverlayIds         D_actor_335800_80165058;
+extern EvsSceneKey          D_actor_335800_80165050;
+extern EvsSceneKey          D_actor_335800_80165058;
 extern ActorTransform       D_actor_335800_80164EA4[5];
 s32                         func_actor_335800_8016343C(Task*, s32, s32);
 s32                         func_actor_335800_8016354C(Task*, s32, ActorCommand* request, s32);
@@ -435,11 +435,11 @@ ActorCommand D_actor_335800_80165040 = { { .loc = { 3, 29 } }, 8 };
 
 ActorCommand D_actor_335800_80165044 = { { .loc = { 3, 29 } }, 10 };
 
-GpOverlayIds D_actor_335800_80165048 = { 3, 58, 11 };
+EvsSceneKey D_actor_335800_80165048 = { 3, 58, 11 };
 
-GpOverlayIds D_actor_335800_80165050 = { 3, 59, 11 };
+EvsSceneKey D_actor_335800_80165050 = { 3, 59, 11 };
 
-GpOverlayIds D_actor_335800_80165058 = { 3, 60, 11 };
+EvsSceneKey D_actor_335800_80165058 = { 3, 60, 11 };
 
 GpEvsCmd D_actor_335800_80165060[72] = {
     { 13, { .callback = func_actor_335800_801624B8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1024,8 +1024,8 @@ void func_actor_335800_801620C0(void)
 
 void func_actor_335800_801620F0(u8 arg0)
 {
-    gGameSession->location.loc.room = Mc_SaveData[0].state.location.loc.room = arg0;
-    gGameSession->roomObjsDirty                                              = 1;
+    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
+    gGameSession->roomObjsDirty                                                                  = 1;
 }
 
 void func_actor_335800_80162114(void)
@@ -1076,10 +1076,10 @@ void func_actor_335800_801621B4(s32 arg0)
 /// the room objects for reloading.
 static inline void _actor335800SetView(s32 view)
 {
-    Mc_SaveData[0].state.location.loc.view = view;
-    gGameSession->location.loc.view        = view;
-    gGameSession->viewDirty                = 1;
-    gGameSession->roomObjsDirty            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
+    gGameSession->location.loc.view                            = view;
+    gGameSession->viewDirty                                    = 1;
+    gGameSession->roomObjsDirty                                = 1;
 }
 
 void func_actor_335800_8016224C(void)
@@ -1151,7 +1151,7 @@ void func_actor_335800_80162408(void)
 
 void func_actor_335800_80162428(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 void func_actor_335800_80162434(s32 arg0)
@@ -1245,7 +1245,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child0 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey   = &gGameSession->location.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
@@ -1270,7 +1270,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child1 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey   = (keyAddr = &gGameSession->location.loc);
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;

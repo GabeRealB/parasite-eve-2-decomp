@@ -42,12 +42,11 @@
 #include "rooms/dryfield_night_parking_lot.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_ACTIVE gRoomEventActive[0]
+// The flag symbol is four bytes; the gate writes the first.
+#define ROOM_EVENT_ACTIVE gRoomEventActive.raised
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 gRoomEventActive[4];
+extern RoomEventActiveBytes gRoomEventActive;
 
 /// The `GpAreaApplyRec` list the 0x11 answer applies when the event fires.
 /// The address sits past the end of this package, so the linker resolves it
@@ -343,7 +342,7 @@ GpObj3A D_dryfield_parking_lot_8017F6E4[2] = {
     { NULL, NULL, { -6544, -1728, 2800, 0 }, { { 2064, 2896, -2704, 0 }, { 2064, -2896, -2704, 0 }, { -2064, 2896, 2704, 0 }, { -2064, -2896, 2704, 0 } }, { 3260, 0, 2488, 0 }, { 111, 17 }, 129, 0 },
 };
 
-GpPointLight D_dryfield_parking_lot_8017F75C[7] = {
+WorldCoordPointLight D_dryfield_parking_lot_8017F75C[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -6980, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 2949, 2785 }, { 0, 0 } }, 0x186A0, 0x186A0 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7480, -2210, -4200 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } }, 4500, 6000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1520, -980, 2900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
@@ -358,23 +357,23 @@ GpRoomCoordSet D_dryfield_parking_lot_8017F9FC[1] = {
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA14[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA20[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA38[3] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
     { 25, 25, 2, 0, { 0, 0 }, D_801679A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_parking_lot_8017FA5C[2] = {
     { 22, 22, 3, 0, { 0, 0 }, D_80154188 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_dryfield_parking_lot_8017FA74[13] = {
@@ -448,12 +447,7 @@ GpRoomParamRec* D_dryfield_parking_lot_8017FB30[8] = {
 
 RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 gRoomEventActive[4] = {
-    0,
-    156,
-    190,
-    128,
-};
+RoomEventActiveBytes gRoomEventActive = { 0, { 156, 190, 128 } };
 
 RoomEventReq gRoomEventReq = { 0 };
 
@@ -515,7 +509,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         if (ret == 0) {
             ret = 2;
         }
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_ApplyAreaRecs(D_dryfield_night_parking_lot_8018155C);
             GameFlag_SetNibble(0x46, 1);
             GameFlag_SetNibble(0x97, 1);
@@ -528,7 +522,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
         req.flagId        = 0x35;
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);
-        if (gRoomEventActive[0] != 0) {
+        if (gRoomEventActive.raised != 0) {
             Gp_SetItemSeenBit(0x110, 1);
         }
     } else {

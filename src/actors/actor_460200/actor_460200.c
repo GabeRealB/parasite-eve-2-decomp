@@ -108,8 +108,8 @@ static void func_actor_460200_80133254(Task* task);
 static void func_actor_460200_801332E0(Task* task);
 static void func_actor_460200_8013332C(Task* task);
 static void func_actor_460200_801333A4(Task* task);
-static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
-static void func_actor_460200_80133A04(GpEnemy* enemy, Task* task);
+static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
+static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
 static void func_actor_460200_80133AB0(Task* task);
 static void func_actor_460200_80133B3C(Task* task);
@@ -2235,7 +2235,7 @@ void func_actor_460200_801320E0(s32 arg0)
 
 void func_actor_460200_80132204(s8 arg0)
 {
-    Mc_SaveData[0].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
 }
 
 static void func_actor_460200_80132210(void)
@@ -2440,7 +2440,7 @@ void func_actor_460200_8013386C(Task* task)
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
-static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
+static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 {
     Actor160600Work* work;
     void*            workMem;

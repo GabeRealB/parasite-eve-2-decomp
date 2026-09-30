@@ -42,14 +42,14 @@ static SVECTOR D_gunblade_8011E70C = { 0, 0x0060, 0x0380, 0 };
 
 void func_gunblade_8011D1E4(Task* task)
 {
-    GfxCoord   local;
-    GfxCoord*  coord;
-    GfxCoord*  dst;
-    GpEffWork* work;
-    GpEffWork* eff;
-    s32        keep;
-    SVECTOR*   vec;
-    s32        i;
+    GfxCoord    local;
+    GfxCoord*   coord;
+    GfxCoord*   dst;
+    EffectWork* work;
+    EffectWork* eff;
+    s32         keep;
+    SVECTOR*    vec;
+    s32         i;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -157,10 +157,10 @@ void func_gunblade_8011D1E4(Task* task)
 /// compiler cross-jumps them.
 void func_gunblade_8011DAA4(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    u8         rgb[3];
-    s32        i;
+    EffectWork* work;
+    GfxCoord*   coord;
+    u8          rgb[3];
+    s32         i;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
@@ -288,7 +288,7 @@ void func_gunblade_8011DAA4(Task* task)
 
 void func_gunblade_8011E008(s32 arg0)
 {
-    GpEffWork* work = D_gunblade_8012E248;
+    EffectWork* work = D_gunblade_8012E248;
 
     if (work != NULL) {
         D_gunblade_8012E244->spawnArg1.value = arg0;

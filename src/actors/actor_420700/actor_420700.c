@@ -1003,14 +1003,14 @@ s32 D_actor_420700_8013EFF0;
 
 s32 D_actor_420700_8013EFF4;
 
-static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task);
-static void func_actor_420700_80132064(GpEnemy* enemy, Task* task);
+static void func_actor_420700_80131E24(Enemy* enemy, Task* task);
+static void func_actor_420700_80132064(Enemy* enemy, Task* task);
 
 /// Step 0 of the `func_actor_420700_80132340` dispatcher: allocate and publish the
 /// work block, spawn the two model tasks, texture the first from the placement
 /// the actor was spawned from, then seed the model's matrices and animation
 /// context before running the first step body.
-static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -1067,7 +1067,7 @@ static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
 /// is running. In that mode the animation slots after the first are held
 /// (rate 0) once the ramp is off zero; otherwise they run at one frame per
 /// tick.
-static void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
+static void func_actor_420700_80132064(Enemy* enemy, Task* task)
 {
     VECTOR     pos;
     GfxCoord   target[2];
@@ -1149,7 +1149,7 @@ static void func_actor_420700_80132064(GpEnemy* enemy, Task* task)
 /// per-frame step `func_actor_420700_80132064`.
 void func_actor_420700_80132340(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_420700_80131E24,
         func_actor_420700_80132064,
     };

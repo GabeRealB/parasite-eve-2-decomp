@@ -10,7 +10,7 @@ void hopperDangleFrame(Task* arg0)
 {
     TmdObject*       obj   = arg0->extra.tmd;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
-    GpEnemy*         enemy = arg0->spawnArg2.pointer;
+    Enemy*           enemy = arg0->spawnArg2.pointer;
     GfxCoord*        coord = obj->coords;
     TaskFunc         sp[1] = { hopperDangleState };
 

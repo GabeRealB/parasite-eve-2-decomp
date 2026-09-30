@@ -115,7 +115,7 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             out->warp = 2;
         } else if (GameFlag_GetNibble(1) == 2) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Mc_SaveData[0].state.location.loc.view = 7;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                 Gp_MsgPlayerWeapon(0);
                 Task_SpawnFromTable(D_acropolis_forked_road_80180F44, 0, 0, 0);
                 GameFlag_SetNibble(1, 3);

@@ -2,7 +2,7 @@
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
-/// the yaw, `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
+/// the yaw, `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
 /// applies 0.5 on all three axes. The working matrix lives in a frame carved
 /// off the scratch stack, which is handed back once the rotation has been copied
 /// onto the coordinate. Written as an inline so the four scratch-head accesses
@@ -17,7 +17,7 @@ static __inline__ void incinShrinkRotation(GfxCoord* coord)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = 0x800;
     sc->scale.vy = 0x800;
     sc->scale.vz = 0x800;
@@ -39,7 +39,7 @@ static __inline__ void incinShrinkRotation(GfxCoord* coord)
 
 /// Rebuilds the model's root coordinate around the yaw it already faces and
 /// rescales it: `ratan2` of the rotation's Z basis gives the yaw,
-/// `Gfx_RotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
+/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
 /// `xz` on both horizontal axes and `y` on the vertical one. The working
 /// matrix lives in a frame carved off the scratch stack, which is handed back
 /// once the rotation has been copied onto the coordinate. Written as an inline
@@ -55,7 +55,7 @@ static __inline__ void incinScaleRotation(GfxCoord* coord, s16 xz, s32 y)
 
     ang       = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     sc->angle = ang;
-    Gfx_RotMatrixY(&sc->m, ang, 1);
+    gfxRotMatrixY(&sc->m, ang, 1);
     sc->scale.vx = xz;
     sc->scale.vy = y;
     sc->scale.vz = xz;

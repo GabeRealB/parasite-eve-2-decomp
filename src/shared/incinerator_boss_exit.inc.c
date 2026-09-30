@@ -6,7 +6,7 @@
 void incinBossExit(Task* arg0)
 {
     Actor403200Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s16              i;
 
     work  = (Actor403200Work*)arg0->work;

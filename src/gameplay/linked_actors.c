@@ -106,8 +106,8 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color);
 void func_800A4904(s32 arg0)
 {
     WorldTargetNode* node;
-    GpEnemy*         enemy;
-    GpEnemy*         claim;
+    Enemy*           enemy;
+    Enemy*           claim;
     u16              val;
     s32              idx;
 
@@ -116,7 +116,7 @@ void func_800A4904(s32 arg0)
             enemy = GP_NODE_ENEMY(node);
             claim = enemy;
             if (arg0 == 0) {
-                enemy->colorMode |= 0x80;
+                enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
             } else {
                 val  = Gp_StateC08.field_0;
                 idx  = (val / 100U - 1) * 9;
@@ -274,7 +274,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SVECTOR*         vec;
     WorldTargetNode* node;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              val;
     s32              idx;
     s32              ry2;
@@ -314,7 +314,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                         (u32)(ry2 * rx2)) {
                         enemy = GP_NODE_ENEMY(node);
                         if (arg0 == 0) {
-                            enemy->colorMode |= 0x80;
+                            enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {
                             val  = Gp_StateC08.field_0;
                             idx  = (val / 100U - 1) * 9;
@@ -337,8 +337,8 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SVECTOR*         vec;
     WorldTargetNode* node;
-    GpEnemy*         enemy;
-    GpEnemy*         claim;
+    Enemy*           enemy;
+    Enemy*           claim;
     u16              val;
     s32              idx;
     s32              t;
@@ -374,7 +374,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                         enemy = work;
                         claim = work;
                         if (arg0 == 0) {
-                            enemy->colorMode |= 0x80;
+                            enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
                         } else {
                             val  = Gp_StateC08.field_0;
                             idx  = (val / 100U - 1) * 9;
@@ -752,9 +752,9 @@ void func_800A57B0(GpIdMapC* arg0)
         Ui_InsertDrawTPage(-2, 0);
     }
 
-    if (Gp_ActorSlots[1] != NULL) {
-        if (Mc_SaveData[0].state.companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, Mc_SaveData[0].state.companionHp, Mc_SaveData[0].state.companionHpMax, 0);
+    if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 2) {
+            Gp_DrawHudNumbers(0x2D, -0x64, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax, 0);
         }
     }
 }

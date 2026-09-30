@@ -13,7 +13,7 @@
 /// field_4 is the unsigned bonus added to `Player_Status.hpMax` by
 /// `Gp_RecalcMaxHp` when `Player_Status.armor` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
-/// `Mc_SaveData[0].state.itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[id-0x60]` and clamped to 10. field_6 is the
 /// unsigned bonus added to `Player_Status.mpMax` by `Gp_RecalcMaxMp`
 /// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
@@ -48,7 +48,7 @@ static inline InventoryItemRow* gpItemRowAt(InventoryItemRow* rows, s32 index)
 /// per-weapon equipment table.
 static inline EquipmentWeaponLoad* gpItemSlot(s32 item)
 {
-    return &Mc_SaveData[0].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
+    return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
 #endif // GAMEPLAY_PRIVATE_INVENTORY_H

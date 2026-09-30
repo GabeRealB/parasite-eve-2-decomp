@@ -113,12 +113,12 @@ ActorCommand D_neo_ark_power_plant_1_8017EB58 = { { .loc = { 5, 16 } }, 2 };
 
 ActorCommand D_neo_ark_power_plant_1_8017EB5C = { { .loc = { 5, 16 } }, 3 };
 
-GpScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
-    { 257, 1 },
-    { 258, 1282 },
-    { 0x2803, 3843 },
-    { 4, 4 },
-    { 0, 0 },
+PadScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_neo_ark_power_plant_1_8017EB74[2] = {
@@ -267,7 +267,7 @@ GpWarpRec D_neo_ark_power_plant_1_8017F1E8[1] = {
     { { .words = { 3072, 8680, 0, -0x2904 } }, { 0, 0, 0, 0 }, { .words = { 3072, 8680, 0, -0x2904 } }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, 0, 2, 0, 440 },
 };
 
-GpPointLight D_neo_ark_power_plant_1_8017F220[25] = {
+WorldCoordPointLight D_neo_ark_power_plant_1_8017F220[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1845, -1110, -4495 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3481, 3788, 4096 }, { 0, 0 } }, 802, 1242 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7241, -19, -8894 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2866, 3072, 3276 }, { 0, 0 } }, 724, 1646 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4970, -45, -0x2C83 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3685, 4096 }, { 0, 0 } }, 309, 1232 },
@@ -685,28 +685,28 @@ GpObj4C D_neo_ark_power_plant_1_80181854[7] = {
 GpAreaTmdRec D_neo_ark_power_plant_1_80181A68[3] = {
     { 54, 54, 0, 0, { 0, 0 }, D_8013CEA0 },
     { 21, 21, 1, 0, { 0, 0 }, D_8014DC30 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_1_80181A8C[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_1_80181AA4[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_1_80181ABC[3] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
     { 38, 38, 1, 0, { 0, 0 }, D_8014FD74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_neo_ark_power_plant_1_80181AE0[2] = {
     { 38, 38, 0, 0, { 0, 0 }, D_80137D74 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {

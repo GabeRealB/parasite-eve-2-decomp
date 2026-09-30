@@ -90,7 +90,7 @@ GpSprtRec D_neo_ark_r31_8017DAF8[3] = {
     { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },
 };
 
-GpPointLight D_neo_ark_r31_8017DB1C[1] = {
+WorldCoordPointLight D_neo_ark_r31_8017DB1C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -0x2710, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0x186A0, 0x186A0 },
 };
 
@@ -99,7 +99,7 @@ GpRoomCoordSet D_neo_ark_r31_8017DB7C = { 0, NULL, 1, D_neo_ark_r31_8017DB1C, 0,
 GpAreaTmdRec D_neo_ark_r31_8017DB94[3] = {
     { 101, 618, 3, 0, { 0, 0 }, D_80139F8C },
     { 132, 618, 5, 0, { 0, 0 }, D_801437EC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_neo_ark_r31_8017DBB8[13] = {

@@ -27,7 +27,7 @@ extern GpMsgEntry D_acropolis_cafeteria_80184CEC[2];
 
 extern s32 D_acropolis_cafeteria_80184CFC;
 
-extern GpPointLight D_acropolis_cafeteria_80189E24[15];
+extern WorldCoordPointLight D_acropolis_cafeteria_80189E24[15];
 
 extern GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1];
 

@@ -4,10 +4,10 @@
 /// its own, and when the actor raises `field_6BA` spawns entry 2 of the
 /// actor's spawn table and hands it this child's texture page and CLUT row,
 /// reprocessing its model stream for both half-buffers.
-void lungerGunTick(GpEnemy* enemy, Task* task)
+void lungerGunTick(Enemy* enemy, Task* task)
 {
     Actor105600Work* work;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
     TmdObject*       src;
     TmdObject*       dst;
 

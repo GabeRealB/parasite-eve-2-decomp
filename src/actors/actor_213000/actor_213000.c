@@ -513,7 +513,7 @@ static void func_actor_213000_8014A488(Task* task);
 /// `field_4C0`, entry 3 attached to part 9 and entry 4 to part 12. Each of the
 /// last two has its model's `tpage` / `clut` loaded from the `AreaPlacement` of
 /// the current area selected by the model id the parent's `spawnArg2` carries
-/// at `GpEnemy::placeKey >> 12`, and has its texture stream processed twice
+/// at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and has its texture stream processed twice
 /// when it has a buffer. It then publishes the work block's matrices on the
 /// model, installs the message table and `Gp_EnemyTaskExit` as the exit
 /// callback, and advances to the tick. A failed allocation exits the task
@@ -549,7 +549,7 @@ static void func_actor_213000_80149E54(Task* task)
         GameLocationKey* sessionKey;
         s32              idx;
 
-        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
+        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         model      = spawned1->extra.tmd;
         sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
@@ -574,7 +574,7 @@ static void func_actor_213000_80149E54(Task* task)
         s32              idx;
 
         model      = spawned2->extra.tmd;
-        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
+        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -828,10 +828,11 @@ s32 func_actor_213000_8014A70C(Task* task, s32 arg1, AnimationPlayRequest* msg)
 #include "../../shared/actor_messages_place_euler.inc.c"
 
 /// Message-0x7D5 display handler, switching on the message's mode word. Mode
-/// 0 hides the model and clears flag 0x4; 1 shows it, reallocates its buffers
-/// through `Tmd_AllocBuffers` and clears 0x4; 2 hides it, sets 0x4 and starts
+/// 0 hides the model and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 1 shows it, reallocates its buffers
+/// through `Tmd_AllocBuffers` and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`; 2 hides it, sets
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER` and starts
 /// the work block's countdown at 2, after which the tick frees the buffers; 3
-/// shows it and sets 0x4. The handled modes return 0; any other mode changes
+/// shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The handled modes return 0; any other mode changes
 /// nothing and returns 1.
 /// The handler reads `work` before the switch even though mode 2 is its only
 /// use, so retail's `lw $v1,0x1C($a0)` sits in the entry block.

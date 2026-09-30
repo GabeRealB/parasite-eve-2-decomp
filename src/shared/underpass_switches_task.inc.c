@@ -58,10 +58,10 @@ void underpassSwitchTask(Task* task)
                             }
                         }
                     }
-                    session                                = gGameSession;
-                    room                                   = dst.room;
-                    session->location.loc.room             = room;
-                    Mc_SaveData[0].state.location.loc.room = room;
+                    session                                                    = gGameSession;
+                    room                                                       = dst.room;
+                    session->location.loc.room                                 = room;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
                 }
             }
             task->state = task->state + 1;

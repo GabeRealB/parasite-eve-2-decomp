@@ -150,23 +150,23 @@ GpObj4C D_acropolis_hallway_8017E724[9] = {
 
 GpAreaTmdRec D_acropolis_hallway_8017E9D0[2] = {
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017E9E8[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017EA00[2] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_hallway_8017EA18[3] = {
     { 18, 18, 3, 0, { 0, 0 }, D_80155AC4 },
     { 7, 7, 2, 0, { 0, 0 }, D_801693AC },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {
@@ -185,7 +185,7 @@ GpAreaVariant D_acropolis_hallway_8017EA3C[13] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_hallway_8017EAA4[3] = {
+WorldCoordPointLight D_acropolis_hallway_8017EAA4[3] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2374, -2432, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2297, -2384, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1360, 2384 },
@@ -444,8 +444,9 @@ void func_acropolis_hallway_8017E120(Task* task)
 }
 
 /// Model task step for a pickup's mesh: when the pickup's 2-bit flag reads 2
-/// it sets mesh flag 4, otherwise it resets the mesh flags and draw offset and
-/// allocates the mesh's TMD buffers. The view index is fetched but unused.
+/// it sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
+/// pass, clears the draw offset and allocates the mesh's buffers. The view
+/// index is fetched but unused.
 static void func_acropolis_hallway_8017E1C0(Task* task)
 {
     GpItemObj8* obj;

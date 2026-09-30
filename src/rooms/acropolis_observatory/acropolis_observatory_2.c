@@ -715,7 +715,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.source.index                      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;
             rec.blendFrames                       = 0;
@@ -771,8 +771,8 @@ void func_acropolis_observatory_8017D9A8(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(2);
-                task->state                            = task->state + 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(2);
+                task->state                                                = task->state + 1;
             }
             break;
 
@@ -825,7 +825,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
             ((RoomStreamWork*)task->work)->target = gameGetPtrSlot(3);
             ((RoomStreamWork*)task->work)->mtx    = Player_Status.coordMtx;
             weaponId                              = Player_Status.weapon;
-            rec.source.index                      = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            rec.source.index                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             rec.animationId                       = 1;
             rec.blend                             = ANIMATION_BLEND_RESET;
             rec.blendFrames                       = 0;
@@ -881,8 +881,8 @@ void func_acropolis_observatory_8017DD3C(Task* task)
         case 3:
             if (Gp_DispatchMsg(work->target, 0x3F0, 0, 0) == 0) {
                 Gp_DispatchMsg(work->target, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(4);
-                task->state                            = task->state + 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
+                task->state                                                = task->state + 1;
             }
             break;
 

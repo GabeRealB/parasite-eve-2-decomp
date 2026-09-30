@@ -44,7 +44,7 @@ typedef struct Actor521100Work {
     /* 0x5BC */ WorldCollisionContact rec5BC[1];
     /* 0x5D4 */ WorldCollisionBody    obj5D4;
     /* 0x5F4 */ WorldCollisionBody    obj5F4;
-    /* 0x614 */ GpActorD4Rec          shape;
+    /* 0x614 */ WorldCollisionCapsule shape;
     /* 0x62C */ WorldCollisionContact rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.

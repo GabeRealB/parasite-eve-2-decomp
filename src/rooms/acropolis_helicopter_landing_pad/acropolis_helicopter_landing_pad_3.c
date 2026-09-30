@@ -126,11 +126,11 @@ GpMsgEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
-    { 256, 257 },
-    { 771, 0 },
-    { 1024, 0 },
-    { 0, 0 },
+PadScriptCmd D_acropolis_helicopter_landing_pad_80183738[4] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_acropolis_helicopter_landing_pad_80183748[2] = {
@@ -211,11 +211,11 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183958 = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_8018396C = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183980 = { 1, 9, 11 };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183988 = { 1, 9, 21 };
 
-GpOverlayIds D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
+EvsSceneKey D_acropolis_helicopter_landing_pad_80183990 = { 1, 10, 11 };
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_80183998 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -769,9 +769,9 @@ static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0)
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-        Mc_SaveData[0].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
-        Mc_SaveData[0].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
-        Mc_SaveData[0].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
         Task_Spawn(0, 0x11, 0, 0);
         taskKill(arg0);
     }
@@ -811,19 +811,19 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
 /// and four inner-radius blades whose intensity is `level >> 1`.
 static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 index, s32 level)
 {
-    GpCoord64*         light;
-    GpPointLight*      work;
-    void**             scratch;
-    u8*                head;
-    RoomDraw05Scratch* blk;
-    POLY_G4*           prim;
-    s32                a;
-    s32                b;
-    s32                c;
-    s32                d;
-    s16                lvl;
-    s32                half;
-    s32                mask;
+    GpCoord64*            light;
+    WorldCoordPointLight* work;
+    void**                scratch;
+    u8*                   head;
+    RoomDraw05Scratch*    blk;
+    POLY_G4*              prim;
+    s32                   a;
+    s32                   b;
+    s32                   c;
+    s32                   d;
+    s16                   lvl;
+    s32                   half;
+    s32                   mask;
 
     lvl   = level;
     light = &Gp_RoomCoords[6 + (index & 1)];
@@ -974,7 +974,7 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
 /// once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -1114,14 +1114,14 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
-    GpEffWork*    eff;
-    s32           i;
-    s32           n;
-    s32           pan;
+    EffectWork*           mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
+    EffectWork*           eff;
+    s32                   i;
+    s32                   n;
+    s32                   pan;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -1364,10 +1364,10 @@ void func_acropolis_helicopter_landing_pad_80180A64(GfxCoord* coord)
 /// `gRoomEffectState->effectControl` is set.
 void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 {
-    GpEffWork*    mem;
-    GfxCoord*     coord;
-    GpCoord64*    base;
-    GpPointLight* slot;
+    EffectWork*           mem;
+    GfxCoord*             coord;
+    GpCoord64*            base;
+    WorldCoordPointLight* slot;
 
     base  = &Gp_RoomCoords[4];
     slot  = &base->light;
@@ -1415,7 +1415,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     }
 }
 
-/// Effect task for one helipad lens flare. State 0 seeds the `GpEffWork`
+/// Effect task for one helipad lens flare. State 0 seeds the `EffectWork`
 /// from the LCG: a 0x200..0x3FF radius (`scale`), a 12-bit angle
 /// (`angle`), a 1..4 lifetime scale (`step`, the flare lives
 /// `step * 6` frames counted in `age`) and a per-frame drift
@@ -1432,7 +1432,7 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
 /// `field_4 >= 4` releases it at once and 2..3 idles.
 void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 {
-    GpEffWork*        mem;
+    EffectWork*       mem;
     GfxCoord*         coord;
     void**            scratch;
     u8*               head;
@@ -1559,11 +1559,11 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
 /// `func_acropolis_helicopter_landing_pad_8017F010` once per light position.
 void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 {
-    GpEffWork* work = (GpEffWork*)arg0->spawnArg2.pointer;
-    SVECTOR*   pos;
-    s32        i;
-    s32        v;
-    s32        level;
+    EffectWork* work = (EffectWork*)arg0->spawnArg2.pointer;
+    SVECTOR*    pos;
+    s32         i;
+    s32         v;
+    s32         level;
 
     if ((Gp_GetViewIndex() & 0xFF) == 0x12) {
         gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_DISABLED;
@@ -1591,9 +1591,10 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Task step of an item-pickup model: hides the mesh with flag 4 when the
-/// item's 2-bit flag reads 2, otherwise resets its flags and draw offset and
-/// allocates its TMD buffers. The view index is fetched and ignored.
+/// Task step of an item-pickup model: when the item's 2-bit flag reads 2 it
+/// sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
+/// pass, clears the draw offset and allocates the buffers. The view index is
+/// fetched and ignored.
 void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
 {
     GpItemObj8* obj;

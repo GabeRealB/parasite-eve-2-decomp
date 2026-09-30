@@ -110,12 +110,12 @@ static void RoomFx_DrawTwinTrail(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 a
 /// reaches 4.
 static inline void RoomFx_SparkBurstTask(Task* task)
 {
-    GfxCoord*  objCoord;
-    GpEffWork* work;
-    u8         rgb[4];
+    GfxCoord*   objCoord;
+    EffectWork* work;
+    u8          rgb[4];
 
     objCoord = task->extra.coordBody->coord;
-    work     = (GpEffWork*)task->spawnArg2.pointer;
+    work     = (EffectWork*)task->spawnArg2.pointer;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {

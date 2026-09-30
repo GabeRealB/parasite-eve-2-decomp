@@ -132,6 +132,38 @@ typedef struct {
 } RoomEventReq;
 STATIC_ASSERT_SIZEOF(RoomEventReq, 0x14);
 
+/// A room's `gRoomEventActive` when that symbol is four bytes.
+///
+/// `raised` is set while the event the gate just latched is running, and
+/// cleared on every call. The three bytes after it are a room-specific
+/// constant. Their role is unproven.
+typedef struct {
+    u8 raised;     // Nonzero after the gate latches an event and spawns its task
+    u8 unknown[3]; // Role unproven; room-specific constants, no recovered access
+} RoomEventActiveBytes;
+STATIC_ASSERT_SIZEOF(RoomEventActiveBytes, 4);
+
+/// A room's `gRoomEventActive` when that symbol is eight bytes.
+///
+/// `raised` is the same flag. The seven bytes after it are zero in every
+/// room with this extent. Their role is unproven.
+typedef struct {
+    u8 raised;     // Nonzero after the gate latches an event and spawns its task
+    u8 unknown[7]; // Role unproven; zero, with no recovered access
+} RoomEventActiveStorage;
+STATIC_ASSERT_SIZEOF(RoomEventActiveStorage, 8);
+
+/// A room's `gRoomEventReq` when that symbol is thirty-two bytes.
+///
+/// `request` is the record the gate latches and the event task reads. The
+/// twelve bytes after it are zero wherever this extent occurs. Their role
+/// is unproven.
+typedef struct {
+    RoomEventReq request;     // Request the gate latched for the event task
+    u8           unknown[12]; // Role unproven; zero, with no recovered access
+} RoomEventReqStorage;
+STATIC_ASSERT_SIZEOF(RoomEventReqStorage, 0x20);
+
 /// The scratch block a room's sprite or light-shaft drawer takes from
 /// the scratch stack for one projected point: `vec` is the point in world
 /// space, pushed through `GsWSMATRIX` with a single `RTPS`; `sx` / `sy` are the
@@ -196,25 +228,31 @@ typedef struct _RoomDraw25Scratch {
 } RoomDraw25Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 
-/// 0x10-byte scratch block `Room_Draw13`, `Room_Draw17`, `Room_Draw18`,
-/// `Room_Draw32` and `Room_Draw38` take from the scratch stack. `otz` is the
-/// `gte_stszotz` of `arg0` through `gGfxViewCoord.workm`, `flag` is `gte_stflg`
-/// (the primitives are dropped when it is negative), `radius` is
-/// `(s16)arg1 * 64 / otz` for `Room_Draw13`, `(s16)arg2 * 39 / otz` for
-/// `Room_Draw17`, `(s16)arg2 * 32 / otz` for `Room_Draw18`/`Room_Draw38` and
-/// `(s16)arg2 * 48 / otz` for `Room_Draw32`, and `sx`/`sy` are the projected
+/// Scratch block a glow drawer takes from the scratch stack for one projected
 /// centre.
-typedef struct _RoomDraw13Scratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 flag;
-    /* 0x08 */ s32 radius;
-    /* 0x0C */ u16 sx;
-    /* 0x0E */ u16 sy;
-} RoomDraw13Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw13Scratch, 0x10);
+///
+/// One perspective transform of a world point through `gGfxViewCoord.workm`
+/// writes the screen position and the GTE flag word. A negative flag word
+/// means the transform reported an error, and the drawer links nothing.
+/// Otherwise it stores the ordering-table depth and the on-screen half-extent,
+/// a size divided by that depth, and builds the primitive around the centre.
+/// `sx` and `sy` are written by one screen-XY store, so they stay adjacent.
+///
+/// `GlowCentreRadiusFirstScratch` is this record with the half-extent and the
+/// flag word exchanged. `glowDrawDisc` uses that layout when a room defines
+/// `GLOW_DRAW_DISC_SCRATCH` as `GlowCentreRadiusFirstScratch` before including
+/// the glow header; otherwise the disc uses this one.
+typedef struct {
+    s32 otz;    // Ordering-table depth of the centre; also the divisor for the half-extent
+    s32 flag;   // GTE flag word; negative means the transform reported an error
+    s32 radius; // On-screen half-extent of the primitive around the centre
+    u16 sx;     // Projected centre, x
+    u16 sy;     // Projected centre, y
+} GlowCentreScratch;
+STATIC_ASSERT_SIZEOF(GlowCentreScratch, 0x10);
 
 /// 0x14-byte scratch block `Room_Draw05` takes from the scratch stack. Same
-/// projection as `RoomDraw13Scratch` (`arg0` through `gGfxViewCoord.workm`, one
+/// projection as `GlowCentreScratch` (`arg0` through `gGfxViewCoord.workm`, one
 /// `RTPS`) plus a second radius: `rOuter` is `(s16)arg2 * 64 / otz` and
 /// `rInner` is `(s16)arg2 * 8 / otz`. `flag` is `gte_stflg` and `sx`/`sy` are
 /// the projected centre.
@@ -228,19 +266,23 @@ typedef struct _RoomDraw05Scratch {
 } RoomDraw05Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw05Scratch, 0x14);
 
-/// 0x10-byte scratch block `Room_Draw31` takes from the scratch stack. Same
-/// projection as `RoomDraw13Scratch` (`arg0` through `gGfxViewCoord.workm`, one
-/// `RTPS`) but `radius` sits at 0x4 and `flag` at 0x8. `radius` is
-/// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
-/// wedges.
-typedef struct _RoomDraw31Scratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 radius;
-    /* 0x08 */ s32 flag;
-    /* 0x0C */ u16 sx;
-    /* 0x0E */ u16 sy;
-} RoomDraw31Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw31Scratch, 0x10);
+/// Scratch block `glowDrawDisc` takes when a room stores the half-extent
+/// ahead of the GTE flag word.
+///
+/// Same projected centre as `GlowCentreScratch`: one perspective transform
+/// of a world point through `gGfxViewCoord.workm` writes the screen position
+/// and the flag word, and a non-negative flag stores the ordering-table
+/// depth and the on-screen half-extent. Those two words are exchanged, so
+/// the records stay separate. A room selects this layout by defining
+/// `GLOW_DRAW_DISC_SCRATCH` as this type before including the glow header.
+typedef struct {
+    s32 otz;    // Ordering-table depth of the centre; also the divisor for the half-extent
+    s32 radius; // On-screen half-extent of the primitive around the centre
+    s32 flag;   // GTE flag word; negative means the transform reported an error
+    u16 sx;     // Projected centre, x
+    u16 sy;     // Projected centre, y
+} GlowCentreRadiusFirstScratch;
+STATIC_ASSERT_SIZEOF(GlowCentreRadiusFirstScratch, 0x10);
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from the scratch stack. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected

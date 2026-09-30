@@ -3,7 +3,7 @@
 /// Per-frame hit handling of the weak point: distance-scaled damage with
 /// critical rolls and hit effects/sounds. On death it marks the body's
 /// field_336, spawns the burst effects and plays the break sound.
-void podWeakPointHit(GpEnemy* arg0, Task* arg1)
+void podWeakPointHit(Enemy* arg0, Task* arg1)
 {
     VECTOR*         vec;
     Actor05300Part* part;
@@ -55,7 +55,7 @@ void podWeakPointHit(GpEnemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = gPodSoundIds[1];
-                snd |= (arg0->placeKey >> 12) << 8;
+                snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
@@ -70,7 +70,7 @@ void podWeakPointHit(GpEnemy* arg0, Task* arg1)
                     part->field_40 = hitTime;
                 }
                 snd  = gPodSoundIds[0];
-                snd |= (arg0->placeKey >> 12) << 8;
+                snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
         }

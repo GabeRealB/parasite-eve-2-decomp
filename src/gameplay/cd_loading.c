@@ -810,7 +810,7 @@ static void Gp_ReloadFromSave(void)
     McSaveData* save;
 
     slot                  = gameGetPtrSlot(1);
-    save                  = &Mc_SaveData[0];
+    save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     slot->spawnArg1.value = save->state.location.loc.view;
     ResetGraph(1);
     Gpu_ClearOTag(0);
@@ -826,10 +826,10 @@ static void Gp_ReloadAtLoc(s32 arg0)
 {
     Task* slot;
 
-    slot                                   = gameGetPtrSlot(1);
-    Mc_SaveData[0].state.location.loc.view = arg0;
-    gGameSession->location.loc.view        = arg0;
-    slot->spawnArg1.value                  = (u8)arg0;
+    slot                                                       = gameGetPtrSlot(1);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = arg0;
+    gGameSession->location.loc.view                            = arg0;
+    slot->spawnArg1.value                                      = (u8)arg0;
     Pad_SetCooldown(0);
     Gp_SpawnCurView(1);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
@@ -840,9 +840,9 @@ void Gp_CommitSpawnLoc(Task* task)
 {
     u8 val;
 
-    val                                    = (u8)task->spawnArg1.value;
-    Mc_SaveData[0].state.location.loc.view = val;
-    gGameSession->location.loc.view        = val;
+    val                                                        = (u8)task->spawnArg1.value;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = val;
+    gGameSession->location.loc.view                            = val;
     taskKill(task);
 }
 
@@ -908,7 +908,7 @@ void Gp_EnqueueConfigCd(s32 arg0)
     GpTbl5 table;
 
     table = Gp_ConfigCdTable;
-    if (Mc_SaveData[0].state.characterId != 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId != 0) {
         param1[3] = 0;
         param1[2] = 1;
         param1[0] = 0;
@@ -973,7 +973,7 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         return;
     }
 
-    param1                 = SCRATCH_PUSH_BYTES(8);
+    param1                 = SCRATCH_STACK_RESERVE_BYTES(8);
     gGameSession->field_80 = 0;
     param1[3]              = 0;
     param1[2]              = 0x50;
@@ -994,8 +994,8 @@ void Gp_EnqueueCompanionCd(u8 type, u8 variant)
         param2[3] = 6;
         CdCmd_Enqueue(0x21, param1, param2);
         if (variant == 5) {
-            gGameSession->companionVariant        = 3;
-            Mc_SaveData[0].state.companionVariant = 3;
+            gGameSession->companionVariant                            = 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 3;
         }
     }
 

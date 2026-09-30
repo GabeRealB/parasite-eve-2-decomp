@@ -110,7 +110,7 @@ extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0;
 extern GpGridParams         D_acropolis_east_elevator_hall_80186838[1];
 extern GpObj4C              D_acropolis_east_elevator_hall_8018685C[6];
 extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
-extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
+extern EvsSceneKey          D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
 s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -229,9 +229,9 @@ AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C = { { .index = 0 },
 
 AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
+EvsSceneKey D_acropolis_east_elevator_hall_80185CB4 = { 1, 3, 11 };
 
-GpOverlayIds D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
+EvsSceneKey D_acropolis_east_elevator_hall_80185CBC = { 1, 3, 21 };
 
 ActorTransform D_acropolis_east_elevator_hall_80185CC4 = { { 1, 0, 0, 0 }, { 0, 0, 0, 0 } };
 
@@ -391,7 +391,7 @@ GpObj4C D_acropolis_east_elevator_hall_80186A24[7] = {
 
 GpAreaTmdRec D_acropolis_east_elevator_hall_80186C38[2] = {
     { 110, 103, 0, 0, { 0, 0 }, D_8013A06C },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
@@ -609,7 +609,7 @@ GpSprtRec D_acropolis_east_elevator_hall_80187870[7] = {
     { { .empty = D_acropolis_east_elevator_hall_80187860 }, D_acropolis_east_elevator_hall_80187860, NULL },
 };
 
-GpPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
+WorldCoordPointLight D_acropolis_east_elevator_hall_801878C4[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3250, -2350, 810 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 110, -2350, 270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 3332 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3400, -2350, 180 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 4915, 4505 }, { 0, 0 } }, 500, 4000 },

@@ -38,19 +38,19 @@ static void func_m4a1_hammer_8011E710(Task* arg0);
 /// released.
 static void func_m4a1_hammer_8011E710(Task* arg0)
 {
-    GameActor*    actor;
-    GfxCoord*     coord;
-    GfxCoord*     spot;
-    GpActorD4Rec* rec;
-    Task*         hammer;
-    s32           anim;
-    s32           delay;
-    u16           flags;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    WorldCollisionCapsule* rec;
+    Task*                  hammer;
+    s32                    anim;
+    s32                    delay;
+    u16                    flags;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;
     rec   = &actor->field_14C;
-    SCRATCH_PUSH_BYTES(0x50);
+    SCRATCH_STACK_RESERVE_BYTES(0x50);
     spot = SCRATCH_STACK_CURSOR(GfxCoord);
     switch (actor->field_95E) {
         case 0:
@@ -83,7 +83,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
                 actor->field_124  = Player_Status.weaponSlotItem | 0x21900;
                 rec->end0Radius   = 0x100;
                 rec->end1Radius   = 0x100;
-                rec->end0.vz      = rec->end1.vz + D_80112F60[0x19];
+                rec->ends[0].vz   = rec->ends[1].vz + D_80112F60[0x19];
                 actor->field_12A |= 0x800;
                 func_80106238(arg0, 0, 1);
             } else if (actor->field_97F & 2) {
@@ -95,7 +95,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
                 actor->field_124  = 0x2191C;
                 rec->end0Radius   = 0x400;
                 rec->end1Radius   = 0x400;
-                rec->end0.vz      = rec->end1.vz + 0xA00;
+                rec->ends[0].vz   = rec->ends[1].vz + 0xA00;
                 actor->field_12A &= 0xF7FF;
                 func_80106238(arg0, 0, 0);
                 hammer = actor->field_914;
@@ -163,7 +163,7 @@ static void func_m4a1_hammer_8011E710(Task* arg0)
             if (actor->field_979 != 0) {
                 actor->field_979--;
             }
-            if (func_80105894(arg0, D_80112E04[Mc_SaveData[0].state.characterId][1], 0, 0) == 0 ||
+            if (func_80105894(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->field_962 & actor->field_96A) != 0 && actor->field_979 == 0)) {
                 actor->field_940 = 0xC;
                 func_80106550(arg0);

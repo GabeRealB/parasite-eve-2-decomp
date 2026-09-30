@@ -19,11 +19,26 @@
 
 #include "main/coord.h"
 
-/* glowDrawDisc's scratch block. The disc comes in two builds whose blocks
-   order the radius and the GTE flag differently; a room carrying the second
-   defines this as RoomDraw31Scratch before including this header. */
+/// Scratch-block type `glowDrawDisc` reserves.
+///
+/// The replacement is a type name, not a value. `glow_draw_disc.inc.c` uses
+/// it as the block pointer's type and as the type argument of
+/// `SCRATCH_STACK_RESERVE_BLOCK` and `SCRATCH_STACK_RELEASE_BLOCK`, so the
+/// chosen type must be in scope at that include. Both types are declared in
+/// `room_common.h`. The macro has no parameters and is not pasted or
+/// stringified. Define it before including this header: the test below keeps
+/// the first definition, and nothing undefines it.
+///
+/// The default, `GlowCentreScratch`, stores the GTE flag word and then the
+/// on-screen half-extent. A room whose disc stores the half-extent ahead of
+/// the flag defines `GlowCentreRadiusFirstScratch` instead. Both types are
+/// 16 bytes, so the scratch cursor moves the same distance either way; only
+/// those two words change places. `dryfield_r08`, `mist_shooting_gallery`,
+/// `neo_ark_power_plant_2` and `shelter_b2_breeding_room` supply the
+/// alternate. Every other carrier of the disc body leaves this undefined.
+/// The other glow disc drawers do not use it.
 #ifndef GLOW_DRAW_DISC_SCRATCH
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw13Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreScratch
 #endif
 
 void glowDrawDisc(SVECTOR* arg0, s32 arg1, s32 arg2);

@@ -106,7 +106,7 @@ typedef struct Actor215100CharRec {
 } Actor215100CharRec;
 STATIC_ASSERT_SIZEOF(Actor215100CharRec, 0x8);
 
-static void func_actor_215100_8014CA80(GpEnemy* enemy, Task* task);
+static void func_actor_215100_8014CA80(Enemy* enemy, Task* task);
 static void func_actor_215100_8014CB04(Task* task);
 
 /* cap captions instance: retain the original overlay symbols. */
@@ -1781,7 +1781,7 @@ static s32  func_actor_215100_8014AA54(Actor215100CharRec* arg0);
 static void func_actor_215100_8014AB6C(void);
 static void func_actor_215100_8014AF0C(void);
 
-static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task);
+static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
@@ -1867,7 +1867,7 @@ static void func_actor_215100_8014A398(void)
 ///
 /// State 1 commits the character to the save slot once the caption system is
 /// idle again: it copies `D_actor_215100_8015E678`'s appearance bytes into
-/// `Mc_SaveData`, clears the inventory, then spawns task 0x11 and kills itself.
+/// `gMcSaveData`, clears the inventory, then spawns task 0x11 and kills itself.
 void func_actor_215100_8014A5C0(Task* arg0)
 {
     switch (arg0->state) {
@@ -1909,15 +1909,15 @@ void func_actor_215100_8014A5C0(Task* arg0)
             break;
         case 1:
             if (Gp_CapBusy() == 0) {
-                Player_Status.resourceVariant   = 3;
-                Mc_SaveData[0].state.sceneEvent = 1;
+                Player_Status.resourceVariant                       = 3;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 Gp_ClearInventory();
                 gGameSession->hideHud = 1;
                 SndEvt_EnqueueType6(0x51140005, 0, 0);
-                gDisplayState.spriteVariant            = 1;
-                Mc_SaveData[0].state.location.loc.area = D_actor_215100_8015E678.field_0;
-                Mc_SaveData[0].state.location.loc.warp = D_actor_215100_8015E678.field_2;
-                Mc_SaveData[0].state.location.loc.room = D_actor_215100_8015E678.field_3;
+                gDisplayState.spriteVariant                                = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.field_0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.field_2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_actor_215100_8015E678.field_3;
                 Task_Spawn(0, 0x11, 0, 0);
                 taskKill(arg0);
             }
@@ -1951,7 +1951,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
             break;
         case 1:
             Gp_MsgPlayerWeapon(0);
-            Mc_SaveData[0].state.location.loc.view = 8;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
             func_mist_shooting_gallery_801811C0(0);
             arg0->state++;
             break;
@@ -1975,7 +1975,7 @@ static void func_actor_215100_8014A908(void)
 {
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670.value < 3) {
-        Mc_SaveData[0].state.location.loc.view = 8;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
         func_mist_shooting_gallery_801811C0(0);
     } else {
         func_mist_shooting_gallery_80180390(1);
@@ -2191,14 +2191,14 @@ static void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 /// CLUT from the area placement the enemy's `placeKey` selects, sets up the
 /// animation context on clip 0xC, installs the message table whose handlers
 /// are the actor's script opcodes, and starts the animation.
-static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
+static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor160600Work* work;
     Actor160600Work* mem;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -2240,11 +2240,11 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
 #include "../../shared/paced_walk_update.inc.c"
 
 /// Two-state dispatcher, its handler table built on the stack: state 0 spawns
-/// the actor, state 1 runs it. Both handlers take the task's `GpEnemy` as
+/// the actor, state 1 runs it. Both handlers take the task's `Enemy` as
 /// well as the task.
 void func_actor_215100_8014CA2C(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_215100_8014C660,
         func_actor_215100_8014CA80,
     };
@@ -2260,7 +2260,7 @@ void func_actor_215100_8014CA2C(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback: hands the task's `GpEnemy` back to `Gp_DestroyEnemy`.
+/// Exit callback: hands the task's `Enemy` back to `Gp_DestroyEnemy`.
 static void func_actor_215100_8014CB04(Task* task)
 {
     Gp_DestroyEnemy(task->spawnArg2.pointer, task);
@@ -2299,8 +2299,9 @@ s32 func_actor_215100_8014CCE0(Task* task, s32 arg1, AnimationPlayRequest* args)
 }
 
 /// Script opcode: sets the visibility flags of the actor's model and of the
-/// model of the enemy spawned alongside it. `flags` bit 0 hides both
-/// (`TmdObject::flags` 0) and its absence restores 0x80; bit 1 also sets 0x4.
+/// model of the enemy spawned alongside it. `flags` bit 0 shows both
+/// (`TmdObject::flags` 0) and its absence hides them with
+/// `TMD_OBJECT_SKIP_ACTIVE_DRAW`. Bit 1 also sets `TMD_OBJECT_SKIP_AUTO_BUFFER`.
 /// The middle argument is the one every opcode of the table receives.
 s32 func_actor_215100_8014CD4C(Task* task, s32 arg1, s32 flags)
 {

@@ -224,8 +224,8 @@ extern SVECTOR    D_acropolis_bridge_80189A4C;
 
 /// The two 0x18-byte script work blocks `Gp_SpawnScript18` copies from when the
 /// bridge cutscene starts.
-extern GpScriptCmd D_acropolis_bridge_80190B8C[6];
-extern GpScriptRec D_acropolis_bridge_80190BA4[6];
+extern PadScriptCmd D_acropolis_bridge_80190B8C[6];
+extern GpScriptRec  D_acropolis_bridge_80190BA4[6];
 
 extern s16 D_acropolis_bridge_801915E4[][6];
 
@@ -264,8 +264,8 @@ static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static void func_acropolis_bridge_801827EC(GfxCoord* coord, s32 arg1, s16 arg2);
 static void func_acropolis_bridge_8018581C(Task* task);
-static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task);
-static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task);
+static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task);
+static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
 
 /// Work block of the bridge model task, stored at `Task::work`; it is exactly
 /// the `memCalloc(4, 0)` the setup state allocates.
@@ -348,7 +348,7 @@ extern GpObj4C      D_acropolis_bridge_8018B7E8[7];
 extern GpObj4C      D_acropolis_bridge_8018B9FC[7];
 
 extern GpRoomCoordSet D_acropolis_bridge_80190A0C[1];
-extern GpScriptCmd    D_acropolis_bridge_80190BBC[6];
+extern PadScriptCmd   D_acropolis_bridge_80190BBC[6];
 extern GpScriptRec    D_acropolis_bridge_80190BD4[5];
 void                  func_acropolis_bridge_8017D954(void);
 void                  func_acropolis_bridge_8017F2D0(s32);
@@ -429,7 +429,7 @@ TaskDesc D_acropolis_bridge_80188E7C[3] = {
 
 AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpOverlayIds D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
+EvsSceneKey D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
 
 GpEvsCmd D_acropolis_bridge_80188EBC[26] = {
     { 13, { .callbackNoArg = func_acropolis_bridge_8017D954 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1961,15 +1961,15 @@ GpSprtRec D_acropolis_bridge_8018FFA4[10] = {
 
 GpAreaTmdRec D_acropolis_bridge_8019001C[2] = {
     { 41, 41, 5, 0, { 0, 0 }, &D_acropolis_bridge_80191780.value },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_bridge_80190034[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_acropolis_bridge_80190040[1] = {
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaVariant D_acropolis_bridge_8019004C[12] = {
@@ -1987,7 +1987,7 @@ GpAreaVariant D_acropolis_bridge_8019004C[12] = {
     { NULL, NULL },
 };
 
-GpPointLight D_acropolis_bridge_801900AC[25] = {
+WorldCoordPointLight D_acropolis_bridge_801900AC[25] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1367, -507, 6799 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2457 }, { 0, 0 } }, 500, 6000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -335, -2500, 3516 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 4096, 4096 }, { 0, 0 } }, 0, 0x2B5C },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1970, -507, 8207 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2457 }, { 0, 0 } }, 500, 6000 },
@@ -2032,7 +2032,14 @@ GpViewRec D_acropolis_bridge_80190A24[10] = {
     { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 0x3552, 1930, 1439 } }, 230 },
 };
 
-GpScriptCmd D_acropolis_bridge_80190B8C[6] = { { 1025, 1 }, { 258, 257 }, { 21763, 513 }, { 4, 769 }, { 512, 1281 }, { 0, 0 } };
+PadScriptCmd D_acropolis_bridge_80190B8C[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 85), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 5) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_acropolis_bridge_80190BA4[6] = {
     { 120, 110, 30, 1 },
@@ -2043,13 +2050,13 @@ GpScriptRec D_acropolis_bridge_80190BA4[6] = {
     { 50, 45, 60, 1 },
 };
 
-GpScriptCmd D_acropolis_bridge_80190BBC[6] = {
-    { 1, 257 },
-    { 771, 513 },
-    { 4, 769 },
-    { 1025, 256 },
-    { 0, 769 },
-    { 0, 3584 },
+PadScriptCmd D_acropolis_bridge_80190BBC[6] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 3), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 4), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 14) }
 };
 
 GpScriptRec D_acropolis_bridge_80190BD4[5] = {
@@ -2485,7 +2492,7 @@ static __inline__ void bridge_reset_scale_mtx_shrink(AcropolisBridgeEnemyWork* w
 static __inline__ void bridge_scale_up(AcropolisBridgeEnemyWork* work);
 static __inline__ s16  _acropolisBridgeWasHit(Task* task);
 static __inline__ s32  bridge_rec_kind1(WorldCollisionContact* recs);
-static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base);
+static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base);
 static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
 static void            func_acropolis_bridge_80187C10(Task* task, s16 arg1);
 
@@ -2677,8 +2684,8 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
 static void func_acropolis_bridge_8017DBA0(Task* arg0)
 {
     if (Gp_DispatchMsg(gameGetPtrSlot(6), 0xFA3, 0, 0) == 0) {
-        Mc_SaveData[0].state.location.loc.view = 8;
-        gGameSession->hideHud                  = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+        gGameSession->hideHud                                      = 1;
         Gp_MsgPlayer3F3(0);
         Gp_MsgPlayerWeapon(0);
         arg0->state = (s32)(arg0->state + 1);
@@ -2700,11 +2707,11 @@ static void func_acropolis_bridge_8017DC68(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
         if (D_acropolis_bridge_801917A0 == 0) {
-            Mc_SaveData[0].state.location.loc.view = 6;
-            gGameSession->hideHud                  = 0;
-            arg0->state                            = (s32)(arg0->state + 1);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+            gGameSession->hideHud                                      = 0;
+            arg0->state                                                = (s32)(arg0->state + 1);
         } else {
-            Mc_SaveData[0].state.location.loc.view = 9;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 9;
             Gp_DispatchMsgPtr(gameGetPtrSlot(4), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
             arg0->state = (s32)(arg0->state + 1);
         }
@@ -2744,10 +2751,10 @@ static void func_acropolis_bridge_8017DDEC(Task* arg0)
 
     if (Task_PollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
         Gp_DispatchMsg(gameGetPtrSlot(4), 0x7DA, 1, 0x7D5);
-        Mc_SaveData[0].state.location.loc.view = 6;
-        Mc_SaveData[0].state.location.loc.room = 2;
-        gGameSession->location.loc.room        = 2;
-        gGameSession->roomObjsDirty            = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
+        gGameSession->location.loc.room                            = 2;
+        gGameSession->roomObjsDirty                                = 1;
         GameFlag_SetNibble(2, 3);
         Gp_MsgPlayerWeapon(1);
         arg0->state = arg0->state + 1;
@@ -3404,20 +3411,20 @@ void func_acropolis_bridge_8017F788(Task* task)
 /// is, so that the ambience thins out during a fight.
 void func_acropolis_bridge_8017F868(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
-    GfxCoord*  part;
-    Task*      owner;
-    SVECTOR    pos;
-    u8         view;
-    s32        bit;
-    s32        i;
-    s32        delta;
-    s32        axis;
-    s32        dist;
-    s32        prev;
-    s16        lastView;
-    u16        rnd;
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   part;
+    Task*       owner;
+    SVECTOR     pos;
+    u8          view;
+    s32         bit;
+    s32         i;
+    s32         delta;
+    s32         axis;
+    s32         dist;
+    s32         prev;
+    s16         lastView;
+    u16         rnd;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -3648,16 +3655,16 @@ void func_acropolis_bridge_8017F868(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180320(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3720,17 +3727,17 @@ void func_acropolis_bridge_80180320(Task* task)
 /// lifetime runs out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018063C(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3794,17 +3801,17 @@ void func_acropolis_bridge_8018063C(Task* task)
 /// out, or the streak falls off the bottom of the screen.
 void func_acropolis_bridge_8018099C(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3868,17 +3875,17 @@ void func_acropolis_bridge_8018099C(Task* task)
 /// streak falls off the bottom of the screen.
 void func_acropolis_bridge_80180CC0(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        col;
-    s32        range;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         col;
+    s32         range;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -3941,15 +3948,15 @@ void func_acropolis_bridge_80180CC0(Task* task)
 /// of the screen.
 void func_acropolis_bridge_80180FF0(Task* task)
 {
-    GpEffWork* work;
-    RECT       rect;
-    DR_MOVE*   mv;
-    u16        rnd;
-    s32        rndx;
-    s32        bufferY;
-    s32        x;
-    s32        y;
-    s32        depth;
+    EffectWork* work;
+    RECT        rect;
+    DR_MOVE*    mv;
+    u16         rnd;
+    s32         rndx;
+    s32         bufferY;
+    s32         x;
+    s32         y;
+    s32         depth;
 
     work    = task->spawnArg2.pointer;
     bufferY = gDisplayState.drawBuffer * 0x110;
@@ -4005,7 +4012,7 @@ void func_acropolis_bridge_80180FF0(Task* task)
 void func_acropolis_bridge_801812F4(Task* task)
 {
     GfxCoord*             coord;
-    GpEffWork*            work;
+    EffectWork*           work;
     void**                scratch;
     u8*                   head;
     OverlaySpriteScratch* blk;
@@ -4113,7 +4120,7 @@ void func_acropolis_bridge_801819C8(Task* task)
     AcropolisBridgeQuadCorner*  tbl;
     POLY_FT4*                   prim;
     GfxCoord*                   coord;
-    GpEffWork*                  work;
+    EffectWork*                 work;
     MATRIX*                     m;
     SVECTOR*                    v;
     s32                         i;
@@ -4191,7 +4198,7 @@ void func_acropolis_bridge_801819C8(Task* task)
 void func_acropolis_bridge_80181D28(Task* task)
 {
     GfxCoord*              coord;
-    GpEffWork*             work;
+    EffectWork*            work;
     RoomGlowSpriteScratch* blk;
     POLY_FT4*              prim;
     s32                    grey;
@@ -4297,7 +4304,7 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, T
 }
 
 /// One falling mote of the bridge's ambient dust: drifts the task's coordinate
-/// frame by the per-mote velocity in `GpEffWork::move`, projects the
+/// frame by the per-mote velocity in `EffectWork::move`, projects the
 /// result through `GsWSMATRIX` with a single `RTPS`, and links a 1x1 tile into
 /// the OT at the resulting depth. The velocity and the grey level are rolled
 /// once, on the first tick (`age == 0`); the mote is released after 0x1F
@@ -4310,7 +4317,7 @@ void func_acropolis_bridge_80182394(Task* task)
     RoomMoteScratch* depth;
     TILE_1*          prim;
     GfxCoord*        coord;
-    GpEffWork*       work;
+    EffectWork*      work;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
     coord    = task->extra.coordBody->coord;
@@ -4364,8 +4371,8 @@ void func_acropolis_bridge_80182394(Task* task)
 
 void func_acropolis_bridge_80182694(Task* task)
 {
-    GpEffWork* work;
-    GfxCoord*  coord;
+    EffectWork* work;
+    GfxCoord*   coord;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -4381,7 +4388,7 @@ void func_acropolis_bridge_80182694(Task* task)
                 work->scale = 0x40;
                 work->angle = task->spawnArg1.halves.low & 0xFFF;
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
+                gfxRotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 task->state         = 1;
                 /* fallthrough */
@@ -4647,7 +4654,7 @@ static const GpEnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 /// ramps towards `field_5C` by `field_60` a frame; while it is non-zero it
 /// scales (`GPF`) the normalised facing column of the model matrix into the
 /// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `Mc_SaveData[0].state.actorsFrozen` (a global freeze flag) zeroes the step
+/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` (a global freeze flag) zeroes the step
 /// instead.
 static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
                                   OverlayWalkerTickScratch* block)
@@ -4677,7 +4684,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
             pos->vz                        = (u16)cfg->coordMtx->t[2];
             break;
         case 2:
-            SCRATCH_PUSH_BYTES(4);
+            SCRATCH_STACK_RESERVE_BYTES(4);
             walker->field_6F = patrolNodeNearestActor(walker, 1);
             walker->field_70 = patrolNodeNearestSelf(walker);
             if (walker->field_69 != walker->state || walker->field_70 != walker->field_72 ||
@@ -4718,7 +4725,7 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
     coord = walker->coord;
     speed = walker->field_5E;
     step  = &walker->moveStep;
-    if (Mc_SaveData[0].state.actorsFrozen == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         step->vz            = 0;
         step->vy            = 0;
         walker->moveStep.vx = 0;
@@ -4768,13 +4775,13 @@ static __inline__ void walkerStep(OverlayWalker* walker, u8* head,
 s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
-    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*                    enemy = (Enemy*)task->spawnArg2.pointer;
     TmdObject*                extra = task->extra.tmd;
     s32                       variant;
     u16                       sub;
 
     if (msg->context.key == 0xB01 && msg->command == 1) {
-        variant = enemy->placeKey >> 12;
+        variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (variant) {
             case 0:
             case 1:
@@ -4786,7 +4793,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg)
     if (msg->context.key == 0xE01) {
         sub = msg->command;
         if (sub == 2) {
-            variant = enemy->placeKey >> 12;
+            variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
             switch (variant) {
                 case 0:
                     if (Gp_StateF0.field_6 != 0) {
@@ -4948,7 +4955,7 @@ static __inline__ void _acropolisBridgeLightModel(Task* task, GfxCoord* coord)
 /// offset the model root is raised by, remembered in `field_1FA`. In the
 /// third visit (`gGameSession->location.loc.room == 2`) the three known variants start
 /// in state 8 at a fixed position instead of state 1.
-static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
+static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
 {
     TmdObject*                obj;
     TmdObject*                obj2;
@@ -5034,7 +5041,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.navData.count    = 0xA;
     work->walker.navData.field_4  = D_acropolis_bridge_801916CC;
     work->walker.navData.field_9  = 0xA;
-    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->placeKey >> 12];
+    work->walker.routeData.nodes  = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
     work->walker.nav              = &work->walker.navData;
     work->walker.routeData.cursor = 0;
     work->walker.route            = &work->walker.routeData;
@@ -5054,7 +5061,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     work->walker.state            = step;
     work->walker.field_6B         = 1;
     work->walker.field_6C         = 1;
-    work->walker.field_6E         = Mc_SaveData[0].state.characterId;
+    work->walker.field_6E         = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
 
     _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5064,7 +5071,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
         Gp_IncStateF0Ref(0);
     }
     if (gGameSession->location.loc.room == 2) {
-        variant = enemy->placeKey >> 12;
+        variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (variant) {
             case 0:
                 work->field_0                       = 8;
@@ -5185,12 +5192,12 @@ void func_acropolis_bridge_80185F28(Task* task)
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
     OverlayWalker*            walker2;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     PlayerStatus*             cfg;
 
     cfg   = &Player_Status;
     work  = (AcropolisBridgeEnemyWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->walker.state            = 3;
         work->walker.routeData.cursor = 0;
@@ -5293,14 +5300,14 @@ void func_acropolis_bridge_801861A0(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     PlayerStatus*             cfg;
     u16                       height;
 
     cfg  = &Player_Status;
     work = (AcropolisBridgeEnemyWork*)task->work;
     if (work->field_4 != 0) {
-        enemy = (GpEnemy*)task->spawnArg2.pointer;
+        enemy = (Enemy*)task->spawnArg2.pointer;
         Gp_ArmStateF0(1);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         height                        = work->walker.field_5E;
@@ -5351,12 +5358,12 @@ void func_acropolis_bridge_801863A8(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     OverlayWalker*            walker;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     PlayerStatus*             cfg;
 
     cfg   = &Player_Status;
     work  = (AcropolisBridgeEnemyWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->walker.state            = 3;
         work->walker.routeData.cursor = 0;
@@ -5417,12 +5424,12 @@ static __inline__ s32 bridge_rec_kind1(WorldCollisionContact* recs)
 /// enemy's `field_8` high nibble picks the bank, so the event id is that nibble
 /// shifted into byte 1 of `base`, and the pan and depth come from the model's
 /// root coordinate.
-static __inline__ void bridge_play_snd(Task* task, GpEnemy* enemy, s32 base)
+static __inline__ void bridge_play_snd(Task* task, Enemy* enemy, s32 base)
 {
     s32 snd;
     s32 pan;
 
-    snd = ((enemy->placeKey >> 12) << 8) | base;
+    snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | base;
     pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
     SndEvt_EnqueueType6(snd, pan,
                         (s8)gpGetObjDepth(task->extra.tmd->coords));
@@ -5446,20 +5453,20 @@ void func_acropolis_bridge_80186618(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     AcropolisBridgeEnemyWork* anim;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     VECTOR                    scale;
     s32                       amount;
     s32                       height;
 
     work  = (AcropolisBridgeEnemyWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = 0;
         work->field_108               = 0x20;
         work->field_100               = 2;
         work->field_104               = 1;
-        switch (enemy->placeKey >> 12) {
+        switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = -0x22C4;
                 task->extra.tmd->coords->coord.t[2] = -0x640;
@@ -5502,7 +5509,7 @@ void func_acropolis_bridge_80186618(Task* task)
         amount  -= height;
         scale.vx = scale.vy = scale.vz = amount;
     }
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
     if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
         work->field_104 != 4) {
@@ -5512,10 +5519,10 @@ void func_acropolis_bridge_80186618(Task* task)
     }
     if (work->field_104 == 4) {
         if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->placeKey >> 12) + 8) < work->field_106) {
+            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + 8) < work->field_106) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
-                work->field_108 = ((enemy->placeKey >> 12) * 2) + 0x10;
+                work->field_108 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + 0x10;
                 work->field_100 = 2;
                 work->field_104 = 4;
                 bridge_play_snd(task, enemy, 0x40290003);
@@ -5554,13 +5561,13 @@ void func_acropolis_bridge_80186BBC(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
     AcropolisBridgeEnemyWork* anim;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     VECTOR                    scale;
     s32                       amount;
     s32                       height;
 
     work  = (AcropolisBridgeEnemyWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = 0;
@@ -5594,7 +5601,7 @@ void func_acropolis_bridge_80186BBC(Task* task)
         amount  -= height;
         scale.vx = scale.vy = scale.vz = amount;
     }
-    Gfx_RotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
     if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
         work->field_104 != 4) {
@@ -5604,10 +5611,10 @@ void func_acropolis_bridge_80186BBC(Task* task)
     }
     if (work->field_104 == 4) {
         if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->placeKey >> 12) + 8) < work->field_106) {
+            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + 8) < work->field_106) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 0xF) == 0) {
-                work->field_108 = ((enemy->placeKey >> 12) * 2) + 0x10;
+                work->field_108 = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + 0x10;
                 work->field_100 = 2;
                 work->field_104 = 4;
                 bridge_play_snd(task, enemy, 0x40290003);
@@ -5651,13 +5658,13 @@ void func_acropolis_bridge_80186BBC(Task* task)
 void func_acropolis_bridge_80187078(Task* task)
 {
     AcropolisBridgeEnemyWork* work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     GfxCoord*                 coord;
     SVECTOR                   dir;
     SVECTOR*                  d;
 
     work  = (AcropolisBridgeEnemyWork*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
         work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -5666,7 +5673,7 @@ void func_acropolis_bridge_80187078(Task* task)
         work->field_104               = 3;
         work->field_108               = 0x10;
         Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_1F8 > 0) {
@@ -5681,7 +5688,7 @@ void func_acropolis_bridge_80187078(Task* task)
         d      = &dir;
         d->vy  = Player_Status.coordMtx->t[1] - coord->coord.t[1];
         d->vz  = Player_Status.coordMtx->t[2] - coord->coord.t[2];
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
         VectorNormalSS(d, d);
         gte_lddp(-0x10);
         gte_ldsv(d);
@@ -5705,7 +5712,7 @@ void func_acropolis_bridge_80187078(Task* task)
 void func_acropolis_bridge_80187310(Task* task)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
-    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*                    enemy = (Enemy*)task->spawnArg2.pointer;
     s32                       step;
 
     if (work->field_4 != 0) {
@@ -5717,7 +5724,7 @@ void func_acropolis_bridge_80187310(Task* task)
         work->field_104               = 5;
         work->field_108               = 0x10;
         Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
-        Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
@@ -5731,14 +5738,14 @@ void func_acropolis_bridge_80187310(Task* task)
         step = work->field_290;
         switch (step) {
             case 10:
-                Gp_SetLightMode(enemy, 1);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                 Gp_SpawnEff(0x600A5, &task->extra.tmd->coords[2], 1, NULL);
                 break;
             case 28:
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 22:
-                Gp_SetLightMode(enemy, 2);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 34:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5758,7 +5765,7 @@ void func_acropolis_bridge_80187310(Task* task)
 void func_acropolis_bridge_801874DC(Task* task)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
-    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*                    enemy = (Enemy*)task->spawnArg2.pointer;
     s32                       step;
 
     if (work->field_4 != 0) {
@@ -5777,7 +5784,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         work->field_1F0.spawnArgHi = 2;
         func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &task->extra.tmd->coords[1], NULL,
                       &work->field_1F0);
-        Gp_SetLightMode(enemy, 1);
+        Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
         Gp_SpawnEff(0x600A5, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->field_290        = 0;
@@ -5792,7 +5799,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                 task->extra.tmd->flags = step;
                 break;
             case 30:
-                Gp_SetLightMode(enemy, 2);
+                Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                 break;
             case 44:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -5813,7 +5820,7 @@ void func_acropolis_bridge_801874DC(Task* task)
 static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 {
     AcropolisBridgeEnemyWork* work  = (AcropolisBridgeEnemyWork*)task->work;
-    GpEnemy*                  enemy = (GpEnemy*)task->spawnArg2.pointer;
+    Enemy*                    enemy = (Enemy*)task->spawnArg2.pointer;
     s32                       damage;
     s16                       state;
 
@@ -5875,7 +5882,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
 /// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
 /// `Gp_StateF0` request is pending -- resets any state other than 5 or 6 back
 /// to 0.
-static void func_acropolis_bridge_80187850(GpEnemy* enemy, Task* task)
+static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
 {
     AcropolisBridgeEnemyWork*  work;
     AcropolisBridgeEnemyWork*  cur;
@@ -5964,7 +5971,7 @@ hidden:
     return;
 
 body:
-    SCRATCH_PUSH_BYTES(0xC);
+    SCRATCH_STACK_RESERVE_BYTES(0xC);
     block = SCRATCH_STACK_CURSOR(AcropolisBridgeHitScratch);
     recs  = work->recs;
     i     = 0;
@@ -6062,7 +6069,7 @@ void func_acropolis_bridge_80187D04(Task* task)
     TmdObject*                extra = task->extra.tmd;
 
     if (work->field_4 != 0) {
-        GpEnemy* enemy = (GpEnemy*)task->spawnArg2.pointer;
+        Enemy* enemy = (Enemy*)task->spawnArg2.pointer;
 
         extra->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;

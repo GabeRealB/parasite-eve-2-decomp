@@ -204,7 +204,7 @@ STATIC_ASSERT_SIZEOF(DryfieldWaterTowerState, 0x7C);
 
 /// Main-executable globals with no module header yet: `Player_Status.weapon` is the
 /// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on and
-/// `Mc_SaveData[0].state.characterId` picks which of the two weapon-id bases that record uses; the
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses; the
 /// alternate block is indexed by `Player_Status.weapon` plus 1 against the base block's
 /// plus 0x22.
 
@@ -278,12 +278,12 @@ extern ActorTransform D_dryfield_water_tower_80181AD0[2];
 /// spawn into `field_50`, and the sound each one queues: `0x52140006` with the
 /// extra `0x5214000C` for command 8, whose script `func_dryfield_water_tower_8017EB7C`
 /// and `func_dryfield_water_tower_8017F908` wait on through `field_78`.
-extern GpScriptCmd D_dryfield_water_tower_80187628[5];
-extern GpScriptRec D_dryfield_water_tower_8018763C[4];
-extern GpScriptCmd D_dryfield_water_tower_8018764C[5];
-extern GpScriptRec D_dryfield_water_tower_80187660[4];
-extern GpScriptCmd D_dryfield_water_tower_80187670[2];
-extern GpScriptRec D_dryfield_water_tower_80187678;
+extern PadScriptCmd D_dryfield_water_tower_80187628[5];
+extern GpScriptRec  D_dryfield_water_tower_8018763C[4];
+extern PadScriptCmd D_dryfield_water_tower_8018764C[5];
+extern GpScriptRec  D_dryfield_water_tower_80187660[4];
+extern PadScriptCmd D_dryfield_water_tower_80187670[2];
+extern GpScriptRec  D_dryfield_water_tower_80187678;
 
 /// Main-executable byte at 0x80114C11, read signed (`lb`), with no module
 /// header yet: the raise prop `func_dryfield_water_tower_8017E1DC` runs its
@@ -695,7 +695,7 @@ AnimationPlayRequest D_dryfield_water_tower_80182420[3] = {
     { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-GpOverlayIds D_dryfield_water_tower_8018245C = { 2, 16, 11 };
+EvsSceneKey D_dryfield_water_tower_8018245C = { 2, 16, 11 };
 
 GpEvsCmd D_dryfield_water_tower_80182464[22] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -1645,7 +1645,7 @@ WorldCoordLight D_dryfield_water_tower_801871A4[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
 };
 
-GpPointLight D_dryfield_water_tower_80187304[5] = {
+WorldCoordPointLight D_dryfield_water_tower_80187304[5] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4500, -2620, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3200, -2159, -922 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 2220, 3442 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -766, -2000, -4618 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1319, 2059 },
@@ -1659,22 +1659,22 @@ GpRoomCoordSet D_dryfield_water_tower_801874E4[1] = {
 
 GpAreaTmdRec D_dryfield_water_tower_801874FC[2] = {
     { 1, 216, 3, 0, { 0, 0 }, D_80151254 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_80187514[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_8018752C[2] = {
     { 25, 25, 0, 0, { 0, 0 }, D_801379A8 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 GpAreaTmdRec D_dryfield_water_tower_80187544[2] = {
     { 1, 1, 3, 0, { 0, 0 }, &D_8014D8A4 },
-    { 255, 0, 0, 0, { 0, 0 }, NULL },
+    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaPlacement D_dryfield_water_tower_8018755C[2] = {
@@ -1727,7 +1727,13 @@ GpRoomParamRec* D_dryfield_water_tower_80187608[8] = {
     D_dryfield_water_tower_801875F0,
 };
 
-GpScriptCmd D_dryfield_water_tower_80187628[5] = { { 1, 257 }, { 258, 513 }, { 7427, 769 }, { 4, 0 }, { 0, 0 } };
+PadScriptCmd D_dryfield_water_tower_80187628[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 29), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
+};
 
 GpScriptRec D_dryfield_water_tower_8018763C[4] = {
     { 0, 0, 1, 0 },
@@ -1736,12 +1742,12 @@ GpScriptRec D_dryfield_water_tower_8018763C[4] = {
     { 90, 190, 15, 1 },
 };
 
-GpScriptCmd D_dryfield_water_tower_8018764C[5] = {
-    { 1, 257 },
-    { 258, 513 },
-    { 7939, 769 },
-    { 4, 0 },
-    { 0, 0 },
+PadScriptCmd D_dryfield_water_tower_8018764C[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 31), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 3) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
 GpScriptRec D_dryfield_water_tower_80187660[4] = {
@@ -1751,9 +1757,9 @@ GpScriptRec D_dryfield_water_tower_80187660[4] = {
     { 90, 190, 15, 1 },
 };
 
-GpScriptCmd D_dryfield_water_tower_80187670[2] = {
-    { 0, 1 },
-    { 0, 1280 },
+PadScriptCmd D_dryfield_water_tower_80187670[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 5) }
 };
 
 GpScriptRec D_dryfield_water_tower_80187678 = { 90, 180, 60, 1 };
@@ -2271,7 +2277,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `field_66` is 2, then both stash
-/// `field_68` in `Mc_SaveData[0].state.location.loc.view` and raise the session's `viewDirty`, the pair
+/// `field_68` in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` and raise the session's `viewDirty`, the pair
 /// `func_dryfield_water_tower_8017D948` undoes.
 ///
 /// The last three commands start a script-18 pair each -- the cutscene
@@ -2303,8 +2309,8 @@ static void func_dryfield_water_tower_8017E93C(Task* arg0)
             Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
 
         case 2:
-            Mc_SaveData[0].state.location.loc.view = state->field_68;
-            gGameSession->viewDirty                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_68;
+            gGameSession->viewDirty                                    = 1;
             break;
 
         case 3: {
@@ -2432,11 +2438,11 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
                 Gp_DispatchMsg(state->field_40, 0x3F3, 1, 0);
                 Gp_DispatchMsg(state->field_40, 0x3F1, 0, 0);
-                Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(7);
-                session                                = gGameSession;
-                session->viewDirty                     = 1;
-                session->hideHud                       = 0;
-                session->eventState                    = 0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
+                session                                                    = gGameSession;
+                session->viewDirty                                         = 1;
+                session->hideHud                                           = 0;
+                session->eventState                                        = 0;
                 SndEvt_EnqueueType6(0x52140006, 0, 0x20);
                 SndEvt_EnqueueType6(0x5214000C, 0, 0);
                 state->field_58 = 2;
@@ -2758,7 +2764,7 @@ void func_dryfield_water_tower_8017F700(s32 arg0)
     s32                  value;
 
     weaponId                 = Player_Status.weapon;
-    id                       = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
     value                    = arg0 & 0xFFFF;
     rec.source.index         = id;
     rec.animationId          = 1;
@@ -2835,7 +2841,7 @@ void func_dryfield_water_tower_8017F8E8(s16 arg0)
 ///
 /// It plays event 0x5214000C unless the latch `DryfieldWaterTowerState::field_78`
 /// says the view has already been announced, records the view in the saved
-/// location byte `Mc_SaveData[0].state.location.loc.view`, sends its 0x7D4 placement
+/// location byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`, sends its 0x7D4 placement
 /// `80181A58` to the prop task at `field_44` and restarts that task on state 1,
 /// then stops the pad scripts and queues event 0x52140006. The latch is what
 /// separates it from that sibling: this one is the re-entry the 0x5214000C
@@ -2848,8 +2854,8 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->field_78 == 0) {
         SndEvt_EnqueueType6(0x5214000C, 0, 0);
     }
-    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(7);
-    gGameSession->viewDirty                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
+    gGameSession->viewDirty                                    = 1;
     Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40[1], 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -2873,8 +2879,8 @@ void func_dryfield_water_tower_8017F9AC(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData[0].state.location.loc.view = state->field_68;
-    gGameSession->viewDirty                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_68;
+    gGameSession->viewDirty                                    = 1;
     Gp_DispatchMsgPtr(state->field_44, 0x7D4, &D_dryfield_water_tower_80181A40, 0);
     state->field_44->state = 1;
     Gp_HaltPadScripts();
@@ -2893,7 +2899,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 {
     DryfieldWaterTowerState* state = (DryfieldWaterTowerState*)D_dryfield_water_tower_801876A4->work;
 
-    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(9);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(9);
     Gp_DispatchMsgPtr(state->field_48, 0x7D4, &D_dryfield_water_tower_80181A70[2], 0);
     state->field_48->state = 1;
     Gp_DispatchMsgPtr(state->field_40, 0x3E9, &D_dryfield_water_tower_80181AD0[0], 0);
@@ -3024,7 +3030,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
                 return;
             }
             weaponId                 = Player_Status.weapon;
-            anim                     = (Mc_SaveData[0].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
+            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
             msg.source.index         = anim;
             msg.animationId          = 1;
             msg.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -3124,8 +3130,8 @@ void func_dryfield_water_tower_80180220(void)
     Gp_DispatchMsgPtr(work->field_4, 0x7D4, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
     Gp_DispatchMsg(work->field_0, 0x3F3, 1, 0);
     Gp_DispatchMsgPtr(work->field_0, 0x3E9, &D_dryfield_water_tower_801823A8, 0);
-    Mc_SaveData[0].state.location.loc.view = Gp_FindViewIndex(4);
-    gGameSession->viewDirty                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
+    gGameSession->viewDirty                                    = 1;
     CdCmd_CancelReplaceAndActivate();
     Gp_RestoreStreamRng();
 }

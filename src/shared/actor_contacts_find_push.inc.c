@@ -4,7 +4,7 @@
 /// in a scratch block carved off the scratch stack, the push that would move
 /// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
 /// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
+/// 0 at once when `gGameSession->viewReady` or `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
 static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
 {
     ActorRepelScratch* head;
@@ -12,7 +12,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
     ActorRepelScratch* blk;
     SVECTOR*           offset;
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
