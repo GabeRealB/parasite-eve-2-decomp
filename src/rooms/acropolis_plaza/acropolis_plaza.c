@@ -2888,7 +2888,7 @@ void func_acropolis_plaza_8017D8AC(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 goto kill;
             }
@@ -2954,7 +2954,7 @@ void func_acropolis_plaza_8017DA58(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 goto kill;
             }
@@ -3219,7 +3219,7 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     u32                      openFrame;
     s32                      loMask = 0xFF;
     s32                      side;
-    TaskIdMap*               block;
+    AcropolisPlazaSceneWork* block;
     CdCmdQueue*              q;
     AcropolisPlazaSceneWork* work;
     AcropolisPlazaSceneArg*  arg;
@@ -3263,13 +3263,13 @@ void func_acropolis_plaza_8017DFE0(Task* task)
     goto L_tail;
 
 L_case0:
-    block      = (TaskIdMap*)Mem_Malloc(0x34, 0);
+    block      = Mem_Malloc(sizeof(*block), 0);
     task->work = block;
     if (block == NULL) {
         taskKill(task);
         return;
     }
-    Mem_Set(block, 0, 0x34);
+    Mem_Set(block, 0, sizeof(*block));
     arg            = (AcropolisPlazaSceneArg*)task->spawnArg2.pointer;
     work           = (AcropolisPlazaSceneWork*)task->work;
     startView      = arg->view;
@@ -3461,7 +3461,7 @@ void func_acropolis_plaza_8017E7E4(Task* task)
     switch (task->state) {
         case 0:
             newWork    = Mem_Malloc(8, 0);
-            task->work = (TaskIdMap*)newWork;
+            task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
                 return;
@@ -3536,7 +3536,7 @@ void func_acropolis_plaza_8017E9A8(Task* task)
     switch (task->state) {
         case 0:
             newWork    = Mem_Malloc(8, 0);
-            task->work = (TaskIdMap*)newWork;
+            task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
                 return;
@@ -3672,7 +3672,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
     switch (task->state) {
         case 0:
             newWork    = Mem_Malloc(8, 0);
-            task->work = (TaskIdMap*)newWork;
+            task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
                 return;
@@ -4291,7 +4291,7 @@ void func_acropolis_plaza_80180054(Task* task)
             func_800E9BDC(3, 0x9DF);
             Gp_ApplyView(D_acropolis_plaza_801838B8[0]);
             newWork    = (AcropolisPlazaWork*)Mem_Malloc(0x28, 0);
-            task->work = (TaskIdMap*)newWork;
+            task->work = newWork;
             if (newWork == NULL) {
                 taskKill(task);
                 return;

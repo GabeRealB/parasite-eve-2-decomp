@@ -808,7 +808,7 @@ static void func_dryfield_factory_8018182C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_factory_80186E88, 0, 1, 0);
-    task->work              = (TaskIdMap*)work;
+    task->work              = work;
     task->msgTable          = D_dryfield_factory_80186EA0;
     if (GameFlag_GetNibble(0x48) == 0) {
         Mc_SaveData[0].state.at4.loc.view = 0xC;

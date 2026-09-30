@@ -496,7 +496,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
     work   = &D_actor_503500_801774C0[idx];
     coord  = arg0->extra.tmd->coords;
     Mem_Set(work, 0, 0xF0);
-    arg0->work     = (Actor503500Work*)work;
+    arg0->work     = work;
     work->field_EC = idx;
 
     coord->parent                    = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
@@ -1314,7 +1314,7 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     coord  = arg0->extra.tmd->coords;
     parent = arg0->parent;
     Mem_Set(work, 0, 0xF4);
-    arg0->work = (Actor503500Work*)work;
+    arg0->work = work;
 
     parts                            = parent->extra.tmd->coords;
     MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
@@ -2693,7 +2693,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     coord = arg0->extra.tmd->coords;
     tmd   = arg0->extra.tmd;
     Mem_Set(work, 0, 0x3D8);
-    arg0->work = (Actor503500Work*)work;
+    arg0->work = work;
 
     coord->parent     = &arg0->parent->extra.tmd->coords[1];
     coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
@@ -3799,7 +3799,7 @@ static void func_actor_503500_801423C8(Task* arg0)
     coord     = tmd->coords;
     parentTmd = parent->extra.tmd;
     Mem_Set(work, 0, 0x224);
-    arg0->work = (Actor503500Work*)work;
+    arg0->work = work;
 
     coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[slot]];
     coord->coord.t[0]   = D_actor_503500_80171478.vx;
@@ -4680,7 +4680,7 @@ static void func_actor_503500_80144300(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
 
     work->field_84.vx.w = coord->coord.t[0] << 16;
     work->field_84.vy.w = coord->coord.t[1] << 16;
@@ -4877,7 +4877,7 @@ static void func_actor_503500_801448E8(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
 
     work->field_84.vx = coord->coord.t[0] << 16;
     work->field_84.vy = coord->coord.t[1] << 16;

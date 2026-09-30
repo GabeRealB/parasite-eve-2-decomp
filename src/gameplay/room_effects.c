@@ -1362,7 +1362,7 @@ static void Gp_InitState1C(Task* arg0)
 
     Gp_State1CTask = arg0;
     Gp_State1C     = p;
-    arg0->work     = (TaskIdMap*)p;
+    arg0->work     = p;
     p->effectCount = 0;
     p->rumbleCount = 0;
     p->eventState  = 0;

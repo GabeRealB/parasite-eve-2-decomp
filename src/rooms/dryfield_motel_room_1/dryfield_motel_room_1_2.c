@@ -1126,7 +1126,7 @@ static void func_dryfield_motel_room_1_8017DC2C(Task* arg0)
     s32       id;
 
     work       = (Dmr1Work*)Mem_Malloc(0x38, 0);
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
         return;

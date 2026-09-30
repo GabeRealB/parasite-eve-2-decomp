@@ -230,7 +230,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
@@ -304,7 +304,7 @@ static void func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(records3, 4, 0);
     work->field_184.flags = work->field_184.flags | 0xC200;
     work->field_2AC       = arg0->place->mode;
-    if (work->field_2AC == 1 && arg1->spawnType == work->field_2AC) {
+    if (work->field_2AC == 1 && arg1->bodyKind == work->field_2AC) {
         obj->texturePageOffset++;
         obj->clutRowOffset++;
         if (obj->buffer != NULL) {

@@ -428,7 +428,7 @@ void Gp_EquipSummaryTask(Task* arg0)
     if (arg0->state == 0) {
         stored           = memCalloc(4, 0);
         Gp_ItemCountShow = 1;
-        arg0->work       = (TaskIdMap*)stored;
+        arg0->work       = stored;
         *stored          = item;
         arg0->state      = 2;
     }

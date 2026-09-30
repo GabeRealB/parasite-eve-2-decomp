@@ -148,7 +148,7 @@ static void func_grenade_pistol_8011D3A0(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     arg0->exitCallback = func_grenade_pistol_8011DB8C;
     arg0->state++;
     Mem_Set(work, 0, sizeof(WeaponGrenadeWork));

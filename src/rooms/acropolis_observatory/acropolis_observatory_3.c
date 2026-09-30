@@ -918,7 +918,7 @@ void func_acropolis_observatory_8017E19C(Task* task)
             }
             blk        = memCalloc(8, 0);
             temp       = (blk == NULL);
-            task->work = (TaskIdMap*)blk;
+            task->work = blk;
             if (temp) {
                 taskKill(task);
             } else {

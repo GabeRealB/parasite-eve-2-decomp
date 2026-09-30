@@ -1981,7 +1981,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
                 model      = arg0->extra.tmd;
                 modelCoord = model->coords;
                 mem        = (MATRIX*)Mem_Malloc(0x7C, false);
-                arg0->work = (TaskIdMap*)mem;
+                arg0->work = mem;
                 if (mem == 0) {
                     taskKill(arg0);
                 } else {
@@ -2218,7 +2218,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
             tmp        = arg0->extra.tmd;
             coord      = tmp->coords;
             state      = (DryfieldWaterTowerState*)Mem_Malloc(0x7C, false);
-            arg0->work = (TaskIdMap*)state;
+            arg0->work = state;
             if (state == NULL) {
                 taskKill(arg0);
             } else {
@@ -3050,7 +3050,7 @@ void func_dryfield_water_tower_8017FD64(Task* task)
             msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             Gp_DispatchMsgPtr(gameGetPtrSlot(3), ANIMATION_MESSAGE_PLAY, &msg, 0);
             work       = (DwtwWork*)Mem_Malloc(0x18, 0);
-            task->work = (TaskIdMap*)work;
+            task->work = work;
             if (work == NULL) {
                 taskKill(task);
             } else {
@@ -3094,7 +3094,7 @@ void func_dryfield_water_tower_8017FF5C(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -3134,7 +3134,7 @@ void func_dryfield_water_tower_80180038(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

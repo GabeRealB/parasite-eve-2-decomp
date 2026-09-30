@@ -668,7 +668,7 @@ static void func_actor_135400_80132064(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     work->model.animId = -1;
     work->model.bank   = -1;
     spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
@@ -1085,7 +1085,7 @@ static void func_actor_135400_80132B60(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     work->model.animId = -1;
     work->model.bank   = -1;
     work->field_494    = -1;

@@ -2549,7 +2549,7 @@ void Gp_InitPlayClock(Task* task)
     }
     Gp_ResetHudFx(&rec->extra);
     GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-    task->work   = (TaskIdMap*)rec;
+    task->work   = rec;
     rec->field_0 = Mc_SaveData[0].state.playTime / 60;
     rec->field_4 = Mc_SaveData[0].state.playTime % 60;
     ds           = &gDisplayState;

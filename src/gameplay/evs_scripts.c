@@ -720,7 +720,7 @@ static void Gp_ScriptInit(Task* arg0)
     Display_AcquireRef();
     script              = arg0->spawnArg2.pointer;
     D_801156A4          = 0;
-    arg0->work          = (TaskIdMap*)mem;
+    arg0->work          = mem;
     mem->script.field_4 = 0;
     D_801156C8          = 0;
     mem->script.field_0 = script;

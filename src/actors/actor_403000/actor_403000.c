@@ -4575,7 +4575,7 @@ static void func_actor_403000_801343B8(GpEnemy* arg0, Task* arg1)
 
     obj        = arg1->extra.tmd;
     coord      = obj->coords;
-    arg1->work = (TaskIdMap*)(work = memCalloc(0xFDCU, false));
+    arg1->work = (work = memCalloc(0xFDCU, false));
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

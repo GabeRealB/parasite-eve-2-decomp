@@ -145,7 +145,7 @@ static void Title_InitTask(Task* arg0)
     }
     work = memCalloc(0x18, 0);
     if (work != NULL) {
-        arg0->work           = (TaskIdMap*)work;
+        arg0->work           = work;
         work->fadeTileEnable = flag;
         work->menuCount      = 5;
         work->selection      = 2;

@@ -348,7 +348,7 @@ void func_m4a1_pyke_8011D7D4(Task* task)
             ang1               = Gp_LcgState * 5 + 0x71357911;
             work->angle        = (ang1 >> 16) & 0xFFF;
             task->state        = 1;
-            task->work         = (TaskIdMap*)beam;
+            task->work         = beam;
             beam->obj.coord    = coord;
             beam->obj.ctx.recs = beam->rec;
             beam->obj.key      = 0x21C1E;

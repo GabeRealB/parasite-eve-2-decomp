@@ -358,19 +358,22 @@ share one work struct that nothing declares, which is why the mechanical
 seeding pass matches only ~4% of them. Work that struct out once and it pays
 across the whole overlay.
 
-`arg0` is usually a `Task*` (`include/main/task.h`, 0x48); 0x1C/0x2C/0x30 are
-`idMap`/`extra`/`state`. Actors park their own work block in `idMap` and its
+`arg0` is usually a `Task*` (`include/main/task_types.h`, 0x48); 0x1C/0x2C/0x30 are
+`work`/`extra`/`state`. Actors park their own work block in `work` and its
 size is pinned by a literal `memCalloc`/`memMalloc`/`memSet` argument —
 `grep -B14 -iE 'jal.*mem' ` over the overlay's `.s` (the tree is mid-rename
 from the `Mem_Verb` spelling, hence the case-insensitive pattern). Expect more
 than one allocator; overlays have had 1, 2, 4 and 12 distinct blocks. If none of your
-functions dereferences `idMap`, record the anchor and do not invent a struct.
+functions dereferences `work`, record the anchor and do not invent a struct.
 
 Rooms differ: 80 of 168 allocate nothing at all, and the anchor is
-`Task::field_24`, which 167 of 168 rooms load with a `GpMsgEntry[]` table
-(`include/gameplay/D4.h` — use it, do not invent a room-local type).
+`Task::msgTable`, which 167 of 168 rooms load with an id/handler table.
+The slot borrows the table; its receiver-specific handler signatures vary.
+`include/gameplay/message.h` declares the dispatcher's `GpMsgEntry` view.
 
-`Task::extra` is a `TmdObject*`; `GameActorExt` was merged into it.
+`Task::extra` is a `TaskBody` union: `extra.tmd` selects a `TmdObject*` for
+`TASK_BODY_TMD`, and `extra.coordBody` selects the single-coordinate body for
+`TASK_BODY_DISP2D`. Check `Task::bodyKind` before choosing a view.
 
 ## The matching loop — use it, do not read raw asm
 

@@ -1182,17 +1182,17 @@ static void func_actor_341700_8016D018(GfxCoord* coord, s16 scale)
 static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
 {
     Actor341700SubWork* work;
-    TaskIdMap*          idMap;
+    Actor341700SubWork* workAllocation;
     TmdObject*          model;
     GfxCoord*           coord;
     VECTOR              block;
 
-    model      = arg1->extra.tmd;
-    coord      = model->coords;
-    idMap      = memCalloc(0x80U, false);
-    work       = (Actor341700SubWork*)idMap;
-    arg1->work = idMap;
-    if (idMap == NULL) {
+    model          = arg1->extra.tmd;
+    coord          = model->coords;
+    workAllocation = memCalloc(sizeof(*workAllocation), false);
+    work           = workAllocation;
+    arg1->work     = workAllocation;
+    if (workAllocation == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }

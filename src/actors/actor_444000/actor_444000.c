@@ -2904,7 +2904,7 @@ void func_actor_444000_80132358(Task* task)
                 return;
             }
             alloc      = (Actor444000EventWork*)memCalloc(sizeof(Actor444000EventWork), false);
-            task->work = (TaskIdMap*)alloc;
+            task->work = alloc;
             if (alloc == NULL) {
                 taskKill(task);
             } else {

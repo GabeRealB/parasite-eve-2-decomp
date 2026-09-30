@@ -2653,7 +2653,7 @@ static void Actor00100_Fn02C54(GpEnemy* arg0, Task* arg1)
     coord      = arg1->extra.tmd->coords;
     tmd        = arg1->extra.tmd;
     work       = memCalloc(0xC30U, false);
-    arg1->work = (TaskIdMap*)work;
+    arg1->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

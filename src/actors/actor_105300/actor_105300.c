@@ -706,7 +706,7 @@ static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)part;
+    arg1->work          = part;
     coord->parent       = &gGfxViewCoord;
     coord->coord.t[0]   = D_actor_105300_80133A20[work->field_334].x;
     coord->coord.t[1]   = D_actor_105300_80133A20[work->field_334].y;

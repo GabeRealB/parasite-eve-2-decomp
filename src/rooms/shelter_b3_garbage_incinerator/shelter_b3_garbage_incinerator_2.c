@@ -1224,7 +1224,7 @@ void func_shelter_b3_garbage_incinerator_8017F0A8(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

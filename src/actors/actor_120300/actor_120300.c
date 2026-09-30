@@ -2159,7 +2159,7 @@ void func_actor_120300_80133B5C(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

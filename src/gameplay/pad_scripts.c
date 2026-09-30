@@ -193,7 +193,7 @@ void Gp_SpawnPadLerp(s16 arg0, u8 arg1, u8 arg2)
             } else {
                 end                 = (arg2 & 0xFF) << 8;
                 start               = (arg1 & 0xFF) << 8;
-                task->work          = (TaskIdMap*)mem;
+                task->work          = mem;
                 mem->field_8        = arg0;
                 mem->field_4.as_s32 = start;
                 mem->field_0        = (end - start) / arg0;
@@ -218,7 +218,7 @@ static void Gp_SpawnPadLerpScaled(s16 arg0, u8 arg1, u8 arg2, s16 arg3)
             if (task == NULL) {
                 memFree(mem);
             } else {
-                task->work = (TaskIdMap*)mem;
+                task->work = mem;
                 temp       = arg3 >> 3;
                 if (temp == 0) {
                     scale = 1;
@@ -255,7 +255,7 @@ Task* Gp_SpawnScript18(GpScriptCmdAddress arg0, GpScriptRecAddress arg1)
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->work   = (TaskIdMap*)mem;
+            task->work   = mem;
             mem->field_8 = 0;
             mem->field_0 = arg0.commands;
             mem->field_4 = arg1.records;
@@ -305,7 +305,7 @@ Task* Gp_SpawnScript18Ex(GpScriptCmdAddress arg0, GpScriptRecAddress arg1, s32 a
     if (mem != NULL) {
         task = Task_Spawn(2, 0xD, 0, 0);
         if (task != NULL) {
-            task->work   = (TaskIdMap*)mem;
+            task->work   = mem;
             mem->field_8 = arg2;
             mem->field_0 = arg0.commands;
             mem->field_4 = arg1.records;

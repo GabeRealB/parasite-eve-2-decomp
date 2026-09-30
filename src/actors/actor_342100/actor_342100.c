@@ -615,7 +615,7 @@ void func_actor_342100_80162748(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -752,7 +752,7 @@ void func_actor_342100_80162AB0(Task* arg0)
     coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
-            arg0->work = (TaskIdMap*)Mem_Malloc(8, 0);
+            arg0->work = Mem_Malloc(8, 0);
             if (arg0->work == NULL) {
                 taskKill(arg0);
                 return;
@@ -992,7 +992,7 @@ void func_actor_342100_801630A4(Task* arg0)
                 break;
             }
             newWork    = Mem_Malloc(0x44, 0);
-            arg0->work = (TaskIdMap*)newWork;
+            arg0->work = newWork;
             if (newWork == NULL) {
                 taskKill(arg0);
             } else {

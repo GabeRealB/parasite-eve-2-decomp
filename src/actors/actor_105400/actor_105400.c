@@ -713,7 +713,7 @@ static void func_actor_105400_80132BAC(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)part;
+    arg1->work          = part;
     coord->parent       = &gGfxViewCoord;
     coord->coord.t[0]   = D_actor_105400_80133A20[work->field_334].x;
     coord->coord.t[1]   = D_actor_105400_80133A20[work->field_334].y;
@@ -880,7 +880,7 @@ static void func_actor_105400_8013310C(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_264;

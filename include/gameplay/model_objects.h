@@ -37,7 +37,7 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src);
 /// is parented to the view, so what the task places in it comes back relative to
 /// the camera rather than to the world, and it joins the end of
 /// `gModelObjectCoordBodyList`, where the frame's draw passes compose it.
-/// Recording it as the task's body (`spawnType` 2) is what later releases it;
+/// Recording it as the task's body (`bodyKind` 2) is what later releases it;
 /// `Gp_AttachTmd` is the model-side counterpart.
 ModelObjectCoordBody* gpAttachDisp2d(Task* task);
 

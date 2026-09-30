@@ -397,7 +397,7 @@ void Gp_ItemMoveTask(Task* arg0)
             goto end;
         }
         scans           = Gp_ScanPtrs;
-        arg0->work      = (TaskIdMap*)mem;
+        arg0->work      = mem;
         Gp_ItemMoveWork = mem;
         mem->field_C    = 0;
         do {
@@ -980,7 +980,7 @@ void func_800BDF6C(Task* task)
             obj->field_2E = 9;
             return;
         }
-        task->work      = (TaskIdMap*)state;
+        task->work      = state;
         srcTotal        = Gp_ScanStackQty(&Gp_MoveScanSrc, task->spawnArg1.value);
         state->srcQty   = srcTotal;
         state->srcOrig  = srcTotal;
@@ -1338,7 +1338,7 @@ void Gp_ItemPickupTilt(Task* arg0)
             extra->colorMtx = mem + 1;
             Gp_UpdateCoord(arg0->extra.tmd->coords);
             func_800D7A9C(extra, &vec, 0, 3);
-            arg0->work = (TaskIdMap*)mem;
+            arg0->work = mem;
         }
         arg0->msgTable = D_8010D828;
         arg0->status   = 0;

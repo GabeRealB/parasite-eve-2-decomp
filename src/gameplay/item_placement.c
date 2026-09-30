@@ -50,7 +50,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
             enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
-                if (task->spawnType != 0) {
+                if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
                     enemy->placeKey     = place->field_0 | (place->field_4 << 8);
@@ -276,7 +276,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
                     enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
                     if (enemy != NULL) {
                         task = enemy->task;
-                        if (task->spawnType != 0) {
+                        if (task->bodyKind != TASK_BODY_NONE) {
                             extra               = task->extra.tmd;
                             coord               = extra->coords;
                             enemy->placeKey     = place->field_0 | (place->field_4 << 8);

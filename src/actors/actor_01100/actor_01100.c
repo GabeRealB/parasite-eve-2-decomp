@@ -3609,7 +3609,7 @@ static void Actor01100_Fn05E68(Task* task)
         Task_CallExit(task);
         return;
     }
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     eff        = Gp_SpawnEff(0x60081, coord, 0, 0);
     if (eff == NULL) {
         Task_CallExit(task);

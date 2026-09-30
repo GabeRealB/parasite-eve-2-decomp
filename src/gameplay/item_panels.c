@@ -772,7 +772,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             rec        = Gp_FindItemById(src);
             newWork    = (GpUseCreateWork*)memCalloc(0x14, 0);
             scanInit   = &Mc_SaveData[0].state.carriedItems;
-            arg1->work = (TaskIdMap*)newWork;
+            arg1->work = newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
             rec->itemId = result;
             Gp_ClearEquipSlotSel(result, 0);

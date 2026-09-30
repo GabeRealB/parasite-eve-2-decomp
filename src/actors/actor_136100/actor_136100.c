@@ -1373,7 +1373,7 @@ void func_actor_136100_80132284(Task* arg0)
         GfxCoord*  coord = tmd->coords;
 
         work       = Mem_Malloc(0x4F0, 0);
-        arg0->work = (TaskIdMap*)work;
+        arg0->work = work;
         if (work == NULL) {
             taskKill(arg0);
         } else {
@@ -2338,7 +2338,7 @@ void func_actor_136100_801344AC(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -2376,7 +2376,7 @@ void func_actor_136100_80134588(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

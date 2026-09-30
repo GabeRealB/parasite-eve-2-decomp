@@ -295,7 +295,7 @@ static void func_actor_342400_80162084(Task* arg0)
     if (work == NULL) {
         goto kill;
     }
-    arg0->work   = (TaskIdMap*)work;
+    arg0->work   = work;
     work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
@@ -549,7 +549,7 @@ static void func_actor_342400_801628F0(Task* arg0)
         D_actor_342400_8016BF58[i].status = 0;
     }
     D_actor_342400_80173AAC = 0;
-    arg0->work              = (TaskIdMap*)work;
+    arg0->work              = work;
     arg0->msgTable          = D_actor_342400_8016BF48;
     arg0->state++;
 }
@@ -609,7 +609,7 @@ static void func_actor_342400_80162B60(Task* arg0)
 
     work = memCalloc(8, 0);
     if (work != NULL) {
-        arg0->work = (TaskIdMap*)work;
+        arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
@@ -685,7 +685,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
 
     work = memCalloc(8, 0);
     if (work != NULL) {
-        arg0->work = (TaskIdMap*)work;
+        arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, 0);
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;

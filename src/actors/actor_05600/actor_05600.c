@@ -2663,7 +2663,7 @@ static void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work    = (TaskIdMap*)work;
+    arg1->work    = work;
     tmd->flags    = 0;
     scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(0x38);
     tmd->lightMtx = &work->lightMtx;
@@ -2873,7 +2873,7 @@ static void Actor05600_Fn03924(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->work                = (TaskIdMap*)work;
+    actor->work                = work;
     obj->flags                 = 0;
     coord->composeStamp        = GRAPHICS_COORD_DIRTY;
     obj->lightMtx              = &work->field_45C;

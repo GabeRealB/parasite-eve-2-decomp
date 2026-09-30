@@ -706,7 +706,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
-            task->work = (TaskIdMap*)blk;
+            task->work = blk;
             if (blk == NULL) {
                 taskKill(task);
                 break;
@@ -816,7 +816,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
-            task->work = (TaskIdMap*)blk;
+            task->work = blk;
             if (blk == NULL) {
                 taskKill(task);
                 break;

@@ -32,6 +32,12 @@ static u8 D_800716E8[8];
 
 #include "main/task.h"
 
+/// Values used by the task stop and deferred-model-release protocols.
+enum {
+    TASK_STATUS_STOP_REQUESTED     = 0xFF,
+    TASK_MODEL_RELEASE_DELAY_TICKS = 2
+};
+
 /// Links `task` into `list` ahead of the first task whose priority is higher,
 /// so the list stays in ascending priority order and equal priorities keep
 /// the order they were spawned in.
@@ -117,7 +123,7 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
         task->parent       = NULL;
         task->firstChild   = NULL;
         task->nextSibling  = task;
-        task->spawnType    = kind;
+        task->bodyKind     = kind;
 
         _taskInsert(list, task, priority);
     } else {
@@ -177,7 +183,7 @@ void taskKill(Task* task)
     }
 
     if (gDisplayState.skipTeardown == 0) {
-        type = task->spawnType;
+        type = task->bodyKind;
         if (type == TASK_BODY_TMD) {
             goto case1;
         }
@@ -191,7 +197,7 @@ void taskKill(Task* task)
 
     case1:
         task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
-        task->killCountdown     = 2;
+        task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
         task->callback          = taskCountdownCallback;
         task->state             = 0;
         task->exitCallback      = textNoopCallback;
@@ -206,10 +212,10 @@ void taskKill(Task* task)
         if (task->killCountdown != 0) {
             return;
         }
-        if (task->spawnType == TASK_BODY_TMD) {
+        if (task->bodyKind == TASK_BODY_TMD) {
             goto cu1;
         }
-        if (task->spawnType != type) {
+        if (task->bodyKind != type) {
             goto cu_def;
         }
         goto cu2;
@@ -222,10 +228,10 @@ void taskKill(Task* task)
         if (task->killCountdown != 0) {
             return;
         }
-        if (task->spawnType == TASK_BODY_TMD) {
+        if (task->bodyKind == TASK_BODY_TMD) {
             goto cu1;
         }
-        if (task->spawnType == TASK_BODY_DISP2D) {
+        if (task->bodyKind == TASK_BODY_DISP2D) {
             goto cu2;
         }
         goto cu_def;
@@ -240,11 +246,11 @@ void taskKill(Task* task)
         gpFreeDisp2d(task->extra.coordBody);
 
     cu_def:
-        task->spawnType = TASK_BODY_RELEASED;
+        task->bodyKind = TASK_BODY_RELEASED;
         return;
     }
 
-    t = task->spawnType;
+    t = task->bodyKind;
     if (t == TASK_BODY_TMD) {
         goto imm1;
     }
@@ -427,7 +433,7 @@ void Task_ExecList(TaskNode* node)
             tmp_ptr->stopTaskWalk = 0;
             return;
         }
-        if (curr->spawnType == TASK_BODY_RELEASED) {
+        if (curr->bodyKind == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -459,7 +465,7 @@ void Task_RequestKill(Task* task, s32 arg1)
     Task* cur;
     Task* temp;
 
-    task->status           = 0xFF;
+    task->status           = TASK_STATUS_STOP_REQUESTED;
     task->extraState.value = arg1;
     task->callback         = textNoopCallback;
 
@@ -481,7 +487,7 @@ s32 Task_PollKill(Task* task, s32* arg1)
     s32 result;
 
     result = 0;
-    if (task->status == 0xFF) {
+    if (task->status == TASK_STATUS_STOP_REQUESTED) {
         if (arg1 != NULL) {
             *arg1 = task->extraState.value;
         }
@@ -549,7 +555,7 @@ void Task_ExecDefaultList(TaskNode* unused)
             tmp_ptr->stopTaskWalk = 0;
             return;
         }
-        if (curr->spawnType == TASK_BODY_RELEASED) {
+        if (curr->bodyKind == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -586,7 +592,7 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
             tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
-        if (curr->spawnType == TASK_BODY_RELEASED) {
+        if (curr->bodyKind == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -625,7 +631,7 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
             tmp_ptr->stopTaskWalk = 0;
             goto end;
         }
-        if (curr->spawnType == TASK_BODY_RELEASED) {
+        if (curr->bodyKind == TASK_BODY_RELEASED) {
             next                  = curr->node.next;
             tmp_ptr->stopTaskWalk = 0;
             Task_Unlink(curr);
@@ -651,19 +657,19 @@ void taskCountdownCallback(Task* task)
         return;
     }
 
-    switch (task->spawnType) {
+    switch (task->bodyKind) {
         case TASK_BODY_TMD:
             model = task->extra.tmd;
             modelObjectUnlinkTmd(&model->link);
             gpFreeTmd(model);
-            task->spawnType = TASK_BODY_RELEASED;
+            task->bodyKind = TASK_BODY_RELEASED;
             break;
         case TASK_BODY_DISP2D:
             gpFreeDisp2d(task->extra.coordBody);
-            task->spawnType = TASK_BODY_RELEASED;
+            task->bodyKind = TASK_BODY_RELEASED;
             break;
         default:
-            task->spawnType = TASK_BODY_RELEASED;
+            task->bodyKind = TASK_BODY_RELEASED;
             break;
     }
 }

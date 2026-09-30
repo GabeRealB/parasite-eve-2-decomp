@@ -1686,7 +1686,7 @@ static void func_shelter_r47_8018431C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_shelter_r47_8018760C, 0, 1, 0);
-    task->work              = (void*)state;
+    task->work              = state;
     task->state            += 1;
     Display_AcquireRef();
     state->hotspots = task->spawnArg1.value == 2 ? D_shelter_r47_801873D8 : D_shelter_r47_8018739C;

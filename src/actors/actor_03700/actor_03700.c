@@ -752,7 +752,7 @@ static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
         Gp_DestroyEnemy(arg0, task);
         return;
     }
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->lightMtx;

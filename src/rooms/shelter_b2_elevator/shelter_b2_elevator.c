@@ -402,7 +402,7 @@ void func_shelter_b2_elevator_8017D70C(Task* task)
                 taskKill(task);
                 return;
             }
-            task->work          = (TaskIdMap*)car;
+            task->work          = car;
             car->travel         = 0;
             obj->otOffset       = 0x64;
             obj->flags          = 0;

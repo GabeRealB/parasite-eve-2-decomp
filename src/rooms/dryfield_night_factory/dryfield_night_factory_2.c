@@ -977,7 +977,7 @@ static void func_dryfield_night_factory_80180438(Task* arg0)
     arg0->msgTable = D_dryfield_night_factory_80186E64;
     Game_SetPtrSlot(arg0, 7);
     slot       = (D_dryfield_night_factory_8018A7E8 = memCalloc(4, 0));
-    arg0->work = (TaskIdMap*)slot;
+    arg0->work = slot;
     if (gGameSession->at4.loc.stage == 2) {
         D_dryfield_night_factory_8018A7E4 = D_dryfield_factory_80186E28;
     } else {
@@ -1683,7 +1683,7 @@ static void func_dryfield_night_factory_8018182C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(D_dryfield_night_factory_80186E94, 0, 1, 0);
-    task->work              = (TaskIdMap*)work;
+    task->work              = work;
     task->msgTable          = D_dryfield_night_factory_80186EAC;
     if (GameFlag_GetNibble(0x48) == 0) {
         Mc_SaveData[0].state.at4.loc.view = 0xC;

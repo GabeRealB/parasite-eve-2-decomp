@@ -267,7 +267,7 @@ void func_inferno_8012F530(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            arg0->work = (TaskIdMap*)map;
+            arg0->work = map;
             mem->scale = 0x80;
             i          = 0;
             do {

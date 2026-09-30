@@ -376,7 +376,7 @@ static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
     enemy = Gp_SpawnEnemyFromTable(&arg0->field_4, 0, arg0->field_0, NULL);
     if (enemy != NULL) {
         task = enemy->task;
-        if (task->spawnType != 0) {
+        if (task->bodyKind != TASK_BODY_NONE) {
             extra               = task->extra.tmd;
             coord               = extra->coords;
             enemy->placeKey     = arg1->field_0 | (arg1->field_4 << 8);

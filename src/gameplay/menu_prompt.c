@@ -1419,31 +1419,31 @@ static __inline__ void countItemRows(UiList* menu)
 
 static void Gp_ItemListTask(Task* arg0)
 {
-    UiObject*  obj;
-    UiList*    menu;
-    UiObject*  child;
-    TaskIdMap* map;
-    s32        status;
-    Task*      owner;
-    Task*      head;
-    Task*      node;
-    Task*      next;
-    UiObject*  childObj;
-    s32        flag;
-    s32        one;
-    s32        mask;
+    UiObject* obj;
+    UiList*   menu;
+    UiObject* child;
+    void*     workAllocation;
+    s32       status;
+    Task*     owner;
+    Task*     head;
+    Task*     node;
+    Task*     next;
+    UiObject* childObj;
+    s32       flag;
+    s32       one;
+    s32       mask;
 
     obj           = arg0->spawnArg2.pointer;
     menu          = &D_8010E854;
     obj->field_2E = 0;
     if (arg0->state == 0) {
         Gp_ItemOrderMode = 0;
-        map              = memCalloc(4, 0);
-        if (map == NULL) {
+        workAllocation   = memCalloc(4, 0);
+        if (workAllocation == NULL) {
             Ui_TeardownTree(obj, arg0);
             return;
         }
-        arg0->work    = map;
+        arg0->work    = workAllocation;
         menu->field_6 = 0;
         countItemRows(menu);
         menu->field_5.u = 9;

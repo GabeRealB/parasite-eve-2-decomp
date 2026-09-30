@@ -8,7 +8,7 @@
 struct ModelObjectCoordBody;
 struct Task;
 
-/// Recognized body kinds in `Task::spawnType`, plus the teardown-complete marker.
+/// Recognized body kinds in `Task::bodyKind`, plus the teardown-complete marker.
 enum {
     TASK_BODY_NONE     = 0,
     TASK_BODY_TMD      = 1,
@@ -16,7 +16,7 @@ enum {
     TASK_BODY_RELEASED = 0xFF
 };
 
-/// One owned body allocation, interpreted according to `Task::spawnType`.
+/// One owned body allocation, interpreted according to `Task::bodyKind`.
 ///
 /// `TASK_BODY_TMD` selects `tmd`, whose coordinates have `partCount` elements;
 /// `TASK_BODY_DISP2D` selects `coordBody`, which owns exactly one coordinate.
@@ -97,14 +97,14 @@ typedef struct {
     TaskFunc funcs[18];
 } TaskFuncTable18;
 
-/// Intrusive list link for a `Task`, and the type a task list is headed by.
+/// Intrusive execution-list links, also used as the bare head of a task list.
 ///
-/// The link is the task's first member, so a pointer to one is also the task
-/// that carries it. A head is a bare node belonging to no task: its `next` is
-/// the first task on the list, and its `prev` the last, which is the head
-/// itself while the list is empty. The head is the only node that is not a task,
-/// and a walk reaches it through `prev` alone, so `next` names a task while
-/// `prev` names a node.
+/// A task embeds these links as its first member. Forward links end at NULL;
+/// backward links reach the bare head, which belongs to no task. On the head,
+/// `next` is the first task and `prev` is the last task's node, or the head
+/// itself when empty. Insertion preserves ascending byte priority and the
+/// spawn order of tasks with equal priority; changing a task's priority does
+/// not relink it. Only nodes embedded in tasks can be converted to `Task*`.
 typedef struct TaskNode {
     struct Task*     next; // Following task, or NULL past the last
     struct TaskNode* prev; // Preceding node, or the head at the front
@@ -167,51 +167,47 @@ typedef union {
 } TaskSpawnArg __attribute__((transparent_union));
 STATIC_ASSERT_SIZEOF(TaskSpawnArg, 4);
 
-/// A cooperatively scheduled game object. Actors, UI and loading steps are all
-/// tasks, so one spawn, tick and kill path serves them all.
+/// A primary-heap game object updated by the cooperative task scheduler.
 ///
-/// A task is a per-frame `callback` plus an optional body, and it belongs to two
-/// structures at once: an intrusive list rooted at a `TaskNode`, which the exec
-/// passes walk in `priority` order, and an optional parent/child tree whose
-/// children form a ring (`firstChild` / `nextSibling`). The spawn helpers build
-/// one from a `TaskDesc`, which supplies its `callback` and `priority`;
-/// `spawnArg1`, `spawnArg2` and `extra` carry whatever the spawned type needs.
-/// The task system treats `spawnArg1` as one word; a type that packs several
-/// values into it takes them apart with shifts and masks of that word.
+/// Each task belongs to an execution list headed by a `TaskNode` and may also
+/// belong to a parent's circular child list. Its descriptor supplies the initial
+/// callback, byte priority and body kind. Spawn arguments are copied as words;
+/// callbacks define their interpretation and the lifetime of pointer payloads.
+/// `state`, `status`, `extraState` and `killCountdown` are callback-owned storage
+/// except while the task system uses them for stop and teardown protocols.
 ///
-/// Several further slots are the task's own storage that the task system borrows
-/// to run its protocol, so they hold whatever the spawned type puts there between
-/// those uses: `status` carries a stop request, `extraState` the word that
-/// request hands back, and `killCountdown` the delay before the body goes.
-///
-/// Killing a task that owns a body is spread over two steps, so nothing frees it
-/// while its callback is still running: `taskKill` releases the body — a TMD model
-/// only once its `killCountdown` has run out, a coordinate body straight away — and
-/// marks the task with `spawnType` 0xFF, and the exec pass that sees the mark
-/// unlinks and frees the task once the callback has returned.
+/// Default teardown treats non-NULL `work` as one owned primary-heap allocation;
+/// callbacks release its nested resources separately. A task using borrowed work
+/// storage must clear this slot before default teardown. Teardown frees work before
+/// releasing the body and does not clear either pointer. Normal model teardown
+/// waits two countdown callbacks; coordinate bodies are released immediately.
+/// The execution pass collects the task after a callback returns with
+/// `TASK_BODY_RELEASED`.
+/// Immediate teardown can free the task within its callback. A bare list head
+/// is never a task, and released pointers must not be dereferenced.
 typedef struct Task {
     TaskNode     node;          // Intrusive list links; a task is its own list node
-    struct Task* parent;        // Owning task; NULL when the task sits at the top level
+    struct Task* parent;        // Parent in the teardown tree; NULL for an unattached task
     struct Task* firstChild;    // Head of the child ring; NULL when childless
     struct Task* nextSibling;   // Next child in that ring; the task itself when it is an only child
     TaskFunc     callback;      // Per-frame entry point, called by the exec passes
-    TaskFunc     exitCallback;  // Runs as the task is torn down
-    void*        work;          // Per-task work block, freed on kill; whatever the spawned type needs
-    TaskSpawnArg spawnArg2;     // Second spawn argument; its meaning is the spawned type's
-    void*        msgTable;      // Table of id/handler records the task answers messages with
-    u8           spawnType;     // Body kind (0 none, 1 TMD model, 2 coordinate body); 0xFF marks a task to collect
-    u8           priority;      // List position; lower runs earlier, and selects which pass picks the task up
-    s16          killCountdown; // Frames left before the body is released; the task's own timer otherwise
-    TaskBody     extra;         // The body the task owns, attached and released according to `spawnType`
-    s32          state;         // Index a handler dispatches on to pick its per-state function
-    TaskSpawnArg spawnArg1;     // First argument, interpreted by the task type.
-    u8           status;        // The task's own byte; the task system records a stop request in it as 0xFF
-    byte         unknown_39[3];
+    TaskFunc     exitCallback;  // Teardown handler; initially taskKill, replaced by callbacks with nested resources
+    void*        work;          // Callback-defined work block; default teardown frees it, so borrowed storage must be cleared first
+    TaskSpawnArg spawnArg2;     // Second mutable payload word; callback defines values, pointer type and lifetime
+    const void*  msgTable;      // Borrowed id/handler table, or NULL; handler signatures and required ids are receiver-specific
+    u8           bodyKind;      // Body kind (0 none, 1 TMD model, 2 coordinate body, 0xFF released and awaiting collection)
+    u8           priority;      // Ascending execution order at insertion; also the exact byte selected by filtered passes
+    s16          killCountdown; // Callback-owned signed counter; remaining callback ticks during deferred body teardown
+    TaskBody     extra;         // The body the task owns, attached and released according to `bodyKind`
+    s32          state;         // Callback-defined state or counter, often an index into a handler table
+    TaskSpawnArg spawnArg1;     // First mutable payload word; callback defines values, pointer type and lifetime
+    u8           status;        // Callback-defined byte; 0xFF signals a stop request to Task_PollKill
+    byte         unknown_39[3]; // No field access established; role unproven
     union {
         s32   value;
         void* pointer;
-    } extraState; // Stop-request word or task-owned payload, including command replies
-    byte unknown_40[8];
+    } extraState;       // Callback-defined integer or borrowed pointer; result word returned with a stop request
+    byte unknown_40[8]; // No field access established; role unproven
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 

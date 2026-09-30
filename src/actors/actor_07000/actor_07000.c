@@ -1192,7 +1192,7 @@ static __inline__ void Actor107000_TickAnim(Task* task)
 /// `Actor07000_Fn02CAC` as the exit callback. The spawn arg's high halfword is the variant
 /// the model was spawned as - when it is 1 the specimen is killed instead, and
 /// the same halfword plus the low one seed `field_2DC`/`field_2D6`. Variant 1
-/// with a matching `spawnType` is the one that carries a streamed model: its
+/// with a matching `bodyKind` is the one that carries a streamed model: its
 /// texture page and CLUT row are stepped before the model is re-streamed twice.
 static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
 {
@@ -1215,7 +1215,7 @@ static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
@@ -1298,7 +1298,7 @@ static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
     work->field_2DC    = (s16)(arg1->spawnArg1.value >> 16);
     v                  = (u16)arg1->spawnArg1.value;
     work->field_2D6    = v;
-    if ((s16)v == 1 && arg1->spawnType == (s16)v) {
+    if ((s16)v == 1 && arg1->bodyKind == (s16)v) {
         obj->texturePageOffset = obj->texturePageOffset + 1;
         obj->clutRowOffset     = obj->clutRowOffset + 1;
         if (obj->buffer != 0) {
@@ -1998,7 +1998,7 @@ static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
     obj->flags          = TMD_OBJECT_HIDDEN;
@@ -2641,7 +2641,7 @@ static void Actor07000_Fn02E0C(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     coord6              = &coord[6];
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3683,7 +3683,7 @@ static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     work->field_366     = (u16)arg1->spawnArg1.value;
     work->field_364     = (s16)(arg1->spawnArg1.value >> 16);
     obj->flags         |= TMD_OBJECT_HIDDEN;

@@ -1207,7 +1207,7 @@ static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
         taskKill(task);
         return 0;
     }
-    task->work = (TaskIdMap*)pos;
+    task->work = pos;
     coord      = task->extra.tmd->coords;
     if (arg1 != NULL) {
         pos->vx = arg1->vx;

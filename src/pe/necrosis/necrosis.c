@@ -140,7 +140,7 @@ void func_necrosis_8012EF34(Task* arg0)
             gte_stsv(&mem->move);
             rec                = &work->rec;
             mem->index         = (Gp_StateC08.field_0 % 10) - 1;
-            arg0->work         = (TaskIdMap*)work;
+            arg0->work         = work;
             work->obj.coord    = coord;
             work->obj.ctx.recs = rec;
             work->obj.key =

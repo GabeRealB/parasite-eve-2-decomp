@@ -369,7 +369,7 @@ static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work           = (TaskIdMap*)work;
+    task->work           = work;
     tmd->flags           = 0;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     tmd->lightMtx        = &work->field_45C;

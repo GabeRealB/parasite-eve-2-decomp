@@ -949,7 +949,7 @@ static void func_actor_503500_80132430(Task* arg0)
         return;
     }
 
-    arg0->work     = (TaskIdMap*)work;
+    arg0->work     = work;
     ext->flags    |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);

@@ -3117,7 +3117,7 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
         taskKill(task);
         return;
     }
-    task->work    = (TaskIdMap*)work;
+    task->work    = work;
     work->field_0 = 0;
     flags         = obj->flags | TMD_OBJECT_HIDDEN;
     obj->flags    = flags;
@@ -3302,7 +3302,7 @@ static void func_dryfield_dilapidated_house_8018118C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work     = (TaskIdMap*)work;
+    arg0->work     = work;
     work->field_20 = 0x1000;
     work->mtx      = coord->coord;
     obj->flags    |= TMD_OBJECT_HIDDEN;
@@ -3403,7 +3403,7 @@ static void func_dryfield_dilapidated_house_801814B4(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     for (i = 0; i < 0x10; i++) {
         work->step[i] = (D_dryfield_dilapidated_house_80186804[i] * arg0->spawnArg1.value) & 0x3FFF;
     }

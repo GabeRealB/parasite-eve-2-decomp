@@ -253,7 +253,7 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work              = (TaskIdMap*)work;
+    arg1->work              = work;
     obj->flags              = 0;
     coord->composeStamp     = GRAPHICS_COORD_DIRTY;
     obj->texturePageOffset += 1;
@@ -925,7 +925,7 @@ void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_1BC;

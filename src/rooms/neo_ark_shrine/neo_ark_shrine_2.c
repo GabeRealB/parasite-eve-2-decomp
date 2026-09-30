@@ -1321,7 +1321,7 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
         return;
     }
     task->spawnArg2.pointer           = Task_SpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                        = (TaskIdMap*)st;
+    task->work                        = st;
     Mc_SaveData[0].state.at4.loc.view = 0xB;
     /* The once-loop folds away, but flow counts its references at loop depth
        2: without it the parameter's priority (6*2/42) loses to the state
@@ -1639,7 +1639,7 @@ static void func_neo_ark_shrine_8017F4C8(Task* task)
     extra      = task->extra.tmd;
     coord      = extra->coords;
     st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
-    task->work = (TaskIdMap*)st;
+    task->work = st;
     if (st == NULL) {
         taskKill(task);
         return;
@@ -1704,7 +1704,7 @@ static void func_neo_ark_shrine_8017F688(Task* task)
     extra      = task->extra.tmd;
     coord      = extra->coords;
     st         = (NeoArkShrineFall*)memCalloc(sizeof(NeoArkShrineFall), 0);
-    task->work = (TaskIdMap*)st;
+    task->work = st;
     if (st == NULL) {
         taskKill(task);
         return;

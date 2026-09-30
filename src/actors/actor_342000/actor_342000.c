@@ -505,7 +505,7 @@ void func_actor_342000_8016201C(Task* arg0)
     if (arg0->state == 0) {
         extra      = arg0->extra.tmd;
         mtx        = (ActorLitWork*)Mem_Malloc(0x44, 0);
-        arg0->work = (TaskIdMap*)mtx;
+        arg0->work = mtx;
         if (mtx == NULL) {
             taskKill(arg0);
         } else {
@@ -580,7 +580,7 @@ static void func_actor_342000_80162158(Task* arg0)
 
     extra      = arg0->extra.tmd;
     work       = (Actor342000Work*)Mem_Malloc(0x2AC, 0);
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -1142,7 +1142,7 @@ void func_actor_342000_8016382C(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (Actor342000EventWork*)memCalloc(0x80U, false);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
             } else {
@@ -1279,7 +1279,7 @@ void func_actor_342000_80163EAC(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)memCalloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

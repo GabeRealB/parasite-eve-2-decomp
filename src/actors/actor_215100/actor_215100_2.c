@@ -2209,7 +2209,7 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
     coord      = obj->coords;
     mem        = (Actor160600Work*)memCalloc(0x4F8, false);
     work       = mem;
-    task->work = (TaskIdMap*)mem;
+    task->work = mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

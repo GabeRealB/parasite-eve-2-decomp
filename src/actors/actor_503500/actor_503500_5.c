@@ -1141,7 +1141,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work     = (TaskIdMap*)work;
+    arg0->work     = work;
     work->field_C4 = 0x1000;
 
     m1          = (GpMtxWords*)&coord->coord;
@@ -1388,7 +1388,7 @@ static void func_actor_503500_801455A4(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
 
     m          = (GpMtxWords*)&coord->coord;
     m->m00_m01 = 0x1000;
@@ -1535,7 +1535,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
 
     m          = (GpMtxWords*)&coord->coord;
     m->m00_m01 = 0x1000;
@@ -1850,7 +1850,7 @@ static void func_actor_503500_8014642C(Task* arg0)
         return;
     }
 
-    arg0->work         = (Actor503500Work*)work;
+    arg0->work         = work;
     work->model.animId = -1;
     work->model.bank   = -1;
     work->field_4C8    = -1;

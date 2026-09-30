@@ -173,7 +173,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             } else if (arg0->spawnArg1.value == 1) {
                 arg0->spawnArg1.value = 0;
             }
-            arg0->work         = (TaskIdMap*)work;
+            arg0->work         = work;
             work->obj.coord    = coord;
             work->obj.ctx.recs = &work->rec;
             work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +

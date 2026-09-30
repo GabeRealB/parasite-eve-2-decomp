@@ -3165,7 +3165,7 @@ static void Actor00300_Fn040A4(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work         = (TaskIdMap*)work;
+    arg1->work         = work;
     scratch->offset.vx = 0;
     scratch->offset.vy = -0x5DC;
     scratch->offset.vz = 0x320;

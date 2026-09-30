@@ -706,7 +706,7 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work      = (TaskIdMap*)work;
+    arg1->work      = work;
     extra->lightMtx = &work->field_184;
     extra->flags    = 0;
     extra->colorMtx = &work->field_164;

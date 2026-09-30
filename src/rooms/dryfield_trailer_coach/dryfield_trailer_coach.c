@@ -1921,7 +1921,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     line               = D_dryfield_trailer_coach_80185368.data.options;
     table              = (s32)D_dryfield_trailer_coach_80185368.data.options;
     off                = 8;
-    task->work         = (TaskIdMap*)block;
+    task->work         = block;
     task->exitCallback = func_dryfield_trailer_coach_801827D0;
 
     for (; i < 2; i++) {

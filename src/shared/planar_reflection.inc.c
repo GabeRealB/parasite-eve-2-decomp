@@ -78,7 +78,7 @@ static void Reflection_InitPlayer(Task* task)
         taskKill(task);
         return;
     }
-    task->work               = (TaskIdMap*)work;
+    task->work               = work;
     extra->texturePageOffset = 6;
     tmdProcessStream(extra);
     tmdProcessStream(extra);

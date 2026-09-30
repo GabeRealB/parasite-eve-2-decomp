@@ -536,7 +536,7 @@ void func_dryfield_breezeway_8017E010(Task* arg0)
     switch (arg0->state) {
         case 0:
             work       = (DbwWork*)Mem_Malloc(0x14, 0);
-            arg0->work = (TaskIdMap*)work;
+            arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
             } else {
@@ -587,7 +587,7 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
                 return;
             }
             work       = (DbwWork*)Mem_Malloc(0x14, 0);
-            arg0->work = (TaskIdMap*)work;
+            arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
             } else {
@@ -718,7 +718,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     arg0->spawnArg2.pointer = Task_SpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
     do {
         arg0->msgTable                    = D_dryfield_breezeway_80182DCC;
-        arg0->work                        = (TaskIdMap*)work;
+        arg0->work                        = work;
         Mc_SaveData[0].state.at4.loc.view = 6;
     } while (0);
     arg0->state   += 1;

@@ -638,7 +638,7 @@ static void func_actor_205200_8014AE0C(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work     = (TaskIdMap*)part;
+    arg1->work     = part;
     part->field_78 = pwork->field_20;
     pwork->field_20++;
     pwork->field_0[part->field_78]  = coord;

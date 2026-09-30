@@ -2306,7 +2306,7 @@ void func_actor_403600_80135C28(Task* arg0)
     if (arg0->state == 0) {
         temp_v0_2 = memCalloc(0xE8, 0);
         if (temp_v0_2 != NULL) {
-            arg0->work          = (TaskIdMap*)temp_v0_2;
+            arg0->work          = temp_v0_2;
             temp_v0_2->field_E0 = 0;
             sp10                = D_actor_403600_80131E2C;
             Gp_CopyCoordOffset(arg0, &temp_s2->parent->extra.tmd->coords[1], &sp10);

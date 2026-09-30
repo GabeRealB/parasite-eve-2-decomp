@@ -725,7 +725,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = Mem_Malloc(0x10, false);
-                task->work = (TaskIdMap*)work;
+                task->work = work;
                 if (work == NULL) {
                     taskKill(task);
                 } else {
@@ -784,7 +784,7 @@ void func_dryfield_gas_station_80180984(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

@@ -564,7 +564,7 @@ static void Shop_ItemListTask(Task* task)
         mem = memCalloc(sizeof(RoomShopList), 0);
         if (mem != NULL) {
             shop               = mem;
-            task->work         = (TaskIdMap*)shop;
+            task->work         = shop;
             shop->list.funcs   = Shop_Data_80181AD8;
             shop->list.field_6 = 0;
             shop->list.field_7 = 0xF;

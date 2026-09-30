@@ -16991,7 +16991,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 return;
             }
             work       = (Actor303600Work*)Mem_Malloc(0x10, 0);
-            arg0->work = (TaskIdMap*)work;
+            arg0->work = work;
             if (work == NULL) {
                 taskKill(arg0);
             } else {
@@ -17037,7 +17037,7 @@ void func_actor_303600_801622E8(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -17077,7 +17077,7 @@ void func_actor_303600_801623CC(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -17210,7 +17210,7 @@ static void func_actor_303600_801626C0(Task* task)
         taskKill(task);
         return;
     }
-    task->work        = (TaskIdMap*)work;
+    task->work        = work;
     coord             = task->extra.tmd->coords;
     coord->coord.t[0] = 0;
     coord->coord.t[1] = 0;
@@ -17350,7 +17350,7 @@ static void func_actor_303600_80162950(Task* task)
         return;
     }
 
-    task->work          = (TaskIdMap*)mats;
+    task->work          = mats;
     coord->parent       = parentCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_303600_80162A0C(task);

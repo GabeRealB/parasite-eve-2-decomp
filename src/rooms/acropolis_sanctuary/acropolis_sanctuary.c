@@ -1781,7 +1781,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
         case 0:
             if (Gp_StateC08.field_A != 1 && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 work       = memCalloc(0xC, 0);
-                arg0->work = (TaskIdMap*)work;
+                arg0->work = work;
                 if (work == NULL) {
                     taskKill(arg0);
                 } else {

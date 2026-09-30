@@ -2058,7 +2058,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
-    task->work              = (TaskIdMap*)work;
+    task->work              = work;
     work->blinkTimer        = 0;
     stateElse               = 6;
     flag                    = GameFlag_GetNibble(0x2A);
@@ -3183,7 +3183,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
     }
     task->spawnArg2.pointer           = Task_SpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
     task->msgTable                    = D_acropolis_security_room_801826CC;
-    task->work                        = (TaskIdMap*)st;
+    task->work                        = st;
     Mc_SaveData[0].state.at4.loc.view = 6;
     task->state++;
     st->field_0 = 0;
@@ -3540,7 +3540,7 @@ void func_acropolis_security_room_80180368(Task* task)
 
 L_case0:
     alloc      = (AsrAmbienceState*)memCalloc(sizeof(AsrAmbienceState), 0);
-    task->work = (TaskIdMap*)alloc;
+    task->work = alloc;
     if (alloc == NULL) {
         taskKill(task);
         return;

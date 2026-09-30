@@ -2884,10 +2884,10 @@ void Gp_SpawnArea(GameLocationKey* location)
                         enemy->place    = placement;
                         enemy->placeKey = placementKey;
                         task            = enemy->task;
-                        if (task->spawnType != 0) {
+                        if (task->bodyKind != TASK_BODY_NONE) {
                             model = task->extra.tmd;
                             coord = model->coords;
-                            if (task->spawnType == 1) {
+                            if (task->bodyKind == TASK_BODY_TMD) {
                                 model->texturePageOffset = placement->texturePageOffset;
                                 model->clutRowOffset     = placement->clutRowOffset;
                                 if (model->buffer != NULL) {
@@ -3175,7 +3175,7 @@ void Gp_ApplyAreaTmdFlags(void)
         iter = head;
         do {
             work = iter->spawnArg2.pointer;
-            if (iter->spawnType == 1) {
+            if (iter->bodyKind == TASK_BODY_TMD) {
                 key   = &Mc_SaveData[0].state.at4.loc;
                 idx   = key->stage;
                 extra = iter->extra.tmd;
@@ -3639,7 +3639,7 @@ void Gp_FreeSlot4TmdBuffers(void)
     if (child != NULL) {
         iter = child;
         do {
-            if (iter->spawnType == 1) {
+            if (iter->bodyKind == TASK_BODY_TMD) {
                 obj         = iter->extra.tmd;
                 obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                 Tmd_FreeBuffers(obj);
@@ -3680,7 +3680,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
             enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
-                if (task->spawnType != 0) {
+                if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
                     enemy->placeKey     = place->field_0 | (place->field_4 << 8);

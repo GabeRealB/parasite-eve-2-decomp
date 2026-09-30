@@ -1924,7 +1924,7 @@ static void func_acropolis_cafeteria_801818DC(Task* task)
         taskKill(task);
         return;
     }
-    task->work         = (TaskIdMap*)work;
+    task->work         = work;
     task->exitCallback = func_acropolis_cafeteria_80181E3C;
     task->state        = task->state + 1;
     Mem_Set(work, 0, 0xD8);

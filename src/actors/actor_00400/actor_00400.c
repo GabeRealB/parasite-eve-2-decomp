@@ -2855,7 +2855,7 @@ static void Actor00400_Fn03920(Task* arg0)
                 if (quad == NULL) {
                     taskKill(task);
                 } else {
-                    task->work           = (TaskIdMap*)quad;
+                    task->work           = quad;
                     quad->vertices[0].vx = (u16)pos->coord.t[0] - 0x5DC;
                     quad->vertices[0].vy = y;
                     quad->vertices[0].vz = (u16)pos->coord.t[2] - 0x5DC;
@@ -4093,7 +4093,7 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
             tip.vz  = height;
             Actor00400_Fn0A08C(span, &base);
             Actor00400_Fn0A08C(span, &tip);
-            task->work = (TaskIdMap*)marker;
+            task->work = marker;
             dst        = task->extra.tmd->coords;
             pos.vx     = 0;
             pos.vy     = 0;

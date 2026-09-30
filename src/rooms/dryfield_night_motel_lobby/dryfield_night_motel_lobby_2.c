@@ -958,7 +958,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
         return;
     }
     task->spawnArg2.pointer           = Task_SpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
-    task->work                        = (TaskIdMap*)work;
+    task->work                        = work;
     Mc_SaveData[0].state.at4.loc.view = 6;
     /* The once-loop folds away, but `flow` counts its references at loop depth
        2: without it the state load is scheduled above the mode store. */

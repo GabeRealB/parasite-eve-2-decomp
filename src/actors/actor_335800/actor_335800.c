@@ -1247,7 +1247,7 @@ static void func_actor_335800_80162640(Task* arg0)
         Gp_EnemyTaskExit(arg0);
         return;
     }
-    arg0->work          = (TaskIdMap*)work;
+    arg0->work          = work;
     work->model.animId  = -1;
     work->model.bank    = -1;
     work->freeCountdown = -1;
@@ -1945,7 +1945,7 @@ static void func_actor_335800_80163AA0(Task* arg0)
         return;
     }
 
-    arg0->work          = (TaskIdMap*)work;
+    arg0->work          = work;
     work->model.animId  = -1;
     work->model.bank    = -1;
     work->freeCountdown = -1;

@@ -1864,7 +1864,7 @@ static void Actor02500_Fn025D0(GpEnemy* ctx, Task* task)
         Gp_DestroyEnemy(ctx, task);
         return;
     }
-    task->work          = (Actor02500Work*)work;
+    task->work          = work;
     coord->parent       = &gGfxViewCoord;
     coord->coord        = parentCoord->coord;
     coord->coord.t[0]   = parentCoord->coord.t[0];

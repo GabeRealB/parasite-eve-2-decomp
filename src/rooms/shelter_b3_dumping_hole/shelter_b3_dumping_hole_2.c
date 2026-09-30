@@ -2301,7 +2301,7 @@ void func_shelter_b3_dumping_hole_8017E440(Task* arg0)
             coord->coord.t[0] = vec.vx;
             coord->coord.t[1] = vec.vy;
             coord->coord.t[2] = vec.vz;
-            arg0->work        = (TaskIdMap*)Mem_Malloc(0x24, 0);
+            arg0->work        = Mem_Malloc(0x24, 0);
             if (arg0->work == NULL) {
                 taskKill(arg0);
                 return;
@@ -2392,7 +2392,7 @@ static void func_shelter_b3_dumping_hole_8017E7DC(Task* arg0)
     cfg        = (DumpingHoleCoordCfg*)arg0->spawnArg2.pointer;
     coord      = extra->coords;
     work       = (DumpingHoleCoordWork*)Mem_Malloc(0x5C, 0);
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
         return;
@@ -2877,7 +2877,7 @@ void func_shelter_b3_dumping_hole_8017FBA0(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -2920,7 +2920,7 @@ void func_shelter_b3_dumping_hole_8017FCF4(GfxCoord* arg0, SVECTOR* arg1)
 
     task       = Task_SpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 1, 0, arg0);
     work       = (DumpingHoleSpawnWork*)Mem_Malloc(0x24, 0);
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         taskKill(task);
         return;
@@ -3679,7 +3679,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     if (work == NULL) {
         goto kill;
     }
-    arg0->work   = (TaskIdMap*)work;
+    arg0->work   = work;
     work->enemy0 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     work->enemy1 = Gp_SpawnEnemyFromTable(&D_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {

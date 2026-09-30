@@ -432,8 +432,8 @@ void Gp_FlashWhiteTask(Task* task)
 
 s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GpMsgEntry* temp;
-    GpMsgEntry* entry;
+    const GpMsgEntry* temp;
+    const GpMsgEntry* entry;
 
     temp = arg0->msgTable;
     if (temp == NULL) {

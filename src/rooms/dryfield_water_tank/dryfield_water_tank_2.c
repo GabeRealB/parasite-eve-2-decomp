@@ -885,7 +885,7 @@ void func_dryfield_water_tank_8017E3C4(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 goto kill;
             }
@@ -1134,7 +1134,7 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
 L_case0:
     if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
         work       = Mem_Malloc(0xC, false);
-        task->work = (TaskIdMap*)work;
+        task->work = work;
         if (work == NULL) {
             taskKill(task);
         } else {

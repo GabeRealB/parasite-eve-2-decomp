@@ -4108,7 +4108,7 @@ static void func_mine_cavern_801836D0(GpEnemy* arg0, Task* arg1)
 
     mem        = (MineCavernWork*)memCalloc(0x14C, false);
     work       = mem;
-    arg1->work = (TaskIdMap*)mem;
+    arg1->work = mem;
     if (mem == NULL) {
         Gp_DestroyEnemy(arg0, arg1);
         return;

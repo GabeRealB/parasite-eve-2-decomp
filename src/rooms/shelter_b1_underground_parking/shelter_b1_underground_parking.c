@@ -2875,7 +2875,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
         return;
     }
     task->spawnArg2.pointer           = Task_SpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
-    task->work                        = (TaskIdMap*)st;
+    task->work                        = st;
     Mc_SaveData[0].state.at4.loc.view = 0x15;
     /* The once-loops fold away, but flow weights the references inside them
        by loop depth. The outer one keeps the state load below the mode store;

@@ -212,19 +212,19 @@ static s32 func_aya_20900_80115A14(Task* arg0)
 
 void func_aya_20900_80115CFC(Task* arg0)
 {
-    TaskIdMap* temp_v0;
-    s32        temp_v1;
+    Aya20900Work* work;
+    s32           temp_v1;
 
     temp_v1 = arg0->state;
     switch (temp_v1) { /* irregular */
         case 0:
-            temp_v0    = Mem_Malloc(8U, false);
-            arg0->work = temp_v0;
-            if (temp_v0 == NULL) {
+            work       = Mem_Malloc(sizeof(*work), false);
+            arg0->work = work;
+            if (work == NULL) {
                 taskKill(arg0);
                 return;
             }
-            Mem_Set(temp_v0, 0U, 8U);
+            Mem_Set(work, 0U, sizeof(*work));
             arg0->state += 1;
         case 1:
             if ((func_aya_20900_80115A14(arg0) << 0x10) != 0) {

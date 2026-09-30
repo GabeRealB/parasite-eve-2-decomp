@@ -3150,7 +3150,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     coord = arg0->extra.tmd->coords;
     tmd   = arg0->extra.tmd;
     Mem_Set(work, 0, 0x2EC);
-    arg0->work = (Actor503500Work*)work;
+    arg0->work = work;
 
     coord->parent     = &arg0->parent->extra.tmd->coords[1];
     part              = &coord[8];

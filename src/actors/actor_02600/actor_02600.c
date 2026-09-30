@@ -2128,7 +2128,7 @@ static void Actor02600_Fn02FFC(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->work         = (void*)work;
+    actor->work         = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_1F4;
@@ -2671,7 +2671,7 @@ static void Actor02600_Fn03E2C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work                 = (TaskIdMap*)work;
+    task->work                 = work;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&gGfxViewCoord);
     parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;

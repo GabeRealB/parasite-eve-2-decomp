@@ -425,7 +425,7 @@ static void func_actor_350500_801623CC(Task* arg0)
         return;
     }
 
-    arg0->work          = (TaskIdMap*)work;
+    arg0->work          = work;
     work->model.animId  = -1;
     work->model.bank    = -1;
     work->freeCountdown = -1;

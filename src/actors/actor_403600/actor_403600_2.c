@@ -5007,7 +5007,7 @@ static void func_actor_403600_80141D30(GpEnemy* arg0, Task* arg1)
         return;
     }
 
-    arg1->work                   = (TaskIdMap*)work;
+    arg1->work                   = work;
     work->field_4B8.parent       = &gGfxViewCoord;
     matrix                       = &work->field_4B8.coord;
     MATRIX_PAIR(matrix, 0, 0)    = 0x1000;

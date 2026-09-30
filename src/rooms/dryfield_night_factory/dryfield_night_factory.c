@@ -261,7 +261,7 @@ static void func_dryfield_night_factory_8017D6F8(Task* task)
         taskKill(task);
         return;
     }
-    task->work     = (TaskIdMap*)work;
+    task->work     = work;
     work->field_0  = GameFlag_GetNibble(0x49);
     work->field_16 = -1;
     work->field_17 = -1;
@@ -1254,7 +1254,7 @@ static void func_dryfield_night_factory_8017FBF4(Task* task)
         taskKill(task);
         return;
     }
-    task->work   = (TaskIdMap*)work;
+    task->work   = work;
     flags        = model->flags | TMD_OBJECT_HIDDEN;
     model->flags = flags;
     if (!(capModel->flags & TMD_OBJECT_HIDDEN)) {

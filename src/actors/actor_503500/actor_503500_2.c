@@ -1697,7 +1697,7 @@ void func_actor_503500_80132778(Task* task)
             taskKill(task);
             return;
         }
-        task->work      = (TaskIdMap*)work;
+        task->work      = work;
         work->field_0   = 0xC00;
         work->field_4   = 0x4000;
         work->field_8.w = 0x60000;

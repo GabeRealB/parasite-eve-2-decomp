@@ -377,7 +377,7 @@ static void func_actor_111800_80132390(Task* task)
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
-    task->work = (TaskIdMap*)memCalloc(0x498, false);
+    task->work = memCalloc(0x498, false);
     if (task->work == NULL) {
         taskKill(task);
         return;

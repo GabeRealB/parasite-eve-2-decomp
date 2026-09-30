@@ -2524,7 +2524,7 @@ static void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
     coord   = obj->coords;
     workMem = memCalloc(0x4F8, 0);
     work    = (Actor160600Work*)workMem;
-    if ((task->work = (TaskIdMap*)work) == NULL) {
+    if ((task->work = work) == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -2754,7 +2754,7 @@ static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
     work       = (Actor161500Work*)memCalloc(0x4FC, false);
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -3146,7 +3146,7 @@ static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
     coord   = obj->coords;
     workMem = memCalloc(0x4F8, 0);
     work    = (Actor160600Work*)workMem;
-    if ((task->work = (TaskIdMap*)work) == NULL) {
+    if ((task->work = work) == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

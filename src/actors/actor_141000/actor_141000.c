@@ -2144,7 +2144,7 @@ static void func_actor_141000_80132C7C(Task* task)
         taskKill(task);
         return;
     }
-    task->work    = (TaskIdMap*)work;
+    task->work    = work;
     work->field_0 = 0xFFF;
     obj->flags   &= (u16)~TMD_OBJECT_HIDDEN;
     func_actor_141000_80132FD0(coord, 0);
@@ -2606,7 +2606,7 @@ static void func_actor_141000_8013392C(Task* arg0)
         return;
     }
 
-    arg0->work          = (TaskIdMap*)work;
+    arg0->work          = work;
     work->model.animId  = -1;
     work->model.bank    = -1;
     work->field_4C9     = -1;

@@ -5,7 +5,7 @@ with a per-frame callback, optional parent/child links, and an optional TMD mode
 or single-coordinate body. There is no separate entity list. Enemies, UI, camera,
 memcard, title, and room overlays are all spawned the same way.
 
-Field-level layouts: [`include/main/task.h`](../include/main/task.h).
+Field-level layouts: [`include/main/task_types.h`](../include/main/task_types.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
 Naming: [`NAMING.md`](../NAMING.md) (`Task_` / `TaskDesc`).
 
@@ -30,7 +30,7 @@ of function pointers, not a cast list.
 
 ### 1.1 `Task` (0x48)
 
-Allocated with `memCalloc(0x48, 0)`. Inserted into the **active list**
+Allocated with `memCalloc(sizeof(Task), 0)` (0x48 bytes). Inserted into the **active list**
 (`gTaskActiveList`, usually `gTaskDefaultList`) in **priority order**: lower
 `priority` runs earlier. Typical values:
 
@@ -48,9 +48,13 @@ walks the ring and is self when the task is an only child. `taskKill` runs
 every child’s `exitCallback` first (with `parent` cleared). `Task_Reparent`
 moves a live task onto another parent’s ring.
 
-`work` is an optional `TaskIdMap*` (`memCalloc(8)` in `Task_AllocIdMap`).
-Kill always `memFree`s it. UI, scripts, and title reuse the slot as a work
-pointer (`TitleWork`, `GpState34`, …) — the type is a lie at those call sites.
+`work` is an opaque `void*` to callback-defined storage. Default teardown
+passes a non-NULL value to `memFree`, so heap work belongs to the primary heap;
+callbacks release any nested resources first. A callback using borrowed storage
+must clear `work` before invoking default teardown. For example, the actor_503500
+tasks use static work slots and clear the pointer in their exit handlers.
+`Task_AllocIdMap` supplies one particular eight-byte work allocation; UI,
+scripts, title and other tasks supply their own types.
 
 ### 1.2 Spawn
 
@@ -72,7 +76,7 @@ Task* Task_SpawnFromDesc(TaskDesc* desc, s32 spawnArg1, s32 spawnArg2, TaskNode*
 | 0x4 | `callback` | Per-frame entry (`Task::callback`) |
 | 0x8 | `arg.model` / `arg.value` | Type-1 only, the `TmdSource*` for `Gp_AttachTmdFlags`; the descriptor's own value otherwise |
 
-Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
+Spawn type (low byte of `flags`, stored as `Task::bodyKind`) is the body:
 
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
@@ -81,7 +85,7 @@ Spawn type (low byte of `flags`, stored as `Task::spawnType`) is the body:
 | 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
 `TaskBody` holds one allocation pointer. Select its typed member using
-`spawnType`: a model owns `partCount` coordinates, while a coordinate body owns
+`bodyKind`: a model owns `partCount` coordinates, while a coordinate body owns
 exactly one. `extra.allocation` supplies the kind-independent NULL check during
 spawn. A copy of this union borrows the body; teardown leaves the pointer bits
 unchanged, so `TASK_BODY_RELEASED` forbids further body access.
@@ -101,7 +105,7 @@ Each node’s `callback` runs. Two early-outs:
 
 - `gDisplayState.stopTaskWalk == 1` — abort the rest of the list this frame
   (gameflow uses this after killing the world and respawning).
-- `spawnType == 0xFF` — **tombstone**: unlink + `memFree` this node, continue.
+- `bodyKind == 0xFF` — **tombstone**: unlink + `memFree` this node, continue.
 
 `Task_ExecList` is the same walk on an arbitrary list.
 `Task_ExecListFiltered(list, pri)` only runs nodes whose `priority` equals
@@ -114,9 +118,9 @@ Each node’s `callback` runs. Two early-outs:
 1. Detaches children and calls each child’s `exitCallback`.
 2. Unlinks from the parent ring.
 3. Frees `work` if set.
-4. Tears down `extra` according to `spawnType`, releasing bodies immediately
+4. Tears down `extra` according to `bodyKind`, releasing bodies immediately
    when `gDisplayState.skipTeardown` is set.
-5. Normally sets `spawnType = 0xFF` for collection after the callback returns;
+5. Normally sets `bodyKind = 0xFF` for collection after the callback returns;
    the immediate path also unlinks and frees the task during this call.
 
 Type 1 often swaps `callback` to `taskCountdownCallback` with
@@ -332,12 +336,19 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 |------|-----------------|
 | `extra` | `TmdObject*` / TMD object (type 1) or a coordinate body (type 2) |
 | `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
-| `work` | Real `TaskIdMap*`, or abused as `TitleWork*` / script work / pad-lerp state |
-| `msgTable` | `GpMsgEntry*` table (`Gp_DispatchMsg`) |
+| `work` | Opaque `void*` to callback work; default teardown frees non-NULL primary-heap storage |
+| `msgTable` | Borrowed `const void*` to id/handler records; callbacks have receiver-specific signatures |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |
 | `status` | The task's own byte: a notice id, a course id, a parent's value copied down. `0xFF` is the stop request |
 | `killCountdown` | The task's own frame timer; the teardown delay while the task is being freed |
 | `extraState` | A payload the task carries; `Task_PollKill` hands it back with the stop request |
+
+Message tables use an id word followed by a handler address, but their handler
+parameter counts, payload types and return types vary. `Gp_DispatchMsg` reads
+through a const `GpMsgEntry` view and supplies four ABI words. A caller must use
+an id supported by the receiver or a table with the dispatcher's
+`0x7FFFFFFF` terminator; some installed tables have no such terminating entry.
+The task borrows the table and never releases it.
 
 `Game_SetPtrSlot` / `gameGetPtrSlot` (`GameSession::ptrSlots`) is a parallel
 pointer table some tasks publish into; it is not the task list.

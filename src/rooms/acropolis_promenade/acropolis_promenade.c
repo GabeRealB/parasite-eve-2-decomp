@@ -1718,7 +1718,7 @@ static void func_acropolis_promenade_8017DAA4(Task* task)
         taskKill(task);
         return;
     }
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     work->field_0       = 0;
     extra->flags        = 0;
     coord->parent       = &gGfxViewCoord;
@@ -1773,7 +1773,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
     switch (task->state) {
         case 0:
             blk        = memCalloc(0x14, 0);
-            task->work = (TaskIdMap*)blk;
+            task->work = blk;
             if (blk == NULL) {
                 taskKill(task);
                 break;

@@ -2968,7 +2968,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
             case 0:
                 aim = memCalloc(sizeof(GpHeadAim), false);
                 if (aim != NULL) {
-                    arg0->work      = (TaskIdMap*)aim;
+                    arg0->work      = aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x200;
                     arg0->state++;
@@ -3026,7 +3026,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
             case 0:
                 aim = memCalloc(sizeof(GpHeadAim), false);
                 if (aim != NULL) {
-                    arg0->work      = (TaskIdMap*)aim;
+                    arg0->work      = aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x100;
                     arg0->state++;

@@ -423,7 +423,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if ((GameFlag_GetNibble(0xA) & 2) ||
-        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }
@@ -517,7 +517,7 @@ static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (GameFlag_GetNibble(1) >= 3 ||
-        (work = memCalloc(0x4CC, 0), task->work = (TaskIdMap*)work, work == NULL)) {
+        (work = memCalloc(0x4CC, 0), task->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, task);
         return;
     }

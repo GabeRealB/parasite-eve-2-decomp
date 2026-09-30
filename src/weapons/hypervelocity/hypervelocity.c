@@ -406,7 +406,7 @@ void func_hypervelocity_8011D830(Task* task)
             work->angle        = 0x500;
             Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
             work->period       = ((u32)Gp_LcgState >> 16) & 0xFFF;
-            task->work         = (TaskIdMap*)beam;
+            task->work         = beam;
             beam->obj.ctx.recs = beam->rec;
             beam->obj.radius   = 0x800;
             beam->obj.coord    = coord;

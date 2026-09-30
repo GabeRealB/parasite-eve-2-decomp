@@ -1033,7 +1033,7 @@ static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     obj        = task->extra.tmd;
     coord      = obj->coords;
     work       = memCalloc(sizeof(Actor223600Work), false);
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

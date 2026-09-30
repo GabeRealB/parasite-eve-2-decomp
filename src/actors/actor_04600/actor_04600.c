@@ -497,7 +497,7 @@ static __inline__ void Actor04600_TickAnim(Task* task)
 /// resets slots 1 and 2, then links the four bodies with their contact tables
 /// and installs `Actor04600_Fn02C08` as the exit callback. The spawn arg's two
 /// halves are kept in `field_2DC`/`field_2D6`; a low half of 1 matching the
-/// task's `spawnType` steps the model's texture page and CLUT row and
+/// task's `bodyKind` steps the model's texture page and CLUT row and
 /// re-streams it twice.
 static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
 {
@@ -520,7 +520,7 @@ static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
@@ -602,7 +602,7 @@ static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
     work->field_2DC    = (s16)(arg1->spawnArg1.value >> 16);
     v                  = (u16)arg1->spawnArg1.value;
     work->field_2D6    = v;
-    if ((s16)v == 1 && arg1->spawnType == (s16)v) {
+    if ((s16)v == 1 && arg1->bodyKind == (s16)v) {
         obj->texturePageOffset = obj->texturePageOffset + 1;
         obj->clutRowOffset     = obj->clutRowOffset + 1;
         if (obj->buffer != 0) {
@@ -1230,7 +1230,7 @@ static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
     obj->flags          = TMD_OBJECT_HIDDEN;
@@ -1847,7 +1847,7 @@ static void Actor04600_Fn02CD4(Task* task)
 /// resets slots 1 and 2, starts animation 1 with the light blend fully up and
 /// rolls the first 0x64..0xA3 frame wait, then links the three bodies with
 /// their contact tables. The placement's mode is kept in `field_2AC`; mode 1
-/// matching the task's `spawnType` steps the model's texture page and CLUT
+/// matching the task's `bodyKind` steps the model's texture page and CLUT
 /// row and re-streams it twice. `Actor04600_Fn04100` becomes the exit
 /// callback.
 static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
@@ -1870,7 +1870,7 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
+    arg1->work          = work;
     obj->flags          = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
@@ -1944,7 +1944,7 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     Gp_InitRec18Table(records3, 4, 0);
     work->field_184.flags = work->field_184.flags | 0xC200;
     work->field_2AC       = arg0->place->mode;
-    if (work->field_2AC == 1 && arg1->spawnType == work->field_2AC) {
+    if (work->field_2AC == 1 && arg1->bodyKind == work->field_2AC) {
         obj->texturePageOffset++;
         obj->clutRowOffset++;
         if (obj->buffer != NULL) {

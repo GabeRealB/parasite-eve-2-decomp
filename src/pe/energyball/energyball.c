@@ -209,7 +209,7 @@ void func_energyball_8012F180(Task* arg0)
                 mem->age = 0;
                 return;
             }
-            arg0->work   = (TaskIdMap*)work;
+            arg0->work   = work;
             mem->index   = (Gp_StateC08.field_0 % 10) - 1;
             mem->move.vx = 0;
             Gp_LcgState  = Gp_LcgState * 5 + 0x71357911;
@@ -232,7 +232,7 @@ void func_energyball_8012F180(Task* arg0)
                 Gp_UpdateCoord(coord);
             } else {
                 Gp_UpdateCoord(coord);
-                arg0->work         = (TaskIdMap*)work;
+                arg0->work         = work;
                 work->obj.ctx.recs = &work->rec;
                 work->obj.coord    = coord;
                 work->obj.key      = ((u16)(Gp_StateC08.field_0 / 100) - 1) * 9 +

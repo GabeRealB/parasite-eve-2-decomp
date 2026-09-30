@@ -682,7 +682,7 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
         case 0:
             if ((Gp_StateC08.field_A != 1) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = Mem_Malloc(0x10, false);
-                arg0->work = (TaskIdMap*)work;
+                arg0->work = work;
                 if (work == NULL) {
                     taskKill(arg0);
                 } else {
@@ -732,7 +732,7 @@ void func_dryfield_warehouse_8017E22C(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -770,7 +770,7 @@ void func_dryfield_warehouse_8017E308(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;

@@ -792,7 +792,7 @@ static void func_actor_135600_80132234(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     work->model.animId  = -1;
     work->model.bank    = -1;
     work->freeCountdown = -1;

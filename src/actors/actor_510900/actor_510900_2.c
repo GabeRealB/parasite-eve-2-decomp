@@ -2769,7 +2769,7 @@ static void func_actor_510900_801397F0(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work    = (TaskIdMap*)work;
+    arg1->work    = work;
     tmd->flags    = 0;
     scratch       = (Actor105600PlaceScratch*)SCRATCH_PUSH_BYTES(sizeof(Actor105600PlaceScratch));
     tmd->lightMtx = &work->lightMtx;
@@ -3143,7 +3143,7 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->work           = (TaskIdMap*)work;
+    task->work           = work;
     tmd->flags           = TMD_OBJECT_HIDDEN;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     tmd->lightMtx        = &work->lightMtx;
@@ -3433,7 +3433,7 @@ static void func_actor_510900_8013AD90(GpEnemy* enemy, Task* task)
         return;
     }
     mat                 = (GpMtxWords*)&coord->coord;
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     mat->m00_m01        = 0x1000;
     mat->m11_m12        = 0x1000;
     mat->m22            = 0x1000;

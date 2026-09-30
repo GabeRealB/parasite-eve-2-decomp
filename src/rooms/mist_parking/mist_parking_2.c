@@ -1076,7 +1076,7 @@ static void func_mist_parking_80183304(Task* task)
     line               = D_mist_parking_8018DF24;
     table              = (s32)D_mist_parking_8018DF24;
     off                = 8;
-    task->work         = (TaskIdMap*)block;
+    task->work         = block;
     task->exitCallback = func_mist_parking_80183434;
 
     for (; i < 2; i++) {

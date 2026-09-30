@@ -893,7 +893,7 @@ void func_actor_450900_80132548(Task* task)
                 taskKill(task);
                 return;
             }
-            task->work      = (TaskIdMap*)aim;
+            task->work      = aim;
             aim->yawLimit   = 0x100;
             aim->pitchLimit = 0x200;
             task->state++;

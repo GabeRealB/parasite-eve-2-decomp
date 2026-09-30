@@ -2250,7 +2250,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
     actor = slot->work;
 
     work       = (MistShootingGalleryWork*)memCalloc(0x24, 0);
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     if (work == NULL) {
         taskKill(arg0);
         return;

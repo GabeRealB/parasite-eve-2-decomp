@@ -2647,7 +2647,7 @@ static void func_acropolis_bridge_8017DA64(Task* task)
         taskKill(task);
         return;
     }
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     work->field_0       = 0;
     extra->flags        = 0;
     coord->parent       = &gGfxViewCoord;
@@ -2846,7 +2846,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
         return;
     }
     task->spawnArg2.pointer = Task_SpawnFromTable(&D_acropolis_bridge_80189830, 0, 1, 0);
-    task->work              = (TaskIdMap*)work;
+    task->work              = work;
     work->field_0           = 0x14;
     work->field_4           = 0xFFF;
     sess                    = &gGameSession->at4.loc;
@@ -5976,7 +5976,7 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     obj        = task->extra.tmd;
     coord      = obj->coords;
     work       = (AcropolisBridgeEnemyWork*)memCalloc(sizeof(AcropolisBridgeEnemyWork), 0);
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

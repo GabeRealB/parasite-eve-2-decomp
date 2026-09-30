@@ -897,7 +897,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     obj        = task->extra.tmd;
     work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
     mode       = arg1;
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         taskKill(task);
         return;
@@ -957,7 +957,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     obj        = task->extra.tmd;
     work       = (Actor310100Work*)Mem_Malloc(0x50C, false);
     mode       = arg1;
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         taskKill(task);
         return;
@@ -1019,7 +1019,7 @@ void func_actor_310100_801627BC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = (TaskIdMap*)Mem_Malloc(0x50C, false);
+            task->work = Mem_Malloc(0x50C, false);
             if (task->work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;
@@ -1091,7 +1091,7 @@ void func_actor_310100_801629FC(Task* task)
     }
     switch (task->state) {
         case 0:
-            task->work = (TaskIdMap*)(work = Mem_Malloc(0x50C, false));
+            task->work = (work = Mem_Malloc(0x50C, false));
             if (work == NULL) {
                 Gp_DestroyEnemy(task->spawnArg2.pointer, task);
                 return;

@@ -2339,7 +2339,7 @@ static void func_actor_511000_80132480(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->work           = (TaskIdMap*)work;
+    task->work           = work;
     work->field_478      = -1;
     work->field_47C      = -1;
     work->field_4D2      = 0;
@@ -2782,7 +2782,7 @@ static void func_actor_511000_80133034(Task* task)
         taskKill(task);
         return;
     }
-    task->work    = (TaskIdMap*)work;
+    task->work    = work;
     work->field_8 = -1;
     extra->flags |= TMD_OBJECT_HIDDEN;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);

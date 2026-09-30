@@ -1173,7 +1173,7 @@ static void func_actor_210700_80149F90(Task* task)
         Gp_EnemyTaskExit(task);
         return;
     }
-    task->work      = (TaskIdMap*)work;
+    task->work      = work;
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_53E = -1;

@@ -1372,7 +1372,7 @@ have_actor:
     Game_SetPtrSlot(task, 0xA);
     Mem_Set(actor, 0, 0x998);
     Mem_Set(block, 0, 0xD4);
-    task->work       = (TaskIdMap*)actor;
+    task->work       = actor;
     actor->field_910 = block;
     Gp_PumpTmdStream(task);
     actor->field_93C  = *arg3;

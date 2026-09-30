@@ -977,7 +977,7 @@ void func_actor_361100_80161E3C(Task* arg0)
                 Task_CallExit(arg0);
                 i = 0;
             }
-            arg0->work      = (TaskIdMap*)state;
+            arg0->work      = state;
             state->field_E0 = 1;
             state->field_8E = 1;
             i               = 0;
@@ -1370,7 +1370,7 @@ void func_actor_361100_801627D4(Task* task)
             case 0:
                 aim = memCalloc(sizeof(GpHeadAim), false);
                 if (aim != NULL) {
-                    task->work      = (TaskIdMap*)aim;
+                    task->work      = aim;
                     aim->yawLimit   = 0x300;
                     aim->pitchLimit = 0x200;
                     task->state++;
@@ -1577,7 +1577,7 @@ static void func_actor_361100_80162D28(Task* arg0)
         return;
     }
 
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     work->model.animId = -1;
     work->model.bank   = -1;
     work->field_4A2    = -1;
@@ -1836,7 +1836,7 @@ static void func_actor_361100_80163410(Task* arg0)
         return;
     }
 
-    arg0->work         = (TaskIdMap*)work;
+    arg0->work         = work;
     work->model.animId = -1;
     work->model.bank   = -1;
     work->field_4A2    = -1;

@@ -265,7 +265,7 @@ TmdObject* Gp_AttachTmd(Task* task, TmdSource* src)
         node->link.prev = last;
         list->prev      = &node->link;
         task->extra.tmd = node;
-        task->spawnType = TASK_BODY_TMD;
+        task->bodyKind  = TASK_BODY_TMD;
     }
     return node;
 }
@@ -298,7 +298,7 @@ ModelObjectCoordBody* gpAttachDisp2d(Task* task)
         node->link.prev       = last;
         list->prev            = &node->link;
         task->extra.coordBody = node;
-        task->spawnType       = TASK_BODY_DISP2D;
+        task->bodyKind        = TASK_BODY_DISP2D;
     } else {
         printf("new_disp_2d ----> NULL\n");
     }
@@ -320,7 +320,7 @@ TmdObject* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags)
         node->link.prev = last;
         list->prev      = &node->link;
         task->extra.tmd = node;
-        task->spawnType = TASK_BODY_TMD;
+        task->bodyKind  = TASK_BODY_TMD;
     }
     return node;
 }
@@ -418,7 +418,7 @@ static Task* _modelObjectFindTaskByCoord(GfxCoord* targetCoord)
     if (task != NULL) {
         do {
             found = 0;
-            switch (task->spawnType) {
+            switch (task->bodyKind) {
                 case TASK_BODY_TMD:
                     model     = task->extra.tmd;
                     partCount = model->partCount;

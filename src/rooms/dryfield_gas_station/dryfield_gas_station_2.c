@@ -133,7 +133,7 @@ void func_dryfield_gas_station_801801E4(Task* arg0)
     switch (arg0->state) {
         case 0:
             alloc      = (OverlayFadeWork*)Mem_Malloc(8, 0);
-            arg0->work = (TaskIdMap*)alloc;
+            arg0->work = alloc;
             if (alloc == NULL) {
                 taskKill(arg0);
                 return;
@@ -188,7 +188,7 @@ void func_dryfield_gas_station_801802C0(Task* task)
 
 L_case0:
     child      = Mem_Malloc(4, false);
-    task->work = (TaskIdMap*)child;
+    task->work = child;
     if (child == NULL) {
         taskKill(task);
         return;

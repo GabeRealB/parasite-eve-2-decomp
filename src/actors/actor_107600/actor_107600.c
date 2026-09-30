@@ -810,7 +810,7 @@ static void func_actor_107600_80131F10(Task* arg0)
         return;
     }
     work       = memCalloc(0x14C, false);
-    arg0->work = (TaskIdMap*)work;
+    arg0->work = work;
     if (work == NULL) {
         goto fail;
     }
@@ -1328,7 +1328,7 @@ static void func_actor_107600_80132ED0(Task* arg0)
     variant = (u8)arg0->spawnArg1.value;
     enemy   = arg0->spawnArg2.pointer;
     coord   = obj->coords;
-    if (variant == 0xFF || (work = (Actor107600Work*)memCalloc(0x16C, false), arg0->work = (TaskIdMap*)work, work == NULL)) {
+    if (variant == 0xFF || (work = (Actor107600Work*)memCalloc(0x16C, false), arg0->work = work, work == NULL)) {
         Gp_DestroyEnemy(enemy, arg0);
         return;
     }

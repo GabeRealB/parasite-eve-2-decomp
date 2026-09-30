@@ -1060,7 +1060,7 @@ static void func_acropolis_west_elevator_hall_8017F64C(Task* task)
         taskKill(task);
         return;
     }
-    task->work          = (TaskIdMap*)work;
+    task->work          = work;
     work->field_0       = 0;
     extra->flags        = 0;
     coord->parent       = &gGfxViewCoord;

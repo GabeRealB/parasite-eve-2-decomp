@@ -38,13 +38,13 @@ Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, T
 
 /// Kills a task and frees it: hands each child its own `exitCallback` with the
 /// child's `parent` cleared, unlinks the task from its parent's child ring, frees
-/// its `work` block, releases the body it owns according to `spawnType`, then
+/// its `work` block, releases the body it owns according to `bodyKind`, then
 /// unlinks and frees the task itself. Every task is spawned with this as its
 /// `exitCallback`, so a child tears itself down the same way.
 ///
 /// The task's own free is the part that waits, so that a task calling this from
 /// its own callback is not freed while that callback is still running: the body
-/// goes, and the task is marked `spawnType` 0xFF for the next exec pass to
+/// goes, and the task is marked `bodyKind` 0xFF for the next exec pass to
 /// collect. With `gDisplayState.skipTeardown` set, the body is released and the
 /// task unlinked and freed here instead.
 void taskKill(Task* task);

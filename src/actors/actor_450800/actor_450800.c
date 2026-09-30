@@ -2794,7 +2794,7 @@ static void func_actor_450800_80132160(GpEnemy* enemy, Task* task)
     obj        = task->extra.tmd;
     coord      = obj->coords;
     work       = memCalloc(0x504, 0);
-    task->work = (TaskIdMap*)work;
+    task->work = work;
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;
@@ -3125,7 +3125,7 @@ s32 func_actor_450800_80132C68(Task* task, s32 arg1, GpXformArg* placement)
 /// Message handler 0x7DB of `D_actor_450800_8014AC58`: recolour this actor's
 /// body (or spawn its 0x6002B burst) according to the message's selector.
 ///
-/// The model is the actor's own -- `task->extra.tmd`, the `TmdObject` a spawnType-1
+/// The model is the actor's own -- `task->extra.tmd`, the `TmdObject` a bodyKind-1
 /// task carries -- and the one it is driven through is that of the helper task
 /// in `Actor450800Work::field_4F8`. Both pointers, and `field_8` of the helper's
 /// model, are resolved before the switch: the ROM reads them there, and a
@@ -3217,7 +3217,7 @@ static void func_actor_450800_80132E9C(GpEnemy* enemy, Task* task)
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
-    task->work = (TaskIdMap*)(work = (Actor150400Work*)memCalloc(sizeof(Actor150400Work), false));
+    task->work = (work = (Actor150400Work*)memCalloc(sizeof(Actor150400Work), false));
     if (work == NULL) {
         Gp_DestroyEnemy(enemy, task);
         return;

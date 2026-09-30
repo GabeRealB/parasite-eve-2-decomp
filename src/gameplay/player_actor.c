@@ -5568,7 +5568,7 @@ have_task:
 
 have_actor:
     Game_SetPtrSlot(task, 3);
-    task->work = (TaskIdMap*)actor;
+    task->work = actor;
     Mem_Set(actor, 0, 0x998);
     actor->field_93C  = arg3->field_0;
     actor->field_52   = arg0->field_0;
