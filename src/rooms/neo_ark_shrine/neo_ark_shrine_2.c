@@ -1203,7 +1203,7 @@ static void func_neo_ark_shrine_8017EED4(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
     /* Without this the scheduler hoists the `spawnArg2` load above the
        `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -1263,7 +1263,7 @@ static void func_neo_ark_shrine_8017F094(Task* task)
     st                        = (NeoArkShrineScript*)task->work;
     D_neo_ark_shrine_8018686A = 1;
     func_neo_ark_shrine_8017EAC0();
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     st->timer = 0;
     task->state++;
 }

@@ -127,8 +127,11 @@ exit callbacks.
 3. Frees `work` if set.
 4. Tears down `extra` according to `bodyKind`, releasing bodies immediately
    when `gDisplayState.immediateTaskFree` is set.
-5. Normally sets `bodyKind = 0xFF` for collection after the callback returns;
-   the immediate path also unlinks and frees the task during this call.
+5. Normally marks non-model tasks `bodyKind = 0xFF` during this call; models
+   receive the mark when their release countdown finishes. A walker can collect
+   a marked task after callback dispatch during the same walk, unless a stop
+   request ends the walk first. The immediate path unlinks and frees the task
+   during this call without setting the mark.
 
 Normal type-1 teardown installs `taskCountdownCallback` with `killCountdown` 2
 instead of freeing the model in that call. That callback unlinks and frees the
@@ -139,6 +142,16 @@ Normal teardown installs `taskNoopCallback` as `exitCallback` to suppress
 repeated cleanup. For type 0/2 it also replaces `callback` with this inert
 handler; `bodyKind` is marked released during the same teardown call, and the
 execution pass collects the task after its callback returns.
+
+The task must be live and not already torn down. Direct `taskKill` calls bypass
+any replacement exit handler, so callers release nested resources and clear
+borrowed `work` first. Released work and body pointer slots are not cleared.
+Immediate release of a list's last task requires that list to be
+`gTaskDefaultList`, including when release comes from a child's exit handler:
+the unlink updates that head's tail regardless of the selected list. The
+previous selection is restored. Child exit handlers must preserve the sibling
+successor until the parent's post-handler read, including when releasing the
+child immediately; callers must not access a task after its immediate release.
 
 `Task_RequestKill` marks `status = 0xFF` and stashes a result in `extraState`;
 it installs `taskNoopCallback` to suspend frame updates. `Task_PollKill` reads

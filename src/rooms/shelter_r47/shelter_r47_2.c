@@ -647,7 +647,7 @@ static void func_shelter_r47_80182348(Task* task)
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
         gGameSession->cutsceneHold = 0;
-        taskKill((Task*)task->spawnArg2.pointer);
+        taskKill(task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
     level = (u8)state->fade;
@@ -832,7 +832,7 @@ static void func_shelter_r47_80182E78(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->field_4E;
     /* Keeps the `spawnArg2` load below the `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store, so that it
        does not fill `taskKill`'s delay slot. */
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 

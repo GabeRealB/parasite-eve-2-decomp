@@ -39,17 +39,29 @@ Task* Task_SpawnOnDefaultList(TaskDesc* table, s32 idx, TaskSpawnArg arg2, TaskS
 
 Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg arg3);
 
-/// Kills a task and frees it: hands each child its own `exitCallback` with the
-/// child's `parent` cleared, unlinks the task from its parent's child ring, frees
-/// its `work` block, releases the body it owns according to `bodyKind`, then
-/// unlinks and frees the task itself. Every task is spawned with this as its
-/// `exitCallback`, so a child tears itself down the same way.
+/// Performs default task teardown, releasing its resources and arranging collection.
 ///
-/// The task's own free is the part that waits, so that a task calling this from
-/// its own callback is not freed while that callback is still running: the body
-/// goes, and the task is marked `bodyKind` 0xFF for the next exec pass to
-/// collect. With `gDisplayState.immediateTaskFree` set, the body is released and the
-/// task unlinked and freed here instead.
+/// `task` must be non-NULL, live and not already torn down. Each child receives
+/// its own `exitCallback` with its `parent` cleared; this task then leaves its
+/// parent's sibling ring and releases non-NULL primary-heap `work`. Callers must
+/// first release nested resources and clear borrowed work. This is the initial
+/// exit handler; calling it directly does not dispatch a replacement handler.
+///
+/// Normal teardown suppresses repeated exit dispatch. A TMD model stops active
+/// drawing but stays linked and allocated for two countdown-callback invocations
+/// before release. A coordinate body is unlinked and freed during this call;
+/// bodyless tasks have no body to release. Non-model tasks receive an inert frame
+/// callback and are marked `bodyKind` 0xFF here; models receive that mark when
+/// their countdown releases them. A walker can collect a marked task after the
+/// dispatched callback returns, during the same walk, unless `stopTaskWalk` ends
+/// it first. Released work and body pointer slots are left unchanged.
+///
+/// With `gDisplayState.immediateTaskFree` nonzero, the body and task are released
+/// before this call returns. Any task freed at its execution list's tail must
+/// belong to `gTaskDefaultList`, including recursively torn-down children; the
+/// previously selected list is restored. Child exit handlers must preserve their
+/// sibling successor through the caller's post-handler read, even when releasing
+/// the child immediately. Callers must not access the released task or resources.
 void taskKill(Task* task);
 
 void Task_KillChildren(Task* task);

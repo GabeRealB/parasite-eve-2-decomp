@@ -2462,7 +2462,7 @@ done:
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
     gGameSession->eventState   = 0;
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
@@ -2607,7 +2607,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             task->state = 6;
             func_800E9BDC(1, 0xF9FF);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
-            taskKill((Task*)task->spawnArg2.pointer);
+            taskKill(task->spawnArg2.pointer);
             return;
         } else {
             Gp_StartCapSlot(3, 1, 2);
@@ -2650,7 +2650,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             } else {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
             }
-            taskKill((Task*)task->spawnArg2.pointer);
+            taskKill(task->spawnArg2.pointer);
             return;
         } else {
             Gp_StartCapSlot(4, 1, 2);
@@ -2795,7 +2795,7 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     gGameSession->cutsceneHold                                 = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     Display_ReleaseRef();
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 

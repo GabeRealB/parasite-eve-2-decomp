@@ -146,6 +146,47 @@ static Task* Task_SpawnFromDesc(TaskDesc* desc, TaskSpawnArg arg1, TaskSpawnArg 
     return task;
 }
 
+/// Unlinks a task and releases its primary-heap allocation during teardown.
+///
+/// Its work and body must already be released. A task with no successor must
+/// belong to `gTaskDefaultList`, whose tail is updated regardless of the selected
+/// list. The previous selection is restored after release.
+static inline void _taskCollectImmediately(Task* task)
+{
+    TaskNode*  previousList;
+    Task*      nextTask;
+    TaskNode** previousLink;
+    TaskNode*  previousNode;
+
+    previousList     = _gTaskActiveList;
+    nextTask         = task->node.next;
+    _gTaskActiveList = &gTaskDefaultList;
+    if (nextTask == NULL) {
+        previousLink = &gTaskDefaultList.prev;
+    } else {
+        previousLink = &nextTask->node.prev;
+    }
+    previousNode       = task->node.prev;
+    *previousLink      = previousNode;
+    previousNode->next = task->node.next;
+    memFree(task);
+    _gTaskActiveList = previousList;
+}
+
+/// Stops task callbacks and consumes the sole countdown tick within teardown.
+///
+/// The caller releases the body and marks it for collection when the resulting
+/// signed counter is zero. Keep the store and decrement as separate operations.
+static inline void _taskStopForInlineBodyRelease(Task* task)
+{
+    enum { TASK_INLINE_BODY_RELEASE_TICKS = 1 };
+
+    task->killCountdown = TASK_INLINE_BODY_RELEASE_TICKS;
+    task->callback      = taskNoopCallback;
+    task->exitCallback  = taskNoopCallback;
+    task->killCountdown--;
+}
+
 void taskKill(Task* task)
 {
     /// Countdown callback ticks before a stopped TMD model is released.
@@ -156,46 +197,45 @@ void taskKill(Task* task)
     /// bypasses it.
     enum { TASK_MODEL_RELEASE_DELAY_TICKS = 2 };
 
-    Task*      start;
-    Task*      cur;
-    Task*      temp;
-    Task*      next;
-    TaskNode*  previousList;
-    TaskNode** pp;
-    TaskNode*  prev;
+    Task*      firstChild;
+    Task*      ringCursor;
+    Task*      childHead;
     TmdObject* model;
-    s32        type;
-    s32        t;
-    Task*      p;
-    Task*      n;
+    s32        bodyKind;
+    s32        immediateBodyKind;
+    Task*      parent;
+    Task*      nextSibling;
 
-    temp = task->firstChild;
-    if (temp != NULL) {
-        start = temp;
-        cur   = start;
+    // Children lose their parent before dispatch so their exit handlers leave
+    // this sibling ring intact. The successor is read after each handler returns.
+    childHead = task->firstChild;
+    if (childHead != NULL) {
+        firstChild = childHead;
+        ringCursor = firstChild;
         do {
-            cur->parent = NULL;
-            cur->exitCallback(cur);
-            cur = cur->nextSibling;
-        } while (cur != start);
+            ringCursor->parent = NULL;
+            ringCursor->exitCallback(ringCursor);
+            ringCursor = ringCursor->nextSibling;
+        } while (ringCursor != firstChild);
     }
 
-    p = task->parent;
-    if (p != NULL) {
-        n = task->nextSibling;
-        if (n == task) {
-            p->firstChild = NULL;
+    // Remove this task from its parent's ring without rewriting its own links.
+    parent = task->parent;
+    if (parent != NULL) {
+        nextSibling = task->nextSibling;
+        if (nextSibling == task) {
+            parent->firstChild = NULL;
         } else {
-            if (p->firstChild == task) {
-                p->firstChild = n;
+            if (parent->firstChild == task) {
+                parent->firstChild = nextSibling;
             }
-            cur = task;
+            ringCursor = task;
             if (task->nextSibling != task) {
                 do {
-                    cur = cur->nextSibling;
-                } while (cur->nextSibling != task);
+                    ringCursor = ringCursor->nextSibling;
+                } while (ringCursor->nextSibling != task);
             }
-            cur->nextSibling = task->nextSibling;
+            ringCursor->nextSibling = task->nextSibling;
         }
     }
 
@@ -204,19 +244,20 @@ void taskKill(Task* task)
     }
 
     if (gDisplayState.immediateTaskFree == 0) {
-        type = task->bodyKind;
-        if (type == TASK_BODY_TMD) {
-            goto case1;
+        bodyKind = task->bodyKind;
+        if (bodyKind == TASK_BODY_TMD) {
+            goto scheduleModelRelease;
         }
-        if (type < TASK_BODY_COORD) {
-            goto def_case;
+        if (bodyKind < TASK_BODY_COORD) {
+            goto stopBodylessTask;
         }
-        if (type == TASK_BODY_COORD) {
-            goto case2;
+        if (bodyKind == TASK_BODY_COORD) {
+            goto unlinkCoordBody;
         }
-        goto def_case;
+        goto stopBodylessTask;
 
-    case1:
+    scheduleModelRelease:
+        // Suppress active model drawing during the deferred release window.
         task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->killCountdown     = TASK_MODEL_RELEASE_DELAY_TICKS;
         task->callback          = taskCountdownCallback;
@@ -224,85 +265,61 @@ void taskKill(Task* task)
         task->exitCallback      = taskNoopCallback;
         return;
 
-    case2:
+    unlinkCoordBody:
+        // Coordinate bodies leave their refresh list before inline release.
         modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
-        task->killCountdown = 1;
-        task->callback      = taskNoopCallback;
-        task->exitCallback  = taskNoopCallback;
-        task->killCountdown--;
+        _taskStopForInlineBodyRelease(task);
         if (task->killCountdown != 0) {
             return;
         }
         if (task->bodyKind == TASK_BODY_TMD) {
-            goto cu1;
+            goto releaseModel;
         }
-        if (task->bodyKind != type) {
-            goto cu_def;
+        if (task->bodyKind != bodyKind) {
+            goto markBodyReleased;
         }
-        goto cu2;
+        goto releaseCoordBody;
 
-    def_case:
-        task->killCountdown = 1;
-        task->callback      = taskNoopCallback;
-        task->exitCallback  = taskNoopCallback;
-        task->killCountdown--;
+    stopBodylessTask:
+        _taskStopForInlineBodyRelease(task);
         if (task->killCountdown != 0) {
             return;
         }
         if (task->bodyKind == TASK_BODY_TMD) {
-            goto cu1;
+            goto releaseModel;
         }
         if (task->bodyKind == TASK_BODY_COORD) {
-            goto cu2;
+            goto releaseCoordBody;
         }
-        goto cu_def;
+        goto markBodyReleased;
 
-    cu1:
+    releaseModel:
         model = task->extra.tmd;
         modelObjectUnlinkTmd(&model->link);
         modelObjectFreeTmd(model);
-        goto cu_def;
+        goto markBodyReleased;
 
-    cu2:
+    releaseCoordBody:
         modelObjectFreeCoordBody(task->extra.coordBody);
 
-    cu_def:
+    markBodyReleased:
         task->bodyKind = TASK_BODY_RELEASED;
         return;
     }
 
-    t = task->bodyKind;
-    if (t == TASK_BODY_TMD) {
-        goto imm1;
+    // Immediate teardown bypasses the draw delay and walker collection.
+    immediateBodyKind = task->bodyKind;
+    switch (immediateBodyKind) {
+        case TASK_BODY_TMD:
+            modelObjectUnlinkTmd(&task->extra.tmd->link);
+            modelObjectFreeTmd(task->extra.tmd);
+            break;
+        case TASK_BODY_COORD:
+            modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
+            modelObjectFreeCoordBody(task->extra.coordBody);
+            break;
     }
-    if (t == TASK_BODY_COORD) {
-        goto imm2;
-    }
-    goto imm_unlink;
-
-imm1:
-    modelObjectUnlinkTmd(&task->extra.tmd->link);
-    modelObjectFreeTmd(task->extra.tmd);
-    goto imm_unlink;
-
-imm2:
-    modelObjectUnlinkCoordBody(&task->extra.coordBody->link);
-    modelObjectFreeCoordBody(task->extra.coordBody);
-
-imm_unlink:
-    previousList     = _gTaskActiveList;
-    next             = task->node.next;
-    _gTaskActiveList = &gTaskDefaultList;
-    if (next == NULL) {
-        pp = &gTaskDefaultList.prev;
-    } else {
-        pp = &next->node.prev;
-    }
-    prev       = task->node.prev;
-    *pp        = prev;
-    prev->next = task->node.next;
-    memFree(task);
-    _gTaskActiveList = previousList;
+    _taskCollectImmediately(task);
 }
 
 Task* Task_SpawnFromTable(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)

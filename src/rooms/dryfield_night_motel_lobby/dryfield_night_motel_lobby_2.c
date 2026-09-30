@@ -849,7 +849,7 @@ static void func_dryfield_night_motel_lobby_801810AC(Task* arg0)
     gGameSession->cutsceneHold                                 = 0;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
     /* Without the barrier GCC fills taskKill's delay slot with the byte store. */
-    taskKill((Task*)arg0->spawnArg2.pointer);
+    taskKill(arg0->spawnArg2.pointer);
     Task_RequestKill(arg0, 0);
 }
 

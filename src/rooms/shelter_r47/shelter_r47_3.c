@@ -1933,7 +1933,7 @@ static void func_shelter_r47_80185098(Task* task)
             gGameSession->eventState = 0;
         }
         gGameSession->cutsceneHold = 0;
-        taskKill((Task*)task->spawnArg2.pointer);
+        taskKill(task->spawnArg2.pointer);
         Task_RequestKill(task, 0);
     }
     SndEvt_EnqueueType7(0x542F0005, 1);
@@ -2041,7 +2041,7 @@ static void func_shelter_r47_80185510(Task* task)
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
-    taskKill((Task*)task->spawnArg2.pointer);
+    taskKill(task->spawnArg2.pointer);
     Task_RequestKill(task, 0);
 }
 
