@@ -116,11 +116,12 @@ STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Whether the sound-event queue may be processed (0 suspended, 1 runnable).
+/// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
 ///
-/// Cleared only while a node is being linked into the list, so a processing
-/// pass cannot walk a half-linked list; a reset leaves the queue processable.
-static s32 _gSndEvtProcessEnabled;
+/// Starts closed until the queue is reset. Appending an event closes the gate
+/// while its links are updated and reopens it once the event is fully linked;
+/// resetting the queue, including recovery from an invalid command, opens it.
+static bool _gSndEvtProcessEnabled;
 
 /// Oldest event still waiting to be processed, or `NULL` while the queue is
 /// empty.
@@ -450,7 +451,7 @@ void SndEvt_Process(void)
     u32     i;
     s32*    ptr;
 
-    if (_gSndEvtProcessEnabled == 0) {
+    if (_gSndEvtProcessEnabled == false) {
         return;
     }
     if (_gSndEvtHead == NULL) {
@@ -469,7 +470,7 @@ void SndEvt_Process(void)
             } while (i < 0x1C0U);
             _gSndEvtHead           = NULL;
             _gSndEvtTail           = NULL;
-            _gSndEvtProcessEnabled = 1;
+            _gSndEvtProcessEnabled = true;
             return;
         }
         SndEvt_Handlers[cur->handlerIdx](cur);
@@ -499,7 +500,7 @@ void SndEvt_Reset(void)
     } while (i < 0x1C0U);
     _gSndEvtHead           = NULL;
     _gSndEvtTail           = NULL;
-    _gSndEvtProcessEnabled = 1;
+    _gSndEvtProcessEnabled = true;
 }
 
 SndEvt* sndEvtAlloc(void)
@@ -525,7 +526,8 @@ void sndEvtEnqueue(SndEvt* event)
     SndEvt* temp;
 
     if (event != NULL) {
-        _gSndEvtProcessEnabled = 0;
+        // Defer interrupt processing until the new tail is fully linked.
+        _gSndEvtProcessEnabled = false;
         if (_gSndEvtHead == NULL) {
             _gSndEvtTail = event;
             _gSndEvtHead = event;
@@ -537,7 +539,7 @@ void sndEvtEnqueue(SndEvt* event)
             temp->next   = event;
         }
         event->next            = NULL;
-        _gSndEvtProcessEnabled = 1;
+        _gSndEvtProcessEnabled = true;
     }
 }
 
