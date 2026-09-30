@@ -41,7 +41,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 extern SVECTOR D_dryfield_r08_8017F464[];

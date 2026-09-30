@@ -59,7 +59,7 @@
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.

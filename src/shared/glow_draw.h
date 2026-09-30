@@ -22,7 +22,7 @@
 /// Scratch block for `glowDrawDisc`. The default is `GlowCentreScratch`:
 /// the GTE flag word, then the on-screen half-extent. A room whose disc
 /// stores the half-extent ahead of the flag defines this as
-/// `RoomDraw31Scratch` before including this header.
+/// `GlowCentreRadiusFirstScratch` before including this header.
 #ifndef GLOW_DRAW_DISC_SCRATCH
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreScratch
 #endif

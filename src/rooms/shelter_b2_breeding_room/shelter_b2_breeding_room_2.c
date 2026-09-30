@@ -35,7 +35,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 #define D_shelter_b2_breeding_room_80180470 (D_shelter_b2_breeding_room_80180450 + 4)

@@ -60,7 +60,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
+#define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
 extern GpObj3A                    D_neo_ark_power_plant_2_80182E78[1];

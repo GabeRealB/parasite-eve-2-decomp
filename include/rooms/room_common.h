@@ -206,10 +206,10 @@ STATIC_ASSERT_SIZEOF(RoomDraw25Scratch, 0xC);
 /// a size divided by that depth, and builds the primitive around the centre.
 /// `sx` and `sy` are written by one screen-XY store, so they stay adjacent.
 ///
-/// `RoomDraw31Scratch` is this record with the half-extent and the flag word
-/// exchanged. `glowDrawDisc` uses that layout when a room defines
-/// `GLOW_DRAW_DISC_SCRATCH` as `RoomDraw31Scratch` before including the glow
-/// header; otherwise the disc uses this one.
+/// `GlowCentreRadiusFirstScratch` is this record with the half-extent and the
+/// flag word exchanged. `glowDrawDisc` uses that layout when a room defines
+/// `GLOW_DRAW_DISC_SCRATCH` as `GlowCentreRadiusFirstScratch` before including
+/// the glow header; otherwise the disc uses this one.
 typedef struct {
     s32 otz;    // Ordering-table depth of the centre; also the divisor for the half-extent
     s32 flag;   // GTE flag word; negative means the transform reported an error
@@ -234,19 +234,23 @@ typedef struct _RoomDraw05Scratch {
 } RoomDraw05Scratch;
 STATIC_ASSERT_SIZEOF(RoomDraw05Scratch, 0x14);
 
-/// 0x10-byte scratch block `Room_Draw31` takes from the scratch stack. Same
-/// projection as `GlowCentreScratch` (`arg0` through `gGfxViewCoord.workm`, one
-/// `RTPS`) but `radius` sits at 0x4 and `flag` at 0x8. `radius` is
-/// `(s16)arg1 * 64 / otz`, the on-screen half-extent of the four `POLY_G4`
-/// wedges.
-typedef struct _RoomDraw31Scratch {
-    /* 0x00 */ s32 otz;
-    /* 0x04 */ s32 radius;
-    /* 0x08 */ s32 flag;
-    /* 0x0C */ u16 sx;
-    /* 0x0E */ u16 sy;
-} RoomDraw31Scratch;
-STATIC_ASSERT_SIZEOF(RoomDraw31Scratch, 0x10);
+/// Scratch block `glowDrawDisc` takes when a room stores the half-extent
+/// ahead of the GTE flag word.
+///
+/// Same projected centre as `GlowCentreScratch`: one perspective transform
+/// of a world point through `gGfxViewCoord.workm` writes the screen position
+/// and the flag word, and a non-negative flag stores the ordering-table
+/// depth and the on-screen half-extent. Those two words are exchanged, so
+/// the records stay separate. A room selects this layout by defining
+/// `GLOW_DRAW_DISC_SCRATCH` as this type before including the glow header.
+typedef struct {
+    s32 otz;    // Ordering-table depth of the centre; also the divisor for the half-extent
+    s32 radius; // On-screen half-extent of the primitive around the centre
+    s32 flag;   // GTE flag word; negative means the transform reported an error
+    u16 sx;     // Projected centre, x
+    u16 sy;     // Projected centre, y
+} GlowCentreRadiusFirstScratch;
+STATIC_ASSERT_SIZEOF(GlowCentreRadiusFirstScratch, 0x10);
 
 /// 0x18-byte scratch block `Room_Draw11`, `Room_Draw12`, `Room_Draw33` and `Room_Draw34` take
 /// from the scratch stack. Two `SVECTOR`s (`arg0` and `arg0 + 1`) are projected
