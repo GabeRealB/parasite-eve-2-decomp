@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_202900.
 D_actor_202900_80156E54 = 0x80156E54; // size:0x4 defined:True
-D_actor_202900_80156E58 = 0x80156E58; // size:0x4 defined:True
-D_actor_202900_80156E5C = 0x80156E5C; // size:0x4 defined:True
+gActorSelfTask = 0x80156E58; // size:0x4 defined:True
+gActorHelperTask = 0x80156E5C; // size:0x4 defined:True
 D_actor_202900_80156E24 = 0x80156E24; // size:0x18 defined:True
 D_actor_202900_80156E3C = 0x80156E3C; // size:0x18 defined:True
 D_actor_202900_80156E0C = 0x80156E0C; // size:0x18 defined:True
@@ -32,3 +32,4 @@ D_actor_202900_80156C14 = 0x80156C14; // size:0x84 defined:True
 D_actor_202900_80156C98 = 0x80156C98; // size:0x124 defined:True
 D_actor_202900_80156DBC = 0x80156DBC; // size:0x28 defined:True
 D_actor_202900_80156DE4 = 0x80156DE4; // size:0x28 defined:True
+actorMsgSetPairVisibility = 0x8014A440; // type:func

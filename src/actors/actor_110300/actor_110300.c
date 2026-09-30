@@ -18,6 +18,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 /// The block above, published by `func_actor_110300_80131F9C` from the task's
 /// `Task::work`.
@@ -27,12 +28,12 @@ extern Actor110300Work* D_actor_110300_8013A0A0;
 /// drive the animation step driver and the model through it, and the helper
 /// task's entry `func_actor_110300_80131FF8` parents its coordinate to one of
 /// its model's nodes.
-extern Task* D_actor_110300_8013A0A4;
+extern Task* gActorSelfTask;
 
 /// The helper task `Task_SpawnFromTable` returns in the step-0 handler; the
 /// visibility handler drives its model alongside the actor's, and the exit
 /// callback kills it.
-extern Task* D_actor_110300_8013A0A8;
+extern Task* gActorHelperTask;
 
 /// Spawn descriptor table the step-0 handler spawns the helper task from:
 /// index 0 is the actor's own dispatcher, index 1 the helper.
@@ -69,7 +70,6 @@ void             func_actor_110300_80131F9C(Task*);
 void             func_actor_110300_80131FF8(Task*);
 
 s32 func_actor_110300_80132280(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_110300_801322E0(Task*, s32, s32);
 
 TmdBone D_actor_110300_8013234C[20] = {
 #include "assets/actor_110300_model_05CD0_skeleton.inc"
@@ -247,7 +247,7 @@ AnimationSet D_actor_110300_8013A02C = {
 
 Actor110300MsgEntry D_actor_110300_8013A054[3] = {
     { 2003, { .call0 = func_actor_110300_80132280 } },
-    { 2005, { .call1 = func_actor_110300_801322E0 } },
+    { 2005, { .call1 = actorMsgSetPairVisibility } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -289,9 +289,9 @@ u8 D_actor_110300_8013A084[28] = {
 
 Actor110300Work* D_actor_110300_8013A0A0;
 
-Task* D_actor_110300_8013A0A4;
+Task* gActorSelfTask;
 
-Task* D_actor_110300_8013A0A8;
+Task* gActorHelperTask;
 
 static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
 
@@ -326,8 +326,8 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
     enemy->node.state.parts.targeted = 0;
     obj->otOffset                    = 0;
     coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-    D_actor_110300_8013A0A4          = task;
-    D_actor_110300_8013A0A8          = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
+    gActorSelfTask                   = task;
+    gActorHelperTask                 = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
     func_800B3F84(&D_actor_110300_8013A0A0->rig.anim, D_actor_110300_8013A084, obj,
                   D_actor_110300_8013A0A0->rig.poses, D_actor_110300_8013A0A0->rig.slots);
     D_actor_110300_8013A0A0->st.animId = 1;
@@ -364,7 +364,7 @@ void func_actor_110300_80131FF8(Task* arg0)
     GfxCoord* parent;
     GfxCoord* coord;
 
-    parent              = D_actor_110300_8013A0A4->extra.tmd->coords;
+    parent              = gActorSelfTask->extra.tmd->coords;
     coord               = arg0->extra.tmd->coords;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->parent       = parent + 8;
@@ -398,7 +398,7 @@ static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
 /// destroys the actor.
 static void func_actor_110300_80132088(Task* arg0)
 {
-    taskKill(D_actor_110300_8013A0A8);
+    taskKill(gActorHelperTask);
     Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
@@ -473,7 +473,7 @@ s32 func_actor_110300_80132280(Task* task, s32 arg1, AnimationPlayRequest* args)
 
     if (args->animationId < 6) {
         D_actor_110300_8013A0A0->st.animId  = args->animationId;
-        actor                               = D_actor_110300_8013A0A4;
+        actor                               = gActorSelfTask;
         D_actor_110300_8013A0A0->st.state   = 2;
         D_actor_110300_8013A0A0->st.field_6 = 0;
         func_actor_110300_801320C4(actor);
@@ -482,29 +482,4 @@ s32 func_actor_110300_80132280(Task* task, s32 arg1, AnimationPlayRequest* args)
     return -1;
 }
 
-/// Message 0x7D5 handler: shows or hides the actor's model and the helper
-/// task's together. Bit 0 of `flags` clears both models' `TmdObject::flags`
-/// (shown); without it both get 0x80 (hidden). Bit 1 additionally ORs in 0x4
-/// on both.
-s32 func_actor_110300_801322E0(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* self;
-    TmdObject* other;
-
-    self  = D_actor_110300_8013A0A4->extra.tmd;
-    other = D_actor_110300_8013A0A8->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_pair_visibility.inc.c"

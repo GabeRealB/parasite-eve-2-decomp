@@ -21,6 +21,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "../../shared/actor_messages.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its setup handler
 /// and reached through `D_actor_202900_80156E54`, which the actor's update
@@ -57,12 +58,12 @@ extern Actor202900Work* D_actor_202900_80156E54;
 
 /// The actor's task, published by the setup handler so the overlay's other
 /// functions can reach the actor's model without the task in hand.
-extern Task* D_actor_202900_80156E58;
+extern Task* gActorSelfTask;
 
 /// The second task the setup handler starts. Its model is textured from the
 /// area record the actor was placed from, shown and hidden together with the
 /// actor's, and the task is killed when the actor's exit callback runs.
-extern Task* D_actor_202900_80156E5C;
+extern Task* gActorHelperTask;
 
 static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
 static void func_actor_202900_8014A158(Task* arg0);
@@ -78,7 +79,6 @@ void             func_actor_202900_8014A02C(Task*);
 void             func_actor_202900_8014A088(Task*);
 
 s32 func_actor_202900_8014A3E0(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_202900_8014A440(Task*, s32, s32);
 
 AnimationPackedPose D_actor_202900_8014A4AC[158] = {
 #include "assets/actor_202900_animation_06098_bank1.inc"
@@ -212,7 +212,7 @@ AnimationSet D_actor_202900_80156DE4 = {
 
 Actor202900MessageEntry D_actor_202900_80156E0C[3] = {
     { 2003, { .call0 = func_actor_202900_8014A3E0 } },
-    { 2005, { .call1 = func_actor_202900_8014A440 } },
+    { 2005, { .call1 = actorMsgSetPairVisibility } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
@@ -250,9 +250,9 @@ u8 D_actor_202900_80156E3C[24] = {
 
 Actor202900Work* D_actor_202900_80156E54 = NULL;
 
-Task* D_actor_202900_80156E58;
+Task* gActorSelfTask;
 
-Task* D_actor_202900_80156E5C;
+Task* gActorHelperTask;
 
 static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
 
@@ -281,9 +281,9 @@ static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
     obj->flags                       = 0;
-    D_actor_202900_80156E58          = task;
-    D_actor_202900_80156E5C          = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
-    actorTintTask(D_actor_202900_80156E5C, enemy);
+    gActorSelfTask                   = task;
+    gActorHelperTask                 = Task_SpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
+    actorTintTask(gActorHelperTask, enemy);
     obj->lightMtx = &D_actor_202900_80156E54->light;
     obj->colorMtx = &D_actor_202900_80156E54->color;
     vec.vx        = coord->workm.t[0];
@@ -326,7 +326,7 @@ void func_actor_202900_8014A088(Task* arg0)
     TmdObject* extra;
 
     extra               = arg0->extra.tmd;
-    parent              = D_actor_202900_80156E58->extra.tmd->coords;
+    parent              = gActorSelfTask->extra.tmd->coords;
     coord               = extra->coords;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     extra->flags        = 0;
@@ -358,7 +358,7 @@ static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
 /// Exit callback: kills the second task and destroys the enemy.
 static void func_actor_202900_8014A158(Task* arg0)
 {
-    taskKill(D_actor_202900_80156E5C);
+    taskKill(gActorHelperTask);
     Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
@@ -474,7 +474,7 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args)
 
     if (args->animationId < 5) {
         D_actor_202900_80156E54->st.animId  = args->animationId;
-        actor                               = D_actor_202900_80156E58;
+        actor                               = gActorSelfTask;
         D_actor_202900_80156E54->st.state   = 2;
         D_actor_202900_80156E54->st.field_6 = 0;
         func_actor_202900_8014A194(actor);
@@ -483,31 +483,4 @@ s32 func_actor_202900_8014A3E0(Task* task, s32 arg1, AnimationPlayRequest* args)
     return -1;
 }
 
-/// Message 0x7D5 handler: applies the draw-state flags to the actor's model and
-/// to the second task's model alike. Bit 0 set shows both, clear hides them
-/// (flag 0x80); bit 1 also sets flag 0x4 on both.
-///
-/// The handler is declared with the message arguments it does not read so the
-/// flags arrive in `$a2` as they do for every other handler: with a single
-/// parameter the compiler copies the incoming `$a0` into the pseudo global
-/// allocation gave `$a2`, one instruction the target does not have.
-s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* actorModel;
-    TmdObject* taskModel;
-
-    actorModel = D_actor_202900_80156E58->extra.tmd;
-    taskModel  = D_actor_202900_80156E5C->extra.tmd;
-    if (flags & 1) {
-        actorModel->flags = 0;
-        taskModel->flags  = 0;
-    } else {
-        actorModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        taskModel->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    if (flags & 2) {
-        actorModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        taskModel->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_pair_visibility.inc.c"

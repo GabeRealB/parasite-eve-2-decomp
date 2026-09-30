@@ -3,7 +3,8 @@
  * the rotation is built, whether the yaw is recorded and what they return.
  * Message 2005 shows, hides or buffer-flags the model. Each package includes
  * the handlers its table names; a file with a second copy of one includes the
- * fragment again under that copy's name.
+ * fragment again under that copy's name. actorMsgSetPairVisibility reads the
+ * package's published tasks, gActorSelfTask and gActorHelperTask.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -42,6 +43,7 @@ s32  actorMsgPlaceEuler(Task* task, s32 arg1, ActorTransform* placement, s32 arg
 s32  actorMsgPlaceRotMatrix(Task* arg0, s32 arg1, ActorTransform* args);
 void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement);
 void actorMsgPlaceInView(Task* task, s32 arg1, ActorTransform* placement);
+s32  actorMsgSetPairVisibility(Task* task, s32 arg1, s32 flags);
 void actorMsgSetDrawMode(Task* arg0, s32 arg1, s32 arg2);
 
 #endif /* SRC_SHARED_ACTOR_MESSAGES_H */

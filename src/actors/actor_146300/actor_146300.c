@@ -29,6 +29,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/scripted_walk.h"
+#include "../../shared/actor_messages.h"
 
 // The engine copies words across the exported animation bank and its
 // following argument records. Both views cover the complete backing object.
@@ -64,7 +65,7 @@ extern Actor146300Work* gScriptedWalkWork;
 /// runs the per-frame update on it, and the 0x7D5 handler and the companion's
 /// handler `func_actor_146300_80132B1C` reach the actor's model through its
 /// `extra`.
-extern Task* D_actor_146300_8014282C;
+extern Task* gActorSelfTask;
 
 /// Reset argument `scriptedWalkBlendAnim` forwards: the 0x7D3 handler
 /// latches the preset's `field_C` here.
@@ -74,7 +75,7 @@ extern s16 gScriptedWalkBlendFrames;
 /// `D_actor_146300_801427C8`; its `extra` is the model whose texture page and
 /// CLUT row come out of the area record, and the actor's own task is reparented
 /// under it.
-extern Task* D_actor_146300_80142830;
+extern Task* gActorHelperTask;
 
 /// Spawn table of the actor's two tasks: index 0 runs
 /// `func_actor_146300_801326CC`, index 1 the companion's
@@ -123,7 +124,6 @@ void             func_actor_146300_801326CC(Task*);
 void             func_actor_146300_80132B1C(Task*);
 
 s32 func_actor_146300_8013299C(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_146300_80132A2C(Task*, s32, s32);
 s32 func_actor_146300_80132B14(void);
 
 extern AnimationPlayRequest D_actor_146300_80137A20;
@@ -1247,7 +1247,7 @@ s16 gScriptedWalkBlendFrames = 8;
 
 Actor146300MsgEntry D_actor_146300_801427A0[5] = {
     { 2003, { .call1 = func_actor_146300_8013299C } },
-    { 2005, { .call3 = func_actor_146300_80132A2C } },
+    { 2005, { .call3 = actorMsgSetPairVisibility } },
     { 2004, { .call2 = scriptedWalkPlace } },
     { 2011, { .call0 = func_actor_146300_80132B14 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1333,9 +1333,9 @@ s32 D_actor_146300_80142824 = 0;
 
 Actor146300Work* gScriptedWalkWork;
 
-Task* D_actor_146300_8014282C;
+Task* gActorSelfTask;
 
-Task* D_actor_146300_80142830;
+Task* gActorHelperTask;
 
 static void func_actor_146300_8013224C(void);
 static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task);
@@ -1506,7 +1506,7 @@ void func_actor_146300_80132418(s32 arg0)
 /// allocates the 0x4EC work block and publishes it in `gScriptedWalkWork`
 /// and the task's `work` slot (destroying the enemy if the allocation fails),
 /// installs the exit callback, binds the model's coordinate frame to the view
-/// and publishes the task in `D_actor_146300_8014282C`.
+/// and publishes the task in `gActorSelfTask`.
 ///
 /// The companion task from `D_actor_146300_801427C8` carries the model whose
 /// texture page and CLUT row come out of the current area record - the session
@@ -1542,11 +1542,11 @@ static void func_actor_146300_801324AC(GpEnemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
     obj->flags                       = 0;
-    D_actor_146300_8014282C          = task;
+    gActorSelfTask                   = task;
     helper                           = Task_SpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    D_actor_146300_80142830          = helper;
+    gActorHelperTask                 = helper;
     actorTintTask(helper, enemy);
-    Task_Reparent(task, D_actor_146300_80142830);
+    Task_Reparent(task, gActorHelperTask);
     obj->lightMtx = &gScriptedWalkWork->light;
     obj->colorMtx = &gScriptedWalkWork->color;
     vec.vx        = coord->workm.t[0];
@@ -1646,37 +1646,13 @@ s32 func_actor_146300_8013299C(Task* task, s32 arg1, AnimationPlayRequest* prese
             gScriptedWalkWork->st.state = 2;
         }
         gScriptedWalkWork->st.field_6 = 0;
-        func_actor_146300_801327CC(D_actor_146300_8014282C);
+        func_actor_146300_801327CC(gActorSelfTask);
         return 0;
     }
     return -1;
 }
 
-/// Message 0x7D5 handler: shows or hides the actor's model and its companion's
-/// together. Bit 0 of `flags` clears both models' `TmdObject::flags` (shown);
-/// without it both get 0x80 (hidden). Bit 1 additionally ORs in 0x4 on both.
-s32 func_actor_146300_80132A2C(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* self;
-    TmdObject* other;
-
-    self  = D_actor_146300_8014282C->extra.tmd;
-    other = D_actor_146300_80142830->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
+#include "../../shared/actor_messages_pair_visibility.inc.c"
 
 #include "../../shared/scripted_walk_place.inc.c"
 
@@ -1694,7 +1670,7 @@ void func_actor_146300_80132B1C(Task* task)
 {
     TmdObject* extra = task->extra.tmd;
     GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = D_actor_146300_8014282C->extra.tmd->coords;
+    GfxCoord*  parts = gActorSelfTask->extra.tmd->coords;
     GfxCoord*  part  = parts + 4;
     VECTOR     vec;
 
