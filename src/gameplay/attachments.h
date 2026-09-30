@@ -13,7 +13,7 @@
 
 // Attachment parameters, combination state and menu support.
 
-extern McItemRec Gp_ItemTable2[];
+extern InventoryItemRow Gp_ItemTable2[];
 
 // Shared HUD/replay work.
 extern GpStateBE8 Gp_HpMpWork;

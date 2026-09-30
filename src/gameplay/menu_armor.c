@@ -200,7 +200,7 @@ static inline s32 _gpIsEquippedItem(s32 id)
 void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 {
     InventoryItemRange* scan;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
     s32                 item;
 
     scan = &Mc_SaveData[0].state.carriedItems;
@@ -232,7 +232,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
             }
         }
 
-        if (rec->attachSlot > 0) {
+        if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
             _gpDrawItemName(prompt, obj, item, 2);
         } else {
             _gpDrawItemName(prompt, obj, item, 1);
@@ -248,10 +248,10 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
         if (prompt->field_C == 1) {
             if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-                UiList*    menu;
-                McItemRec* table;
-                s32        i;
-                s32        count;
+                UiList*           menu;
+                InventoryItemRow* table;
+                s32               i;
+                s32               count;
 
                 menu = &D_8010E8AC;
                 SndEvt_EnqueueType6(3, 0, 0);
@@ -315,7 +315,7 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj)
 
 static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
 {
-    McItemRec*          table;
+    InventoryItemRow*   table;
     s32                 i;
     s32                 count;
     InventoryItemRange* scan;
@@ -325,7 +325,7 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
     count = 0;
     table = &table[scan->firstRow];
     for (i = 0; i < scan->rowCount; i++, table++) {
-        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == 0)) {
+        if ((Gp_ItemDescs[table->itemId].field_3 & 4) || (table->itemId == INVENTORY_ITEM_NONE)) {
             continue;
         }
         if ((u8)(table->itemId + 0x80) < 0x20 && _gpIsEquippedItem(table->itemId)) {
@@ -339,11 +339,11 @@ static void Gp_CountEquippableRows(UiList* arg0, UiObject* arg1)
 
 void Gp_EquipSelectMenuTask(Task* arg0)
 {
-    UiObject*  obj;
-    UiList*    menu;
-    McItemRec* rec;
-    s32        val;
-    Task*      parent;
+    UiObject*         obj;
+    UiList*           menu;
+    InventoryItemRow* rec;
+    s32               val;
+    Task*             parent;
 
     obj           = arg0->spawnArg2.pointer;
     menu          = &D_8010E8D4;

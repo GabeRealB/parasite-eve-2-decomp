@@ -141327,7 +141327,7 @@ lbu   v0,0(a0)          # same byte, loaded again
 ```
 
 Written in line, cse folds the second read into the first, which is why the
-tree held a `volatile McItemRec*` for it. The natural source is a helper
+tree held a `volatile InventoryItemRow*` for it. The natural source is a helper
 `static inline s32 isArmor(u8 id) { return (u32)(id - 0x60) < 0x20U; }` called
 as `isArmor(rec->itemId) && cfg->armor != rec->itemId - 0x5F`. The argument
 is loaded as a plain `(set (reg:QI) (mem:QI))`, while the later read is a
@@ -142065,7 +142065,7 @@ iteration, try giving them per-block scope before touching anything else.
 ## A loop over a table window wants its row as a second counter (Gp_ResetInventory, 2026-09-26)
 
 **Symptom.** A loop zeroing rows `firstRow .. firstRow + rowCount` of a
-`McItemRec` table: the target computes `firstRow * 4 + table` *after* the
+`InventoryItemRow` table: the target computes `firstRow * 4 + table` *after* the
 zero-trip test, walks it by 4, and stores at `0/1/2($v1)`. The seed pinned the
 row pointer to `$v1` to get there.
 

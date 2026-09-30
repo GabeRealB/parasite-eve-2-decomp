@@ -58,13 +58,13 @@ static const char D_80097448[];
 /// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
 static const char Gp_StrWeapon[];
 
-static s32 Gp_ApplyItemUse(McItemRec* arg0);
+static s32 Gp_ApplyItemUse(InventoryItemRow* arg0);
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-static s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1);
+/// `arg1` supplies the total quantity for ammo ids 0xA0–0xBF, including loaded rounds.
+static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1);
 
-static McItemRec* Gp_FindItemByKind(s32 arg0);
+static InventoryItemRow* Gp_FindItemByKind(s32 arg0);
 
 GpRoomBoundVec Gp_RoomBoundDefault = { 16, 16, 16, 16 };
 
@@ -98,7 +98,7 @@ GpEdgePair Gp_FaceEdgePairs[5] = {
     { 3, 1 },
 };
 
-static s32 Gp_ApplyItemUse(McItemRec* arg0)
+static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 {
     PlayerStatus*       cfg;
     GameActor*          actor;
@@ -108,9 +108,9 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
     InventoryItemRange* scanFree;
     InventoryItemRange* scanId;
     McItemSlot*         slot;
-    McItemRec*          table;
-    McItemRec*          rec;
-    McItemRec*          found;
+    InventoryItemRow*   table;
+    InventoryItemRow*   rec;
+    InventoryItemRow*   found;
     s32                 id;
     s32                 ret;
     s32                 flag;
@@ -123,8 +123,8 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
     s32                 k;
     s32                 avail;
     s32                 slotNum;
-    s32                 sel;
-    McItemRec*          hit;
+    s32                 attachmentSlot;
+    InventoryItemRow*   hit;
 
     ret   = 0;
     flag  = 1;
@@ -204,7 +204,7 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                     table++;
                 }
                 found = hit;
-                if (found != NULL && found->attachSlot == 0) {
+                if (found != NULL && found->attachSlot == INVENTORY_ATTACHMENT_NONE) {
                     slotNum  = -1;
                     scanFree = &Mc_SaveData[0].state.carriedItems;
                     Gp_GetItemTable(scanFree);
@@ -215,7 +215,7 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                         table = &table[scanFree->firstRow];
                         count = scanFree->rowCount;
                         for (; i < count; i++) {
-                            if (table->itemId != 0 && table->attachSlot == k + 1) {
+                            if (table->itemId != INVENTORY_ITEM_NONE && table->attachSlot == k + 1) {
                                 avail = 0;
                                 break;
                             }
@@ -241,9 +241,9 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
                             table++;
                         }
                         if (hit != NULL) {
-                            sel               = hit->attachSlot;
-                            hit->attachSlot   = 0;
-                            found->attachSlot = sel;
+                            attachmentSlot    = hit->attachSlot;
+                            hit->attachSlot   = INVENTORY_ATTACHMENT_NONE;
+                            found->attachSlot = attachmentSlot;
                         }
                     } else {
                         found->attachSlot = slotNum;
@@ -351,9 +351,9 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
             }
 
             if (ret == 1 && flag != 0) {
-                arg0->itemId     = 0;
+                arg0->itemId     = INVENTORY_ITEM_NONE;
                 arg0->qty        = 0;
-                arg0->attachSlot = 0;
+                arg0->attachSlot = INVENTORY_ATTACHMENT_NONE;
                 Gp_SetItemSeenBit(id, 1);
             }
         }
@@ -362,8 +362,8 @@ static s32 Gp_ApplyItemUse(McItemRec* arg0)
 }
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
-/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-static s32 Gp_ItemIsUnusable(s32 arg0, McItemRec* arg1)
+/// `arg1` supplies the total quantity for ammo ids 0xA0–0xBF, including loaded rounds.
+static s32 Gp_ItemIsUnusable(s32 arg0, InventoryItemRow* arg1)
 {
     PlayerStatus*       cfg;
     InventoryItemRange* scan;
@@ -447,13 +447,13 @@ void func_800D6334(Task* task)
     TextDrawReq         name;
     TextDrawReq         label;
     UiObject*           panel;
-    McItemRec*          selected;
-    McItemRec*          table;
+    InventoryItemRow*   selected;
+    InventoryItemRow*   table;
     InventoryItemRange* scan;
-    McItemRec*          firstRec;
-    McItemRec*          firstTable;
-    McItemRec*          useRec;
-    McItemRec*          useTable;
+    InventoryItemRow*   firstRec;
+    InventoryItemRow*   firstTable;
+    InventoryItemRow*   useRec;
+    InventoryItemRow*   useTable;
     InventoryItemRange* firstScan;
     InventoryItemRange* useScan;
     s32                 firstI;
@@ -638,13 +638,13 @@ s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
     return Gp_EquipRelatedItem(&Mc_SaveData[0].state.carriedItems, arg0, val, -1);
 }
 
-McItemRec* Gp_FindItemById(s32 arg0)
+InventoryItemRow* Gp_FindItemById(s32 arg0)
 {
     InventoryItemRange* scan;
-    McItemRec*          table;
+    InventoryItemRow*   table;
     s32                 i;
     s32                 count;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData[0].state.carriedItems;
@@ -661,13 +661,13 @@ McItemRec* Gp_FindItemById(s32 arg0)
     return rec;
 }
 
-static McItemRec* Gp_FindItemByKind(s32 arg0)
+static InventoryItemRow* Gp_FindItemByKind(s32 arg0)
 {
     InventoryItemRange* scan;
-    McItemRec*          table;
+    InventoryItemRow*   table;
     s32                 i;
     s32                 count;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
 
     rec   = NULL;
     scan  = &Mc_SaveData[0].state.carriedItems;
@@ -685,12 +685,12 @@ static McItemRec* Gp_FindItemByKind(s32 arg0)
     return rec;
 }
 
-McItemRec* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1)
+InventoryItemRow* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1)
 {
-    McItemRec* table;
-    s32        i;
-    s32        count;
-    McItemRec* rec;
+    InventoryItemRow* table;
+    s32               i;
+    s32               count;
+    InventoryItemRow* rec;
 
     rec   = NULL;
     table = Gp_GetItemTable(arg1);

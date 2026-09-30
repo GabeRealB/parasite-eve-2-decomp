@@ -58,9 +58,9 @@ void Gp_InitStarterInv(void)
     McSaveData*          save;
     PlayerStatus*        cfg;
     PlayerStatus*        cfg2;
-    McItemRec*           tmp;
-    McItemRec*           rec;
-    McItemRec*           added;
+    InventoryItemRow*    tmp;
+    InventoryItemRow*    rec;
+    InventoryItemRow*    added;
     InventoryItemRange** scans;
     InventoryItemRange*  dest;
     McItemSlot*          slots;

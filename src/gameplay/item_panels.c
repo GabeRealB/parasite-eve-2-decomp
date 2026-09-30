@@ -178,7 +178,7 @@ extern const char Gp_StrWarning[];
 
 void func_800CCDC8(Task* arg0);
 
-void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3);
+void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3);
 
 /// Body of `Gp_DrawQty`: prints the count `arg3` in colour `arg4` at row
 /// position (`arg1`, `arg2`) of `arg0`, then lays out the box beside it.
@@ -199,7 +199,7 @@ static UiObject* func_800CD78C(UiObject* arg0);
 
 static inline void _gpSetPreviewItem(s32 itemId, u8 slot);
 
-void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, McItemRec* arg3)
+void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3)
 {
     s32 n;
     s32 mode;
@@ -496,15 +496,15 @@ const TaskFuncTable4   Gp_MapTaskStates;
 
 void Gp_ItemCmdMenuTask(Task* arg0)
 {
-    Task*      childTask;
-    UiObject*  obj;
-    UiList*    menu;
-    UiObject*  child;
-    s32        flag;
-    s32        y;
-    McItemRec* ptr;
-    s32        val;
-    s32        sel;
+    Task*             childTask;
+    UiObject*         obj;
+    UiList*           menu;
+    UiObject*         child;
+    s32               flag;
+    s32               y;
+    InventoryItemRow* ptr;
+    s32               val;
+    s32               sel;
 
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -682,7 +682,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     GpUseCreatePair*          start;
     McItemSlot*               slotSrc;
     McItemSlot*               slotDst;
-    McItemRec*                rec;
+    InventoryItemRow*         rec;
     PlayerStatus*             cfg;
 
     if (arg1->state == 0) {
@@ -774,7 +774,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             scanInit   = &Mc_SaveData[0].state.carriedItems;
             arg1->work = (TaskIdMap*)newWork;
             Gp_RemoveItem(scanInit, Gp_SelItemRec, 1);
-            rec->itemId = (u8)result;
+            rec->itemId = result;
             Gp_ClearEquipSlotSel(result, 0);
             slotDst->ammoId = slotSrc->ammoId;
             Gp_EquipRelatedItem(scanInit, result, slotDst->ammoId, slotSrc->ammoQty);
@@ -1675,7 +1675,7 @@ void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     _gpDrawQty(arg0, arg1, arg2, arg3, arg4);
 }
 
-void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 arg4, s32 arg5)
+void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3, s32 arg4, s32 arg5)
 {
     u8          buf[0x20];
     TextDrawReq req;
@@ -1756,10 +1756,10 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
 {
     s32 one;
 
-    if (Pad_CheckButtons(0, 1, 0x10) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != 0)) {
+    if (Pad_CheckButtons(0, 1, 0x10) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
         one = 1;
         SndEvt_EnqueueType6(3, 0, 0);
-        Ui_SpawnFromDesc(&D_8010EFA0, (s32)(Gp_SelItemRec->itemId), one, one, arg0);
+        Ui_SpawnFromDesc(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
         arg0->panel.field_0.w = 0;
     }
 }

@@ -7,18 +7,33 @@
 
 #include "main/session_types.h"
 
-/// One row of an item table: the item it holds, the attachment slot that item
-/// occupies and its stack count. The tables selected by an `InventoryItemRange`
-/// (`Mc_SaveData[0].state.itemRows`, `Gp_ItemTable1`, `Gp_ItemTable2`) are arrays of
-/// these rows. A non-zero `attachSlot` marks the row as in use: 1..n is the
-/// slot the item occupies in the equipped weapon's or armour's attachment list,
-/// and -1 marks the row whose item is the equipped armour itself.
+/// Empty-item marker and attachment states stored in an inventory row.
+enum {
+    INVENTORY_ITEM_NONE                 = 0,
+    INVENTORY_ATTACHMENT_NONE           = 0,
+    INVENTORY_ATTACHMENT_EQUIPPED_ARMOR = -1,
+};
+
+/// One inventory row holding an item, its armour attachment position and quantity.
+///
+/// `InventoryItemRange` selects ranges in arrays of these four-byte rows.
+/// `itemId == INVENTORY_ITEM_NONE` alone marks a free row; the other fields may
+/// retain old values. Positive `attachSlot` values are one-based positions on
+/// the equipped armour (up to its attachment capacity, capped at ten).
+/// The equipped weapon is selected separately, so a zero slot does not prove
+/// that an item is unequipped.
+///
+/// Ammunition ids 0xA0..0xBF share a quantity stack per item id within a range.
+/// Their quantity includes rounds loaded into weapons; subtract the loaded
+/// quantities to obtain the available amount. Other items occupy separate
+/// rows, normally with quantity one. Row pointers borrow the selected table's
+/// storage; sorting and transfers can replace the item at the same address.
 typedef struct {
-    u8  itemId;     // Item id; 0 marks the row free
-    s8  attachSlot; // Attachment slot the item occupies (-1 = the equipped armour itself)
-    u16 qty;        // Stack count
-} McItemRec;
-STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
+    u8  itemId;     // Item id (0 free); stored ids are limited to one byte
+    s8  attachSlot; // Armour attachment position (0 none, 1..10 attached, -1 equipped armour)
+    u16 qty;        // Total item units, including ammunition loaded into weapons
+} InventoryItemRow;
+STATIC_ASSERT_SIZEOF(InventoryItemRow, 0x4);
 
 /// One entry of `Mc_SaveData`'s per-weapon item table, reached through
 /// `Gp_GetItemSlot` and indexed by weapon item id (0x80–0x9F): the ammunition
@@ -44,7 +59,7 @@ enum { INVENTORY_ITEM_RANGE_MAX_ROWS = 0xFF };
 
 /// A contiguous range of item rows used by inventory operations.
 ///
-/// `firstRow` and `rowCount` count `McItemRec` elements in the selected table.
+/// `firstRow` and `rowCount` count `InventoryItemRow` elements in the selected table.
 /// The range includes free rows: `rowCount` is capacity, not occupied-item count.
 /// `firstRow + rowCount` must fit the backing table; zero rows denotes an empty
 /// range. A range starting at row 0 with 255 rows excludes row 255.
@@ -117,7 +132,7 @@ typedef struct {
     s8                 soundMode;         // Sound output (0 stereo, 1 mono)
     s8                 musicVolume;       // Music volume (0..3, 3 is off)
     s8                 cursorMode;        // Cursor behaviour in the menus (0 remembers the row, 1 resets it)
-    McItemRec          itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
+    InventoryItemRow   itemRows[0x100];   // The save's own item table, indexed by row; the rows the player carries are `carriedItems`
     s32                collectedBits[4];  // 128 bits, one per collectible the player has picked up
     InventoryItemRange carriedItems;      // Window on the player's rows of `itemRows`
     u8                 unknown_5C0;

@@ -20,7 +20,7 @@ u16 Gp_ReplayFramesLeft;
 
 GpStateC08 Gp_StateC08;
 
-McItemRec Gp_ItemTable2[5];
+InventoryItemRow Gp_ItemTable2[5];
 
 s32 D_80114C34;
 

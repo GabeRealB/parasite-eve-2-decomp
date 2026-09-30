@@ -76,7 +76,7 @@ UiListItemFunc Gp_ItemActionFns[3] = {
 s32 Gp_CanMoveItems(void)
 {
     InventoryItemRange* src;
-    McItemRec*          table;
+    InventoryItemRow*   table;
     s32                 row;
     s32                 count;
     s32                 blocked;
@@ -91,7 +91,7 @@ s32 Gp_CanMoveItems(void)
     blocked = 0; /* nothing sets it, yet the original still tests it */
     if (Gp_CountScanItems(src) > 0) {
         for (i = 0; i < src->rowCount; i++, row++) {
-            if (table[row].itemId != 0) {
+            if (table[row].itemId != INVENTORY_ITEM_NONE) {
                 /* 0xA0-0xBF items need no new row if the destination already holds one */
                 if ((u8)(table[row].itemId + 0x60) < 0x20) {
                     if (Gp_FindItemInScan(table[row].itemId, &Gp_MoveScanDst) == 0) {

@@ -990,7 +990,7 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count)
 {
     s32                 i;
     s32                 n;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
     InventoryItemRange* scan;
 
     if ((u32)(item - 0xA0) < 0x20U) {

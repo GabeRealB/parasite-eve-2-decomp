@@ -20,7 +20,7 @@ u32 D_80114DCC;
 
 u16 Gp_PubItemQty;
 
-McItemRec* Gp_SelItemRec;
+InventoryItemRow* Gp_SelItemRec;
 
 s32 D_80114DD8;
 

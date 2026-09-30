@@ -17,7 +17,7 @@ extern GpRelatedItemTable Gp_RelatedQty1;
 
 extern GpItemMap Gp_ItemMaps[];
 
-extern McItemRec* Gp_ItemTable1;
+extern InventoryItemRow* Gp_ItemTable1;
 
 extern const char Gp_StrNotice2[8];
 
@@ -25,7 +25,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 struct _UiObject;
 
-s32 Gp_RemoveItem(InventoryItemRange* arg0, McItemRec* arg1, s32 arg2);
+s32 Gp_RemoveItem(InventoryItemRange* arg0, InventoryItemRow* arg1, s32 arg2);
 
 /// Confirmation UI for raising `Mc_SaveData[0].state.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`Player_Status.armor`). If the clamped level is
@@ -59,10 +59,10 @@ s32 Gp_FillRelated(s32 arg0, s32 arg1);
 
 s32 Gp_UnequipRelated(s32 arg0, s32 arg1);
 
-s32 Gp_ScanIndexOf(InventoryItemRange* arg0, McItemRec* arg1);
+s32 Gp_ScanIndexOf(InventoryItemRange* arg0, InventoryItemRow* arg1);
 
 /// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.
-McItemRec* Gp_GetScanSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+InventoryItemRow* Gp_GetScanSlot(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 void Gp_InitModeEquip(void);
 
@@ -90,7 +90,7 @@ s32 Gp_GetModLevel(s32 arg0);
 
 void Gp_TickBoostPanel(Task* arg0);
 
-s32 Gp_FindScanQty(McItemRec* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3);
+s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3);
 
 void Gp_AgeFlag119Void(void);
 
@@ -109,7 +109,7 @@ extern u32 D_80114DCC;
 
 extern u16 Gp_PubItemQty;
 
-extern McItemRec* Gp_SelItemRec;
+extern InventoryItemRow* Gp_SelItemRec;
 
 extern s32 D_80114DD8;
 
@@ -148,14 +148,14 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1);
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
 /// `Gp_GiveItem` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
-McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
+InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Returns the `arg1`-th matching item id from the table selected by `arg0`.
 /// `0x80..0x9F` ids match when `arg2 == 0`, or when `arg2` is a related id
 /// in `Gp_RelatedQty0` / `Gp_RelatedQty1` and the row is stocked or selected.
 s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
-void Gp_RefreshItemRow(McItemRec* arg0);
+void Gp_RefreshItemRow(InventoryItemRow* arg0);
 
 /// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
 /// Ids `0xA0..0xBF` stack onto an existing row, clamped to
@@ -163,7 +163,7 @@ void Gp_RefreshItemRow(McItemRec* arg0);
 /// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
-McItemRec* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 void func_800B92CC(Task* task);
 

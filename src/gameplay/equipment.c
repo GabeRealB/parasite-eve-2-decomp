@@ -17,7 +17,7 @@
 #include "main/mc.h"
 #include "main/wipsys.h"
 
-McItemRec* Gp_ItemTable1;
+InventoryItemRow* Gp_ItemTable1;
 
 extern u8 D_8010D318[8];
 
@@ -27,7 +27,7 @@ extern u8 D_8010D324[3];
 
 static inline s32 _gpRelatedQty(s32 item, s32 bank);
 
-static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item);
+static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* scan, s32 item);
 
 static inline s32 _gpRelatedQty(s32 item, s32 bank)
 {
@@ -44,7 +44,7 @@ static inline s32 _gpRelatedQty(s32 item, s32 bank)
     }
     return ret;
 }
-static inline s16 _gpScanHeldQty(McItemRec* table, InventoryItemRange* scan, s32 item)
+static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* scan, s32 item)
 {
     s32 index;
     s32 found;
@@ -153,7 +153,7 @@ done:
 s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32                 index;
-    McItemRec*          table;
+    InventoryItemRow*   table;
     InventoryItemRange* scan;
     McItemSlot*         slot;
     GpItemQty*          row;
@@ -224,14 +224,14 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    s32         index;
-    McItemRec*  table;
-    McItemSlot* slot;
-    GpItemQty*  row;
-    s32         maxQty;
-    s32         have;
-    s32         useSecond;
-    s32         i;
+    s32               index;
+    InventoryItemRow* table;
+    McItemSlot*       slot;
+    GpItemQty*        row;
+    s32               maxQty;
+    s32               have;
+    s32               useSecond;
+    s32               i;
 
     table     = Gp_GetItemTable(arg0);
     useSecond = 0;
@@ -476,23 +476,23 @@ void Gp_RecalcMaxMp(void)
 void Gp_EquipMod(s32 arg0)
 {
     PlayerStatus*       cfg;
-    McItemRec*          rec;
-    McItemRec*          tmp;
+    InventoryItemRow*   rec;
+    InventoryItemRow*   tmp;
     InventoryItemRange* scan;
     s32                 i;
 
     cfg = &Player_Status;
     if ((u32)(arg0 - 0x60) < 0x20U) {
         if (cfg->armor != (arg0 - 0x5F)) {
-            McItemRec* found;
+            InventoryItemRow* found;
 
             found = Gp_FindItemById(arg0);
             if (found != NULL) {
-                found->attachSlot = -1;
+                found->attachSlot = INVENTORY_ATTACHMENT_EQUIPPED_ARMOR;
                 if (cfg->armor != 0) {
                     found = Gp_FindItemById(cfg->armor + 0x5F);
                     if (found != NULL) {
-                        found->attachSlot = 0;
+                        found->attachSlot = INVENTORY_ATTACHMENT_NONE;
                     }
                 }
                 cfg->armor = arg0 - 0x5F;

@@ -27,19 +27,19 @@ STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
 /// Cursor represented as either a row pointer or its 32-bit PS1 address.
 typedef union GpItemRowAddress {
-    McItemRec* row;
-    u32        word;
+    InventoryItemRow* row;
+    u32               word;
 } GpItemRowAddress;
 STATIC_ASSERT_SIZEOF(GpItemRowAddress, 4);
 
 /// Resolve a row in the PS1 inventory address space. Address words preserve
-/// the runtime table base; row fields are always accessed through McItemRec.
-static inline McItemRec* gpItemRowAt(McItemRec* rows, s32 index)
+/// the runtime table base; row fields are always accessed through InventoryItemRow.
+static inline InventoryItemRow* gpItemRowAt(InventoryItemRow* rows, s32 index)
 {
     GpItemRowAddress base;
     GpItemRowAddress result;
     base.row     = rows;
-    result.word  = index * sizeof(McItemRec);
+    result.word  = index * sizeof(InventoryItemRow);
     result.word += base.word;
     return result.row;
 }

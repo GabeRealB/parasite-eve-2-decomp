@@ -211,7 +211,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 {
     GpItemMoveState*    mem;
     UiObject*           obj;
-    McItemRec*          tbl;
+    InventoryItemRow*   tbl;
     InventoryItemRange* scanSrc;
     s32                 i;
     s32                 base;
@@ -219,8 +219,8 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     s32                 val;
     InventoryItemRange* dst;
     InventoryItemRange* src;
-    McItemRec*          recDst;
-    McItemRec*          recSrc;
+    InventoryItemRow*   recDst;
+    InventoryItemRow*   recSrc;
     s32                 rowDst;
     s32                 rowSrc;
     s32                 idDst;
@@ -228,16 +228,16 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
     s32                 qtyDst;
     s32                 qtySrc;
     InventoryItemRange* scan;
-    McItemRec*          recA;
-    McItemRec*          recB;
+    InventoryItemRow*   recA;
+    InventoryItemRow*   recB;
     s32                 rowA;
     s32                 rowB;
     s32                 idA;
     s32                 idB;
     s32                 qtyA;
     s32                 qtyB;
-    s32                 subA;
-    s32                 subB;
+    s32                 attachmentSlotA;
+    s32                 attachmentSlotB;
 
     obj = arg1->parent->spawnArg2.pointer;
     mem = (GpItemMoveState*)arg1->parent->work;
@@ -249,9 +249,9 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             i       = 0;
             if (scanSrc->rowCount != 0) {
                 do {
-                    if (tbl[base].itemId != 0) {
+                    if (tbl[base].itemId != INVENTORY_ITEM_NONE) {
                         Gp_GiveItem(&Gp_MoveScanDst, tbl[base].itemId, tbl[base].qty);
-                        tbl[base].itemId = 0;
+                        tbl[base].itemId = INVENTORY_ITEM_NONE;
                         tbl[base].qty    = 0;
                     }
                     i++;
@@ -324,19 +324,19 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 rowA = mem->field_14;
                 rowB = mem->field_18;
                 if (rowA != rowB) {
-                    scan = &Gp_MoveScanSrc + mem->field_10;
-                    recA = Gp_GetScanSlot(scan, rowA, 0);
-                    qtyA = recA->qty;
-                    idA  = recA->itemId;
-                    subA = recA->attachSlot;
+                    scan            = &Gp_MoveScanSrc + mem->field_10;
+                    recA            = Gp_GetScanSlot(scan, rowA, 0);
+                    qtyA            = recA->qty;
+                    idA             = recA->itemId;
+                    attachmentSlotA = recA->attachSlot;
                     Gp_RemoveItem(scan, recA, qtyA);
-                    recB = Gp_GetScanSlot(scan, rowB, 0);
-                    qtyB = recB->qty;
-                    idB  = recB->itemId;
-                    subB = recB->attachSlot;
+                    recB            = Gp_GetScanSlot(scan, rowB, 0);
+                    qtyB            = recB->qty;
+                    idB             = recB->itemId;
+                    attachmentSlotB = recB->attachSlot;
                     Gp_RemoveItem(scan, recB, qtyB);
-                    Gp_SetScanItem(scan, rowA, idB, qtyB)->attachSlot = subB;
-                    Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = subA;
+                    Gp_SetScanItem(scan, rowA, idB, qtyB)->attachSlot = attachmentSlotB;
+                    Gp_SetScanItem(scan, rowB, idA, qtyA)->attachSlot = attachmentSlotA;
                 }
             }
             mem->objs[mem->field_8]->owner->state     = 1;
@@ -450,14 +450,14 @@ end:
 
 void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
 {
-    McItemRec* rec;
-    s32        item;
-    s32        item2;
-    s32        status;
-    s32        flag;
-    s32        flags;
-    s32        idx;
-    UiObject*  spawned;
+    InventoryItemRow* rec;
+    s32               item;
+    s32               item2;
+    s32               status;
+    s32               flag;
+    s32               flags;
+    s32               idx;
+    UiObject*         spawned;
 
     rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1.value, arg0->field_8, 0);
     item = rec->itemId;
@@ -476,7 +476,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     }
     if (arg1->owner->spawnArg1.value == 0) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
-    } else if (rec->attachSlot <= 0) {
+    } else if (rec->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
     } else {
         Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
@@ -684,18 +684,18 @@ children:
 
 void func_800BD6DC(UiList* arg0, UiObject* arg1)
 {
-    TextDrawReq req;
-    s32         flags;
-    McItemRec*  rec;
-    Task*       scanOwner;
-    Task*       owner;
-    s32         idx;
-    s32         selected;
-    s32         restricted;
-    s32         prompt;
-    s32         chooseQty;
-    s32         qty;
-    s32         item;
+    TextDrawReq       req;
+    s32               flags;
+    InventoryItemRow* rec;
+    Task*             scanOwner;
+    Task*             owner;
+    s32               idx;
+    s32               selected;
+    s32               restricted;
+    s32               prompt;
+    s32               chooseQty;
+    s32               qty;
+    s32               item;
 
     req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
     req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
@@ -770,15 +770,15 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
 
 void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
 {
-    TextDrawReq   req;
-    s32           selected;
-    s32           idx;
-    McItemRec*    rec;
-    s32           item;
-    s32           flag;
-    s32           flags;
-    Task*         owner;
-    PlayerStatus* cfg;
+    TextDrawReq       req;
+    s32               selected;
+    s32               idx;
+    InventoryItemRow* rec;
+    s32               item;
+    s32               flag;
+    s32               flags;
+    Task*             owner;
+    PlayerStatus*     cfg;
 
     req.x          = arg1->panel.field_20.u + (u16)arg0->field_18;
     req.y          = arg1->panel.field_22.u + (u16)arg0->field_1A;
@@ -828,7 +828,7 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
 /// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
 static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
 {
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
     s32                 item;
     s32                 count;
     s32                 idx;
@@ -1194,7 +1194,7 @@ static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 static inline void _gpDropOrphanedWeaponLoads(void)
 {
     InventoryItemRange* scan;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
     McItemSlot*         slot;
     s32                 i;
     s32                 attach;

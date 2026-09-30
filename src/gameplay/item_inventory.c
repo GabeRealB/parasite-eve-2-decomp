@@ -355,7 +355,7 @@ extern const u8 D_80096E28[];
 extern const u8 D_80096E38[];
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(InventoryItemRange* scan);
+static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
 
 /* Item names and descriptions shared by the inventory tables. */
 const u8 D_80093E68[]   = "\n\n\n\n\n\n";
@@ -877,7 +877,7 @@ GpItemDesc Gp_KeyItemDescs[] = {
 
 void func_800B8014(void)
 {
-    McItemRec*           rec;
+    InventoryItemRow*    rec;
     McSaveData*          save;
     GpItemDesc*          desc;
     u8*                  str;
@@ -892,8 +892,8 @@ void func_800B8014(void)
     s32                  row;
     s32                  col;
 
-    for (j = 0, rec = Mc_SaveData[0].state.itemRows; j < 0x100; j++) {
-        rec->itemId = 0;
+    for (j = 0, rec = Mc_SaveData[0].state.itemRows; j < ARRAY_SIZE(Mc_SaveData[0].state.itemRows); j++) {
+        rec->itemId = INVENTORY_ITEM_NONE;
         rec->qty    = 0;
         rec++;
     }
@@ -989,9 +989,9 @@ void func_800B8014(void)
 }
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
+static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
 {
-    McItemRec* table;
+    InventoryItemRow* table;
 
     switch (scan->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -1009,9 +1009,9 @@ static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
 
 void Gp_MoveItemSlot(InventoryItemRange* scan, s32 from, s32 to)
 {
-    McItemRec* table;
-    McItemRec  saved;
-    s32        i;
+    InventoryItemRow* table;
+    InventoryItemRow  saved;
+    s32               i;
 
     table = _gpScanTable(scan);
     if (from == to) {
@@ -1023,10 +1023,10 @@ void Gp_MoveItemSlot(InventoryItemRange* scan, s32 from, s32 to)
 
     if (from < to) {
         saved              = table[from];
-        table[from].itemId = 0;
+        table[from].itemId = INVENTORY_ITEM_NONE;
         table[from].qty    = 0;
         for (i = to; from < i; i--) {
-            if (table[i].itemId == 0) {
+            if (table[i].itemId == INVENTORY_ITEM_NONE) {
                 break;
             }
         }
@@ -1035,10 +1035,10 @@ void Gp_MoveItemSlot(InventoryItemRange* scan, s32 from, s32 to)
         }
     } else {
         saved              = table[from];
-        table[from].itemId = 0;
+        table[from].itemId = INVENTORY_ITEM_NONE;
         table[from].qty    = 0;
         for (i = to; i < from; i++) {
-            if (table[i].itemId == 0) {
+            if (table[i].itemId == INVENTORY_ITEM_NONE) {
                 break;
             }
         }

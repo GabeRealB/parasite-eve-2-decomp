@@ -67,9 +67,9 @@ void func_800D6334(Task* arg0);
 /// ignores it.
 s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 
-McItemRec* Gp_FindItemById(s32 arg0);
+InventoryItemRow* Gp_FindItemById(s32 arg0);
 
-McItemRec* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1);
+InventoryItemRow* Gp_FindItemInScan(s32 arg0, InventoryItemRange* arg1);
 
 void Gp_DrawWeaponLabel(Task* arg0);
 

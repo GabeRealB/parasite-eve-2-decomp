@@ -711,12 +711,12 @@ draw:
 
 void Gp_DrawRemoveAmmoRow(UiList* prompt, UiObject* obj)
 {
-    s32         item;
-    s32         spawnArg;
-    s32         status;
-    McItemRec*  rec;
-    s32         qty;
-    McItemSlot* attach;
+    s32               item;
+    s32               spawnArg;
+    s32               status;
+    InventoryItemRow* rec;
+    s32               qty;
+    McItemSlot*       attach;
     union {
         struct {
             u8          buf[0x20];

@@ -71,7 +71,7 @@ static inline GpItemA0* gpStackLimitAt(GpItemA0* rows, s32 index)
 }
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(InventoryItemRange* scan);
+static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan);
 
 /// True if `arg2` of item `arg1` can be added to the item table selected
 /// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
@@ -277,9 +277,9 @@ u8 Gp_ItemSortKeyA0[33] = {
     } while (0)
 
 /* Item table a scan window lies in. */
-static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
+static inline InventoryItemRow* _gpScanTable(InventoryItemRange* scan)
 {
-    McItemRec* table;
+    InventoryItemRow* table;
 
     switch (scan->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -297,22 +297,22 @@ static inline McItemRec* _gpScanTable(InventoryItemRange* scan)
 
 void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec*          tmp;
-    register McItemRec* table;
-    McItemRec*          rec;
-    McItemRec*          other;
-    McItemRec           saved;
-    s32                 i;
-    s32                 j;
-    s32                 key;
-    s32                 minKey;
-    s32                 id;
-    s32                 idx;
-    s32                 next;
-    s32                 count;
-    s32                 dummy5;
-    s32                 dummy6;
-    s32                 dummy7;
+    InventoryItemRow*          tmp;
+    register InventoryItemRow* table;
+    InventoryItemRow*          rec;
+    InventoryItemRow*          other;
+    InventoryItemRow           saved;
+    s32                        i;
+    s32                        j;
+    s32                        key;
+    s32                        minKey;
+    s32                        id;
+    s32                        idx;
+    s32                        next;
+    s32                        count;
+    s32                        dummy5;
+    s32                        dummy6;
+    s32                        dummy7;
 
     GpItemRowAddress cursor;
     i = 0;
@@ -427,24 +427,24 @@ void Gp_SortItems(InventoryItemRange* arg0, s32 arg1)
 /// free slot.
 static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec* tmp;
-    McItemRec* table;
-    McItemRec* rec;
-    s32        i;
-    s32        occupied;
-    s32        count;
-    s32        start;
-    s32        limit;
-    s32        used;
-    s32        found;
-    McItemRec* table2;
-    McItemRec* walker;
-    s32        count2;
-    s32        start2;
-    GpItemA0*  p;
-    s32        idx;
-    GpItemA0*  cap;
-    s32        capacity;
+    InventoryItemRow* tmp;
+    InventoryItemRow* table;
+    InventoryItemRow* rec;
+    s32               i;
+    s32               occupied;
+    s32               count;
+    s32               start;
+    s32               limit;
+    s32               used;
+    s32               found;
+    InventoryItemRow* table2;
+    InventoryItemRow* walker;
+    s32               count2;
+    s32               start2;
+    GpItemA0*         p;
+    s32               idx;
+    GpItemA0*         cap;
+    s32               capacity;
 
     switch (arg0->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -466,7 +466,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
         limit = count;
         rec   = gpItemRowAt(table, start);
         do {
-            if (rec->itemId != 0) {
+            if (rec->itemId != INVENTORY_ITEM_NONE) {
                 occupied++;
             }
             i++;
@@ -531,24 +531,24 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 
 s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec* tmp;
-    McItemRec* table;
-    McItemRec* rec;
-    s32        i;
-    s32        occupied;
-    s32        count;
-    s32        start;
-    s32        limit;
-    s32        used;
-    s32        found;
-    McItemRec* table2;
-    McItemRec* walker;
-    s32        count2;
-    s32        start2;
-    GpItemA0*  p;
-    s32        idx;
-    GpItemA0*  cap;
-    s32        capacity;
+    InventoryItemRow* tmp;
+    InventoryItemRow* table;
+    InventoryItemRow* rec;
+    s32               i;
+    s32               occupied;
+    s32               count;
+    s32               start;
+    s32               limit;
+    s32               used;
+    s32               found;
+    InventoryItemRow* table2;
+    InventoryItemRow* walker;
+    s32               count2;
+    s32               start2;
+    GpItemA0*         p;
+    s32               idx;
+    GpItemA0*         cap;
+    s32               capacity;
 
     switch (arg0->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
@@ -570,7 +570,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
         limit = count;
         rec   = gpItemRowAt(table, start);
         do {
-            if (rec->itemId != 0) {
+            if (rec->itemId != INVENTORY_ITEM_NONE) {
                 occupied++;
             }
             i++;
@@ -631,20 +631,20 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
     return used <= capacity;
 }
 
-McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
+InventoryItemRow* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    McItemRec* table;
-    McItemRec* dest;
-    s32        row;
-    s32        i;
-    s32        item;
-    s32        qty;
+    InventoryItemRow* table;
+    InventoryItemRow* dest;
+    s32               row;
+    s32               i;
+    s32               item;
+    s32               qty;
 
     table = _gpScanTable(arg0);
     if ((u32)(arg2 - 0xA0) < 0x20U) {
         dest = Gp_GiveItem(arg0, arg2, arg3);
         i    = arg0->firstRow;
-        if (table[i + arg1].itemId == 0) {
+        if (table[i + arg1].itemId == INVENTORY_ITEM_NONE) {
             row = i;
             for (i = 0; i < arg0->rowCount; i++, row++) {
                 if (table[row].itemId == arg2) {
@@ -654,7 +654,7 @@ McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3
                     dest                             = &table[arg0->firstRow + arg1];
                     dest->itemId                     = arg2;
                     table[arg0->firstRow + arg1].qty = table[row].qty;
-                    table[row].itemId                = 0;
+                    table[row].itemId                = INVENTORY_ITEM_NONE;
                     table[row].qty                   = 0;
                     break;
                 }
@@ -662,7 +662,7 @@ McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3
         }
     } else {
         row = arg0->firstRow + arg1;
-        if (table[row].itemId == 0) {
+        if (table[row].itemId == INVENTORY_ITEM_NONE) {
             dest         = &table[row];
             dest->itemId = arg2;
             dest->qty    = 1;
@@ -684,13 +684,13 @@ McItemRec* Gp_SetScanItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3
 /// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
 /// Other ids take the first free slot with quantity 1. Returns the
 /// written row, or NULL if none was free.
-McItemRec* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
+InventoryItemRow* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec* table;
-    McItemRec* dest;
-    s32        found;
-    s32        row;
-    s32        i;
+    InventoryItemRow* table;
+    InventoryItemRow* dest;
+    s32               found;
+    s32               row;
+    s32               i;
 
     table = _gpScanTable(arg0);
     dest  = NULL;
@@ -726,24 +726,24 @@ McItemRec* Gp_AddItem(InventoryItemRange* arg0, s32 arg1, s32 arg2)
         }
         row = arg0->firstRow;
         for (i = 0; i < arg0->rowCount; i++, row++) {
-            if (table[row].itemId == 0) {
+            if (table[row].itemId == INVENTORY_ITEM_NONE) {
                 table[row].itemId = arg1;
                 if (Gp_StackLimits[arg1 - 0xA0].maxHeld < arg2) {
                     arg2 = Gp_StackLimits[arg1 - 0xA0].maxHeld;
                 }
                 dest             = &table[row];
                 dest->qty        = arg2;
-                dest->attachSlot = 0;
+                dest->attachSlot = INVENTORY_ATTACHMENT_NONE;
                 break;
             }
         }
     } else {
         for (i = 0; i < arg0->rowCount; i++, row++) {
-            if (table[row].itemId == 0) {
+            if (table[row].itemId == INVENTORY_ITEM_NONE) {
                 dest             = &table[row];
                 dest->itemId     = arg1;
                 dest->qty        = 1;
-                dest->attachSlot = 0;
+                dest->attachSlot = INVENTORY_ATTACHMENT_NONE;
                 break;
             }
         }
@@ -825,10 +825,10 @@ char* Gp_GetItemText(s32 arg0, s32 arg1, s32 arg2)
 
 s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
-    McItemRec*    table;
-    s32           idx;
-    s32           i;
-    PlayerStatus* cfg;
+    InventoryItemRow* table;
+    s32               idx;
+    s32               i;
+    PlayerStatus*     cfg;
 
     table = _gpScanTable(arg0);
     idx   = arg0->firstRow;
@@ -840,7 +840,7 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
             } else {
                 for (i = 0; i < 3; i++) {
                     if (Gp_RelatedQty0.rows[table[idx].itemId - 0x80].related[i] == arg2) {
-                        if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
+                        if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
                         break;
@@ -848,7 +848,7 @@ s32 Gp_NthRelatedId(InventoryItemRange* arg0, s32 arg1, s32 arg2)
                 }
                 for (i = 0; i < 3; i++) {
                     if (Gp_RelatedQty1.rows[table[idx].itemId - 0x80].related[i] == arg2) {
-                        if (table[idx].attachSlot > 0 || cfg->weapon == table[idx].itemId - 0x7F) {
+                        if (table[idx].attachSlot > INVENTORY_ATTACHMENT_NONE || cfg->weapon == table[idx].itemId - 0x7F) {
                             arg1--;
                         }
                         break;
@@ -895,17 +895,17 @@ static inline void _gpClearEquipSlot(s32 item)
     }
 }
 
-void Gp_RefreshItemRow(McItemRec* arg0)
+void Gp_RefreshItemRow(InventoryItemRow* arg0)
 {
     u8  item;
     s32 inRange;
 
-    if (arg0->attachSlot <= 0) {
+    if (arg0->attachSlot <= INVENTORY_ATTACHMENT_NONE) {
         return;
     }
 
     inRange          = (u8)(arg0->itemId + 0x80) < 0x20;
-    arg0->attachSlot = 0;
+    arg0->attachSlot = INVENTORY_ATTACHMENT_NONE;
     if (!inRange) {
         return;
     }

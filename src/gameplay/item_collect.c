@@ -228,14 +228,14 @@ s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
 
 s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec* tmp;
-    McItemRec* table;
-    McItemRec* rec;
-    s32        i;
-    s32        acc;
-    s32        count;
-    s32        start;
-    s32        limit;
+    InventoryItemRow* tmp;
+    InventoryItemRow* table;
+    InventoryItemRow* rec;
+    s32               i;
+    s32               acc;
+    s32               count;
+    s32               start;
+    s32               limit;
 
     if (arg1 >= 0x100) {
         return Gp_HasCollectedBit(arg1);
@@ -452,7 +452,7 @@ void Gp_WaitItemFlag2(Task* arg0)
     }
 }
 
-s32 Gp_FindScanQty(McItemRec* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3)
+s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3)
 {
     s32 i;
     s32 ret;
@@ -759,7 +759,7 @@ void Gp_TickBoostPanel(Task* arg0)
 s32 Gp_HasStockedItem(s32 arg0)
 {
     InventoryItemRange* scan;
-    McItemRec*          table;
+    InventoryItemRow*   table;
     s32                 i;
     s32                 ret;
     s32                 count;
@@ -781,7 +781,7 @@ s32 Gp_HasStockedItem(s32 arg0)
     table += scan->firstRow;
     count  = scan->rowCount;
     for (; i < count; i++) {
-        if (table->attachSlot > 0) {
+        if (table->attachSlot > INVENTORY_ATTACHMENT_NONE) {
             if (table->itemId == arg0) {
                 ret = 1;
                 break;

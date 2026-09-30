@@ -59,7 +59,7 @@ static inline s32 _gpIsArmorItem(u8 id)
     do {                                                                                \
         PlayerStatus*       _cfg;                                                       \
         InventoryItemRange* _scan;                                                      \
-        McItemRec*          _rec;                                                       \
+        InventoryItemRow*   _rec;                                                       \
         s32                 _i;                                                         \
         s32                 _n;                                                         \
                                                                                         \
@@ -84,7 +84,7 @@ static inline s32 _gpIsArmorItem(u8 id)
     do {                                                                                \
         PlayerStatus*       _cfg;                                                       \
         InventoryItemRange* _scan;                                                      \
-        McItemRec*          _rec;                                                       \
+        InventoryItemRow*   _rec;                                                       \
         s32                 _i;                                                         \
                                                                                         \
         (count) = 0;                                                                    \
@@ -104,7 +104,7 @@ static inline s32 _gpFindSpareArmor(s32 index)
 {
     PlayerStatus*       cfg;
     InventoryItemRange* scan;
-    McItemRec*          rec;
+    InventoryItemRow*   rec;
     s32                 i;
     s32                 found;
 
@@ -656,17 +656,17 @@ void Gp_AttachPromptTask(Task* arg0)
 
 void Gp_EquipPromptTask(Task* arg0)
 {
-    UiObject*     obj;
-    u8*           text;
-    s32           color;
-    s32           one;
-    s32           width;
-    s32           val;
-    s32           other;
-    PlayerStatus* p;
-    McItemRec*    rec;
-    McItemRec*    prev;
-    u8            field21;
+    UiObject*         obj;
+    u8*               text;
+    s32               color;
+    s32               one;
+    s32               width;
+    s32               val;
+    s32               other;
+    PlayerStatus*     p;
+    InventoryItemRow* rec;
+    InventoryItemRow* prev;
+    u8                field21;
 
     obj           = arg0->spawnArg2.pointer;
     obj->field_2E = 0;
@@ -679,7 +679,7 @@ void Gp_EquipPromptTask(Task* arg0)
             if (field21 != val - 0x7F) {
                 if (field21 != 0) {
                     prev = Gp_FindItemById(field21 + 0x7F);
-                    if (rec->attachSlot > 0) {
+                    if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                         prev->attachSlot = rec->attachSlot;
                     } else {
                         Gp_ClearEquipSlotSel(prev->itemId, 0);

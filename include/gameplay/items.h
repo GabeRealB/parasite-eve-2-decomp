@@ -35,7 +35,7 @@ void Gp_RecalcMaxMp(void);
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
 void Gp_EquipMod(s32 arg0);
 
-McItemRec* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+InventoryItemRow* Gp_GiveItem(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Unequips `Player_Status.weapon` (ids 1..32 use the same slot clear as
 /// `Gp_ClearEquipSlot`), resets the `Gp_DefaultScan` item table, copies that scan
@@ -68,7 +68,7 @@ s32 Gp_HasCollectedBit(s32 arg0);
 
 void Gp_ClearCollectedBit(s32 arg0);
 
-McItemRec* Gp_GetItemTable(InventoryItemRange* arg0);
+InventoryItemRow* Gp_GetItemTable(InventoryItemRange* arg0);
 
 void Gp_SetCollectedBit(s32 arg0);
 

@@ -127,19 +127,19 @@ extern char Gp_StrUseKeyHelp[];
 
 extern char Gp_StrCheckMap[];
 
-static inline s32 _gpIsItemRowFree(McItemRec* arg0);
+static inline s32 _gpIsItemRowFree(InventoryItemRow* arg0);
 
-static McItemRec* func_800CE980(InventoryItemRange* arg0, s32 arg1);
+static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1);
 
 static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1);
 
 static s32 Gp_IsEquippedItem(s32 arg0);
 
-static s32 func_800CEC5C(McItemRec* arg0);
+static s32 func_800CEC5C(InventoryItemRow* arg0);
 
-static McItemRec* func_800CECC0(InventoryItemRange* arg0, s32 arg1);
+static InventoryItemRow* func_800CECC0(InventoryItemRange* arg0, s32 arg1);
 
-static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, McItemRec* arg2, s32 arg3);
+static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3);
 
 static void func_800CEE5C(UiObject* arg0);
 
@@ -181,18 +181,18 @@ static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3);
 
 static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1);
 
-static inline s32 _gpIsItemRowFree(McItemRec* arg0)
+static inline s32 _gpIsItemRowFree(InventoryItemRow* arg0)
 {
     PlayerStatus* p;
     s32           ret;
     s32           id;
-    s8            count;
+    s8            attachmentSlot;
 
-    p     = &Player_Status;
-    ret   = 1;
-    count = arg0->attachSlot;
-    id    = arg0->itemId;
-    if ((count != 0) || (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
+    p              = &Player_Status;
+    ret            = 1;
+    attachmentSlot = arg0->attachSlot;
+    id             = arg0->itemId;
+    if ((attachmentSlot != INVENTORY_ATTACHMENT_NONE) || (((u32)(id - 0x60) < 0x20U) && (p->armor == id - 0x5F)) ||
         (((u32)(id - 0x80) < 0x20U) && (p->weapon == id - 0x7F))) {
         ret = 0;
     }
@@ -321,12 +321,12 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-static McItemRec* func_800CE980(InventoryItemRange* arg0, s32 arg1)
+static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec* table;
-    s32        i;
-    s32        count;
-    McItemRec* rec;
+    InventoryItemRow* table;
+    s32               i;
+    s32               count;
+    InventoryItemRow* rec;
 
     table = Gp_GetItemTable(arg0);
     i     = 0;
@@ -345,10 +345,10 @@ static McItemRec* func_800CE980(InventoryItemRange* arg0, s32 arg1)
 
 static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec* table;
-    s32        i;
-    s32        count;
-    McItemRec* rec;
+    InventoryItemRow* table;
+    s32               i;
+    s32               count;
+    InventoryItemRow* rec;
 
     table = Gp_GetItemTable(arg0);
     i     = 0;
@@ -411,16 +411,16 @@ static s32 Gp_IsEquippedItem(s32 arg0)
     return ret;
 }
 
-static s32 func_800CEC5C(McItemRec* arg0)
+static s32 func_800CEC5C(InventoryItemRow* arg0)
 {
     return _gpIsItemRowFree(arg0);
 }
 
-static McItemRec* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
+static InventoryItemRow* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
 {
-    McItemRec* table;
-    s32        i;
-    McItemRec* rec;
+    InventoryItemRow* table;
+    s32               i;
+    InventoryItemRow* rec;
 
     table = Gp_GetItemTable(arg0);
     rec   = NULL;
@@ -437,7 +437,7 @@ static McItemRec* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
     return rec;
 }
 
-static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, McItemRec* arg2, s32 arg3)
+static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3)
 {
     UiObject* obj;
     s32       one;
@@ -535,11 +535,11 @@ void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1)
 
 void func_800CF090(UiList* arg0, UiObject* arg1)
 {
-    PlayerStatus*       p;
-    InventoryItemRange* scan;
-    volatile McItemRec* table;
-    s32                 count;
-    s32                 i;
+    PlayerStatus*              p;
+    InventoryItemRange*        scan;
+    volatile InventoryItemRow* table;
+    s32                        count;
+    s32                        i;
 
     count = 0;
     p     = &Player_Status;
@@ -660,10 +660,10 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
 
 void Gp_EquipHeld(s32 arg0)
 {
-    PlayerStatus* p;
-    McItemRec*    rec;
-    McItemRec*    prev;
-    u8            field21;
+    PlayerStatus*     p;
+    InventoryItemRow* rec;
+    InventoryItemRow* prev;
+    u8                field21;
 
     p       = &Player_Status;
     rec     = Gp_FindItemById(arg0);
@@ -671,7 +671,7 @@ void Gp_EquipHeld(s32 arg0)
     if (field21 != arg0 - 0x7F) {
         if (field21 != 0) {
             prev = Gp_FindItemById(field21 + 0x7F);
-            if (rec->attachSlot > 0) {
+            if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
                 prev->attachSlot = rec->attachSlot;
             } else {
                 Gp_ClearEquipSlotSel(prev->itemId, 0);
@@ -2035,15 +2035,15 @@ void Gp_PeCommandMenuTask(Task* arg0)
 
 void Gp_DiscardWarnTask(Task* arg0)
 {
-    McItemRec* rec;
-    s32        id;
-    Task*      child;
-    UiObject*  childObj;
-    UiObject*  parentObj;
-    UiObject*  obj;
-    s32        mode;
-    u8*        text;
-    UiObject*  spawned;
+    InventoryItemRow* rec;
+    s32               id;
+    Task*             child;
+    UiObject*         childObj;
+    UiObject*         parentObj;
+    UiObject*         obj;
+    s32               mode;
+    u8*               text;
+    UiObject*         spawned;
 
     rec = Gp_SelItemRec;
     id  = rec->itemId;

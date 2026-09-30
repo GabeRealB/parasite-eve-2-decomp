@@ -207,16 +207,16 @@ s32 func_replay_bonus_80115CA4(void)
 
 static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
 {
-    McItemRec* rec;
-    s16*       ids;
-    s16*       dest;
-    s32        count;
-    s32        i;
-    s32        found;
-    s32        j;
-    u16*       p;
-    u8         item;
-    u8         id;
+    InventoryItemRow* rec;
+    s16*              ids;
+    s16*              dest;
+    s32               count;
+    s32               i;
+    s32               found;
+    s32               j;
+    u16*              p;
+    u8                item;
+    u8                id;
 
     rec   = Mc_SaveData[0].state.itemRows;
     count = 0;
@@ -251,7 +251,7 @@ static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
         }
         i   += 1;
         rec += 1;
-    } while (i < 0x100);
+    } while (i < ARRAY_SIZE(Mc_SaveData[0].state.itemRows));
 
     i = 0x101;
     do {

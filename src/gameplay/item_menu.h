@@ -173,7 +173,7 @@ extern const char Gp_StrSpecs2[16];
 void func_800CB6FC(UiObject* arg0, Task* arg1);
 
 /// `arg5` is supplied by the attachment menu but unused by this renderer.
-void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, McItemRec* arg3, s32 arg4, s32 arg5);
+void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3, s32 arg4, s32 arg5);
 
 void Gp_CheckItemInfoButton(UiObject* arg0);
 
@@ -363,7 +363,7 @@ void Gp_WeaponMenuTask(Task* arg0);
 
 void Gp_ArmorMenuTask(Task* arg0);
 
-McItemRec* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2);
+InventoryItemRow* Gp_NthEquippableRec(InventoryItemRange* arg0, s32 arg1, s32 arg2);
 
 /// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
