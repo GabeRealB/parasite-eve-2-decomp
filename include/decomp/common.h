@@ -35,9 +35,22 @@
 /// nonconstant subscript is evaluated once. The member's storage is not read.
 #define OFFSET_OF(type, member) ((size_t)&(((type*)0)->member))
 
-/// The `type` object that `ptr`, a pointer to its `member`, lies inside: for
-/// code that holds a pointer to an embedded part, such as a list link, and
-/// needs the whole object it belongs to.
+/// Recovers a containing aggregate's `type*` from its embedded `member` address.
+///
+/// `type` must be a complete struct or union type. A non-NULL `ptr` must
+/// address the start of the named subobject in a live instance of that type,
+/// rather than a standalone object or a stored pointer's pointee. Nested dot
+/// paths and in-bounds array subscripts follow `OFFSET_OF`'s requirements.
+/// The displacement is in bytes, regardless of `ptr`'s pointee type; the
+/// member's storage is not read and its owner's lifetime is not extended.
+///
+/// Pointee types are not checked. Result qualifiers come from `type`, not
+/// `ptr`; supply a const-qualified `type` for a read-only containing object.
+/// `ptr` and each nonconstant member subscript are evaluated once, with no
+/// evaluation order guaranteed between them.
+///
+/// There is no NULL check. On the target, a zero-offset member preserves NULL
+/// for intrusive-list termination; NULL at a nonzero offset is invalid.
 #define PARENT_OF(ptr, type, member) ((type*)((u8*)(ptr) - OFFSET_OF(type, member)))
 
 #define ALIGN(x, a) (((u32)(x) + ((a) - 1)) & ~((a) - 1))

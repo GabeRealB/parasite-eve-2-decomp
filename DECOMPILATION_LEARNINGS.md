@@ -141074,8 +141074,8 @@ its `param` or `super` pointer, no libgs coordinate function is called, and the
 8 bytes libgs gives those pointers hold inline owner state: Euler angles
 (`param.rot`), a weapon-model flag, or the lighting interpretation. Game code therefore uses one type,
 `GfxCoord` in `include/main/coord.h`, for every coordinate node. A
-`(T*)((u8*)p - OFFSET_OF(T, m))` reach from a matrix back to its node is
-written `PARENT_OF(p, GfxCoord, m)`.
+`(GfxCoord*)((u8*)p - OFFSET_OF(GfxCoord, coord))` reach from a local matrix
+back to its node is written `PARENT_OF(p, GfxCoord, coord)`.
 
 ## A plain global store lets struct-member loads jump ahead of it; a load through a pointer does not (Actor00400_Fn03920, 2026-09-25)
 
