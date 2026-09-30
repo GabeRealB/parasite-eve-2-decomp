@@ -59,7 +59,7 @@ D_map_neo_ark_8017C620 = 0x8017C620; // absolute:True
 D_map_neo_ark_8017C690 = 0x8017C690; // absolute:True
 D_map_neo_ark_8017C720 = 0x8017C720; // absolute:True
 D_map_neo_ark_8017C760 = 0x8017C760; // absolute:True
-D_neo_ark_pyramid_8017FC18 = 0x8017FC18; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x8017FC18; // size:0x10 defined:True
 
 func_neo_ark_pyramid_8017DC50 = 0x8017DC50; // type:func
 
@@ -68,3 +68,7 @@ func_neo_ark_pyramid_8017E6B4 = 0x8017E6B4; // type:func
 func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func
 
 func_neo_ark_pyramid_8017DBF0 = 0x8017DBF0; // type:func
+RoomFx_DrawFlashRing = 0x8017DEF4; // type:func
+RoomFx_DrawFlashDisc = 0x8017E320; // type:func
+RoomFx_DrawTwinTrail = 0x8017EBA4; // type:func
+RoomFx_DrawBurstStar = 0x8017F224; // type:func
