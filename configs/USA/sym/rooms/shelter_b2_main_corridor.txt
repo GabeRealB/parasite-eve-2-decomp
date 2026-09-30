@@ -69,7 +69,7 @@ D_80147E48 = 0x80147E48; // absolute:True
 D_8015F400 = 0x8015F400; // absolute:True
 D_8015FAB8 = 0x8015FAB8; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
-D_shelter_b2_main_corridor_801830BC = 0x801830BC; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x801830BC; // size:0x10 defined:True
 D_shelter_b2_main_corridor_801828F0 = 0x801828F0; // size:0x18 defined:True
 D_shelter_b2_main_corridor_80182908 = 0x80182908; // size:0xF8 defined:True
 D_shelter_b2_main_corridor_80182A00 = 0x80182A00; // size:0x1B8 defined:True
@@ -112,3 +112,7 @@ func_shelter_b2_main_corridor_801813B0 = 0x801813B0; // type:func
 func_shelter_b2_main_corridor_80181C98 = 0x80181C98; // type:func
 
 func_shelter_b2_main_corridor_8017EC34 = 0x8017EC34; // type:func
+RoomFx_DrawFlashRing = 0x80180BF0; // type:func
+RoomFx_DrawFlashDisc = 0x8018101C; // type:func
+RoomFx_DrawTwinTrail = 0x801818A0; // type:func
+RoomFx_DrawBurstStar = 0x80181F20; // type:func
