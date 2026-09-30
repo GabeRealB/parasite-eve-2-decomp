@@ -9,7 +9,10 @@
 /// Slot of the companion actor in `gPlayerActorTasks`.
 #define PLAYER_ACTOR_TASK_COMPANION 1
 
-/// Entry count of `gPlayerActorTasks`.
+/// Number of slots in `gPlayerActorTasks`.
+///
+/// The slots are the controlled character and the companion. An empty slot
+/// still counts toward this length, and a full walk stops before it.
 #define PLAYER_ACTOR_TASK_COUNT 2
 
 /// Live tasks of the controlled character and the companion.
