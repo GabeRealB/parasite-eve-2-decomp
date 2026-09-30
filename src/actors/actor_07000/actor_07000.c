@@ -362,7 +362,7 @@ void                Actor07000_Fn05E6C(Task*);
 void                Actor07000_Fn06338(Task*);
 void                Actor07000_Fn067B4(Task*);
 
-GpU16Pair Actor07000_D06924 = { 30, 7 };
+DamageAttack Actor07000_D06924 = { 30, 7 };
 
 GpPairSrcE Actor07000_D06928 = { &Actor07000_D06924, 70, 6, 12, 3, 100, 20, 100, 0, 0 };
 
@@ -496,7 +496,7 @@ SVECTOR Actor07000_D08068 = { 0, -10, 0, 0 };
 
 SVECTOR Actor07000_D08070 = { 0, -300, 0, 0 };
 
-GpU16Pair Actor07000_D08078[2] = {
+DamageAttack Actor07000_D08078[2] = {
     { 20, 7 },
     { 12, 3 },
 };
@@ -992,7 +992,7 @@ STATIC_ASSERT_SIZEOF(Actor107000Spawn2Work, 0x39C);
 /// Node 3's pair table, packed by `Gp_PackPair` into `obj1B4`, and the enemy
 /// record whose `pairTable` points at it; its `hpMax` seeds the enemy's
 /// `field_40`.
-extern GpU16Pair Actor07000_D06924;
+extern DamageAttack Actor07000_D06924;
 
 extern GpPairSrcE Actor07000_D06928;
 
@@ -1012,7 +1012,7 @@ extern SVECTOR Actor07000_D08070;
 
 /// Pair table the second form's node 3 and the projectile's render node pack
 /// into their keys.
-extern GpU16Pair Actor07000_D08078[2];
+extern DamageAttack Actor07000_D08078[2];
 
 /// Enemy record of the second form; its `hpMax` seeds the enemy's HP.
 extern GpPairSrcE Actor07000_D08080;

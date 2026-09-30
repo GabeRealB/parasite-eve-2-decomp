@@ -258,12 +258,12 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
-/// The spawn's pair tables. `Gp_PackPair` packs the `GpU16Pair` at 0x80141380
+/// The spawn's pair tables. `Gp_PackPair` packs the `DamageAttack` at 0x80141380
 /// into the work's third list node (`Actor105100Work::obj4E4.key`), and the
 /// `GpPairSrcE` at 0x80141398 is the pair source the context points at with
 /// `GpEnemy::param` -- its `hpMax` seeds the enemy's HP.
-extern GpU16Pair  D_actor_105100_80141380[6];
-extern GpPairSrcE D_actor_105100_80141398;
+extern DamageAttack D_actor_105100_80141380[6];
+extern GpPairSrcE   D_actor_105100_80141398;
 
 /// The animation data `func_800B3F84` builds the work block's clip context
 /// from; the spawn hands it over whole, so it is only ever a byte address here.
@@ -641,7 +641,7 @@ AnimationSet D_actor_105100_80141358 = {
     { NULL, D_actor_105100_80140B6C, NULL, NULL, D_actor_105100_80140C14, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_105100_80141380[6] = {
+DamageAttack D_actor_105100_80141380[6] = {
     { 32, 6 },
     { 32, 6 },
     { 25, 10 },

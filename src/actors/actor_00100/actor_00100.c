@@ -654,7 +654,7 @@ static __inline__ SVECTOR* Actor00100_AllocVector(SVECTOR** head)
 
 // Each handler receives the argument view used by its message ID.
 
-GpU16Pair Actor00100_D0BD90[5] = {
+DamageAttack Actor00100_D0BD90[5] = {
     { 30, 0 },
     { 30, 0 },
     { 18, 0 },

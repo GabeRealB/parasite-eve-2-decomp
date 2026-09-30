@@ -149,7 +149,7 @@ extern TmdSource Actor03800_D0492C;
 
 extern s16           Actor03800_D05F90[];
 extern s16           Actor03800_D05FA8[];
-extern GpU16Pair     Actor03800_D05F40[1];
+extern DamageAttack  Actor03800_D05F40[1];
 extern GpPairSrcE    Actor03800_D05F44;
 extern AnimationSet* Actor03800_D05F60[12];
 
@@ -634,7 +634,7 @@ AnimationSet Actor03800_D05F18 = {
     { NULL, Actor03800_D05E3C, NULL, NULL, Actor03800_D05E6C, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor03800_D05F40[1] = {
+DamageAttack Actor03800_D05F40[1] = {
     { 6, 7 },
 };
 
@@ -1971,11 +1971,12 @@ static void Actor03800_Fn02848(Task* arg0)
     speed = work2->field_35C;
     if (speed > 0) {
         scale = speed * 0x190;
-        value = Actor03800_D05F40[0].field_0 + ((Actor03800_D05F40[0].field_0 * scale) / 10000);
+        value = Actor03800_D05F40[0].power + ((Actor03800_D05F40[0].power * scale) / 10000);
     } else {
-        value = Actor03800_D05F40[0].field_0;
+        value = Actor03800_D05F40[0].power;
     }
-    work2->field_2A4   = (((s16)value | (Actor03800_D05F40[0].field_2 << 0xC)) & 0xFFFF) | 0x40000;
+    work2->field_2A4 = (((s16)value | (Actor03800_D05F40[0].reaction << DAMAGE_ATTACK_REACTION_SHIFT)) & 0xFFFF) |
+                       DAMAGE_ATTACK_CATEGORY;
     work->field_2EC    = (s16)coord->coord.t[0];
     work->field_2EE    = (s16)coord->coord.t[1];
     work->field_2F0    = (s16)coord->coord.t[2];

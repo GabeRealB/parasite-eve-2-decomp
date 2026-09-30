@@ -326,7 +326,7 @@ AnimationSet D_actor_300700_80169300 = {
     { NULL, D_actor_300700_80168FE4, NULL, NULL, D_actor_300700_801690BC, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_300700_80169328 = { 6, 3 };
+DamageAttack D_actor_300700_80169328 = { 6, 3 };
 
 GpPairSrcE D_actor_300700_8016932C = { &D_actor_300700_80169328, 18, 4, 22, 1, 100, 20, 100, 0, 0 };
 

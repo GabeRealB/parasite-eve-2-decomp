@@ -118,7 +118,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 /// Pair packed into the third collision object's `key` at spawn.
-extern GpU16Pair Actor01500_D09FB4;
+extern DamageAttack Actor01500_D09FB4;
 /// The enemy's parameter record; `hpMax` seeds the hit points.
 extern GpPairSrcE Actor01500_D09FB8;
 /// Animation bank handed to `func_800B3F84`.
@@ -643,7 +643,7 @@ AnimationSet Actor01500_D09F8C = {
     { NULL, Actor01500_D09BE8, NULL, NULL, Actor01500_D09CA8, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor01500_D09FB4 = { 8, 7 };
+DamageAttack Actor01500_D09FB4 = { 8, 7 };
 
 GpPairSrcE Actor01500_D09FB8 = { &Actor01500_D09FB4, 50, 12, 36, 2, 100, 1, 100, 0, 0 };
 

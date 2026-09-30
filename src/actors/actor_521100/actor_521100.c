@@ -114,7 +114,7 @@ extern u16 D_actor_521100_8015F5D4[];
 /// copies onto both `obj57C` / `obj59C` at `field_18`, where the sibling
 /// overlays' burn-out bodies put the same pair. Same shape as
 /// `D_actor_510900_80167968` and `D_actor_400100_*`.
-extern GpU16Pair D_actor_521100_8015F550[4];
+extern DamageAttack D_actor_521100_8015F550[4];
 
 /// One signed halfword choice in a three-row, two-choice transition table.
 /// The selector combines the row and random-column byte offsets before
@@ -1423,7 +1423,7 @@ AnimationSet D_actor_521100_8015F528 = {
     { NULL, D_actor_521100_8015EAF0, NULL, NULL, D_actor_521100_8015EBEC, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_521100_8015F550[4] = {
+DamageAttack D_actor_521100_8015F550[4] = {
     { 15, 7 },
     { 25, 7 },
     { 40, 7 },

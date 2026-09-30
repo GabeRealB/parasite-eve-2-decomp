@@ -186,11 +186,20 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor4036002Storage06E0, 32);
 
 extern Actor4036002Storage06E0 D_actor_403600_801606E0;
-extern GpU16Pair               D_8016A408[];
-extern Actor403600ViewKey      D_8016AEF8[];
-extern Actor403600ViewKey      D_8016E450;
-extern SVECTOR                 D_actor_403600_8016065C;
-extern SVECTOR                 D_actor_403600_80160664;
+
+/// One sample of the rotation sequence `Actor403600Work::field_77C` walks
+/// through index 0x2BB. Copied into an `SVECTOR` (`z` to `vz`, `y` to `vy`)
+/// before `RotMatrix`.
+typedef struct {
+    u16 z;
+    u16 y;
+} _Actor403600RotSample;
+
+extern _Actor403600RotSample D_8016A408[];
+extern Actor403600ViewKey    D_8016AEF8[];
+extern Actor403600ViewKey    D_8016E450;
+extern SVECTOR               D_actor_403600_8016065C;
+extern SVECTOR               D_actor_403600_80160664;
 
 extern GpViewRec D_actor_403600_80160700;
 
@@ -224,7 +233,7 @@ extern TaskDesc             D_8016E468;
 extern AnimationPlayRequest D_actor_403600_80160568;
 extern AnimationSet*        D_actor_403600_8016057C[22];
 extern Actor403600Point     D_actor_403600_801605F4[];
-extern GpU16Pair            D_actor_403600_801606A4;
+extern DamageAttack         D_actor_403600_801606A4;
 extern Task*                D_actor_403600_801606A8;
 extern Actor403600DamageRow D_actor_403600_8016066C[];
 
@@ -384,7 +393,7 @@ u8* D_actor_403600_8016069C = NULL;
 
 GfxCoord* D_actor_403600_801606A0 = NULL;
 
-GpU16Pair D_actor_403600_801606A4 = { 0, 0 };
+DamageAttack D_actor_403600_801606A4 = { 0, 0 };
 
 Task* D_actor_403600_801606A8 = NULL;
 
@@ -1601,21 +1610,21 @@ static void func_actor_403600_8013A444(Task* arg0)
                         Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
                         var_s2 = 0;
                         if (Player_Status.coordMtx->t[1] < -0xF3B) {
-                            temp_s4_4                       = &temp_s3->field_4B8;
-                            D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EA4;
+                            temp_s4_4                     = &temp_s3->field_4B8;
+                            D_actor_403600_801606A4.power = (u16)D_actor_403600_80150EA4;
                             func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
                             if ((u32)(sp10 - 0xFA0) < 0x7D1U) {
-                                temp_v1_2                       = gameGetPtrSlot(3)->work;
-                                D_actor_403600_801606A4.field_2 = 0;
-                                D_actor_403600_801606A4.field_0 = (u16)((u16)D_actor_403600_801606A4.field_0 >> 2);
-                                temp_v1_2->field_96C            = 2;
-                                temp_v1_2->field_96E            = (u16)D_actor_403600_801606A4.field_0;
-                                temp_v1_2->field_972            = 0;
+                                temp_v1_2                        = gameGetPtrSlot(3)->work;
+                                D_actor_403600_801606A4.reaction = 0;
+                                D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 2);
+                                temp_v1_2->field_96C             = 2;
+                                temp_v1_2->field_96E             = (u16)D_actor_403600_801606A4.power;
+                                temp_v1_2->field_972             = 0;
                             } else {
                                 if ((u32)(sp10 - 0x9C4) < 0x5DCU) {
-                                    D_actor_403600_801606A4.field_2 = 0;
-                                    D_actor_403600_801606A4.field_0 = (u16)((u16)D_actor_403600_801606A4.field_0 >> 1);
-                                    var_v0_3                        = (s16)func_actor_403600_8013E66C(temp_s4_4);
+                                    D_actor_403600_801606A4.reaction = 0;
+                                    D_actor_403600_801606A4.power    = (u16)((u16)D_actor_403600_801606A4.power >> 1);
+                                    var_v0_3                         = (s16)func_actor_403600_8013E66C(temp_s4_4);
                                     if (var_v0_3 < 0) {
                                         var_v0_3 = -var_v0_3;
                                     }
@@ -1632,7 +1641,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                     var_s2             = 2;
                                     temp_s3->field_760 = 0;
                                 } else if (sp10 < 0x9C4U) {
-                                    D_actor_403600_801606A4.field_2     = 0;
+                                    D_actor_403600_801606A4.reaction    = 0;
                                     D_actor_403600_80160568.animationId = 1;
                                     func_actor_403600_8013E7D4(arg0, 1);
                                     temp_s3->field_762 = -0x190;
@@ -2098,9 +2107,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                         if (temp_s1_3->animationId == 0) {
                             if (temp_s3->field_734 == 0xFF) {
                                 Gp_SpawnPadLerp(0xA, 0xFF, 0x50);
-                                D_actor_403600_801606A4.field_2 = 0xA;
-                                temp_s1_3->animationId          = 1;
-                                D_actor_403600_801606A4.field_0 = (u16)D_actor_403600_80150EAC;
+                                D_actor_403600_801606A4.reaction = 0xA;
+                                temp_s1_3->animationId           = 1;
+                                D_actor_403600_801606A4.power    = (u16)D_actor_403600_80150EAC;
                                 func_actor_403600_8013E7D4(arg0, 1);
                                 temp_s3->field_762 = -0x190;
                                 Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
@@ -3684,10 +3693,10 @@ static void func_actor_403600_8013F0C0(Task* arg0)
             temp_s3->field_760 = temp_v0;
             if ((s16)temp_v0 == 0xC) {
                 Gp_SpawnPadLerp(0xA, 0xFF, 0xFF);
-                D_actor_403600_801606A4.field_0 = 0x14;
-                D_actor_403600_801606A4.field_2 = 0;
-                temp_s2                         = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
-                temp_s0                         = (s8)Gp_GetObjPan(temp_s4);
+                D_actor_403600_801606A4.power    = 0x14;
+                D_actor_403600_801606A4.reaction = 0;
+                temp_s2                          = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 6;
+                temp_s0                          = (s8)Gp_GetObjPan(temp_s4);
                 SndEvt_EnqueueType6(temp_s2, temp_s0,
                                     (s8)gpGetObjDepth(temp_s4));
                 temp_s2 =
@@ -4475,8 +4484,8 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
     view.coord.t[0]            = 0;
     view.coord.t[1]            = 0;
     view.coord.t[2]            = 0;
-    D_actor_403600_8016065C.vz = D_8016A408[work->field_77C].field_0;
-    D_actor_403600_8016065C.vy = D_8016A408[work->field_77C].field_2;
+    D_actor_403600_8016065C.vz = D_8016A408[work->field_77C].z;
+    D_actor_403600_8016065C.vy = D_8016A408[work->field_77C].y;
     RotMatrix(&D_actor_403600_8016065C, &work->field_4B8.coord);
     object->otOffset = -0x1F;
     if (work->field_77C >= 0x239) {

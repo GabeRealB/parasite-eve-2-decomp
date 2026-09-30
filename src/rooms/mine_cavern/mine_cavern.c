@@ -150,7 +150,7 @@ TmdSource D_mine_cavern_8018EABC = {
     D_mine_cavern_8018E804,
 };
 
-GpU16Pair D_mine_cavern_8018EAE0[1] = {
+DamageAttack D_mine_cavern_8018EAE0[1] = {
     { 18, 0 },
 };
 

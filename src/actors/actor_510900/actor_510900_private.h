@@ -168,7 +168,7 @@ extern AnimationSet D_actor_510900_80167294;
 
 extern AnimationSet D_actor_510900_80167940;
 
-extern GpU16Pair D_actor_510900_80167968;
+extern DamageAttack D_actor_510900_80167968;
 
 extern Actor510900MessageEntry D_actor_510900_80167A6C[7];
 

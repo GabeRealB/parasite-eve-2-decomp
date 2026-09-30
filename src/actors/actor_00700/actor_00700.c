@@ -225,14 +225,14 @@ extern s16 Actor00700_D07598[];
 /// The records `Actor00700_Fn00060` binds the first body to: the pair it packs
 /// into the fourth collision node's key, the context's parameter source (whose
 /// `hpMax` seeds the health), and the second argument of `func_800B3F84`.
-extern struct GpU16Pair Actor00700_D06DDC;
-extern GpPairSrcE       Actor00700_D06DE0;
-extern AnimationSet*    Actor00700_D06E6C[11];
+extern struct DamageAttack Actor00700_D06DDC;
+extern GpPairSrcE          Actor00700_D06DE0;
+extern AnimationSet*       Actor00700_D06E6C[11];
 
 /// The same three for the second body, used by `Actor00700_Fn01FE0`.
-extern GpPairSrcE       Actor00700_D07588;
-extern struct GpU16Pair Actor00700_D07584;
-extern AnimationSet*    Actor00700_D075B4[2];
+extern GpPairSrcE          Actor00700_D07588;
+extern struct DamageAttack Actor00700_D07584;
+extern AnimationSet*       Actor00700_D075B4[2];
 
 static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
 static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
@@ -518,7 +518,7 @@ AnimationSet Actor00700_D06DB4 = {
     { NULL, Actor00700_D06A98, NULL, NULL, Actor00700_D06B70, NULL, NULL, NULL },
 };
 
-struct GpU16Pair Actor00700_D06DDC = { 6, 3 };
+struct DamageAttack Actor00700_D06DDC = { 6, 3 };
 
 GpPairSrcE Actor00700_D06DE0 = { &Actor00700_D06DDC, 18, 4, 22, 1, 100, 20, 100, 0, 0 };
 
@@ -678,7 +678,7 @@ AnimationSet Actor00700_D0755C = {
     { NULL, Actor00700_D07508, NULL, NULL, Actor00700_D07520, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor00700_D07584 = { 5, 1 };
+DamageAttack Actor00700_D07584 = { 5, 1 };
 
 GpPairSrcE Actor00700_D07588 = { &Actor00700_D07584, 1, 2, 18, 1, 100, 0, 100, 99, 0 };
 

@@ -77,8 +77,8 @@ extern u16 D_neo_ark_woodland_path_80184A60[5];
 /// code names both, and the two are different code - an index keeps this
 /// symbol in a register and takes the offset as the load's displacement, while
 /// naming `D_...8494C` addresses it directly.
-extern GpPairSrcE D_neo_ark_woodland_path_80184948;
-extern GpU16Pair  D_neo_ark_woodland_path_80184930[6];
+extern GpPairSrcE   D_neo_ark_woodland_path_80184948;
+extern DamageAttack D_neo_ark_woodland_path_80184930[6];
 
 /// The room's arming count, packed into game flag 0x10A as a nibble:
 /// `func_neo_ark_woodland_path_80180C6C` adds the slot's spawn count to it and
@@ -183,7 +183,7 @@ void func_neo_ark_woodland_path_8018046C(Task*, s32, s32);
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
 
-GpU16Pair D_neo_ark_woodland_path_80184930[6] = {
+DamageAttack D_neo_ark_woodland_path_80184930[6] = {
     { 30, 7 },
     { 30, 7 },
     { 50, 7 },

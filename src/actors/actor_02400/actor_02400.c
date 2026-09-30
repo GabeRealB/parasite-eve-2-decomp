@@ -139,9 +139,9 @@ typedef struct Actor02400ScaleScratch {
 } Actor02400ScaleScratch;
 STATIC_ASSERT_SIZEOF(Actor02400ScaleScratch, 0x40);
 
-extern GpU16Pair  Actor02400_BodyPairs[4];
-extern GpPairSrcE Actor02400_Params0;
-extern GpPairSrcE Actor02400_Params1;
+extern DamageAttack Actor02400_BodyPairs[4];
+extern GpPairSrcE   Actor02400_Params0;
+extern GpPairSrcE   Actor02400_Params1;
 /// Frames the grown body waits before it spawns, indexed by `variant`.
 extern s16      Actor02400_D045D4[];
 extern s16      Actor02400_D045D8[];
@@ -200,7 +200,7 @@ TmdSource Actor02400_D04580 = {
     Actor02400_D03970,
 };
 
-GpU16Pair Actor02400_BodyPairs[4] = {
+DamageAttack Actor02400_BodyPairs[4] = {
     { 0, 8 },
     { 28, 6 },
     { 0, 11 },

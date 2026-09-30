@@ -187,7 +187,7 @@ s32 Actor04000_Fn06634(Task*, s32, ActorTransform* placement);
 s32 Actor04000_Fn06704(Task*, s32, void*);
 s32 Actor04000_Fn06728(Task*, s32, AnimationPlayRequest*, s32);
 
-GpU16Pair Actor04000_D07078[3] = {
+DamageAttack Actor04000_D07078[3] = {
     { 1, 7 },
     { 18, 7 },
     { 30, 0 },

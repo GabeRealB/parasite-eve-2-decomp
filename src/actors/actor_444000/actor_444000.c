@@ -594,7 +594,7 @@ GpEvsCmd D_actor_444000_8014488C[15] = {
 
 TaskDesc D_actor_444000_801449F4 = { 0, 192, func_actor_444000_80132358, { .model = NULL } };
 
-GpU16Pair D_actor_444000_80144A00[6] = {
+DamageAttack D_actor_444000_80144A00[6] = {
     { 0, 0 },
     { 30, 0 },
     { 25, 3 },

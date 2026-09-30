@@ -155,13 +155,13 @@ extern TmdSource D_actor_403600_80149818;
 
 extern TmdSource D_actor_403600_80150E78;
 
-extern GpU16Pair D_actor_403600_80150E9C;
+extern DamageAttack D_actor_403600_80150E9C;
 
 extern u16 D_actor_403600_80150EA4;
 
 extern u16 D_actor_403600_80150EAC;
 
-extern GpU16Pair D_actor_403600_80150EB0;
+extern DamageAttack D_actor_403600_80150EB0;
 
 extern GpPairSrcE D_actor_403600_80150EC8;
 

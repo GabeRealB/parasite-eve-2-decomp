@@ -68791,7 +68791,7 @@ looks quite different in the diff. `Gp_PackPair(D_actor_503500_8016E7D4, 0)`
 with
 
 ```c
-extern GpU16Pair* D_actor_503500_8016E7D4;
+extern DamageAttack* D_actor_503500_8016E7D4;
 ```
 
 put `lui`/`lw` of that pointer at the very top of the block — far from its call,
@@ -68801,7 +68801,7 @@ two instructions before the `jal`, with an unfilled `nop` in the load delay: the
 original could not hoist it. Declaring it as an array,
 
 ```c
-extern GpU16Pair* D_actor_503500_8016E7D4[];   /* used as [0] */
+extern DamageAttack* D_actor_503500_8016E7D4[];   /* used as [0] */
 ```
 
 sets `MEM_IN_STRUCT_P` on the read, restores the dependence and moved the score
@@ -133965,15 +133965,17 @@ the load, and both opcodes can be in the target. A table of two halfwords read
 as `s16` by one group of functions and `u16` by another is declared twice,
 
 ```c
-typedef struct { s16 field_0; s16 field_2; } GpEdgePair;  /* lh */
-typedef struct { u16 field_0; u16 field_2; } GpU16Pair;   /* lhu */
+typedef struct { s16 field_0; s16 field_2; } GpEdgePair; /* lh */
+typedef struct { u16 field_0; u16 field_2; } U16Pair;    /* lhu; illustrative */
 ```
 
 and each declaration says which width its own readers use. The corner-index
 table is the case: `Gp_CollideObjGrid`, `Gp_CollideObjGridDir` and
 `func_800DD324` index it through the signed type and compile `lh`, while
 `func_800DEF80`, `func_800DF6AC` and `func_800DFCCC` reach the same table
-through the unsigned one and compile `lhu`.
+through the unsigned one and compile `lhu`. `DamageAttack` only shares this
+layout; it is an attack record, not the corner-index table. The unsigned
+readers currently cast `GpEdgePair` fields to `u16`.
 
 Rebuilding the unit with the table declared the other way flips exactly those
 loads and nothing else in the function, so check each reader's load opcode

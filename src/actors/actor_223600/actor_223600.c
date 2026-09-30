@@ -164,7 +164,7 @@ s32 func_actor_223600_8014CD54(Task*, s32, ActorTransform* placement);
 
 #include "../../shared/actor_contacts.h"
 
-GpU16Pair D_actor_223600_8014CFC8[1] = {
+DamageAttack D_actor_223600_8014CFC8[1] = {
     { 24, 7 },
 };
 

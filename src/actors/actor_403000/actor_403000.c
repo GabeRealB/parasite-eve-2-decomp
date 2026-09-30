@@ -629,14 +629,14 @@ s32                 func_actor_403000_8013D464(Task*, s32, AnimationPlayRequest*
 static void         func_actor_403000_8013D59C(Task*);
 void                func_actor_403000_8013D260(void);
 
-GpU16Pair D_actor_403000_8013D9E0[4] = {
+DamageAttack D_actor_403000_8013D9E0[4] = {
     { 30, 7 },
     { 20, 7 },
     { 20, 7 },
     { 25, 0 },
 };
 
-GpU16Pair D_actor_403000_8013D9F0[4] = {
+DamageAttack D_actor_403000_8013D9F0[4] = {
     { 20, 3 },
     { 12, 7 },
     { 12, 7 },

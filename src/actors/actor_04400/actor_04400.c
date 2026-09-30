@@ -460,7 +460,7 @@ TmdSource Actor04400_D0D2F0 = {
     Actor04400_D0B20C,
 };
 
-GpU16Pair Actor04400_D0D314[1] = {
+DamageAttack Actor04400_D0D314[1] = {
     { 22, 0 },
 };
 

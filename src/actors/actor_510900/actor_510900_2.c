@@ -305,7 +305,7 @@ void func_actor_510900_8013C190(Task*);
 void func_actor_510900_8013C1EC(Task*);
 void func_actor_510900_8013C3DC(Task*);
 
-GpU16Pair D_actor_510900_8016796C[5] = {
+DamageAttack D_actor_510900_8016796C[5] = {
     { 24, 6 },
     { 20, 7 },
     { 999, 6 },

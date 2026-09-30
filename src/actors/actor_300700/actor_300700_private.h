@@ -95,7 +95,7 @@ typedef struct Actor300700Work {
 
 extern TmdSource D_actor_300700_80167400;
 
-extern GpU16Pair D_actor_300700_80169328;
+extern DamageAttack D_actor_300700_80169328;
 
 extern GpPairSrcE D_actor_300700_8016932C;
 

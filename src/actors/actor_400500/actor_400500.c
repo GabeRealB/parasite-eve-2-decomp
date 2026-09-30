@@ -1341,7 +1341,7 @@ AnimationSet D_actor_400500_80153C5C = {
     { NULL, D_actor_400500_80153AAC, NULL, NULL, D_actor_400500_80153AC4, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_400500_80153C84[3] = {
+DamageAttack D_actor_400500_80153C84[3] = {
     { 28, 7 },
     { 35, 10 },
     { 8, 7 },

@@ -506,7 +506,7 @@ s32                 func_actor_421600_8013E654(Task*);
 static void         func_actor_421600_8013EEC8(Task*);
 void                func_actor_421600_8013E424(void);
 
-GpU16Pair D_actor_421600_8013EF24[5] = {
+DamageAttack D_actor_421600_8013EF24[5] = {
     { 30, 0 },
     { 30, 0 },
     { 18, 0 },

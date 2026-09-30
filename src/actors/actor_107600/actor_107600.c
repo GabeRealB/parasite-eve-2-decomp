@@ -250,7 +250,7 @@ static const TaskFuncTable3 D_actor_107600_80131E34 = { {
 void func_actor_107600_801328CC(Task*);
 void func_actor_107600_801348A0(Task*);
 
-GpU16Pair D_actor_107600_80134F80[1] = { 0 };
+DamageAttack D_actor_107600_80134F80[1] = { 0 };
 
 GpPairSrcE D_actor_107600_80134F84 = { D_actor_107600_80134F80, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
 
@@ -754,7 +754,7 @@ Actor107600Waypoint* D_actor_107600_80135624[62] = {
     D_actor_107600_80135610,
 };
 
-GpU16Pair D_actor_107600_8013571C[1] = { 0 };
+DamageAttack D_actor_107600_8013571C[1] = { 0 };
 
 GpPairSrcE D_actor_107600_80135720 = { D_actor_107600_8013571C, 50, 0, 0, 0, 255, 0, 0, 0, 0 };
 

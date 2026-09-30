@@ -469,12 +469,12 @@ void func_actor_110600_80138394(void);
 extern TmdSource D_actor_110600_8013E49C;
 void             func_actor_110600_80138EA8(Task*);
 
-GpU16Pair D_actor_110600_80138F04[2] = {
+DamageAttack D_actor_110600_80138F04[2] = {
     { 18, 7 },
     { 15, 7 },
 };
 
-GpU16Pair D_actor_110600_80138F0C[2] = {
+DamageAttack D_actor_110600_80138F0C[2] = {
     { 18, 7 },
     { 18, 0 },
 };

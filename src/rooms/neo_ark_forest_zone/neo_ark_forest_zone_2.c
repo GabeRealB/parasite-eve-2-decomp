@@ -53,8 +53,8 @@ typedef struct NeoArkForestZoneSpawnPos {
 } NeoArkForestZoneSpawnPos;
 
 /// Enemy parameters shared by the spawn-slot controllers.
-extern GpPairSrcE D_neo_ark_forest_zone_80182D1C;
-extern GpU16Pair  D_neo_ark_forest_zone_80182D04[6];
+extern GpPairSrcE   D_neo_ark_forest_zone_80182D1C;
+extern DamageAttack D_neo_ark_forest_zone_80182D04[6];
 
 /// How many spawns each session slot arms, indexed by
 /// `gGameSession->location.loc.variant`, for the second and the first arming task
@@ -487,7 +487,7 @@ GpRoomParamRec* D_neo_ark_forest_zone_80182CE4[8] = {
     D_neo_ark_forest_zone_80182CD4,
 };
 
-GpU16Pair D_neo_ark_forest_zone_80182D04[6] = {
+DamageAttack D_neo_ark_forest_zone_80182D04[6] = {
     { 30, 7 },
     { 30, 7 },
     { 50, 7 },

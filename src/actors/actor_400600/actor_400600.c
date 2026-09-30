@@ -233,8 +233,8 @@ extern ActorZone D_actor_400600_80151B40[];
  * above the preceding flag updates. */
 extern void* D_800678F0[1];
 
-extern GpU16Pair  D_actor_400600_80144EA8[2];
-extern GpPairSrcE D_actor_400600_80144EB0;        // the enemy's parameter record
+extern DamageAttack D_actor_400600_80144EA8[2];
+extern GpPairSrcE   D_actor_400600_80144EB0;      // the enemy's parameter record
 
 extern AnimationSet* D_actor_400600_80151A54[35]; // animation bank handed to func_800B3F84
 // Message-table callbacks use the argument views required by this TU.
@@ -763,7 +763,7 @@ TmdSource D_actor_400600_80144E84 = {
     D_actor_400600_80144D30,
 };
 
-GpU16Pair D_actor_400600_80144EA8[2] = {
+DamageAttack D_actor_400600_80144EA8[2] = {
     { 26, 7 },
     { 10, 7 },
 };

@@ -1524,52 +1524,52 @@ AnimationSet D_actor_503500_8016E788 = {
     { NULL, D_actor_503500_8016BFD8, NULL, NULL, D_actor_503500_8016C6EC, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_503500_8016E7B0[2] = {
+DamageAttack D_actor_503500_8016E7B0[2] = {
     { 20, 2 },
     { 25, 2 },
 };
 
-GpU16Pair D_actor_503500_8016E7B8[2] = {
+DamageAttack D_actor_503500_8016E7B8[2] = {
     { 15, 3 },
     { 15, 2 },
 };
 
-GpU16Pair D_actor_503500_8016E7C0[1] = {
+DamageAttack D_actor_503500_8016E7C0[1] = {
     { 40, 6 },
 };
 
-GpU16Pair D_actor_503500_8016E7C4[1] = {
+DamageAttack D_actor_503500_8016E7C4[1] = {
     { 30, 1 },
 };
 
-GpU16Pair D_actor_503500_8016E7C8[1] = {
+DamageAttack D_actor_503500_8016E7C8[1] = {
     { 120, 6 },
 };
 
-GpU16Pair* D_actor_503500_8016E7CC[1] = {
+DamageAttack* D_actor_503500_8016E7CC[1] = {
     D_actor_503500_8016E7B0,
 };
 
-GpU16Pair* D_actor_503500_8016E7D0[1] = {
+DamageAttack* D_actor_503500_8016E7D0[1] = {
     D_actor_503500_8016E7B8,
 };
 
-GpU16Pair* D_actor_503500_8016E7D4[2] = {
+DamageAttack* D_actor_503500_8016E7D4[2] = {
     D_actor_503500_8016E7C0,
     D_actor_503500_8016E7C4,
 };
 
-GpU16Pair* D_actor_503500_8016E7DC[1] = {
+DamageAttack* D_actor_503500_8016E7DC[1] = {
     D_actor_503500_8016E7C8,
 };
 
-GpU16Pair D_actor_503500_8016E7E0[1] = { 0 };
+DamageAttack D_actor_503500_8016E7E0[1] = { 0 };
 
-GpU16Pair D_actor_503500_8016E7E4[1] = {
+DamageAttack D_actor_503500_8016E7E4[1] = {
     { 25, 7 },
 };
 
-GpU16Pair D_actor_503500_8016E7E8[1] = {
+DamageAttack D_actor_503500_8016E7E8[1] = {
     { 45, 7 },
 };
 

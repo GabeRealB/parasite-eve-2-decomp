@@ -323,7 +323,7 @@ static void func_actor_401300_80141EF8(Task* task);
 
 extern SVECTOR D_actor_401300_80158A24;
 
-extern GpU16Pair D_actor_401300_80141F88[];
+extern DamageAttack D_actor_401300_80141F88[];
 
 extern AnimationSet D_actor_401300_80156868;
 extern AnimationSet D_actor_401300_80157004;
@@ -339,7 +339,7 @@ s32                 func_actor_401300_80141714(Task*);
 void                func_actor_401300_8014148C(void);
 void                func_actor_401300_80141F2C(Task*);
 
-GpU16Pair D_actor_401300_80141F88[6] = {
+DamageAttack D_actor_401300_80141F88[6] = {
     { 30, 7 },
     { 30, 7 },
     { 50, 7 },

@@ -231,7 +231,7 @@ s32              Actor01900_Fn0A5A4(Task*, s32, u16*);
 void             Actor01900_Fn0A314(void);
 void             Actor01900_Fn0ABE4(Task*);
 
-GpU16Pair Actor01900_D0AC4C[2] = {
+DamageAttack Actor01900_D0AC4C[2] = {
     { 16, 7 },
     { 22, 0 },
 };

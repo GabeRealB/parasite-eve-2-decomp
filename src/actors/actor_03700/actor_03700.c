@@ -105,7 +105,7 @@ extern u16 Actor03700_D07F3C[];
 extern u16 Actor03700_D07F5C[];
 
 /// Pair `Actor03700_Fn01550` packs with `Gp_PackPair` for message 0x3F9.
-extern GpU16Pair Actor03700_D07F08;
+extern DamageAttack Actor03700_D07F08;
 
 /// Halfword table `Actor03700_Fn01550` indexes by a 4-bit LCG draw.
 extern s16 Actor03700_D07F1C[];
@@ -450,7 +450,7 @@ AnimationSet Actor03700_D07EE0 = {
     { NULL, Actor03700_D06B74, NULL, NULL, Actor03700_D06D24, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor03700_D07F08 = { 3, 7 };
+DamageAttack Actor03700_D07F08 = { 3, 7 };
 
 GpPairSrcE Actor03700_D07F0C = { &Actor03700_D07F08, 1, 5, 18, 1, 100, 0, 100, 99, 0 };
 

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-struct GpU16Pair;
+struct DamageAttack;
 
 /// The parameter record an enemy is built from: what it can take, what it pays
 /// out, and how it reacts to being hit.
@@ -19,16 +19,16 @@ struct GpU16Pair;
 /// that flag `N` selects. Trailing pad keeps 4-byte alignment.
 ///
 typedef struct {
-    struct GpU16Pair* pairTable;   // GpU16Pair table this enemy's body keys are packed from
-    u16               hpMax;       // hit points; a body is spawned at this value
-    u16               exp;         // experience awarded when the enemy is removed
-    u16               bp;          // battle points awarded when the enemy is removed
-    u8                mp;          // magic points awarded when the enemy is removed
-    u8                critChance;  // percent base chance a hit on this enemy is rolled as a critical
-    u8                flag2Ticks;  // ticks the flag-2 reaction lasts
-    u8                flag4Chance; // percent chance the flag-4 reaction starts
-    u8                flag4Ticks;  // ticks the flag-4 reaction lasts (0 never ends it)
-    byte              pad_F;       // padding
+    struct DamageAttack* pairTable;   // DamageAttack table this enemy's body keys are packed from
+    u16                  hpMax;       // hit points; a body is spawned at this value
+    u16                  exp;         // experience awarded when the enemy is removed
+    u16                  bp;          // battle points awarded when the enemy is removed
+    u8                   mp;          // magic points awarded when the enemy is removed
+    u8                   critChance;  // percent base chance a hit on this enemy is rolled as a critical
+    u8                   flag2Ticks;  // ticks the flag-2 reaction lasts
+    u8                   flag4Chance; // percent chance the flag-4 reaction starts
+    u8                   flag4Ticks;  // ticks the flag-4 reaction lasts (0 never ends it)
+    byte                 pad_F;       // padding
 } GpPairSrcE;
 STATIC_ASSERT_SIZEOF(GpPairSrcE, 0x10);
 

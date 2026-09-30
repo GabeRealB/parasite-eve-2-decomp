@@ -259,13 +259,13 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     s32 hp;
     u16 col;
 
-    if ((arg0 & 0xFFFF0000) != 0x40000) {
+    if ((arg0 & WORLD_COLLISION_CONTACT_KIND_MASK) != DAMAGE_ATTACK_CATEGORY) {
         return 0;
     }
 
-    lo = arg0 & 0xFFF;
+    lo = arg0 & DAMAGE_ATTACK_POWER_MASK;
     if (arg2 != NULL) {
-        *arg2 = ((u32)arg0 >> 12) & 0xF;
+        *arg2 = ((u32)arg0 >> DAMAGE_ATTACK_REACTION_SHIFT) & DAMAGE_ATTACK_REACTION_MASK;
     }
 
     if (arg3 == 0) {
@@ -430,29 +430,29 @@ static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
 
 s32 Gp_PackObjPair(GpEnemy* arg0, s32 arg1)
 {
-    GpU16Pair* pairs;
-    s32        ret;
+    DamageAttack* pairs;
+    s32           ret;
 
     if (arg0->param == NULL) {
         return 0;
     }
     pairs = arg0->param->pairTable;
-    ret   = pairs[arg1].field_0 & 0xFFF;
-    ret  |= (pairs[arg1].field_2 & 0xF) << 12;
-    ret  |= 0x40000;
+    ret   = pairs[arg1].power & DAMAGE_ATTACK_POWER_MASK;
+    ret  |= (pairs[arg1].reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
+    ret  |= DAMAGE_ATTACK_CATEGORY;
     return ret;
 }
 
-s32 Gp_PackPair(GpU16Pair* pairs, s32 index)
+s32 Gp_PackPair(DamageAttack* pairs, s32 index)
 {
     s32 ret;
 
     if (pairs == NULL) {
         return 0;
     }
-    ret  = pairs[index].field_0 & 0xFFF;
-    ret |= (pairs[index].field_2 & 0xF) << 12;
-    ret |= 0x40000;
+    ret  = pairs[index].power & DAMAGE_ATTACK_POWER_MASK;
+    ret |= (pairs[index].reaction & DAMAGE_ATTACK_REACTION_MASK) << DAMAGE_ATTACK_REACTION_SHIFT;
+    ret |= DAMAGE_ATTACK_CATEGORY;
     return ret;
 }
 

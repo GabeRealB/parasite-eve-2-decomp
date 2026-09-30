@@ -136,7 +136,7 @@ typedef struct Actor403600ProjectileScratch {
 STATIC_ASSERT_SIZEOF(Actor403600ProjectileScratch, 0x54);
 
 static const SVECTOR D_actor_403600_80131E24;
-extern GpU16Pair     D_actor_403600_801420F0;
+extern DamageAttack  D_actor_403600_801420F0;
 extern s32           D_actor_403600_80142120[];
 
 void func_actor_403600_80134398(Task* arg0);
@@ -149,9 +149,9 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
 
 void func_actor_403600_80134288(Task*);
 
-extern GpU16Pair D_actor_403600_801420D4[5];
+extern DamageAttack D_actor_403600_801420D4[5];
 
-GpU16Pair D_actor_403600_801420D4[5] = {
+DamageAttack D_actor_403600_801420D4[5] = {
     { 35, 0 },
     { 25, 2 },
     { 74, 0 },
@@ -159,14 +159,14 @@ GpU16Pair D_actor_403600_801420D4[5] = {
     { 35, 0 },
 };
 
-GpU16Pair D_actor_403600_801420E8[2] = {
+DamageAttack D_actor_403600_801420E8[2] = {
     { 25, 3 },
     { 25, 1 },
 };
 
-GpU16Pair D_actor_403600_801420F0 = { 32, 8 };
+DamageAttack D_actor_403600_801420F0 = { 32, 8 };
 
-GpU16Pair D_actor_403600_801420F4[3] = {
+DamageAttack D_actor_403600_801420F4[3] = {
     { 32, 2 },
     { 32, 11 },
     { 32, 10 },
@@ -287,19 +287,19 @@ TmdSource D_actor_403600_80150E78 = {
     D_actor_403600_8014B7D4,
 };
 
-GpU16Pair D_actor_403600_80150E9C = { 35, 0 };
+DamageAttack D_actor_403600_80150E9C = { 35, 0 };
 
-GpU16Pair D_actor_403600_80150EA0 = { 25, 2 };
+DamageAttack D_actor_403600_80150EA0 = { 25, 2 };
 
 u16 D_actor_403600_80150EA4 = 74;
 
-GpU16Pair D_actor_403600_80150EA8 = { 74, 8 };
+DamageAttack D_actor_403600_80150EA8 = { 74, 8 };
 
 u16 D_actor_403600_80150EAC = 35;
 
-GpU16Pair D_actor_403600_80150EB0 = { 25, 3 };
+DamageAttack D_actor_403600_80150EB0 = { 25, 3 };
 
-GpU16Pair D_actor_403600_80150EB4[5] = {
+DamageAttack D_actor_403600_80150EB4[5] = {
     { 25, 1 },
     { 32, 8 },
     { 32, 2 },

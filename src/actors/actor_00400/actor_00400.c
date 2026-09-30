@@ -389,7 +389,7 @@ static void Actor00400_Fn09FDC(Task* arg0);
 extern GpPairSrcE Actor00400_D0FDC8;
 /// Pair table `Actor00400_Fn0A190` packs, at index 1, into the marker object's
 /// `key`.
-extern GpU16Pair             Actor00400_D0FDC0[2];
+extern DamageAttack          Actor00400_D0FDC0[2];
 extern TaskDesc              Actor00400_D16028[];
 extern Actor100400AreaConfig Actor00400_D15F20[];
 // Typed callback views for the task message dispatcher.
@@ -668,7 +668,7 @@ TmdSource Actor00400_D0FD9C = {
     Actor00400_D0F964,
 };
 
-GpU16Pair Actor00400_D0FDC0[2] = {
+DamageAttack Actor00400_D0FDC0[2] = {
     { 18, 5 },
     { 24, 5 },
 };

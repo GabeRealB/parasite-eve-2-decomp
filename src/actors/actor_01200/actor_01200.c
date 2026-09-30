@@ -145,7 +145,7 @@ s32 Actor01200_Fn03A00(Task*, s32, s32);
 s32 Actor01200_Fn03ABC(Task*, s32, ActorCommand* request);
 s32 Actor01200_Fn03B70(Task*, s32, ActorTransform* placement);
 
-GpU16Pair Actor01200_D04030[1] = {
+DamageAttack Actor01200_D04030[1] = {
     { 24, 7 },
 };
 

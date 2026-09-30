@@ -73,7 +73,7 @@ extern s16           Actor02600_D08A16;
 extern s16           Actor02600_D08A18;
 extern s16           Actor02600_D08A30[][2];
 extern s16           Actor02600_D08A54[][2];
-extern GpU16Pair     Actor02600_D08950[6];
+extern DamageAttack  Actor02600_D08950[6];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -528,7 +528,7 @@ AnimationSet Actor02600_D08928 = {
     { NULL, Actor02600_D087A0, NULL, NULL, Actor02600_D087DC, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor02600_D08950[6] = {
+DamageAttack Actor02600_D08950[6] = {
     { 14, 0 },
     { 20, 0 },
     { 10, 1 },

@@ -129,7 +129,7 @@ typedef struct Actor02500OffsetPair {
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 extern GpPairSrcE           Actor02500_D05B38;
-extern GpU16Pair            Actor02500_D05B30[];
+extern DamageAttack         Actor02500_D05B30[];
 extern s16                  Actor02500_D05B48[];
 extern s16                  Actor02500_D05B58[];
 extern s16                  Actor02500_D05B68[];
@@ -486,7 +486,7 @@ AnimationSet Actor02500_D05B08 = {
     { NULL, Actor02500_D059C0, NULL, NULL, Actor02500_D05A14, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor02500_D05B30[2] = {
+DamageAttack Actor02500_D05B30[2] = {
     { 10, 3 },
     { 1, 3 },
 };

@@ -181,7 +181,7 @@ typedef struct Actor100300Work {
     /* 0x6A2 */ s16                   field_6A2;
 } Actor100300Work;
 
-extern GpU16Pair Actor00300_D15FD8[4];
+extern DamageAttack Actor00300_D15FD8[4];
 
 extern s16 Actor00300_D16394[];
 extern s16 Actor00300_D16000[];
@@ -965,7 +965,7 @@ AnimationSet Actor00300_D15FB0 = {
     { NULL, Actor00300_D155BC, NULL, NULL, Actor00300_D156A0, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor00300_D15FD8[4] = {
+DamageAttack Actor00300_D15FD8[4] = {
     { 25, 8 },
     { 35, 3 },
     { 35, 2 },

@@ -273,7 +273,7 @@ TmdSource D_actor_342400_80170560 = {
     D_actor_342400_8016E47C,
 };
 
-GpU16Pair D_actor_342400_80170584[1] = {
+DamageAttack D_actor_342400_80170584[1] = {
     { 22, 0 },
 };
 

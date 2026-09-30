@@ -382,9 +382,9 @@ s32  func_actor_403200_80141B30(void);
 void func_actor_403200_80140E6C(Task*);
 void func_actor_403200_8014196C(void);
 
-extern GpU16Pair D_actor_403200_80141BE8[6];
+extern DamageAttack D_actor_403200_80141BE8[6];
 
-GpU16Pair D_actor_403200_80141BE8[6] = {
+DamageAttack D_actor_403200_80141BE8[6] = {
     { 0, 0 },
     { 30, 0 },
     { 25, 3 },

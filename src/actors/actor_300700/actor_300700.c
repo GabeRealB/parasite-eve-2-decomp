@@ -48,7 +48,7 @@
 
 #include "overlay.h"
 
-extern GpU16Pair D_actor_300700_80165B64;
+extern DamageAttack D_actor_300700_80165B64;
 
 extern GpPairSrcE D_actor_300700_80165B68;
 
@@ -170,7 +170,7 @@ AnimationSet D_actor_300700_80165B3C = {
     { NULL, D_actor_300700_80165AE8, NULL, NULL, D_actor_300700_80165B00, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_300700_80165B64 = { 5, 1 };
+DamageAttack D_actor_300700_80165B64 = { 5, 1 };
 
 GpPairSrcE D_actor_300700_80165B68 = { &D_actor_300700_80165B64, 1, 2, 18, 1, 100, 0, 100, 99, 0 };
 

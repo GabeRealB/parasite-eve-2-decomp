@@ -46,7 +46,7 @@ static const GpEnemyTaskFuncTable3 Actor02000_D0006C;
 
 static s32 Actor02000_Fn0315C(SVECTOR* start, SVECTOR* end);
 
-extern GpU16Pair Actor02000_D15CFC[];
+extern DamageAttack Actor02000_D15CFC[];
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -1066,7 +1066,7 @@ AnimationSet Actor02000_D15CD4 = {
     { NULL, Actor02000_D15B20, NULL, NULL, Actor02000_D15B38, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor02000_D15CFC[5] = {
+DamageAttack Actor02000_D15CFC[5] = {
     { 28, 5 },
     { 24, 5 },
     { 0, 8 },

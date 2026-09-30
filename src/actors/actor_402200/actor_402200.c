@@ -116,7 +116,7 @@ extern s32 D_actor_402200_80138470;
 /// cue id.
 extern s32 D_actor_402200_80138474;
 
-/// The spawn's tables: the task's next handler record, the `GpU16Pair`
+/// The spawn's tables: the task's next handler record, the `DamageAttack`
 /// `Gp_PackPair` packs into the third collision object, the `GpPairSrcE` whose
 /// `hpMax` seeds the enemy's HP, the stage / room box-table index run, the
 /// box tables it selects, the per-stage cue-bank arrays and the animation data.
@@ -130,7 +130,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor402200MessageEntry, 8);
 
 extern Actor402200MessageEntry D_actor_402200_8013839C[2];
-extern GpU16Pair               D_actor_402200_80153BEC[4];
+extern DamageAttack            D_actor_402200_80153BEC[4];
 extern GpPairSrcE              D_actor_402200_80153BFC;
 extern Actor402200Spot         D_actor_402200_80153C78[];
 extern Actor402200Region*      D_actor_402200_80153FA8[];
@@ -197,7 +197,7 @@ extern AnimationSet D_actor_402200_80151994;
 extern AnimationSet D_actor_402200_80151F28;
 extern AnimationSet D_actor_402200_80152988;
 extern AnimationSet D_actor_402200_80153BC4;
-extern GpU16Pair    D_actor_402200_80153BEC[4];
+extern DamageAttack D_actor_402200_80153BEC[4];
 extern TmdSource    D_actor_402200_8013DBD4;
 static void         func_actor_402200_80138340(Task*);
 
@@ -864,7 +864,7 @@ AnimationSet D_actor_402200_80153BC4 = {
     { NULL, D_actor_402200_801529B0, NULL, NULL, D_actor_402200_80152B54, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_402200_80153BEC[4] = { { 10, 3 }, { 36, 3 }, { 50, 3 }, { 999, 0 } };
+DamageAttack D_actor_402200_80153BEC[4] = { { 10, 3 }, { 36, 3 }, { 50, 3 }, { 999, 0 } };
 
 GpPairSrcE D_actor_402200_80153BFC = { D_actor_402200_80153BEC, 600, 300, 1000, 6, 100, 20, 0, 0, 0 };
 

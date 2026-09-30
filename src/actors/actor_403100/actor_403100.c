@@ -320,9 +320,9 @@ static void func_actor_403100_8013F610(void);
 static void func_actor_403100_8013F658(void);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
 
-extern GpU16Pair D_actor_403100_80147614[6];
-static void      func_actor_403100_801342B4(Task* arg0);
-static void      func_actor_403100_8013C7B4(Task* arg0);
+extern DamageAttack D_actor_403100_80147614[6];
+static void         func_actor_403100_801342B4(Task* arg0);
+static void         func_actor_403100_8013C7B4(Task* arg0);
 
 extern u8 D_actor_403100_801557A8[];
 
@@ -435,7 +435,7 @@ TmdSource D_actor_403100_801475F0 = {
     D_actor_403100_80141B74,
 };
 
-GpU16Pair D_actor_403100_80147614[6] = {
+DamageAttack D_actor_403100_80147614[6] = {
     { 20, 0 },
     { 25, 6 },
     { 30, 0 },

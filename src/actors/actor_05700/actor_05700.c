@@ -72,7 +72,7 @@ extern s32 Actor05700_D171E4[];
 extern s16 Actor05700_D054CC[];
 
 /// The body objects' variant flag comes from `Actor05700_D170F4`.
-extern GpU16Pair Actor05700_D170F4[5];
+extern DamageAttack Actor05700_D170F4[5];
 
 /// Per-weapon-id weak-point flags (`id & 0x7F`) for the two hit families,
 /// picked by the id's 0x8000 bit.
@@ -842,7 +842,7 @@ AnimationSet Actor05700_D170CC = {
     { NULL, Actor05700_D16968, NULL, NULL, Actor05700_D16A1C, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor05700_D170F4[5] = {
+DamageAttack Actor05700_D170F4[5] = {
     { 30, 5 },
     { 20, 5 },
     { 0, 8 },
@@ -2810,7 +2810,7 @@ static void Actor05700_Fn031BC(GpEnemy* arg0, Task* arg1)
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
-    work->field_EE = (Actor05700_D170F4[3].field_2 != 1);
+    work->field_EE = (Actor05700_D170F4[3].reaction != 1);
 
     work->obj40.coord            = coord;
     work->obj40.context.contacts = work->rec60;

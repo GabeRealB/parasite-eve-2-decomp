@@ -380,13 +380,13 @@ extern AnimationSet D_actor_503500_8016BFB0;
 
 extern AnimationSet D_actor_503500_8016E788;
 
-extern GpU16Pair* D_actor_503500_8016E7CC[1];
+extern DamageAttack* D_actor_503500_8016E7CC[1];
 
-extern GpU16Pair* D_actor_503500_8016E7D0[1];
+extern DamageAttack* D_actor_503500_8016E7D0[1];
 
-extern GpU16Pair* D_actor_503500_8016E7D4[2];
+extern DamageAttack* D_actor_503500_8016E7D4[2];
 
-extern GpU16Pair* D_actor_503500_8016E7DC[1];
+extern DamageAttack* D_actor_503500_8016E7DC[1];
 
 extern GpPairSrcE D_actor_503500_8016E7EC[17];
 

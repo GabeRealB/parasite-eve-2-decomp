@@ -439,7 +439,7 @@ extern AnimationSet D_actor_401800_80152F00;
 extern AnimationSet D_actor_401800_801538D8;
 extern AnimationSet D_actor_401800_801542C8;
 
-GpU16Pair D_actor_401800_8013E6E8[2] = {
+DamageAttack D_actor_401800_8013E6E8[2] = {
     { 26, 7 },
     { 18, 7 },
 };

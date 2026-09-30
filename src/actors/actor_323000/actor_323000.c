@@ -129,7 +129,7 @@ s32              func_actor_323000_80164AF0(Task*, s32, AnimationPlayRequest*, s
 void             func_actor_323000_8016483C(void);
 void             func_actor_323000_80164CE4(Task*);
 
-GpU16Pair D_actor_323000_80164D40[5] = {
+DamageAttack D_actor_323000_80164D40[5] = {
     { 30, 0 },
     { 30, 0 },
     { 18, 0 },

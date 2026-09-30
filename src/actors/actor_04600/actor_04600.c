@@ -151,8 +151,8 @@ STATIC_ASSERT_SIZEOF(Actor104600Enemy2Work, 0x2B0);
 
 /// The first enemy's pair table, packed into its third body's key, and the
 /// enemy record whose `pairTable` names it; `hpMax` seeds the enemy's HP.
-extern GpU16Pair  Actor04600_D0415C;
-extern GpPairSrcE Actor04600_D04160;
+extern DamageAttack Actor04600_D0415C;
+extern GpPairSrcE   Actor04600_D04160;
 
 /// The two script arguments the first enemy's death hands to
 /// `Gp_SpawnScript18`.
@@ -230,7 +230,7 @@ void                Actor04600_Fn024A4(Task*);
 void                Actor04600_Fn02C6C(Task*);
 void                Actor04600_Fn03B80(Task*);
 
-GpU16Pair Actor04600_D0415C = { 30, 7 };
+DamageAttack Actor04600_D0415C = { 30, 7 };
 
 GpPairSrcE Actor04600_D04160 = { &Actor04600_D0415C, 70, 6, 12, 3, 100, 20, 100, 0, 0 };
 
@@ -364,7 +364,7 @@ SVECTOR Actor04600_D058A0 = { 0, -10, 0, 0 };
 
 SVECTOR Actor04600_D058A8 = { 0, -300, 0, 0 };
 
-GpU16Pair Actor04600_D058B0[1] = { 0 };
+DamageAttack Actor04600_D058B0[1] = { 0 };
 
 GpPairSrcE Actor04600_D058B4 = { Actor04600_D058B0, 1, 2, 32, 1, 100, 20, 100, 99, 0 };
 

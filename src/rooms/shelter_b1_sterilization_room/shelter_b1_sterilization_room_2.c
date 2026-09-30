@@ -77,7 +77,7 @@ extern GpObj4C D_shelter_b1_sterilization_room_8018B648[8];
 void func_shelter_b1_sterilization_room_801815EC(void);
 void func_shelter_b1_sterilization_room_80181658(void);
 
-GpU16Pair D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
+DamageAttack D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
 
 GpEvsCmd D_shelter_b1_sterilization_room_8018873C[37] = {
     { 47, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

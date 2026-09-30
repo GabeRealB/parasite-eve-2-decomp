@@ -120,9 +120,9 @@ typedef struct {
 /// The `Gp_LinkObj` record `func_actor_206100_8014FBE4` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// The pair table the beam's collision object carries at `WorldCollisionBody.key`
-/// (`Gp_PackPair` kind 1). One word, `field_0` = 0x1A and `field_2` = 5.
-extern GpU16Pair D_actor_206100_80155194;
+/// The attack the beam's collision object carries at `WorldCollisionBody.key`.
+/// `power` is 0x1A and `reaction` is 5.
+extern DamageAttack D_actor_206100_80155194;
 
 /// Pair source `func_actor_206100_8014AF74` parks in `GpEnemy::param`, whose
 /// `pairTable` is `D_actor_206100_80155194` above and whose `hpMax` is the
@@ -526,7 +526,7 @@ static void func_actor_206100_8014F18C(Task* task);
 static void func_actor_206100_8014EEC0(Task* task);
 
 /// Spawns the beam's impact effect burst at `coord`. `arg1` is
-/// `Actor206100ChildWork::field_60` (the `GpU16Pair` index): `(arg1 >> 1) % 6`
+/// `Actor206100ChildWork::field_60` (the `DamageAttack` index): `(arg1 >> 1) % 6`
 /// picks the spark frame `func_actor_206100_8014AB3C` plays, bit 0 gates the
 /// puff and the low three bits the directional tail. `arg2` selects the burst
 /// - 0 a lone spark, 1 the spark plus those two extras, 2 a four-shot ring -
@@ -953,7 +953,7 @@ AreaPlacement D_actor_206100_80155134[6] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-GpU16Pair D_actor_206100_80155194 = { 26, 5 };
+DamageAttack D_actor_206100_80155194 = { 26, 5 };
 
 GpPairSrcE D_actor_206100_80155198 = { &D_actor_206100_80155194, 2000, 400, 1000, 15, 200, 3, 100, 5, 0 };
 

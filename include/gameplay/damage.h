@@ -30,7 +30,7 @@ s32 Gp_RollEnemyChance(struct GpEnemy* arg0, u32 arg1, s32 arg2);
 
 s32 Gp_PackObjPair(struct GpEnemy* arg0, s32 arg1);
 
-s32 Gp_PackPair(GpU16Pair* pairs, s32 index);
+s32 Gp_PackPair(DamageAttack* pairs, s32 index);
 
 void func_800E2C78(struct GpEnemy* arg0, s32 arg1, s32 arg2, s32 arg3);
 

@@ -2111,7 +2111,7 @@ GpRoomParamRec* D_acropolis_bridge_80190C34[8] = {
     D_acropolis_bridge_80190C2C,
 };
 
-GpU16Pair D_acropolis_bridge_80190C54[2] = {
+DamageAttack D_acropolis_bridge_80190C54[2] = {
     { 18, 3 },
     { 0, 0 },
 };

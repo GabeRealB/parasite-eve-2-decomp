@@ -635,7 +635,7 @@ TmdSource D_actor_405800_801418CC = {
     D_actor_405800_801415DC,
 };
 
-GpU16Pair D_actor_405800_801418F0[3] = {
+DamageAttack D_actor_405800_801418F0[3] = {
     { 30, 3 },
     { 25, 10 },
     { 12, 2 },

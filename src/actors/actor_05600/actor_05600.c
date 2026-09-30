@@ -53,7 +53,7 @@
 #include "main/wipsys_types.h"
 
 /// Placement descriptor for this actor.
-extern GpU16Pair Actor05600_D161BC[5];
+extern DamageAttack Actor05600_D161BC[5];
 
 /// Pair source the approach cycle parks at `GpEnemy::param`; its `hpMax`
 /// becomes the enemy's `field_40`.
@@ -775,7 +775,7 @@ AnimationSet Actor05600_D16194 = {
     { NULL, Actor05600_D15A10, NULL, NULL, Actor05600_D15AC4, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor05600_D161BC[5] = {
+DamageAttack Actor05600_D161BC[5] = {
     { 30, 5 },
     { 20, 5 },
     { 0, 8 },
@@ -2702,7 +2702,7 @@ static void Actor05600_Fn031B0(GpEnemy* arg0, Task* arg1)
     gte_rtir();
     gte_stclmv(&coord->coord.m[0][2]);
 
-    work->field_EE = (Actor05600_D161BC[3].field_2 != 1);
+    work->field_EE = (Actor05600_D161BC[3].reaction != 1);
 
     work->obj40.coord            = coord;
     work->obj40.context.contacts = work->rec60;

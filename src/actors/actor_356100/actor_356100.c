@@ -262,7 +262,7 @@ void             func_actor_356100_8016A910(Task*);
 
 #include "../../shared/actor_contacts.h"
 
-GpU16Pair D_actor_356100_8016A96C[6] = {
+DamageAttack D_actor_356100_8016A96C[6] = {
     { 30, 7 },
     { 30, 7 },
     { 50, 7 },

@@ -232,7 +232,7 @@ extern SVECTOR Actor02100_D03734[40];
 extern SVECTOR Actor02100_D03874[32];
 extern u32     Actor02100_D03974[243];
 
-extern GpU16Pair                Actor02100_D03D64[5];
+extern DamageAttack             Actor02100_D03D64[5];
 extern GpPairSrcE               Actor02100_D03D78;
 extern Actor02100Fn01FF0Timing  Actor02100_D03D88[];
 extern Actor02100Fn02924Widths  Actor02100_D03DD8[];
@@ -286,7 +286,7 @@ TmdSource Actor02100_D03D40 = {
     Actor02100_D03974,
 };
 
-GpU16Pair Actor02100_D03D64[5] = {
+DamageAttack Actor02100_D03D64[5] = {
     { 15, 7 },
     { 25, 7 },
     { 12, 2 },

@@ -56,7 +56,7 @@
 extern void* D_80067704[1];
 
 extern TmdSource     Actor05500_D05F18;
-extern GpU16Pair     Actor05500_D08958[6];
+extern DamageAttack  Actor05500_D08958[6];
 extern GpPairSrcE    Actor05500_D08970;
 extern u16           Actor05500_D08980[];
 extern u16           Actor05500_D08990[];
@@ -529,7 +529,7 @@ AnimationSet Actor05500_D08930 = {
     { NULL, Actor05500_D087A8, NULL, NULL, Actor05500_D087E4, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor05500_D08958[6] = {
+DamageAttack Actor05500_D08958[6] = {
     { 10, 0 },
     { 16, 0 },
     { 8, 1 },

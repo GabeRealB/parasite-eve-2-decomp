@@ -190,7 +190,7 @@ AnimationSet D_actor_311500_80169290 = {
     { NULL, D_actor_311500_80168FD0, NULL, NULL, D_actor_311500_8016900C, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_311500_801692B8[2] = {
+DamageAttack D_actor_311500_801692B8[2] = {
     { 18, 7 },
     { 18, 0 },
 };

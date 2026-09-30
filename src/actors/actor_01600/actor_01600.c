@@ -339,7 +339,7 @@ extern Actor01600RecoveredMsgEntry Actor01600_D127A4[3];
 static void                        Actor01600_Fn05400(Task* actor);
 static void                        Actor01600_Fn06EA4(Task* actor);
 
-extern GpU16Pair Actor01600_D09F04[2];
+extern DamageAttack Actor01600_D09F04[2];
 
 extern SVECTOR Actor01600_D09F1C[];
 extern SVECTOR Actor01600_D09F3C[];
@@ -541,7 +541,7 @@ TmdSource Actor01600_D09EE0 = {
     Actor01600_D09DC8,
 };
 
-GpU16Pair Actor01600_D09F04[2] = {
+DamageAttack Actor01600_D09F04[2] = {
     { 12, 7 },
     { 14, 7 },
 };

@@ -1123,7 +1123,7 @@ AnimationSet D_actor_510900_80167940 = {
     { NULL, D_actor_510900_801672BC, NULL, NULL, D_actor_510900_801673AC, NULL, NULL, NULL },
 };
 
-GpU16Pair D_actor_510900_80167968 = { 14, 7 };
+DamageAttack D_actor_510900_80167968 = { 14, 7 };
 
 void func_actor_510900_80131F24(Task* arg0)
 {

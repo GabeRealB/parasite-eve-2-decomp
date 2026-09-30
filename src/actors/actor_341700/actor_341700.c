@@ -419,7 +419,7 @@ TmdSource D_actor_341700_80171864 = {
     D_actor_341700_8016F780,
 };
 
-GpU16Pair D_actor_341700_80171888[1] = {
+DamageAttack D_actor_341700_80171888[1] = {
     { 22, 0 },
 };
 

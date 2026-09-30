@@ -37,7 +37,7 @@ extern ActorTransform D_shelter_b1_sterilization_room_80188638;
 
 extern ActorTransform D_shelter_b1_sterilization_room_80188650;
 
-extern GpU16Pair D_shelter_b1_sterilization_room_80188738;
+extern DamageAttack D_shelter_b1_sterilization_room_80188738;
 
 extern GpEvsCmd D_shelter_b1_sterilization_room_8018873C[37];
 

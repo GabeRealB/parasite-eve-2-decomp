@@ -102,7 +102,7 @@ static void func_actor_207200_8014AFDC(GpEnemy* arg0, Task* task);
 extern TmdSource D_actor_207200_8014E4C8;
 void             func_actor_207200_8014AC9C(Task*);
 
-GpU16Pair D_actor_207200_8014DBB8[1] = { 0 };
+DamageAttack D_actor_207200_8014DBB8[1] = { 0 };
 
 GpPairSrcE D_actor_207200_8014DBBC = { D_actor_207200_8014DBB8, 1, 2, 32, 1, 100, 20, 100, 99, 0 };
 
@@ -203,7 +203,7 @@ SVECTOR D_actor_207200_8014E7BC = { 0, -100, 0, 0 };
 
 SVECTOR D_actor_207200_8014E7C4 = { 0, 0, 100, 0 };
 
-GpU16Pair D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
+DamageAttack D_actor_207200_8014E7CC[2] = { { 25, 11 }, { 10, 0 } };
 
 static void            func_actor_207200_80149E84(GpEnemy* arg0, Task* arg1);
 static void            func_actor_207200_8014A588(Task* arg0);

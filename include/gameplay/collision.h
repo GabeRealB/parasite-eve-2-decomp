@@ -10,21 +10,37 @@
 
 struct GfxCoord;
 
-/// One 4-byte entry of the tables that name a collision body: the two halves
-/// `Gp_PackPair` / `Gp_PackObjPair` pack into that body's `WorldCollisionBody.key`, taking
-/// the low 12 bits of `field_0` and the low 4 bits of `field_2`. An actor's
-/// spawn tables and the one an enemy's `GpPairSrcE.pairTable` points at hold
-/// these.
+/// One attack delivered through a collision body's key.
 ///
-/// The halves stay unnamed because their meaning belongs to the table rather
-/// than to the type: `GpEdgePair` covers the same bytes as two corner indices,
-/// read signed by the helpers that need that width and unsigned by the ones
-/// that come through this type.
-typedef struct GpU16Pair {
-    u16 field_0;
-    u16 field_2;
-} GpU16Pair;
-STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
+/// The packed identity has contact category 4 in the high halfword
+/// (`DAMAGE_ATTACK_CATEGORY`), the low 12 bits of `power` below that, and the
+/// low 4 bits of `reaction` in bits 12..15. Enemy parameter records and actor
+/// spawn tables hold these entries, and several bodies may share one. A null
+/// pointer packs as the zero key, which omits the body from pair contacts; a
+/// stored `{ 0, 0 }` still packs as category 4.
+///
+/// `reaction` selects the player's hit reaction. 0 is the ordinary hit and
+/// applies no status. 1 darkness, 2 paralysis, 8 silence, 10 confusion and
+/// 11 berserker use that same presentation and also apply that status. 3
+/// poison uses its own presentation and applies poison. 9 uses the ordinary
+/// presentation and applies status flag 0x20, whose gameplay effect is
+/// unproven. 4 sets the parasite-energy fade mask to 8, applies no status,
+/// and has no hit presentation of its own. 5, 6 and 7 each use their own hit
+/// presentation and set no status flag.
+typedef struct DamageAttack {
+    u16 power;    // Base damage before the HP-band scale; low 12 bits of the identity
+    u16 reaction; // Hit reaction in the low 4 bits; values listed above
+} DamageAttack;
+STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
+
+/// Low bits of `DamageAttack::power` copied into an attack identity.
+#define DAMAGE_ATTACK_POWER_MASK 0xFFF
+/// Low bits of `DamageAttack::reaction` copied into an attack identity.
+#define DAMAGE_ATTACK_REACTION_MASK 0xF
+/// Bit position of the reaction nibble in the identity halfword.
+#define DAMAGE_ATTACK_REACTION_SHIFT 12
+/// Packed attack identity's contact category: 4 in the high halfword.
+#define DAMAGE_ATTACK_CATEGORY 0x40000
 
 /// A trigger quad on the `Gp_PendingObj4C` / `Gp_Obj4CList` lists.
 /// `next` and signed `field_4B` are the `Gp_PendingObj4C` list walked by

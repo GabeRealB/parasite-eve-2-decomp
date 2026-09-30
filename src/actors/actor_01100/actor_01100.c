@@ -279,7 +279,7 @@ extern AnimationSet* Actor01100_D15604[23];
 extern u8 Actor01100_D15670;
 
 /// Pair table the spawn state packs into the collision body's `WorldCollisionBody.key`.
-extern GpU16Pair Actor01100_D074F8[6];
+extern DamageAttack Actor01100_D074F8[6];
 
 /// One of the actor's three state handlers - spawn/setup, per-frame tick and
 /// teardown. Wider than the usual two-argument `GpEnemyTaskFunc` shape: the
@@ -305,7 +305,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(Actor01100RecoveredMsgEntry, 8);
 
 extern Actor01100RecoveredMsgEntry Actor01100_D15660[2];
-extern GpU16Pair                   Actor01100_D074D0[];
+extern DamageAttack                Actor01100_D074D0[];
 extern TaskDesc                    Actor01100_D155E0[];
 extern TmdSource                   Actor01100_D0D8F4;
 extern TmdSource                   Actor01100_D0E4DC;
@@ -371,13 +371,13 @@ static const Actor101100StateFuncTable3 Actor01100_D00004 = { {
 /// placement `entryId` is 0x31: 0x1400 on each axis.
 static const ActorsShared801385e0Scale Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
-extern GpU16Pair Actor01100_D074F8[6];
-s32              Actor01100_Fn0670C(Task*, s32, s32);
-void             Actor01100_Fn06554(Task*);
-void             Actor01100_Fn065E4(Task*);
-void             Actor01100_Fn0663C(Task*);
+extern DamageAttack Actor01100_D074F8[6];
+s32                 Actor01100_Fn0670C(Task*, s32, s32);
+void                Actor01100_Fn06554(Task*);
+void                Actor01100_Fn065E4(Task*);
+void                Actor01100_Fn0663C(Task*);
 
-GpU16Pair Actor01100_D074D0[6] = {
+DamageAttack Actor01100_D074D0[6] = {
     { 0, 0 },
     { 8, 0 },
     { 8, 0 },
@@ -388,7 +388,7 @@ GpU16Pair Actor01100_D074D0[6] = {
 
 GpPairSrcE Actor01100_D074E8 = { Actor01100_D074D0, 280, 152, 102, 5, 200, 10, 100, 20, 0 };
 
-GpU16Pair Actor01100_D074F8[6] = { { 0, 0 }, { 10, 0 }, { 10, 0 }, { 30, 7 }, { 30, 7 }, { 15, 1 } };
+DamageAttack Actor01100_D074F8[6] = { { 0, 0 }, { 10, 0 }, { 10, 0 }, { 30, 7 }, { 30, 7 }, { 15, 1 } };
 
 GpPairSrcE Actor01100_D07510 = { Actor01100_D074F8, 450, 204, 152, 6, 200, 5, 100, 10, 0 };
 

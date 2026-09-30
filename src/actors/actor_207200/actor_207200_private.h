@@ -84,6 +84,6 @@ typedef struct Actor207200Work {
     /* 0x4AA */ s16            field_4AA;
 } Actor207200Work;
 
-extern GpU16Pair D_actor_207200_8014E7CC[2];
+extern DamageAttack D_actor_207200_8014E7CC[2];
 
 #endif // SRC_ACTORS_ACTOR_207200_ACTOR_207200_PRIVATE_H

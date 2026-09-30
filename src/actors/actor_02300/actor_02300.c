@@ -48,7 +48,7 @@
 /// the state handlers offset it to get the frames their cues fire on.
 extern s16 Actor02300_D03F44[];
 /// The `Gp_PackPair` entry the lunge parks in the work block's 0x5E4 node.
-extern GpU16Pair Actor02300_D159C4[5];
+extern DamageAttack Actor02300_D159C4[5];
 /// Base sound id of the lunge cue, ORed with the enemy's id nibble.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -800,7 +800,7 @@ AnimationSet Actor02300_D1599C = {
     { NULL, Actor02300_D157E8, NULL, NULL, Actor02300_D15800, NULL, NULL, NULL },
 };
 
-GpU16Pair Actor02300_D159C4[5] = {
+DamageAttack Actor02300_D159C4[5] = {
     { 28, 5 },
     { 24, 5 },
     { 0, 8 },
