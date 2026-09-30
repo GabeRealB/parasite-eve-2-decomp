@@ -330,12 +330,12 @@ GpSprtRec D_shelter_b2_south_maintenance_walkway_80183018[5] = {
 };
 
 GpPointLight D_shelter_b2_south_maintenance_walkway_80183054[6] = {
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2022, -223, -3929 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2348, 2757, 2798, { 0, 0 } }, 1852, 2632 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 367, -223, -4032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2570, 3039, 3058, { 0, 0 } }, 1540, 3660 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2187, -303, -4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1365, 1697, 1877, { 0, 0 } }, 1821, 2131 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1972, -223, 2426 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2007, 2638, 2897, { 0, 0 } }, 1742, 2801 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1986, -223, -1184 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 2509, 3039, 3079, { 0, 0 } }, 2121, 3602 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2025, -223, -2356 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 1847, 2297, 2416, { 0, 0 } }, 1500, 1800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2022, -223, -3929 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2348, 2757, 2798 }, { 0, 0 } }, 1852, 2632 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 367, -223, -4032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2570, 3039, 3058 }, { 0, 0 } }, 1540, 3660 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2187, -303, -4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1365, 1697, 1877 }, { 0, 0 } }, 1821, 2131 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1972, -223, 2426 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2007, 2638, 2897 }, { 0, 0 } }, 1742, 2801 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1986, -223, -1184 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2509, 3039, 3079 }, { 0, 0 } }, 2121, 3602 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2025, -223, -2356 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1847, 2297, 2416 }, { 0, 0 } }, 1500, 1800 },
 };
 
 GpRoomCoordSet D_shelter_b2_south_maintenance_walkway_80183294 = { 0, NULL, 6, D_shelter_b2_south_maintenance_walkway_80183054, 0, NULL };
@@ -2007,26 +2007,26 @@ static void func_shelter_b2_south_maintenance_walkway_80181C94(GfxCoord* coord, 
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                                  = &Gp_RoomCoords[2];
-    slot->framesLeft                      = 2;
-    light                                 = &slot->light;
-    light->inner                          = 0x300;
-    light->outer                          = 0x3000;
-    random                                = (Gp_LcgState * 5) + 0x71357911;
-    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r                         = intensity;
-    shifted                               = intensity << 0x10;
-    light->head.g                         = shifted >> 0x11;
-    light->head.b                         = shifted >> 0x12;
-    light->head.u.at.local.t[0]           = coord->coord.t[0];
-    light->head.u.at.local.t[1]           = coord->coord.t[1];
-    light->head.u.at.local.t[2]           = coord->coord.t[2];
-    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_LcgState                           = random;
-    block                                 = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx                         = coord->workm.t[0];
-    block->vec.vy                         = coord->workm.t[1];
-    block->vec.vz                         = coord->workm.t[2];
+    slot                                          = &Gp_RoomCoords[2];
+    slot->framesLeft                              = 2;
+    light                                         = &slot->light;
+    light->inner                                  = 0x300;
+    light->outer                                  = 0x3000;
+    random                                        = (Gp_LcgState * 5) + 0x71357911;
+    intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.color.r                           = intensity;
+    shifted                                       = intensity << 0x10;
+    light->head.color.g                           = shifted >> 0x11;
+    light->head.color.b                           = shifted >> 0x12;
+    light->head.transform.lighting.local.t[0]     = coord->coord.t[0];
+    light->head.transform.lighting.local.t[1]     = coord->coord.t[1];
+    light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
+    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                                   = random;
+    block                                         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                                 = coord->workm.t[0];
+    block->vec.vy                                 = coord->workm.t[1];
+    block->vec.vz                                 = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);

@@ -1047,15 +1047,15 @@ GpAreaVariant D_dryfield_motel_balcony_80186220[13] = {
 };
 
 GpPointLight D_dryfield_motel_balcony_80186288[9] = {
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3546, -5261, 222 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4003, 3928, 3859, { 0, 0 } }, 4002, 7298 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x3377, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4918, 4096, 4097, { 0, 0 } }, 500, 3000 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3303, -5000, 3148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4122, 3865, 4223, { 0, 0 } }, 2940, 5583 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -5000, -6710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 5740, 5668, 5680, { 0, 0 } }, 5399, 0x2EE0 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3200, -5250, 8480 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4944, 4100, 4099, { 0, 0 } }, 3323, 5204 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9995, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4940, 4096, 4096, { 0, 0 } }, 500, 3000 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4050, -5250, 5400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4902, 4064, 4085, { 0, 0 } }, 3565, 5064 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2EC7, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4805, 4204, 4145, { 0, 0 } }, 500, 3000 },
-    { { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7035, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 5401, 4327, 4285, { 0, 0 } }, 1121, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3546, -5261, 222 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4003, 3928, 3859 }, { 0, 0 } }, 4002, 7298 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x3377, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4918, 4096, 4097 }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3303, -5000, 3148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4122, 3865, 4223 }, { 0, 0 } }, 2940, 5583 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -5000, -6710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5740, 5668, 5680 }, { 0, 0 } }, 5399, 0x2EE0 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3200, -5250, 8480 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4944, 4100, 4099 }, { 0, 0 } }, 3323, 5204 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9995, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4940, 4096, 4096 }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4050, -5250, 5400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4902, 4064, 4085 }, { 0, 0 } }, 3565, 5064 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2EC7, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4805, 4204, 4145 }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7035, -5250, 2697 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5401, 4327, 4285 }, { 0, 0 } }, 1121, 3000 },
 };
 
 GpRoomCoordSet D_dryfield_motel_balcony_801865E8[1] = {
@@ -1838,26 +1838,26 @@ static void func_dryfield_motel_balcony_8017EF44(GfxCoord* coord, s16 size)
     GpPointLight*  light;
     GpRingScratch* block;
 
-    slot                                  = &Gp_RoomCoords[2];
-    slot->framesLeft                      = 2;
-    light                                 = &slot->light;
-    light->inner                          = 0x300;
-    light->outer                          = 0x3000;
-    random                                = (Gp_LcgState * 5) + 0x71357911;
-    intensity                             = ((random >> 0x10) & 0x700) + 0x800;
-    light->head.r                         = intensity;
-    shifted                               = intensity << 0x10;
-    light->head.g                         = shifted >> 0x11;
-    light->head.b                         = shifted >> 0x12;
-    light->head.u.at.local.t[0]           = coord->coord.t[0];
-    light->head.u.at.local.t[1]           = coord->coord.t[1];
-    light->head.u.at.local.t[2]           = coord->coord.t[2];
-    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_LcgState                           = random;
-    block                                 = SCRATCH_PUSH(GpRingScratch);
-    block->vec.vx                         = coord->workm.t[0];
-    block->vec.vy                         = coord->workm.t[1];
-    block->vec.vz                         = coord->workm.t[2];
+    slot                                          = &Gp_RoomCoords[2];
+    slot->framesLeft                              = 2;
+    light                                         = &slot->light;
+    light->inner                                  = 0x300;
+    light->outer                                  = 0x3000;
+    random                                        = (Gp_LcgState * 5) + 0x71357911;
+    intensity                                     = ((random >> 0x10) & 0x700) + 0x800;
+    light->head.color.r                           = intensity;
+    shifted                                       = intensity << 0x10;
+    light->head.color.g                           = shifted >> 0x11;
+    light->head.color.b                           = shifted >> 0x12;
+    light->head.transform.lighting.local.t[0]     = coord->coord.t[0];
+    light->head.transform.lighting.local.t[1]     = coord->coord.t[1];
+    light->head.transform.lighting.local.t[2]     = coord->coord.t[2];
+    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    Gp_LcgState                                   = random;
+    block                                         = SCRATCH_PUSH(GpRingScratch);
+    block->vec.vx                                 = coord->workm.t[0];
+    block->vec.vy                                 = coord->workm.t[1];
+    block->vec.vz                                 = coord->workm.t[2];
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&block->vec);

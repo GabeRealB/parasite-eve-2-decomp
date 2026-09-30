@@ -79,16 +79,16 @@ void func_p229_8011D1DC(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
-            slot->head.u.coord.coord.t[2]         = coord->coord.t[2];
-            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            slot->head.r                          = 0x1000;
-            slot->head.g                          = 0x1000;
-            slot->head.b                          = 0x1000;
-            slot->inner                           = 0xFA0;
-            slot->outer                           = 0x12C0;
-            base->framesLeft                      = 4;
+            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
+            slot->head.transform.coord.coord.t[2]         = coord->coord.t[2];
+            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->head.color.r                            = 0x1000;
+            slot->head.color.g                            = 0x1000;
+            slot->head.color.b                            = 0x1000;
+            slot->inner                                   = 0xFA0;
+            slot->outer                                   = 0x12C0;
+            base->framesLeft                              = 4;
 
             coord->parent       = work->parent;
             coord->coord.t[0]   = D_p229_8011E0F0.vx;

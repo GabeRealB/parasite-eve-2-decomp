@@ -35572,24 +35572,23 @@ and delays `sw Gp_LcgState`. `Gp_EffCtlTask6B` is the example.
 Write `Gp_LcgState = Gp_LcgState * 5 + K` (no extra `rng` local) so the
 LCG `addu` dest stays `v0` and the store sits immediately after it.
 
-## Overlay `coord` plus tail so extra fields are `s5+0x50`, not `base+0x54`
+## Embedded point light so colour fields are `s5+0x50`, not `base+0x54`
 
-`Gp_RoomCoords` is a `GpCoord64` whose extra s16s/s32s live at `+0x54`.
-Accessing them as `Gp_RoomCoords->field_54` uses the slot base (`sw 0x54(a0)`).
-The target computes `s5 = a0+4` (`&slot->coord`) and stores at `0x50(s5)`.
-Hold the coordinate as a `GpCoordTail*` (GfxCoord plus the 0x10-byte
-tail) and assign it **before** the `if` so `addiu s5, a0, 4` fills the
+`Gp_RoomCoords` is an array of `GpCoord64` whose embedded point lights' colour and radius fields start at `+0x54`.
+Accessing them as `Gp_RoomCoords->light.head.color.r` uses the slot base (`sw 0x54(a0)`).
+The target computes `s5 = a0+4` (`&base->light`) and stores at `0x50(s5)`.
+Hold the embedded point light as a `GpPointLight*` and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
 base = Gp_RoomCoords;
-slot = (GpCoordTail*)&base->coord;
+slot = &base->light;
 st   = Gp_State1C;
 if (st->effectControl < 2) {
-    slot->field_50 = 0xC00;
+    slot->head.color.r = 0xC00;
     ...
-    if (slot->field_58 >= 0x191) {
-        slot->field_58 -= 0x190;
+    if (slot->inner >= 0x191) {
+        slot->inner -= 0x190;
     }
 }
 ```
@@ -52409,9 +52408,9 @@ include when the body is ported.
 (`0x80114F30`, size `0x320`): `0x801150C0 - 0x80114F30 = 0x190 = 4 * 0x64`,
 so it is `&Gp_RoomCoords[4]`, and the sibling imports `D_80115124` /
 `D_80115188` are slots 5 and 6. Writing it as `base = &Gp_RoomCoords[4];
-slot = (GpCoordTail*)&base->coord;` — the shape gameplay's matched
+slot = &base->light;` — the shape gameplay's matched
 `Gp_EffCtlTask6B` uses for slot 0 — reproduces the `lui/addiu` pair, the
-`%lo(sym)($s5)` store for `field_0` and the `4($s6)` store for `coord.composeStamp`.
+`%lo(sym)($s5)` store for `framesLeft` and the `4($s6)` store for `light.head.transform.coord.composeStamp`.
 
 Two consequences. When an import label is undeclared, check the sized symbols
 just below it in the owning overlay's sym file before typing it as a fresh
@@ -55584,7 +55583,7 @@ hoist, here it lets a store sink.
 **Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
-`GpCoordTail*` view of `Gp_RoomCoords[1].light.head.u.coord`, ours used `s3` and `s2`.
+`GpPointLight*` member at `&Gp_RoomCoords[1].light`, ours used `s3` and `s2`.
 
 **Symptom.** Nothing in the C looked register-related; `.greg` showed the
 allocation order line
@@ -55605,8 +55604,8 @@ the guard clauses, instead of after them:
 work  = task->spawnArg2;
 coord = task->extra.coordBody->coord;
 base  = &Gp_RoomCoords[1];
-light = &base->coord;                 /* not after the two `return`s */
-slot  = (GpCoordTail*)light;
+light = &base->light.head.transform.coord; /* not after the two `return`s */
+slot  = &base->light;
 if ((((TmdObject*)gameGetPtrSlot(3)->extra)->flags & 0x80) != 0) {
     return;
 }
@@ -141220,7 +141219,7 @@ in the back-branch slot. The walking pointer (`$a0`) dies at the copy and is
 recomputed from it, and the copy sits in a callee-saved register even in loops
 with no call. The body had `cur = p; ... p = cur + 1;` with both pinned.
 The source was one function-scope `GfxCoord* coord`, assigned `coord =
-&elem->head.u.coord` at the top of every loop and used for the stores or the
+&elem->head.transform.coord` at the top of every loop and used for the stores or the
 call argument. Because `coord` is used in later loops, its last use is later
 than the walking pointer's, so cse's `make_regs_eqv` makes it canonical and
 rewrites `p + 1` as `coord + 1`; being live across the later calls also puts
@@ -142821,7 +142820,7 @@ Target opens `lui a3,0x1F80; move t1,a0; ori a3,...`; the natural body gives
 order, and the parameter's own copy-in insn always precedes the scratch
 address. The seed forced it with `a3`/`a0` pins, an `obj = index` copy and two
 `TOUCH_REG`s. The source the sibling light functions use -
-`GpLight* base = &light->head;` (offset 0, so a plain second copy of the
+`WorldCoordLight* base = &light->head;` (offset 0, so a plain second copy of the
 parameter) and field reads split between `base->` and `light->` - makes the
 `move` a later copy insn and matches with no hacks, wherever the assignment
 sits among the opening statements. When only the order of a parameter `move`
@@ -145994,7 +145993,7 @@ Controlled candidates: `base_2.i` SHA-256 `9a92e51cfad6495d2f9487d5c78e8253b1937
 
 ## Read a stored GTE scalar directly before pinning its scratch pointer (func_800D759C, 2026-09-27)
 
-The remaining scratch-block pin disappears with `block->scale = light->u.at.scale;
+The remaining scratch-block pin disappears with `block->scale = light->transform.lighting.attenuation;
 gte_lddp(block->scale);`, removing the scalar local previously passed to
 `gte_lddp`. In unpinned `base_1`, the block has 12 refs and loses `$s0` to the
 old scratch head. In `base_6`, the SDK asm's field operand retains the user

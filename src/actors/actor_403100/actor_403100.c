@@ -7993,23 +7993,23 @@ static void func_actor_403100_8013D11C(Task* arg0)
     s16           value;
     u32           random;
 
-    coords                                = arg0->extra.tmd->coords;
-    slot                                  = &Gp_RoomCoords[2];
-    slot->framesLeft                      = 8;
-    light                                 = &slot->light;
-    light->inner                          = 0x300;
-    random                                = Gp_LcgState * 5 + 0x71357911;
-    light->outer                          = 0x3000;
-    value                                 = ((random >> 16) & 0x700) + 0x800;
-    light->head.r                         = value;
-    light->head.g                         = value >> 3;
-    light->head.b                         = value >> 4;
-    coords                               += 3;
-    light->head.u.at.local.t[0]           = coords->coord.t[0];
-    light->head.u.at.local.t[1]           = coords->coord.t[1];
-    light->head.u.at.local.t[2]           = coords->coord.t[2];
-    Gp_LcgState                           = random;
-    slot->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    coords                                        = arg0->extra.tmd->coords;
+    slot                                          = &Gp_RoomCoords[2];
+    slot->framesLeft                              = 8;
+    light                                         = &slot->light;
+    light->inner                                  = 0x300;
+    random                                        = Gp_LcgState * 5 + 0x71357911;
+    light->outer                                  = 0x3000;
+    value                                         = ((random >> 16) & 0x700) + 0x800;
+    light->head.color.r                           = value;
+    light->head.color.g                           = value >> 3;
+    light->head.color.b                           = value >> 4;
+    coords                                       += 3;
+    light->head.transform.lighting.local.t[0]     = coords->coord.t[0];
+    light->head.transform.lighting.local.t[1]     = coords->coord.t[1];
+    light->head.transform.lighting.local.t[2]     = coords->coord.t[2];
+    Gp_LcgState                                   = random;
+    slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
 {

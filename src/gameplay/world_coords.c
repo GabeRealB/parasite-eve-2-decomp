@@ -68,9 +68,9 @@ STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 /// light is selected, 1 for a point light, or 2 for a spot light.
 /// `light` points to the selected light; `field_4` is cleared.
 typedef struct _GpNearestLight {
-    /* 0x00 */ s32      kind;
-    /* 0x04 */ s32      field_4;
-    /* 0x08 */ GpLight* light;
+    /* 0x00 */ s32              kind;
+    /* 0x04 */ s32              field_4;
+    /* 0x08 */ WorldCoordLight* light;
 } GpNearestLight;
 STATIC_ASSERT_SIZEOF(GpNearestLight, 0xC);
 
@@ -95,7 +95,7 @@ STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
 /// `distSq` is `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2`
 /// from `outer` / `inner` (`Gp_LightPointRoom` first stores
 /// `outer / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
-/// is 0, `0x1000`, or the 12.4 falloff copied to the light's `scale`.
+/// is 0, `0x1000`, or the 12-fractional-bit falloff copied to the light's attenuation.
 typedef struct _GpAttnScratch {
     /* 0x00 */ VECTOR vec;
     /* 0x10 */ s32    distSq;
@@ -144,7 +144,7 @@ STATIC_ASSERT_SIZEOF(GpSolveSlotView, 0x58);
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
 /// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
 /// `dir` is that output (then overwritten by the GPF-scaled color).
-/// `scale` holds the light's `scale` loaded into IR0.
+/// `scale` holds the light's attenuation loaded into IR0.
 typedef struct _GpLightScratch {
     /* 0x00 */ VECTOR  in;
     /* 0x10 */ SVECTOR dir;
@@ -156,7 +156,7 @@ STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 /// `in` is the light's negated local position fed to `Gfx_NormalizeLightDir`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
 /// `mtx` is `Transpose(gGfxViewCoord.workm) * parent->workm` (rotation only).
-/// `scale` holds the light's `scale` loaded into IR0.
+/// `scale` holds the light's attenuation loaded into IR0.
 typedef struct _GpViewLightScratch {
     /* 0x00 */ VECTOR  in;
     /* 0x10 */ SVECTOR dir;
@@ -199,20 +199,20 @@ static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos);
 
 static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos);
 
-static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
 /// Selects the nearest point or cone light to world position `arg0`, using
 /// squared distance after halving each coordinate difference. Initializes
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1);
 
-static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-static __inline__ s32 solve_luma(GpLight* arg0);
+static __inline__ s32 solve_luma(WorldCoordLight* arg0);
 
 static __inline__ void solve_rank(GpRec12* slots, s32 val, s32 kind, void* obj, GpRec12* last);
 
@@ -240,16 +240,16 @@ static s32 Gp_CountRoomCoords(void);
 
 static GpRoomCoordSet* Gp_GetRoomCoordSet(GameLocationKey* arg0);
 
-static s32 Gp_GetObjLuma(GpLight* arg0);
+static s32 Gp_GetObjLuma(WorldCoordLight* arg0);
 
 /// World X of the object's position.
 static s32 Gp_GetObjTransX(GfxCoord* coord);
 
-static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
-static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3);
+static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
 void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4);
 
@@ -280,7 +280,7 @@ static inline void _gpUpdateRoomCoordSlots(void)
     slot = Gp_RoomCoords;
     for (i = 0; i < 8; i++, slot++) {
         if (slot->framesLeft != 0) {
-            Gp_UpdateCoordEx(&slot->light.head.u.coord, &gGfxViewCoord);
+            Gp_UpdateCoordEx(&slot->light.head.transform.coord, &gGfxViewCoord);
         }
     }
 }
@@ -290,14 +290,14 @@ static inline void _gpUpdateRoomCoordSlots(void)
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
-    GpRoomCoordSet* set;
-    SVECTOR*        vec;
-    GpLight*        light;
-    GpPointLight*   point;
-    GpSpotLight*    spot;
-    GfxCoord*       coord;
-    s32             i;
-    s32             j;
+    GpRoomCoordSet*  set;
+    SVECTOR*         vec;
+    WorldCoordLight* light;
+    GpPointLight*    point;
+    GpSpotLight*     spot;
+    GfxCoord*        coord;
+    s32              i;
+    s32              j;
 
     set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     if (set == NULL) {
@@ -309,14 +309,14 @@ void Gp_UpdateRoomCoords(Task* task)
     if (task->state == 0) {
         point = set->arr60;
         for (i = 0; i < set->n60; i++, point++) {
-            coord               = &point->head.u.coord;
+            coord               = &point->head.transform.coord;
             coord->parent       = &gGfxViewCoord;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
         spot = set->arr6C;
         for (i = 0; i < set->n6C; i++, spot++) {
-            coord         = &spot->head.u.coord;
+            coord         = &spot->head.transform.coord;
             coord->parent = &gGfxViewCoord;
             if (spot->dir.vy != 0 || spot->dir.vz != 0) {
                 vec->vx = 0;
@@ -332,11 +332,11 @@ void Gp_UpdateRoomCoords(Task* task)
         }
 
         if (set->n58 > 0) {
-            GpLight* dir;
+            WorldCoordLight* dir;
 
             dir = set->arr58;
             for (i = 0; i < set->n58; i++, dir++) {
-                coord               = &dir->u.coord;
+                coord               = &dir->transform.coord;
                 coord->parent       = &gGfxViewCoord;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
@@ -344,7 +344,7 @@ void Gp_UpdateRoomCoords(Task* task)
 
         for (j = 0; j < 8; j++) {
             Gp_RoomCoords[j].framesLeft = 0;
-            coord                       = &Gp_RoomCoords[j].light.head.u.coord;
+            coord                       = &Gp_RoomCoords[j].light.head.transform.coord;
             coord->parent               = &gGfxViewCoord;
         }
 
@@ -357,20 +357,20 @@ void Gp_UpdateRoomCoords(Task* task)
 
     point = set->arr60;
     for (i = 0; i < set->n60; i++, point++) {
-        coord = &point->head.u.coord;
+        coord = &point->head.transform.coord;
         Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
     spot = set->arr6C;
     for (i = 0; i < set->n6C; i++, spot++) {
-        coord = &spot->head.u.coord;
+        coord = &spot->head.transform.coord;
         Gp_UpdateCoordEx(coord, &gGfxViewCoord);
     }
 
     if (set->n58 > 0) {
         light = set->arr58;
         for (i = 0; i < set->n58; i++, light++) {
-            coord = &light->u.coord;
+            coord = &light->transform.coord;
             Gp_UpdateCoordEx(coord, &gGfxViewCoord);
         }
     }
@@ -380,21 +380,21 @@ void Gp_UpdateRoomCoords(Task* task)
 
 static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
 {
-    GpLight*       base;
-    GpAttnScratch* block;
-    s32            result;
-    s32            tooFar;
-    s16            room;
+    WorldCoordLight* base;
+    GpAttnScratch*   block;
+    s32              result;
+    s32              tooFar;
+    s16              viewId;
 
-    base = &light->head;
-    room = base->u.at.room;
-    if (room != 0 && gGameSession->location.loc.view != room) {
+    base   = &light->head;
+    viewId = base->transform.lighting.viewId;
+    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
     block          = SCRATCH_PUSH(GpAttnScratch);
-    block->vec.vx  = (base->u.at.world.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (base->u.at.world.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (base->u.at.world.t[2] - pos->vz) >> 1;
+    block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
     block->outerSq = light->outer >> 1;
     block->scale   = 0;
     if (block->vec.vx < 0) {
@@ -417,8 +417,8 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
         result = 0;
     } else {
         block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.r * 8 + light->head.g * 6 + light->head.b * 2) >> 8) + 0xF00;
-        block->scale   = 0x1000;
+        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        block->scale   = ONE;
         if ((u32)block->distSq > (u32)block->innerSq) {
             block->outerSq -= block->innerSq;
             block->distSq  -= block->innerSq;
@@ -432,30 +432,30 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos)
             }
         }
     }
-    base->u.at.scale = block->scale;
+    base->transform.lighting.attenuation = block->scale;
     SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
     return result;
 }
 
 static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
 {
-    GpAttnScratch* block;
-    s32            result;
-    GpLight*       base;
+    GpAttnScratch*   block;
+    s32              result;
+    WorldCoordLight* base;
 
     base           = &light->head;
     result         = 0;
     block          = SCRATCH_PUSH(GpAttnScratch);
-    block->vec.vx  = (base->u.at.world.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (base->u.at.world.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (base->u.at.world.t[2] - pos->vz) >> 1;
+    block->vec.vx  = (base->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    block->vec.vy  = (base->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (base->transform.lighting.composed.t[2] - pos->vz) >> 1;
     block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->outerSq = (light->outer * light->outer) >> 2;
     block->scale   = 0;
     if ((u32)block->outerSq >= (u32)block->distSq) {
         block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.r * 8 + light->head.g * 6 + light->head.b * 2) >> 8) + 0xF00;
-        block->scale   = 0x1000;
+        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        block->scale   = ONE;
         if ((u32)block->distSq > (u32)block->innerSq) {
             block->outerSq -= block->innerSq;
             block->distSq  -= block->innerSq;
@@ -469,29 +469,29 @@ static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
             }
         }
     }
-    base->u.at.scale = block->scale;
+    base->transform.lighting.attenuation = block->scale;
     SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
     return result;
 }
 
 static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
 {
-    GpLight*       light;
-    GpSpotScratch* block;
-    s32            result;
+    WorldCoordLight* light;
+    GpSpotScratch*   block;
+    s32              result;
 
     light  = &spot->head;
     result = 0;
-    if (light->u.at.room != 0) {
-        if (gGameSession->location.loc.view != light->u.at.room) {
+    if (light->transform.lighting.viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS) {
+        if (gGameSession->location.loc.view != light->transform.lighting.viewId) {
             return result;
         }
     }
     SCRATCH_PUSH(GpSpotScratch);
     block          = SCRATCH_HEAD(GpSpotScratch);
-    block->vec.vx  = (light->u.at.world.t[0] - pos->vx) >> 1;
-    block->vec.vy  = (light->u.at.world.t[1] - pos->vy) >> 1;
-    block->vec.vz  = (light->u.at.world.t[2] - pos->vz) >> 1;
+    block->vec.vx  = (light->transform.lighting.composed.t[0] - pos->vx) >> 1;
+    block->vec.vy  = (light->transform.lighting.composed.t[1] - pos->vy) >> 1;
+    block->vec.vz  = (light->transform.lighting.composed.t[2] - pos->vz) >> 1;
     block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->outerSq = (spot->outer * spot->outer) >> 2;
     block->scale   = 0;
@@ -500,10 +500,10 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
     } else {
         block->innerSq = (spot->inner * spot->inner) >> 2;
         Gfx_NormalizeLightDir(&block->vec, &block->dir);
-        block->cosAng = -(block->dir.vx * light->u.at.world.m[0][2] + block->dir.vy * light->u.at.world.m[1][2] + block->dir.vz * light->u.at.world.m[2][2]) >> 12;
+        block->cosAng = -(block->dir.vx * light->transform.lighting.composed.m[0][2] + block->dir.vy * light->transform.lighting.composed.m[1][2] + block->dir.vz * light->transform.lighting.composed.m[2][2]) >> 12;
         if (rcos(spot->angle >> 1) < block->cosAng) {
-            result       = ((spot->head.r * 8 + spot->head.g * 6 + spot->head.b * 2) >> 8) + 0xF00;
-            block->scale = 0x1000;
+            result       = ((spot->head.color.r * 8 + spot->head.color.g * 6 + spot->head.color.b * 2) >> 8) + 0xF00;
+            block->scale = ONE;
             if (block->distSq > block->innerSq) {
                 block->outerSq -= block->innerSq;
                 block->distSq  -= block->innerSq;
@@ -518,12 +518,12 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
             }
         }
     }
-    light->u.at.scale = block->scale;
+    light->transform.lighting.attenuation = block->scale;
     SCRATCH_STACK_RELEASE_BLOCK(GpSpotScratch);
     return result;
 }
 
-static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpViewLightScratch* block;
     MATRIX*             dirMtx;
@@ -533,14 +533,14 @@ static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
 
-    block->in.vx = -arg1->u.at.local.t[0];
-    block->in.vy = -arg1->u.at.local.t[1];
-    block->in.vz = -arg1->u.at.local.t[2];
+    block->in.vx = -arg1->transform.lighting.local.t[0];
+    block->in.vy = -arg1->transform.lighting.local.t[1];
+    block->in.vz = -arg1->transform.lighting.local.t[2];
     Gfx_NormalizeLightDir(&block->in, &block->dir);
 
-    Gp_UpdateCoord(arg1->u.at.parent);
+    Gp_UpdateCoord(arg1->transform.lighting.parent);
     TransposeMatrix(&gGfxViewCoord.workm, &block->mtx);
-    gte_MulMatrix0(&block->mtx, &arg1->u.at.parent->workm, &block->mtx);
+    gte_MulMatrix0(&block->mtx, &arg1->transform.lighting.parent->workm, &block->mtx);
 
     gfxRotateSv(&block->mtx, &block->dir);
 
@@ -548,9 +548,9 @@ static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -566,14 +566,14 @@ static void func_800D759C(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
-    GpRoomCoordSet* set;
-    GpPointLight*   point;
-    GpLight*        light;
-    GpSpotLight*    cone;
-    VECTOR*         delta;
-    u32             best;
-    u32             dist;
-    s32             i;
+    GpRoomCoordSet*  set;
+    GpPointLight*    point;
+    WorldCoordLight* light;
+    GpSpotLight*     cone;
+    VECTOR*          delta;
+    u32              best;
+    u32              dist;
+    s32              i;
 
     set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
@@ -587,9 +587,9 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
             point = set->arr60;
             for (i = 0; i < set->n60; i++, point++) {
                 light     = &point->head;
-                delta->vx = (light->u.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (light->u.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (light->u.coord.workm.t[2] - arg0->vz) >> 1;
+                delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
@@ -602,9 +602,9 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
             cone = set->arr6C;
             for (i = 0; i < set->n6C; i++, cone++) {
                 light     = &cone->head;
-                delta->vx = (light->u.coord.workm.t[0] - arg0->vx) >> 1;
-                delta->vy = (light->u.coord.workm.t[1] - arg0->vy) >> 1;
-                delta->vz = (light->u.coord.workm.t[2] - arg0->vz) >> 1;
+                delta->vx = (light->transform.coord.workm.t[0] - arg0->vx) >> 1;
+                delta->vy = (light->transform.coord.workm.t[1] - arg0->vy) >> 1;
+                delta->vz = (light->transform.coord.workm.t[2] - arg0->vz) >> 1;
                 dist      = delta->vx * delta->vx + delta->vy * delta->vy + delta->vz * delta->vz;
                 if (dist < best) {
                     best        = dist;
@@ -617,7 +617,7 @@ static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
     }
 }
 
-static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -627,15 +627,15 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2
     block    = SCRATCH_HEAD(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, &block->dir);
+    Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
     dirMtx->m[arg0][2] = block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -646,7 +646,7 @@ static __inline__ void solve_func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2
     SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
-static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -656,18 +656,18 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2
     block        = SCRATCH_HEAD(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
+    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -678,7 +678,7 @@ static __inline__ void solve_func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2
     SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
-static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static __inline__ void solve_func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -688,18 +688,18 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2
     block        = SCRATCH_HEAD(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
+    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -710,21 +710,21 @@ static __inline__ void solve_func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2
     SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
-static __inline__ s32 solve_luma(GpLight* arg0)
+static __inline__ s32 solve_luma(WorldCoordLight* arg0)
 {
-    s16 val;
+    s16 viewId;
 
-    val = arg0->u.at.room;
-    if (val != 0 && gGameSession->location.loc.view != val) {
+    viewId = arg0->transform.lighting.viewId;
+    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
     {
         s32 r, g, b, lum;
-        r                = arg0->r;
-        g                = arg0->g;
-        b                = arg0->b;
-        arg0->u.at.scale = 0x1000;
-        lum              = r * 8 + g * 6 + b * 2;
+        r                                    = arg0->color.r;
+        g                                    = arg0->color.g;
+        b                                    = arg0->color.b;
+        arg0->transform.lighting.attenuation = ONE;
+        lum                                  = r * 8 + g * 6 + b * 2;
         USE_REG3(lum, lum, lum);
         return (lum >> 8) + 0xF00;
     }
@@ -885,7 +885,7 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n58 > 0) {
-        register GpLight* obj58;
+        register WorldCoordLight* obj58;
 
         obj58 = set->arr58;
         i     = 0;
@@ -907,8 +907,8 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
         s32              end;
         GpSolveSlotView* slotArg;
 
-        GpLight* light;
-        GpLight* extraLight;
+        WorldCoordLight* light;
+        WorldCoordLight* extraLight;
 
         s32 delta;
         s32 amb;
@@ -927,23 +927,23 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                     if (i == end - 1) {
                         cutoffPtr = &((GpSolveSlotView*)((GpRec12*)block + count))->field_8;
                         if (*cutoffPtr != 0) {
-                            GpLight* cutoffLight;
-                            s32      attenuation;
-                            s32      diff;
-                            s32      cutoffScale;
+                            WorldCoordLight* cutoffLight;
+                            s32              attenuation;
+                            s32              diff;
+                            s32              cutoffScale;
                             cutoffLight = slotArg->field_8;
                             delta       = 0;
                             if (block->slots[count].field_0 != 0) {
-                                attenuation = light->u.at.scale;
-                                cutoffScale = cutoffLight->u.at.scale;
+                                attenuation = light->transform.lighting.attenuation;
+                                cutoffScale = cutoffLight->transform.lighting.attenuation;
                                 diff        = attenuation - cutoffScale;
                                 if (diff < 0) {
                                     diff = 0;
                                 }
                                 if (diff < 0x200) {
-                                    diff              = (diff * attenuation) >> 9;
-                                    delta             = attenuation - diff;
-                                    light->u.at.scale = diff;
+                                    diff                                  = (diff * attenuation) >> 9;
+                                    delta                                 = attenuation - diff;
+                                    light->transform.lighting.attenuation = diff;
                                 }
                             }
                             extraLight     = slotArg->field_8;
@@ -952,9 +952,9 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
                             colorMtx->t[2] = amb;
                             colorMtx->t[1] = amb;
                             colorMtx->t[0] = amb;
-                            colorMtx->t[0] = amb + (extraLight->r >> 6);
-                            colorMtx->t[1] = colorMtx->t[1] + (extraLight->g >> 6);
-                            colorMtx->t[2] = colorMtx->t[2] + (extraLight->b >> 6);
+                            colorMtx->t[0] = amb + (extraLight->color.r >> 6);
+                            colorMtx->t[1] = colorMtx->t[1] + (extraLight->color.g >> 6);
+                            colorMtx->t[2] = colorMtx->t[2] + (extraLight->color.b >> 6);
                         }
                     }
 
@@ -1327,23 +1327,23 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
 
 static void Gp_LightFalloff(GpPointLight* light)
 {
-    GpAttnScratch* block;
-    s32            result;
-    GpLight*       base;
+    GpAttnScratch*   block;
+    s32              result;
+    WorldCoordLight* base;
 
     base           = &light->head;
     result         = 0;
     block          = SCRATCH_PUSH(GpAttnScratch);
-    block->vec.vx  = base->u.at.local.t[0] >> 1;
-    block->vec.vy  = base->u.at.local.t[1] >> 1;
-    block->vec.vz  = base->u.at.local.t[2] >> 1;
+    block->vec.vx  = base->transform.lighting.local.t[0] >> 1;
+    block->vec.vy  = base->transform.lighting.local.t[1] >> 1;
+    block->vec.vz  = base->transform.lighting.local.t[2] >> 1;
     block->distSq  = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->outerSq = (light->outer * light->outer) >> 2;
     block->scale   = 0;
     if ((u32)block->outerSq >= (u32)block->distSq) {
         block->innerSq = (light->inner * light->inner) >> 2;
-        result         = ((light->head.r * 8 + light->head.g * 6 + light->head.b * 2) >> 8) + 0xF00;
-        block->scale   = 0x1000;
+        result         = ((light->head.color.r * 8 + light->head.color.g * 6 + light->head.color.b * 2) >> 8) + 0xF00;
+        block->scale   = ONE;
         if ((u32)block->distSq > (u32)block->innerSq) {
             block->outerSq -= block->innerSq;
             block->distSq  -= block->innerSq;
@@ -1357,8 +1357,8 @@ static void Gp_LightFalloff(GpPointLight* light)
             }
         }
     }
-    base->u.at.scale      = block->scale;
-    base->u.at.world.t[0] = result;
+    base->transform.lighting.attenuation   = block->scale;
+    base->transform.lighting.composed.t[0] = result;
     SCRATCH_STACK_RELEASE_BLOCK(GpAttnScratch);
 }
 
@@ -1525,16 +1525,16 @@ void func_800D96C8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-static s32 Gp_GetObjLuma(GpLight* arg0)
+static s32 Gp_GetObjLuma(WorldCoordLight* arg0)
 {
-    s16 val;
+    s16 viewId;
 
-    val = arg0->u.at.room;
-    if (val != 0 && gGameSession->location.loc.view != val) {
+    viewId = arg0->transform.lighting.viewId;
+    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
-    arg0->u.at.scale = 0x1000;
-    return ((arg0->r * 8 + arg0->g * 6 + arg0->b * 2) >> 8) + 0xF00;
+    arg0->transform.lighting.attenuation = ONE;
+    return ((arg0->color.r * 8 + arg0->color.g * 6 + arg0->color.b * 2) >> 8) + 0xF00;
 }
 
 /// World X of the object's position.
@@ -1543,7 +1543,7 @@ static s32 Gp_GetObjTransX(GfxCoord* coord)
     return coord->workm.t[0];
 }
 
-static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D9794(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -1553,15 +1553,15 @@ static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     block    = SCRATCH_HEAD(GpLightScratch);
     dirMtx   = arg3->lightMtx;
     colorMtx = arg3->colorMtx;
-    Gfx_NormalizeLightDir((VECTOR*)arg1->u.coord.workm.t, &block->dir);
+    Gfx_NormalizeLightDir((VECTOR*)arg1->transform.coord.workm.t, &block->dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;
     dirMtx->m[arg0][2] = block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -1572,7 +1572,7 @@ static void func_800D9794(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
-static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D98C4(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -1582,18 +1582,18 @@ static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     block        = SCRATCH_HEAD(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
+    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 
@@ -1604,7 +1604,7 @@ static void func_800D98C4(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     SCRATCH_STACK_RELEASE_BLOCK(GpLightScratch);
 }
 
-static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3)
+static void func_800D9A30(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3)
 {
     GpLightScratch* block;
     MATRIX*         dirMtx;
@@ -1614,18 +1614,18 @@ static void func_800D9A30(s32 arg0, GpLight* arg1, VECTOR* arg2, TmdObject* arg3
     block        = SCRATCH_HEAD(GpLightScratch);
     dirMtx       = arg3->lightMtx;
     colorMtx     = arg3->colorMtx;
-    block->in.vx = arg2->vx - arg1->u.coord.workm.t[0];
-    block->in.vy = arg2->vy - arg1->u.coord.workm.t[1];
-    block->in.vz = arg2->vz - arg1->u.coord.workm.t[2];
+    block->in.vx = arg2->vx - arg1->transform.coord.workm.t[0];
+    block->in.vy = arg2->vy - arg1->transform.coord.workm.t[1];
+    block->in.vz = arg2->vz - arg1->transform.coord.workm.t[2];
     Gfx_NormalizeLightDir(&block->in, &block->dir);
 
     dirMtx->m[arg0][0] = -block->dir.vx;
     dirMtx->m[arg0][1] = -block->dir.vy;
     dirMtx->m[arg0][2] = -block->dir.vz;
 
-    block->scale = arg1->u.at.scale;
+    block->scale = arg1->transform.lighting.attenuation;
     gte_lddp(block->scale);
-    gte_ldsv(&arg1->r);
+    gte_ldsv(&arg1->color);
     gte_gpf12();
     gte_stsv(&block->dir);
 

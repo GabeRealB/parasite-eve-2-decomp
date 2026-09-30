@@ -97,7 +97,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[1];
-    light = &base->light.head.u.coord;
+    light = &base->light.head.transform.coord;
     slot  = &base->light;
 
     if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && Gp_State1C->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
@@ -147,13 +147,13 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                             func_m4a1_hammer_8011D904(coord->workm.t, work->age >> 1, work->period,
                                                       work->angle);
                         }
-                        base->framesLeft = 4;
-                        slot->inner      = 0x80;
-                        slot->outer      = 0x400;
-                        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                        slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x400;
-                        slot->head.r     = (u16)slot->head.b >> 1;
-                        slot->head.g     = (u16)slot->head.b >> 1;
+                        base->framesLeft   = 4;
+                        slot->inner        = 0x80;
+                        slot->outer        = 0x400;
+                        Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+                        slot->head.color.b = ((Gp_LcgState >> 16) & 0x700) + 0x400;
+                        slot->head.color.r = (u16)slot->head.color.b >> 1;
+                        slot->head.color.g = (u16)slot->head.color.b >> 1;
                         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = 0;
@@ -207,13 +207,13 @@ void func_m4a1_hammer_8011D1E0(Task* task)
                                 func_m4a1_hammer_8011E29C(coord, &work->pos, work->age, 0x280);
                             }
                         }
-                        base->framesLeft = 4;
-                        slot->inner      = 0x400;
-                        slot->outer      = 0x4000;
-                        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                        slot->head.b     = ((Gp_LcgState >> 16) & 0x700) + 0x800;
-                        slot->head.r     = (u16)slot->head.b >> 1;
-                        slot->head.g     = (s16)(u16)slot->head.b >> 1;
+                        base->framesLeft   = 4;
+                        slot->inner        = 0x400;
+                        slot->outer        = 0x4000;
+                        Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+                        slot->head.color.b = ((Gp_LcgState >> 16) & 0x700) + 0x800;
+                        slot->head.color.r = (u16)slot->head.color.b >> 1;
+                        slot->head.color.g = slot->head.color.b >> 1;
                         Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                         light->composeStamp = GRAPHICS_COORD_DIRTY;
                         work->index         = work->index + 1;

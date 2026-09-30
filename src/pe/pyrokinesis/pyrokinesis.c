@@ -121,7 +121,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
     coord    = body->coord;
     mem->age = mem->age + 1;
     base     = Gp_RoomCoords;
-    slotc    = &base->light.head.u.coord;
+    slotc    = &base->light.head.transform.coord;
     slot     = &base->light;
     switch (arg0->state) {
         case 0:
@@ -264,9 +264,9 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             slot->outer         = slot->inner * 16;
             Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
             amp                 = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->head.r        = amp;
-            slot->head.g        = (u16)slot->head.r >> 1;
-            slot->head.b        = slot->head.r >> 2;
+            slot->head.color.r  = amp;
+            slot->head.color.g  = (u16)slot->head.color.r >> 1;
+            slot->head.color.b  = slot->head.color.r >> 2;
             slotc->coord.t[0]   = coord->coord.t[0];
             slotc->coord.t[1]   = coord->coord.t[1];
             slotc->coord.t[2]   = coord->coord.t[2];

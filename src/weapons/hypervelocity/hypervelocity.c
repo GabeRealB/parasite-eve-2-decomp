@@ -170,7 +170,7 @@ void func_hypervelocity_8011D1E8(Task* task)
 
     work  = task->spawnArg2.pointer;
     base  = &Gp_RoomCoords[1];
-    light = &base->light.head.u.coord;
+    light = &base->light.head.transform.coord;
     slot  = &base->light;
     coord = task->extra.coordBody->coord;
 
@@ -209,13 +209,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             if (work->age & 1) {
                 Gp_SpawnEff(0x600E1, coord, 0x180, &work->move);
             }
-            base->framesLeft = 4;
-            slot->inner      = 0x100;
-            slot->outer      = 0x1000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
-            slot->head.r     = (u16)slot->head.b >> 1;
-            slot->head.g     = (s16)(u16)slot->head.b >> 1;
+            base->framesLeft   = 4;
+            slot->inner        = 0x100;
+            slot->outer        = 0x1000;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            slot->head.color.b = (((u32)Gp_LcgState >> 16) & 0x700) + 0x400;
+            slot->head.color.r = (u16)slot->head.color.b >> 1;
+            slot->head.color.g = slot->head.color.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
@@ -238,13 +238,13 @@ void func_hypervelocity_8011D1E8(Task* task)
             Gp_UpdateCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
             Gp_SpawnEff(0x600E0, coord, 0x180, &work->move);
-            base->framesLeft = 4;
-            slot->inner      = 0x400;
-            slot->outer      = 0x4000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->head.r     = (u16)slot->head.b >> 1;
-            slot->head.g     = (s16)(u16)slot->head.b >> 1;
+            base->framesLeft   = 4;
+            slot->inner        = 0x400;
+            slot->outer        = 0x4000;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            slot->head.color.b = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r = (u16)slot->head.color.b >> 1;
+            slot->head.color.g = slot->head.color.b >> 1;
             Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             work->scale        += work->step;
@@ -357,7 +357,7 @@ void func_hypervelocity_8011D830(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[0];
-    light = &base->light.head.u.coord;
+    light = &base->light.head.transform.coord;
     slot  = &base->light;
 
     if (Gp_State1C->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
@@ -424,9 +424,9 @@ void func_hypervelocity_8011D830(Task* task)
             slot->inner         = (work->index << 9) + 0x200;
             slot->outer         = slot->inner * 16;
             ang                 = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b        = ((ang >> 16) & 0x700) + 0x800;
-            slot->head.r        = (u16)slot->head.b >> 1;
-            slot->head.g        = (s16)(u16)slot->head.b >> 1;
+            slot->head.color.b  = ((ang >> 16) & 0x700) + 0x800;
+            slot->head.color.r  = (u16)slot->head.color.b >> 1;
+            slot->head.color.g  = slot->head.color.b >> 1;
             light->coord.t[0]   = coord->coord.t[0];
             light->coord.t[1]   = coord->coord.t[1];
             light->coord.t[2]   = coord->coord.t[2];
@@ -474,10 +474,10 @@ void func_hypervelocity_8011D830(Task* task)
             light->coord.t[2]   = coord->coord.t[2];
             light->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_LcgState         = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b        = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            slot->head.r        = (u16)slot->head.b >> 1;
+            slot->head.color.b  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            slot->head.color.r  = (u16)slot->head.color.b >> 1;
             base->framesLeft    = 4;
-            slot->head.g        = (s16)(u16)slot->head.b >> 1;
+            slot->head.color.g  = slot->head.color.b >> 1;
             if (func_800DE7CC(&after, &before, NULL, NULL) == 1) {
                 Gp_UnlinkObj(&beam->obj);
                 task->state = 2;

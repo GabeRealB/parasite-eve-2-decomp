@@ -8,56 +8,62 @@
 
 #include "main/coord.h"
 
-/// A light source: a coordinate that places it, and the colour it casts.
+/// View-filter sentinel allowing a light to contribute in every view.
+enum { WORLD_COORDINATE_LIGHT_ALL_VIEWS = 0 };
+
+/// A world-coordinate light source with a transform, view filter and RGB intensity.
 ///
-/// Every light a model is lit by is one of these or begins with one - the
-/// room's directional lights are exactly this, its point and spot lights and
-/// gameplay's transient lights extend it - so the code that ranks the lights
-/// around a model and loads the winners into its light matrices takes any of
-/// them through this type.
+/// Room directional lights use this record directly; point, cone and transient
+/// lights embed it. Lighting ranks their contributions at a model's position
+/// and writes the selected directions and attenuated colours into its matrices.
 ///
-/// The coordinate is parented to the view, but composed with that ancestor
-/// excluded, so `workm` places the light in world space. Its parent link is
-/// used normally. View membership and attenuation share the bytes ordinary
-/// nodes use for `param`; `at` exposes that lighting interpretation.
-typedef struct GpLight {
+/// `transform.coord` is used for coordinate composition; `transform.lighting`
+/// gives the owner-managed `GfxCoord.param` bytes their lighting interpretation.
+/// Room lights are parented to the view and composed with that ancestor excluded.
+/// A directional light's composed translation supplies its direction; a point
+/// or cone light's supplies its position. Parent coordinates are borrowed and
+/// must remain live while the light is composed. Attenuation is query scratch,
+/// overwritten when lighting a new position and adjusted during light selection.
+typedef struct {
     union {
-        GfxCoord coord;             // the light's placement, parented to the view
+        GfxCoord coord;              // Transform node passed to coordinate composition
         struct {
-            u32       composeStamp; // The coordinate's composition cache stamp
-            MATRIX    local;        // `coord.coord`: `t` is the light's position under its parent
-            MATRIX    world;        // `coord.workm`: `t` is the light's world position
-            s16       room;         // view the light belongs to; 0 lights every view
-            byte      pad_46[4];
-            s16       scale;        // attenuation last computed for the point being lit, 1.0 = 0x1000
-            GfxCoord* parent;       // `coord.parent`, the coordinate the light hangs from
-        } at;                       // the same words as the lighting code reads them
-    } u;
-    s16  r;                         // colour, fed to the colour matrix scaled by `u.at.scale`
-    s16  g;
-    s16  b;
-    byte pad_56[2];
-} GpLight;
-STATIC_ASSERT_SIZEOF(GpLight, 0x58);
+            u32       composeStamp;  // Composition cache stamp; see `GfxCoord.composeStamp`
+            MATRIX    local;         // Local-to-parent matrix; translation is position or directional-light vector
+            MATRIX    composed;      // Cached placement; origin-based falloff uses t[0] for a contribution rank
+            s16       viewId;        // View filter (0 every view, otherwise a matching GameLocationKey.view)
+            byte      unknown_46[4]; // Role unproven; room initializers supply zero
+            s16       attenuation;   // Current contribution scale, 12 fractional bits (0 dark, ONE full strength)
+            GfxCoord* parent;        // Borrowed parent coordinate
+        } lighting;                  // Transform with the light's view filter and contribution scale
+    } transform;
+    struct {
+        s16 r;          // Red intensity, 12 fractional bits (ONE is 1.0)
+        s16 g;          // Green intensity, 12 fractional bits
+        s16 b;          // Blue intensity, 12 fractional bits
+    } color;            // RGB intensity loaded into the GTE and scaled by attenuation
+    byte unknown_56[2]; // Role unproven; room initializers supply zero
+} WorldCoordLight;
+STATIC_ASSERT_SIZEOF(WorldCoordLight, 0x58);
 
 /// A light that fades with distance: full strength within `inner` of its
 /// world position, falling to nothing at `outer`.
 typedef struct GpPointLight {
-    GpLight head;
-    s32     inner; // radius the light is at full strength within
-    s32     outer; // radius beyond which it casts nothing
+    WorldCoordLight head;
+    s32             inner; // radius the light is at full strength within
+    s32             outer; // radius beyond which it casts nothing
 } GpPointLight;
 STATIC_ASSERT_SIZEOF(GpPointLight, 0x60);
 
 /// A point light narrowed to a cone: `dir` is the axis the room data aims it
-/// along, from which gameplay builds `head.u.at.local` so its Z column is that
+/// along, from which gameplay builds `head.transform.lighting.local` so its Z column is that
 /// axis, and `angle` is the cone's full opening.
 typedef struct GpSpotLight {
-    GpLight head;
-    SVECTOR dir;   // the cone's axis, as the room data gives it
-    s32     inner; // radius the light is at full strength within
-    s32     outer; // radius beyond which it casts nothing
-    s32     angle; // full opening angle of the cone (0x1000 a full turn)
+    WorldCoordLight head;
+    SVECTOR         dir;   // the cone's axis, as the room data gives it
+    s32             inner; // radius the light is at full strength within
+    s32             outer; // radius beyond which it casts nothing
+    s32             angle; // full opening angle of the cone (0x1000 a full turn)
 } GpSpotLight;
 STATIC_ASSERT_SIZEOF(GpSpotLight, 0x6C);
 
@@ -68,7 +74,7 @@ STATIC_ASSERT_SIZEOF(GpSpotLight, 0x6C);
 /// A slot is lit while `framesLeft` is non-zero. The per-frame gameplay tick
 /// counts it down outside events, so an owner keeps its light on by re-arming
 /// the count every frame it draws. While a slot is lit, gameplay re-evaluates
-/// `light.head.u.coord` against the view each frame and ranks the slot with the room's
+/// `light.head.transform.coord` against the view each frame and ranks the slot with the room's
 /// point lights whenever a model is lit, reading it as `light`. Nothing
 /// allocates the slots: each kind of owner writes indices of its own.
 typedef struct _GpCoord64 {

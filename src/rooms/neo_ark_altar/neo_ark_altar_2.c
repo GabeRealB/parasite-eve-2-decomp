@@ -406,8 +406,8 @@ GpSprtRec D_neo_ark_altar_8017FE38[8] = {
     { { .empty = D_neo_ark_altar_8017FE28 }, D_neo_ark_altar_8017FE28, NULL },
 };
 
-GpLight D_neo_ark_altar_8017FE98[1] = {
-    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4000, -0x3A98, 8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4915, 4915, 4915, { 0, 0 } },
+WorldCoordLight D_neo_ark_altar_8017FE98[1] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4000, -0x3A98, 8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } },
 };
 
 GpRoomCoordSet D_neo_ark_altar_8017FEF0[1] = {

@@ -844,18 +844,18 @@ static void func_acropolis_helicopter_landing_pad_8017F010(SVECTOR* pos, s16 ind
         gte_stflg(&((RoomDraw05Scratch*)(head - 0x14))->flag);
         if (blk->flag >= 0) {
             gte_stszotz(&blk->otz);
-            light->framesLeft                      = 2;
-            work->inner                            = 0x640;
-            work->outer                            = 0x3200;
-            work->head.r                           = level * 16;
-            work->head.g                           = 0;
-            work->head.b                           = 0;
-            work->head.u.at.local.t[0]             = pos->vx;
-            work->head.u.at.local.t[1]             = pos->vy;
-            work->head.u.at.local.t[2]             = pos->vz;
-            light->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            blk->rOuter                            = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
-            blk->rInner                            = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            light->framesLeft                              = 2;
+            work->inner                                    = 0x640;
+            work->outer                                    = 0x3200;
+            work->head.color.r                             = level * 16;
+            work->head.color.g                             = 0;
+            work->head.color.b                             = 0;
+            work->head.transform.lighting.local.t[0]       = pos->vx;
+            work->head.transform.lighting.local.t[1]       = pos->vy;
+            work->head.transform.lighting.local.t[2]       = pos->vz;
+            light->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            blk->rOuter                                    = 0xC000 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
+            blk->rInner                                    = 0x1800 / ((RoomDraw05Scratch*)(head - 0x14))->otz;
 
             for (a = 0; a < 0x1000; a += 0x200) {
                 prim           = gGpuPrimCursor;
@@ -1150,17 +1150,17 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                     func_acropolis_helicopter_landing_pad_80180A64(coord);
                 }
             }
-            base             = &Gp_RoomCoords[4];
-            slot             = &base->light;
-            base->framesLeft = 4;
-            slot->inner      = 0x15E0;
-            slot->outer      = 0x1900;
-            slot->head.r     = 0x800;
-            slot->head.g     = 0x800;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b     = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.u.coord.coord);
-            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            base               = &Gp_RoomCoords[4];
+            slot               = &base->light;
+            base->framesLeft   = 4;
+            slot->inner        = 0x15E0;
+            slot->outer        = 0x1900;
+            slot->head.color.r = 0x800;
+            slot->head.color.g = 0x800;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            slot->head.color.b = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.transform.coord.coord);
+            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             /* fallthrough */
         case 1:
             if ((gDisplayState.animFrame & 7) == 0) {
@@ -1183,16 +1183,16 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                         Task_Reparent(arg0, eff->task);
                     }
                 }
-                base             = &Gp_RoomCoords[5];
-                slot             = &base->light;
-                base->framesLeft = 4;
-                slot->inner      = 0xFA0;
-                slot->outer      = 0x12C0;
-                slot->head.r     = 0xC00;
-                slot->head.g     = 0xC00;
-                slot->head.b     = 0x600;
-                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.u.coord.coord);
-                base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+                base               = &Gp_RoomCoords[5];
+                slot               = &base->light;
+                base->framesLeft   = 4;
+                slot->inner        = 0xFA0;
+                slot->outer        = 0x12C0;
+                slot->head.color.r = 0xC00;
+                slot->head.color.g = 0xC00;
+                slot->head.color.b = 0x600;
+                Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.transform.coord.coord);
+                base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             }
             break;
         case 2:
@@ -1380,17 +1380,17 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
         case 0:
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
             Gp_SpawnEff(0x6005E, coord, 1, NULL);
-            base->framesLeft                      = 4;
-            slot->inner                           = 0x1900;
-            slot->outer                           = 0x1C20;
-            slot->head.r                          = 0x800;
-            slot->head.g                          = 0x800;
-            Gp_LcgState                           = Gp_LcgState * 5 + 0x71357911;
-            slot->head.b                          = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
-            slot->head.u.coord.coord.t[0]         = coord->coord.t[0];
-            slot->head.u.coord.coord.t[1]         = coord->coord.t[1];
-            slot->head.u.coord.coord.t[2]         = coord->coord.t[2];
-            base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+            base->framesLeft                              = 4;
+            slot->inner                                   = 0x1900;
+            slot->outer                                   = 0x1C20;
+            slot->head.color.r                            = 0x800;
+            slot->head.color.g                            = 0x800;
+            Gp_LcgState                                   = Gp_LcgState * 5 + 0x71357911;
+            slot->head.color.b                            = (((u32)Gp_LcgState >> 16) & 0x700) + 0x900;
+            slot->head.transform.coord.coord.t[0]         = coord->coord.t[0];
+            slot->head.transform.coord.coord.t[1]         = coord->coord.t[1];
+            slot->head.transform.coord.coord.t[2]         = coord->coord.t[2];
+            base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 1:
             Gp_SpawnEff(0x6005E, coord, 0, NULL);

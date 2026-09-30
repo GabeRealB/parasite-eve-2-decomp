@@ -109,7 +109,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     base  = &Gp_RoomCoords[1];
-    light = &base->light.head.u.coord;
+    light = &base->light.head.transform.coord;
     slot  = &base->light;
     if ((gameGetPtrSlot(3)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
@@ -152,13 +152,10 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     slot->outer      = 0x400;
                     ang              = Gp_LcgState * 5 + 0x71357911;
                     Gp_LcgState      = ang;
-                    /* `field_52` reads the halfword back as unsigned and
-                       `field_54` as signed, so the two shifts come off the same
-                       register: a plain `ang >> 1` / `ang >> 2` pair would drop
-                       the sign-extension the ROM keeps for `field_54`. */
-                    slot->head.r = ((ang >> 16) & 0x700) + 0x400;
-                    slot->head.g = (u16)slot->head.r >> 1;
-                    slot->head.b = slot->head.r >> 2;
+                    // Green halves the unsigned red halfword; blue quarters its signed value.
+                    slot->head.color.r = ((ang >> 16) & 0x700) + 0x400;
+                    slot->head.color.g = (u16)slot->head.color.r >> 1;
+                    slot->head.color.b = slot->head.color.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     work->scale         = 0x40;
@@ -176,14 +173,14 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     if (eff != NULL) {
                         Task_Reparent(task, eff->task);
                     }
-                    base->framesLeft = 4;
-                    slot->inner      = 0x400;
-                    slot->outer      = 0x4000;
-                    ang              = Gp_LcgState * 5 + 0x71357911;
-                    Gp_LcgState      = ang;
-                    slot->head.r     = ((ang >> 16) & 0x700) + 0x800;
-                    slot->head.g     = (u16)slot->head.r >> 1;
-                    slot->head.b     = slot->head.r >> 2;
+                    base->framesLeft   = 4;
+                    slot->inner        = 0x400;
+                    slot->outer        = 0x4000;
+                    ang                = Gp_LcgState * 5 + 0x71357911;
+                    Gp_LcgState        = ang;
+                    slot->head.color.r = ((ang >> 16) & 0x700) + 0x800;
+                    slot->head.color.g = (u16)slot->head.color.r >> 1;
+                    slot->head.color.b = slot->head.color.r >> 2;
                     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &light->coord);
                     light->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;

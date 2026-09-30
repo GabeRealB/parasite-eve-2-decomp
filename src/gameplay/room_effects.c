@@ -1587,8 +1587,8 @@ static void Gp_InitRoomCoords(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        p->light.head.u.coord.parent = &gGfxViewCoord;
-        p->framesLeft                = 0;
+        p->light.head.transform.coord.parent = &gGfxViewCoord;
+        p->framesLeft                        = 0;
         p++;
     }
 }

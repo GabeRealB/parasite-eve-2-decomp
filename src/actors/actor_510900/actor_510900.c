@@ -1167,15 +1167,15 @@ void func_actor_510900_80131F24(Task* arg0)
     }
     Gp_UpdateCoord(coord);
     if (base->framesLeft != 0) {
-        slot->head.r = 0x1000;
-        slot->head.g = 0x800;
-        slot->head.b = 0x400;
+        slot->head.color.r = 0x1000;
+        slot->head.color.g = 0x800;
+        slot->head.color.b = 0x400;
         if (slot->inner >= 0x191) {
             slot->inner -= 0x190;
         }
         base->framesLeft--;
-        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.u.coord.coord);
-        base->light.head.u.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+        Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &base->light.head.transform.coord.coord);
+        base->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
         if (base->framesLeft == 0) {
             arg0->spawnArg1.value = 0;
             mem->age              = 0;
@@ -1837,7 +1837,7 @@ void func_actor_510900_801340E8(Task* arg0)
     s32           i;
 
     base  = &Gp_RoomCoords[3];
-    cam   = &base->light.head.u.coord;
+    cam   = &base->light.head.transform.coord;
     eff   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
     ext   = &base->light;
@@ -1865,12 +1865,12 @@ void func_actor_510900_801340E8(Task* arg0)
         Gp_SpawnEff(0x60065, coord, 0, &eff->move);
         Gp_SpawnEff(0x600A4, coord, 1, NULL);
     }
-    base->framesLeft = 4;
-    ext->inner       = 0xFA0;
-    ext->outer       = 0x12C0;
-    ext->head.r      = 0xC00;
-    ext->head.g      = 0x800;
-    ext->head.b      = 0x400;
+    base->framesLeft  = 4;
+    ext->inner        = 0xFA0;
+    ext->outer        = 0x12C0;
+    ext->head.color.r = 0xC00;
+    ext->head.color.g = 0x800;
+    ext->head.color.b = 0x400;
     Gp_WorldToLocal(&gGfxViewCoord.workm, &coord->workm, &cam->coord);
     cam->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_ReleaseState1CMem(eff, arg0);

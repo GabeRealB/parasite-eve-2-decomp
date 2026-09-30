@@ -292,9 +292,9 @@ GpSprtRec D_neo_ark_savanna_zone_801803F4[4] = {
     { { .elements = D_neo_ark_savanna_zone_80180188 }, D_neo_ark_savanna_zone_801803CC, NULL },
 };
 
-GpLight D_neo_ark_savanna_zone_80180424[2] = {
-    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 952, -472, 229 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 5837, 5715, 5574, { 0, 0 } },
-    { { .coord = { 0, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -834, -528, -362 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } }, 4243, 4202, 4138, { 0, 0 } },
+WorldCoordLight D_neo_ark_savanna_zone_80180424[2] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 952, -472, 229 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5837, 5715, 5574 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -834, -528, -362 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4243, 4202, 4138 }, { 0, 0 } },
 };
 
 GpRoomCoordSet D_neo_ark_savanna_zone_801804D4[1] = {

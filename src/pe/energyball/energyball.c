@@ -172,7 +172,7 @@ void func_energyball_8012F180(Task* arg0)
     s32             cur;
 
     slot            = &Gp_RoomCoords[arg0->spawnArg1.value + 4];
-    sc              = &slot->light.head.u.coord;
+    sc              = &slot->light.head.transform.coord;
     tail            = &slot->light;
     coord           = arg0->extra.coordBody->coord;
     peEffectControl = Gp_State1C->peEffectControl;
@@ -260,18 +260,18 @@ void func_energyball_8012F180(Task* arg0)
                 mem->pos.vy = -(u16)D_energyball_80131194[mem->index].field_2;
                 mem->pos.vz = 0;
             }
-            slot->framesLeft = 2;
-            tail->inner      = 0x100;
-            tail->outer      = 0x1000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->head.g     = r;
-            tail->head.r     = (u16)tail->head.g >> 1;
-            tail->head.b     = tail->head.g >> 1;
-            sc->coord.t[0]   = coord->coord.t[0];
-            sc->coord.t[1]   = coord->coord.t[1];
-            sc->coord.t[2]   = coord->coord.t[2];
-            sc->composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->framesLeft   = 2;
+            tail->inner        = 0x100;
+            tail->outer        = 0x1000;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            r                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->head.color.g = r;
+            tail->head.color.r = (u16)tail->head.color.g >> 1;
+            tail->head.color.b = tail->head.color.g >> 1;
+            sc->coord.t[0]     = coord->coord.t[0];
+            sc->coord.t[1]     = coord->coord.t[1];
+            sc->coord.t[2]     = coord->coord.t[2];
+            sc->composeStamp   = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if ((Gp_State1C->groundTraceEnabled != 0) && (Gp_TraceGroundCoord(coord, &ground) == 1)) {
@@ -327,18 +327,18 @@ void func_energyball_8012F180(Task* arg0)
             coord->coord.t[2]  += mem->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(coord);
-            slot->framesLeft = 2;
-            tail->inner      = 0x100;
-            tail->outer      = 0x1000;
-            Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-            r                = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
-            tail->head.g     = r;
-            tail->head.r     = (u16)tail->head.g >> 1;
-            tail->head.b     = tail->head.g >> 1;
-            sc->coord.t[0]   = coord->coord.t[0];
-            sc->coord.t[1]   = coord->coord.t[1];
-            sc->coord.t[2]   = coord->coord.t[2];
-            sc->composeStamp = GRAPHICS_COORD_DIRTY;
+            slot->framesLeft   = 2;
+            tail->inner        = 0x100;
+            tail->outer        = 0x1000;
+            Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+            r                  = (((u32)Gp_LcgState >> 16) & 0x700) + 0x800;
+            tail->head.color.g = r;
+            tail->head.color.r = (u16)tail->head.color.g >> 1;
+            tail->head.color.b = tail->head.color.g >> 1;
+            sc->coord.t[0]     = coord->coord.t[0];
+            sc->coord.t[1]     = coord->coord.t[1];
+            sc->coord.t[2]     = coord->coord.t[2];
+            sc->composeStamp   = GRAPHICS_COORD_DIRTY;
             func_energyball_8013035C(coord, mem->age, mem->angle, mem->period);
             func_energyball_8012FFD0(coord, mem->angle, mem->scale >> 2);
             if (Gp_State1C->groundTraceEnabled != 0) {
