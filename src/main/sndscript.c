@@ -223,6 +223,12 @@ enum {
 
 // Descriptor lookup modes; all other values produce no match.
 enum {
+    /// Selects exact matching of a sound-script slot's attached sample-bank id.
+    ///
+    /// All 16 bits of `SndBank::bankId` participate, including the bank type.
+    /// Script-start requests supply their upper 16 bits after bank remapping.
+    /// The cached `SndBankSlot::bankId` is not consulted; a free descriptor id
+    /// can match, and matching does not establish image or sample-table readiness.
     SOUND_BANK_SLOT_MATCH_ID   = 0,
     SOUND_BANK_SLOT_MATCH_TYPE = 1
 };
