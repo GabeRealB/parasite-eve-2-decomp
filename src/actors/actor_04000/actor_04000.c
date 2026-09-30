@@ -50,6 +50,7 @@
 #include "overlay.h"
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/anim_driver.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -1154,9 +1155,6 @@ extern TaskFunc Actor04000_D0C6EC[];
 
 static s32             Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* push);
 static s32             Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
-static __inline__ void Actor204000_ResetSlots(Actor104000Work* arg0);
-static __inline__ void Actor204000_TickSlots(Task* arg0);
-static void            Actor04000_Fn00E6C(Task* arg0);
 static s32             Actor04000_Fn00FDC(Actor104000Work* arg0);
 static void            Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1);
@@ -1439,59 +1437,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
     return 0;
 }
 
-/// Seeds animation slots 1..5 with the requested animation id and blend speed.
-static __inline__ void Actor204000_ResetSlots(Actor104000Work* arg0)
-{
-    Actor104000Work* work = arg0;
-    s32              i;
-
-    for (i = 1; i < 6; i++) {
-        work->slots[i].rate = work->field_176 + work->field_178;
-        Gp_AnimResetSlot(&work->anim, i, work->field_174);
-    }
-    work->field_172 = work->field_174;
-}
-
-/// Advances animation slots 1..5 by one tick.
-static __inline__ void Actor204000_TickSlots(Task* arg0)
-{
-    Actor104000Work* work;
-    s32              i;
-
-    work = arg0->work;
-    for (i = 1; i < 6; i++) {
-        work->slots[i].rate = work->field_176 + work->field_178;
-        Gp_AnimTickIndex(&work->anim, i);
-    }
-}
-
-/// Steps the motion state in `field_170`: states 1 and 2 restart slots 1..5 on
-/// the animation in `field_174`, clear the frame and loop counters and move to
-/// state 3; state 3 ticks the slots, counting frames in `field_17A` and, while
-/// bit 2 of `field_58` is set, loops in `field_17C`.
-static void Actor04000_Fn00E6C(Task* arg0)
-{
-    Actor104000Work* work;
-
-    work = arg0->work;
-    if (work->field_170 == 1) {
-        Actor204000_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 2) {
-        Actor204000_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 3) {
-        work->field_17A++;
-        Actor204000_TickSlots(arg0);
-        if (work->field_58 & 2) {
-            work->field_17C++;
-        }
-    }
-}
+#include "../../shared/anim_driver_tick.inc.c"
 
 /// Reaction check keyed on the requested animation in `field_174`: for 2 and
 /// 3, answers 0x40280001 the first time the playing animation id in `field_4A`
@@ -1653,7 +1599,7 @@ static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     work->field_174        = 1;
     work->field_176        = 0x10;
     work->field_178        = 0;
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     work->field_17E     = 0;
     work->field_A       = 0;
     obj->lightMtx       = &work->lightMtx;
@@ -1736,11 +1682,11 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
         work->field_178     = 0;
         work->field_174     = 0xD;
         work->obj270.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        animDriverTick(arg1);
         work->field_6 = 0;
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     work->field_6++;
     if ((s16)work->field_6 < 8) {
         return;
@@ -1862,20 +1808,20 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->obj350.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key             = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key             = 0x22222;
-        work->field_6                = 0;
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx          = work->colorMtx;
-        work->field_174              = 0xE;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        Actor04000_Fn00E6C(arg1);
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xE;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        animDriverTick(arg1);
         work->obj3C0.pos.vx           = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy           = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->obj3C0.pos.vz           = arg1->extra.tmd->coords->coord.t[2];
@@ -1899,7 +1845,7 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
         arg1->extra.tmd->coords->coord.t[2]  += dir.vz;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     switch ((s16)(work->field_6 - 0x5B)) {
         case 0:
             if (work->field_496 == 1) {
@@ -1993,20 +1939,20 @@ static void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_174              = 5;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 5;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if ((work->field_58 & 2) && work->field_17C >= 0x19) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         if (!((Gp_LcgState >> 0x10) & 7)) {
@@ -2053,13 +1999,13 @@ static void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
         work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_ArmStateF0(1);
-        Actor04000_Fn00E6C(arg1);
+        animDriverTick(arg1);
         work->field_494 = 0;
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     pos               = arg1->extra.tmd->coords;
     head[-1].delta.vx = Player_Status.coordMtx->t[0] - pos->coord.t[0];
     sc->delta.vy      = Player_Status.coordMtx->t[1] - pos->coord.t[1];
@@ -2121,18 +2067,18 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key             = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key             = 0x22222;
-        work->field_6                = 0;
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx          = work->colorMtx;
-        work->field_178              = 0;
-        Actor04000_Fn00E6C(arg1);
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx      = work->colorMtx;
+        work->field_178          = 0;
+        animDriverTick(arg1);
         work->obj3C0.pos.vx = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->obj3C0.pos.vz = arg1->extra.tmd->coords->coord.t[2];
@@ -2144,7 +2090,7 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
         }
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     switch ((s16)(work->field_6 - 0x28)) {
         case 0:
             work->obj350.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2249,21 +2195,21 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->obj350.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key             = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key             = 0x22222;
-        work->field_6                = 0;
-        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->savedColorMtx          = work->colorMtx;
-        work->field_174              = 0xA;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->field_176              = 0x2C;
-        Actor04000_Fn00E6C(arg1);
+        arg0->node.state.b.flags = 1;
+        obj->flags               = 0;
+        work->obj350.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key         = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key         = 0x22222;
+        work->field_6            = 0;
+        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->savedColorMtx      = work->colorMtx;
+        work->field_174          = 0xA;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->field_176          = 0x2C;
+        animDriverTick(arg1);
         work->obj3C0.pos.vx = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
         work->obj3C0.pos.vz = arg1->extra.tmd->coords->coord.t[2];
@@ -2275,7 +2221,7 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
             Actor04000_D0C718[arg0->placeKey >> 12] = NULL;
         }
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     switch ((s16)(work->field_6 - 0xD)) {
         case 0:
             id  = ((arg0->placeKey >> 12) << 8) | 0x40280004;
@@ -2513,18 +2459,18 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_174              = 2;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->patrolIdx              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->patrolIdx          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         work->field_6 = 0;
         return;
     }
@@ -2568,7 +2514,7 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
             work->field_0 = 4;
         }
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->field_58 & 2) && work->field_17C > 0x14) {
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -2596,23 +2542,23 @@ static void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_174              = 2;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 2;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         work->field_494 = 0;
         return;
     }
     head = SCRATCH_STACK_CURSOR(ActorTurnScratch);
     sc   = (ActorTurnScratch*)SCRATCH_PUSH_BYTES(sizeof(ActorTurnScratch));
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     head[-1].delta.vx                     = work->origin.vx - arg1->extra.tmd->coords->coord.t[0];
     sc->delta.vy                          = 0;
@@ -2669,7 +2615,7 @@ static void Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1)
         work->obj388.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj3C0.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->obj270.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        animDriverTick(arg1);
         ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_19A                       = 10;
@@ -2709,7 +2655,7 @@ static void Actor04000_Fn04FA4(GpEnemy* arg0, Task* arg1)
         }
     }
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
 }
 
 /// Restarts the actor when `field_4` is set; otherwise cycles `field_6` through
@@ -2721,16 +2667,16 @@ static void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags       = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        arg0->node.state.parts.flags = 0;
-        work->field_174              = 3;
-        work->field_170              = 2;
-        work->field_178              = 0;
-        Actor04000_Fn00E6C(arg1);
+        arg1->extra.tmd->flags   = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        arg0->node.state.b.flags = 0;
+        work->field_174          = 3;
+        work->field_170          = 2;
+        work->field_178          = 0;
+        animDriverTick(arg1);
         Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_479                       = 1;
@@ -2771,7 +2717,7 @@ static void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
     Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
     Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, 0);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if ((u8)Gp_GetViewIndex() == 5) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&(arg0)->node);
@@ -2794,18 +2740,18 @@ static void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags       = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        arg0->node.state.parts.flags = 0;
-        work->field_174              = 0xC;
-        work->field_170              = 2;
-        work->field_178              = 0;
-        work->field_176              = 1;
-        Actor04000_Fn00E6C(arg1);
-        Actor04000_Fn00E6C(arg1);
+        arg1->extra.tmd->flags   = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        arg0->node.state.b.flags = 0;
+        work->field_174          = 0xC;
+        work->field_170          = 2;
+        work->field_178          = 0;
+        work->field_176          = 1;
+        animDriverTick(arg1);
+        animDriverTick(arg1);
         work->field_176                       = 0;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_6                         = 0;
@@ -2836,7 +2782,7 @@ static void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
                 arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 return;
             }
-            Actor04000_Fn00E6C(arg1);
+            animDriverTick(arg1);
             if ((s16)work->field_6 < 0xA) {
                 actorStepForward(arg1->extra.tmd->coords, 0x23);
             }
@@ -2856,7 +2802,7 @@ static void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
             }
             break;
         case 16:
-            Actor04000_Fn00E6C(arg1);
+            animDriverTick(arg1);
             if (!((arg0->placeKey >> 0xC) & 1)) {
                 t = work->field_6;
                 if (t < 0x14) {
@@ -2871,7 +2817,7 @@ static void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
             work->field_6   = 0;
             break;
         case 17:
-            Actor04000_Fn00E6C(arg1);
+            animDriverTick(arg1);
             if ((u32)(work->field_6 - 0xD) < 0x10) {
                 arg1->extra.tmd->coords->coord.t[1] += 0xD;
                 sv                                   = work->dir;
@@ -2901,17 +2847,17 @@ static void Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags       = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        arg0->node.state.parts.flags = 0;
-        work->field_174              = 0xB;
-        work->field_170              = 2;
-        work->field_178              = 0;
-        work->field_176              = 1;
-        Actor04000_Fn00E6C(arg1);
+        arg1->extra.tmd->flags   = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        arg0->node.state.b.flags = 0;
+        work->field_174          = 0xB;
+        work->field_170          = 2;
+        work->field_178          = 0;
+        work->field_176          = 1;
+        animDriverTick(arg1);
         work->field_176                       = 0x10;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_6                         = 0;
@@ -2923,7 +2869,7 @@ static void Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1)
         return;
     }
     work->field_6++;
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if (work->field_6 >= 0x13 && work->field_6 < 0x23) {
         actorStepForward(arg1->extra.tmd->coords, 4);
     }
@@ -3196,17 +3142,17 @@ static void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_176              = 0x10;
-        work->field_178              = 0;
-        work->obj270.flags           = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_176          = 0x10;
+        work->field_178          = 0;
+        work->obj270.flags       = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        animDriverTick(arg1);
         work->field_6 = 0;
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if (!(work->field_6 & 7)) {
         Gp_SpawnPadLerp(3, 0xFF, 8);
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F9, Gp_PackObjPair(arg0, 0), 0);
@@ -3229,19 +3175,19 @@ static void Actor04000_Fn06994(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                                                         = arg1->extra.tmd;
-        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                  = 0;
-        work->field_170                                             = 2;
-        work->field_176                                             = 0x10;
-        work->field_178                                             = 0;
-        work->field_174                                             = 0xF;
-        work->obj270.flags                                          = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        Actor04000_Fn00E6C(arg1);
+        obj                                                     = arg1->extra.tmd;
+        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.b.flags = 0;
+        obj->flags                                              = 0;
+        work->field_170                                         = 2;
+        work->field_176                                         = 0x10;
+        work->field_178                                         = 0;
+        work->field_174                                         = 0xF;
+        work->obj270.flags                                      = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        animDriverTick(arg1);
         work->field_6   = 0;
         work->field_47A = (u8)(work->field_47A + 1);
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if (work->field_58 & 1) {
         work->field_0 = 4;
     }
@@ -3289,7 +3235,7 @@ static void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
         work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     switch (arg0->placeKey >> 12) {
         case 6:
         case 7:
@@ -3316,20 +3262,20 @@ static void Actor04000_Fn06BC8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_174              = 4;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 4;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if (work->field_58 & 1) {
         work->field_0 = 2;
     }
@@ -3342,20 +3288,20 @@ static void Actor04000_Fn06C80(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->field_174              = 6;
-        work->field_170              = 1;
-        work->field_178              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        obj                      = arg1->extra.tmd;
+        arg0->node.state.b.flags = 0;
+        obj->flags               = 0;
+        work->field_174          = 6;
+        work->field_170          = 1;
+        work->field_178          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
     if (work->field_58 & 1) {
         work->field_0 = 7;
     }
@@ -3368,23 +3314,23 @@ static void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags       = 0;
-        arg0->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
-        work->field_174              = 1;
-        work->field_170              = 2;
-        work->field_178              = 0;
-        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor04000_Fn00E6C(arg1);
+        arg1->extra.tmd->flags   = 0;
+        arg0->node.state.b.flags = 5;
+        work->field_174          = 1;
+        work->field_170          = 2;
+        work->field_178          = 0;
+        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        animDriverTick(arg1);
         angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, 1);
         Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    Actor04000_Fn00E6C(arg1);
+    animDriverTick(arg1);
 }
 
 /// The enemy's spawn, per-frame and teardown handlers, indexed by the task's

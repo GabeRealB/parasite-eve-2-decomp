@@ -65,7 +65,7 @@ typedef struct Actor123200Work {
     /* 0x058 */ u16              field_58;
     /* 0x05A */ byte             pad_5A[0xB6];
     /* 0x110 */ byte             poses[0x60]; // `func_800B3F84` arg3
-    /* 0x170 */ s16              field_170;   // motion state `func_actor_123200_801332E0` switches on
+    /* 0x170 */ s16              field_170;   // motion state `animDriverTick` switches on
     /* 0x172 */ s16              field_172;
     /* 0x174 */ s16              field_174;
     /* 0x176 */ u16              field_176;
@@ -146,6 +146,7 @@ s32 func_actor_123200_80133E30(Task*, s32, s32);
 s32 func_actor_123200_80133EDC(Task*, s32, ActorCommand* msg);
 
 #include "../../shared/actor_contacts.h"
+#include "../../shared/anim_driver.h"
 
 DamageAttack D_actor_123200_80134204[1] = {
     { 24, 7 },
@@ -618,9 +619,6 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 GpEffArg D_actor_123200_80137248;
 
-static __inline__ void Actor123200_ResetSlots(Actor123200Work* arg0);
-static __inline__ void Actor123200_TickSlots(Task* task);
-static void            func_actor_123200_801332E0(Task* task);
 static s32             func_actor_123200_80133450(Actor123200Work* arg0);
 static __inline__ void Actor123200_ScaleForward(SVECTOR* dir);
 static void            func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
@@ -634,61 +632,7 @@ static void            func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1);
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Restarts animation slots 1-5 on the motion in `field_174` at the combined
-/// rate `field_176 + field_178`, and records that motion as the one playing.
-static __inline__ void Actor123200_ResetSlots(Actor123200Work* arg0)
-{
-    Actor123200Work* work = arg0;
-    s32              i;
-
-    for (i = 1; i < 6; i++) {
-        work->slots[i].rate = work->field_176 + work->field_178;
-        Gp_AnimResetSlot(&work->anim, i, work->field_174);
-    }
-    work->field_172 = work->field_174;
-}
-
-/// Advances animation slots 1-5 by one frame at the combined rate
-/// `field_176 + field_178`.
-static __inline__ void Actor123200_TickSlots(Task* task)
-{
-    Actor123200Work* work;
-    s32              i;
-
-    work = task->work;
-    for (i = 1; i < 6; i++) {
-        work->slots[i].rate = work->field_176 + work->field_178;
-        Gp_AnimTickIndex(&work->anim, i);
-    }
-}
-
-/// Drives the model's motion from the work block's `field_170`: 1 and 2
-/// restart the slots on `field_174` and move to 3, clearing both frame
-/// counters; 3 advances the slots one frame, counting it in `field_17A` and,
-/// while `field_58` bit 1 is set, in `field_17C` too.
-static void func_actor_123200_801332E0(Task* task)
-{
-    Actor123200Work* work;
-
-    work = task->work;
-    if (work->field_170 == 1) {
-        Actor123200_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 2) {
-        Actor123200_ResetSlots(work);
-        work->field_170 = 3;
-        work->field_17A = 0;
-        work->field_17C = 0;
-    } else if (work->field_170 == 3) {
-        work->field_17A++;
-        Actor123200_TickSlots(task);
-        if (work->field_58 & 2) {
-            work->field_17C++;
-        }
-    }
-}
+#include "../../shared/anim_driver_tick.inc.c"
 
 /// In motion states 2 and 3, reports 0x400C0001 the first time the animation id
 /// in `field_4A` reaches one of that state's trigger ids (latched in
@@ -797,7 +741,7 @@ static void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     work->field_170 = 2;
     work->field_176 = 0x10;
     work->field_178 = 0;
-    func_actor_123200_801332E0(task);
+    animDriverTick(task);
     work->field_17E     = 0;
     work->field_8       = 0;
     obj->lightMtx       = &work->field_1BC;
@@ -888,7 +832,7 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
         work->field_1B4 = 0x12D5;
         work->field_174 = 2;
         work->field_170 = 2;
-        func_actor_123200_801332E0(task);
+        animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_6                         = 0;
         return;
@@ -899,7 +843,7 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
     if (Mc_SaveData[0].state.actorsFrozen != 1) {
         Actor123200_StepForward(coord);
     }
-    func_actor_123200_801332E0(task);
+    animDriverTick(task);
     SCRATCH_STACK_RELEASE_BYTES(0xC);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -951,7 +895,7 @@ static void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
         work->field_1B4 = 0x12D5;
         work->field_174 = 2;
         work->field_170 = 2;
-        func_actor_123200_801332E0(task);
+        animDriverTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->field_6                         = 0;
         return;
@@ -959,7 +903,7 @@ static void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
     work->field_6++;
     coord = task->extra.tmd->coords;
     Actor123200_MoveForward(coord);
-    func_actor_123200_801332E0(task);
+    animDriverTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
