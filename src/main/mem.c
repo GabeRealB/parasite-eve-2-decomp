@@ -194,10 +194,10 @@ void* Mem_Malloc(size_t size, bool auxHeap)
     return ptr;
 }
 
-void memFree(void* ptr)
+void memFree(void* allocation)
 {
     _freep = gMemPrimaryHeapBase;
-    free3(ptr);
+    free3(allocation);
 }
 
 void memFreeFromHeap(void* ptr, bool auxHeap)

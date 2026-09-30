@@ -23797,13 +23797,13 @@ treats that load as ready to interleave:
 ```c
 void* mem;
 
-mem = arg0->spawnArg2;
+mem = arg0->spawnArg2.pointer;
 Gp_State1C->effectCount--;
 memFree(mem);
 taskKill(arg0);
 ```
 
-Inlining `memFree(index->spawnArg2)` after the decrement is the 83% form.
+Inlining `memFree(index->spawnArg2.pointer)` after the decrement is the 83% form.
 `Gp_KillState1CTask` is the example.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
@@ -132128,12 +132128,13 @@ coordinates their owner reads, not geometry the pass draws.
 
 The rule "if the users have to cast, the declared type is wrong" reads every
 cast as the parameter failing to fit. It does not hold when the value at the
-call site is an integer: `memFree(void* ptr)` has three callers writing
-`memFree((void*)work->field_18)` and nineteen passing a `Task*`, a `GpEnemy*` or
-a `GpEffWork*` straight through. The three casts are the *caller's* declaration
-showing through — the field they come off is an `s32` that holds a pointer, so
-the cast is what that field's own type requires and says nothing about the
-parameter.
+call site is an integer: before `McWork::buffer` was corrected to `void*`,
+`memFree(void* allocation)` had three memory-card callers casting that stored
+integer and nineteen passing a `Task*`, a `GpEnemy*` or a `GpEffWork*` straight
+through. The three casts were the *caller's* declaration showing through — the
+field was an `s32` that held a pointer, so the cast was what that field's own
+type required and said nothing about the parameter. Those callers now pass
+`memFree(work->buffer)` without a cast.
 
 Every object pointer converts to `void*` implicitly and only the integers need
 spelling out, so the parameter leaving the most sites cast-free is `void*`, and
