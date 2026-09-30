@@ -5,16 +5,17 @@ The model format is a packet stream, read out of ``Tmd_InitSourceStream``
 
     [id][handler slot][dims][payload ...]   repeated
     id   = 0xFFFFFFFF  end of stream
-         = 0xFFFFFFFE  end of one **part**, advance one word and re-read
+         = 0xFFFFFFFE  end of one command group (TMD_STREAM_GROUP_END)
     dims = (count << 16) | stride, payload is stride*count words
 
-``0xFFFFFFFE`` is not padding. ``Tmd_DispatchStream`` *returns* when it reads
-one, and its caller ``Tmd_SetupGteMatrices`` then loads the next bone's matrix
-(``TmdObject.field_8``, 0x50 bytes per bone) before dispatching again. So the
-stream is a sequence of parts, each drawn under its own matrix, and each
-part's vertices are in that part's local space. Walking straight over the
+``0xFFFFFFFE`` occupies one word without a command header or payload.
+``Tmd_DispatchStream`` *returns* a pointer at it, and its caller
+``Tmd_SetupGteMatrices`` consumes the word and advances the bone slot, even for
+an empty group. Skeletal groups are drawn under their own matrices, with each
+part's vertices in that part's local space. A final group can contain
+pre-transformed primitives without another bone. Walking straight over the
 marker merges every limb into one frame, which piles them on top of each
-other. Each packet therefore carries the index of the part it belongs to.
+other. Each packet therefore carries its group index in ``part``.
 
 The handler slot is why this must be read from the file rather than from RAM:
 ``Tmd_InitSourceStream`` resolves each id to a function pointer and **writes it
@@ -163,12 +164,13 @@ def _load_addrs(output_path: Path) -> dict[str, int]:
 
 
 def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
-    """Advance a stream address past any leading 0xFFFFFFFE skip words.
+    """Advance a stream address past leading empty-group terminators.
 
-    A source can point at a stream that opens with one or more skip words -
+    A source can point at a stream that opens with one or more
+    ``TMD_STREAM_GROUP_END`` words, each closing an empty group -
     ``Tmd_InitSourceStream`` steps over them before reading the first id - so
     the address in the record is not always the address of the first packet.
-    The walker starts at the packet, so the two disagree by the skip words and
+    The walker starts at the packet, so the two disagree by those words and
     an exact comparison loses the source. The 41-packet body mesh in every
     Kyle overlay is one of these.
     """

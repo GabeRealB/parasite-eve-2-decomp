@@ -312,7 +312,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
             id      = stream->value;
 
             while (1) {
-                if (id != TMD_STREAM_PART_END) {
+                if (id != TMD_STREAM_GROUP_END) {
                     break;
                 }
                 stream++;
@@ -497,7 +497,7 @@ void tmdProcessStream(TmdObject* obj)
         id             = *stream;
 
         while (1) {
-            if (id != TMD_STREAM_PART_END) {
+            if (id != TMD_STREAM_GROUP_END) {
                 break;
             }
             stream++;
@@ -681,13 +681,13 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
     u32  id;
     u32  dims;
     u32  lo;
-    u32  stop;
+    u32  groupEnd;
 
     stream = src->stream;
     if (*stream != TMD_STREAM_END) {
-        stop = TMD_STREAM_PART_END;
+        groupEnd = TMD_STREAM_GROUP_END;
         do {
-            if (*stream != stop) {
+            if (*stream != groupEnd) {
                 do {
                     id = *stream;
                     if (id == 0x3B) {
@@ -725,7 +725,7 @@ static void Tmd_RewriteOpcodes(TmdSource* src)
                     lo   = dims & 0xFFFF;
                     stream++;
                     stream += (dims >> 16) * lo;
-                } while (*stream != TMD_STREAM_PART_END);
+                } while (*stream != TMD_STREAM_GROUP_END);
             }
             stream++;
         } while (*stream != TMD_STREAM_END);

@@ -44,7 +44,7 @@ STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
 ///
 /// Command headers contain an opcode, a draw-handler slot and a packed word
 /// `(elementCount << 16) | elementStrideWords`, followed by the elements.
-/// `TMD_STREAM_PART_END` closes a group and `TMD_STREAM_END` ends the stream.
+/// `TMD_STREAM_GROUP_END` closes a group and `TMD_STREAM_END` ends the stream.
 typedef struct {
     s32            handlersResolved;    // Handler slots (0 unresolved, 1 resolved); geometry and opcodes remain writable
     s32            bufferHalfBytes;     // Byte capacity of one primitive-buffer half; both halves are allocated together
@@ -58,11 +58,18 @@ typedef struct {
 } TmdSource;
 STATIC_ASSERT_SIZEOF(TmdSource, 0x24);
 
-/// Word markers in `TmdSource.stream`; the final group may use pre-transformed
-/// primitives without another skeleton entry.
+/// Word markers in `TmdSource.stream`.
+///
+/// `TMD_STREAM_GROUP_END` encodes one u32 word, 0xFFFFFFFE, with no handler
+/// slot, dimensions or payload. Every group, including an empty one, ends with
+/// this marker before another group or `TMD_STREAM_END`. Drawing consumes the
+/// marker and advances the part slot; a final group after the skeletal parts
+/// may use pre-transformed primitives without another coordinate. Buffer builds
+/// and handler resolution skip the marker without changing coordinate state.
+/// The negative enum value converts to the encoded word in the u32 stream.
 enum {
-    TMD_STREAM_PART_END = -2, // End of a command group; advance the part coordinate
-    TMD_STREAM_END      = -1  // End of the complete stream
+    TMD_STREAM_GROUP_END = -2, // Single-word command-group terminator, including groups without a skeletal part
+    TMD_STREAM_END       = -1  // End of the complete stream
 };
 
 /// Intrusive link for an attached model or coordinate body, also used as a

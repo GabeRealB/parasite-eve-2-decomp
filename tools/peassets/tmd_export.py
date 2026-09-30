@@ -115,9 +115,10 @@ def decode_stream_geometry(
 ):
     """(faces, per-face normal index or None, per-face part, skipped counter).
 
-    The part index matters: a stream is split by ``0xFFFFFFFE`` into parts that
-    the game draws under one bone matrix each, so vertices only share a
-    coordinate space *within* a part.
+    ``0xFFFFFFFE`` (TMD_STREAM_GROUP_END) splits the stream into command groups.
+    Skeletal groups each use one bone matrix, so vertices only share a
+    coordinate space *within* a part. The final group can use pre-transformed
+    primitives without another bone.
     """
     walked = pkg_model.walk_stream(data, stream_off)
     if not walked:

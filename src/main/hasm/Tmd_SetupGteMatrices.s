@@ -51,7 +51,7 @@ glabel Tmd_SetupGteMatrices
     /* 108C 8001088C 00000000 */   nop
     /* 1090 80010890 5400001A */  blez       $s0, .L800109E4
     /* 1094 80010894 00000000 */   nop
-    /* 1098 80010898 FEFF0924 */  addiu      $t1, $zero, -0x2
+    /* 1098 80010898 FEFF0924 */  addiu      $t1, $zero, -0x2 /* TMD_STREAM_GROUP_END */
     /* 109C 8001089C 51000911 */  beq        $t0, $t1, .L800109E4
     /* 10A0 800108A0 00000000 */   nop
     /* 10A4 800108A4 2400288E */  lw         $t0, 0x24($s1)

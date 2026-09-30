@@ -11,7 +11,8 @@
  * Role
  *   Walk a TMD command stream (a2): for each record, unpack fields into
  *   the scratch block (a0) and jalr the per-entry handler until the
- *   terminator word -2. Called only from Tmd_SetupGteMatrices.
+ *   TMD_STREAM_GROUP_END word (-2), returning its address without consuming
+ *   it. Called only from Tmd_SetupGteMatrices.
  *
  * Why this stays handwritten assembly
  *   Same early-image hasm constraints as Tmd_SetupGteMatrices (see that
@@ -21,7 +22,7 @@
 
 .section .text, "ax"
 
-/* Walk stream records; jalr per-entry handler until terminator -2. */
+/* Walk one command group; leave TMD_STREAM_GROUP_END for the caller. */
 glabel Tmd_DispatchStream
     /* 1220 80010A20 FCFFBD27 */  addiu      $sp, $sp, -0x4
     /* 1224 80010A24 0000A4AF */  sw         $a0, 0x0($sp)
@@ -29,7 +30,7 @@ glabel Tmd_DispatchStream
     /* 122C 80010A2C 2C009FAC */  sw         $ra, 0x2C($a0)
   .L80010A30:
     /* 1230 80010A30 0000C88C */  lw         $t0, 0x0($a2)
-    /* 1234 80010A34 FEFF0924 */  addiu      $t1, $zero, -0x2
+    /* 1234 80010A34 FEFF0924 */  addiu      $t1, $zero, -0x2 /* TMD_STREAM_GROUP_END */
     /* 1238 80010A38 10000911 */  beq        $t0, $t1, .L80010A7C
     /* 123C 80010A3C 3000858C */   lw        $a1, 0x30($a0)
     /* 1240 80010A40 0800CA8C */  lw         $t2, 0x8($a2)

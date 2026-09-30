@@ -108,8 +108,8 @@ extern TmdBone D_shelter_r48_8018BE30[1];
 void           func_shelter_r48_8017D660(Task*);
 
 u32 D_shelter_r48_80182F7C[3] = {
-    TMD_STREAM_PART_END,
-    TMD_STREAM_PART_END,
+    TMD_STREAM_GROUP_END,
+    TMD_STREAM_GROUP_END,
     TMD_STREAM_END,
 };
 

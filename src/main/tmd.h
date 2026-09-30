@@ -31,7 +31,7 @@ STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
 void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
 
-/// Walk stream records and jalr each draw handler until terminator -2.
+/// Walk stream records and jalr each draw handler until `TMD_STREAM_GROUP_END`.
 u32* Tmd_DispatchStream(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
 
 // The per-frame callback of the task that holds the models' buffers, and the

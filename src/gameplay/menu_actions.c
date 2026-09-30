@@ -2879,7 +2879,7 @@ static void func_800D4270(UiObject* obj, TmdSource* mesh, s32 mode, s32 dp)
     addPrim(&gGpuCurrentOt[otz], dr);
     scratch->offX = 0;
     scratch->offY = 0;
-    while (*cur != TMD_STREAM_PART_END) {
+    while (*cur != TMD_STREAM_GROUP_END) {
         type   = *cur;
         cur   += 2;
         word   = *cur;

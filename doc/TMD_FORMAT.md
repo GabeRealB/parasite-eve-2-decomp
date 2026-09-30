@@ -87,7 +87,7 @@ three.
 ```text
 repeated:
   u32 id            opcode; 0xFFFFFFFF ends the stream,
-                    0xFFFFFFFE ends one PART (see 2.2)
+                    0xFFFFFFFE ends one command group (see 2.2)
   u32 handler_slot  overwritten at runtime - see below
   u32 dims          (count << 16) | stride, stride in words
   u32 payload[stride * count]
@@ -103,11 +103,14 @@ at the stride interval — every 7 words in an `0x78` packet, not every 20.
 into `handler_slot`**, so a stream that has run once no longer matches its
 on-disc form. Decode from the extracted file, never from a RAM dump.
 
-### 2.2 `0xFFFFFFFE` is a part boundary, not padding
+### 2.2 `0xFFFFFFFE` terminates a command group
 
 Reading it as "skip a word and carry on" merges the whole skeleton into one
-coordinate frame. `Tmd_DispatchStream` **returns** when it reads `0xFFFFFFFE`,
-handing the pointer back to its caller:
+coordinate frame. `Tmd_DispatchStream` **returns** when it reads `0xFFFFFFFE`
+(`TMD_STREAM_GROUP_END`), handing the pointer at the marker back to its caller.
+The marker occupies one word and has no handler slot, dimensions or payload.
+The caller consumes that word and advances the coordinate slot even for an
+empty group, so consecutive markers preserve empty parts:
 
 ```text
 Tmd_SetupGteMatrices(ws, flags, stream, obj):
@@ -123,10 +126,10 @@ Tmd_SetupGteMatrices(ws, flags, stream, obj):
         stream += 4;  s0 -= 1;  s1 += 0x50
 ```
 
-So a stream is a sequence of parts, each drawn under its own bone matrix, and
-**vertices only share a coordinate space within a part**. The vertex array
-holds each part in its own local frame: in `aya_10200` the left and right arm
-both span `x[-39, 40]`, sitting inside one another, and drawing all 19 parts
+The groups corresponding to skeletal parts are drawn under their own bone
+matrices, so **vertices only share a coordinate space within a part**. The
+vertex array holds each part in its own local frame: in `aya_10200` the left
+and right arm both span `x[-39, 40]`, sitting inside one another, and drawing all 19 parts
 together gives a lump with no legs or head. Rendered one at a time the parts
 are plainly a head, an upper arm, a forearm, a thigh, a shin and a foot.
 
@@ -177,9 +180,9 @@ Two consequences:
   same composition with `coord` overwritten per frame, and an animation set
   carries exactly one track per bone (`ASSET_FORMATS.md` §9.3.1).
 
-The **last** part is special: it carries the pre-transformed (`op & 0x01`)
-primitives, whose screen coordinates were written by the earlier parts'
-`0xC8` passes under those parts' own matrices. They are already positioned, so
+The final **command group** has no skeletal part: it can carry the
+pre-transformed (`op & 0x01`) primitives, whose screen coordinates were written
+by the earlier parts' `0xC8` passes under those parts' own matrices. They are already positioned, so
 they cannot be drawn from raw vertices in any single frame.
 
 ### 2.1 Rejecting false streams
@@ -623,7 +626,8 @@ What remains is narrower.
   with its `TmdSource` record (764 across 225 packages), and the build checks
   each record decodes and that its model object is exactly the arrays and stream
   it points at. A record may point at a stream that opens with one or more
-  `0xFFFFFFFE` skips - `Tmd_InitSourceStream` steps over them - so the stream's
+  `TMD_STREAM_GROUP_END` words (`0xFFFFFFFE`), closing empty groups -
+  `Tmd_InitSourceStream` steps over them - so the stream's
   first packet can sit past the address the record declares; the Kyle body mesh
   declares `0x15D4` and its first packet is at `0x15D8`. The streams an old
   opcode walk found without a record were 35, and none is open: 29 are models
