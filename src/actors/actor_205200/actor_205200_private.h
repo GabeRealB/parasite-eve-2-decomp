@@ -17,6 +17,8 @@ extern OverlayWaveRec gScreenWaveColumns[10];
 
 extern OverlayWaveRec gScreenWaveRows[30];
 
+/// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
+/// buffer. `screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 extern OverlayWaveCtx D_actor_205200_8015B458;

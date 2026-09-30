@@ -55,7 +55,9 @@
 
 #include "overlay.h"
 #include "../../shared/glow_draw.h"
-#define SCREEN_WAVE_GRID gScreenWaveGrid.value
+/// This room's grid object continues four unread bytes past the quad array,
+/// so `screenWaveGridTask` indexes `quads` rather than the whole object.
+#define SCREEN_WAVE_GRID gScreenWaveGrid.quads
 #include "../../shared/screen_wave.h"
 
 #define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
@@ -79,18 +81,20 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 extern OverlayWaveRec gScreenWaveColumns[10];
 extern OverlayWaveRec gScreenWaveRows[30];
 
-/// The two 8 by 30 quad grids, one per frame-buffer half.
-// The task starts at row 1 and draws rows -1 through 28.
-// Only the leading value has established accesses. Preserve the following
-// zero bytes in this allocation; trailing fields versus TU padding remains
-// unresolved (see the local actors/rooms data review).
+/// Screen-wave quad meshes for this room, plus the unread bytes after them.
+///
+/// `quads` is the double-buffered 8 by 30 mesh. Nothing reads `pad`; those
+/// four bytes fill the gap to the next object, which begins on an eight-byte
+/// boundary.
 typedef struct {
-    POLY_FT4 value[2][30][8];
-    u8       retained[4];
-} ShelterB6CorridorStorage06AC;
-STATIC_ASSERT_SIZEOF(ShelterB6CorridorStorage06AC, 19204);
+    POLY_FT4 quads[2][30][8]; // one mesh per frame buffer, 30 rows by 8 quads
+    u8       pad[4];          // unread; fills the gap to the next eight-byte boundary
+} _ShelterB6CorridorScreenWaveGrid;
+STATIC_ASSERT_SIZEOF(_ShelterB6CorridorScreenWaveGrid, 19204);
 
-extern ShelterB6CorridorStorage06AC gScreenWaveGrid;
+/// This room's screen-wave meshes. `screenWaveGridTask` indexes `quads`
+/// through `SCREEN_WAVE_GRID`.
+extern _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid;
 
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -514,7 +518,7 @@ OverlayWaveRec gScreenWaveColumns[10] = { 0 };
 
 OverlayWaveRec gScreenWaveRows[30] = { 0 };
 
-ShelterB6CorridorStorage06AC gScreenWaveGrid = { { 0 }, { 0 } };
+_ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 
 ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 

@@ -193,9 +193,8 @@ extern OverlayWaveCtx* gScreenWaveCtx;
 extern OverlayWaveRec gScreenWaveColumns[10];
 extern OverlayWaveRec gScreenWaveRows[30];
 
-/// The two frame buffers' 8 by 30 meshes of textured quads, one grid per
-/// buffer, indexed by the current buffer.
-// The task starts at row 1 and draws rows -1 through 28.
+/// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
+/// buffer. `screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 void func_actor_342100_80162748(Task*);

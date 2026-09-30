@@ -17,9 +17,15 @@
  *   OverlayWaveRec6  gScreenWaveRows[]     per-row phase, offset and speed
  *   POLY_FT4         gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
  *
- * The grid task's records are OverlayWaveRec rather than OverlayWaveRec6. A
- * package that keeps the grid inside a larger object names it through
- * SCREEN_WAVE_GRID before including this header.
+ * The grid task's records are OverlayWaveRec rather than OverlayWaveRec6.
+ * `SCREEN_WAVE_GRID` is the quad array the grid task indexes, as
+ * `[buffer][row][column]`: two frame buffers, 30 rows and 8 columns of 40 by 8
+ * quads. It defaults to `gScreenWaveGrid`. A package whose object is larger
+ * than that array defines `SCREEN_WAVE_GRID` as the array before including this
+ * header. `shelter_b6_corridor` is the one that does: four unread bytes follow
+ * its quads, filling the gap before the next object, which starts on an
+ * eight-byte boundary. The task takes the address of row 1 and then steps a
+ * row index from -1 through 28, so every one of the 30 rows is covered.
  */
 
 #ifndef SRC_SHARED_SCREEN_WAVE_H
@@ -29,6 +35,12 @@
 
 #include "overlay.h"
 
+/// Quad array `screenWaveGridTask` indexes, `[buffer][row][column]`.
+///
+/// Defaults to `gScreenWaveGrid` when that object is the array. A package
+/// whose object continues past the array defines this as the array member
+/// before including the header. The replacement is used as
+/// `&SCREEN_WAVE_GRID[buffer][row]`, so it must be the array itself.
 #ifndef SCREEN_WAVE_GRID
 #define SCREEN_WAVE_GRID gScreenWaveGrid
 #endif
