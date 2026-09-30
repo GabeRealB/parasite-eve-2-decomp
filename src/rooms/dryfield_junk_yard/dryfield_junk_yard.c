@@ -121,7 +121,7 @@ extern GpObj4C                    D_dryfield_junk_yard_80180C7C[10];
 extern GpObj4C                    D_dryfield_junk_yard_80180F74[19];
 extern WorldCoordRoomAmbientEntry D_dryfield_junk_yard_80181BCC[8];
 extern GpRoomCoordSet             D_dryfield_junk_yard_80181BB4[1];
-extern ActorTransform                 D_dryfield_junk_yard_8017DE00;
+extern ActorTransform             D_dryfield_junk_yard_8017DE00;
 extern TaskDesc                   D_8014D8A4;
 void                              func_dryfield_junk_yard_8017DC54(s8);
 
