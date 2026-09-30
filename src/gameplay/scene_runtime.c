@@ -149,11 +149,21 @@ typedef struct {
 } _AnimationTickScratch;
 STATIC_ASSERT_SIZEOF(_AnimationTickScratch, 0x18);
 
-// Interpolation weights have twelve fractional bits; packed angle steps have three.
-enum {
-    ANIMATION_BLEND_FRACTION_BITS = 12,
-    ANIMATION_PACKED_ANGLE_SHIFT  = 3
-};
+/// Fractional bits of a keyframe interpolation weight.
+///
+/// For distinct endpoints, `(timeLeft << ANIMATION_BLEND_FRACTION_BITS) /
+/// timeSpan` is the current endpoint's weight in the same 1/4096 units as
+/// `ONE`. Division truncates toward zero, and the other endpoint's weight is
+/// `ONE` minus that quotient, so the discarded fraction stays with the next
+/// endpoint. `gte_gpf12` and `gte_gpl12` consume this scale. Identical
+/// endpoints use weights 0 and `ONE` instead. This is not
+/// `ANIMATION_TIME_FRACTION_BITS`, and it does not select
+/// `ANIMATION_BLEND_RESET` or `ANIMATION_BLEND_INTERPOLATE`.
+enum { ANIMATION_BLEND_FRACTION_BITS = 12 };
+STATIC_ASSERT((1 << ANIMATION_BLEND_FRACTION_BITS) == ONE, animation_blend_fraction_matches_one);
+
+// Packed angle steps have three.
+enum { ANIMATION_PACKED_ANGLE_SHIFT = 3 };
 
 /// 8-byte mask/flag record. `Gp_SndMaskTable` is a 0-terminated table of these.
 /// `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks` walk it: if `arg0 & mask`, apply `flags`
@@ -1972,7 +1982,7 @@ static void _animationBlendTranslationRotation(_AnimationBlendRequest* request, 
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
-            // The scaled remainder is stored, then replaced by its quotient.
+            // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
@@ -2037,7 +2047,7 @@ static void _animationBlendPackedRotation(_AnimationBlendRequest* request, GfxCo
     if (slot->timeSpan != 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(_AnimationBlendScratch);
         if (request->currentPose != request->nextPose) {
-            // The scaled remainder is stored, then replaced by its quotient.
+            // Store the scaled remaining time, then replace it with the truncated quotient.
             currentWeight          = slot->timeLeft << ANIMATION_BLEND_FRACTION_BITS;
             scratch->currentWeight = currentWeight;
             currentWeight          = currentWeight / slot->timeSpan;
