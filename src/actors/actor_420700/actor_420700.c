@@ -1312,14 +1312,14 @@ s32 func_actor_420700_801326F4(Task* task, s32 arg1, s32 arg2)
         model->flags = 0;
         twin->flags  = 0;
     } else {
-        actor->flags = 0x80;
-        model->flags = 0x80;
-        twin->flags  = 0x80;
+        actor->flags = TMD_OBJECT_HIDDEN;
+        model->flags = TMD_OBJECT_HIDDEN;
+        twin->flags  = TMD_OBJECT_HIDDEN;
     }
     if (arg2 & 2) {
-        actor->flags |= 4;
-        model->flags |= 4;
-        twin->flags  |= 4;
+        actor->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        twin->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

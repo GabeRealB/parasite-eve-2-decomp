@@ -47,7 +47,7 @@
 ///
 /// `light` / `color` are the matrices this block is allocated for:
 /// `func_actor_341700_8016D130` stores their addresses into the model's
-/// `TmdObject.lightMtx` / `field_20` light and colour matrix slots, so the
+/// `TmdObject.lightMtx` / `colorMtx` light and colour matrix slots, so the
 /// actor rasterises through its own work block rather than a separate
 /// `MATRIX` allocation.
 typedef struct Actor341700SubWork {
@@ -1037,7 +1037,7 @@ static void func_actor_341700_8016CC9C(GpEnemy* arg0, Task* arg1)
     Gp_UpdateActorColor(arg0, &block, 0, 0);
     switch (Gp_StateF0.field_4) {
         case 2:
-            arg1->extra.tmd->flags |= 0x80;
+            arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 1:
             return;
@@ -1072,7 +1072,7 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             break;
         case 1:
@@ -1080,10 +1080,10 @@ s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2)
             Tmd_AllocBuffers(obj);
             break;
         case 2:
-            obj->flags |= 4;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags = 4;
+            obj->flags = TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -1232,7 +1232,7 @@ static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
         model                    = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        model->flags             = 0x84;
+        model->flags             = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
 }
 

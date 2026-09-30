@@ -181,7 +181,7 @@ typedef struct Actor503500Work {
     /* 0x3D7 */ s8     field_3D7; // TMD buffer countdown, 0x3D8 block
     /* 0x3D8 */ byte   pad_3D8[0x9C];
     /// The boss's own light / colour matrix pair: `func_actor_503500_80132F64`
-    /// points the model's `TmdObject::lightMtx` / `field_20` at these.
+    /// points the model's `TmdObject::lightMtx` / `colorMtx` at these.
     /* 0x474 */ MATRIX lightMtx;
     /* 0x494 */ MATRIX colorMtx;
     /// Saved copy of model part 0's coordinate: `func_actor_503500_80135B74`

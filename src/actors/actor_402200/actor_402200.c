@@ -2540,7 +2540,7 @@ static void func_actor_402200_80134968(Task* arg0)
     coord = obj->coords;
     switch (work->field_6DA) {
         case 0:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             work->field_6E2        = -1;
             work->field_49A       &= 0x7FFF;
             if (work->field_6B8 != 0) {
@@ -2553,11 +2553,11 @@ static void func_actor_402200_80134968(Task* arg0)
             }
             break;
         case 1:
-            obj->lightLevel += 0x1000 / work->field_6DE;
-            if (obj->lightLevel >= 0x1000) {
-                obj->lightLevel = 0x1000;
-                t               = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8 = t;
+            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
+            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
+                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
+                t                       = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8         = t;
                 if (t <= 0) {
                     work->field_6D8 = 0;
                     work->field_6DA = 2;
@@ -2588,11 +2588,11 @@ static void func_actor_402200_80134968(Task* arg0)
             t               = work->field_6D8 + 0xFF / work->field_6DC;
             work->field_6D8 = t;
             if (t >= 0xFF) {
-                work->field_6D8  = 0xFF;
-                obj->lightLevel -= 0x1000 / work->field_6DE;
-                if (obj->lightLevel <= 0) {
-                    obj->lightLevel = 0;
-                    work->field_6DA = 0;
+                work->field_6D8          = 0xFF;
+                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
+                if (obj->shading.colorBlend <= 0) {
+                    obj->shading.colorBlend = 0;
+                    work->field_6DA         = 0;
                     if (work->field_6BC != 0) {
                         SndEvt_EnqueueType7(work->field_6BC, 1);
                         work->field_6BC = 0;
@@ -2609,11 +2609,11 @@ static void func_actor_402200_80134968(Task* arg0)
             }
             break;
         case 4:
-            obj->lightLevel += 0xB00 / work->field_6DE;
-            if (obj->lightLevel >= 0xB00) {
-                obj->lightLevel = 0xB00;
-                t               = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8 = t;
+            obj->shading.colorBlend += 0xB00 / work->field_6DE;
+            if (obj->shading.colorBlend >= 0xB00) {
+                obj->shading.colorBlend = 0xB00;
+                t                       = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8         = t;
                 if (t <= 0) {
                     work->field_6DA = 5;
                     work->field_6D8 = 0;
@@ -2665,18 +2665,18 @@ static void func_actor_402200_80134968(Task* arg0)
             t               = work->field_6D8 + 0xFF / work->field_6DC;
             work->field_6D8 = t;
             if (t >= 0xFF) {
-                work->field_6D8  = 0xFF;
-                obj->lightLevel -= 0x1000 / work->field_6DE;
-                if (obj->lightLevel <= 0) {
-                    obj->lightLevel        = 0;
-                    work->field_6DA        = 0;
-                    m                      = (GpMtxWords*)&arg0->extra.tmd->coords[0].coord;
-                    m->m00_m01             = 0x1000;
-                    m->m02_m10             = 0;
-                    m->m11_m12             = 0x1000;
-                    m->m20_m21             = 0;
-                    m->m22                 = 0x1000;
-                    arg0->extra.tmd->flags = 0x80;
+                work->field_6D8          = 0xFF;
+                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
+                if (obj->shading.colorBlend <= 0) {
+                    obj->shading.colorBlend = 0;
+                    work->field_6DA         = 0;
+                    m                       = (GpMtxWords*)&arg0->extra.tmd->coords[0].coord;
+                    m->m00_m01              = 0x1000;
+                    m->m02_m10              = 0;
+                    m->m11_m12              = 0x1000;
+                    m->m20_m21              = 0;
+                    m->m22                  = 0x1000;
+                    arg0->extra.tmd->flags  = TMD_OBJECT_HIDDEN;
                 }
             }
             work->field_6E2 = -1;
@@ -2692,10 +2692,10 @@ static void func_actor_402200_80134968(Task* arg0)
             t               = work->field_6D8 + 0xFF / work->field_6DC;
             work->field_6D8 = t;
             if (t >= 0x80) {
-                work->field_6D8  = 0x80;
-                obj->lightLevel -= 0x1000 / work->field_6DE;
-                if (obj->lightLevel <= 0x800) {
-                    obj->lightLevel = 0x800;
+                work->field_6D8          = 0x80;
+                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
+                if (obj->shading.colorBlend <= 0x800) {
+                    obj->shading.colorBlend = 0x800;
                 }
             }
             t               = work->field_6E2 - 0x80 / work->field_6DC;
@@ -2723,11 +2723,11 @@ static void func_actor_402200_80134968(Task* arg0)
             }
             break;
         case 9:
-            obj->lightLevel += 0x1000 / work->field_6DE;
-            if (obj->lightLevel >= 0x1000) {
-                obj->lightLevel = 0x1000;
-                t               = work->field_6D8 - 0xFF / work->field_6DC;
-                work->field_6D8 = t;
+            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->field_6DE;
+            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
+                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
+                t                       = work->field_6D8 - 0xFF / work->field_6DC;
+                work->field_6D8         = t;
                 if (t <= 0) {
                     work->field_6D8 = 0;
                 }
@@ -3370,7 +3370,7 @@ static void func_actor_402200_801368E0(GpEnemy* arg0, Task* arg1)
             Actor402200_DrawShadow(arg1);
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
     switch (work->field_6CE) {
@@ -3586,8 +3586,8 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
     kind = arg0->spawnState;
     switch (kind) {
         case 0:
-            work->field_6D8 = 0xFF;
-            obj->lightLevel = 0;
+            work->field_6D8         = 0xFF;
+            obj->shading.colorBlend = 0;
             func_8009EA50(work->field_6D8);
             work->field_6E2 = -1;
             arg0->field_4   = &coord->coord;
@@ -3715,20 +3715,20 @@ static void func_actor_402200_80137444(GpEnemy* arg0, Task* arg1)
             arg1->state     = 1;
             break;
         case 1:
-            work->field_6C0 = 0x10;
-            work->field_6CE = 2;
-            arg1->state     = 2;
-            work->field_6D8 = 0;
-            obj->lightLevel = 0x1000;
+            work->field_6C0         = 0x10;
+            work->field_6CE         = 2;
+            arg1->state             = 2;
+            work->field_6D8         = 0;
+            obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
             func_8009EA50(work->field_6D8);
             work->field_6E2 = 0x80;
             break;
         case 2:
-            work->field_6C0 = 0x14;
-            work->field_6CE = kind;
-            arg1->state     = kind;
-            work->field_6D8 = 0;
-            obj->lightLevel = 0x1000;
+            work->field_6C0         = 0x14;
+            work->field_6CE         = kind;
+            arg1->state             = kind;
+            work->field_6D8         = 0;
+            obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
             func_8009EA50(work->field_6D8);
             work->field_6E2 = 0x80;
             break;
@@ -3782,7 +3782,7 @@ case1:
     func_actor_402200_8013806C(arg1);
     return;
 case2:
-    temp_a1->flags           = 0x80;
+    temp_a1->flags           = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:

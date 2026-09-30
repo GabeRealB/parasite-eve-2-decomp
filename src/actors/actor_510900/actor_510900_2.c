@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(Actor510900GrabScratch, 0x18);
 
 /// 0xD0-byte `Task::work` block `func_actor_510900_801397F0` allocates for its
 /// child task: the child's colour and light matrices (handed to
-/// `TmdObject::colorMtx` / `field_1C`), two linked `GpObj`s with their `WorldCollisionContact`
+/// `TmdObject::colorMtx` / `lightMtx`), two linked `GpObj`s with their `WorldCollisionContact`
 /// tables, and the timer/state trio `func_actor_510900_8013A100` runs its
 /// teardown state machine on.
 typedef struct Actor510900ChildFx {
@@ -1656,9 +1656,9 @@ static void func_actor_510900_801373B8(Task* arg0)
         rec = Gp_GetNestedAreaRec(&key);
         /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
-        entry        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = entry->texturePageOffset;
-        model->clut  = entry->clutRowOffset;
+        entry                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = entry->texturePageOffset;
+        model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -2614,9 +2614,9 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2)
             }
             break;
         case 2:
-            obj->flags                        = 0x80;
-            work->field_568->extra.tmd->flags = 0x80;
-            work->field_56C->extra.tmd->flags = 0x80;
+            obj->flags                        = TMD_OBJECT_HIDDEN;
+            work->field_568->extra.tmd->flags = TMD_OBJECT_HIDDEN;
+            work->field_56C->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             work->field_5A4                   = 0;
             if (work->field_564 != NULL) {
                 work->field_564[0xD] = 4;
@@ -2681,7 +2681,7 @@ static void func_actor_510900_801395AC(GpEnemy* enemy, Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (work->field_586 < 0x1C) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
         return;
     }
     SCRATCH_PUSH_BYTES(0x20);
@@ -2894,7 +2894,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
             Gp_UpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            tmd->flags = 0x80;
+            tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
 
@@ -2955,7 +2955,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         Gp_ClearRec18Occupied(&work->rec60);
         Gp_UnlinkObj(&work->obj78);
         work->field_C8         = 0;
-        task->extra.tmd->flags = 0x80;
+        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         snd                    = (((u16)((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x51100009;
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
         task->state = 2;
@@ -2965,7 +2965,7 @@ static void func_actor_510900_80139C10(GpEnemy* enemy, Task* task)
         work->obj40.flags &= 0x7FFF;
         Gp_UnlinkObj(&work->obj78);
         work->field_C8         = 0;
-        task->extra.tmd->flags = 0x80;
+        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         task->state            = 2;
         work->field_CA         = 3;
     }
@@ -3000,7 +3000,7 @@ static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                     work->obj40.flags &= 0x7FFF;
                     Gp_UnlinkObj(&work->obj78);
                     work->field_C8         = 0;
-                    task->extra.tmd->flags = 0x80;
+                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     task->state            = 2;
                     work->field_CA         = 3;
                     return;
@@ -3021,7 +3021,7 @@ static void func_actor_510900_8013A100(GpEnemy* enemy, Task* task)
                         work->obj40.flags &= 0x7FFF;
                         Gp_UnlinkObj(&work->obj78);
                         work->field_C8         = 0;
-                        task->extra.tmd->flags = 0x80;
+                        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                         task->state            = 2;
                         work->field_CA         = 3;
                     }
@@ -3144,7 +3144,7 @@ static void func_actor_510900_8013A5B8(GpEnemy* enemy, Task* task)
         return;
     }
     task->work           = (TaskIdMap*)work;
-    tmd->flags           = 0x80;
+    tmd->flags           = TMD_OBJECT_HIDDEN;
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     tmd->lightMtx        = &work->lightMtx;
     tmd->colorMtx        = &work->colorMtx;
@@ -3249,7 +3249,7 @@ case0:
     arg0->node.state.b.flags = one;
     goto body;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 body:
@@ -3775,7 +3775,7 @@ static void func_actor_510900_8013B6A0(GpEnemy* arg0, Task* arg1)
         func_actor_510900_8013BC38(arg1, temp_s1);
         return;
     case2:
-        temp_a1->flags           = 0x80;
+        temp_a1->flags           = TMD_OBJECT_HIDDEN;
         arg0->node.state.b.flags = one;
         return;
     default_body:
@@ -4066,7 +4066,7 @@ s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2)
 
     tmd = task->extra.tmd;
     if (arg2 == 0) {
-        tmd->flags = 0x80;
+        tmd->flags = TMD_OBJECT_HIDDEN;
     } else {
         tmd->flags = 0;
     }
@@ -4091,15 +4091,15 @@ static void func_actor_510900_8013BEEC(GpEnemy* enemy, Task* task)
     Actor510900Work* work;
     GfxCoord*        coord;
 
-    obj        = task->extra.tmd;
-    work       = (Actor510900Work*)task->parent->work;
-    coord      = obj->coords;
-    obj->clut += 2;
+    obj                 = task->extra.tmd;
+    work                = (Actor510900Work*)task->parent->work;
+    coord               = obj->coords;
+    obj->clutRowOffset += 2;
     tmdProcessStream(obj);
     tmdProcessStream(obj);
     coord->parent       = &task->parent->extra.tmd->coords[12];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
     task->state         = 1;
@@ -4119,7 +4119,7 @@ static void func_actor_510900_8013BFE4(GpEnemy* enemy, Task* task)
 
     obj                 = task->extra.tmd;
     work                = (Actor510900Work*)task->parent->work;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     obj->coords->parent = &task->parent->extra.tmd->coords[8];
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
@@ -4147,7 +4147,7 @@ static void func_actor_510900_8013C0E4(GpEnemy* enemy, Task* task)
 
     obj                 = task->extra.tmd;
     work                = (Actor510900Work*)task->parent->work;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     obj->coords->parent = &task->parent->extra.tmd->coords[3];
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
@@ -4209,7 +4209,7 @@ static s32 func_actor_510900_8013C240(Task* task)
         return 1;
     }
 
-    obj->flags              = 0x80;
+    obj->flags              = TMD_OBJECT_HIDDEN;
     work->obj2BC.flags     &= 0x7FFF;
     work->obj2F4.flags     &= 0x7FFF;
     ctx->node.state.b.flags = 1;

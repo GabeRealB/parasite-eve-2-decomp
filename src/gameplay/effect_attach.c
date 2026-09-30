@@ -69,7 +69,7 @@ void Gp_EffAttachTask37(Task* arg0)
     state = arg0->state;
     switch (state) {
         case 0:
-            extra->flags &= 0xFF7F;
+            extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
             mem->scale    = 0x100;
             if (arg0->spawnArg1.value & 0xFFF) {
                 temp = arg0->spawnArg1.halves.low & 0xFFF;
@@ -146,7 +146,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 gte_gpf12();
                 gte_stsv(rot);
                 if ((mem->age - mem->step) < 8 && mem->scale < 0x20) {
-                    extra->flags |= 2;
+                    extra->flags |= TMD_OBJECT_SEMI_TRANS;
                     mem->age      = 0;
                     arg0->state   = 2;
                     return;
@@ -177,7 +177,7 @@ void Gp_EffAttachTask37(Task* arg0)
                 Gp_SpawnEff(0x60055, coord, mem->angle + 0x11000, 0);
             }
             if (mem->age >= 0x33) {
-                extra->flags |= 2;
+                extra->flags |= TMD_OBJECT_SEMI_TRANS;
                 if (mem->period >= 0x41) {
                     trans       = mem->period - 0x40;
                     mem->period = trans;

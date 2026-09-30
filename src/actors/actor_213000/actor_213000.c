@@ -539,7 +539,7 @@ static void func_actor_213000_80149E54(Task* task)
     work->field_476 = -1;
     work->field_478 = 0;
     work->field_477 = -1;
-    obj->flags     |= 0x80;
+    obj->flags     |= TMD_OBJECT_HIDDEN;
     work->field_4BC = Task_SpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
     work->field_4C0 = Task_SpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
     spawned1        = Task_SpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
@@ -559,10 +559,10 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -583,10 +583,10 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -689,16 +689,16 @@ static void func_actor_213000_8014A1B8(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= 0x80;
+    obj->flags |= TMD_OBJECT_HIDDEN;
     root        = obj->coords;
-    if (!(parentObj->flags & 0x80)) {
-        obj->flags &= 0xFF7F;
+    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
+        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObj->flags & 4)) {
-        obj->flags &= 0xFFFB;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset      = -2;
     coords            += task->spawnArg1.value;
@@ -722,17 +722,17 @@ static void func_actor_213000_8014A2C4(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & 0x80)) {
-        object->flags &= 0xFF7F;
+    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
+        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        object->flags |= 0x80;
+        object->flags |= TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObject->flags & 4)) {
-        object->flags &= 0xFFFB;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->flags |= 4;
+    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 /// Setup state of the child spawned from table entry 3: hangs each of the
@@ -768,16 +768,16 @@ static void func_actor_213000_8014A35C(Task* task)
     }
     obj->lightMtx = parentObj->lightMtx;
     obj->colorMtx = parentObj->colorMtx;
-    flags         = obj->flags | 0x80;
+    flags         = obj->flags | TMD_OBJECT_HIDDEN;
     obj->flags    = flags;
-    if (!(parentObj->flags & 0x80)) {
+    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
         obj->flags = flags & 0xFF7F;
     }
-    if (!(parentObj->flags & 4)) {
-        obj->flags &= 0xFFFB;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset = -4;
     Task_Reparent(parent, task);
@@ -795,17 +795,17 @@ static void func_actor_213000_8014A488(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & 0x80)) {
-        object->flags &= 0xFF7F;
+    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
+        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        object->flags |= 0x80;
+        object->flags |= TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObject->flags & 4)) {
-        object->flags &= 0xFFFB;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->flags |= 4;
+    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 /// State table of the child spawned from table entry 3: setup, tick, kill.
@@ -972,22 +972,22 @@ s32 func_actor_213000_8014A8A4(Task* task, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= 0x80;
+            obj->flags     |= TMD_OBJECT_HIDDEN;
             work->field_477 = mode;
-            obj->flags     |= 4;
+            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -1019,25 +1019,25 @@ s32 func_actor_213000_8014A980(Task* task, s32 arg1, GpCmdArg* msg)
         case 0:
             child = work->field_4BC;
             if (child != NULL) {
-                child->extra.tmd->flags &= 0xFF7F;
+                child->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
         case 1:
             child = work->field_4BC;
             if (child != NULL) {
-                child->extra.tmd->flags |= 0x80;
+                child->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             }
             break;
         case 2:
             child = work->field_4C0;
             if (child != NULL) {
-                child->extra.tmd->flags &= 0xFF7F;
+                child->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
         case 3:
             child = work->field_4C0;
             if (child != NULL) {
-                child->extra.tmd->flags |= 0x80;
+                child->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             }
             break;
     }

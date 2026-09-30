@@ -693,7 +693,7 @@ case0:
     obj->flags = 0;
     goto default_body;
 case2:
-    obj->flags = 0x80;
+    obj->flags = TMD_OBJECT_HIDDEN;
     return;
 default_body:
     func_actor_205200_8014BD4C(arg1);
@@ -844,7 +844,7 @@ s32 func_actor_205200_8014C980(Task* task, s32 msgId, s32 arg2)
 
     tmd = task->extra.tmd;
     if (arg2 == 0) {
-        tmd->flags = 0x80;
+        tmd->flags = TMD_OBJECT_HIDDEN;
     } else {
         tmd->flags = 0;
     }

@@ -1501,7 +1501,7 @@ static void Actor02600_Fn01B30(Task* arg0)
         case 0:
             work->field_294.flags  &= 0x7FFF;
             work->field_214.flags  &= 0xBFFF;
-            obj->flags              = (u16)obj->flags | 0x84;
+            obj->flags              = (u16)obj->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = one;
             if (Gp_StateF0.field_1E == one) {
                 if (work->field_3C2 == 0) {
@@ -1522,7 +1522,7 @@ static void Actor02600_Fn01B30(Task* arg0)
             break;
         case 2:
             Tmd_AllocBuffers(obj);
-            obj->flags   = (u16)obj->flags & 0xFFFB;
+            obj->flags   = (u16)obj->flags & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             indexOrSound = 0;
             if (work->field_3C2 == 0) {
                 work->field_39C = 3;
@@ -1777,7 +1777,7 @@ static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
             return;
         case 2:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             return;
         case 0:
         default:
@@ -1801,7 +1801,7 @@ static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
                     work->field_39C = 1;
                     Gp_SetLightMode(arg0, 1);
                     if (work->field_3BA != 0) {
-                        obj->flags = 0x80;
+                        obj->flags = TMD_OBJECT_HIDDEN;
                     }
                     work->field_392 = 0xB;
                     _actor02600TickAnim(arg1);
@@ -1816,7 +1816,7 @@ static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
                         if (work->field_3BA >= 2) {
                             work->field_3BA = 0;
                             Tmd_FreeBuffers(obj);
-                            obj->flags |= 4;
+                            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             Actor02600_Fn03C4C(arg1);
                             Actor02600_Fn03D38(arg1);
                         } else {
@@ -1826,7 +1826,7 @@ static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
                     Actor02600_Fn03B58(arg1);
                     work->field_39E++;
                     if (work->field_39E == 0xA) {
-                        obj->flags = 2;
+                        obj->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     if (work->field_39E == 0xF) {
                         Gp_SpawnEff(0x600A5, coord, 2, NULL);
@@ -1834,7 +1834,7 @@ static void Actor02600_Fn02364(GpEnemy* arg0, Task* arg1)
                     if (work->field_39E >= 0x3C) {
                         work->field_39C = 2;
                         work->field_39E = 0;
-                        obj->flags      = 0x80;
+                        obj->flags      = TMD_OBJECT_HIDDEN;
                     }
                     _actor02600TickAnim(arg1);
                     colorCoord = arg1->extra.tmd->coords;
@@ -1993,8 +1993,8 @@ static void Actor02600_Fn02954(Task* actor, s32 frame)
         setSemiTrans(poly, 1);
         setRGB0(poly, 0x80, 0x80, 0x80);
         setShadeTex(poly, 1);
-        poly->tpage = (s16)(((s32)(((texture->tpage << 6) + 0x180) & 0x3FF) >> 6) | 0xB0);
-        poly->clut  = (s16)(((s32)((u8)texture->clut << 0x18) >> 0x12) + 0x3D40);
+        poly->tpage = (s16)(((s32)(((texture->texturePageOffset << 6) + 0x180) & 0x3FF) >> 6) | 0xB0);
+        poly->clut  = (s16)(((s32)((u8)texture->clutRowOffset << 0x18) >> 0x12) + 0x3D40);
         uv          = &Actor02600_D08A78[frame >> 1];
         poly->u0    = (u8)uv->u;
         poly->v0    = (u8)uv->v;
@@ -2326,7 +2326,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = 1;
     return;
 default_body:
@@ -2599,9 +2599,9 @@ static void Actor02600_Fn03C4C(Task* actor)
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->texturePageOffset;
-    model->clut  = entry->clutRowOffset;
+    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

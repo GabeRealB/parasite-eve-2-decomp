@@ -856,7 +856,7 @@ static void func_actor_135600_801324D0(Task* arg0)
     GfxCoord*        coord;
     s32              i;
 
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
@@ -1374,22 +1374,22 @@ s32 func_actor_135600_80133240(Task* task, s32 msgId, s32 mode, s32 arg3)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags         |= 0x80;
+            obj->flags         |= TMD_OBJECT_HIDDEN;
             work->freeCountdown = mode;
-            obj->flags         |= 4;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

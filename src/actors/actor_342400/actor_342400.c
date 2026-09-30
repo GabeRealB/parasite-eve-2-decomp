@@ -307,21 +307,21 @@ static void func_actor_342400_80162084(Task* arg0)
         enemy           = work->enemy0;
         enemy->placeKey = D_actor_342400_80173AAC << 12;
         D_actor_342400_80173AAC++;
-        task       = enemy->task;
-        obj        = task->extra.tmd;
-        obj->tpage = 3;
-        obj->clut  = 5;
-        enemy->hp  = 1;
+        task                   = enemy->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->hp              = 1;
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
         enemy->placeKey = D_actor_342400_80173AAC << 12;
         D_actor_342400_80173AAC++;
-        task       = enemy->task;
-        obj        = task->extra.tmd;
-        obj->tpage = 3;
-        obj->clut  = 5;
-        enemy->hp  = 1;
+        task                   = enemy->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->hp              = 1;
     }
     D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
     arg0->state++;
@@ -634,13 +634,13 @@ static void func_actor_342400_80162C10(Task* arg0)
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->frames > 60) {
-        obj                = task->extra.tmd;
-        obj->clut          = 2;
-        obj->tpage         = 0;
-        enemy->workType    = 0x900;
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0x2C;
-        msg.command        = arg0->spawnArg1.value;
+        obj                    = task->extra.tmd;
+        obj->clutRowOffset     = 2;
+        obj->texturePageOffset = 0;
+        enemy->workType        = 0x900;
+        msg.from.loc.stage     = 0;
+        msg.from.loc.area      = 0x2C;
+        msg.command            = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
         arg0->state++;
     }
@@ -692,9 +692,9 @@ static void func_actor_342400_80162DA0(Task* arg0)
             work->enemy                                                        = enemy;
             enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
             D_actor_342400_80173AAC++;
-            obj        = enemy->task->extra.tmd;
-            obj->tpage = 2;
-            obj->clut  = 4;
+            obj                    = enemy->task->extra.tmd;
+            obj->texturePageOffset = 2;
+            obj->clutRowOffset     = 4;
             arg0->state++;
             return;
         }
@@ -713,13 +713,13 @@ static void func_actor_342400_80162E6C(Task* arg0)
     enemy = work->enemy;
     task  = enemy->task;
     if (++work->frames > 60) {
-        obj                = task->extra.tmd;
-        obj->tpage         = 2;
-        obj->clut          = 4;
-        enemy->workType    = 0x900;
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0x2A;
-        msg.command        = arg0->spawnArg1.value;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 2;
+        obj->clutRowOffset     = 4;
+        enemy->workType        = 0x900;
+        msg.from.loc.stage     = 0;
+        msg.from.loc.area      = 0x2A;
+        msg.command            = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
         arg0->state++;
     }
@@ -771,14 +771,14 @@ static void func_actor_342400_80163010(Task* arg0)
 
     enemy = work->enemy0;
     if (enemy != NULL) {
-        task               = enemy->task;
-        obj                = task->extra.tmd;
-        obj->tpage         = 3;
-        obj->clut          = 5;
-        enemy->workType    = 0x900;
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0x2E;
-        msg.command        = arg0->spawnArg1.value;
+        task                   = enemy->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->workType        = 0x900;
+        msg.from.loc.stage     = 0;
+        msg.from.loc.area      = 0x2E;
+        msg.command            = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
     }
     work->frames = 0;
@@ -799,14 +799,14 @@ static void func_actor_342400_801630A4(Task* arg0)
         if (++work->frames <= 0x3C) {
             return;
         }
-        task               = work->enemy1->task;
-        obj                = task->extra.tmd;
-        obj->tpage         = 3;
-        obj->clut          = 5;
-        enemy->workType    = 0x900;
-        msg.from.loc.stage = 0;
-        msg.from.loc.area  = 0x2E;
-        msg.command        = arg0->spawnArg1.value;
+        task                   = work->enemy1->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->workType        = 0x900;
+        msg.from.loc.stage     = 0;
+        msg.from.loc.area      = 0x2E;
+        msg.command            = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(task, 0x7DB, &msg, 0);
     }
     work->frames = 0;

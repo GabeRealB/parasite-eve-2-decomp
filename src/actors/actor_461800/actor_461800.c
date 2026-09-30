@@ -1230,7 +1230,7 @@ static void func_actor_461800_80132AD8(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -1347,14 +1347,14 @@ s32 func_actor_461800_80132E14(Task* arg0, s32 arg1, s32 arg2)
         first->flags  = 0;
         second->flags = 0;
     } else {
-        own->flags    = 0x80;
-        first->flags  = 0x80;
-        second->flags = 0x80;
+        own->flags    = TMD_OBJECT_HIDDEN;
+        first->flags  = TMD_OBJECT_HIDDEN;
+        second->flags = TMD_OBJECT_HIDDEN;
     }
     if (arg2 & 2) {
-        own->flags    |= 4;
-        first->flags  |= 4;
-        second->flags |= 4;
+        own->flags    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        first->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        second->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
@@ -1668,10 +1668,10 @@ s32 func_actor_461800_80133928(Task* task, s32 arg1, s32 arg2)
     if (arg2 & 1) {
         obj->flags = 0;
     } else {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     }
     if (arg2 & 2) {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
@@ -1765,7 +1765,7 @@ static void func_actor_461800_80133B98(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];

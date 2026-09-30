@@ -2888,8 +2888,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                             model = task->extra.tmd;
                             coord = model->coords;
                             if (task->spawnType == 1) {
-                                model->tpage = placement->texturePageOffset;
-                                model->clut  = placement->clutRowOffset;
+                                model->texturePageOffset = placement->texturePageOffset;
+                                model->clutRowOffset     = placement->clutRowOffset;
                                 if (model->buffer != NULL) {
                                     tmdProcessStream(model);
                                     tmdProcessStream(model);
@@ -3196,9 +3196,9 @@ void Gp_ApplyAreaTmdFlags(void)
                         if (id == place->entryId) {
                             flags = entry->field_8->flags;
                             if (flags == 1) {
-                                extra->flags &= 0xFFFB;
+                                extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                             } else if (flags == 0x101) {
-                                extra->flags |= 4;
+                                extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;
                         }
@@ -3256,8 +3256,8 @@ GpWorkObj* Gp_FindWorkById(u16 arg0)
 
 void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
 {
-    arg0->tpage = arg1;
-    arg0->clut  = arg2;
+    arg0->texturePageOffset = arg1;
+    arg0->clutRowOffset     = arg2;
     if (arg0->buffer != NULL) {
         tmdProcessStream(arg0);
         tmdProcessStream(arg0);
@@ -3641,7 +3641,7 @@ void Gp_FreeSlot4TmdBuffers(void)
         do {
             if (iter->spawnType == 1) {
                 obj         = iter->extra.tmd;
-                obj->flags |= 4;
+                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                 Tmd_FreeBuffers(obj);
             }
             iter = iter->nextSibling;

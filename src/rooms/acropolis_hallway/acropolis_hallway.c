@@ -566,17 +566,17 @@ void func_acropolis_hallway_8017E120(Task* task)
     tmd  = task->extra.tmd;
     flag = Gp_GetCurBit2Flag(obj->field_8);
     if (task->state == 0) {
-        tmd->flags    = 8;
+        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
         task->state++;
     }
     if (Gp_GetViewIndex() == 5) {
-        tmd->flags = 8;
+        tmd->flags = TMD_OBJECT_FLAGGED_PASS;
     } else {
-        tmd->flags = 0x80;
+        tmd->flags = TMD_OBJECT_HIDDEN;
     }
     if (flag == 2) {
-        tmd->flags = 0x80;
+        tmd->flags = TMD_OBJECT_HIDDEN;
     }
 }
 
@@ -594,9 +594,9 @@ static void func_acropolis_hallway_8017E1C0(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {
-        tmd->flags |= 4;
+        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        tmd->flags    = 8;
+        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }

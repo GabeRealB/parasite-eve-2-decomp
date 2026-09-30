@@ -104,31 +104,18 @@ typedef struct Actor403600DistanceScratch {
 } Actor403600DistanceScratch;
 STATIC_ASSERT_SIZEOF(Actor403600DistanceScratch, 0x24);
 
-typedef struct Actor403600TurnMatrix {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s16 field_10;
-    /* 0x12 */ s16 pad_12;
-    /* 0x14 */ s32 field_14;
-    /* 0x18 */ s32 field_18;
-    /* 0x1C */ s32 field_1C;
-} Actor403600TurnMatrix;
-STATIC_ASSERT_SIZEOF(Actor403600TurnMatrix, 0x20);
-
 typedef struct Actor403600TurnScratch {
-    /* 0x00 */ u16                   angles[4];
-    /* 0x08 */ s16                   vector[4];
-    /* 0x10 */ Actor403600TurnMatrix matrix;
+    /* 0x00 */ u16        angles[4];
+    /* 0x08 */ s16        vector[4];
+    /* 0x10 */ OverlayMat matrix;
 } Actor403600TurnScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TurnScratch, 0x30);
 
 /// Scratch vector, rotation matrix and yaw used by func_actor_403600_8013C864.
 typedef struct Actor403600TargetScratch {
-    /* 0x00 */ SVECTOR               vector;
-    /* 0x08 */ Actor403600TurnMatrix matrix;
-    /* 0x28 */ s32                   angle;
+    /* 0x00 */ SVECTOR    vector;
+    /* 0x08 */ OverlayMat matrix;
+    /* 0x28 */ s32        angle;
 } Actor403600TargetScratch;
 STATIC_ASSERT_SIZEOF(Actor403600TargetScratch, 0x2C);
 
@@ -584,7 +571,7 @@ static void func_actor_403600_80138EF8(GpEnemy* enemy, Task* task)
     Gp_UpdateCoord(temp_a0);
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(temp_s0);
-    temp_s2->flags        = 0x80;
+    temp_s2->flags        = TMD_OBJECT_HIDDEN;
     temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
     temp_s2->lightMtx     = &temp_v0->field_494;
     temp_s2->colorMtx     = &temp_v0->field_474;
@@ -726,7 +713,7 @@ case1:
     }
     return;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = 9;
     return;
 default_body:
@@ -2510,24 +2497,24 @@ static void func_actor_403600_8013A444(Task* arg0)
 /// an identity turn matrix for `RotMatrixY` to rotate.
 static inline void _actor403600ArcStart(Actor403600TargetScratch* s)
 {
-    Actor403600TurnMatrix* m;
+    OverlayMat* m;
 
-    s->vector.vx = 0;
-    s->vector.vy = 0;
-    m            = &s->matrix;
-    s->vector.vz = 0x3A98 - D_actor_403600_801605D4.vz;
-    m->field_0   = 0x1000;
-    m->field_4   = 0;
-    m->field_8   = 0x1000;
-    m->field_C   = 0;
-    m->field_10  = 0x1000;
+    s->vector.vx     = 0;
+    s->vector.vy     = 0;
+    m                = &s->matrix;
+    s->vector.vz     = 0x3A98 - D_actor_403600_801605D4.vz;
+    m->ident.m00_m01 = 0x1000;
+    m->ident.m02_m10 = 0;
+    m->ident.m11_m12 = 0x1000;
+    m->ident.m20_m21 = 0;
+    m->ident.m22     = 0x1000;
 }
 
 /// Rotates the arc vector by the turn matrix on the GTE and places the actor's
 /// target at the result offset from the anchor, 0x3E8 above the player.
 static inline void _actor403600ArcFinish(Actor403600Work* work, Actor403600TargetScratch* s)
 {
-    gte_SetRotMatrix(&s->matrix);
+    gte_SetRotMatrix(&s->matrix.mat);
     gte_ldv0(s);
     gte_rtv0();
     gte_stsv(s);
@@ -2565,7 +2552,7 @@ static void func_actor_403600_8013C864(Task* arg0)
             s->angle = -s->angle;
         }
         _actor403600ArcStart(s);
-        RotMatrixY(s->angle, (MATRIX*)&s->matrix);
+        RotMatrixY(s->angle, &s->matrix.mat);
         _actor403600ArcFinish(work, s);
         if ((u32)(Player_Status.coordMtx->t[0] - 0xDAC) < 0x2135 &&
             (u32)(Player_Status.coordMtx->t[2] - 0x7D0) < 0x2711) {
@@ -2585,7 +2572,7 @@ static void func_actor_403600_8013C864(Task* arg0)
         work->field_734++;
     } else {
         _actor403600ArcStart(s);
-        RotMatrixY(work->field_780, (MATRIX*)&s->matrix);
+        RotMatrixY(work->field_780, &s->matrix.mat);
         _actor403600ArcFinish(work, s);
         work->field_792 = 0x96;
         work->field_734++;
@@ -3145,9 +3132,9 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     s32                     stepped;
     s32                     temp_lo;
     s32                     temp_s5;
-    Actor403600TurnMatrix*  temp_s0;
+    OverlayMat*             temp_s0;
     MATRIX*                 temp_s0_2;
-    Actor403600TurnMatrix*  temp_s0_3;
+    OverlayMat*             temp_s0_3;
     MATRIX*                 temp_s0_4;
     SVECTOR*                temp_s1;
     SVECTOR*                temp_s2;
@@ -3190,37 +3177,37 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     temp_lo   = temp_v0_3 * temp_v0_3;
     temp_s5   = SquareRoot0((temp_v0 * temp_v0) + (temp_v0_2 * temp_v0_2) + temp_lo);
     if (temp_s4->field_746 == 3) {
-        temp_s2                   = (SVECTOR*)temp_v1_2->vector;
-        temp_s0                   = &temp_v1_2->matrix;
-        temp_v1_2->matrix.field_0 = 0x1000;
-        temp_s0->field_4          = 0;
-        temp_s0->field_8          = 0x1000;
-        temp_s0->field_C          = 0;
-        temp_s0->field_10         = 0x1000;
+        temp_s2                         = (SVECTOR*)temp_v1_2->vector;
+        temp_s0                         = &temp_v1_2->matrix;
+        temp_v1_2->matrix.ident.m00_m01 = 0x1000;
+        temp_s0->ident.m02_m10          = 0;
+        temp_s0->ident.m11_m12          = 0x1000;
+        temp_s0->ident.m20_m21          = 0;
+        temp_s0->ident.m22              = 0x1000;
         VectorNormalSS(temp_s2, temp_s2);
         temp_v1_2->angles[0] = 0;
         temp_v1_2->angles[1] = 0x1000;
         temp_v1_2->angles[2] = 0;
-        Gfx_OrthonormalBasis((MATRIX*)temp_s0, temp_s2, (SVECTOR*)temp_v1_2);
-        Gfx_MatrixToEuler((MATRIX*)temp_s0, (SVECTOR*)temp_v1_2);
+        Gfx_OrthonormalBasis(&temp_s0->mat, temp_s2, (SVECTOR*)temp_v1_2);
+        Gfx_MatrixToEuler(&temp_s0->mat, (SVECTOR*)temp_v1_2);
         temp_s0_2            = &temp_s4->field_4B8.coord;
         temp_v1_2->angles[2] = (u16)(temp_v1_2->angles[2] + temp_s4->field_75E);
         Gfx_RotMatrixXYZ(temp_s0_2, (SVECTOR*)temp_v1_2, 1);
         Gfx_MatrixCol2(temp_s0_2, (SVECTOR*)temp_v1_2);
     } else {
-        temp_s1                   = (SVECTOR*)temp_v1_2->vector;
-        temp_s0_3                 = &temp_v1_2->matrix;
-        temp_v1_2->matrix.field_0 = 0x1000;
-        temp_s0_3->field_4        = 0;
-        temp_s0_3->field_8        = 0x1000;
-        temp_s0_3->field_C        = 0;
-        temp_s0_3->field_10       = 0x1000;
+        temp_s1                         = (SVECTOR*)temp_v1_2->vector;
+        temp_s0_3                       = &temp_v1_2->matrix;
+        temp_v1_2->matrix.ident.m00_m01 = 0x1000;
+        temp_s0_3->ident.m02_m10        = 0;
+        temp_s0_3->ident.m11_m12        = 0x1000;
+        temp_s0_3->ident.m20_m21        = 0;
+        temp_s0_3->ident.m22            = 0x1000;
         VectorNormalSS(temp_s1, temp_s1);
         temp_v1_2->angles[0] = 0;
         temp_v1_2->angles[1] = 0x1000;
         temp_v1_2->angles[2] = 0;
-        Gfx_OrthonormalBasis((MATRIX*)temp_s0_3, temp_s1, (SVECTOR*)temp_v1_2);
-        Gfx_MatrixToEuler((MATRIX*)temp_s0_3, (SVECTOR*)temp_v1_2);
+        Gfx_OrthonormalBasis(&temp_s0_3->mat, temp_s1, (SVECTOR*)temp_v1_2);
+        Gfx_MatrixToEuler(&temp_s0_3->mat, (SVECTOR*)temp_v1_2);
         Gfx_MatrixToEuler(&temp_s4->field_4B8.coord, temp_s1);
         diff     = (temp_v1_2->angles[0] & 0xFFF) - (temp_v1_2->vector[0] & 0xFFF);
         turnDiff = diff;
@@ -3891,8 +3878,8 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
     s32                    angle;
     s32                    i;
     u32                    randomState;
-    Actor403600TurnMatrix* worldMatrix;
-    Actor403600TurnMatrix* modelMatrix;
+    OverlayMat*            worldMatrix;
+    OverlayMat*            modelMatrix;
 
     model      = task->extra.tmd;
     modelCoord = model->coords;
@@ -3903,31 +3890,31 @@ static void func_actor_403600_8013F7B8(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    worldCoord                   = &work->field_4B8;
-    task->work                   = work;
-    model->flags                 = 2;
-    model->lightLevel            = 0;
-    work->field_4B8.parent       = &gGfxViewCoord;
-    worldMatrix                  = (Actor403600TurnMatrix*)&work->field_4B8.coord;
-    worldMatrix->field_0         = 0x1000;
-    worldMatrix->field_4         = 0;
-    worldMatrix->field_8         = 0x1000;
-    worldMatrix->field_C         = 0;
-    worldMatrix->field_10        = 0x1000;
-    modelMatrix                  = (Actor403600TurnMatrix*)&modelCoord->coord;
-    work->field_4B8.coord.t[0]   = 0;
-    work->field_4B8.coord.t[1]   = 0;
-    work->field_4B8.coord.t[2]   = 0;
-    modelCoord->parent           = worldCoord;
-    modelMatrix->field_0         = 0x1000;
-    modelMatrix->field_4         = 0;
-    modelMatrix->field_8         = 0x1000;
-    modelMatrix->field_C         = 0;
-    modelMatrix->field_10        = 0x1000;
-    modelCoord->coord.t[0]       = 0;
-    modelCoord->coord.t[1]       = 0x744;
-    modelCoord->coord.t[2]       = 0;
-    work->field_4B8.composeStamp = GRAPHICS_COORD_DIRTY;
+    worldCoord                        = &work->field_4B8;
+    task->work                        = work;
+    model->flags                      = TMD_OBJECT_SEMI_TRANS;
+    model->shading.screenFadeDistance = 0;
+    work->field_4B8.parent            = &gGfxViewCoord;
+    worldMatrix                       = (OverlayMat*)&work->field_4B8.coord;
+    worldMatrix->ident.m00_m01        = 0x1000;
+    worldMatrix->ident.m02_m10        = 0;
+    worldMatrix->ident.m11_m12        = 0x1000;
+    worldMatrix->ident.m20_m21        = 0;
+    worldMatrix->ident.m22            = 0x1000;
+    modelMatrix                       = (OverlayMat*)&modelCoord->coord;
+    work->field_4B8.coord.t[0]        = 0;
+    work->field_4B8.coord.t[1]        = 0;
+    work->field_4B8.coord.t[2]        = 0;
+    modelCoord->parent                = worldCoord;
+    modelMatrix->ident.m00_m01        = 0x1000;
+    modelMatrix->ident.m02_m10        = 0;
+    modelMatrix->ident.m11_m12        = 0x1000;
+    modelMatrix->ident.m20_m21        = 0;
+    modelMatrix->ident.m22            = 0x1000;
+    modelCoord->coord.t[0]            = 0;
+    modelCoord->coord.t[1]            = 0x744;
+    modelCoord->coord.t[2]            = 0;
+    work->field_4B8.composeStamp      = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(worldCoord);
     modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(modelCoord);
@@ -4085,7 +4072,7 @@ static void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
             _actor403600UpdateColor(arg0, arg1);
             return;
         case 2:
-            obj->flags               = 0x80;
+            obj->flags               = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 9;
             return;
         case 0:
@@ -4107,9 +4094,9 @@ static void func_actor_403600_8013FC2C(GpEnemy* arg0, Task* arg1)
                 }
             }
             if ((s16)work->field_74E >= work->field_754 || work->field_742 != 0) {
-                arg0->node.state.b.flags = 1;
-                obj->lightLevel          = 0x12C;
-                arg1->killCountdown      = 0x3C;
+                arg0->node.state.b.flags        = 1;
+                obj->shading.screenFadeDistance = 0x12C;
+                arg1->killCountdown             = 0x3C;
                 arg1->state++;
             }
             break;
@@ -4288,7 +4275,7 @@ static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            object->flags           |= 0x80;
+            object->flags           |= TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
         case 0:
@@ -4297,8 +4284,8 @@ static void func_actor_403600_80140488(GpEnemy* arg0, Task* arg1)
     }
     switch (work->field_732) {
         case 0:
-            object->lightLevel    += 3;
-            arg1->extra.tmd->flags = 0;
+            object->shading.screenFadeDistance += 3;
+            arg1->extra.tmd->flags              = 0;
             if (--arg1->killCountdown <= 0) {
                 work->field_732 = 1;
                 work->field_734 = 0;
@@ -4398,8 +4385,8 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
         case 4:
             D_actor_403600_801606B0 = Task_SpawnFromTable(&D_8016E468, 0, 0, 0);
             Gp_DispatchMsg(Gp_ActorSlots[0], 0x3F3, 0, 0);
-            arg0->extra.tmd->flags |= 0x80;
-            arg0->extra.tmd->flags |= 4;
+            arg0->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_4B4         = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
             break;
         case 5:
@@ -4412,10 +4399,10 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             Gp_DispatchMsgPtr(Gp_ActorSlots[0], 0x3E9, &D_actor_403600_801606E0.value, 0);
             D_actor_403600_80160568.animationId = 0xB;
             Gp_DispatchMsgPtr(Gp_ActorSlots[0], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
-            childWork               = work->field_4B4->task->work;
-            childObject             = work->field_4B4->task->extra.tmd;
-            childWork->field_730    = 0xD;
-            childObject->lightLevel = 0;
+            childWork                               = work->field_4B4->task->work;
+            childObject                             = work->field_4B4->task->extra.tmd;
+            childWork->field_730                    = 0xD;
+            childObject->shading.screenFadeDistance = 0;
             break;
         case 6:
             work->field_73C            = -0x50;
@@ -4432,8 +4419,8 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             work->field_4B8.composeStamp = GRAPHICS_COORD_DIRTY;
             Gp_UpdateCoord(&work->field_4B8);
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags &= 0xFFFB;
-            arg0->extra.tmd->flags &= 0xFF7F;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
             work->field_732         = 0;
             break;
         case 7:
@@ -4451,13 +4438,13 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, GpCmdArg* arg2)
             angles.vz                  = 0;
             RotMatrix(&angles, &work->field_4B8.coord);
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags &= 0xFFFB;
-            arg0->extra.tmd->flags &= 0xFF7F;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
             break;
         case 8:
             work->field_730           = 0;
-            arg0->extra.tmd->flags   |= 0x80;
-            arg0->extra.tmd->flags   |= 4;
+            arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 1;
             break;
         case 9:
@@ -4548,9 +4535,9 @@ static void func_actor_403600_80140B4C(GpEnemy* enemy, Task* actor)
         }
     } else {
         if (work->field_73A >= 0x258) {
-            object->lightLevel += 3;
-            if (object->lightLevel >= 0x259) {
-                object->lightLevel = 0x258;
+            object->shading.screenFadeDistance += 3;
+            if (object->shading.screenFadeDistance >= 0x259) {
+                object->shading.screenFadeDistance = 0x258;
             }
             if (work->field_73A < 0x2EF && (work->field_73A & 2)) {
                 if (_actor403600Rand() & 1) {
@@ -4865,9 +4852,9 @@ static void func_actor_403600_801419E8(Task* arg0)
 {
     TmdObject* obj;
 
-    obj          = arg0->extra.tmd;
-    *&obj->tpage = -0xF;
-    obj->clut    = 2;
+    obj                      = arg0->extra.tmd;
+    *&obj->texturePageOffset = -0xF;
+    obj->clutRowOffset       = 2;
     if (obj->buffer != NULL) {
         tmdProcessStream(obj);
         tmdProcessStream(obj);
@@ -5070,9 +5057,9 @@ static void func_actor_403600_80141E78(GpEnemy* arg0, Task* arg1)
     if ((s16)value >= 2) {
         Tmd_AllocBuffers(arg1->extra.tmd);
         obj          = arg1->extra.tmd;
-        obj->flags  &= 0xFFFB;
+        obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         obj2         = arg1->extra.tmd;
-        obj2->flags &= 0xFF7F;
+        obj2->flags &= (u16)~TMD_OBJECT_HIDDEN;
         arg1->state++;
         work->field_73A = 0;
         work->field_77C = 0;

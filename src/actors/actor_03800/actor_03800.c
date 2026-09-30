@@ -2043,7 +2043,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = 0x80;
+    obj->flags = TMD_OBJECT_HIDDEN;
     return;
 default_body:
     st = work->field_354;
@@ -2085,7 +2085,7 @@ death:
     Gp_ReleaseStateF0Add(arg1, 0x26);
     work->field_354 = 1;
     if (work->field_368 != 0) {
-        obj->flags      = 0x80;
+        obj->flags      = TMD_OBJECT_HIDDEN;
         work->field_354 = 3;
     }
     _actor03800TickAnim(arg1);
@@ -2103,14 +2103,14 @@ dying:
     phase           = work->field_356 + 1;
     work->field_356 = phase;
     if (phase == 10) {
-        obj->flags = 2;
+        obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if (work->field_356 == 15) {
         Gp_SpawnEff(0x600A5, coord, 2, NULL);
     }
     if (work->field_356 >= 0x3C) {
         work->field_354 = 2;
-        obj->flags      = 0x80;
+        obj->flags      = TMD_OBJECT_HIDDEN;
     }
     _actor03800TickAnim(arg1);
     c      = ((Actor103800Work*)arg1->work)->field_344;
@@ -2131,7 +2131,7 @@ case3:
     }
     work->field_368 = 0;
     Tmd_FreeBuffers(obj);
-    obj->flags |= 4;
+    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor03800_Fn02E50(arg1);
     goto timer;
 inc368:
@@ -2227,9 +2227,9 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     areaSyncLocationVariant(&key);
     rec = Gp_GetNestedAreaRec(&key);
 
-    entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->texturePageOffset;
-    model->clut  = entry->clutRowOffset;
+    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -2273,7 +2273,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2394,7 +2394,7 @@ static void Actor03800_Fn034B0(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     switch (Gp_StateF0.field_20) {
         case 0:
-            obj->flags              = 0x84;
+            obj->flags              = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = 1;
             return;
         case 1:

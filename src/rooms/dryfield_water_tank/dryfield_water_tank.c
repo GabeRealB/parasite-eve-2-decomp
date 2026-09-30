@@ -101,7 +101,7 @@ typedef struct DwtScriptWork {
 STATIC_ASSERT_SIZEOF(DwtScriptWork, 0x58);
 
 /// Light/colour matrix pair `func_dryfield_water_tank_8017DD20` allocates for
-/// its `TmdObject` and republishes onto `TmdObject::lightMtx` / `field_20` —
+/// its `TmdObject` and republishes onto `TmdObject::lightMtx` / `colorMtx` —
 /// the pair `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` /
 /// `Gp_DefaultMtx2`. The task parks the block in `Task::work` (0x1C), which is
 /// not a `TaskIdMap` here; `owner` is the slot-3 game task the same allocation
@@ -1234,7 +1234,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
                 Mem_Set(mtx, 0, 0x58);
                 mtx->owner    = gameGetPtrSlot(3);
                 coord->parent = &gGfxViewCoord;
-                extra->flags  = 0x80;
+                extra->flags  = TMD_OBJECT_HIDDEN;
                 Tmd_AllocBuffers(extra);
                 extra->lightMtx = &mtx->light;
                 extra->colorMtx = &mtx->color;
@@ -1335,7 +1335,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
     work->field_50 = 0;
 }
 
-/// Hides the task's `TmdObject` (bit 0x80 of `field_C`) while `arg2` is zero,
+/// Hides the task's `TmdObject` (`flags & TMD_OBJECT_HIDDEN`) while `arg2` is zero,
 /// and clears that bit otherwise. `arg1` is unused; the flag is the *third*
 /// argument, so the second slot is only there to place it in `$a2`. Byte for
 /// byte the actors library's `ActorsShared801346ec`, which toggles the same bit
@@ -1346,10 +1346,10 @@ void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (arg2 != 0) {
-        obj->flags = obj->flags & 0xFF7F;
+        obj->flags = obj->flags & (u16)~TMD_OBJECT_HIDDEN;
         return;
     }
-    obj->flags = obj->flags | 0x80;
+    obj->flags = obj->flags | TMD_OBJECT_HIDDEN;
 }
 
 /// Message 0x7D4 handler of the model task: copies `placement` onto the task's

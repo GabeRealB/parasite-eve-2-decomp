@@ -886,22 +886,22 @@ s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= 0x80;
+            obj->flags     |= TMD_OBJECT_HIDDEN;
             work->field_4C8 = mode;
-            obj->flags     |= 4;
+            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

@@ -518,7 +518,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             return;
         case 0:
             break;
@@ -612,7 +612,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
             }
             work->field_328++;
             if ((s16)work->field_328 == 0x14) {
-                obj->flags |= 2;
+                obj->flags |= TMD_OBJECT_SEMI_TRANS;
             }
             if ((s16)work->field_328 == 0x1E) {
                 Gp_SpawnEff(0x600A5, coord, 5, NULL);
@@ -907,10 +907,10 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     key.room           = sessionKey->room;
     key.view           = sessionKey->view;
     areaSyncLocationVariant(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = place->texturePageOffset;
-    model->clut  = place->clutRowOffset;
+    rec                      = Gp_GetNestedAreaRec(&key);
+    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = place->texturePageOffset;
+    model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -964,7 +964,7 @@ case1:
     func_actor_105300_801335B8(arg1);
     return;
 case2:
-    temp_a1->flags           = 0x80;
+    temp_a1->flags           = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:

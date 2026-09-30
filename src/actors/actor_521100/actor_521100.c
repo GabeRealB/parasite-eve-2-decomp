@@ -1713,9 +1713,9 @@ static void func_actor_521100_80131E8C(GpEnemy* enemy, Task* task)
     areaSyncLocationVariant(&key);
     /* offset + base, as in the sibling spawn bodies: the ROM adds the scaled
        index onto the table. */
-    place        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
-    model->tpage = place->texturePageOffset;
-    model->clut  = place->clutRowOffset;
+    place                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, idx);
+    model->texturePageOffset = place->texturePageOffset;
+    model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -3420,8 +3420,8 @@ case0:
     arg0->node.state.b.flags             = 8;
     goto default_body;
 case2:
-    temp_a1->flags                       = 0x80;
-    temp_s1->field_654->extra.tmd->flags = 0x80;
+    temp_a1->flags                       = TMD_OBJECT_HIDDEN;
+    temp_s1->field_654->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags             = one;
     return;
 default_body:
@@ -3725,7 +3725,7 @@ static void func_actor_521100_80135B80(GpEnemy* arg0, Task* task)
             obj->flags = mode | 4;
         }
         if (work->field_694 != 0) {
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
         }
     }
 }

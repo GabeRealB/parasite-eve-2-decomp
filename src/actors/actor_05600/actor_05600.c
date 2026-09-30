@@ -2149,7 +2149,7 @@ static void Actor05600_Fn01A4C(GpEnemy* arg0, Task* arg1)
             Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
             return;
         case 2:
-            arg1->extra.tmd->flags   = 0x80;
+            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -2797,7 +2797,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            tmd->flags = 0x80;
+            tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
 
@@ -2828,7 +2828,7 @@ static void Actor05600_Fn035F0(GpEnemy* arg0, Task* arg1)
     }
     if (work->rec60[0].key.value != 0 || found || ++work->field_EA >= 0x5A) {
         Gp_SpawnEff(D_80115750, coord, (s32)(work->field_EE), NULL);
-        arg1->extra.tmd->flags = 0x80;
+        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         ctx                    = arg1->spawnArg2.pointer;
         sound                  = Actor05600_D162F4.value | (((u16)ctx->placeKey >> 0xC) << 8);
         pan                    = (s8)Gp_GetObjPan(coord);
@@ -3137,7 +3137,7 @@ static void Actor05600_Fn03EBC(GpEnemy* ctx, Task* actor)
             _actor05600Draw(actor, coord);
             return;
         case 2:
-            model->flags            = 0x80;
+            model->flags            = TMD_OBJECT_HIDDEN;
             ctx->node.state.b.flags = 1;
             return;
     }
@@ -3581,12 +3581,12 @@ static void Actor05600_Fn04B10(GpEnemy* enemy, Task* task)
     work                   = (Actor105600Work*)task->parent->work;
     task->extra.tmd->flags = task->parent->extra.tmd->flags;
     if (work->field_6BA != 0) {
-        work->field_6BA = 0;
-        spawned         = Gp_SpawnEnemyFromTable(work->field_66C, 2, 0, enemy);
-        src             = task->extra.tmd;
-        dst             = spawned->task->extra.tmd;
-        dst->tpage      = src->tpage;
-        dst->clut       = src->clut;
+        work->field_6BA        = 0;
+        spawned                = Gp_SpawnEnemyFromTable(work->field_66C, 2, 0, enemy);
+        src                    = task->extra.tmd;
+        dst                    = spawned->task->extra.tmd;
+        dst->texturePageOffset = src->texturePageOffset;
+        dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
             tmdProcessStream(dst);
             tmdProcessStream(dst);

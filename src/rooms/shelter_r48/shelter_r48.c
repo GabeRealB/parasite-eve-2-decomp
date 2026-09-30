@@ -1845,7 +1845,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     xLeft   = -0xA0;
     xRight  = 0xA0;
     if (arg0->state == 0) {
-        tmd->flags &= ~4;
+        tmd->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(tmd);
         arg0->state++;
     }

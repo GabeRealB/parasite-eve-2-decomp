@@ -539,7 +539,7 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
     obj->colorMtx       = &work->color;
     work->variant       = enemy->place->mode & 1;
     if (work->variant != 0) {
-        obj->clut += 1;
+        obj->clutRowOffset += 1;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
     }
@@ -1375,7 +1375,7 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
             Gp_UpdateActorColor(arg1->spawnArg2.pointer, &pos, 0, 0);
             return;
         case 2:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             return;
         case 0:
         default:
@@ -1403,14 +1403,14 @@ static void Actor02400_Fn024F8(GpEnemy* arg0, Task* arg1)
                 case 1:
                     work->field_140++;
                     if ((s16)work->field_140 == 10) {
-                        obj->flags = 2;
+                        obj->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     if ((s16)work->field_140 == 15) {
                         Gp_SpawnEff(0x600A5, coord, 3, NULL);
                     }
                     if ((s16)work->field_140 >= 60) {
                         work->field_13E = 2;
-                        obj->flags      = 0x80;
+                        obj->flags      = TMD_OBJECT_HIDDEN;
                     }
                     if (work->field_12A > 0x200) {
                         work->field_12A -= 0x50;
@@ -1635,7 +1635,7 @@ static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
             enemy->node.state.b.flags = 0;
             break;
         case 2:
-            obj->flags                = 0x80;
+            obj->flags                = TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags = 1;
             return;
     }

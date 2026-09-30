@@ -141,7 +141,7 @@ extern SVECTOR D_actor_121300_8013CDC8[];
 
 /// 0x5C work block of the debris task `func_actor_121300_8013293C`, allocated
 /// into `Task::work`.  The two matrices are published as the model's light
-/// and colour matrices (`TmdObject::lightMtx` / `field_20`); the rest is a
+/// and colour matrices (`TmdObject::lightMtx` / `colorMtx`); the rest is a
 /// per-frame spin and velocity, all rolled from `Gp_LcgState` on spawn, and a
 /// short random delay before the model's buffers are allocated.
 typedef struct Actor121300DebrisWork {
@@ -2737,13 +2737,13 @@ void func_actor_121300_801341A8(Task* arg0, s32 arg1, s32 arg2)
     extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

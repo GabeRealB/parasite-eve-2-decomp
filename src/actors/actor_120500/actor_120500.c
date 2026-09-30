@@ -840,13 +840,13 @@ void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2)
     extra = task->extra.tmd;
     switch (arg2) {
         case 2:
-            extra->flags = extra->flags | 4;
+            extra->flags = extra->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             /* fallthrough */
         case 0:
-            extra->flags = extra->flags | 0x80;
+            extra->flags = extra->flags | TMD_OBJECT_HIDDEN;
             return;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

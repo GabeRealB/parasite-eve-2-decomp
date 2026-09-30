@@ -1306,7 +1306,7 @@ check:
 /// Spawn tick of the cutscene actor's second phase: allocates the 0x4F0-byte
 /// `Actor136100Work` block, zeroes it and parks it in `Task::work`, then wires
 /// the model object up -- `Tmd_AllocBuffers`, `TmdObject::flags` cleared, the
-/// work block's light/colour matrices into `TmdObject::lightMtx` / `field_20`
+/// work block's light/colour matrices into `TmdObject::lightMtx` / `colorMtx`
 /// and the animation-context task reparented under `D_actor_136100_8014078C`.
 /// The texture page / CLUT row come from the placement record at the nested
 /// area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent), and this all runs even on the `Mem_Malloc` failure path,
@@ -2093,7 +2093,7 @@ static void func_actor_136100_80133A88(Task* task)
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
-    tmd->flags   &= 0xFFFB;
+    tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
     place         = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     entryId       = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
@@ -2429,10 +2429,10 @@ void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (arg2 != 0) {
-        obj->flags = obj->flags & 0xFF7F;
+        obj->flags = obj->flags & (u16)~TMD_OBJECT_HIDDEN;
         return;
     }
-    obj->flags = obj->flags | 0x80;
+    obj->flags = obj->flags | TMD_OBJECT_HIDDEN;
 }
 
 /// Places the task's model in the world frame: its coordinate is re-parented

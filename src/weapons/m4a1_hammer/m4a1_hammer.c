@@ -100,7 +100,7 @@ void func_m4a1_hammer_8011D1E0(Task* task)
     light = &base->light.head.u.coord;
     slot  = &base->light;
 
-    if (((gameGetPtrSlot(3))->extra.tmd->flags & 0x80) == 0 && Gp_State1C->eventState < 2) {
+    if (((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN) == 0 && Gp_State1C->eventState < 2) {
         work->age = work->age + 1;
         switch (task->state) {
             case 0:

@@ -1723,7 +1723,7 @@ static void func_actor_161500_80132874(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -1826,12 +1826,12 @@ s32 func_actor_161500_80132A94(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = 0x80;
-        other->flags = 0x80;
+        self->flags  = TMD_OBJECT_HIDDEN;
+        other->flags = TMD_OBJECT_HIDDEN;
     }
     if (flags & 2) {
-        self->flags  |= 4;
-        other->flags |= 4;
+        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

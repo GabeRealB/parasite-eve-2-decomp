@@ -3228,7 +3228,7 @@ static void Actor00100_Fn04270(Task* arg0)
             Gp_SetLightMode(ctx, 1);
             /* fallthrough */
         case 0xA:
-            arg0->extra.tmd->flags = 2;
+            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(ctx, 2);
             break;
         case 0xF:
@@ -3246,7 +3246,7 @@ static void Actor00100_Fn04270(Task* arg0)
             Gp_SpawnEff(0x600A5, &gGfxViewCoord, 2, &work->field_8B0);
             break;
         case 0x3C:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             break;
     }
 
@@ -4927,7 +4927,7 @@ static void Actor00100_Fn09310(Task* arg0)
     obj  = arg0->extra.tmd;
     if (work->field_4 != 0) {
         work->field_BE4          = 0;
-        obj->flags               = 0x80;
+        obj->flags               = TMD_OBJECT_HIDDEN;
         work->objs[0].obj.radius = 0x19C;
         work->objs[2].obj.flags  = (u16)(work->objs[2].obj.flags & 0xBFFF);
         ctx->node.state.b.flags  = 1;
@@ -4942,7 +4942,7 @@ static void Actor00100_Fn09310(Task* arg0)
     next          = work->field_6 + 1;
     work->field_6 = next;
     if ((s16)next == 2) {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_FreeBuffers(obj);
         D_80114B34[5].arg.model = &Actor00100_D10D60;
         vector.vz               = 0x64;
@@ -4950,10 +4950,10 @@ static void Actor00100_Fn09310(Task* arg0)
         vector.vx               = 0;
         effect                  = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[9], 0x200, &vector);
         if (effect != NULL) {
-            task                   = effect->task;
-            task->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
-            task->extra.tmd->clut  = (u8)arg0->extra.tmd->clut;
-            effectObj              = task->extra.tmd;
+            task                               = effect->task;
+            task->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
+            task->extra.tmd->clutRowOffset     = (u8)arg0->extra.tmd->clutRowOffset;
+            effectObj                          = task->extra.tmd;
             if (effectObj->buffer != 0) {
                 tmdProcessStream(effectObj);
                 tmdProcessStream(task->extra.tmd);
@@ -4965,10 +4965,10 @@ static void Actor00100_Fn09310(Task* arg0)
             vector.vx               = 0;
             effect2                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
-                task2                   = effect2->task;
-                task2->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
-                task2->extra.tmd->clut  = (u8)arg0->extra.tmd->clut;
-                effectObj2              = task2->extra.tmd;
+                task2                               = effect2->task;
+                task2->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
+                task2->extra.tmd->clutRowOffset     = (u8)arg0->extra.tmd->clutRowOffset;
+                effectObj2                          = task2->extra.tmd;
                 if (effectObj2->buffer != 0) {
                     tmdProcessStream(effectObj2);
                     tmdProcessStream(task2->extra.tmd);
@@ -4980,10 +4980,10 @@ static void Actor00100_Fn09310(Task* arg0)
         D_80114B34[5].arg.model = &Actor00100_D12470;
         effect3                 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
-            task3                   = effect3->task;
-            task3->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
-            task3->extra.tmd->clut  = (u8)arg0->extra.tmd->clut;
-            effectObj3              = task3->extra.tmd;
+            task3                               = effect3->task;
+            task3->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
+            task3->extra.tmd->clutRowOffset     = (u8)arg0->extra.tmd->clutRowOffset;
+            effectObj3                          = task3->extra.tmd;
             if (effectObj3->buffer != 0) {
                 tmdProcessStream(effectObj3);
                 tmdProcessStream(task3->extra.tmd);
@@ -4994,10 +4994,10 @@ static void Actor00100_Fn09310(Task* arg0)
         D_80114B34[5].arg.model = &Actor00100_D11F90;
         effect4                 = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
-            task4                   = effect4->task;
-            task4->extra.tmd->tpage = (u8)arg0->extra.tmd->tpage;
-            task4->extra.tmd->clut  = (u8)arg0->extra.tmd->clut;
-            effectObj4              = task4->extra.tmd;
+            task4                               = effect4->task;
+            task4->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
+            task4->extra.tmd->clutRowOffset     = (u8)arg0->extra.tmd->clutRowOffset;
+            effectObj4                          = task4->extra.tmd;
             if (effectObj4->buffer != 0) {
                 tmdProcessStream(effectObj4);
                 tmdProcessStream(task4->extra.tmd);
@@ -5163,11 +5163,11 @@ static void Actor00100_Fn09CCC(Task* arg0)
                 ctx->recs         = 0;
                 ctx->hp           = 0;
                 hiddenObj         = arg0->extra.tmd;
-                hiddenObj->flags |= 0x80;
+                hiddenObj->flags |= TMD_OBJECT_HIDDEN;
             }
             if ((s16)work->field_6 == 0x65) {
                 finishedObj         = arg0->extra.tmd;
-                finishedObj->flags |= 4;
+                finishedObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             if (((s16)work->field_6 >= 0x79) && (work->field_C18 != 1) && (Gp_StateC08.field_A != 1) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 Gp_DispatchMsg(gameGetPtrSlot(7), 0x13F4, (s32)(ctx->placeKey >> 0xC), 0);
@@ -5294,7 +5294,7 @@ static void Actor00100_Fn0A288(GpEnemy* enemy, Task* actor)
             }
             return;
         case 2:
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
     scratchHead = (SVECTOR**)SCRATCH_HEAD_ADDR;
@@ -5558,7 +5558,7 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -5568,13 +5568,13 @@ s32 Actor00100_Fn0B1A4(Task* arg0, s32 arg1, s32 arg2)
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -5674,7 +5674,7 @@ static void Actor00100_Fn0B4D8(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                             |= 0x80;
+        obj->flags                                             |= TMD_OBJECT_HIDDEN;
         work->objs[2].obj.flags                                &= 0xBFFF;
     }
 }

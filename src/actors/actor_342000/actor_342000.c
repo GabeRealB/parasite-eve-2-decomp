@@ -89,7 +89,7 @@
 /// `func_actor_342000_80161EA4` ticks it and passes the id bank
 /// `field_288` indexes. Slot 0 is the child slot that function skips. `light` /
 /// `color` at 0x1D4 / 0x1F4 are the pair `func_actor_342000_80162158`
-/// republishes onto the model's `TmdObject::lightMtx` / `field_20`, exactly as
+/// republishes onto the model's `TmdObject::lightMtx` / `colorMtx`, exactly as
 /// the neighbouring actor overlays lay out theirs.
 typedef struct Actor342000Work {
     /* 0x000 */ GpAnimCtx  ctx;
@@ -1324,13 +1324,13 @@ void func_actor_342000_80163FB8(Task* arg0, s32 arg1, s32 arg2)
     extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

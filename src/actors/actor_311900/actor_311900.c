@@ -30,7 +30,7 @@
 /// Work block allocated by the spawn state `func_actor_311900_8016228C`
 /// (`memCalloc(0x4CC)`) and parked in that task's `Task::work` slot -- that
 /// slot is not a `TaskIdMap` here. `func_actor_311900_8016278C` republishes the
-/// two matrices onto `TmdObject::lightMtx` / `field_20`, the light / colour pair
+/// two matrices onto `TmdObject::lightMtx` / `colorMtx`, the light / colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`.
 ///
 /// The size is the allocation, and the fields below are the ones the spawn
@@ -441,7 +441,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
     if ((Gp_GetViewIndex() & 0xFF) == 0xA) {
         obj->flags = 0;
     } else {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     }
     func_actor_311900_80162100(task);
     task->state += 1;
@@ -467,7 +467,7 @@ static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
         obj->flags      = 0;
         work->field_4C6 = 1;
     } else {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     }
     if ((s16)work->field_4C6 == 1) {
         work->field_4C4++;
@@ -543,7 +543,7 @@ static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
     if ((Gp_GetViewIndex() & 0xFF) == 0xB) {
         obj->flags = 0;
     } else {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     }
     func_actor_311900_80162100(task);
 }
@@ -591,7 +591,7 @@ static s32 func_actor_311900_80162658(GfxCoord* arg0, s16 arg1)
 
 /// Splats an identity light / colour matrix pair into the work block the spawn
 /// state carved out of `Task::work`, republishes both onto the
-/// `TmdObject::lightMtx` / `field_20` slots that the renderer otherwise reads
+/// `TmdObject::lightMtx` / `colorMtx` slots that the renderer otherwise reads
 /// from `Gp_DefaultMtx` / `Gp_DefaultMtx2`, and then overwrites each 3x3 with
 /// the values the actor lights its model with -- the light matrix flat except
 /// for `m[1][0]` and `m[2][2]`, the colour matrix fully pass-through.
@@ -645,7 +645,7 @@ static void func_actor_311900_8016278C(Task* task)
 }
 
 /// Same splat as `func_actor_311900_8016278C`, republishing the light / colour
-/// pair onto `TmdObject::lightMtx` / `field_20` between the identity seed and
+/// pair onto `TmdObject::lightMtx` / `colorMtx` between the identity seed and
 /// the per-actor values: the colour matrix goes fully pass-through, the light
 /// matrix flat except for a negated `m[0][0]`.
 static void func_actor_311900_8016281C(Task* task)

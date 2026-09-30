@@ -2060,7 +2060,7 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
             Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
             return;
         case 2:
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             ctx->node.state.b.flags = 1;
             return;
     }
@@ -2625,7 +2625,7 @@ static void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
             _actor02000Draw(actor, coord);
             return;
         case 2:
-            model->flags            = 0x80;
+            model->flags            = TMD_OBJECT_HIDDEN;
             ctx->node.state.b.flags = 1;
             return;
     }

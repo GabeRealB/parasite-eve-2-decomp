@@ -24,7 +24,7 @@ extern MATRIX Gp_DefaultMtx;
 extern MATRIX Gp_DefaultMtx2;
 
 /// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
-/// `TmdObject.lightMtx` / `field_20` for the `Gp_ActorSlots[1]` actor and
+/// `TmdObject.lightMtx` / `colorMtx` for the `Gp_ActorSlots[1]` actor and
 /// its `field_918` / `field_920` child tasks (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
 extern MATRIX D_80114ED8;

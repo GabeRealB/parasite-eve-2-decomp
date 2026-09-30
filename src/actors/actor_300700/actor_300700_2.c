@@ -1083,7 +1083,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = 0x80;
+    obj->flags = TMD_OBJECT_HIDDEN;
     return;
 default_body:
     st = work->field_37C;
@@ -1144,7 +1144,7 @@ dying:
     phase           = work->field_38C + 1;
     work->field_38C = phase;
     if (phase == 10) {
-        obj->flags = 2;
+        obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if ((s16)work->field_38C == 15) {
         Gp_SpawnEff(0x600A5, coord, 1, NULL);
@@ -1204,7 +1204,7 @@ static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
             func_actor_300700_8016534C(arg1);
             return;
         case 2:
-            obj->flags               = 0x80;
+            obj->flags               = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
     }

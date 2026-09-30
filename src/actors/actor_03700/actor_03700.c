@@ -797,7 +797,7 @@ static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
             break;
         case 1:
         case 2:
-            obj->flags     |= 4;
+            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_24E = 7;
             work->field_248 = 1;
             if (kind == 10) {
@@ -805,7 +805,7 @@ static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
             }
             break;
         case 3:
-            obj->flags     |= 4;
+            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_24E = 10;
             work->field_248 = 1;
             break;
@@ -1748,10 +1748,10 @@ static inline void _actor03700SpawnRemains(Task* task)
     idx        = raw >> 12;
     key.view   = view;
     areaSyncLocationVariant(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->texturePageOffset;
-    model->clut  = entry->clutRowOffset;
+    rec                      = Gp_GetNestedAreaRec(&key);
+    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -1783,7 +1783,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
             _actor03700UpdateColor(task);
             return;
         case 2:
-            task->extra.tmd->flags |= 0x80;
+            task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
         default:
@@ -1796,7 +1796,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     Gp_UnlinkObj(&work->obj);
                     Gp_UnlinkNode(&enemy->node);
                     Gp_ReleaseStateF0Add(task, 0x25);
-                    model->flags = 0x80;
+                    model->flags = TMD_OBJECT_HIDDEN;
                     sound        = ((((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40250003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(obj), (s8)gpGetObjDepth(obj));
                     if (work->field_262 != 0) {
@@ -1819,7 +1819,7 @@ static void Actor03700_Fn020D4(GpEnemy* enemy, Task* task)
                     switch (work->field_268) {
                         case 0:
                             Tmd_FreeBuffers(model);
-                            model->flags |= 4;
+                            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             _actor03700SpawnRemains(task);
                             break;
                         case 1:
@@ -1881,7 +1881,7 @@ static void Actor03700_Fn025C8(Task* task)
     spawn                     = (GpEnemy*)task->spawnArg2.pointer;
     obj                       = ext;
     work->obj.flags          &= 0x3FFF;
-    obj->flags               |= 0x84;
+    obj->flags               |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     spawn->node.state.b.flags = 1;
 
     switch (work->field_250) {
@@ -1917,7 +1917,7 @@ static void Actor03700_Fn025C8(Task* task)
                 Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                 work->field_256 = (Gp_LcgState >> 16) & 0x1F;
                 Tmd_AllocBuffers(obj);
-                obj->flags &= ~4;
+                obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
     }
@@ -1989,7 +1989,7 @@ static void Actor03700_Fn029C0(Task* task)
     switch (mode) {
         case 0:
             work->obj.flags        &= 0x3FFF;
-            obj->flags             |= 0x84;
+            obj->flags             |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             ctx->node.state.b.flags = 1;
             if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
@@ -2003,7 +2003,7 @@ static void Actor03700_Fn029C0(Task* task)
                 Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
                 work->field_256    = (Gp_LcgState >> 16) & 0x1F;
                 Tmd_AllocBuffers(obj);
-                obj->flags &= ~4;
+                obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
         case 1:
@@ -2098,7 +2098,7 @@ case0:
     enemy->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               |= 0x80;
+    obj->flags               |= TMD_OBJECT_HIDDEN;
     enemy->node.state.b.flags = one;
     return;
 default_body:

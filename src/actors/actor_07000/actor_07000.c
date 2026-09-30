@@ -1299,8 +1299,8 @@ static void Actor07000_Fn000EC(GpEnemy* arg0, Task* arg1)
     v                  = (u16)arg1->spawnArg1.value;
     work->field_2D6    = v;
     if ((s16)v == 1 && arg1->spawnType == (s16)v) {
-        obj->tpage = obj->tpage + 1;
-        obj->clut  = obj->clut + 1;
+        obj->texturePageOffset = obj->texturePageOffset + 1;
+        obj->clutRowOffset     = obj->clutRowOffset + 1;
         if (obj->buffer != 0) {
             tmdProcessStream(obj);
             tmdProcessStream(obj);
@@ -1847,7 +1847,7 @@ static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags             |= 0x80;
+            model->flags             |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags = 1;
             break;
         case 0:
@@ -1858,7 +1858,7 @@ static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
                     work->field_2AC -= 0x12C;
                     task->killCountdown--;
                     if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
-                        model->flags = 0x80;
+                        model->flags = TMD_OBJECT_HIDDEN;
                     }
                     if (work->field_2B2 == 6) {
                         work->field_2B8 = 1;
@@ -1899,7 +1899,7 @@ static void Actor07000_Fn011B4(GpEnemy* enemy, Task* task)
                     }
                     Actor07000_Fn02BB8(task);
                     if (work->field_2B6 == 0xA) {
-                        task->extra.tmd->flags = 2;
+                        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     break;
                 case 2:
@@ -2001,7 +2001,7 @@ static void Actor07000_Fn01870(GpEnemy* arg0, Task* arg1)
     arg1->work          = (TaskIdMap*)work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
     obj->colorMtx       = &work->field_BC;
@@ -2121,7 +2121,7 @@ static void Actor07000_Fn01BA0(GpEnemy* arg0, Task* arg1)
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case 2:
-            arg1->extra.tmd->flags   = 0x80;
+            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -2273,8 +2273,8 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= 0xFF7F;
-            arg0->extra.tmd->flags   &= 0xFFFB;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->field_11A          |= 0x8000;
             work->field_152          |= 0xC200;
@@ -2291,8 +2291,8 @@ s32 Actor07000_Fn01FF8(Task* arg0, s32 arg1, GpCmdArg* arg2)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= 0x80;
-        arg0->extra.tmd->flags   |= 4;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->field_11A          &= 0x7FFF;
         work->field_152          &= 0x3DFF;
@@ -2358,7 +2358,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2769,7 +2769,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -3325,7 +3325,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            obj->flags              |= 0x80;
+            obj->flags              |= TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -3334,7 +3334,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
                 case 0:
                     if (work->field_394 == 0) {
                         SndEvt_EnqueueType6(0xD, 0, 0);
-                        obj->flags = 2;
+                        obj->flags = TMD_OBJECT_SEMI_TRANS;
                         Actor07000_Fn05FF8(arg1);
                     }
                     arg0->recs = 0;
@@ -3351,7 +3351,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
                     if (work->field_394 == 0) {
                         Actor07000_Fn06088(arg1);
                     } else {
-                        obj->flags = 0x80;
+                        obj->flags = TMD_OBJECT_HIDDEN;
                     }
                     work->field_36E++;
                     if ((s16)work->field_36E >= 0x3D) {
@@ -3360,7 +3360,7 @@ static void Actor07000_Fn04468(GpEnemy* arg0, Task* arg1)
                     break;
                 case 2:
                     SndEvt_EnqueueType7(0xD, 1);
-                    obj->flags   = 0x80;
+                    obj->flags   = TMD_OBJECT_HIDDEN;
                     part->parent = coord;
                     arg1->state  = 3;
                     break;
@@ -3606,7 +3606,7 @@ case0:
 case1:
     return;
 case2:
-    part->flags = 0x80;
+    part->flags = TMD_OBJECT_HIDDEN;
     return;
 default_body:
     rec->point.vx       = -work->field_0;
@@ -3686,7 +3686,7 @@ static void Actor07000_Fn05068(GpEnemy* arg0, Task* arg1)
     arg1->work          = (TaskIdMap*)work;
     work->field_366     = (u16)arg1->spawnArg1.value;
     work->field_364     = (s16)(arg1->spawnArg1.value >> 16);
-    obj->flags         |= 0x80;
+    obj->flags         |= TMD_OBJECT_HIDDEN;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_1BC;
     obj->colorMtx       = &work->field_19C;
@@ -3848,7 +3848,7 @@ static void Actor07000_Fn05400(GpEnemy* arg0, Task* arg1)
             update_color(arg1->spawnArg2.pointer, &arg1->extra.tmd->coords[1]);
             return;
         case 2:
-            arg1->extra.tmd->flags   = 0x80;
+            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
         case 0:
@@ -3999,8 +3999,8 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
                 coord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[arg2->command >> 8].z;
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= 0xFF7F;
-            arg0->extra.tmd->flags   &= 0xFFFB;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->obj1.flags         |= 0x8000;
             work->obj2.flags         |= 0xC200;
@@ -4015,8 +4015,8 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, GpCmdArg* arg2)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= 0x80;
-        arg0->extra.tmd->flags   |= 4;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->obj1.flags         &= 0x7FFF;
         work->obj2.flags         &= 0x3DFF;
@@ -4312,10 +4312,10 @@ static void Actor07000_Fn066FC(Task* dst, Task* src)
     TmdObject* to;
     TmdObject* from;
 
-    from      = src->extra.tmd;
-    to        = dst->extra.tmd;
-    to->tpage = from->tpage;
-    to->clut  = from->clut;
+    from                  = src->extra.tmd;
+    to                    = dst->extra.tmd;
+    to->texturePageOffset = from->texturePageOffset;
+    to->clutRowOffset     = from->clutRowOffset;
     if (to->buffer != NULL) {
         tmdProcessStream(to);
         tmdProcessStream(to);

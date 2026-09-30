@@ -111,7 +111,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     base  = &Gp_RoomCoords[1];
     light = &base->light.head.u.coord;
     slot  = &base->light;
-    if ((gameGetPtrSlot(3)->extra.tmd->flags & 0x80) != 0) {
+    if ((gameGetPtrSlot(3)->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
         return;
     }
     if (Gp_State1C->eventState >= 2) {

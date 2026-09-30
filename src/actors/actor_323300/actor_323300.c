@@ -520,7 +520,7 @@ static void func_actor_323300_80161FE8(Task* arg0)
             }
         }
     }
-    if (!(extra->flags & 0x80)) {
+    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), (VECTOR3*)&vec) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&vec, 0x200, Gp_State1C->groundShade);
         }
@@ -569,38 +569,38 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            extra->flags |= 0x80;
+            extra->flags |= TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
             }
-            extra->flags &= ~4;
+            extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            extra->flags &= ~0x80;
+            extra->flags &= ~TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
             }
             Tmd_AllocBuffers(extra);
-            extra->flags &= ~4;
+            extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            extra->flags |= 0x80;
+            extra->flags |= TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] &= 0x7FFF;
             }
             work->field_502 = 2;
-            extra->flags   |= 4;
+            extra->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            extra->flags &= ~0x80;
+            extra->flags &= ~TMD_OBJECT_HIDDEN;
             flags         = &work->obj.flags;
             for (i = 0; i < 1; i++) {
                 flags[i * (sizeof(GpObj) / sizeof(*flags))] |= 0x8000;
             }
-            extra->flags |= 4;
+            extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -963,16 +963,16 @@ static void func_actor_323300_80162BE4(Task* arg0)
         taskKill(arg0);
         return;
     }
-    arg0->work         = work;
-    work->field_444    = -1;
-    work->field_440    = -1;
-    work->field_44C    = 0x3000;
-    extra->clut        = 2;
-    extra->tpageOffset = 2;
-    extra->clutOffset  = 4;
-    extra->tpage       = 0;
-    extra->lightLevel  = 0xFFF;
-    extra->flags      &= 0xFF7F;
+    arg0->work                    = work;
+    work->field_444               = -1;
+    work->field_440               = -1;
+    work->field_44C               = 0x3000;
+    extra->clutRowOffset          = 2;
+    extra->layerTexturePageOffset = 2;
+    extra->layerClutRowOffset     = 4;
+    extra->texturePageOffset      = 0;
+    extra->shading.colorBlend     = TMD_OBJECT_COLOR_BLEND_ONE - 1;
+    extra->flags                 &= (u16)~TMD_OBJECT_HIDDEN;
     tmdProcessStream(extra);
     tmdProcessStream(extra);
     func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
@@ -1010,7 +1010,7 @@ static void func_actor_323300_80162BE4(Task* arg0)
 /// started: it ticks the 18 slots like `func_actor_323300_80163718` does, folds
 /// `field_44C` -- the 0x3000 countdown `func_actor_323300_80162BE4` seeds, 0x40
 /// per frame -- into the 0..0xFFF ramp `func_actor_323300_80162A6C` blends the
-/// model's vertices with, and republishes that ramp onto `TmdObject::lightLevel`,
+/// model's vertices with, and republishes that ramp onto `TmdObject::shading.colorBlend`,
 /// the intensity the shading path scales its RGB by. While the countdown is
 /// still above 0x1000 the turn angle handed to `func_actor_323300_8016359C` is
 /// `(0x1000 - field_44C) / 4`, i.e. the ramp read the other way round.
@@ -1052,7 +1052,7 @@ static void func_actor_323300_80162DF0(Task* arg0)
     }
 
     func_actor_323300_80162A6C(arg0, &D_dryfield_toilet_801865D0, blend);
-    extra->lightLevel = blend;
+    extra->shading.colorBlend = blend;
 
     if (work->field_44C < 0x1000) {
         func_actor_323300_8016359C(arg0, (s16)(((0x1000 - work->field_44C) << 14) >> 16));
@@ -1135,7 +1135,7 @@ static void func_actor_323300_801634B0(Task* arg0)
 
 /// Splats an identity light/colour pair into the `memCalloc(0x6B0)` work block
 /// `func_actor_323300_80162BE4` parked in `Task::work`, republishes them onto
-/// `TmdObject::lightMtx` / `field_20`, then re-derives model part 1's world
+/// `TmdObject::lightMtx` / `colorMtx`, then re-derives model part 1's world
 /// matrix -- clearing its dirty flag, rebuilding it from its parent and
 /// rebinding the actor's shading to the part's translation.
 static void func_actor_323300_80163510(Task* arg0)

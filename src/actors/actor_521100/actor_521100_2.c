@@ -425,12 +425,12 @@ s32 func_actor_521100_80135D10(Task* arg0, s32 arg1, s32 arg2)
     obj  = arg0->extra.tmd;
     work = arg0->work;
     if (!(arg2 & 1)) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     } else {
         obj->flags = 0;
     }
     if (arg2 & 2) {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     work->field_692 = arg2;
     return 0;
@@ -576,7 +576,7 @@ static void func_actor_521100_801360C4(GpEnemy* spawnArg2, Task* task)
             func_actor_521100_801368B0(task);
             work->field_486++;
             if ((s16)work->field_486 == 0xA) {
-                obj->flags = 2;
+                obj->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if ((s16)work->field_486 == 0xF) {
                 sp10.coord.t[0] -= 0x1F4;
@@ -844,10 +844,10 @@ s32 func_actor_521100_80136A1C(Task* task, s32 arg1, s32 arg2)
     if (arg2 & 1) {
         obj->flags = 0;
     } else {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     }
     if (arg2 & 2) {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

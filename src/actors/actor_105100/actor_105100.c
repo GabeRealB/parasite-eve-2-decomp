@@ -1170,7 +1170,7 @@ static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
             work->field_5BC = state;
             return;
         case 2:
-            obj->flags               = 0x80;
+            obj->flags               = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             if (work->field_5BC == 0) {
                 SndEvt_EnqueueType8(0x40000000);
@@ -1979,7 +1979,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
     }
     if (state >= 2) {
         if (state == 2) {
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
         }
     }
@@ -2002,7 +2002,7 @@ static void func_actor_105100_80134284(GpEnemy* arg0, Task* arg1)
             goto color_update;
         case 1:
             if ((s16)++work->field_59A == 0xA) {
-                obj->flags = (u16)obj->flags | 2;
+                obj->flags = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
             }
             if ((s16)work->field_59A >= 0x1F) {
                 work->field_58E = 7;

@@ -1334,7 +1334,7 @@ static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            obj->flags              |= 0x80;
+            obj->flags              |= TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -1365,7 +1365,7 @@ static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
                             work->field_488 = 2;
                         }
                     } else {
-                        obj->flags      = 0x80;
+                        obj->flags      = TMD_OBJECT_HIDDEN;
                         work->field_488 = 2;
                     }
                     break;
@@ -1377,7 +1377,7 @@ static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
                     if (work->field_4A8 == 0) {
                         func_actor_207200_8014D7E8(arg1);
                         if ((s16)work->field_48A == 0xA) {
-                            obj->flags = 2;
+                            obj->flags = TMD_OBJECT_SEMI_TRANS;
                         }
                         if ((s16)work->field_48A == 0xF) {
                             Gp_SpawnEff(0x600A5, coord, 2, NULL);
@@ -1530,7 +1530,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -1818,10 +1818,10 @@ static void func_actor_207200_8014DAF8(Task* dst, Task* src)
     TmdObject* to;
     TmdObject* from;
 
-    from      = src->extra.tmd;
-    to        = dst->extra.tmd;
-    to->tpage = from->tpage;
-    to->clut  = from->clut;
+    from                  = src->extra.tmd;
+    to                    = dst->extra.tmd;
+    to->texturePageOffset = from->texturePageOffset;
+    to->clutRowOffset     = from->clutRowOffset;
     if (to->buffer != NULL) {
         tmdProcessStream(to);
         tmdProcessStream(to);

@@ -2293,7 +2293,7 @@ static void func_dryfield_trailer_coach_80182EB4(GfxCoord* coord, SVECTOR* data,
 /// stage-visit byte `gGameSession->at4.loc.view` is used as a bit index: views 2
 /// and 8 (bits 2 and 8, `0x104`) take `func_dryfield_trailer_coach_801829A8`
 /// with the tall half-extent 0xC0, and view 10 (bit 10, `0x400`) takes `func_dryfield_trailer_coach_80182EB4`
-/// with 0x30. `Task::extra` is the task's `TmdObject`, so `field_8` is the
+/// with 0x30. `Task::extra` is the task's `TmdObject`, so `coords` is the
 /// coordinate both draws share.
 void func_dryfield_trailer_coach_801838DC(Task* arg0)
 {

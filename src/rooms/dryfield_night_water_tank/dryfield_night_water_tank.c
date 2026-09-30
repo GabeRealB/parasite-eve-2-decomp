@@ -849,7 +849,7 @@ void func_dryfield_night_water_tank_8017DB8C(Task* arg0)
             break;
     }
     if (gGameSession->at4.loc.view == 7) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     } else {
         obj->flags = 0;
     }

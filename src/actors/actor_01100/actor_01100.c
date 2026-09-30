@@ -1433,7 +1433,7 @@ static void Actor01100_Fn00CF0(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 
         enemy->recs            = &work->contacts[3][0];
         task->exitCallback     = Actor01100_Fn0668C;
-        task->extra.tmd->flags = (u16)(task->extra.tmd->flags & 0xFF7F);
+        task->extra.tmd->flags = (u16)(task->extra.tmd->flags & (u16)~TMD_OBJECT_HIDDEN);
         task->msgTable         = Actor01100_D15660;
         task->state++;
         enemy->reactionFlags = 0;
@@ -2396,7 +2396,7 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     arg->pos.vy = root->workm.t[1] - 0x320;
     arg->pos.vz = root->workm.t[2];
     Gp_UpdateActorColor(enemy, &arg->pos, 0, 0);
-    if (!(task->extra.tmd->flags & 2)) {
+    if (!(task->extra.tmd->flags & TMD_OBJECT_SEMI_TRANS)) {
         Gp_DrawFloorQuad(task->extra.tmd->coords, 0x600, NULL);
     }
     if (work->field_BA6 >= 0x10) {
@@ -3389,10 +3389,10 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
     D_80067330.tmd = model;
     eff            = Gp_SpawnEff(0x10032, &task->extra.tmd->coords[6], 0x200, 0);
     if (eff != NULL) {
-        owner      = task->extra.tmd;
-        tmd        = eff->task->extra.tmd;
-        tmd->tpage = owner->tpage;
-        tmd->clut  = owner->clut;
+        owner                  = task->extra.tmd;
+        tmd                    = eff->task->extra.tmd;
+        tmd->texturePageOffset = owner->texturePageOffset;
+        tmd->clutRowOffset     = owner->clutRowOffset;
         if (tmd->buffer != NULL) {
             tmdProcessStream(tmd);
             tmdProcessStream(tmd);
@@ -3463,7 +3463,7 @@ static void Actor01100_Fn05678(
         if (time == 0xC) {
             Gp_SpawnEff(0x600A5, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
-            extra->flags |= 2;
+            extra->flags |= TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(enemy, 2);
             work->field_B8C = 0x20;
             work->field_BA8++;
@@ -3472,7 +3472,7 @@ static void Actor01100_Fn05678(
         time            = work->field_B8C - 1;
         work->field_B8C = time;
         if (time == 0) {
-            task->extra.tmd->flags |= 0x80;
+            task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             work->field_B8C         = 4;
             work->field_BA8++;
         }
@@ -3497,7 +3497,7 @@ static void Actor01100_Fn05678(
         scale  = Actor01100_D000CC;
         gfxScaleMatrixColumns(&coords[3].coord, &scale);
         coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        if ((enemy->spawnState == 3) && !(extra->flags & 2)) {
+        if ((enemy->spawnState == 3) && !(extra->flags & TMD_OBJECT_SEMI_TRANS)) {
             return;
         }
     }
@@ -3886,14 +3886,14 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if (work->field_BA0 == 0) {
-            model->flags             &= ~0x80;
+            model->flags             &= ~TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags = work->field_BA1;
             obj                       = &work->objs[0];
             obj->flags               |= 0xC000;
             obj                       = &work->objs[3];
             obj->flags               |= 0xC000;
         } else {
-            model->flags             |= 0x80;
+            model->flags             |= TMD_OBJECT_HIDDEN;
             work->field_BA1           = enemy->node.state.b.flags;
             enemy->node.state.b.flags = 1;
             for (i = 0; i < 4; i++) {

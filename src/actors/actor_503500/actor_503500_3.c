@@ -85,7 +85,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work160, 0x160);
 /// 0x3D8 block's `obj240`, so the array gets its own type; the task's
 /// `field_1C` still points at the block through the shared view, whose
 /// 0x2D4..0x2EB fields agree with the ones below. It opens with the light and
-/// colour matrices the init republishes on `TmdObject::lightMtx` / `field_20`,
+/// colour matrices the init republishes on `TmdObject::lightMtx` / `colorMtx`,
 /// then a private copy of model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work2EC {
     /* 0x000 */ MATRIX                light;
@@ -344,10 +344,10 @@ static void func_actor_503500_80132F64(Task* arg0)
             idx        = raw >> 12;
             key.view   = areaByte0;
             areaSyncLocationVariant(&key);
-            rec          = Gp_GetNestedAreaRec(&key);
-            entry        = gpAreaPlaceAt(rec->field_0, idx);
-            model->tpage = entry->texturePageOffset;
-            model->clut  = entry->clutRowOffset;
+            rec                      = Gp_GetNestedAreaRec(&key);
+            entry                    = gpAreaPlaceAt(rec->field_0, idx);
+            model->texturePageOffset = entry->texturePageOffset;
+            model->clutRowOffset     = entry->clutRowOffset;
             if (model->buffer != NULL) {
                 tmdProcessStream(model);
                 tmdProcessStream(model);
@@ -387,7 +387,7 @@ static void func_actor_503500_80133270(Task* arg0)
             if (work->field_7E4 == 0) {
                 SndEvt_EnqueueType8(0x40000000);
                 Tmd_AllocBuffers(tmd);
-                tmd->flags     &= 0xFF7B;
+                tmd->flags     &= (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->field_7E4 = mode;
                 work->field_7E5 = 0;
             }
@@ -402,7 +402,7 @@ static void func_actor_503500_80133270(Task* arg0)
             }
             if (work->field_7E5 == 0) {
                 SndEvt_EnqueueType8(0x40000000);
-                tmd->flags     |= 0x84;
+                tmd->flags     |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->field_7D9 = 1;
                 work->field_7E4 = 0;
                 work->field_7E5 = 1;
@@ -420,7 +420,7 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->field_7E7 = 1;
             }
             if (gGameSession->eventState == 0) {
-                tmd->flags &= 0xFF7F;
+                tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             if (work->field_7D9 >= 0) {
                 if (work->field_7D9 == 0) {
@@ -1159,7 +1159,7 @@ static void func_actor_503500_80134A24(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             switch (++work->field_7BC) {
                 case 0x3C:
-                    obj->flags |= 2;
+                    obj->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     break;
                 case 0x46:
@@ -1580,27 +1580,27 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
         flags = obj->flags;
         pobj  = arg0->parent->extra.tmd;
         if (flags & 0x80) {
-            if (!(pobj->flags & 0x80)) {
+            if (!(pobj->flags & TMD_OBJECT_HIDDEN)) {
                 obj->flags = flags & ~0x80;
             }
-        } else if (pobj->flags & 0x80) {
+        } else if (pobj->flags & TMD_OBJECT_HIDDEN) {
             obj->flags = flags | 0x80;
         }
         flags2 = obj->flags;
         if (flags2 & 2) {
-            if (!(pobj->flags & 2)) {
+            if (!(pobj->flags & TMD_OBJECT_SEMI_TRANS)) {
                 obj->flags = flags2 & ~2;
             }
-        } else if (pobj->flags & 2) {
+        } else if (pobj->flags & TMD_OBJECT_SEMI_TRANS) {
             obj->flags = flags2 | 2;
         }
         flags2 = obj->flags;
         if (flags2 & 4) {
-            if (!(pobj->flags & 4)) {
+            if (!(pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
                 obj->flags = flags2 & ~4;
                 Tmd_AllocBuffers(obj);
             }
-        } else if (pobj->flags & 4) {
+        } else if (pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
             obj->flags = flags2 | 4;
             *arg1      = 2;
         }
@@ -1752,10 +1752,10 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         idx        = raw >> 12;
         key.view   = areaByte0;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        entry        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = entry->texturePageOffset;
-        model->clut  = entry->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        entry                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = entry->texturePageOffset;
+        model->clutRowOffset     = entry->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -2538,20 +2538,20 @@ s32 func_actor_503500_80137158(Task* arg0, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | 0x80) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_HIDDEN) & ~4;
             break;
         case 1:
-            ext->flags &= ~0x80;
+            ext->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(ext);
-            ext->flags &= ~4;
+            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                               |= 0x80;
+            ext->flags                               |= TMD_OBJECT_HIDDEN;
             ((Actor503500Work*)arg0->work)->field_7D9 = mode;
-            ext->flags                               |= 4;
+            ext->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~0x80) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_HIDDEN) | 4;
             break;
         default:
             ret = 1;
@@ -2793,7 +2793,7 @@ static void func_actor_503500_80137678(Task* arg0)
             work->vel.vy.w += 0x8000;
             switch ((s16)work->field_15A) {
                 case 10:
-                    arg0->extra.tmd->flags |= 2;
+                    arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
@@ -2987,12 +2987,12 @@ static void func_actor_503500_8013815C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & 0x80)) {
+            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
                 func_actor_503500_801382F4(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= 0x80;
+            tmd->flags                |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3241,7 +3241,7 @@ static void func_actor_503500_80138898(Task* arg0)
             slot = 0xA;
         }
         if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->flags |= 4;
+            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         } else {
             goto tick;
         }
@@ -3252,12 +3252,12 @@ static void func_actor_503500_80138898(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & 0x80)) {
+            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
                 func_actor_503500_8013AAC0(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= 0x80;
+            tmd->flags                |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3521,7 +3521,7 @@ static void func_actor_503500_80139014(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             switch (work->field_2DE) {
                 case 10:
-                    arg0->extra.tmd->flags |= 2;
+                    arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
@@ -3624,7 +3624,7 @@ static void func_actor_503500_801395BC(Task* arg0)
             }
             break;
         case 3:
-            arg0->extra.tmd->flags |= 0x84;
+            arg0->extra.tmd->flags |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             work->field_2DE++;
             if (work->field_2DE >= 0x5B) {
                 func_actor_503500_8013611C(arg0->spawnArg1.value);

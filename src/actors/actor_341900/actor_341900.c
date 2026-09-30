@@ -1035,13 +1035,13 @@ void func_actor_341900_80163224(Task* arg0, s32 arg1, s32 arg2)
     extra = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

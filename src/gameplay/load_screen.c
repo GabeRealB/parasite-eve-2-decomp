@@ -158,9 +158,9 @@ void func_800AA548(s32 arg0)
         flags.field_2 = 0;
         Gp_SetupCompanionActor(&rec.companion.actor, &flags.field_0);
     }
-    model        = (gameGetPtrSlot(3))->extra.tmd;
-    model->tpage = 6;
-    model->clut  = 0;
+    model                    = (gameGetPtrSlot(3))->extra.tmd;
+    model->texturePageOffset = 6;
+    model->clutRowOffset     = 0;
     tmdProcessStream(model);
     tmdProcessStream(model);
     Gp_LoadStageView();

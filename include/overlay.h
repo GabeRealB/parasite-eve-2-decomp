@@ -310,8 +310,12 @@ typedef struct OverlayRippleScratch {
 } OverlayRippleScratch;
 STATIC_ASSERT_SIZEOF(OverlayRippleScratch, 0x4C);
 
-/// A `MATRIX` that can also be written through `GpMtxWords`.
-typedef union OverlayMat {
+/// Matrix with native SDK fields and a packed rotation-word view.
+///
+/// `mat` includes the translation; `ident` covers only the nine rotation
+/// coefficients, paired into four words and a final halfword. Word writes
+/// preserve the native matrix's translation and do not clear its unused halfword.
+typedef union {
     MATRIX     mat;
     GpMtxWords ident;
 } OverlayMat;

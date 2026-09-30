@@ -4200,9 +4200,9 @@ static void func_acropolis_security_room_80182574(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {
-        tmd->flags = 0x80;
+        tmd->flags = TMD_OBJECT_HIDDEN;
     } else {
-        tmd->flags    = 8;
+        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
     }
 }

@@ -1231,9 +1231,9 @@ static void func_actor_113100_80131E58(Task* task)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-        model2->tpage = entry2->texturePageOffset;
-        model2->clut  = entry2->clutRowOffset;
+        entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+        model2->texturePageOffset = entry2->texturePageOffset;
+        model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1252,9 +1252,9 @@ static void func_actor_113100_80131E58(Task* task)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-        model3->tpage = entry3->texturePageOffset;
-        model3->clut  = entry3->clutRowOffset;
+        entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
+        model3->texturePageOffset = entry3->texturePageOffset;
+        model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);
@@ -1308,7 +1308,7 @@ static void func_actor_113100_80132104(Task* task)
     s8                     mode;
     u16                    rate;
 
-    if (!(extra->flags & 0x80)) {
+    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(&task->extra.tmd->coords[1]);
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -1346,7 +1346,7 @@ static void func_actor_113100_80132104(Task* task)
                 }
             }
         }
-        if (!(extra->flags & 0x80)) {
+        if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
             Gp_ClearRec18Occupied(&work->field_4D8);
             mode = work->field_53C;
             switch (mode) {
@@ -1546,42 +1546,42 @@ s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
 
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             node        = head;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
             work2->field_53D = 2;
-            obj->flags      |= 4;
+            obj->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             node        = &work->obj;
             for (i = 0; i <= 0; i++) {
                 node->flags &= 0x7FFF;
                 node++;
             }
-            obj->flags |= 4;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -1685,9 +1685,9 @@ static void func_actor_113100_80132B30(Task* task)
 
     Task_Reparent(parent, task);
     if (GameFlag_GetNibble(0xF1) == 0) {
-        model->flags &= 0xFF7F;
+        model->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        model->flags |= 0x80;
+        model->flags |= TMD_OBJECT_HIDDEN;
     }
     task->state += 1;
 }
@@ -1746,16 +1746,16 @@ static void func_actor_113100_80132CF4(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= 0x80;
+    obj->flags |= TMD_OBJECT_HIDDEN;
     root        = obj->coords;
-    if (!(parentObj->flags & 0x80)) {
-        obj->flags &= 0xFF7F;
+    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
+        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObj->flags & 4)) {
-        obj->flags &= 0xFFFB;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset      = -2;
     coords            += task->spawnArg1.value;
@@ -1780,17 +1780,17 @@ static void func_actor_113100_80132E00(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & 0x80)) {
-        object->flags &= 0xFF7F;
+    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
+        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        object->flags |= 0x80;
+        object->flags |= TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObject->flags & 4)) {
-        object->flags &= 0xFFFB;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->flags |= 4;
+    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 void func_actor_113100_80132E98(Task* task)
@@ -2002,14 +2002,14 @@ s32 func_actor_113100_801333B8(Task* task, s32 msgId, GpCmdArg* msg)
         case 0:
             if (work->field_534 != NULL) {
                 model         = work->field_534->extra.tmd;
-                model->flags &= 0xFF7F;
+                model->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
 
         case 1:
             if (work->field_534 != NULL) {
                 model         = work->field_534->extra.tmd;
-                model->flags |= 0x80;
+                model->flags |= TMD_OBJECT_HIDDEN;
             }
             break;
 

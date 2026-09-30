@@ -83,39 +83,64 @@ typedef struct TmdListNode {
 } TmdListNode;
 STATIC_ASSERT_SIZEOF(TmdListNode, 0x8);
 
-/// An attached model body: an element of `gTmdList` and the object a
-/// spawnType-1 `Task` carries in `Task::extra`.
+/// Runtime TMD model instance with its own part transforms and primitive buffer.
 ///
-/// The object owns what a model needs at run time — the buffer its packet
-/// stream is decoded into, the coordinate array that places its parts, the
-/// light and colour matrices it is drawn under — while the `TmdSource` it
-/// points at owns what the package shipped. `coords` is part of this object's
-/// own allocation, laid out directly after it, so the two are one block.
+/// Creation allocates this body and `partCount` coordinates together as a
+/// `TmdAllocation`; `coords` points into that tail. The source, geometry, stream,
+/// light matrix and colour matrix are borrowed and must outlive their use.
+/// Keep the source's nonnegative part count and buffer byte capacities unchanged
+/// while the object lives; the object caches the count and half capacity.
+/// Attaching the body links it on `gTmdList` and stores it in a task's
+/// `extra.tmd`. Unlink it before freeing the body and its coordinate tail.
 ///
-/// The buffer holds two halves and the passes alternate between them, so no
-/// pass reads the half it writes: `bufferIndex` selects the half in use and
-/// each pass flips it.
+/// A non-NULL buffer owns two `bufferHalfBytes` byte regions in the auxiliary
+/// heap. Building or drawing uses `nextBufferHalf`, then toggles it; rebuilding
+/// persistent texture data in both halves takes two build passes. GPU work
+/// must finish before that storage is released or reused. A NULL buffer can
+/// mean deferred allocation, allocation failure, release or heap reset.
+///
+/// Texture relocation adds signed offsets to each command's encoded page and
+/// CLUT. Layered commands have separate first-layer offsets. `shading` has the
+/// interpretation selected by the resolved stream handler: a blend value with
+/// 12 fractional bits, or a vertical fade distance in screen pixels. Ordinary
+/// handlers need neither interpretation. Unknown bytes and flag bits have no
+/// established role; they are not asserted to be padding.
 typedef struct {
-    TmdListNode link;        // Its place on `gTmdList`
-    GfxCoord*   coords;      // Per-part coordinate array, part of this object's own block
-    u16         flags;       // State bits (0x2 semi-transparent primitives, 0x4 skip automatic buffer allocation, 0x8 selected by the flagged draw pass, 0x10 reverse face culling, 0x80 hidden)
-    s8          otOffset;    // Ordering-table offset the model's primitives are linked at
-    byte        unknown_F;
-    TmdSource*  source;      // The model as its package shipped it
-    u16         bufferIndex; // Which half of the buffer is in use (0/1); each pass flips it
-    u16         halfSize;    // Size of one buffer half, cached from the source
-    void*       buffer;      // Both buffer halves, allocated together; NULL while there are none
-    MATRIX*     lightMtx;    // Light matrix the model is drawn under
-    MATRIX*     colorMtx;    // Colour matrix the model is drawn under
-    s8          tpage;       // Texture page the model's primitives are offset by
-    s8          clut;        // CLUT the model's primitives are offset by, in 64-entry rows
-    u8          tpageOffset; // Further texture page offset the handlers that use one add to a primitive
-    u8          clutOffset;  // Further CLUT row offset the handlers that use one add, in 64-entry rows
-    byte        unknown_28[0x4];
-    s32         lightLevel;  // Lighting, 12.4 fixed point (0x1000 fully lit)
-    s32         partCount;   // Parts the model is divided into, cached from the source
+    TmdListNode link;                   // Attached-model list link; forward traversal ends at NULL
+    GfxCoord*   coords;                 // Owned partCount-element tail; integer local translations, matrix coefficients with 12 fractional bits
+    u16         flags;                  // TMD_OBJECT_* bits; unlisted bits are unproven
+    s8          otOffset;               // Signed displacement in OT entries; all resulting indices must fit the selected table
+    byte        unknown_F;              // Purpose unproven; creation clears this byte
+    TmdSource*  source;                 // Borrowed writable geometry/stream descriptor; initial pose is copied only at creation
+    u16         nextBufferHalf;         // Half selected by the next build or draw pass (0 first, 1 second); toggled after selection
+    u16         bufferHalfBytes;        // Byte capacity of either half, copied from source->bufferHalfBytes (0..65535)
+    void*       buffer;                 // Owned heterogeneous primitive storage: two halves, or NULL when absent
+    MATRIX*     lightMtx;               // Borrowed writable light-direction matrix; draw combines it with part rotation
+    MATRIX*     colorMtx;               // Borrowed writable light-colour matrix; translation holds GTE background colour
+    s8          texturePageOffset;      // Signed displacement added to encoded texture-page words during a buffer build
+    s8          clutRowOffset;          // Signed CLUT Y displacement; one row adds 64 to the encoded CLUT word
+    s8          layerTexturePageOffset; // Signed page displacement for the first layer of offset-layer commands
+    s8          layerClutRowOffset;     // Signed CLUT Y displacement for that first layer, in rows
+    byte        unknown_28[0x4];        // Purpose and internal subdivision unproven; creation clears these bytes
+    union {
+        s32 colorBlend;                 // Layer colour/environment blend (0 reference, TMD_OBJECT_COLOR_BLEND_ONE primary)
+        s32 screenFadeDistance;         // Vertical screen-space fade/displacement distance in pixels (0 disables it)
+    } shading;                          // Handler-selected interpretation; not a universal lighting intensity
+    s32 partCount;                      // Number of owned coordinates, copied from source->partCount; excludes stream-only final group
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
+
+/// Established `TmdObject.flags` bits; these do not describe Tmd_Create's flags.
+enum {
+    TMD_OBJECT_SEMI_TRANS       = 0x02, // Select semi-transparent forms in handlers that test the object flags
+    TMD_OBJECT_SKIP_AUTO_BUFFER = 0x04, // Suppress missing-buffer recovery; explicit allocation/release still applies
+    TMD_OBJECT_FLAGGED_PASS     = 0x08, // Select the flagged draw pass independently of hidden state
+    TMD_OBJECT_REVERSE_CULLING  = 0x10, // Reverse facing tests in handlers that support mirrored geometry
+    TMD_OBJECT_HIDDEN           = 0x80  // Exclude from the active draw pass; does not stop coordinate refresh
+};
+
+/// Unit blend value for `TmdObject.shading.colorBlend` (12 fractional bits).
+enum { TMD_OBJECT_COLOR_BLEND_ONE = 0x1000 };
 
 /// Tmd_Create allocates the object and its partCount coordinates as one block.
 /// The coordinate tail has no fixed capacity; its extent comes from the source.

@@ -498,13 +498,13 @@ s32 func_actor_110300_801322E0(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = 0x80;
-        other->flags = 0x80;
+        self->flags  = TMD_OBJECT_HIDDEN;
+        other->flags = TMD_OBJECT_HIDDEN;
     }
 
     if (flags & 2) {
-        self->flags  |= 4;
-        other->flags |= 4;
+        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

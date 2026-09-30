@@ -2145,10 +2145,10 @@ static void Actor00400_Fn0237C(Task* arg0)
     D_800678F0[0] = &Actor00400_D0E5B8;
     eff1          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[4], 0x200, NULL);
     if (eff1 != NULL) {
-        src1        = arg0->extra.tmd;
-        dst1        = eff1->task->extra.tmd;
-        dst1->tpage = src1->tpage;
-        dst1->clut  = src1->clut;
+        src1                    = arg0->extra.tmd;
+        dst1                    = eff1->task->extra.tmd;
+        dst1->texturePageOffset = src1->texturePageOffset;
+        dst1->clutRowOffset     = src1->clutRowOffset;
         if (dst1->buffer != NULL) {
             tmdProcessStream(dst1);
             tmdProcessStream(dst1);
@@ -2157,10 +2157,10 @@ static void Actor00400_Fn0237C(Task* arg0)
     D_800678F0[0] = &Actor00400_D0E970;
     eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[11], 0x200, NULL);
     if (eff2 != NULL) {
-        src2        = arg0->extra.tmd;
-        dst2        = eff2->task->extra.tmd;
-        dst2->tpage = src2->tpage;
-        dst2->clut  = src2->clut;
+        src2                    = arg0->extra.tmd;
+        dst2                    = eff2->task->extra.tmd;
+        dst2->texturePageOffset = src2->texturePageOffset;
+        dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
             tmdProcessStream(dst2);
             tmdProcessStream(dst2);
@@ -2169,10 +2169,10 @@ static void Actor00400_Fn0237C(Task* arg0)
     D_800678F0[0] = &Actor00400_D0ED28;
     eff3          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[14], 0x200, NULL);
     if (eff3 != NULL) {
-        src3        = arg0->extra.tmd;
-        dst3        = eff3->task->extra.tmd;
-        dst3->tpage = src3->tpage;
-        dst3->clut  = src3->clut;
+        src3                    = arg0->extra.tmd;
+        dst3                    = eff3->task->extra.tmd;
+        dst3->texturePageOffset = src3->texturePageOffset;
+        dst3->clutRowOffset     = src3->clutRowOffset;
         if (dst3->buffer != NULL) {
             tmdProcessStream(dst3);
             tmdProcessStream(dst3);
@@ -2187,10 +2187,10 @@ static void Actor00400_Fn0237C(Task* arg0)
         eff4          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
     }
     if (eff4 != NULL) {
-        src4        = arg0->extra.tmd;
-        dst4        = eff4->task->extra.tmd;
-        dst4->tpage = src4->tpage;
-        dst4->clut  = src4->clut;
+        src4                    = arg0->extra.tmd;
+        dst4                    = eff4->task->extra.tmd;
+        dst4->texturePageOffset = src4->texturePageOffset;
+        dst4->clutRowOffset     = src4->clutRowOffset;
         if (dst4->buffer != NULL) {
             tmdProcessStream(dst4);
             tmdProcessStream(dst4);
@@ -2199,10 +2199,10 @@ static void Actor00400_Fn0237C(Task* arg0)
     D_800678F0[0] = &Actor00400_D0FD9C;
     eff5          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff5 != NULL) {
-        src5        = arg0->extra.tmd;
-        dst5        = eff5->task->extra.tmd;
-        dst5->tpage = src5->tpage;
-        dst5->clut  = src5->clut;
+        src5                    = arg0->extra.tmd;
+        dst5                    = eff5->task->extra.tmd;
+        dst5->texturePageOffset = src5->texturePageOffset;
+        dst5->clutRowOffset     = src5->clutRowOffset;
         if (dst5->buffer != NULL) {
             tmdProcessStream(dst5);
             tmdProcessStream(dst5);
@@ -3094,7 +3094,7 @@ static void Actor00400_Fn040DC(Task* arg0)
     fns   = Actor00400_D0007C;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3239,7 +3239,7 @@ static void Actor00400_Fn04580(Task* arg0)
     fns = Actor00400_D000A8;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3307,7 +3307,7 @@ static void Actor00400_Fn04580(Task* arg0)
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
             Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~0x80;
+            ctx->flags &= ~TMD_OBJECT_HIDDEN;
             break;
     }
 }
@@ -3409,7 +3409,7 @@ static void Actor00400_Fn04B48(Task* arg0)
     fns  = Actor00400_D000D0;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3515,7 +3515,7 @@ static void Actor00400_Fn04E18(Task* arg0)
     fns = Actor00400_D000F8;
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             if (work->field_663 != 0) {
@@ -3610,13 +3610,13 @@ static void Actor00400_Fn04E18(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~0x80;
+            ctx->flags &= ~TMD_OBJECT_HIDDEN;
             break;
     }
     sess = &gGameSession->at4.loc;
     ctx3 = arg0->extra.tmd;
     if (sess->stage == 4 && sess->area == 0x21 && (u32)(gGameSession->at4.loc.view - 0xA) < 2U) {
-        ctx3->flags |= 0x80;
+        ctx3->flags |= TMD_OBJECT_HIDDEN;
     }
 }
 
@@ -4249,7 +4249,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             work->flags_62C.hi.field_62E++;
@@ -4312,7 +4312,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
             Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~0x80;
+            ctx->flags &= ~TMD_OBJECT_HIDDEN;
             break;
     }
 }
@@ -4429,7 +4429,7 @@ static void Actor00400_Fn070C0(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            ctx->flags |= 0x80;
+            ctx->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             work->flags_62C.hi.field_62E++;
@@ -4492,7 +4492,7 @@ static void Actor00400_Fn070C0(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             Actor00400_UpdateColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~0x80;
+            ctx->flags &= ~TMD_OBJECT_HIDDEN;
             break;
     }
 }
@@ -4849,7 +4849,7 @@ static void Actor00400_Fn07E20(Task* arg0)
     work = arg0->work;
     ctx  = arg0->extra.tmd;
     if (++work->field_636 >= 0x18) {
-        ctx->flags     |= 2;
+        ctx->flags     |= TMD_OBJECT_SEMI_TRANS;
         work->field_636 = 0;
         work->field_638++;
     }
@@ -4874,7 +4874,7 @@ static void Actor00400_Fn07EE8(Task* arg0)
     Actor100400Work* work;
 
     ctx             = arg0->extra.tmd;
-    ctx->flags     |= 0x80;
+    ctx->flags     |= TMD_OBJECT_HIDDEN;
     work            = arg0->work;
     arg0->state     = 5;
     work->field_638 = 0;
@@ -4888,7 +4888,7 @@ static void Actor00400_Fn07F18(Task* arg0)
 
     ctx             = arg0->extra.tmd;
     work            = arg0->work;
-    ctx->flags     |= 0x80;
+    ctx->flags     |= TMD_OBJECT_HIDDEN;
     work->field_636 = 0;
     work->field_638++;
 }
@@ -4911,7 +4911,7 @@ static void Actor00400_Fn07F88(Task* arg0)
     model = arg0->extra.tmd;
     work  = arg0->work;
     Tmd_FreeBuffers(model);
-    model->flags |= 4;
+    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor00400_Fn0237C(arg0);
     work->field_638 = (u16)work->field_638 + 1;
 }
@@ -5051,22 +5051,22 @@ void Actor00400_Fn08354(Task* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             Gp_StateF0.field_23 = 1;
-            ctx->flags         |= 0x80;
+            ctx->flags         |= TMD_OBJECT_HIDDEN;
             work->field_663     = 1;
             break;
         case 1:
             Gp_StateF0.field_23 = 0;
             state               = arg0->state;
             if (((state == 2) || (state == 4)) && (work->field_644 == 4)) {
-                ctx->flags |= 0x80;
+                ctx->flags |= TMD_OBJECT_HIDDEN;
             } else if ((arg0->state == 2) && ((work->field_638 == 4) || (work->field_638 == 5))) {
-                ctx->flags |= 0x80;
+                ctx->flags |= TMD_OBJECT_HIDDEN;
             } else if ((arg0->state == 4) && (work->field_638 == 6)) {
-                ctx->flags |= 0x80;
+                ctx->flags |= TMD_OBJECT_HIDDEN;
             } else if (arg0->state == 5) {
-                ctx->flags |= 0x80;
+                ctx->flags |= TMD_OBJECT_HIDDEN;
             } else {
-                ctx->flags &= ~0x80;
+                ctx->flags &= ~TMD_OBJECT_HIDDEN;
             }
             work->field_663 = 0;
             break;
@@ -5399,7 +5399,7 @@ static void Actor00400_Fn08DFC(Task* arg0)
     work = arg0->work;
     ctx  = arg0->extra.tmd;
     if (++work->field_636 >= 0x18) {
-        ctx->flags     |= 2;
+        ctx->flags     |= TMD_OBJECT_SEMI_TRANS;
         work->field_636 = 0;
         work->field_638++;
     }
@@ -5438,7 +5438,7 @@ static void Actor00400_Fn08E50(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if (work->field_636 >= 0x21) {
-        ctx->flags |= 0x80;
+        ctx->flags |= TMD_OBJECT_HIDDEN;
         work->field_638++;
     }
 }
@@ -5460,7 +5460,7 @@ static void Actor00400_Fn08FC8(Task* arg0)
 
     ctx             = arg0->extra.tmd;
     work            = arg0->work;
-    ctx->flags     |= 0x80;
+    ctx->flags     |= TMD_OBJECT_HIDDEN;
     work->field_636 = 0;
     work->field_638++;
 }
@@ -5483,7 +5483,7 @@ static void Actor00400_Fn09038(Task* arg0)
     model = arg0->extra.tmd;
     work  = arg0->work;
     Tmd_FreeBuffers(model);
-    model->flags |= 4;
+    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor00400_Fn0237C(arg0);
     work->field_638 = (u16)work->field_638 + 1;
 }

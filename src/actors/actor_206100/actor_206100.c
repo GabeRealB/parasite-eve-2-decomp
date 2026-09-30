@@ -510,7 +510,7 @@ extern TaskDesc D_actor_206100_80158AF0[];
 static void func_actor_206100_8014AF74(Task* task);
 
 /// Builds the enemy's two collision objects.  Each is bound to a part
-/// coordinate of the actor's `TmdObject` -- `obj_364` to `field_8[1]` with
+/// coordinate of the actor's `TmdObject` -- `obj_364` to `coords[1]` with
 /// `field_1C` 0x400, `obj_414` to `field_8[4]` with 0x200 -- and both point
 /// their `field_C` at the shared `WorldCollisionContact` pair table zeroed at `rec_384`,
 /// which is why there is a single `Gp_InitRec18Table` for the pair.  Each
@@ -536,7 +536,7 @@ static void func_actor_206100_8014A70C(GfxCoord* coord, u16 arg1, u16 arg2, u32 
 /// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
 /// XZ plane, and marks it dirty.
 ///
-/// `task->extra` is the actor's `TmdObject`, so `field_8` is the root
+/// `task->extra` is the actor's `TmdObject`, so `coords` is the root
 /// `GfxCoord` of its part array: `coord.t[0]` gains `rsin(arg2) * arg1`
 /// and `coord.t[2]` `rcos(arg2) * arg1`. The `<< 4` on the `rsin` / `rcos`
 /// result and the `>> 16` after the multiply are one `>> 12` split in two, the
@@ -2401,7 +2401,7 @@ static void func_actor_206100_8014C458(Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 0:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
@@ -2529,7 +2529,7 @@ static void func_actor_206100_8014C458(Task* task)
             enemy->coord = &task->extra.tmd->coords[work->field_557];
         case 1:
             Actor206100_UpdateColor(task);
-            obj->flags &= 0xFF7F;
+            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             break;
     }
     svp                = &scratch.gte.vec;
@@ -3219,7 +3219,7 @@ static void func_actor_206100_8014DA28(Task* task)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->flags_514.parts.field_516 = work->flags_514.parts.field_516 + 1;
@@ -3283,7 +3283,7 @@ static void func_actor_206100_8014DA28(Task* task)
             /* fallthrough */
         case 1:
             Actor206100_UpdateColor(task);
-            obj->flags &= 0xFF7F;
+            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             return;
     }
 }
@@ -3676,7 +3676,7 @@ static void func_actor_206100_8014E7D4(Task* task)
     states = D_actor_206100_80149EC0;
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             states.funcs[(s16)work->field_520](task, &states);
@@ -3854,11 +3854,11 @@ static GpEnemy* func_actor_206100_8014EE2C(s32 arg0)
 
     enemy = Gp_SpawnEnemyFromTable(&D_80147E48, 0, 3, NULL);
     if (enemy != NULL) {
-        enemy->placeKey = arg0 << 12;
-        enemy->place    = &D_actor_206100_80155134[(s16)arg0];
-        obj             = enemy->task->extra.tmd;
-        obj->tpage      = 0;
-        obj->clut       = 2;
+        enemy->placeKey        = arg0 << 12;
+        enemy->place           = &D_actor_206100_80155134[(s16)arg0];
+        obj                    = enemy->task->extra.tmd;
+        obj->texturePageOffset = 0;
+        obj->clutRowOffset     = 2;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
         return enemy;

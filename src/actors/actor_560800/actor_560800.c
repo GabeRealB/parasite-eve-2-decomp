@@ -4353,7 +4353,7 @@ static s32 func_actor_560800_80132498(Task* arg0)
     u16                  done;
 
     work = (Actor560800AnimWork*)arg0->work;
-    if (arg0->extra.tmd->flags & 0x80) {
+    if (arg0->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
         return 0;
     }
     for (i = 1; i < work->field_4BA; i++) {
@@ -4434,7 +4434,7 @@ void func_actor_560800_801326C4(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            arg0->extra.tmd->flags &= ~0x84;
+            arg0->extra.tmd->flags &= ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             work                    = (Actor560800AnimWork*)arg0->work;
             {
                 TmdObject* obj = arg0->extra.tmd;
@@ -4723,7 +4723,7 @@ void func_actor_560800_80132F64(Task* arg0)
         }
         arg0->state += 1;
     }
-    if (!(arg0->extra.tmd->flags & 0x80) && work->field_4C2 == 0) {
+    if (!(arg0->extra.tmd->flags & TMD_OBJECT_HIDDEN) && work->field_4C2 == 0) {
         ofs.vx = 0;
         ofs.vy = 0x380;
         ofs.vz = 0;
@@ -5875,10 +5875,10 @@ void func_actor_560800_801361A0(Task* task, s32 arg1, s32 arg2)
         case 0:
             break;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }
@@ -6480,7 +6480,7 @@ void func_actor_560800_80137820(Task* arg0)
                 switch (work->field_280) {
                     case 1:
                     case 3:
-                        obj->flags |= 0x80;
+                        obj->flags |= TMD_OBJECT_HIDDEN;
                         return;
                     case 4 ... 0x7FFF:
                         break;
@@ -6491,7 +6491,7 @@ void func_actor_560800_80137820(Task* arg0)
             }
             if (work->field_280 < 8) {
                 if (work->field_280 >= 5) {
-                    obj->flags |= 0x80;
+                    obj->flags |= TMD_OBJECT_HIDDEN;
                     return;
                 }
             }
@@ -6500,7 +6500,7 @@ void func_actor_560800_80137820(Task* arg0)
         case 2:
             if (work->field_280 < 4) {
                 if (work->field_280 >= 2) {
-                    obj->flags |= 0x80;
+                    obj->flags |= TMD_OBJECT_HIDDEN;
                     return;
                 }
             }
@@ -6556,7 +6556,7 @@ done:
     coord->coord.t[1]   = (s16)work->field_256 + work->field_24E;
     coord->coord.t[2]   = work->field_258 + work->field_250;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (!(obj->flags & 0x80)) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN)) {
         func_shelter_b1_pod_service_gantry_8017F450(&arg0->extra.tmd->coords[6], work->field_280, 0x100, 0x3C36);
         if (Gp_FindViewIndex(gGameSession->at4.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
@@ -7215,7 +7215,7 @@ void func_actor_560800_80138FC8(Task* task)
             task->state++;
             return;
         case 1:
-            task->extra.tmd->flags |= 0x80;
+            task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             break;
         case 2:
             coord              = task->extra.tmd->coords;
@@ -7349,10 +7349,10 @@ void func_actor_560800_80139360(Task* task, s32 arg1, s32 arg2)
                 case 0:
                     break;
                 case 1:
-                    obj->flags = obj->flags & 0xFF7B;
+                    obj->flags = obj->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
                     break;
                 case 2:
-                    obj->flags = obj->flags | 0x84;
+                    obj->flags = obj->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
                     break;
             }
         }
@@ -7369,10 +7369,10 @@ void func_actor_560800_801393EC(Task* task, s32 arg1, s32 arg2)
         case 0:
             break;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

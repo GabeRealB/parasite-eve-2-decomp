@@ -149,7 +149,7 @@ STATIC_ASSERT_SIZEOF(Actor403100Req, 0x4);
 /// stores the same pointer twice: into the `Task::work` slot (0x1C), which an
 /// enemy actor reuses for its own work block, and into the overlay-wide
 /// `D_actor_403100_80155808`. It also hands `work + 0x20` and `work` to the
-/// `TmdObject` at `Task::extra` (`field_1C` / `field_20`). Most of the overlay
+/// `TmdObject` at `Task::extra` (`lightMtx` / `colorMtx`). Most of the overlay
 /// reaches it through the global rather than through the task.
 typedef struct Actor403100Work {
     /* 0x000 */ union {
@@ -3182,7 +3182,7 @@ s16 D_actor_403100_80155810 = 0;
 
 Actor403100Entry D_actor_403100_80155814[28] = { 0 };
 
-/// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `field_8` is
+/// Overlay-wide work block; `Task::extra` is a `TmdObject` whose `coords` is
 /// this actor's `GfxCoord`.
 extern Actor403100Work* D_actor_403100_80155808;
 
@@ -5387,7 +5387,7 @@ static void func_actor_403100_80136830(Task* arg0)
     }
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             if (player == NULL) {
@@ -5481,7 +5481,7 @@ static void func_actor_403100_80136830(Task* arg0)
             Gp_UpdateCoord(coordinates + 8);
             Gp_UpdateCoord(side);
             _actor403100UpdateColor(arg0, center);
-            obj->flags &= 0xFF7F;
+            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             return;
     }
 }
@@ -8150,19 +8150,19 @@ void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2)
     object = arg0->extra.tmd;
     switch (arg2) {
         case 0:
-            object->flags = (object->flags | 0x80) & 0xFFFB;
+            object->flags = (object->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            object->flags = object->flags & 0xFF7B;
+            object->flags = object->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            object->flags                      = object->flags | 0x80;
+            object->flags                      = object->flags | TMD_OBJECT_HIDDEN;
             D_actor_403100_80155808->field_658 = arg2;
-            flags                              = object->flags | 4;
+            flags                              = object->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             object->flags                      = flags;
             return;
         case 3:
-            flags         = (object->flags & 0xFF7F) | 4;
+            flags         = (object->flags & (u16)~TMD_OBJECT_HIDDEN) | 4;
             object->flags = flags;
             return;
     }
@@ -8811,7 +8811,7 @@ static void func_actor_403100_8013F0A8(Task* arg0)
     TmdObject* obj;
 
     obj                           = arg0->extra.tmd;
-    obj->flags                   |= 0x80;
+    obj->flags                   |= TMD_OBJECT_HIDDEN;
     D_actor_403100_8014762C.bp    = 0;
     D_actor_403100_8014762C.mp    = 0;
     D_actor_403100_8014762C.exp >>= 1;

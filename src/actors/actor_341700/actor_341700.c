@@ -1067,10 +1067,10 @@ static void func_actor_341700_801624F8(Task* arg0)
     D_800678F0[0] = &D_actor_341700_8016DE70;
     eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);
     if (eff != NULL) {
-        src        = arg0->extra.tmd;
-        dst        = eff->task->extra.tmd;
-        dst->tpage = src->tpage;
-        dst->clut  = src->clut;
+        src                    = arg0->extra.tmd;
+        dst                    = eff->task->extra.tmd;
+        dst->texturePageOffset = src->texturePageOffset;
+        dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
             tmdProcessStream(dst);
             tmdProcessStream(dst);
@@ -1085,10 +1085,10 @@ static void func_actor_341700_801624F8(Task* arg0)
         eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[2], 0x200, NULL);
     }
     if (eff2 != NULL) {
-        src2        = arg0->extra.tmd;
-        dst2        = eff2->task->extra.tmd;
-        dst2->tpage = src2->tpage;
-        dst2->clut  = src2->clut;
+        src2                    = arg0->extra.tmd;
+        dst2                    = eff2->task->extra.tmd;
+        dst2->texturePageOffset = src2->texturePageOffset;
+        dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
             tmdProcessStream(dst2);
             tmdProcessStream(dst2);
@@ -1308,7 +1308,7 @@ static void func_actor_341700_80162B8C(Task* task)
     kind = flags & 0xF;
     two  = 2;
     if (kind == two) {
-        model->flags |= 0x80;
+        model->flags |= TMD_OBJECT_HIDDEN;
     }
     obj                   = task->extra.tmd;
     w                     = (Actor341700Work*)task->work;
@@ -1464,7 +1464,7 @@ static void func_actor_341700_80162DCC(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -1789,7 +1789,7 @@ static void func_actor_341700_80163C58(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -1812,7 +1812,7 @@ static void func_actor_341700_80163C58(Task* arg0)
             func_actor_341700_80162070(arg0, 2, 6, 0xC8, 0, 0xFF);
             func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
             func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             return;
     }
 }
@@ -2249,7 +2249,7 @@ static void func_actor_341700_80164CDC(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -2306,7 +2306,7 @@ static void func_actor_341700_80164E9C(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if ((s16)work->field_412 > 0x20) {
-        obj->flags |= 0x80;
+        obj->flags |= TMD_OBJECT_HIDDEN;
         work->field_420++;
     }
 }
@@ -2468,7 +2468,7 @@ static void func_actor_341700_80165388(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -2496,7 +2496,7 @@ static void func_actor_341700_80165388(Task* arg0)
             func_actor_341700_80162070(arg0, 2, 6, 0xC8, 0, 0xFF);
             func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
             func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             return;
     }
 }
@@ -2767,7 +2767,7 @@ static void func_actor_341700_80165DDC(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -2821,10 +2821,10 @@ static void func_actor_341700_80166114(Task* arg0)
         work->field_451      = 1;
         work->obj_2AC.flags |= 0x8000;
         work->obj_2CC.flags &= 0xBFFF;
-        obj->flags          &= 0xFF7F;
+        obj->flags          &= (u16)~TMD_OBJECT_HIDDEN;
         if ((arg0->spawnArg1.value & 0xF) != 2) {
             Tmd_AllocBuffers(obj);
-            obj->flags &= 0xFFFB;
+            obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
         enemy->node.state.b.flags = 0;
         map                       = GAME_LOCATION_WORD(gGameSession->at4.loc) & GAME_LOCATION_STAGE_AREA_MASK;
@@ -3415,7 +3415,7 @@ static void func_actor_341700_80167744(Task* arg0)
     Gp_UnlinkObj(&objs->obj_3AC);
     enter_state(arg0, 5);
     Gp_DispatchMsg(Gp_LookupSlot4(0), 0x13F4, 0, 0);
-    tmd->flags |= 0x80;
+    tmd->flags |= TMD_OBJECT_HIDDEN;
 }
 
 /// Sub-state handler: slides the model's root toward `field_70` in x/z,
@@ -3531,7 +3531,7 @@ static void func_actor_341700_80167C30(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -3547,7 +3547,7 @@ static void func_actor_341700_80167C30(Task* arg0)
                 func_actor_341700_80162070(arg0, 1, 7, 0x80, 0, 0xFF);
                 func_actor_341700_80162070(arg0, 7, 8, 0x80, 0, 0xFF);
             }
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             return;
     }
 }
@@ -3564,7 +3564,7 @@ static void func_actor_341700_80167E18(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             work->field_442++;
@@ -4331,7 +4331,7 @@ static void func_actor_341700_80169380(Task* arg0)
     Gp_UnlinkNode(&enemy->node);
     if (work->field_448 == 4) {
         work->field_412  = 0;
-        model->flags     = model->flags | 0x80;
+        model->flags     = model->flags | TMD_OBJECT_HIDDEN;
         work2            = (Actor341700Work*)arg0->work;
         work2->field_420 = 7;
         work2->field_422 = 0;
@@ -4438,7 +4438,7 @@ static void func_actor_341700_8016966C(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x18) {
-        model->flags    = model->flags | 2;
+        model->flags    = model->flags | TMD_OBJECT_SEMI_TRANS;
         work->field_412 = 0U;
         work->field_451 = 1;
         work->field_420 = work->field_420 + 1;
@@ -4479,7 +4479,7 @@ static void func_actor_341700_80169724(Task* arg0)
     model = arg0->extra.tmd;
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     Tmd_FreeBuffers(model);
-    model->flags |= 4;
+    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_341700_801624F8(arg0);
     Gp_ReleaseStateF0Add(arg0, 0);
     enemy->recs = 0;
@@ -5011,7 +5011,7 @@ static void func_actor_341700_8016A568(Task* arg0)
     Gp_UnlinkObj(&work2->obj_2AC);
     Gp_UnlinkObj(&work2->obj_2CC);
     Gp_UnlinkObj(&work2->obj_3AC);
-    model->flags    = model->flags | 0x80;
+    model->flags    = model->flags | TMD_OBJECT_HIDDEN;
     work->field_420 = work->field_420 + 1;
 }
 
@@ -5029,7 +5029,7 @@ static void func_actor_341700_8016A630(Task* arg0)
     work->field_412 = ticks;
     if ((s16)ticks == 3) {
         Tmd_FreeBuffers(model);
-        model->flags |= 4;
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     if ((s16)work->field_412 >= 0x24) {
         Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
@@ -5178,7 +5178,7 @@ static void func_actor_341700_8016AA58(Task* arg0)
     ticks           = work->field_412 + 1;
     work->field_412 = ticks;
     if ((s16)ticks >= 0x18) {
-        model->flags    = model->flags | 2;
+        model->flags    = model->flags | TMD_OBJECT_SEMI_TRANS;
         work->field_412 = 0U;
         work->field_451 = 1;
         work->field_420 = work->field_420 + 1;
@@ -5218,7 +5218,7 @@ static void func_actor_341700_8016AAB4(Task* arg0)
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
     }
     if ((s16)work->field_412 > 0x20) {
-        obj->flags     |= 0x80;
+        obj->flags     |= TMD_OBJECT_HIDDEN;
         work->field_412 = 0;
         work->field_420++;
     }

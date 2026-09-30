@@ -3325,7 +3325,7 @@ static void func_actor_110600_80136B20(Task* arg0)
     }
     switch (work->field_BE0) {
         case 0xE6:
-            arg0->extra.tmd->flags = 2;
+            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             work->field_B08        = work->field_AE8;
             break;
         case 0xC8:
@@ -3342,7 +3342,7 @@ static void func_actor_110600_80136B20(Task* arg0)
             pos.vz = 0;
             break;
         case 0x258:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             break;
     }
     if (work->field_BE0 >= 0xE6) {
@@ -3355,7 +3355,7 @@ static void func_actor_110600_80136B20(Task* arg0)
         gte_stlvl(&work->field_AE8.t[0]);
     }
     if (work->field_BE0 == 0xFD) {
-        arg0->extra.tmd->flags = 2;
+        arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if (work->field_BE0 >= 0xC9) {
         y = work->field_8A6;
@@ -3419,7 +3419,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
         work->walker.field_5A     = 0;
         work->field_8A4           = 0;
         work->field_8A2           = 0;
-        obj->flags                = 0x80;
+        obj->flags                = TMD_OBJECT_HIDDEN;
 
         effect1 = Gp_SpawnEff(0xA0005, &arg0->extra.tmd->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
@@ -3433,9 +3433,9 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index1      = raw1 >> 12;
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
-            entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-            model1->tpage = entry1->texturePageOffset;
-            model1->clut  = entry1->clutRowOffset;
+            entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+            model1->texturePageOffset = entry1->texturePageOffset;
+            model1->clutRowOffset     = entry1->clutRowOffset;
             if (model1->buffer != NULL) {
                 tmdProcessStream(model1);
                 tmdProcessStream(model1);
@@ -3454,9 +3454,9 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index2      = raw2 >> 12;
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
-            entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-            model2->tpage = entry2->texturePageOffset;
-            model2->clut  = entry2->clutRowOffset;
+            entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+            model2->texturePageOffset = entry2->texturePageOffset;
+            model2->clutRowOffset     = entry2->clutRowOffset;
             if (model2->buffer != NULL) {
                 tmdProcessStream(model2);
                 tmdProcessStream(model2);
@@ -3475,9 +3475,9 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index3      = raw3 >> 12;
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
-            entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-            model3->tpage = entry3->texturePageOffset;
-            model3->clut  = entry3->clutRowOffset;
+            entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
+            model3->texturePageOffset = entry3->texturePageOffset;
+            model3->clutRowOffset     = entry3->clutRowOffset;
             if (model3->buffer != NULL) {
                 tmdProcessStream(model3);
                 tmdProcessStream(model3);
@@ -3496,9 +3496,9 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index4      = raw4 >> 12;
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
-            entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
-            model4->tpage = entry4->texturePageOffset;
-            model4->clut  = entry4->clutRowOffset;
+            entry4                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
+            model4->texturePageOffset = entry4->texturePageOffset;
+            model4->clutRowOffset     = entry4->clutRowOffset;
             if (model4->buffer != NULL) {
                 tmdProcessStream(model4);
                 tmdProcessStream(model4);
@@ -3517,9 +3517,9 @@ static void func_actor_110600_80136ECC(Task* arg0)
             index5      = raw5 >> 12;
             key.view    = areaByte0;
             areaSyncLocationVariant(&key);
-            entry5        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
-            model5->tpage = entry5->texturePageOffset;
-            model5->clut  = entry5->clutRowOffset;
+            entry5                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index5);
+            model5->texturePageOffset = entry5->texturePageOffset;
+            model5->clutRowOffset     = entry5->clutRowOffset;
             if (model5->buffer != NULL) {
                 tmdProcessStream(model5);
                 tmdProcessStream(model5);
@@ -4011,7 +4011,7 @@ static void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recs);
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(work->recs_970);
             Gp_ClearRec18Occupied(work->recs_8D8);
             Gp_ClearRec18Occupied(work->recs);
@@ -4146,7 +4146,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
     work  = arg0->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -4155,7 +4155,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
                 obj->flags = 0;
                 Tmd_AllocBuffers(obj);
             } else if (enemy->spawnState == 4) {
-                obj->flags    = 0x80;
+                obj->flags    = TMD_OBJECT_HIDDEN;
                 work->field_0 = 0;
             } else {
                 obj->flags = 0;
@@ -4163,17 +4163,17 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
             }
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             if (enemy->spawnState == 4) {
-                obj->flags = 0x80;
+                obj->flags = TMD_OBJECT_HIDDEN;
             } else {
                 obj->flags = 0;
             }
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -4315,7 +4315,7 @@ static void func_actor_110600_801388A4(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                              = (u16)(obj->flags | 0x80);
+        obj->flags                                              = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
         work->field_A90.flags                                   = (u16)(work->field_A90.flags & 0x7FFF);
         work->field_950.flags                                   = (u16)(work->field_950.flags & 0xBFFF);
     }

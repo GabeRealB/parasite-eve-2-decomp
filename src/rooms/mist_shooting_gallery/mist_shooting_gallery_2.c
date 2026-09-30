@@ -3311,9 +3311,9 @@ void func_mist_shooting_gallery_801848B4(void)
 
     enemy = Gp_SpawnEnemyFromTable(&D_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
-        obj        = enemy->task->extra.tmd;
-        obj->tpage = 0;
-        obj->clut  = 2;
+        obj                    = enemy->task->extra.tmd;
+        obj->texturePageOffset = 0;
+        obj->clutRowOffset     = 2;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
         coord             = enemy->task->extra.tmd->coords;
@@ -3457,9 +3457,9 @@ static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGall
     if (enemy != NULL) {
         enemy->task->parent = arg0;
         Task_Reparent(arg0, enemy->task);
-        obj        = enemy->task->extra.tmd;
-        obj->tpage = 0;
-        obj->clut  = 2;
+        obj                    = enemy->task->extra.tmd;
+        obj->texturePageOffset = 0;
+        obj->clutRowOffset     = 2;
         tmdProcessStream(obj);
         tmdProcessStream(obj);
         coord             = enemy->task->extra.tmd->coords;

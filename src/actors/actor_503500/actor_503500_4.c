@@ -135,7 +135,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work3D8Chain, 0x3CE);
 /// stride; the task's `field_1C` still points here through the shared view,
 /// and `Actor503500Work3D8Mtx` / `Actor503500Work3D8Chain` are narrower views
 /// of the same bytes. It opens with the light / colour matrices the init
-/// republishes on `TmdObject::lightMtx` / `field_20`, then a private copy of
+/// republishes on `TmdObject::lightMtx` / `colorMtx`, then a private copy of
 /// model parts 1..8's `coord` matrices.
 typedef struct Actor503500Work3D8 {
     /* 0x000 */ MATRIX                light;
@@ -2769,7 +2769,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
             func_actor_503500_80142310(arg0, 6);
             break;
         case 9:
-            tmd->flags |= 0x80;
+            tmd->flags |= TMD_OBJECT_HIDDEN;
             func_actor_503500_80142310(arg0, 7);
             break;
         default:
@@ -2808,7 +2808,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
             slot = 0xA;
         }
         if (func_actor_503500_80135E04(arg0->parent, slot) == 0) {
-            tmd->flags |= 4;
+            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         } else {
             goto tick;
         }
@@ -2819,12 +2819,12 @@ static void func_actor_503500_8013FF0C(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 1:
-            if (!(tmd->flags & 0x80)) {
+            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
                 func_actor_503500_801421A8(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= 0x80;
+            tmd->flags                |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags |= 1;
             break;
         default:
@@ -3089,7 +3089,7 @@ static void func_actor_503500_80140654(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             switch (work->field_3AE) {
                 case 10:
-                    arg0->extra.tmd->flags |= 2;
+                    arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
@@ -3809,7 +3809,7 @@ static void func_actor_503500_801423C8(Task* arg0)
     tmd->lightMtx       = parentTmd->lightMtx;
     tmd->colorMtx       = parentTmd->colorMtx;
     tmd->otOffset       = 0x13;
-    tmd->flags         |= 0x84;
+    tmd->flags         |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4            = &coord->coord;
@@ -4072,7 +4072,7 @@ static void func_actor_503500_80142980(Task* arg0)
                     coord[i].coord.m[2][2] = src[i].coord.m[2][2];
                 }
                 tmd         = arg0->extra.tmd;
-                tmd->flags &= 0xFF7B;
+                tmd->flags &= (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 Tmd_AllocBuffers(tmd);
                 rot.vx = 0;
                 rot.vy = 0;
@@ -4121,7 +4121,7 @@ static void func_actor_503500_80142980(Task* arg0)
             work->vel.vy.w += 0x8000;
             switch ((s16)work->field_21A) {
                 case 10:
-                    arg0->extra.tmd->flags |= 2;
+                    arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
@@ -4513,12 +4513,12 @@ static void func_actor_503500_80143EB4(Task* arg0)
     tmd   = arg0->extra.tmd;
     switch (mode) {
         case 1:
-            if (!(tmd->flags & 0x80)) {
+            if (!(tmd->flags & TMD_OBJECT_HIDDEN)) {
                 func_actor_503500_80143FFC(arg0);
             }
             break;
         case 2:
-            tmd->flags                |= 0x80;
+            tmd->flags                |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags |= 1;
             break;
         default:

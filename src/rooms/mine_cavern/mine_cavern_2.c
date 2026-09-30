@@ -95,7 +95,7 @@
 ///
 /// `light` and `color` are the two matrices the block itself supplies to the
 /// model: `func_mine_cavern_801836D0` publishes `&work->light` / `&work->color`
-/// into `TmdObject::lightMtx` / `field_20`, which is what `Tmd_SetupDraw` loads
+/// into `TmdObject::lightMtx` / `colorMtx`, which is what `Tmd_SetupDraw` loads
 /// in place of `GsLIGHTWSMATRIX` and `D_80074080`.
 typedef struct MineCavernWork {
     /* 0x000 */ MATRIX                light;
@@ -3987,7 +3987,7 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
     player = gameGetPtrSlot(3);
     switch (Gp_StateF0.field_4) {
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
         case 0:
         default:
@@ -4077,7 +4077,7 @@ found:
             if (!((blk->bits >> (u16)arg1->spawnArg1.value) & 1)) {
                 blk->bits |= 1 << (u16)arg1->spawnArg1.value;
                 GameFlag_SetNibble(0xE2, blk->bits);
-                arg1->extra.tmd->flags = 0x80;
+                arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             }
             id  = ((arg0->placeKey >> 12) << 8) | 0x54020014;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
@@ -4187,7 +4187,7 @@ static void func_mine_cavern_801838F4(GpEnemy* arg0, Task* arg1)
 
     work = (MineCavernWork*)arg1->work;
 
-    arg1->extra.tmd->flags = 0x80;
+    arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
 
     state           = work->field_148;
     work->field_148 = state + 1;
@@ -4270,7 +4270,7 @@ static void func_mine_cavern_80183AD4(GpEnemy* enemy, Task* task)
     func_800D7A9C(task->extra.tmd, &vec, 0, 3);
 
     if (!((GameFlag_GetNibble(0xE2) >> (u16)task->spawnArg1.value) & 1)) {
-        task->extra.tmd->flags = 0x80;
+        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     } else {
         m                         = &work->coord.coord;
         *(s32*)&work->coord.coord = 0x1000;

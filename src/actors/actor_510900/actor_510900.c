@@ -2239,7 +2239,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
         return;
     }
     arg1->work          = work;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_45C;
     obj->colorMtx       = &work->field_43C;
@@ -2274,9 +2274,9 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-    model1->tpage = entry1->texturePageOffset;
-    model1->clut  = entry1->clutRowOffset;
+    entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+    model1->texturePageOffset = entry1->texturePageOffset;
+    model1->clutRowOffset     = entry1->clutRowOffset;
     if (model1->buffer != NULL) {
         tmdProcessStream(model1);
         tmdProcessStream(model1);
@@ -2301,9 +2301,9 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     areaByte0   = gGameSession->at4.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-    model2->tpage = entry2->texturePageOffset;
-    model2->clut  = entry2->clutRowOffset;
+    entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+    model2->texturePageOffset = entry2->texturePageOffset;
+    model2->clutRowOffset     = entry2->clutRowOffset;
     if (model2->buffer != NULL) {
         tmdProcessStream(model2);
         tmdProcessStream(model2);

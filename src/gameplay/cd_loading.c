@@ -1008,8 +1008,8 @@ void Gp_PumpTmdStream(Task* task)
 
     obj = task->extra.tmd;
     if (task->spawnType == 1) {
-        obj->tpage = 4;
-        obj->clut  = 6;
+        obj->texturePageOffset = 4;
+        obj->clutRowOffset     = 6;
         if (obj->buffer != NULL) {
             tmdProcessStream(obj);
             tmdProcessStream(obj);

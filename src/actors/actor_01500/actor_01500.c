@@ -1575,9 +1575,9 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-        model1->tpage = entry1->texturePageOffset;
-        model1->clut  = entry1->clutRowOffset;
+        entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+        model1->texturePageOffset = entry1->texturePageOffset;
+        model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
             tmdProcessStream(model1);
             tmdProcessStream(model1);
@@ -1597,9 +1597,9 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-        model2->tpage = entry2->texturePageOffset;
-        model2->clut  = entry2->clutRowOffset;
+        entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+        model2->texturePageOffset = entry2->texturePageOffset;
+        model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1619,9 +1619,9 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-        model3->tpage = entry3->texturePageOffset;
-        model3->clut  = entry3->clutRowOffset;
+        entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
+        model3->texturePageOffset = entry3->texturePageOffset;
+        model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);
@@ -1641,9 +1641,9 @@ static void Actor01500_Fn01AB0(Task* arg0)
         index4      = raw4 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry4        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
-        model4->tpage = entry4->texturePageOffset;
-        model4->clut  = entry4->clutRowOffset;
+        entry4                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index4);
+        model4->texturePageOffset = entry4->texturePageOffset;
+        model4->clutRowOffset     = entry4->clutRowOffset;
         if (model4->buffer != NULL) {
             tmdProcessStream(model4);
             tmdProcessStream(model4);
@@ -1675,7 +1675,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             sub = &coord[1];
             goto update;
         case 2:
-            model->flags             = 0x80;
+            model->flags             = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -1693,7 +1693,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             work->field_362 = 0;
             work->field_35C = 1;
             if (work->field_37E != 0) {
-                model->flags    = 0x80;
+                model->flags    = TMD_OBJECT_HIDDEN;
                 work->field_35C = 3;
             }
             break;
@@ -1701,7 +1701,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             Actor01500_Fn02C34(arg1);
             work->field_362++;
             if (work->field_362 == 10) {
-                model->flags = 2;
+                model->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if (work->field_362 == 15) {
                 Gp_SpawnEff(0x600A5, coord, 2, NULL);
@@ -1718,7 +1718,7 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
                 if (work->field_37E >= 2) {
                     work->field_37E = 0;
                     Tmd_FreeBuffers(model);
-                    model->flags |= 4;
+                    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     Actor01500_Fn01AB0(arg1);
                 } else {
                     work->field_37E++;
@@ -1886,7 +1886,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:

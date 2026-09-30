@@ -64,7 +64,7 @@
 /// Scratch state of the two falling-prop tasks, stored at `Task::work`
 /// (`memCalloc(0x48)` in `func_neo_ark_shrine_8017F4C8` / `_8017F688`).
 /// `color` / `light` are the prop's own matrices, republished onto
-/// `TmdObject::lightMtx` / `field_20` by the two spawn handlers; `speed` /
+/// `TmdObject::lightMtx` / `colorMtx` by the two spawn handlers; `speed` /
 /// `delta` / `ticks` are the fall itself, stepped by `func_neo_ark_shrine_8017F578`.
 typedef struct {
     /* 0x00 */ MATRIX color;

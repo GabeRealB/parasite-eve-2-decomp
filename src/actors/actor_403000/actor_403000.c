@@ -144,7 +144,7 @@ typedef struct Actor403000Work {
     /* 0xF10 */ MATRIX                field_F10;
     /// The second of the two default matrices the spawn handler binds to the
     /// display object -- `&work->field_F10` and this one are what it writes to
-    /// `TmdObject::lightMtx` / `field_20` -- so it is a `MATRIX` whether or not
+    /// `TmdObject::lightMtx` / `colorMtx` -- so it is a `MATRIX` whether or not
     /// the animation that drives it is running. `func_actor_403000_8013D72C`
     /// zeroes this one field by field, last element first.
     /* 0xF30 */ MATRIX field_F30;
@@ -3700,10 +3700,10 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2        = -1;
                 return 1;
             case 5:
-                work->field_0          = 0x15;
-                work->field_2          = -1;
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
+                work->field_0                      = 0x15;
+                work->field_2                      = -1;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
                 return 1;
             case 6:
                 Gp_SetLightMode(enemy, 0);
@@ -3715,10 +3715,10 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_2        = -1;
                 return 1;
             case 7:
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
-                work->field_0          = 0x14;
-                work->field_2          = -1;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
+                work->field_0                      = 0x14;
+                work->field_2                      = -1;
                 return 1;
             case 10:
                 Gp_SetLightMode(enemy, 0);
@@ -3733,23 +3733,23 @@ s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
                 work->field_FD3 = -1;
                 work->field_FD2 = 1;
                 work->field_FD5 = 1;
-                if ((s8)arg0->extra.tmd->tpage == 2) {
+                if (arg0->extra.tmd->texturePageOffset == 2) {
                     enemy->reactionFlags = 0;
                     enemy->hp            = D_actor_403000_8013DA10.hpMax;
                     enemy->param         = &D_actor_403000_8013DA10;
                 }
                 return 1;
             case 12:
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
-                work->field_0          = 0x16;
-                work->field_2          = -1;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
+                work->field_0                      = 0x16;
+                work->field_2                      = -1;
                 return 1;
             case 13:
-                work->field_0          = 0x17;
-                work->field_2          = -1;
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
+                work->field_0                      = 0x17;
+                work->field_2                      = -1;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
                 return 1;
         }
     }
@@ -4948,7 +4948,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                 } else {
                     work->field_0 = 0x11;
                 }
-                if ((s8)arg0->extra.tmd->tpage == 0) {
+                if (arg0->extra.tmd->texturePageOffset == 0) {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
                 } else {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
@@ -5066,7 +5066,7 @@ static void func_actor_403000_80134F44(Task* arg0)
                 D_actor_403000_80158D8C.from.loc.area  = 1;
                 D_actor_403000_80158D8C.command        = 3;
                 Gp_DispatchMsgPtr(gameGetPtrSlot(4), 0x7DA, &D_actor_403000_80158D8C, 0x7DB);
-                if ((s8)arg0->extra.tmd->tpage == 0) {
+                if (arg0->extra.tmd->texturePageOffset == 0) {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0011);
                 } else {
                     func_actor_403000_PlaySound(arg0, enemy, 0x401E0012);
@@ -5230,13 +5230,13 @@ static void func_actor_403000_8013603C(Task* arg0)
                 Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[18], 1, NULL);
                 break;
             case 0x78:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 Gp_SetLightMode(enemy, 2);
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
                 break;
             case 0x88:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
         t = work->field_6;
@@ -5300,13 +5300,13 @@ static void func_actor_403000_801365D0(Task* arg0)
                 Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[18], 1, NULL);
                 break;
             case 0x5A:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 Gp_SetLightMode(enemy, 2);
-                arg0->extra.tmd->tpage = 2;
-                arg0->extra.tmd->clut  = 4;
+                arg0->extra.tmd->texturePageOffset = 2;
+                arg0->extra.tmd->clutRowOffset     = 4;
                 break;
             case 0x6A:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
         t = work->field_6;
@@ -6726,7 +6726,7 @@ static void func_actor_403000_8013A678(Task* arg0)
             work->field_0 = 0xF;
         } else {
             r = ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0xF;
-            if ((s8)arg0->extra.tmd->tpage == 2) {
+            if (arg0->extra.tmd->texturePageOffset == 2) {
                 if (r <= 0) {
                     work->field_0 = 3;
                 } else if (r < 7) {
@@ -7465,7 +7465,7 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(work->recordsE98);
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(work->objD18.rec);
             Gp_ClearRec18Occupied(work->objB50.rec);
             Gp_ClearRec18Occupied(work->objBE8.rec);
@@ -7682,7 +7682,7 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
     work = (Actor403000Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -7691,13 +7691,13 @@ s32 func_actor_403000_8013D268(Task* task, s32 arg1, s32 arg2)
             Tmd_AllocBuffers(obj);
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -7711,7 +7711,7 @@ s32 func_actor_403000_8013D324(Task* task)
         goto return_one;
     }
 
-    if ((task->extra.tmd->flags & 0x80) != 0) {
+    if ((task->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
         return 0;
     }
 
@@ -7812,7 +7812,7 @@ static void func_actor_403000_8013D5F8(Task* arg0)
         obj                     = arg0->extra.tmd;
         enemy                   = arg0->spawnArg2.pointer;
         work->field_FCA         = 1;
-        obj->flags             |= 0x80;
+        obj->flags             |= TMD_OBJECT_HIDDEN;
         work->objD18.obj.flags &= 0xBFFF;
         enemy->hp               = 0;
     }

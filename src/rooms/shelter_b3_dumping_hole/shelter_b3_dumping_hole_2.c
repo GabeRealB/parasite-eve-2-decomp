@@ -3525,13 +3525,13 @@ void func_shelter_b3_dumping_hole_801817D8(Task* task, s32 arg1, s32 arg2)
     extra = task->extra.tmd;
     switch (arg2) {
         case 0:
-            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
         case 2:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }
@@ -3691,21 +3691,21 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         enemy           = work->enemy0;
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
-        task       = enemy->task;
-        obj        = task->extra.tmd;
-        obj->tpage = 3;
-        obj->clut  = 5;
-        enemy->hp  = 1;
+        task                   = enemy->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->hp              = 1;
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
         enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
-        task       = enemy->task;
-        obj        = task->extra.tmd;
-        obj->tpage = 3;
-        obj->clut  = 5;
-        enemy->hp  = 1;
+        task                   = enemy->task;
+        obj                    = task->extra.tmd;
+        obj->texturePageOffset = 3;
+        obj->clutRowOffset     = 5;
+        enemy->hp              = 1;
     }
     D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
     arg0->state++;
@@ -3927,13 +3927,13 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
-        TmdObject* p        = t00->extra.tmd;
-        p->clut             = 2;
-        p->tpage            = 0;
-        t0->workType        = 0x900;
-        desc.from.loc.stage = 0;
-        desc.from.loc.area  = 0x2C;
-        desc.command        = arg0->spawnArg1.value;
+        TmdObject* p         = t00->extra.tmd;
+        p->clutRowOffset     = 2;
+        p->texturePageOffset = 0;
+        t0->workType         = 0x900;
+        desc.from.loc.stage  = 0;
+        desc.from.loc.area   = 0x2C;
+        desc.command         = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         arg0->state += 1;
     }
@@ -3976,13 +3976,13 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
-        TmdObject* p        = t00->extra.tmd;
-        p->tpage            = 2;
-        p->clut             = 4;
-        t0->workType        = 0x900;
-        desc.from.loc.stage = 0;
-        desc.from.loc.area  = 0x2A;
-        desc.command        = arg0->spawnArg1.value;
+        TmdObject* p         = t00->extra.tmd;
+        p->texturePageOffset = 2;
+        p->clutRowOffset     = 4;
+        t0->workType         = 0x900;
+        desc.from.loc.stage  = 0;
+        desc.from.loc.area   = 0x2A;
+        desc.command         = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         arg0->state += 1;
     }
@@ -4009,14 +4009,14 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
     GpEnemy*                  t0  = ent->enemy0;
 
     if (t0 != NULL) {
-        Task*      t00      = t0->task;
-        TmdObject* p        = t00->extra.tmd;
-        p->tpage            = 3;
-        p->clut             = 5;
-        t0->workType        = 0x900;
-        desc.from.loc.stage = 0;
-        desc.from.loc.area  = 0x2E;
-        desc.command        = arg0->spawnArg1.value;
+        Task*      t00       = t0->task;
+        TmdObject* p         = t00->extra.tmd;
+        p->texturePageOffset = 3;
+        p->clutRowOffset     = 5;
+        t0->workType         = 0x900;
+        desc.from.loc.stage  = 0;
+        desc.from.loc.area   = 0x2E;
+        desc.command         = arg0->spawnArg1.value;
         Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
     }
     ent->frames  = 0;
@@ -4037,12 +4037,12 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             Task*      t00 = ent->enemy1->task;
             TmdObject* p   = t00->extra.tmd;
             GpCmdArg   desc;
-            p->tpage            = 3;
-            p->clut             = 5;
-            t->workType         = 0x900;
-            desc.from.loc.stage = 0;
-            desc.from.loc.area  = 0x2E;
-            desc.command        = arg0->spawnArg1.value;
+            p->texturePageOffset = 3;
+            p->clutRowOffset     = 5;
+            t->workType          = 0x900;
+            desc.from.loc.stage  = 0;
+            desc.from.loc.area   = 0x2E;
+            desc.command         = arg0->spawnArg1.value;
             Gp_DispatchMsgPtr(t00, 0x7DB, &desc, 0);
         }
     }

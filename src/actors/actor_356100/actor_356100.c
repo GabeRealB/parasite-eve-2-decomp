@@ -2272,13 +2272,13 @@ static void func_actor_356100_80167358(Task* arg0)
                 Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 17:
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 39:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
         cur = work->field_6;
@@ -3004,7 +3004,7 @@ static void func_actor_356100_80169854(GpEnemy* arg0, Task* arg1)
             }
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
     SCRATCH_PUSH(Actor356100GroundCoord);
@@ -3083,7 +3083,7 @@ s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
     work = (Actor356100Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -3093,13 +3093,13 @@ s32 func_actor_356100_80169E64(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -3221,7 +3221,7 @@ static void func_actor_356100_8016A1D8(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                             |= 0x80;
+        obj->flags                                             |= TMD_OBJECT_HIDDEN;
     }
 }
 

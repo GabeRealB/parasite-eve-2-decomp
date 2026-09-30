@@ -1462,8 +1462,8 @@ typedef struct Actor403200GrabWork {
     WorldCollisionContact rec0;
     WorldCollisionContact rec1;
     byte                  pad_120[0x30];
-    /// The colour and light matrices: `field_1C` of the task's `TmdObject` is
-    /// handed `lightMtx` and `field_20` `colorMtx`.
+    /// The colour and light matrices borrowed through the task's
+    /// `TmdObject::colorMtx` and `TmdObject::lightMtx`.
     MATRIX colorMtx;
     MATRIX lightMtx;
     byte   pad_190[0x4];
@@ -1673,7 +1673,7 @@ typedef struct Actor403200Work {
     /// tick for the one whose high half is 0x10000.
     /* 0xD84 */ WorldCollisionContact recs2[5];
     /// The light and colour matrices the spawn state points the host model
-    /// and its escorts at (`TmdObject::lightMtx` / `field_20`).
+    /// and its escorts at (`TmdObject::lightMtx` / `colorMtx`).
     /* 0xDFC */ MATRIX lightMtx;
     /* 0xE1C */ MATRIX colorMtx;
     /// Free coordinate the swipe tick clears and pushes through
@@ -2495,11 +2495,11 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
     AreaPlacement* place;
     s32            idx;
 
-    idx          = enemy->placeKey >> 12;
-    rec          = actorGetCurrentAreaRec();
-    place        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = place->texturePageOffset;
-    model->clut  = place->clutRowOffset;
+    idx                      = enemy->placeKey >> 12;
+    rec                      = actorGetCurrentAreaRec();
+    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = place->texturePageOffset;
+    model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -2524,10 +2524,10 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
     areaSyncLocationVariant(&key);
-    rec          = Gp_GetNestedAreaRec(&key);
-    place        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = place->texturePageOffset;
-    model->clut  = place->clutRowOffset;
+    rec                      = Gp_GetNestedAreaRec(&key);
+    place                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = place->texturePageOffset;
+    model->clutRowOffset     = place->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);

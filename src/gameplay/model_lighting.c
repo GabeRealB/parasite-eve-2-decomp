@@ -245,14 +245,14 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_stsv(&ws->elemNormal);
             arg2 += ws->elemStride;
             // Blend the primitive colour towards the grey reference by the
-            // object's light level when the level is below 1.0 (0x1000).
-            dp = ws->obj->lightLevel;
-            if (dp < 0x1000) {
+            // object's blend value when it is below one.
+            dp = ws->obj->shading.colorBlend;
+            if (dp < TMD_OBJECT_COLOR_BLEND_ONE) {
                 gte_lddp(dp);
                 rgb = ws->preXformWrite + rec[2];
                 gte_ldcv(rgb);
                 gte_gpf12();
-                gte_lddp(0x1000 - dp);
+                gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - dp);
                 gte_ldcv(&col);
                 gte_gpl12();
                 gte_stcv(rgb);
@@ -261,7 +261,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             flag = 0;
             dest = ws->preXformWrite + rec[2] + 8;
             sv   = &ws->elemNormal;
-            gte_lddp(ws->obj->lightLevel >> 9);
+            gte_lddp(ws->obj->shading.colorBlend >> 9);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);
@@ -311,7 +311,7 @@ u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* str
 
     col    = gGpColorWhite;
     col2   = gGpColorGrey;
-    val    = ws->obj->lightLevel >> 5;
+    val    = ws->obj->shading.colorBlend >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -404,35 +404,35 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_ldrgb(&D_80114BA8);
                     gte_ncct();
                     gte_strgb3_gt3(&poly[1]);
-                    if (ws->obj->lightLevel < 0x1000) {
-                        gte_lddp(ws->obj->lightLevel);
+                    if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
-                        gte_lddp(ws->obj->lightLevel);
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
-                        gte_lddp(ws->obj->lightLevel);
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
                     }
 
                     /* Environment-map UVs: each vertex's rotated normal, scaled by the
-                     * light level, offsets its screen position into the reflection
+                     * blend value, offsets its screen position into the reflection
                      * texture. xy steps from X to Y alongside the U/V destination.
                      * A U past the first page wraps onto the second one and
                      * is flagged in the pad byte after that vertex's colour. */
@@ -443,7 +443,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest     = &poly[0].u0;
                     flag     = 0;
                     sv       = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -478,7 +478,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u1;
                     flag = 0;
                     sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -513,7 +513,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u2;
                     flag = 0;
                     sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -601,7 +601,7 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
     poly   = (POLY_GT3*)ws->primWrite;
     col    = gGpColorGrey;
     col2   = gGpColorGrey;
-    val    = ws->obj->lightLevel >> 5;
+    val    = ws->obj->shading.colorBlend >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -681,7 +681,7 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
     poly   = (POLY_GT4*)ws->primWrite;
     col    = gGpColorGrey;
     col2   = gGpColorGrey;
-    val    = ws->obj->lightLevel >> 5;
+    val    = ws->obj->shading.colorBlend >> 5;
     inv    = 0x80 - val;
     col.b  = val;
     col.g  = val;
@@ -831,7 +831,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     gte_strgb3_gt4(&poly[1]);
 
                     /* Environment-map UVs: each vertex's rotated normal, scaled by the
-                     * light level, offsets its screen position into the reflection
+                     * blend value, offsets its screen position into the reflection
                      * texture. xy steps from X to Y while dest steps from U to V, then
                      * back to the pad byte after that vertex's colour, which records
                      * whether U wrapped onto the second texture page. */
@@ -844,7 +844,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest    = &poly[0].u0;
                     flag    = 0;
                     sv      = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -881,7 +881,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u1;
                     flag = 0;
                     sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -918,7 +918,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u2;
                     flag = 0;
                     sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -963,7 +963,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     dest = &poly[0].u3;
                     flag = 0;
                     sv   = &ws->elemNormal;
-                    gte_lddp(ws->obj->lightLevel >> 9);
+                    gte_lddp(ws->obj->shading.colorBlend >> 9);
                     gte_ldsv(sv);
                     gte_gpf12();
                     gte_stsv(sv);
@@ -993,39 +993,39 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                     *dest = flag;
 
                     anyflag |= flag;
-                    if (ws->obj->lightLevel < 0x1000) {
-                        gte_lddp(ws->obj->lightLevel);
+                    if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r0;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->obj->lightLevel);
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r1;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->obj->lightLevel);
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb = &poly[0].r2;
                         gte_ldcv(rgb);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb);
 
-                        gte_lddp(ws->obj->lightLevel);
+                        gte_lddp(ws->obj->shading.colorBlend);
                         rgb3 = &poly[0].r3;
                         gte_ldcv(rgb3);
                         gte_gpf12();
-                        gte_lddp(0x1000 - ws->obj->lightLevel);
+                        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                         gte_ldcv(&col);
                         gte_gpl12();
                         gte_stcv(rgb3);
@@ -1103,7 +1103,7 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
                     gte_strgb3_gt3(poly);
                     setlen(poly, 9);
                     setcode(poly, 0x34);
-                    if (ws->obj->flags & 2) {
+                    if (ws->obj->flags & TMD_OBJECT_SEMI_TRANS) {
                         setcode(poly, 0x36);
                     }
                     gte_stotz(opz);
@@ -1168,7 +1168,7 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
                         gte_strgb(&poly->r3);
                         setlen(poly, 0xC);
                         setcode(poly, 0x3C);
-                        if (ws->obj->flags & 2) {
+                        if (ws->obj->flags & TMD_OBJECT_SEMI_TRANS) {
                             setcode(poly, 0x3E);
                         }
                         gte_stotz(opz);
@@ -2200,12 +2200,13 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             MODEL_LIGHTING_UV0_CLUT_WORD(poly) = stream[3];
             PRIM_UV_TPAGE_WORD(poly)           = stream[4];
             *(u16*)&poly->u2                   = (u16)stream[5];
-            poly->tpage                       += (s8)ws->obj->tpageOffset;
-            tmp                                = ws->obj->clutOffset;
-            tpage                              = poly->tpage;
-            tpage                             |= 0x20;
-            poly->tpage                        = tpage;
-            poly->clut                        += (s8)tmp << 6;
+            poly->tpage                       += ws->obj->layerTexturePageOffset;
+            // Carry the encoded byte until adding its signed row displacement.
+            tmp         = (u8)ws->obj->layerClutRowOffset;
+            tpage       = poly->tpage;
+            tpage      |= 0x20;
+            poly->tpage = tpage;
+            poly->clut += (s8)tmp << 6;
             poly++;
             MODEL_LIGHTING_UV0_CLUT_WORD(poly) = stream[3];
             PRIM_UV_TPAGE_WORD(poly)           = stream[4];
@@ -2254,8 +2255,8 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             PRIM_UV_TPAGE_WORD(poly)           = stream[5];
             *(u16*)&poly->u2                   = (u16)stream[6];
             *(u16*)&poly->u3                   = ((u16*)&stream[6])[1];
-            poly->tpage                       += (s8)ws->obj->tpageOffset;
-            tmp                                = ws->obj->clutOffset;
+            poly->tpage                       += ws->obj->layerTexturePageOffset;
+            tmp                                = (u8)ws->obj->layerClutRowOffset;
             tpage                              = poly->tpage;
             tpage                             |= 0x20;
             poly->tpage                        = tpage;
@@ -2356,8 +2357,8 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             MODEL_LIGHTING_UV0_CLUT_WORD(poly) = stream[2];
             PRIM_UV_TPAGE_WORD(poly)           = stream[3];
             *(u16*)&poly->u2                   = (u16)stream[4];
-            poly->tpage                       += (s8)ws->obj->tpageOffset;
-            tmp                                = ws->obj->clutOffset;
+            poly->tpage                       += ws->obj->layerTexturePageOffset;
+            tmp                                = (u8)ws->obj->layerClutRowOffset;
             tpage                              = poly->tpage;
             tpage                             |= 0x20;
             poly->tpage                        = tpage;
@@ -2389,8 +2390,8 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             PRIM_UV_TPAGE_WORD(poly)           = stream[3];
             *(u16*)&poly->u2                   = (u16)stream[4];
             *(u16*)&poly->u3                   = ((u16*)&stream[4])[1];
-            poly->tpage                       += (s8)ws->obj->tpageOffset;
-            tmp                                = ws->obj->clutOffset;
+            poly->tpage                       += ws->obj->layerTexturePageOffset;
+            tmp                                = (u8)ws->obj->layerClutRowOffset;
             tpage                              = poly->tpage;
             tpage                             |= 0x20;
             poly->tpage                        = tpage;

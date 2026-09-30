@@ -131,7 +131,7 @@ typedef struct Actor312200Work {
     /* 0x8DC */ WorldCollisionContact recs[3];
     /* 0x924 */ byte                  pad_924[0x20];
     /// The light / colour matrices the spawn handler stores into
-    /// `TmdObject::lightMtx` / `field_20`, at the top of the block.
+    /// `TmdObject::lightMtx` / `colorMtx`, at the top of the block.
     /* 0x944 */ MATRIX light;
     /* 0x964 */ MATRIX color;
 } Actor312200Work;
@@ -825,7 +825,7 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
     work = (Actor312200Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -834,13 +834,13 @@ s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2)
             Tmd_AllocBuffers(obj);
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -930,7 +930,7 @@ static void func_actor_312200_80163778(Task* task)
         obj                       = task->extra.tmd;
         enemy                     = (GpEnemy*)task->spawnArg2.pointer;
         enemy->node.state.b.flags = 1;
-        obj->flags               |= 0x80;
+        obj->flags               |= TMD_OBJECT_HIDDEN;
         enemy->field_4D           = 0;
         work->field_8BC.flags    &= 0x7FFF;
     }

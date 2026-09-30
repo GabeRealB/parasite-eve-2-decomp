@@ -24,7 +24,7 @@
 /// Work block allocated by `func_actor_503500_80132430`
 /// (`memCalloc(0x48)`) and parked in that task's `Task::work` slot.
 /// `func_actor_503500_801324EC` republishes the two matrices onto
-/// `TmdObject::lightMtx` / `field_20` -- the colour/light matrix pair
+/// `TmdObject::lightMtx` / `colorMtx` -- the colour/light matrix pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`
 /// -- so the allocation is exactly two `MATRIX`es plus a small tail.
 /// `func_actor_503500_80132664` sets `field_45` / `field_40` from the message
@@ -919,7 +919,7 @@ static void func_actor_503500_8013223C(Task* arg0)
         }
         work->field_40--;
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         // Filled and never read: the original passes the matrix's own
@@ -950,7 +950,7 @@ static void func_actor_503500_80132430(Task* arg0)
     }
 
     arg0->work     = (TaskIdMap*)work;
-    ext->flags    |= 0x84;
+    ext->flags    |= (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     work->field_44 = 0;
     func_actor_503500_801324EC(arg0);
     arg0->msgTable     = D_actor_503500_80146888;
@@ -1007,22 +1007,22 @@ s32 func_actor_503500_80132584(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                  |= 0x80;
+            obj->flags                                  |= TMD_OBJECT_HIDDEN;
             ((Actor503500ColorMtx*)task->work)->field_44 = mode;
-            obj->flags                                  |= 4;
+            obj->flags                                  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

@@ -603,8 +603,8 @@ static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
     v                  = (u16)arg1->spawnArg1.value;
     work->field_2D6    = v;
     if ((s16)v == 1 && arg1->spawnType == (s16)v) {
-        obj->tpage = obj->tpage + 1;
-        obj->clut  = obj->clut + 1;
+        obj->texturePageOffset = obj->texturePageOffset + 1;
+        obj->clutRowOffset     = obj->clutRowOffset + 1;
         if (obj->buffer != 0) {
             tmdProcessStream(obj);
             tmdProcessStream(obj);
@@ -1081,7 +1081,7 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags             |= 0x80;
+            model->flags             |= TMD_OBJECT_HIDDEN;
             enemy->node.state.b.flags = 1;
             break;
         case 0:
@@ -1092,7 +1092,7 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
                     work->field_2AC    -= 0x12C;
                     task->killCountdown--;
                     if ((u32)((u16)work->field_2B2 - 5) >= 2 && task->killCountdown == 3) {
-                        model->flags = 0x80;
+                        model->flags = TMD_OBJECT_HIDDEN;
                     }
                     if (work->field_2B2 == 6) {
                         work->field_2B8 = 1;
@@ -1133,7 +1133,7 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
                     }
                     Actor04600_Fn02B14(task);
                     if (work->field_2B6 == 0xA) {
-                        task->extra.tmd->flags = 2;
+                        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     break;
                 case 2:
@@ -1233,7 +1233,7 @@ static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
     arg1->work          = (TaskIdMap*)work;
     work->field_2DC     = (s16)(arg1->spawnArg1.value >> 16);
     work->field_2D6     = (u16)arg1->spawnArg1.value;
-    obj->flags          = 0x80;
+    obj->flags          = TMD_OBJECT_HIDDEN;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     obj->lightMtx       = &work->field_DC;
     obj->colorMtx       = &work->field_BC;
@@ -1337,7 +1337,7 @@ static void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case 2:
-            arg1->extra.tmd->flags   = 0x80;
+            arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             break;
         case 0:
@@ -1497,8 +1497,8 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= 0xFF7F;
-            arg0->extra.tmd->flags   &= 0xFFFB;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_HIDDEN;
+            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.b.flags = 0;
             work->objFC.flags        |= 0x8000;
             work->obj134.flags       |= 0xC200;
@@ -1515,8 +1515,8 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, GpCmdArg* arg2)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= 0x80;
-        arg0->extra.tmd->flags   |= 4;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_HIDDEN;
+        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         enemy->node.state.b.flags = 1;
         work->objFC.flags        &= 0x7FFF;
         work->obj134.flags       &= 0x3DFF;
@@ -1583,7 +1583,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -1898,7 +1898,7 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     work->field_2A6          = 1;
     work->field_2A4          = 0x12;
     arg0->node.state.b.flags = 1;
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     seed                     = Gp_LcgState * 5 + 0x71357911;
     work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
     Gp_LcgState              = seed;
@@ -1945,8 +1945,8 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     work->field_184.flags = work->field_184.flags | 0xC200;
     work->field_2AC       = arg0->place->mode;
     if (work->field_2AC == 1 && arg1->spawnType == work->field_2AC) {
-        obj->tpage++;
-        obj->clut++;
+        obj->texturePageOffset++;
+        obj->clutRowOffset++;
         if (obj->buffer != NULL) {
             tmdProcessStream(obj);
             tmdProcessStream(obj);
@@ -2124,7 +2124,7 @@ static void Actor04600_Fn0346C(Task* arg0)
                 Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                 Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &Actor04600_D064BC);
                 Gp_SpawnPadLerp(0xA, 0x60, 0x60);
-                obj->flags          = 0x80;
+                obj->flags          = TMD_OBJECT_HIDDEN;
                 work->field_2A0     = 0x500;
                 work->field_28C     = 1;
                 enemy->hp           = 0;
@@ -2157,7 +2157,7 @@ static void Actor04600_Fn0346C(Task* arg0)
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords, 0x200, &Actor04600_D064B4);
                     Gp_SpawnEff(0x6009E, arg0->extra.tmd->coords, 0, &Actor04600_D064BC);
-                    obj->flags          = 0x80;
+                    obj->flags          = TMD_OBJECT_HIDDEN;
                     work->field_2A0     = 0x1000;
                     work->field_2A6     = 1;
                     work->field_28C     = 1;
@@ -2228,7 +2228,7 @@ static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags              |= 0x80;
+            obj->flags              |= TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -2307,7 +2307,7 @@ case0:
     arg0->node.state.b.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = 0x80;
+    arg1->extra.tmd->flags   = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2431,21 +2431,21 @@ static void Actor04600_Fn03F30(Task* task)
     if (work->field_2A6 != 0) {
         if (work->field_2A4 == 0) {
             work->field_2A4++;
-            obj->flags = 2;
+            obj->flags = TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(task->spawnArg2.pointer, 2);
         } else {
             work->field_2A4++;
             if (work->field_2A4 >= 0x12) {
                 work->field_2A4           = 0x12;
                 enemy->node.state.b.flags = 1;
-                obj->flags                = 0x80;
+                obj->flags                = TMD_OBJECT_HIDDEN;
             }
         }
     } else {
         if (work->field_2A4 == 0x12) {
             work->field_2A4--;
             enemy->node.state.b.flags = 0;
-            obj->flags                = 2;
+            obj->flags                = TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(task->spawnArg2.pointer, 0);
         } else {
             work->field_2A4--;

@@ -1283,7 +1283,7 @@ void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
 }
 
 /// Task callback. `extra` is a `TmdObject`; `spawnArg2` is a `GpItemObj8`.
-/// Tilts `field_8[2]` (a `GfxCoord`) while playing a location-specific
+/// Tilts `coords[2]` (a `GfxCoord`) while playing a location-specific
 /// type-6 sound, then signals `extraState` (`GpCmdReply.done = 1`) when
 /// the motion returns to 0.
 void Gp_ItemPickupTilt(Task* arg0)
@@ -1311,14 +1311,14 @@ void Gp_ItemPickupTilt(Task* arg0)
     rot     = coord + 2;
     room    = *&session->at4.loc.view;
     if (Gp_StateF0.field_4 == 2) {
-        extra->flags |= 0x80;
+        extra->flags |= TMD_OBJECT_HIDDEN;
     } else {
-        extra->flags &= 0xFF7F;
+        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
     mapId &= 0xFFFF0000;
     if (mapId == 0x4100000) {
         if ((u32)(room - 8) >= 2) {
-            extra->flags |= 0x80;
+            extra->flags |= TMD_OBJECT_HIDDEN;
         }
     } else if (mapId == 0x41F0000) {
         check = 3;
@@ -1327,7 +1327,7 @@ void Gp_ItemPickupTilt(Task* arg0)
         check = 0x11;
     compare_room:
         if (room != check) {
-            extra->flags |= 0x80;
+            extra->flags |= TMD_OBJECT_HIDDEN;
         }
     }
     if (arg0->state == 0) {

@@ -1177,7 +1177,7 @@ static void func_actor_210700_80149F90(Task* task)
     work->field_478 = -1;
     work->field_47C = -1;
     work->field_53E = -1;
-    extra->flags    = 0x80;
+    extra->flags    = TMD_OBJECT_HIDDEN;
     args.pos.vx     = 0;
     args.pos.vy     = 0;
     args.pos.vz     = 0;
@@ -1315,7 +1315,7 @@ s32 func_actor_210700_8014A344(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags       &= 0xFF7F;
+    extra->flags       &= (u16)~TMD_OBJECT_HIDDEN;
     return 0;
 }
 
@@ -1338,22 +1338,22 @@ s32 func_actor_210700_8014A3D4(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags     |= 0x80;
+            obj->flags     |= TMD_OBJECT_HIDDEN;
             work->field_53E = mode;
-            obj->flags     |= 4;
+            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

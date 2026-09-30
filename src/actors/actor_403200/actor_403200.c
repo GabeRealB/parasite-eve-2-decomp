@@ -4685,10 +4685,10 @@ static void func_actor_403200_80135854(GpEnemy* enemy, Task* task)
         return;
     }
 
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    task->extra.tmd->flags          = 0;
-    task->extra.tmd->tpage          = 0;
-    task->extra.tmd->clut           = 2;
+    task->extra.tmd->coords->parent    = &gGfxViewCoord;
+    task->extra.tmd->flags             = 0;
+    task->extra.tmd->texturePageOffset = 0;
+    task->extra.tmd->clutRowOffset     = 2;
 
     if (task->extra.tmd->buffer != NULL) {
         tmdProcessStream(task->extra.tmd);
@@ -4901,7 +4901,7 @@ static void func_actor_403200_801364F4(GpEnemy* enemy, Task* task)
         work->anim.blend       = armed;
         work->anim.blendFrames = 9;
         Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
-        task->extra.tmd->flags = 0x80;
+        task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     }
 
     if (work->field_1AC >= 9) {
@@ -5028,7 +5028,7 @@ static void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
 
     if (work->field_1A8 != 0) {
         Gp_SetLightMode(enemy, 0);
-        task->extra.tmd->flags = 2;
+        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
 
     if (task->extra.tmd->coords->coord.t[1] < 0) {
@@ -5099,7 +5099,7 @@ static void func_actor_403200_80136D94(GpEnemy* enemy, Task* task)
         Gp_SetLightMode(enemy, 1);
         work->obj1.flags      &= ~0x4000;
         work->obj0.flags      &= ~0x8000;
-        task->extra.tmd->flags = 2;
+        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
     }
 
     work->field_1AC++;
@@ -5753,7 +5753,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             }
             escorts                = (Actor403200Work*)task->work;
             escorts->field_7F3     = 0;
-            task->extra.tmd->flags = 0x80;
+            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             for (i = 0; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -5781,7 +5781,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
         case 2:
             work->field_7F3        = 0;
             escorts                = work;
-            task->extra.tmd->flags = 0x80;
+            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             for (i = 0; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -5793,7 +5793,7 @@ s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2)
             i                      = 0;
             escorts                = (Actor403200Work*)task->work;
             escorts->field_7F3     = 0;
-            task->extra.tmd->flags = 0x80;
+            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             for (; i < 7; i++) {
                 if (escorts->field_ECC[i] != NULL) {
                     escorts->field_ECC[i]->task->extra.tmd->flags = task->extra.tmd->flags;
@@ -7068,7 +7068,7 @@ static void func_actor_403200_8013B23C(Task* arg0)
     work = (Actor403200Work*)arg0->work;
     tmd  = arg0->extra.tmd;
     if (work->field_4 != 0) {
-        tmd->flags             = 0x80;
+        tmd->flags             = TMD_OBJECT_HIDDEN;
         escorts                = (Actor403200Work*)arg0->work;
         i                      = 0;
         escorts->field_7F3     = 0;
@@ -7083,7 +7083,7 @@ static void func_actor_403200_8013B23C(Task* arg0)
         return;
     }
     if (work->field_6 == 2) {
-        tmd->flags             = 0x80;
+        tmd->flags             = TMD_OBJECT_HIDDEN;
         escorts                = (Actor403200Work*)arg0->work;
         modelFlag              = 0x80;
         i                      = 0;
@@ -8735,9 +8735,9 @@ static void func_actor_403200_8013EF6C(Task* arg0)
                         key.room   = sessionKey->room;
                         key.view   = sessionKey->view;
                         areaSyncLocationVariant(&key);
-                        entry        = &Gp_GetNestedAreaRec(&key)->field_0[3];
-                        model->tpage = entry->texturePageOffset;
-                        model->clut  = entry->clutRowOffset;
+                        entry                    = &Gp_GetNestedAreaRec(&key)->field_0[3];
+                        model->texturePageOffset = entry->texturePageOffset;
+                        model->clutRowOffset     = entry->clutRowOffset;
                         if (model->buffer != NULL) {
                             tmdProcessStream(model);
                             tmdProcessStream(model);
@@ -8883,9 +8883,9 @@ static inline void _actor403200TintEscort(TmdObject* model)
 {
     AreaPlacement* entry;
 
-    entry        = &(actorGetCurrentAreaRec()->field_0)[2];
-    model->tpage = entry->texturePageOffset;
-    model->clut  = entry->clutRowOffset;
+    entry                    = &(actorGetCurrentAreaRec()->field_0)[2];
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -9081,16 +9081,16 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
 
     dying = (Actor403200Work*)arg1->work;
     if (dying->field_7F3 != 0) {
-        arg1->extra.tmd->flags = 0x80;
+        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         dying->field_7F3--;
         if (dying->field_7F3 == 0) {
             tmd         = arg1->extra.tmd;
-            tmd->flags |= 4;
+            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             Tmd_FreeBuffers(arg1->extra.tmd);
             for (i = 0; i < 7; i++) {
                 if (dying->field_ECC[i] != NULL) {
                     escortTmd         = dying->field_ECC[i]->task->extra.tmd;
-                    escortTmd->flags |= 4;
+                    escortTmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     Tmd_FreeBuffers(dying->field_ECC[i]->task->extra.tmd);
                 }
             }
@@ -9132,7 +9132,7 @@ static void func_actor_403200_8013FB54(GpEnemy* arg0, Task* arg1)
     if (((Gp_GetViewIndex() & 0xFF) == 0x1E) || ((Gp_GetViewIndex() & 0xFF) == 0x1D)) {
         vis                    = (Actor403200Work*)arg1->work;
         vis->field_7F3         = 0;
-        arg1->extra.tmd->flags = 0x80;
+        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         for (j = 0; j < 7; j++) {
             if (vis->field_ECC[j] != NULL) {
                 vis->field_ECC[j]->task->extra.tmd->flags =
@@ -9718,9 +9718,9 @@ static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task)
     rec = Gp_GetNestedAreaRec(&key);
     /* offset + base, not `&rec->field_0[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
-    entry        = gpAreaPlaceAt(rec->field_0, idx);
-    model->tpage = entry->texturePageOffset;
-    model->clut  = entry->clutRowOffset;
+    entry                    = gpAreaPlaceAt(rec->field_0, idx);
+    model->texturePageOffset = entry->texturePageOffset;
+    model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -9797,7 +9797,7 @@ void func_actor_403200_80141564(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
 
@@ -9825,13 +9825,13 @@ void func_actor_403200_80141670(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 0:
-            arg0->extra.tmd->flags = 2;
+            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 1:
-            arg0->extra.tmd->flags = 2;
+            arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             return;
         case 2:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
 
@@ -9902,7 +9902,7 @@ void func_actor_403200_80141868(Task* arg0)
             arg0->extra.tmd->flags = 0;
             return;
         case 2:
-            arg0->extra.tmd->flags = 0x80;
+            arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             return;
     }
 

@@ -3807,7 +3807,7 @@ s32 func_actor_323000_80164844(Task* task, s32 arg1, s32 arg2)
     work = (Actor323000Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -3817,13 +3817,13 @@ s32 func_actor_323000_80164844(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 2;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -3971,7 +3971,7 @@ static void func_actor_323000_80164C20(GpEnemy* arg0, Task* arg1)
     if (work->field_4 != 0) {
         obj                      = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        obj->flags              |= 0x80;
+        obj->flags              |= TMD_OBJECT_HIDDEN;
     }
 }
 

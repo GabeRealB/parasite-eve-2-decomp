@@ -1507,7 +1507,7 @@ void func_dryfield_junk_yard_8017D5F4(Task* task)
     flag       = Gp_GetCurBit2Flag(obj->field_8);
     tmd->flags = 0;
     if (flag == 2) {
-        tmd->flags = 0x84;
+        tmd->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         tmd->otOffset = 0;
     }
@@ -1525,7 +1525,7 @@ static void func_dryfield_junk_yard_8017D658(Task* task)
 
     tmd   = task->extra.tmd;
     coord = tmd->coords;
-    if ((tmd->flags & 0x80) == 0 && tmd->buffer != 0) {
+    if ((tmd->flags & TMD_OBJECT_HIDDEN) == 0 && tmd->buffer != 0) {
         scratch                            = SCRATCH_HEAD(DjyGroundQuadScratch) - 1;
         SCRATCH_HEAD(DjyGroundQuadScratch) = scratch;
         Gp_UpdateCoord(coord);

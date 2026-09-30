@@ -85,9 +85,9 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
     TmdObject* obj = task->extra.tmd;
 
     if (Gp_GetCurBit2Flag(((RoomFlagModelArg*)task->spawnArg2.pointer)->flagId) == 2) {
-        obj->flags |= 0x80;
+        obj->flags |= TMD_OBJECT_HIDDEN;
     } else {
-        obj->flags &= ~0x80;
+        obj->flags &= ~TMD_OBJECT_HIDDEN;
     }
 }
 

@@ -190,7 +190,7 @@ void taskKill(Task* task)
         goto def_case;
 
     case1:
-        task->extra.tmd->flags |= 0x80;
+        task->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
         task->killCountdown     = 2;
         task->callback          = taskCountdownCallback;
         task->state             = 0;

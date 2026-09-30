@@ -1967,11 +1967,11 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
     state = (DryfieldWaterTowerState*)arg0->work;
     coord = obj->coords;
     if (gGameSession->field_65 != 0) {
-        obj->flags |= 0x80;
+        obj->flags |= TMD_OBJECT_HIDDEN;
         return;
     }
     new_var     = 0;
-    obj->flags &= 0xFF7F;
+    obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     if (Gp_StateC08.field_9 == 0) {
         switch (arg0->state) {
             case 0: {
@@ -2206,10 +2206,10 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 
     obj = arg0->extra.tmd;
     if (gGameSession->field_65 != 0) {
-        obj->flags |= 0x80;
+        obj->flags |= TMD_OBJECT_HIDDEN;
         return;
     }
-    obj->flags &= 0xFF7F;
+    obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     if ((s8)Gp_StateC08.field_9 != 0) {
         return;
     }

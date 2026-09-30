@@ -253,11 +253,11 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
         Gp_DestroyEnemy(arg0, arg1);
         return;
     }
-    arg1->work          = (TaskIdMap*)work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->tpage         += 1;
-    obj->clut          += 1;
+    arg1->work              = (TaskIdMap*)work;
+    obj->flags              = 0;
+    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+    obj->texturePageOffset += 1;
+    obj->clutRowOffset     += 1;
     tmdProcessStream(obj);
     tmdProcessStream(obj);
     obj->lightMtx  = &work->field_114;
@@ -359,7 +359,7 @@ case1:
     func_actor_300700_801633B8(arg1);
     return;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -692,7 +692,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             break;
         case 0:
         default:
@@ -705,7 +705,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     seed                   = Gp_LcgState * 5 + 0x71357911;
                     rnd                    = seed >> 16;
                     angle                  = rnd & 0xFF;
-                    arg1->extra.tmd->flags = 2;
+                    arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     Gp_LcgState            = seed;
                     work->field_2E2        = 0x1000;
                     work->field_22C.matrix = coord->coord;
@@ -737,7 +737,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     if ((s16)(work->field_2E0 / 3) < 8) {
                         func_actor_300700_80162EFC(arg1);
                     } else {
-                        arg1->extra.tmd->flags = 0x80;
+                        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     }
                     work->field_2E0++;
                     if (work->field_2E0 >= 0x1E) {
@@ -823,8 +823,8 @@ static void func_actor_300700_80162EFC(Task* arg0)
     setcode(prim, 0x2E);
     setRGB0(prim, 0x80, 0x80, 0x80);
     setShadeTex(prim, 1);
-    prim->tpage = (((obj->tpage * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
-    prim->clut  = (obj->clut << 6) + 0x3D40;
+    prim->tpage = (((obj->texturePageOffset * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
+    prim->clut  = (obj->clutRowOffset << 6) + 0x3D40;
     uv          = &D_actor_300700_80165B9C[(s16)(work->field_2E0 / 3)];
     prim->u0    = uv->u;
     prim->v0    = uv->v;

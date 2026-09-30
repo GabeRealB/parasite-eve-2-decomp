@@ -2146,7 +2146,7 @@ static void func_actor_141000_80132C7C(Task* task)
     }
     task->work    = (TaskIdMap*)work;
     work->field_0 = 0xFFF;
-    obj->flags   &= 0xFF7F;
+    obj->flags   &= (u16)~TMD_OBJECT_HIDDEN;
     func_actor_141000_80132FD0(coord, 0);
     func_actor_141000_8013308C(coord, 0);
     Task_SpawnFromTable(&D_actor_141000_801348D8, 1, 0, task);
@@ -2402,7 +2402,7 @@ static void func_actor_141000_801332A0(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
@@ -2840,22 +2840,22 @@ s32 func_actor_141000_80133E8C(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= 0x80;
+            obj->flags                               |= TMD_OBJECT_HIDDEN;
             ((Actor141000Work*)task->work)->field_4C9 = mode;
-            obj->flags                               |= 4;
+            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

@@ -1146,7 +1146,7 @@ static void Actor02500_Fn012F0(Task* actor)
     scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     switch (work->field_324) {
         case 0:
-            obj->flags                                               = 0x80;
+            obj->flags                                               = TMD_OBJECT_HIDDEN;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             dx                                                       = Player_Status.coordMtx->t[0] - work->field_314;
             scratch->delta.vy                                        = 0;
@@ -1161,7 +1161,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 1:
-            obj->flags                                               = 0x80;
+            obj->flags                                               = TMD_OBJECT_HIDDEN;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 work->field_324 = 2;
@@ -1169,7 +1169,7 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 2:
-            obj->flags                                               = 0x80;
+            obj->flags                                               = TMD_OBJECT_HIDDEN;
             ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
             timer2                                                   = (u16)work->field_32E - 1;
             work->field_32E                                          = timer2;
@@ -1186,10 +1186,10 @@ static void Actor02500_Fn012F0(Task* actor)
             timer3          = (u16)work->field_32E - 1;
             work->field_32E = timer3;
             if (timer3 > 0) {
-                obj->flags = 0x80;
+                obj->flags = TMD_OBJECT_HIDDEN;
             } else {
                 Gp_SetLightMode(actor->spawnArg2.pointer, 0);
-                obj->flags                                 = (u16)obj->flags | 2;
+                obj->flags                                 = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
                 work->obj1A4.flags                        |= 0x8000;
                 ((GpEnemy*)actor->spawnArg2.pointer)->recs = work->field_1C4;
                 work->field_31C                            = 0xA;
@@ -1201,7 +1201,7 @@ static void Actor02500_Fn012F0(Task* actor)
             timer4          = (u16)work->field_32E + 1;
             work->field_32E = timer4;
             if (timer4 < 0x10) {
-                obj->flags = (u16)obj->flags | 2;
+                obj->flags = (u16)obj->flags | TMD_OBJECT_SEMI_TRANS;
             }
             if (work->field_32E >= 0x1F) {
                 work->field_322 = 1;
@@ -1334,9 +1334,9 @@ static void Actor02500_Fn0184C(Task* arg0)
         index1      = raw1 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry1        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
-        model1->tpage = entry1->texturePageOffset;
-        model1->clut  = entry1->clutRowOffset;
+        entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index1);
+        model1->texturePageOffset = entry1->texturePageOffset;
+        model1->clutRowOffset     = entry1->clutRowOffset;
         if (model1->buffer != NULL) {
             tmdProcessStream(model1);
             tmdProcessStream(model1);
@@ -1355,9 +1355,9 @@ static void Actor02500_Fn0184C(Task* arg0)
         index2      = raw2 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry2        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
-        model2->tpage = entry2->texturePageOffset;
-        model2->clut  = entry2->clutRowOffset;
+        entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index2);
+        model2->texturePageOffset = entry2->texturePageOffset;
+        model2->clutRowOffset     = entry2->clutRowOffset;
         if (model2->buffer != NULL) {
             tmdProcessStream(model2);
             tmdProcessStream(model2);
@@ -1376,9 +1376,9 @@ static void Actor02500_Fn0184C(Task* arg0)
         index3      = raw3 >> 12;
         key.view    = areaByte0;
         areaSyncLocationVariant(&key);
-        entry3        = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
-        model3->tpage = entry3->texturePageOffset;
-        model3->clut  = entry3->clutRowOffset;
+        entry3                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->field_0, index3);
+        model3->texturePageOffset = entry3->texturePageOffset;
+        model3->clutRowOffset     = entry3->clutRowOffset;
         if (model3->buffer != NULL) {
             tmdProcessStream(model3);
             tmdProcessStream(model3);
@@ -1419,7 +1419,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = 0x80;
+    obj->flags = TMD_OBJECT_HIDDEN;
     return;
 common:
     one = 1;
@@ -1464,7 +1464,7 @@ death:
         work->field_324 = one;
         return;
     }
-    obj->flags      = 0x80;
+    obj->flags      = TMD_OBJECT_HIDDEN;
     work->field_324 = 3;
     return;
 dying:
@@ -1472,14 +1472,14 @@ dying:
     phase           = work->field_32E + 1;
     work->field_32E = phase;
     if (phase == 10) {
-        obj->flags = 2;
+        obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if (work->field_32E == 15) {
         Gp_SpawnEff(0x600A5, coord, 2, NULL);
         Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
     }
     if (work->field_32E >= 0x3C) {
-        obj->flags      = 0x80;
+        obj->flags      = TMD_OBJECT_HIDDEN;
         work->field_324 = 2;
     }
     c      = arg1->extra.tmd->coords;
@@ -1500,7 +1500,7 @@ case3:
     }
     work->field_33C = 0;
     Tmd_FreeBuffers(obj);
-    obj->flags |= 4;
+    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     Actor02500_Fn0184C(arg1);
     goto timer;
 inc:
@@ -1561,7 +1561,7 @@ case1:
     Actor02500_Fn023D8(arg1);
     goto tail;
 case2:
-    temp_a1->flags           = 0x80;
+    temp_a1->flags           = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:

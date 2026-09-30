@@ -540,7 +540,7 @@ static void func_actor_310600_80161FA0(Task* task)
             work->field_478++;
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
@@ -695,42 +695,42 @@ s32 func_actor_310600_801625F0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     ret  = 0;
     switch (arg2) {
         case 0:
-            ext->flags |= 0x80;
+            ext->flags |= TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= 0x7FFF;
                 p++;
             }
-            ext->flags &= ~4;
+            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            ext->flags &= ~0x80;
+            ext->flags &= ~TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= 0x8000;
                 p++;
             }
             Tmd_AllocBuffers(ext);
-            ext->flags &= ~4;
+            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags |= 0x80;
+            ext->flags |= TMD_OBJECT_HIDDEN;
             p           = &w->obj;
             for (i = 0; i <= 0; i++) {
                 p->flags &= 0x7FFF;
                 p++;
             }
             w->field_477 = 2;
-            ext->flags  |= 4;
+            ext->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags &= ~0x80;
+            ext->flags &= ~TMD_OBJECT_HIDDEN;
             p           = obj;
             for (i = 0; i <= 0; i++) {
                 p->flags |= 0x8000;
                 p++;
             }
-            ext->flags |= 4;
+            ext->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -766,16 +766,16 @@ static void func_actor_310600_801627A4(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= 0x80;
+    obj->flags |= TMD_OBJECT_HIDDEN;
     root        = obj->coords;
-    if (!(parentObj->flags & 0x80)) {
-        obj->flags &= 0xFF7F;
+    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
+        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObj->flags & 4)) {
-        obj->flags &= 0xFFFB;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset      = -2;
     coords            += task->spawnArg1.value;
@@ -800,17 +800,17 @@ static void func_actor_310600_801628B0(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & 0x80)) {
-        object->flags &= 0xFF7F;
+    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
+        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        object->flags |= 0x80;
+        object->flags |= TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObject->flags & 4)) {
-        object->flags &= 0xFFFB;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->flags |= 4;
+    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 /// Attaches a child model to the part of its parent's skeleton named by the

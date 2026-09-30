@@ -1485,7 +1485,7 @@ case1:
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
     return;
 case2:
-    obj->flags = 0x80;
+    obj->flags = TMD_OBJECT_HIDDEN;
     return;
 default_body:
     st = work->field_37C;
@@ -1546,7 +1546,7 @@ dying:
     phase           = work->field_38C + 1;
     work->field_38C = phase;
     if (phase == 10) {
-        obj->flags = 2;
+        obj->flags = TMD_OBJECT_SEMI_TRANS;
     }
     if ((s16)work->field_38C == 15) {
         Gp_SpawnEff(0x600A5, coord, 1, NULL);
@@ -1606,7 +1606,7 @@ static void Actor00700_Fn0188C(GpEnemy* arg0, Task* arg1)
             Actor00700_Fn01E9C(arg1);
             return;
         case 2:
-            obj->flags               = 0x80;
+            obj->flags               = TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
     }
@@ -1873,11 +1873,11 @@ static void Actor00700_Fn01FE0(GpEnemy* ctx, Task* actor)
         Gp_DestroyEnemy(ctx, actor);
         return;
     }
-    actor->work         = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->tpage         += 1;
-    obj->clut          += 1;
+    actor->work             = work;
+    obj->flags              = 0;
+    coord->composeStamp     = GRAPHICS_COORD_DIRTY;
+    obj->texturePageOffset += 1;
+    obj->clutRowOffset     += 1;
     tmdProcessStream(obj);
     tmdProcessStream(obj);
     obj->lightMtx = &work->field_114;
@@ -1981,7 +1981,7 @@ case1:
     Actor00700_Fn03518(arg1);
     return;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 default_body:
@@ -2299,7 +2299,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             break;
         case 0:
         default:
@@ -2312,7 +2312,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
                     seed                   = Gp_LcgState * 5 + 0x71357911;
                     rnd                    = seed >> 16;
                     angle                  = rnd & 0xFF;
-                    arg1->extra.tmd->flags = 2;
+                    arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     Gp_LcgState            = seed;
                     work->field_2E2        = 0x1000;
                     work->field_22C.matrix = coord->coord;
@@ -2344,7 +2344,7 @@ static void Actor00700_Fn02D28(GpEnemy* arg0, Task* arg1)
                     if ((s16)(work->field_2E0 / 3) < 8) {
                         Actor00700_Fn0305C(arg1);
                     } else {
-                        arg1->extra.tmd->flags = 0x80;
+                        arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     }
                     work->field_2E0++;
                     if (work->field_2E0 >= 0x1E) {
@@ -2430,8 +2430,8 @@ static void Actor00700_Fn0305C(Task* arg0)
     setcode(prim, 0x2E);
     setRGB0(prim, 0x80, 0x80, 0x80);
     setShadeTex(prim, 1);
-    prim->tpage = (((obj->tpage * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
-    prim->clut  = (obj->clut << 6) + 0x3D40;
+    prim->tpage = (((obj->texturePageOffset * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
+    prim->clut  = (obj->clutRowOffset << 6) + 0x3D40;
     uv          = &Actor00700_D075BC[(s16)(work->field_2E0 / 3)];
     prim->u0    = uv->u;
     prim->v0    = uv->v;

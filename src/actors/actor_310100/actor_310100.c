@@ -41,7 +41,7 @@
 /// nineteen slots the frame handler ticks.
 typedef struct Actor310100Work {
     /* 0x000 */ ActorAnimRig19 rig;
-    /// Light and colour matrices, handed to the model `TmdObject`'s `field_1C`
+    /// Light and colour matrices, handed to the model `TmdObject`'s `lightMtx`
     /// and `field_20`.
     /* 0x43C */ MATRIX                 field_43C;
     /* 0x45C */ MATRIX                 field_45C;

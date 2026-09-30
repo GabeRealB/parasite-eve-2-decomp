@@ -2299,7 +2299,7 @@ void func_actor_403600_80135C28(Task* arg0)
     if (temp_v1->field_742 == 1) {
         temp_v0                 = temp_a0->extra.tmd;
         D_actor_403600_801606A0 = NULL;
-        temp_v0->flags          = (u16)(temp_v0->flags & 0xFF7F);
+        temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_HIDDEN);
         Task_CallExit(arg0);
         return;
     }
@@ -2363,7 +2363,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v0_9 == 0) {
                     temp_a0_5               = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = NULL;
-                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | 0x80);
+                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_HIDDEN);
                 } else if (temp_v0_9 > 0) {
                     D_actor_403600_801606A0 = &temp_s0->field_90;
                     Gp_UpdateCoord(&temp_s0->field_90);
@@ -2375,7 +2375,7 @@ void func_actor_403600_80135C28(Task* arg0)
                 if (temp_v1_10 == 0) {
                     temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
                     D_actor_403600_801606A0 = &temp_s0->field_90;
-                    temp_a1->flags          = (u16)(temp_a1->flags & 0xFF7F);
+                    temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_HIDDEN);
                     Gp_UpdateCoord(&temp_s0->field_90);
                 } else if (temp_v1_10 >= -7) {
                     D_actor_403600_801606A0 = &temp_s0->field_90;
@@ -2408,7 +2408,7 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_delta;
     s32           upper_calc;
     s32           lower_delta;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32*          opz;
     u16*          rec;
@@ -2416,12 +2416,12 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->primWrite;
-    col   = D_actor_403600_80131E34;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT3*)arg0->primWrite;
+    col          = D_actor_403600_80131E34;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
@@ -2437,11 +2437,11 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
                     gte_stsxy3_gt3(poly);
                     gte_avsz3();
                     upper_delta = 0;
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
                             upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + light) * 2;
+                            upper_delta = (upper_calc + fadeDistance) * 2;
                         }
                     }
                     if (upper_delta >= 0x81) {
@@ -2459,12 +2459,12 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
                         gte_ncct();
                         gte_strgb3_gt3(poly);
                     }
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         lower_y = poly->y0;
                         if (upper_limit < lower_y) {
                             lower_delta  = lower_y;
                             lower_delta -= 0x168;
-                            lower_delta += light;
+                            lower_delta += fadeDistance;
                             lower_delta *= 2;
                             poly->y1    -= lower_delta;
                             poly->y2    -= lower_delta;
@@ -2492,7 +2492,7 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
     DisplayState* ds;
     u32           clip_mask;
     u16*          rec;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32           upper_delta;
     s32           upper_calc;
@@ -2503,12 +2503,12 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
     s16           upper_y;
     s16           lower_y;
 
-    poly  = (POLY_GT3*)arg0->preXformWrite;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT3*)arg0->preXformWrite;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
         clip_mask   = 0x80000000;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec = (u16*)arg2;
@@ -2533,11 +2533,11 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
                             gte_ldSZ3(sz);
                             gte_avsz3();
                             upper_delta = 0;
-                            if (light != 0) {
+                            if (fadeDistance != 0) {
                                 upper_y = poly->y0;
                                 if (upper_limit < upper_y) {
                                     upper_calc  = upper_y - 0x168;
-                                    upper_delta = (upper_calc + light) * 2;
+                                    upper_delta = (upper_calc + fadeDistance) * 2;
                                 }
                                 if (upper_delta >= 0x81) {
                                     GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
@@ -2567,12 +2567,12 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
                                     poly->b2    = faded;
                                 }
                             }
-                            if (light != 0) {
+                            if (fadeDistance != 0) {
                                 lower_y = poly->y0;
                                 if (upper_limit < lower_y) {
                                     lower_delta  = lower_y;
                                     lower_delta -= 0x168;
-                                    lower_delta += light;
+                                    lower_delta += fadeDistance;
                                     lower_delta *= 2;
                                     poly->y1    -= lower_delta;
                                     poly->y2    -= lower_delta;
@@ -2604,7 +2604,7 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_delta;
     s32           upper_calc;
     s32           lower_delta;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32*          opz;
     s32*          flg;
@@ -2614,15 +2614,15 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT4*)arg0->primWrite;
-    col   = D_actor_403600_80131E34;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT4*)arg0->primWrite;
+    col          = D_actor_403600_80131E34;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     gte_ldrgb(&col);
     if (arg0->elemCount-- > 0) {
         flg         = &arg0->gteFlag;
         clip_mask   = 0x80000000;
         opz         = &arg0->gteResult;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
@@ -2649,11 +2649,11 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
                         gte_stsxy2(&poly->x3);
                         gte_avsz4();
                         upper_delta = 0;
-                        if (light != 0) {
+                        if (fadeDistance != 0) {
                             upper_y = poly->y0;
                             if (upper_limit < upper_y) {
                                 upper_calc  = upper_y - 0x168;
-                                upper_delta = (upper_calc + light) * 2;
+                                upper_delta = (upper_calc + fadeDistance) * 2;
                             }
                         }
                         if (upper_delta >= 0x81) {
@@ -2675,12 +2675,12 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
                             gte_nccs();
                             gte_strgb(&poly->r3);
                         }
-                        if (light != 0) {
+                        if (fadeDistance != 0) {
                             lower_y = poly->y0;
                             if (upper_limit < lower_y) {
                                 lower_delta  = lower_y;
                                 lower_delta -= 0x168;
-                                lower_delta += light;
+                                lower_delta += fadeDistance;
                                 lower_delta *= 2;
                                 poly->y3    -= lower_delta;
                                 poly->y2    -= lower_delta;
@@ -2710,7 +2710,7 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
     DisplayState* ds;
     u32           clip_mask;
     u16*          rec;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32           upper_delta;
     s32           upper_calc;
@@ -2721,12 +2721,12 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
     s16           upper_y;
     s16           lower_y;
 
-    poly  = (POLY_GT4*)arg0->preXformWrite;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT4*)arg0->preXformWrite;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
         clip_mask   = 0x80000000;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec = (u16*)arg2;
@@ -2762,11 +2762,11 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
                                 gte_ldSZ3(sz);
                                 gte_avsz4();
                                 upper_delta = 0;
-                                if (light != 0) {
+                                if (fadeDistance != 0) {
                                     upper_y = poly->y0;
                                     if (upper_limit < upper_y) {
                                         upper_calc  = upper_y - 0x168;
-                                        upper_delta = (upper_calc + light) * 2;
+                                        upper_delta = (upper_calc + fadeDistance) * 2;
                                     }
                                     if (upper_delta >= 0x81) {
                                         GPU_PRIMITIVE_COLOR_WORD(poly, 0) = 0;
@@ -2806,12 +2806,12 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
                                         poly->b3    = faded;
                                     }
                                 }
-                                if (light != 0) {
+                                if (fadeDistance != 0) {
                                     lower_y = poly->y0;
                                     if (upper_limit < lower_y) {
                                         lower_delta  = lower_y;
                                         lower_delta -= 0x168;
-                                        lower_delta += light;
+                                        lower_delta += fadeDistance;
                                         lower_delta *= 2;
                                         poly->y3    -= lower_delta;
                                         poly->y2    -= lower_delta;
@@ -2846,7 +2846,7 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_delta;
     s32           upper_calc;
     s32           lower_delta;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32*          opz;
     u16*          rec;
@@ -2854,12 +2854,12 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->primWrite;
-    col   = D_actor_403600_80131E34;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT3*)arg0->primWrite;
+    col          = D_actor_403600_80131E34;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
@@ -2875,11 +2875,11 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
                     gte_stsxy3_gt3(poly);
                     gte_avsz3();
                     upper_delta = 0;
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
                             upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + light) * 2;
+                            upper_delta = (upper_calc + fadeDistance) * 2;
                         }
                     }
                     if (upper_delta >= 0x81) {
@@ -2899,12 +2899,12 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
                     }
                     setlen(poly, 9);
                     setcode(poly, 0x34);
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         lower_y = poly->y0;
-                        if (lower_y < (light - 0x168)) {
+                        if (lower_y < (fadeDistance - 0x168)) {
                             lower_delta  = lower_y;
                             lower_delta += 0x168;
-                            lower_delta -= light;
+                            lower_delta -= fadeDistance;
                             lower_delta *= 2;
                             poly->y1    += lower_delta;
                             poly->y2    += lower_delta;
@@ -2934,7 +2934,7 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_delta;
     s32           upper_calc;
     s32           lower_delta;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32*          opz;
     u16*          rec;
@@ -2942,12 +2942,12 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT3*)arg0->primWrite;
-    col   = D_actor_403600_80131E34;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT3*)arg0->primWrite;
+    col          = D_actor_403600_80131E34;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
@@ -2963,11 +2963,11 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
                     gte_stsxy3_gt3(poly);
                     gte_avsz3();
                     upper_delta = 0;
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         upper_y = poly->y0;
                         if (upper_limit < upper_y) {
                             upper_calc  = upper_y - 0x168;
-                            upper_delta = (upper_calc + light) * 2;
+                            upper_delta = (upper_calc + fadeDistance) * 2;
                         }
                     }
                     if (upper_delta >= 0x81) {
@@ -2987,12 +2987,12 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
                     }
                     setlen(poly, 9);
                     setcode(poly, 0x34);
-                    if (light != 0) {
+                    if (fadeDistance != 0) {
                         lower_y = poly->y0;
-                        if (lower_y < (light - 0x168)) {
+                        if (lower_y < (fadeDistance - 0x168)) {
                             lower_delta  = lower_y;
                             lower_delta += 0x168;
-                            lower_delta -= light;
+                            lower_delta -= fadeDistance;
                             lower_delta *= 2;
                             poly->y1    += lower_delta;
                             poly->y2    += lower_delta;
@@ -3022,7 +3022,7 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
     s32           upper_delta;
     s32           upper_calc;
     s32           lower_delta;
-    s32           light;
+    s32           fadeDistance;
     s32           upper_limit;
     s32*          opz;
     s32*          flg;
@@ -3032,15 +3032,15 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
     u8*           norms;
     DisplayState* ds;
 
-    poly  = (POLY_GT4*)arg0->primWrite;
-    col   = D_actor_403600_80131E34;
-    light = arg0->obj->lightLevel;
+    poly         = (POLY_GT4*)arg0->primWrite;
+    col          = D_actor_403600_80131E34;
+    fadeDistance = arg0->obj->shading.screenFadeDistance;
     gte_ldrgb(&col);
     if (arg0->elemCount-- > 0) {
         flg         = &arg0->gteFlag;
         clip_mask   = 0x80000000;
         opz         = &arg0->gteResult;
-        upper_limit = 0x168 - light;
+        upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
             rec   = (u16*)arg2;
@@ -3067,11 +3067,11 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
                         gte_stsxy2(&poly->x3);
                         gte_avsz4();
                         upper_delta = 0;
-                        if (light != 0) {
+                        if (fadeDistance != 0) {
                             upper_y = poly->y0;
                             if (upper_limit < upper_y) {
                                 upper_calc  = upper_y - 0x168;
-                                upper_delta = (upper_calc + light) * 2;
+                                upper_delta = (upper_calc + fadeDistance) * 2;
                             }
                         }
                         if (upper_delta >= 0x81) {
@@ -3095,12 +3095,12 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
                         }
                         setlen(poly, 12);
                         setcode(poly, 0x3C);
-                        if (light != 0) {
+                        if (fadeDistance != 0) {
                             lower_y = poly->y0;
-                            if (lower_y < (light - 0x168)) {
+                            if (lower_y < (fadeDistance - 0x168)) {
                                 lower_delta  = lower_y;
                                 lower_delta += 0x168;
-                                lower_delta -= light;
+                                lower_delta -= fadeDistance;
                                 lower_delta *= 2;
                                 poly->y3    += lower_delta;
                                 poly->y2    += lower_delta;

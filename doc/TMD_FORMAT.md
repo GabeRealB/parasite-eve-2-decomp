@@ -558,12 +558,12 @@ Each handler copies the UV words straight into the primitive and then biases
 the page registers:
 
 ```c
-poly->tpage += ws->tpage;      // from TmdObject.field_24
-poly->clut  += ws->clut;      // from TmdObject.field_25 << 6
+poly->tpage += ws->tpage;      // from TmdObject.texturePageOffset
+poly->clut  += ws->clut;      // from TmdObject.clutRowOffset << 6
 ```
 
 So the stored `tpage`/`clut` are **relative** — the object's texture-page
-assignment is added at draw time. An exporter has to apply the same bias to
+displacement is added when building the primitive buffer. An exporter has to apply the same bias to
 resolve a real page.
 
 `u0` and `u1` are written as full words, so each carries a `u`,`v` pair plus

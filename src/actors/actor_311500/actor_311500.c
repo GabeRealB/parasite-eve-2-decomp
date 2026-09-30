@@ -729,11 +729,11 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     break;
 
                 case 0x1C:
-                    arg0->extra.tmd->flags = 2;
+                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
 
                 case 0x50:
-                    arg0->extra.tmd->flags = 0x80;
+                    arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     break;
 
                 case 0x104:
@@ -883,7 +883,7 @@ case2:
     if (work->field_4D6 != state) {
         work->field_4BC = obj->flags;
     }
-    actor->extra.tmd->flags |= 0x80;
+    actor->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
     goto case1;
 
 case1:

@@ -22,7 +22,7 @@ STATIC_ASSERT_SIZEOF(GpGiveRec, 0xC);
 /// 16-byte VRAM upload record walked by `Gp_LoadImages`. `field_0 == 0`
 /// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
 /// `Gp_LoadActorImage` fills `rect` from a source RECT plus the TMD tpage at
-/// `TmdObject.tpage` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
+/// `TmdObject.texturePageOffset` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
 /// `y = src.y + 0x100`).
 typedef struct _GpImgRec {
     /* 0x0 */ u16     field_0;

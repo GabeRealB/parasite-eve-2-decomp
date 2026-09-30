@@ -400,7 +400,7 @@ static void func_800BBB54(Task* arg0)
 
     extra = arg0->extra.tmd;
     if (arg0->state == 0) {
-        extra->flags = 0x88;
+        extra->flags = (TMD_OBJECT_HIDDEN | TMD_OBJECT_FLAGGED_PASS);
         arg0->state += 1;
     }
     if (arg0->state == 1) {
@@ -420,7 +420,7 @@ static void func_800BBB54(Task* arg0)
         shift   = (id & 0xF) * 2;
         word    = *indexed;
         if (((word & (3 << shift)) >> shift) == 2) {
-            extra->flags &= 0xFFF7;
+            extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
             Task_CallExit(arg0);
         }
     }
@@ -432,7 +432,7 @@ void Gp_WaitItemFlag2(Task* arg0)
 
     extra = arg0->extra.tmd;
     if (arg0->state == 0) {
-        extra->flags = 8;
+        extra->flags = TMD_OBJECT_FLAGGED_PASS;
         arg0->state += 1;
     }
     if (arg0->state == 1) {
@@ -446,7 +446,7 @@ void Gp_WaitItemFlag2(Task* arg0)
         p     = &Gp_Bit2Banks[stage].field_4[id >> 4];
         shift = (id & 0xF) * 2;
         if (((*p & (3 << shift)) >> shift) == 2) {
-            extra->flags &= 0xFFF7;
+            extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
             Task_CallExit(arg0);
         }
     }

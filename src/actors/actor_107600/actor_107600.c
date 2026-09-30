@@ -69,7 +69,7 @@
 /// switches on it.
 typedef struct Actor107600Work {
     /// Colour / light matrix pair `func_actor_107600_80132ED0` hangs off the
-    /// display object's `TmdObject.colorMtx` / `field_1C` so the actor draws
+    /// display object's `TmdObject.colorMtx` / `lightMtx` so the actor draws
     /// with its own light instead of `Gp_BindDefaultMtx`'s.
     /* 0x000 */ MATRIX                matrix_0;  // color matrix for the child models
     /* 0x020 */ MATRIX                matrix_20; // light matrix for the child models
@@ -1119,10 +1119,10 @@ static void func_actor_107600_80132930(Task* arg0)
             coord->coord.m[1][1] = work->field_14B * (coord->coord.m[1][1] / 100);
         case 1:
             func_actor_107600_80132B0C(arg0);
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             break;
         case 2:
-            ext->flags |= 0x80;
+            ext->flags |= TMD_OBJECT_HIDDEN;
             break;
     }
 }
@@ -1294,11 +1294,11 @@ static void func_actor_107600_80132DF0(GpEnemy* arg0, s32 arg1, s32 arg2)
         coord->parent                = arg0->task->extra.tmd->coords;
         enemy->task->spawnArg1.value = arg1 | (arg2 << 16);
         obj                          = enemy->task->extra.tmd;
-        obj->tpage                   = 0;
+        obj->texturePageOffset       = 0;
         if (arg1 < 10) {
-            obj->clut = 2;
+            obj->clutRowOffset = 2;
         } else {
-            obj->clut = 0;
+            obj->clutRowOffset = 0;
         }
         tmdProcessStream(obj);
         tmdProcessStream(obj);
@@ -1399,10 +1399,10 @@ static void func_actor_107600_80133024(Task* arg0)
             }
         case 1:
             func_actor_107600_801349E0(arg0);
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             break;
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             break;
     }
     if (work->field_162 != 2) {
@@ -1667,7 +1667,7 @@ static void func_actor_107600_801339A4(Task* arg0)
     switch (work->field_15A) {
         case 0:
             work->field_15A++;
-            tmd->flags            |= 2;
+            tmd->flags            |= TMD_OBJECT_SEMI_TRANS;
             arg0->spawnArg1.value |= 0x40;
             work->field_16B        = 0;
             work->field_15C        = 0;
@@ -1983,7 +1983,7 @@ static void func_actor_107600_80134608(GpEnemy* arg0, VECTOR* arg1, s32 arg2, s3
     extra    = arg0->task->extra.tmd;
     colorMtx = extra->colorMtx;
     mode     = arg0->colorMode & 3;
-    if ((!(extra->flags & 0x80) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
+    if ((!(extra->flags & TMD_OBJECT_HIDDEN) && (extra->buffer != NULL)) || (gGameSession->field_65 != 1)) {
         block = SCRATCH_PUSH(GpColorScratch);
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->colorBlend <= 0) {
@@ -2040,7 +2040,7 @@ static void func_actor_107600_80134904(Task* arg0)
 {
     TmdObject* obj = arg0->extra.tmd;
 
-    obj->flags |= 0x80;
+    obj->flags |= TMD_OBJECT_HIDDEN;
 }
 
 static void func_actor_107600_80134920(Task* arg0)

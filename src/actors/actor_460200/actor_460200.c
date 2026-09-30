@@ -2445,7 +2445,7 @@ static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
     func_800D7A9C(obj, &vec, 0, 3);
     func_actor_460200_801325FC(task);
     func_actor_460200_80132978(task);
-    if ((work->effects != 0) && !(obj->flags & 0x80) && (obj->buffer != NULL)) {
+    if ((work->effects != 0) && !(obj->flags & TMD_OBJECT_HIDDEN) && (obj->buffer != NULL)) {
         if (task->killCountdown & 1) {
             rng         = Gp_LcgState * 5 + 0x71357911;
             hi          = (rng >> 16) & 0x10FF;
@@ -2505,7 +2505,7 @@ void func_actor_460200_801327B4(Task* task)
 
 /// Spawn routine of the actor whose `func_actor_460200_80132950` exit path
 /// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
-/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
+/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801325FC` once in state 2.
 ///
@@ -2568,7 +2568,7 @@ static void func_actor_460200_80132978(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -2672,12 +2672,12 @@ s32 func_actor_460200_80132B98(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = 0x80;
-        other->flags = 0x80;
+        self->flags  = TMD_OBJECT_HIDDEN;
+        other->flags = TMD_OBJECT_HIDDEN;
     }
     if (flags & 2) {
-        self->flags  |= 4;
-        other->flags |= 4;
+        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
@@ -2888,7 +2888,7 @@ static void func_actor_460200_80133254(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -2991,12 +2991,12 @@ s32 func_actor_460200_80133474(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = 0x80;
-        other->flags = 0x80;
+        self->flags  = TMD_OBJECT_HIDDEN;
+        other->flags = TMD_OBJECT_HIDDEN;
     }
     if (flags & 2) {
-        self->flags  |= 4;
-        other->flags |= 4;
+        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
@@ -3130,7 +3130,7 @@ void func_actor_460200_8013386C(Task* task)
 
 /// Spawn routine of the actor whose `func_actor_460200_80133A88` exit path
 /// hands it back to `Gp_DestroyEnemy`: it allocates the 0x4F8 work block (the
-/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`field_20`
+/// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
 static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
@@ -3207,7 +3207,7 @@ static void func_actor_460200_80133AB0(Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    if (!(obj->flags & 0x80) && obj->buffer != NULL) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN) && obj->buffer != NULL) {
         vec     = (VECTOR3*)SCRATCH_PUSH_BYTES(0x18);
         vec->vx = coord->workm.t[0];
         vec->vy = coord->workm.t[1];
@@ -3309,12 +3309,12 @@ s32 func_actor_460200_80133CD0(Task* task, s32 arg1, s32 flags)
         self->flags  = 0;
         other->flags = 0;
     } else {
-        self->flags  = 0x80;
-        other->flags = 0x80;
+        self->flags  = TMD_OBJECT_HIDDEN;
+        other->flags = TMD_OBJECT_HIDDEN;
     }
     if (flags & 2) {
-        self->flags  |= 4;
-        other->flags |= 4;
+        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

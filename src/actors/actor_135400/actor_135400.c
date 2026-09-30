@@ -716,7 +716,7 @@ static void func_actor_135400_801322A8(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
@@ -923,22 +923,22 @@ s32 func_actor_135400_801327E8(Task* task, s32 msgId, s32 mode, s32 arg3)
     ret   = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             Tmd_FreeBuffers(obj);
-            obj->flags |= 4;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -963,13 +963,13 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
         case 0:
             if (work->field_4BC != NULL) {
                 model         = work->field_4BC->extra.tmd;
-                model->flags &= 0xFF7F;
+                model->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
         case 1:
             if (work->field_4BC != NULL) {
                 model         = work->field_4BC->extra.tmd;
-                model->flags |= 0x80;
+                model->flags |= TMD_OBJECT_HIDDEN;
             }
             break;
         case 2:
@@ -987,7 +987,7 @@ s32 func_actor_135400_801328DC(Task* task, s32 msgId, GpCmdArg* msg, s32 arg3)
             if (work->field_4BC != NULL) {
                 work->field_4BC->spawnArg1.value = 3;
                 model                            = work->field_4BC->extra.tmd;
-                model->flags                    &= 0xFF7F;
+                model->flags                    &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
     }
@@ -1018,7 +1018,7 @@ static void func_actor_135400_801329B0(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80) && (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[0].workm), &pos) != 0)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN) && (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[0].workm), &pos) != 0)) {
         Gp_DrawEffGroundQuad(&pos, 0x180, Gp_State1C->groundShade);
     }
     count               = task->killCountdown + 1;
@@ -1185,22 +1185,22 @@ s32 func_actor_135400_80132EBC(Task* task, s32 anim, s32 arg2, s32 arg3)
     ret = 0;
     switch (arg2) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                               |= 0x80;
+            obj->flags                               |= TMD_OBJECT_HIDDEN;
             ((Actor135400Work*)task->work)->field_494 = arg2;
-            obj->flags                               |= 4;
+            obj->flags                               |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

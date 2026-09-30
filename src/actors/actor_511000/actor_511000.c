@@ -2142,7 +2142,7 @@ static void func_actor_511000_80131E78(Task* arg0)
             }
         }
     }
-    if (!(extra->flags & 0x80)) {
+    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8((VECTOR3*)(arg0->extra.tmd)->coords[1].workm.t, (VECTOR3*)&pos) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)&pos, 0x300, Gp_State1C->groundShade);
         }
@@ -2268,16 +2268,16 @@ static void func_actor_511000_80132284(Task* task)
     obj         = task->extra.tmd;
     parentObj   = parent->extra.tmd;
     coords      = parentObj->coords;
-    obj->flags |= 0x80;
+    obj->flags |= TMD_OBJECT_HIDDEN;
     root        = obj->coords;
-    if (!(parentObj->flags & 0x80)) {
-        obj->flags &= 0xFF7F;
+    if (!(parentObj->flags & TMD_OBJECT_HIDDEN)) {
+        obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObj->flags & 4)) {
-        obj->flags &= 0xFFFB;
+    if (!(parentObj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(obj);
     } else {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     obj->otOffset      = -2;
     coords            += task->spawnArg1.value;
@@ -2301,17 +2301,17 @@ static void func_actor_511000_80132390(Task* task)
     parentObject = ((Task*)task->spawnArg2.pointer)->extra.tmd;
     object       = task->extra.tmd;
 
-    if (!(parentObject->flags & 0x80)) {
-        object->flags &= 0xFF7F;
+    if (!(parentObject->flags & TMD_OBJECT_HIDDEN)) {
+        object->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        object->flags |= 0x80;
+        object->flags |= TMD_OBJECT_HIDDEN;
     }
-    if (!(parentObject->flags & 4)) {
-        object->flags &= 0xFFFB;
+    if (!(parentObject->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(object);
         return;
     }
-    object->flags |= 4;
+    object->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 void func_actor_511000_80132428(Task* task)
@@ -2344,7 +2344,7 @@ static void func_actor_511000_80132480(Task* task)
     work->field_47C      = -1;
     work->field_4D2      = 0;
     work->field_480.word = -1;
-    flags                = extra->flags | 0x80;
+    flags                = extra->flags | TMD_OBJECT_HIDDEN;
     extra->flags         = flags;
     if (!(flags & 0x80)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
@@ -2457,22 +2457,22 @@ s32 func_actor_511000_801327A0(Task* arg0, s32 arg1, s32 mode)
 
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags          |= 0x80;
+            obj->flags          |= TMD_OBJECT_HIDDEN;
             work->field_480.word = mode;
-            obj->flags          |= 4;
+            obj->flags          |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -2506,7 +2506,7 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, GpCmdArg* msg)
         case 1:
             child = work->field_4C4;
             if (child != NULL) {
-                child->extra.tmd->flags |= 0x80;
+                child->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             }
             child = work->field_4C8;
             break;
@@ -2515,7 +2515,7 @@ s32 func_actor_511000_8013287C(Task* arg0, s32 arg1, GpCmdArg* msg)
     }
 
     if (child != NULL) {
-        child->extra.tmd->flags &= 0xFF7F;
+        child->extra.tmd->flags &= (u16)~TMD_OBJECT_HIDDEN;
     }
 out:
     return 0;
@@ -2587,10 +2587,10 @@ static void func_actor_511000_801329C4(Task* task)
     extra  = task->extra.tmd;
     coord  = extra->coords;
 
-    if (!(parent->extra.tmd->flags & 0x80)) {
-        extra->flags &= 0xFF7F;
+    if (!(parent->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
+        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
     } else {
-        extra->flags |= 0x80;
+        extra->flags |= TMD_OBJECT_HIDDEN;
     }
 
     if (gGameSession->at4.loc.view == 0x18) {
@@ -2784,7 +2784,7 @@ static void func_actor_511000_80133034(Task* task)
     }
     task->work    = (TaskIdMap*)work;
     work->field_8 = -1;
-    extra->flags |= 0x80;
+    extra->flags |= TMD_OBJECT_HIDDEN;
     func_actor_511000_801336E0(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     func_actor_511000_801337F0(task);
     do {
@@ -2814,7 +2814,7 @@ static void func_actor_511000_801330F0(Task* task)
     work  = (Actor511000Work*)task->work;
     coord = obj->coords;
 
-    if (!(obj->flags & 0x80)) {
+    if (!(obj->flags & TMD_OBJECT_HIDDEN)) {
         Gp_UpdateCoord(coord);
         func_800D7A9C(obj, (VECTOR*)coord->workm.t, 0, 3);
         func_actor_511000_80132E6C((Actor511000Work*)task->work);
@@ -2861,9 +2861,9 @@ static void func_actor_511000_80133240(Task* task)
     dest            = parentExtra->coords;
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = 0x80;
+    extra->flags    = TMD_OBJECT_HIDDEN;
     coord           = extra->coords;
-    if (!(parentExtra->flags & 0x80)) {
+    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
@@ -2888,8 +2888,8 @@ static void func_actor_511000_801332E4(Task* task)
     coord       = extra->coords;
     parentExtra = ((Task*)task->spawnArg2.pointer)->extra.tmd;
 
-    if (!(parentExtra->flags & 0x80)) {
-        extra->flags &= 0xFF7F;
+    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
+        extra->flags &= (u16)~TMD_OBJECT_HIDDEN;
 
         switch (task->spawnArg1.value) {
             case 1:
@@ -2904,7 +2904,7 @@ static void func_actor_511000_801332E4(Task* task)
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    extra->flags |= 0x80;
+    extra->flags |= TMD_OBJECT_HIDDEN;
 }
 
 static void func_actor_511000_801333A4(Task* task)
@@ -2930,9 +2930,9 @@ static void func_actor_511000_801333C4(Task* task)
     dest            = parentExtra->coords;
     extra->lightMtx = parentExtra->lightMtx;
     extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = 0x80;
+    extra->flags    = TMD_OBJECT_HIDDEN;
     coord           = extra->coords;
-    if (!(parentExtra->flags & 0x80)) {
+    if (!(parentExtra->flags & TMD_OBJECT_HIDDEN)) {
         extra->flags = 0;
     }
     func_actor_511000_80133760(task);
@@ -2976,7 +2976,7 @@ s32 func_actor_511000_801334C4(Task* task, s32 arg1, GpXformArg* args, s32 arg3)
     coord->param.rot.vz = args->rot.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags       &= 0xFF7F;
+    extra->flags       &= (u16)~TMD_OBJECT_HIDDEN;
     return 0;
 }
 
@@ -2993,22 +2993,22 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
     ret  = 0;
     switch (msg) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags   |= 0x80;
+            obj->flags   |= TMD_OBJECT_HIDDEN;
             work->field_8 = msg;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -3018,7 +3018,7 @@ s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg)
         for (i = 1; i < 4; i++) {
             child = Task_SpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
             if (child != NULL) {
-                child->extra.tmd->flags &= ~0x84;
+                child->extra.tmd->flags &= ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }
         }
         work->field_2F = 1;
@@ -3167,11 +3167,11 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     placementWord = placementWord >> 12;
     key.view      = view;
     areaSyncLocationVariant(&key);
-    layout          = Gp_GetNestedAreaRec(&key);
-    placementWord <<= 4;
-    placementWord  += (u32)layout->field_0;
-    model->tpage    = ((AreaPlacement*)placementWord)->texturePageOffset;
-    model->clut     = ((AreaPlacement*)placementWord)->clutRowOffset;
+    layout                   = Gp_GetNestedAreaRec(&key);
+    placementWord          <<= 4;
+    placementWord           += (u32)layout->field_0;
+    model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
+    model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -3190,11 +3190,11 @@ static void func_actor_511000_80133958(GpEnemy* enemy, Task* task)
     placementWord = placementWord >> 12;
     key.view      = view;
     areaSyncLocationVariant(&key);
-    layout          = Gp_GetNestedAreaRec(&key);
-    placementWord <<= 4;
-    placementWord  += (u32)layout->field_0;
-    model->tpage    = ((AreaPlacement*)placementWord)->texturePageOffset;
-    model->clut     = ((AreaPlacement*)placementWord)->clutRowOffset;
+    layout                   = Gp_GetNestedAreaRec(&key);
+    placementWord          <<= 4;
+    placementWord           += (u32)layout->field_0;
+    model->texturePageOffset = ((AreaPlacement*)placementWord)->texturePageOffset;
+    model->clutRowOffset     = ((AreaPlacement*)placementWord)->clutRowOffset;
     if (model->buffer != NULL) {
         tmdProcessStream(model);
         tmdProcessStream(model);
@@ -3312,13 +3312,13 @@ s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (!(arg2 & 1)) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     } else {
         obj->flags = 0;
     }
     if (arg2 & 2) {
         obj         = task->extra.tmd;
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

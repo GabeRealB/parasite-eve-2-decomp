@@ -2630,13 +2630,13 @@ static void Actor01900_Fn06904(Task* arg0)
                 Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 17:
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 39:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
         cur = work->field_6;
@@ -3055,7 +3055,7 @@ static void Actor01900_Fn08724(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = 0x80;
+        arg0->extra.tmd->flags    = TMD_OBJECT_HIDDEN;
         work->field_8C8.radius    = 0x180;
         work->field_A08.flags    &= 0xBFFF;
         enemy->node.state.b.flags = 1;
@@ -3155,13 +3155,13 @@ static void Actor01900_Fn0892C(Task* arg0)
                     Gp_SpawnEff(0x600A5, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
-                    arg0->extra.tmd->flags = 2;
+                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
                 case 17:
                     Gp_SetLightMode(enemy, 2);
                     break;
                 case 39:
-                    arg0->extra.tmd->flags = 0x80;
+                    arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     work->field_0          = 0;
                     break;
             }
@@ -3362,7 +3362,7 @@ static void Actor01900_Fn09D3C(GpEnemy* enemy, Task* actor)
             Gp_ClearRec18Occupied(&work->field_B68);
             return;
         case 2:
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(&work->field_A28);
             Gp_ClearRec18Occupied(&work->field_8E8);
             Gp_ClearRec18Occupied(&work->field_B68);
@@ -3510,7 +3510,7 @@ s32 Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -3520,13 +3520,13 @@ s32 Actor01900_Fn0A38C(Task* arg0, s32 arg1, s32 arg2)
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -3652,7 +3652,7 @@ static void Actor01900_Fn0A764(Task* arg0)
     if (work->field_4 != 0) {
         obj                                                     = arg0->extra.tmd;
         ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                              = (u16)(obj->flags | 0x80);
+        obj->flags                                              = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
         work->field_B48.flags                                   = (u16)(work->field_B48.flags & 0x7FFF);
         work->field_A08.flags                                   = (u16)(work->field_A08.flags & 0xBFFF);
     }

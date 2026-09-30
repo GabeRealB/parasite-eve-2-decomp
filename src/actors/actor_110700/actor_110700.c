@@ -344,13 +344,13 @@ s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2)
 
     obj = task->extra.tmd;
     if (!(arg2 & 1)) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     } else {
         obj->flags = 0;
     }
     if (arg2 & 2) {
         obj         = task->extra.tmd;
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

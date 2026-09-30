@@ -113,7 +113,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkAC, 0xAC);
 /// `Actor503500ObjWork` this one exits through `func_actor_503500_801464E8`, which
 /// only calls `Gp_EnemyTaskExit`, so the block does not open with a `GpObj`.
 /// `func_actor_503500_80146508` republishes the two matrices onto
-/// `TmdObject::lightMtx` / `field_20`, the light/colour pair
+/// `TmdObject::lightMtx` / `colorMtx`, the light/colour pair
 /// `Gp_BindDefaultMtx` otherwise points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`,
 /// exactly as `func_actor_503500_801324EC` does for `Actor503500ColorMtx`.
 ///
@@ -1732,7 +1732,7 @@ static void func_actor_503500_80145FDC(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_UpdateCoord(coord);
         pos.vx = coord->workm.t[0];
@@ -1808,7 +1808,7 @@ static void func_actor_503500_8014618C(Task* arg0)
             work->field_4C4++;
             switch (work->field_4C4) {
                 case 0x14:
-                    ext->flags |= 2;
+                    ext->flags |= TMD_OBJECT_SEMI_TRANS;
                     Gp_SetLightMode(enemy, 1);
                     break;
                 case 0x1E:
@@ -1952,20 +1952,20 @@ s32 func_actor_503500_801466E0(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            ext->flags = (ext->flags | 0x80) & ~4;
+            ext->flags = (ext->flags | TMD_OBJECT_HIDDEN) & ~4;
             break;
         case 1:
-            ext->flags &= ~0x80;
+            ext->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(ext);
-            ext->flags &= ~4;
+            ext->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            ext->flags                                    |= 0x80;
+            ext->flags                                    |= TMD_OBJECT_HIDDEN;
             ((Actor503500Effect4CC*)task->work)->field_4C8 = mode;
-            ext->flags                                    |= 4;
+            ext->flags                                    |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            ext->flags = (ext->flags & ~0x80) | 4;
+            ext->flags = (ext->flags & ~TMD_OBJECT_HIDDEN) | 4;
             break;
         default:
             ret = 1;

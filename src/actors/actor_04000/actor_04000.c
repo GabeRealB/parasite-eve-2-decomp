@@ -1908,7 +1908,7 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
                 }
                 work->field_496 = 0;
             }
-            arg1->extra.tmd->flags = 2;
+            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 1:
             Gp_SpawnScript18Ex(Actor04000_D07094, Actor04000_D070A0,
@@ -1934,7 +1934,7 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
             if ((s8)work->field_479 == 0) {
                 Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, NULL);
             }
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             id         = ((arg0->placeKey >> 12) << 8) | 0x40280004;
             pan        = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
@@ -2156,7 +2156,7 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
                 }
                 work->field_496 = 0;
             }
-            arg1->extra.tmd->flags = 2;
+            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 2:
             Gp_SpawnScript18Ex(Actor04000_D07094, Actor04000_D070A0,
@@ -2188,10 +2188,10 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
             break;
         case 10:
             work->obj388.flags &= 0x7FFF;
-            obj->flags          = 0x80;
+            obj->flags          = TMD_OBJECT_HIDDEN;
             break;
         case 12:
-            obj->flags |= 4;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 29:
             work->field_0 = 0;
@@ -2281,7 +2281,7 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
             id  = ((arg0->placeKey >> 12) << 8) | 0x40280004;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
-            arg1->extra.tmd->flags = 2;
+            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 1:
             work->obj388.radius = 0x3E8;
@@ -2308,10 +2308,10 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
             }
             break;
         case 8:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             break;
         case 10:
-            obj->flags |= 4;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 25:
             work->field_0 = 0;
@@ -3021,7 +3021,7 @@ static void Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(&work->rec370);
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(work->rec1B0);
             Gp_ClearRec18Occupied(work->hits);
             Gp_ClearRec18Occupied(&work->rec370);
@@ -3135,7 +3135,7 @@ s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
 
     switch (arg2) {
         case 0:
-            obj->flags    = 0x80;
+            obj->flags    = TMD_OBJECT_HIDDEN;
             work->field_0 = 7;
             break;
         case 1:
@@ -3143,13 +3143,13 @@ s32 Actor04000_Fn06590(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 7;
             break;
         case 2:
-            obj->flags    = (u16)(obj->flags | 4);
+            obj->flags    = (u16)(obj->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags    = (u16)(obj->flags | 4);
+            obj->flags    = (u16)(obj->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         default:
             return 0;
@@ -3313,7 +3313,7 @@ static void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task)
     if (work->field_4 != 0) {
         obj                       = task->extra.tmd;
         enemy->node.state.b.flags = 1;
-        obj->flags                = (u16)(obj->flags | 0x80);
+        obj->flags                = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
         work->obj350.flags        = (u16)(work->obj350.flags & 0x7FFF);
         work->obj388.flags        = (u16)(work->obj388.flags & 0x7FFF);
         work->obj3C0.flags        = (u16)(work->obj3C0.flags & 0x7FFF);
@@ -3330,7 +3330,7 @@ static void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
         arg0->node.state.b.flags = 1;
-        obj->flags               = 0x80;
+        obj->flags               = TMD_OBJECT_HIDDEN;
         work->field_174          = 1;
         work->field_170          = 2;
         work->obj350.flags      &= 0x7FFF;
@@ -3351,7 +3351,7 @@ static void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
         case 5:
         default:
             arg0->node.state.b.flags = 1;
-            obj->flags               = 0x80;
+            obj->flags               = TMD_OBJECT_HIDDEN;
             break;
     }
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {

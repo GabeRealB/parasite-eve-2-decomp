@@ -50,10 +50,8 @@ enum {
 };
 
 enum {
-    TMD_CREATE_SKIP_AUTO_BUFFER = 1,    // Creation bit: defer allocation and skip missing-buffer recovery
-    TMD_OBJECT_SKIP_AUTO_BUFFER = 4,    // Object state: skip missing-buffer recovery
-    TMD_OBJECT_HIDDEN           = 0x80, // Exclude from the active-node draw pass
-    TMD_BUFFER_HALF_COUNT       = 2     // Primitive buffers alternate between two halves
+    TMD_CREATE_SKIP_AUTO_BUFFER = 1, // Creation bit: defer allocation and skip missing-buffer recovery
+    TMD_BUFFER_HALF_COUNT       = 2  // Primitive buffers alternate between two halves
 };
 
 static const TaskFuncTable3 Tmd_TaskStates;
@@ -359,16 +357,16 @@ void tmdProcessStream(TmdObject* obj)
     ws->obj       = obj;
     buf           = obj->buffer;
     ws->primWrite = buf;
-    if (obj->bufferIndex != 0) {
-        ws->primWrite = (u8*)buf + obj->halfSize;
+    if (obj->nextBufferHalf != 0) {
+        ws->primWrite = (u8*)buf + obj->bufferHalfBytes;
     }
-    ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = ws->primWrite + src->preXformRegionBytes;
-    obj->bufferIndex ^= 1;
-    ws->verts         = obj->source->verts;
-    ws->normals       = obj->source->normals;
-    ws->tpage         = obj->tpage;
-    ws->clut          = obj->clut << 6;
+    ws->preXformWrite    = ws->primWrite;
+    ws->primWrite        = ws->primWrite + src->preXformRegionBytes;
+    obj->nextBufferHalf ^= 1;
+    ws->verts            = obj->source->verts;
+    ws->normals          = obj->source->normals;
+    ws->tpage            = obj->texturePageOffset;
+    ws->clut             = obj->clutRowOffset << 6;
     goto read_id;
 
     for (;;) {
@@ -525,18 +523,18 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
     Tmd_InitSourceStream(src);
     obj = memCalloc((src->partCount * sizeof(GfxCoord)) + sizeof(TmdAllocation), 0);
     if (obj != NULL) {
-        obj->flags       = TMD_OBJECT_HIDDEN;
-        obj->partCount   = src->partCount;
-        obj->coords      = PARENT_OF(obj, TmdAllocation, object)->coords;
-        obj->bufferIndex = 0;
-        coord            = obj->coords;
-        obj->halfSize    = src->bufferHalfBytes;
-        obj->lightMtx    = &GsLIGHTWSMATRIX;
-        obj->colorMtx    = &D_80074080;
-        obj->tpage       = 0;
-        obj->clut        = 0;
-        obj->source      = src;
-        bone             = src->skeleton;
+        obj->flags             = TMD_OBJECT_HIDDEN;
+        obj->partCount         = src->partCount;
+        obj->coords            = PARENT_OF(obj, TmdAllocation, object)->coords;
+        obj->nextBufferHalf    = 0;
+        coord                  = obj->coords;
+        obj->bufferHalfBytes   = src->bufferHalfBytes;
+        obj->lightMtx          = &GsLIGHTWSMATRIX;
+        obj->colorMtx          = &D_80074080;
+        obj->texturePageOffset = 0;
+        obj->clutRowOffset     = 0;
+        obj->source            = src;
+        bone                   = src->skeleton;
         // Copy the initial pose; self-parented roots attach to the view coordinate.
         for (partIndex = 0; partIndex < (u32)obj->partCount; partIndex++) {
             coord->coord = bone->local;
@@ -594,22 +592,22 @@ static void Tmd_SetupDraw(TmdObject* obj)
     bufptr                            = obj->buffer;
     ws->primWrite                     = bufptr;
     SCRATCH_HEAD(TmdScratchDrawBlock) = ws;
-    if (obj->bufferIndex != 0) {
-        ws->primWrite = (u8*)bufptr + obj->halfSize;
+    if (obj->nextBufferHalf != 0) {
+        ws->primWrite = (u8*)bufptr + obj->bufferHalfBytes;
     }
-    ws->preXformWrite = ws->primWrite;
-    ws->primWrite     = ws->primWrite + obj->source->preXformRegionBytes;
-    obj->bufferIndex ^= 1;
-    ws->verts         = obj->source->verts;
-    ot                = gGpuCurrentOt;
-    p                 = obj->source;
-    normals           = p->normals;
-    ws->ot            = ot;
-    ws->normals       = normals;
-    e                 = obj->otOffset;
-    b                 = buf;
-    ws->szTable       = b;
-    ws->ot            = ot + e;
+    ws->preXformWrite    = ws->primWrite;
+    ws->primWrite        = ws->primWrite + obj->source->preXformRegionBytes;
+    obj->nextBufferHalf ^= 1;
+    ws->verts            = obj->source->verts;
+    ot                   = gGpuCurrentOt;
+    p                    = obj->source;
+    normals              = p->normals;
+    ws->ot               = ot;
+    ws->normals          = normals;
+    e                    = obj->otOffset;
+    b                    = buf;
+    ws->szTable          = b;
+    ws->ot               = ot + e;
 
     gte_SetColorMatrix(obj->colorMtx);
     gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
@@ -651,7 +649,7 @@ s32 Tmd_AllocBuffers(TmdObject* obj)
         mem         = memCalloc(obj->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
         obj->buffer = mem;
         if (mem != NULL) {
-            obj->bufferIndex = 0;
+            obj->nextBufferHalf = 0;
             tmdProcessStream(obj);
             tmdProcessStream(obj);
             result = 1;
@@ -800,8 +798,8 @@ void Tmd_AllocMissingBuffers(void)
             if (!(node->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
                 mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
                 if (mem != NULL) {
-                    node->buffer      = mem;
-                    node->bufferIndex = 0;
+                    node->buffer         = mem;
+                    node->nextBufferHalf = 0;
                     tmdProcessStream(node);
                     tmdProcessStream(node);
                 }
@@ -821,9 +819,9 @@ void Tmd_AllocNodeBuffers(Task* task)
         if (node->buffer == NULL) {
             mem = memCalloc(node->source->bufferHalfBytes * TMD_BUFFER_HALF_COUNT, 1);
             if (mem != NULL) {
-                node->buffer      = mem;
-                node->bufferIndex = 0;
-                node->flags      &= ~TMD_OBJECT_HIDDEN;
+                node->buffer         = mem;
+                node->nextBufferHalf = 0;
+                node->flags         &= ~TMD_OBJECT_HIDDEN;
                 tmdProcessStream(node);
                 tmdProcessStream(node);
             }
@@ -836,7 +834,7 @@ void Tmd_AllocNodeBuffers(Task* task)
 void Tmd_DrawFlaggedNodes(TmdObject* node)
 {
     while (node != NULL) {
-        if (node->flags & 8) {
+        if (node->flags & TMD_OBJECT_FLAGGED_PASS) {
             if (node->buffer != NULL) {
                 Tmd_SetupDraw(node);
             }

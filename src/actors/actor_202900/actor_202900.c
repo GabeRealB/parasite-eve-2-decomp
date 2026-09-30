@@ -502,12 +502,12 @@ s32 func_actor_202900_8014A440(Task* task, s32 arg1, s32 flags)
         actorModel->flags = 0;
         taskModel->flags  = 0;
     } else {
-        actorModel->flags = 0x80;
-        taskModel->flags  = 0x80;
+        actorModel->flags = TMD_OBJECT_HIDDEN;
+        taskModel->flags  = TMD_OBJECT_HIDDEN;
     }
     if (flags & 2) {
-        actorModel->flags |= 4;
-        taskModel->flags  |= 4;
+        actorModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        taskModel->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }

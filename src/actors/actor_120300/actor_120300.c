@@ -1988,7 +1988,7 @@ static void func_actor_120300_801335D8(Task* task)
     Tmd_AllocBuffers(tmd);
     tmd->lightMtx = &work->field_474;
     tmd->colorMtx = &work->field_494;
-    tmd->flags   &= 0xFFFB;
+    tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
     place         = Gp_GetNestedAreaRec(&gGameSession->at4.loc)->field_0;
     entryId       = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
@@ -2190,10 +2190,10 @@ void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2)
 
     obj = task->extra.tmd;
     if (arg2 != 0) {
-        obj->flags = obj->flags & 0xFF7F;
+        obj->flags = obj->flags & (u16)~TMD_OBJECT_HIDDEN;
         return;
     }
-    obj->flags = obj->flags | 0x80;
+    obj->flags = obj->flags | TMD_OBJECT_HIDDEN;
 }
 
 /// Message 0x7D4 handler: places the task's model in the world. The model's

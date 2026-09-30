@@ -1558,7 +1558,7 @@ static void Actor01600_Fn00674(GpEnemy* arg0, Task* arg1)
                 goto update;
             case 2:
                 obj                      = arg1->extra.tmd;
-                obj->flags              |= 0x80;
+                obj->flags              |= TMD_OBJECT_HIDDEN;
                 arg0->node.state.b.flags = 1;
                 return;
             default:
@@ -3387,7 +3387,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
     }
     if (mode > 1) {
         if (mode == 2) {
-            obj->flags              |= 0x80;
+            obj->flags              |= TMD_OBJECT_HIDDEN;
             arg0->node.state.b.flags = 1;
             return;
         }
@@ -3434,7 +3434,7 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
             work->field_504 = phase;
             if (work->field_540 != 2) {
                 if (phase == 0xA) {
-                    obj->flags = 2;
+                    obj->flags = TMD_OBJECT_SEMI_TRANS;
                 }
                 if (work->field_504 == 0xF) {
                     Gp_SpawnEff(0x600A5, coords, 1, NULL);
@@ -3476,16 +3476,16 @@ static void Actor01600_Fn04054(GpEnemy* arg0, Task* arg1)
                     Gp_PulseState1C();
                     Gp_DispatchMsgPtr(gameGetPtrSlot(7), 0x13F4, arg1, 0);
                     work->field_502         = 0xFF;
-                    arg1->extra.tmd->flags |= 0x80;
-                    arg1->extra.tmd->flags |= 4;
+                    arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
+                    arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     break;
                 }
                 Gp_ReleaseStateF0Add(arg1, 0x10);
             }
             work->field_54E         = 0x3C;
-            arg1->extra.tmd->flags |= 0x80;
+            arg1->extra.tmd->flags |= TMD_OBJECT_HIDDEN;
             Actor01600_D12874--;
-            arg1->extra.tmd->flags |= 4;
+            arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_502         = 3;
             break;
         case 3:
@@ -4018,9 +4018,9 @@ static void Actor01600_Fn05400(Task* arg0)
             Actor01600_Fn00480(arg0);
             Tmd_AllocBuffers(arg0->extra.tmd);
             obj             = arg0->extra.tmd;
-            obj->flags     &= 0xFFFB;
+            obj->flags     &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2            = arg0->extra.tmd;
-            obj2->flags    &= 0xFF7F;
+            obj2->flags    &= (u16)~TMD_OBJECT_HIDDEN;
             work->field_52E = 1;
             return;
         case 3:
@@ -4038,9 +4038,9 @@ static void Actor01600_Fn05400(Task* arg0)
 
         default:
             obj3                    = arg0->extra.tmd;
-            obj3->flags            |= 0x80;
+            obj3->flags            |= TMD_OBJECT_HIDDEN;
             obj4                    = arg0->extra.tmd;
-            obj4->flags            |= 4;
+            obj4->flags            |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_53C         = 1;
             ctx->node.state.b.flags = 1;
             work->field_532         = 1;
@@ -4148,9 +4148,9 @@ static s32 Actor01600_Fn05558(Task* arg0)
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
             obj             = arg0->extra.tmd;
-            obj->flags     &= 0xFFFB;
+            obj->flags     &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj2            = arg0->extra.tmd;
-            obj2->flags    &= 0xFF7F;
+            obj2->flags    &= (u16)~TMD_OBJECT_HIDDEN;
             work->field_4FE = 1;
             work->field_4FA = 0;
             work->field_508 = 0;
@@ -4181,7 +4181,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
                 }
                 goto running;
             }
-            if (arg0->extra.tmd->flags & 0x80) {
+            if (arg0->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
                 goto running;
             }
             Actor01600_Fn03D48(arg0);
@@ -4206,9 +4206,9 @@ static s32 Actor01600_Fn05558(Task* arg0)
             Actor01600_Fn00480(arg0);
             Tmd_AllocBuffers(arg0->extra.tmd);
             obj3            = arg0->extra.tmd;
-            obj3->flags    &= 0xFFFB;
+            obj3->flags    &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             obj4            = arg0->extra.tmd;
-            obj4->flags    &= 0xFF7F;
+            obj4->flags    &= (u16)~TMD_OBJECT_HIDDEN;
             work->field_516 = 6;
             work->field_4FE = 1;
             work->field_4FA = 0;
@@ -4285,19 +4285,19 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
             if (variant == 3) {
                 obj = arg0->extra.tmd;
                 do {
-                    obj->flags &= 0xFFFB;
+                    obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                     obj         = arg0->extra.tmd;
                 } while (0);
-                obj->flags &= 0xFF7F;
+                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             break;
         case 3:
             work->field_54A = 1;
             if ((u32)(variant - 1) < 4) {
                 obj         = arg0->extra.tmd;
-                obj->flags &= 0xFFFB;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                 obj         = arg0->extra.tmd;
-                obj->flags &= 0xFF7F;
+                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             if (variant == 1) {
                 work->field_506 = 9;
@@ -4342,9 +4342,9 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
             }
             if (variant == 2 || variant == 4) {
                 obj         = arg0->extra.tmd;
-                obj->flags &= 0xFFFB;
+                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
                 obj         = arg0->extra.tmd;
-                obj->flags &= 0xFF7F;
+                obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             }
             Gp_StateF0.field_1C = 3;
             break;
@@ -4353,9 +4353,9 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, GpCmdArg* arg2)
             if ((u32)(variant - 1) < 4) {
             setFlags:
                 obj         = arg0->extra.tmd;
-                obj->flags |= 0x80;
+                obj->flags |= TMD_OBJECT_HIDDEN;
                 obj         = arg0->extra.tmd;
-                obj->flags |= 4;
+                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
         case 8:
@@ -4589,9 +4589,9 @@ static void Actor01600_Fn0646C(Task* arg0)
     }
     Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x50, &Actor01600_D12868);
     obj          = arg0->extra.tmd;
-    obj->flags  |= 0x80;
+    obj->flags  |= TMD_OBJECT_HIDDEN;
     obj2         = arg0->extra.tmd;
-    obj2->flags |= 4;
+    obj2->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 
 void Actor01600_Fn066E8(Task* arg0)
@@ -4915,7 +4915,7 @@ static u8 Actor01600_Fn06F78(void)
     }
     iter = head;
     do {
-        if (iter->extra.tmd->flags & 0x80) {
+        if (iter->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
             return 1;
         }
         iter = iter->nextSibling;
@@ -4933,9 +4933,9 @@ static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
     obj         = arg0->extra.tmd;
     ctx         = arg0->spawnArg2.pointer;
     work        = arg0->work;
-    obj->flags  = (u16)(obj->flags | 0x80);
+    obj->flags  = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
     obj2        = arg0->extra.tmd;
-    obj2->flags = (u16)(obj2->flags | 4);
+    obj2->flags = (u16)(obj2->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
     ctx->recs   = 0;
     Gp_UnlinkNode(&ctx->node);
     if (!(arg1 & 0xFF)) {
@@ -4960,10 +4960,10 @@ static void Actor01600_Fn070AC(Task* arg0, Task* arg1)
     TmdObject* src;
     TmdObject* dst;
 
-    src        = arg1->extra.tmd;
-    dst        = arg0->extra.tmd;
-    dst->tpage = src->tpage;
-    dst->clut  = src->clut;
+    src                    = arg1->extra.tmd;
+    dst                    = arg0->extra.tmd;
+    dst->texturePageOffset = src->texturePageOffset;
+    dst->clutRowOffset     = src->clutRowOffset;
     if (dst->buffer != NULL) {
         tmdProcessStream(dst);
         tmdProcessStream(dst);

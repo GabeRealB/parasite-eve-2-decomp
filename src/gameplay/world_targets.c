@@ -830,7 +830,7 @@ s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2)
     extra = arg0->extra.tmd;
     ret   = 0;
     if (arg1 != NULL) {
-        arg1->rect.x = ((s8)extra->tpage << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+        arg1->rect.x = (extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
         arg1->rect.y = arg2->y + 0x100;
         arg1->rect.w = arg2->w;
         arg1->rect.h = arg2->h;

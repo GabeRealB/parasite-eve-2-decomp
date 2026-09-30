@@ -1096,7 +1096,7 @@ static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
     if (gGameSession->at4.loc.view == 5) {
         extra->flags = 0;
     } else {
-        extra->flags = 0x80;
+        extra->flags = TMD_OBJECT_HIDDEN;
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);

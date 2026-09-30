@@ -8009,7 +8009,7 @@ Assign the `(div + K)` term inside the add. That forces `lbu/sll/sra` for
 the tpage and pins K onto the divide result:
 
 ```c
-arg1->x = ((s8)extra->tpage << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+arg1->x = ((s8)extra->texturePageOffset << 6) + (x = (arg2->x + 1) / 2 + 0x180);
 ```
 
 `Gp_LoadActorImage` is the example. The natural
@@ -30818,12 +30818,12 @@ Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
 
 `Gp_DrawItemNameRow` is the example.
 
-## Split `tpage +=` / `tpage |=` with a named reload so `clutOffset` fills `lhu`
+## Split `tpage +=` / `tpage |=` with a named reload so `layerClutRowOffset` fills `lhu`
 
 A dual-poly UV copy that adjusts the first prim from `TmdObject` bytes
-(`tpageOffset` added to `tpage`, `clutOffset << 6` added to `clut`) and then
+(`layerTexturePageOffset` added to `tpage`, `layerClutRowOffset << 6` added to `clut`) and then
 sets ABR (`tpage |= 0x20`) wants a store after the add, a reload of
-`tpage`, and the `clutOffset` `lbu` in that `lhu` delay slot:
+`tpage`, and the `layerClutRowOffset` `lbu` in that `lhu` delay slot:
 
 ```
 sh    v1, 0xc(a1)
@@ -30837,14 +30837,14 @@ sll   v1, v1, 0x18
 sra   v1, v1, 0x12
 ```
 
-`poly->tpage += (s8)obj->tpageOffset; poly->tpage |= 0x20;` CSE's the add
+`poly->tpage += obj->layerTexturePageOffset; poly->tpage |= 0x20;` CSE's the add
 into the OR (`addu` / `ori` / one `sh`). A `TmdObject*` for the second
 load puts `obj` in `$v0` and keeps the prior `tpage` in `$v1`.
 Assign the clut addend first, then reload `tpage` into its own `s32`:
 
 ```c
-poly->tpage += (s8)ws->obj->tpageOffset;
-tmp          = ws->obj->clutOffset;
+poly->tpage += ws->obj->layerTexturePageOffset;
+tmp          = (u8)ws->obj->layerClutRowOffset;
 tpage        = poly->tpage;
 tpage       |= 0x20;
 poly->tpage  = tpage;
@@ -37725,23 +37725,23 @@ Seen while matching `func_acropolis_bridge_8018099C` (rooms): 99.58% → 100%.
 
 ## Caching `p->field` in a local vs. repeating it changes the caller-save temp
 
-An expression like `ws->obj->lightLevel` read three times inside one `if`
+An expression like `ws->obj->shading.colorBlend` read three times inside one `if`
 generates the *same* code whether you assign it to a local first or repeat it —
 CSE collapses it either way — but the temporaries land in different hard
-registers. A user variable (`s32 val = ws->obj->lightLevel;`) makes the
+registers. A user variable (`s32 val = ws->obj->shading.colorBlend;`) makes the
 pointer temp take `$v0`; repeating the expression and letting CSE create the
 temp makes it take `$v1`:
 
 ```c
 /* $v0 for the ws->obj temp */
-val = ws->obj->lightLevel;
+val = ws->obj->shading.colorBlend;
 if (val < 0x1000) { gte_lddp(val); … gte_lddp(0x1000 - val); }
 
 /* $v1 for the ws->obj temp — matched the target */
-if (ws->obj->lightLevel < 0x1000) {
-    gte_lddp(ws->obj->lightLevel);
+if (ws->obj->shading.colorBlend < 0x1000) {
+    gte_lddp(ws->obj->shading.colorBlend);
     …
-    gte_lddp(0x1000 - ws->obj->lightLevel);
+    gte_lddp(0x1000 - ws->obj->shading.colorBlend);
 }
 ```
 
@@ -40910,7 +40910,7 @@ Two related details from the same function:
 ## Repeat `p->field` for GTE blend; pin the packet-header tail
 
 `func_8009B500` blends each GT3 vertex with `gte_gpf12` / `gte_gpl12`. Caching
-`ws->obj->lightLevel` in a local coalesces the second/third loads into `$v0`
+`ws->obj->shading.colorBlend` in a local coalesces the second/third loads into `$v0`
 and drops the `move v0, s6` / `move v0, s7` the target keeps. Repeating the
 expression after `gte_stcv` (memory clobber) reloads into `$s6`/`$s7` and
 restores those copies.
@@ -41143,7 +41143,7 @@ the target. `func_8009AF90` / `func_8009AA5C` already use the same idiom.
 ## Re-read a field instead of caching it when a "memory" clobber sits between
 
 `gte_stcv` clobbers memory, so four consecutive
-`gte_lddp(ws->obj->lightLevel)` blocks each need their own load. Written
+`gte_lddp(ws->obj->shading.colorBlend)` blocks each need their own load. Written
 inline the four loads become four *different* pseudos (`$a0`, `$s5`, `$s6`,
 `$s3` in the target); assigning them all to one `dp` local collapses them into
 a single register and loses the `move v0, s5` copies the target has.
@@ -41811,7 +41811,7 @@ has to be told to keep its hands off:
 
 ```
 venv/bin/python3 tools/refactor/rename_item.py --sidecars --no-comments \
-    include/main/tmd.h/TmdObject::field_8 coords
+    <declaration-file>/<Type>::<placeholder-member> <roleName>
 ```
 
 The code edits stay parser-resolved and correct either way; what is skipped is
@@ -46094,18 +46094,19 @@ compile to the same object here, because the only global involved
 the destination of a store. `func_actor_341900_801633F8 1 attempt, base_1.c
 100.00%`, the seed having already reproduced the target.
 
-## `Task::extra` is a `TmdObject`, and `GfxCoord::parent` is at 0x4C
+## Model-body coordinates and graphics-node strides
 
-Two type facts worth not re-deriving. `GameActorExt` (`include/main/session.h`)
-and `TmdObject` (`include/main/tmd.h`) describe the same object: `field_8` is
-the `GfxCoord*`, `field_C` the u16 flag halfword `taskKill` ORs 0x80 into,
-`field_18` the buffer `Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. An actor body
-that calls `Tmd_FreeBuffers(task->extra)` is not confused; cast and move on.
+Model tasks carry `TmdObject` (`include/main/tmd_types.h`) in `Task.extra.tmd`:
+`coords` points to the owned part array, `flags` is the u16 halfword whose
+`TMD_OBJECT_HIDDEN` bit `taskKill` sets, and `buffer` is the storage
+`Tmd_AllocBuffers` / `Tmd_FreeBuffers` own. Coordinate-body tasks instead carry
+`ModelObjectCoordBody` in `Task.extra.disp2d`, with one node at `coord`.
+The shared pointer offset does not make these bodies interchangeable.
 
-And in `GfxCoord`, `composeStamp` is 4 bytes followed by two 0x20-byte `MATRIX`es
-and `param`, so `super` lands at 0x48 and `sub` at 0x4C. The idiom
-`M2C_FIELD(ext->field_8, GfxCoord**, 0x4C) = &gGfxViewCoord` is
-`coord->parent = &gGfxViewCoord`, not `->super`.
+In `GfxCoord`, `composeStamp` is 4 bytes followed by two 0x20-byte `MATRIX`es
+and the eight-byte `param`, so `parent` lands at 0x4C. The idiom
+`M2C_FIELD(model->coords, GfxCoord**, 0x4C) = &gGfxViewCoord` is
+`model->coords->parent = &gGfxViewCoord`.
 
 That also fixes `sizeof(GfxCoord)` at **0x50**, which is what turns the
 other common m2c shape into an index. `TmdObject::coords` is an *array* of
@@ -46113,7 +46114,7 @@ coordinate nodes, so a raw byte offset onto it divides by 0x50:
 
 ```c
 /* m2c */ Gp_SpawnEff(0x20010, M2C_FIELD(M2C_FIELD(arg0, void**, 0x2C), s32*, 8) + 0xF0, ...)
-/* C   */ Gp_SpawnEff(0x20010, &((GfxCoord*)((TmdObject*)arg0->extra)->coords)[3], ...)
+/* C   */ Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[3], ...)
 ```
 
 and a scaled one is already an index - `+ (value * 0x50)` is `[arg1]`. Inside a
@@ -46133,20 +46134,20 @@ work - the original adds a byte offset to a pointer.
 
 `Actor510900Work` already had `pad_314[0x168]` spanning 0x314..0x47C, so the fix
 splits the padding - `pad_314[0x128]`, `MATRIX field_43C`, `MATRIX field_45C` -
-and the body becomes `obj->field_1C = &work->field_45C;`. Every later field keeps
+and the body becomes `obj->lightMtx = &work->field_45C;`. Every later field keeps
 its offset and the two `addiu`s become the target's. This is the same pair the
 sibling types carry (`ActorsShared80135b64Work`, `Actor105600Work`): the colour
 matrix at 0x43C is handed to `TmdObject::colorMtx`, the light matrix at 0x45C to
-`field_1C`.
+`TmdObject::lightMtx`.
 
 Read a suspicious whole-immediate as `n * sizeof(base type)` before touching the
 C: `0x22E0 / 8 = 0x45C`. Function
 `func_actor_510900_8013C0E4 1 attempt, base_1.c 100.00%`.
 
 The handler next door, `func_actor_510900_8013BFE4`, is that body exactly - same
-work-block pair, same `field_C = 0x80`, same `task->state = 1` - except its
-`addiu` on `TmdObject::coords` is `0x280`, i.e. `field_8[8]`, where the sibling
-has `field_8[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
+work-block pair, same `flags = TMD_OBJECT_HIDDEN`, same `task->state = 1` - except its
+`addiu` on `TmdObject::coords` is `0x280`, i.e. `coords[8]`, where the sibling
+has `coords[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
 recompute that immediate for *this* target (`0x280 / 0x50 = 8`), not to copy the
 sibling's index: pasting the sibling body scores 99.5% with a `regs` penalty of
 2 and a diff of two `addiu`s, which reads like an allocation problem and is not.
@@ -47695,7 +47696,7 @@ them: the tail unit keeps its number, its `.c` file keeps its name and its
 This is the common case for the small `Task` callbacks, because a family's
 actors tend to carry them as a contiguous run. Promoting
 `func_actor_113100_80132F24` (republishes the work block's light/colour matrix
-pair onto `TmdObject::lightMtx`/`field_20`) into `actors_shared_80132f24`
+pair onto `TmdObject::lightMtx`/`colorMtx`) into `actors_shared_80132f24`
 covered six overlays, and in three of them it sat immediately after the already
 promoted `actors_shared_801327b4`:
 
@@ -87250,7 +87251,7 @@ arithmetic: `temp_v0 + 0x20` with `temp_v0` typed `TaskIdMap*` (8 bytes) emits
 `addiu v0,v1,0x100` and leaves the rest of the function matching at 99.886%.
 The block is `{ MATRIX color; MATRIX light; u16 speed, delta, ticks; }` - the
 0x48 allocation and the `light` / `color` republished onto
-`TmdObject::lightMtx` / `field_20` say so, as in `MineForkedTunnelWork` - so the
+`TmdObject::lightMtx` / `colorMtx` say so, as in `MineForkedTunnelWork` - so the
 offset is the member, not a byte count. Note this struct has colour at 0x00 and
 light at 0x20, the reverse of every other room's work block.
 
@@ -100858,7 +100859,7 @@ Two things about the shape are worth carrying to the sibling overlays. The block
 is not a `TaskIdMap`: the spawn state `memCalloc`s it (0x4CC here) into
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
-onto `TmdObject::lightMtx` / `field_20` - the pair `Gp_BindDefaultMtx` otherwise
+onto `TmdObject::lightMtx` / `colorMtx` - the pair `Gp_BindDefaultMtx` otherwise
 points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
 `func_actor_311900_8016281C`, the very next unmatched function in this unit, is
@@ -114856,7 +114857,7 @@ lw  s3,8(v0)       # extra->coords
 ```
 
 Spelling the statements `work = arg0->idMap; enemy = arg0->spawnArg2; mode = work->field_2C8;
-coord = ((TmdObject*)arg0->extra)->coords;` emitted `idMap, spawnArg2, extra, mode, field_8` - the
+coord = ((TmdObject*)arg0->extra)->coords;` emitted `idMap, spawnArg2, extra, mode, coords` - the
 three *independent* loads in source order, and the pointer-chasing one last, even though the
 `extra` statement was written third. `sched1` hoists an independent load above the dependent `lh`
 that precedes it and sinks the dependent load to the end of the block.

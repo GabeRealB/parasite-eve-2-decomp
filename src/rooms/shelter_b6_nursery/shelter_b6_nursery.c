@@ -1652,7 +1652,7 @@ void func_shelter_b6_nursery_80181314(Task* task)
         } else {
             Gp_UpdateCoord(coord);
             if (task->state == 0) {
-                obj->flags   &= 0xFF7F;
+                obj->flags   &= (u16)~TMD_OBJECT_HIDDEN;
                 Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 work->move.vx = ((Gp_LcgState >> 16) & 0x3F) + 0x60;
                 work->move.vy = 0;

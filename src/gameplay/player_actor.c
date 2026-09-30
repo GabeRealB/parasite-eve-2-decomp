@@ -2707,7 +2707,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0 ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
+        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
         if (Gp_State1C->fadeState >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
@@ -2828,7 +2828,7 @@ void Gp_EffCtlTaskF4(Task* arg0)
             goto kill;
         }
         slot = gameGetPtrSlot(3);
-        if (slot->extra.tmd->flags & 0x80) {
+        if (slot->extra.tmd->flags & TMD_OBJECT_HIDDEN) {
             return;
         }
         Gp_UpdateCoord(coord);
@@ -2887,7 +2887,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.disp2d->coord;
     if (Gp_State1C->fadeState != 0 ||
-        ((gameGetPtrSlot(3))->extra.tmd->flags & 0x80)) {
+        ((gameGetPtrSlot(3))->extra.tmd->flags & TMD_OBJECT_HIDDEN)) {
         if (Gp_State1C->fadeState < 4) {
             return;
         }
@@ -5403,11 +5403,11 @@ inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     coord->param.clearFlags = false;
     obj                     = task->extra.tmd;
     if (actor->field_910 != NULL) {
-        obj->tpage = 4;
-        obj->clut  = 6;
+        obj->texturePageOffset = 4;
+        obj->clutRowOffset     = 6;
     } else {
-        obj->tpage = 6;
-        obj->clut  = 0;
+        obj->texturePageOffset = 6;
+        obj->clutRowOffset     = 0;
     }
     tmdProcessStream(obj);
     tmdProcessStream(obj);
@@ -5937,11 +5937,11 @@ Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     coord->param.clearFlags = false;
     obj                     = task->extra.tmd;
     if (actor->field_910 != NULL) {
-        obj->tpage = 4;
-        obj->clut  = 6;
+        obj->texturePageOffset = 4;
+        obj->clutRowOffset     = 6;
     } else {
-        obj->tpage = 6;
-        obj->clut  = 0;
+        obj->texturePageOffset = 6;
+        obj->clutRowOffset     = 0;
     }
     tmdProcessStream(obj);
     tmdProcessStream(obj);
@@ -6091,21 +6091,21 @@ s32 func_80104684(Task* arg0, s32 arg1, s32 arg2)
     switch (arg2) {
         case 0:
             func         = Tmd_AllocBuffers;
-            extra->flags = (extra->flags | 0x80) & 0xFFFB;
+            extra->flags = (extra->flags | TMD_OBJECT_HIDDEN) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 2:
             func         = Tmd_FreeBuffers;
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 3:
-            extra->flags = extra->flags | 0x84;
+            extra->flags = extra->flags | (TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
         case 4:
             func         = Tmd_AllocBuffers;
-            extra->flags = extra->flags & 0xFF7B;
+            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_HIDDEN | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     if (func != NULL) {

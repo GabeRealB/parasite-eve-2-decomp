@@ -4190,9 +4190,9 @@ static void func_mine_mesa_80181358(Task* arg0)
         key.room                                                     = loc->room;
         key.view                                                     = gGameSession->at4.loc.view;
         areaSyncLocationVariant(&key);
-        place      = Gp_GetNestedAreaRec(&key)->field_0;
-        tmd->tpage = place->texturePageOffset;
-        tmd->clut  = place->clutRowOffset;
+        place                  = Gp_GetNestedAreaRec(&key)->field_0;
+        tmd->texturePageOffset = place->texturePageOffset;
+        tmd->clutRowOffset     = place->clutRowOffset;
         if (Mc_SaveData[0].state.demoScene == 10) {
             printf("tpage=%x, clut=%x, eno=%x\n", place->texturePageOffset, place->clutRowOffset, 0);
         }

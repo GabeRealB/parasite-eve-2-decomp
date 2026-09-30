@@ -1737,7 +1737,7 @@ static void func_acropolis_promenade_8017DB48(Task* task)
     obj   = task->extra.tmd;
     coord = obj->coords;
     if (Gp_GetViewIndex() == 5) {
-        obj->flags = 0x80;
+        obj->flags = TMD_OBJECT_HIDDEN;
     } else {
         obj->flags = 0;
     }

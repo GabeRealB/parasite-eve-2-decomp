@@ -3871,13 +3871,13 @@ static void func_actor_401300_80139134(Task* arg0)
                 Gp_SpawnEff(0x600A5, &work->field_8C0, 3, NULL);
                 break;
             case 48:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 42:
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 64:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
         t = work->field_6;
@@ -4372,7 +4372,7 @@ static void func_actor_401300_8013B6E8(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = 0x80;
+        arg0->extra.tmd->flags    = TMD_OBJECT_HIDDEN;
         work->field_970.radius    = 0x280;
         work->field_AB0.flags     = (u16)(work->field_AB0.flags & 0xBFFF);
         work->field_BF0.flags     = (u16)(work->field_BF0.flags & 0x7FFF);
@@ -4486,13 +4486,13 @@ static void func_actor_401300_8013BB30(Task* arg0)
                     Gp_SpawnEff(0x600A5, &work->field_8C0, 2, NULL);
                     break;
                 case 48:
-                    arg0->extra.tmd->flags = 2;
+                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
                 case 42:
                     Gp_SetLightMode(enemy, 2);
                     break;
                 case 64:
-                    arg0->extra.tmd->flags = 0x80;
+                    arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     work->field_0          = 0x24;
                     break;
             }
@@ -5683,7 +5683,7 @@ static void func_actor_401300_801405DC(GpEnemy* enemy, Task* actor)
             Gp_ClearRec18Occupied(work->sensorContacts);
             return;
         case 2:
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(work->field_AD0);
             Gp_ClearRec18Occupied(work->field_990);
             Gp_ClearRec18Occupied(work->sensorContacts);
@@ -5936,7 +5936,7 @@ s32 func_actor_401300_80141504(Task* task, s32 arg1, s32 arg2)
     work = (Actor401300Work*)task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -5946,13 +5946,13 @@ s32 func_actor_401300_80141504(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -6060,7 +6060,7 @@ static void func_actor_401300_8014192C(Task* arg0)
     if (work->field_4 != 0) {
         obj                       = arg0->extra.tmd;
         enemy->node.state.b.flags = 1;
-        obj->flags                = (u16)(obj->flags | 0x80);
+        obj->flags                = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
         work->field_BF0.flags     = (u16)(work->field_BF0.flags & 0x7FFF);
         work->field_AB0.flags     = (u16)(work->field_AB0.flags & 0xBFFF);
         return;

@@ -1744,9 +1744,9 @@ void func_acropolis_helicopter_landing_pad_801822B0(Task* task)
     flag = Gp_GetCurBit2Flag(obj->field_8);
     Gp_GetViewIndex();
     if (flag == 2) {
-        tmd->flags |= 4;
+        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        tmd->flags    = 8;
+        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
         tmd->otOffset = 0;
         Tmd_AllocBuffers(tmd);
     }

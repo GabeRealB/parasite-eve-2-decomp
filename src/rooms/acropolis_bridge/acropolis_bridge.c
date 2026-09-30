@@ -2669,7 +2669,7 @@ static void func_acropolis_bridge_8017DB08(Task* task)
     extra = task->extra.tmd;
     coord = extra->coords;
     if ((u32)(Gp_GetViewIndex() - 8) < 3U) {
-        extra->flags = 0x80;
+        extra->flags = TMD_OBJECT_HIDDEN;
     } else {
         extra->flags = 0;
     }
@@ -5828,7 +5828,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, GpCmdArg* msg)
         reset:
             work->field_0 = 0;
         hide:
-            task->extra.tmd->flags = 0x80;
+            task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         }
     }
 done:
@@ -6744,13 +6744,13 @@ void func_acropolis_bridge_80187310(Task* task)
                 Gp_SpawnEff(0x600A5, &task->extra.tmd->coords[2], 1, NULL);
                 break;
             case 28:
-                task->extra.tmd->flags = 2;
+                task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
             case 22:
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 34:
-                task->extra.tmd->flags = 0x80;
+                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
     }
@@ -6788,7 +6788,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                       &work->field_1F0);
         Gp_SetLightMode(enemy, 1);
         Gp_SpawnEff(0x600A5, &task->extra.tmd->coords[1], 1, NULL);
-        task->extra.tmd->flags = 2;
+        task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->field_290        = 0;
         Gp_SpawnPadLerp(3, 0xFF, 8);
     }
@@ -6804,7 +6804,7 @@ void func_acropolis_bridge_801874DC(Task* task)
                 Gp_SetLightMode(enemy, 2);
                 break;
             case 44:
-                task->extra.tmd->flags = 0x80;
+                task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 break;
         }
     }
@@ -6933,14 +6933,14 @@ running:
                     if ((s32)work->field_292 == view) {
                         goto drop;
                     }
-                    task->extra.tmd->flags = 0x80;
+                    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                     goto resync;
                 case 22:
                     if (work->field_0 == 4) {
                         goto draw;
                     }
                 drop:
-                    task->extra.tmd->flags |= 4;
+                    task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                     extra                   = task->extra.tmd;
                     if (extra->buffer != NULL) {
                         Tmd_FreeBuffers(extra);
@@ -6967,7 +6967,7 @@ paused:
     return;
 
 hidden:
-    task->extra.tmd->flags = 0x80;
+    task->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     Gp_ClearRec18Occupied(&work->recs[0]);
     Gp_ClearRec18Occupied(&work->hitRecs[0]);
     return;
@@ -7026,11 +7026,11 @@ s32 func_acropolis_bridge_80187BD0(Task* task, s32 arg1, s32 flags)
 
     extra = task->extra.tmd;
     if (flags == 0) {
-        extra->flags = 0x80;
+        extra->flags = TMD_OBJECT_HIDDEN;
     } else if (flags & 1) {
         extra->flags = 0;
     } else if (flags & 2) {
-        extra->flags |= 4;
+        extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 1;
 }
@@ -7073,13 +7073,13 @@ void func_acropolis_bridge_80187D04(Task* task)
     if (work->field_4 != 0) {
         GpEnemy* enemy = (GpEnemy*)task->spawnArg2.pointer;
 
-        extra->flags              = 0x80;
+        extra->flags              = TMD_OBJECT_HIDDEN;
         enemy->node.state.b.flags = 1;
         work->body.flags         &= 0x7FFF;
         work->hit.flags          &= 0x7FFF;
         return;
     }
-    extra->flags |= 4;
+    extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     if (extra->buffer != NULL) {
         Tmd_FreeBuffers(extra);
     }

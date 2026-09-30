@@ -1095,7 +1095,7 @@ static void func_dryfield_factory_8017DFE0(Task* task)
     work->field_0  = GameFlag_GetNibble(0x49);
     work->field_16 = -1;
     work->field_17 = -1;
-    obj->flags    &= 0xFF7F;
+    obj->flags    &= (u16)~TMD_OBJECT_HIDDEN;
     if (work->field_0 & 1) {
         work->field_10.value = 0x4000000;
         RotMatrixY(0x4000000, &coord->coord);
@@ -2063,16 +2063,16 @@ static void func_dryfield_factory_801804DC(Task* task)
         return;
     }
     task->work   = (TaskIdMap*)work;
-    flags        = model->flags | 0x80;
+    flags        = model->flags | TMD_OBJECT_HIDDEN;
     model->flags = flags;
-    if (!(capModel->flags & 0x80)) {
+    if (!(capModel->flags & TMD_OBJECT_HIDDEN)) {
         model->flags = flags & 0xFF7F;
     }
-    if (!(capModel->flags & 4)) {
-        model->flags &= 0xFFFB;
+    if (!(capModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_AllocBuffers(model);
     } else {
-        model->flags |= 4;
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     model->otOffset   = -1;
     coord->coord.t[1] = -0x316;

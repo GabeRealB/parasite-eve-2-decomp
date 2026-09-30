@@ -1270,10 +1270,10 @@ static void func_actor_335800_80162640(Task* arg0)
         key.room     = sessionKey->room;
         key.view     = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1295,10 +1295,10 @@ static void func_actor_335800_80162640(Task* arg0)
         key.room     = keyAddr->room;
         key.view     = gGameSession->at4.loc.view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1333,7 +1333,7 @@ static void func_actor_335800_80162844(Task* task)
     work->walk.acc[0].w  = (u16)work->walk.acc[0].w;
     work->walk.acc[1].w  = (u16)work->walk.acc[1].w;
     work->walk.acc[2].w  = (u16)work->walk.acc[2].w;
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (work->model.ticking != 0) {
             for (i = 1; i < 0x14; i++) {
                 Gp_AnimTickIndex(&work->rig.anim, i);
@@ -1731,22 +1731,22 @@ s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags         |= 0x80;
+            obj->flags         |= TMD_OBJECT_HIDDEN;
             work->freeCountdown = mode;
-            obj->flags         |= 4;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -1799,7 +1799,7 @@ static void func_actor_335800_80163568(Task* task)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
@@ -2162,22 +2162,22 @@ s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                   |= 0x80;
+            obj->flags                                   |= TMD_OBJECT_HIDDEN;
             ((Actor335800Work*)task->work)->freeCountdown = mode;
-            obj->flags                                   |= 4;
+            obj->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

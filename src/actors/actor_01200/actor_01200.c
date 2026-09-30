@@ -1167,7 +1167,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
     Actor01200_Fn00820(arg1);
     switch ((s16)(work->field_6 - 0x29)) {
         case 0:
-            arg1->extra.tmd->flags |= 2;
+            arg1->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
             ofs.vx                  = 0x1E;
             ofs.vz                  = 0x1E;
             ofs.vy                  = -0xA;
@@ -1213,7 +1213,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
             break;
         case 9:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             break;
         case 28:
             Gp_ReleaseStateF0Add(arg1, 0xC);
@@ -1308,7 +1308,7 @@ static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             id  = ((arg0->placeKey >> 12) << 8) | 0x400C0004;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
-            arg1->extra.tmd->flags = 2;
+            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
         case 1:
             work->obj300.radius = 0x320;
@@ -1347,7 +1347,7 @@ static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->eff1A8);
             break;
         case 8:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             break;
         case 25:
             Gp_ReleaseStateF0Add(arg1, 0xC);
@@ -1718,7 +1718,7 @@ static void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
             Gp_ClearRec18Occupied(&work->rec2E8);
             return;
         case 2:
-            arg1->extra.tmd->flags = 0x80;
+            arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(work->rootContacts);
             Gp_ClearRec18Occupied(work->jointContacts);
             Gp_ClearRec18Occupied(&work->rec2E8);
@@ -1776,7 +1776,7 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
     work = task->work;
     switch (arg2) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 7;
             break;
@@ -1786,13 +1786,13 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
             work->field_0 = 7;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -1898,7 +1898,7 @@ static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
     if (work->field_4 != 0) {
         obj                      = arg1->extra.tmd;
         arg0->node.state.b.flags = 1;
-        obj->flags               = (u16)(obj->flags | 0x80);
+        obj->flags               = (u16)(obj->flags | TMD_OBJECT_HIDDEN);
         work->obj2C8.flags       = (u16)(work->obj2C8.flags & 0x7FFF);
         work->obj300.flags       = (u16)(work->obj300.flags & 0x7FFF);
         work->obj338.flags       = (u16)(work->obj338.flags & 0x7FFF);

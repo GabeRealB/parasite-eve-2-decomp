@@ -281,14 +281,14 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             Task_CallExit(task);
             return;
         }
-        model        = task->extra.tmd;
-        parts        = model->coords;
-        model->clut  = body->clut;
-        model->tpage = body->tpage;
+        model                    = task->extra.tmd;
+        parts                    = model->coords;
+        model->clutRowOffset     = body->clutRowOffset;
+        model->texturePageOffset = body->texturePageOffset;
         tmdProcessStream(model);
         tmdProcessStream(model);
         model->otOffset        = 0x16;
-        model->flags           = 0x10;
+        model->flags           = TMD_OBJECT_REVERSE_CULLING;
         gGameSession->field_4E = 1;
         parts->parent          = &work->coord;
         model->lightMtx        = &work->light;
@@ -469,7 +469,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
         src           = cfg->subject->extra.tmd;
         refPart       = &task->extra.tmd->coords[1];
         from          = src->coords;
-        model->flags &= ~0x80;
+        model->flags &= ~TMD_OBJECT_HIDDEN;
         work->light   = *src->lightMtx;
         work->color   = *src->colorMtx;
         Gp_UpdateCoord(parts);
@@ -579,7 +579,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             }
         }
     } else {
-        model->flags |= 0x80;
+        model->flags |= TMD_OBJECT_HIDDEN;
     }
     SCRATCH_POP_BYTES(0x8C);
 }

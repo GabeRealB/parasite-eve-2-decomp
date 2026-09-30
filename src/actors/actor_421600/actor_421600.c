@@ -4209,13 +4209,13 @@ static void func_actor_421600_801366F4(Task* arg0)
                 Gp_SetLightMode(ctx, 1);
                 /* fallthrough */
             case 20:
-                arg0->extra.tmd->flags = 2;
+                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 Gp_SetLightMode(ctx, 2);
                 break;
             case 22:
                 break;
             case 38:
-                arg0->extra.tmd->flags = 0x80;
+                arg0->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 work->field_0          = 0x16;
                 break;
         }
@@ -6606,7 +6606,7 @@ static void func_actor_421600_8013C8E0(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     obj  = arg0->extra.tmd;
     if (work->field_4 != 0) {
-        obj->flags              = 0x80;
+        obj->flags              = TMD_OBJECT_HIDDEN;
         work->field_8EC.radius  = 0x19C;
         work->field_B6C.flags  &= ~0x4000;
         ctx->node.state.b.flags = 1;
@@ -6620,7 +6620,7 @@ static void func_actor_421600_8013C8E0(Task* arg0)
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
     }
     if ((s16)work->field_6 == 2) {
-        obj->flags |= 4;
+        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         Tmd_FreeBuffers(obj);
     }
     if ((s16)work->field_6 == 3) {
@@ -6948,7 +6948,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                 func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
                 func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
                 if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
-                    actor->extra.tmd->flags = 0x80;
+                    actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 } else {
                     actor->extra.tmd->flags = 0;
                 }
@@ -6961,7 +6961,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
                 func_actor_421600_80132EC0(actor, 3, 4, 0xC8, (s32)height, 0xFF);
                 func_actor_421600_80132EC0(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
                 if ((Gp_GetViewIndex() & 0xFF) == 0x13) {
-                    actor->extra.tmd->flags = 0x80;
+                    actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
                 } else {
                     actor->extra.tmd->flags = 0;
                 }
@@ -6972,7 +6972,7 @@ static void                        func_actor_421600_8013D658(GpEnemy* enemy, Ta
             Gp_ClearRec18Occupied(work->field_CE4);
             return;
         case 2:
-            actor->extra.tmd->flags = 0x80;
+            actor->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             Gp_ClearRec18Occupied(&work->field_B8C);
             Gp_ClearRec18Occupied(&work->field_90C);
             Gp_ClearRec18Occupied(&work->field_A4C);
@@ -7221,7 +7221,7 @@ s32 func_actor_421600_8013E42C(Task* task, s32 arg1, s32 mode)
     work = (Actor421600Work*)task->work;
     switch (mode) {
         case 0:
-            obj->flags = 0x80;
+            obj->flags = TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
             work->field_0 = 0;
             break;
@@ -7231,13 +7231,13 @@ s32 func_actor_421600_8013E42C(Task* task, s32 arg1, s32 mode)
             work->field_0 = 0x18;
             break;
         case 2:
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->field_0 = 0;
             break;
         case 3:
             obj->flags    = 0;
             work->field_0 = 0;
-            obj->flags   |= 4;
+            obj->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
@@ -7251,7 +7251,7 @@ s32 func_actor_421600_8013E4EC(Task* task)
         goto return_one;
     }
 
-    if ((task->extra.tmd->flags & 0x80) != 0) {
+    if ((task->extra.tmd->flags & TMD_OBJECT_HIDDEN) != 0) {
         return 0;
     }
 
@@ -7403,7 +7403,7 @@ static void func_actor_421600_8013E858(Task* arg0)
         obj                       = arg0->extra.tmd;
         enemy                     = arg0->spawnArg2.pointer;
         enemy->node.state.b.flags = 1;
-        obj->flags               |= 0x80;
+        obj->flags               |= TMD_OBJECT_HIDDEN;
         work->field_B6C.flags    &= 0xBFFF;
         enemy->hp                 = 0;
     }

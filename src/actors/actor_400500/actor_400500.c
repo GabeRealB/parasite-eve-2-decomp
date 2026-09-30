@@ -105,7 +105,7 @@ typedef struct Actor400500HitView {
 /// (0x1C), which an enemy actor reuses for its own work block, so it is *not*
 /// a `TaskIdMap` here. Reach it with `(Actor400500Work*)task->work`. The
 /// same function hands `&work->lightMtx` / `&work->colorMtx` to the
-/// `TmdObject` at `Task::extra` (`field_1C` / `field_20`) and `work->rec0`
+/// `TmdObject` at `Task::extra` (`lightMtx` / `colorMtx`) and `work->rec0`
 /// to `GpEnemy::recs`; the size below is the allocation, not a guess.
 /// `obj1`/`obj2` share `rec1`; `obj3`/`obj4` share `rec2`.
 ///
@@ -177,7 +177,7 @@ typedef struct Actor400500Work {
     /* 0xA1E */ u16                   field_A1E; // flags; bit 0x1 and bit 0x2 gate animations
     /* 0xA20 */ s16                   field_A20;
     /* 0xA22 */ u16                   field_A22; // frame counter used when field_A1C == 5
-    /* 0xA24 */ s16                   field_A24; // copied to TmdObject::lightLevel
+    /* 0xA24 */ s16                   field_A24; // copied to TmdObject::shading.colorBlend
     /* 0xA26 */ u16                   field_A26; // heading countdown, decremented by 0x80
     /* 0xA28 */ s16                   field_A28;
     /* 0xA2A */ s16                   field_A2A; // fade sub-state timer
@@ -1655,7 +1655,7 @@ static void func_actor_400500_8013226C(Task* arg0)
     work->field_9F0[0] = child;
     extra              = child->extra.tmd;
     coord              = extra->coords;
-    extra->flags       = 0x80;
+    extra->flags       = TMD_OBJECT_HIDDEN;
     coord->parent      = part10;
     coord->coord.t[0]  = 0x400;
     coord->coord.t[1]  = 0;
@@ -1668,27 +1668,27 @@ static void func_actor_400500_8013226C(Task* arg0)
     src->ident.m22     = 0x1000;
     RotMatrixY((s16)(-0x180), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
-    parentTmd  = arg0->extra.tmd;
-    tmd        = child->extra.tmd;
-    tmd->tpage = parentTmd->tpage;
-    tmd->clut  = parentTmd->clut;
+    parentTmd              = arg0->extra.tmd;
+    tmd                    = child->extra.tmd;
+    tmd->texturePageOffset = parentTmd->texturePageOffset;
+    tmd->clutRowOffset     = parentTmd->clutRowOffset;
     if (tmd->buffer != NULL) {
         tmdProcessStream(tmd);
         tmdProcessStream(tmd);
     }
-    child              = Task_SpawnFromTable(D_actor_400500_80153D48, 1, 0, 0);
-    work->field_9F0[1] = child;
-    extra              = child->extra.tmd;
-    coord              = extra->coords;
-    extra->flags       = 0x80;
-    coord->parent      = part7;
-    coord->coord.t[0]  = -0x400;
-    coord->coord.t[1]  = 0;
-    coord->coord.t[2]  = 0;
-    parentTmd          = arg0->extra.tmd;
-    tmd                = child->extra.tmd;
-    tmd->tpage         = parentTmd->tpage;
-    tmd->clut          = parentTmd->clut;
+    child                  = Task_SpawnFromTable(D_actor_400500_80153D48, 1, 0, 0);
+    work->field_9F0[1]     = child;
+    extra                  = child->extra.tmd;
+    coord                  = extra->coords;
+    extra->flags           = TMD_OBJECT_HIDDEN;
+    coord->parent          = part7;
+    coord->coord.t[0]      = -0x400;
+    coord->coord.t[1]      = 0;
+    coord->coord.t[2]      = 0;
+    parentTmd              = arg0->extra.tmd;
+    tmd                    = child->extra.tmd;
+    tmd->texturePageOffset = parentTmd->texturePageOffset;
+    tmd->clutRowOffset     = parentTmd->clutRowOffset;
     if (tmd->buffer != NULL) {
         tmdProcessStream(tmd);
         tmdProcessStream(tmd);
@@ -2019,9 +2019,9 @@ static void func_actor_400500_80132E94(Task* arg0)
                         }
                         work->field_A28 = 0;
                         work->field_A46 = 0;
-                        extra->flags   |= 0x80;
+                        extra->flags   |= TMD_OBJECT_HIDDEN;
                     }
-                    extra->lightLevel = work->field_A24;
+                    extra->shading.colorBlend = work->field_A24;
                     break;
             }
         } else {
@@ -2031,7 +2031,7 @@ static void func_actor_400500_80132E94(Task* arg0)
                     if ((u8)work->field_A4C == 0) {
                         enemy->node.state.b.flags = 4;
                     }
-                    extra->flags   &= ~0x80;
+                    extra->flags   &= ~TMD_OBJECT_HIDDEN;
                     work->field_A24 = (u16)work->field_A24 + ((s16)(0x1000 - (u16)work->field_A24) >> 2);
                     work->field_A28 = (u16)work->field_A28 + ((0xFF - work->field_A28) >> 2);
                     if (work->field_A24 >= 0xFF0) {
@@ -2040,7 +2040,7 @@ static void func_actor_400500_80132E94(Task* arg0)
                         work->field_A2A = 0;
                         work->field_A47 = (u8)work->field_A47 + 1;
                     }
-                    extra->lightLevel = work->field_A24;
+                    extra->shading.colorBlend = work->field_A24;
                     break;
                 case 1:
                     work->field_A2A = (u16)work->field_A2A + 1;
@@ -2802,10 +2802,10 @@ static void func_actor_400500_80134B88(Task* arg0)
     D_800678F0[0] = &D_actor_400500_8014393C;
     eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[3], 0x200, NULL);
     if (eff != NULL) {
-        src        = arg0->extra.tmd;
-        dst        = eff->task->extra.tmd;
-        dst->tpage = src->tpage;
-        dst->clut  = src->clut;
+        src                    = arg0->extra.tmd;
+        dst                    = eff->task->extra.tmd;
+        dst->texturePageOffset = src->texturePageOffset;
+        dst->clutRowOffset     = src->clutRowOffset;
         if (dst->buffer != NULL) {
             tmdProcessStream(dst);
             tmdProcessStream(dst);
@@ -2814,10 +2814,10 @@ static void func_actor_400500_80134B88(Task* arg0)
     D_800678F0[0] = &D_actor_400500_80143F40;
     eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff2 != NULL) {
-        src2        = arg0->extra.tmd;
-        dst2        = eff2->task->extra.tmd;
-        dst2->tpage = src2->tpage;
-        dst2->clut  = src2->clut;
+        src2                    = arg0->extra.tmd;
+        dst2                    = eff2->task->extra.tmd;
+        dst2->texturePageOffset = src2->texturePageOffset;
+        dst2->clutRowOffset     = src2->clutRowOffset;
         if (dst2->buffer != NULL) {
             tmdProcessStream(dst2);
             tmdProcessStream(dst2);
@@ -2826,10 +2826,10 @@ static void func_actor_400500_80134B88(Task* arg0)
     D_800678F0[0] = &D_actor_400500_80144624;
     eff3          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff3 != NULL) {
-        src3        = arg0->extra.tmd;
-        dst3        = eff3->task->extra.tmd;
-        dst3->tpage = src3->tpage;
-        dst3->clut  = src3->clut;
+        src3                    = arg0->extra.tmd;
+        dst3                    = eff3->task->extra.tmd;
+        dst3->texturePageOffset = src3->texturePageOffset;
+        dst3->clutRowOffset     = src3->clutRowOffset;
         if (dst3->buffer != NULL) {
             tmdProcessStream(dst3);
             tmdProcessStream(dst3);
@@ -3031,7 +3031,7 @@ static void func_actor_400500_80135414(Task* arg0)
         work5->field_A2C = 0x2000;
     }
     func_8009EA50(work5->field_A20);
-    extra2->lightLevel = work5->field_A24;
+    extra2->shading.colorBlend = work5->field_A24;
     func_actor_400500_80132000(arg0);
     func_actor_400500_8013226C(arg0);
     Gp_IncStateF0Ref(0);
@@ -3212,7 +3212,7 @@ static void func_actor_400500_80135770(Task* arg0)
 
     switch (Gp_StateF0.field_4) {
         case 2:
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             func_actor_400500_80132438(arg0);
@@ -3256,7 +3256,7 @@ static void func_actor_400500_80135770(Task* arg0)
             } else {
                 work->field_A34 = 0;
             }
-            obj->flags &= 0xFF7F;
+            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
             if ((enemy->hp > 0) || (cfg->hp <= 0)) {
                 func_actor_400500_8013456C(arg0);
             } else if ((work->field_A42 == 0) && (work->field_A48 == 0)) {
@@ -4673,7 +4673,7 @@ static void func_actor_400500_801387E8(Task* arg0)
         if ((s16)work->field_A26 != 0) {
             work->field_A26 = (u16)work->field_A26 - 0x80;
         } else {
-            ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = 0x80;
+            ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             work->obj1.flags                                              &= 0x7FFF;
             work->obj2.flags                                              &= 0x7FFF;
         }
@@ -4793,7 +4793,7 @@ static void func_actor_400500_80138B78(Task* arg0)
         if ((s16)work->field_A26 != 0) {
             work->field_A26 = (u16)work->field_A26 - 0x80;
         } else {
-            ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = 0x80;
+            ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
             work->obj3.flags                                              &= 0x7FFF;
             work->obj4.flags                                              &= 0x7FFF;
         }
@@ -4833,7 +4833,7 @@ static void func_actor_400500_80138CE8(Task* arg0)
     RotMatrixY((s16)(-angle), &src->mat);
     func_actor_400500_8013DE2C(&src->mat, &coord->coord);
     if ((s16)work->field_A26 <= 0) {
-        ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = 0x80;
+        ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
         work->field_A08                                                = work->field_A08 + 1;
     }
 }
@@ -4995,10 +4995,10 @@ static void func_actor_400500_801391B0(Task* arg0)
         work->field_A46 = flag;
         work->field_A47 = 0;
     }
-    ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = 0x80;
+    ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     work->obj1.flags                                              &= 0x7FFF;
     work->obj2.flags                                              &= 0x7FFF;
-    ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = 0x80;
+    ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     work->obj3.flags                                              &= 0x7FFF;
     flags                                                          = work->field_A1E;
     work->obj4.flags                                              &= 0x7FFF;
@@ -5707,10 +5707,10 @@ static void func_actor_400500_8013A5D8(Task* arg0)
         work->field_A46 = flag;
         work->field_A47 = 0;
     }
-    ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = 0x80;
+    ((Actor400500Work*)arg0->work)->field_9F0[1]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     work->obj1.flags                                              &= 0x7FFF;
     work->obj2.flags                                              &= 0x7FFF;
-    ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = 0x80;
+    ((Actor400500Work*)arg0->work)->field_9F0[0]->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     work->obj3.flags                                              &= 0x7FFF;
     flags                                                          = work->field_A1E;
     work->obj4.flags                                              &= 0x7FFF;
@@ -5785,7 +5785,7 @@ static void func_actor_400500_8013A700(Task* arg0)
     sp    = D_actor_400500_80131F7C;
     switch (Gp_StateF0.field_4) {
         case 2:
-            extra->flags |= 0x80;
+            extra->flags |= TMD_OBJECT_HIDDEN;
             return;
         case 0:
             sp.funcs[(s16)work->field_A06](arg0);
@@ -5909,10 +5909,10 @@ static void func_actor_400500_8013ABE4(Task* arg0)
     model = arg0->extra.tmd;
     coord = model->coords;
 
-    work->field_A20   = (u16)work->field_A20 + ((s16)(0xFF - (u16)work->field_A20) >> 4);
-    work->field_A24   = (u16)work->field_A24 + ((s16) - (u16)work->field_A24 >> 4);
-    work->field_A28   = (u16)work->field_A28 + (-work->field_A28 >> 4);
-    model->lightLevel = work->field_A24;
+    work->field_A20           = (u16)work->field_A20 + ((s16)(0xFF - (u16)work->field_A20) >> 4);
+    work->field_A24           = (u16)work->field_A24 + ((s16) - (u16)work->field_A24 >> 4);
+    work->field_A28           = (u16)work->field_A28 + (-work->field_A28 >> 4);
+    model->shading.colorBlend = work->field_A24;
     func_8009EA50(work->field_A20);
 
     work->field_A02 = (u16)work->field_A02 - 0x30;
@@ -5932,7 +5932,7 @@ static void func_actor_400500_8013ABE4(Task* arg0)
         Gp_SpawnEff(0x600A5, coord, 5, &pos);
     }
     if ((s16)work->field_A04 >= 0x41) {
-        model->flags   |= 0x80;
+        model->flags   |= TMD_OBJECT_HIDDEN;
         work->field_A06 = work->field_A06 + 1;
     }
 }
@@ -7658,9 +7658,9 @@ static void func_actor_400500_8013D958(Task* arg0)
         work->field_A24 = 0x1000;
         work->field_A28 = 0xFF;
         func_8009EA50(work->field_A20);
-        model->lightLevel = work->field_A24;
-        work->field_A04   = 0;
-        work->field_A06   = work->field_A06 + 1;
+        model->shading.colorBlend = work->field_A24;
+        work->field_A04           = 0;
+        work->field_A06           = work->field_A06 + 1;
     }
 }
 
@@ -7680,7 +7680,7 @@ static void func_actor_400500_8013D9F4(Task* arg0)
 
     model           = arg0->extra.tmd;
     work            = (Actor400500Work*)arg0->work;
-    model->flags   |= 0x80;
+    model->flags   |= TMD_OBJECT_HIDDEN;
     work->field_A04 = 0;
     work->field_A28 = 0;
     work->field_A06 = work->field_A06 + 1;
@@ -7707,7 +7707,7 @@ static void func_actor_400500_8013DA68(Task* arg0)
     model = arg0->extra.tmd;
     work  = (Actor400500Work*)arg0->work;
     Tmd_FreeBuffers(model);
-    model->flags |= 4;
+    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     func_actor_400500_80134B88(arg0);
     work->field_A06 = work->field_A06 + 1;
 }

@@ -1839,7 +1839,7 @@ case1:
     Actor02100_Fn03488(arg1);
     return;
 case2:
-    obj->flags               = 0x80;
+    obj->flags               = TMD_OBJECT_HIDDEN;
     arg0->node.state.b.flags = one;
     return;
 body:
@@ -1966,7 +1966,7 @@ static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
     }
     goto epilogue;
 case0:
-    arg1->extra.tmd->flags = 0x80;
+    arg1->extra.tmd->flags = TMD_OBJECT_HIDDEN;
     Gp_UnlinkNode(&arg0->node);
     Gp_UnlinkObj(&work->field_40);
     Gp_UnlinkObj(&work->field_78);

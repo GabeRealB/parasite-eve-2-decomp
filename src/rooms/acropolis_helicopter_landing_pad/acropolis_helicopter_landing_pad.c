@@ -182,7 +182,7 @@ static void func_acropolis_helicopter_landing_pad_8017D658(Task* task)
     }
     task->work    = mem;
     obj->otOffset = 8;
-    obj->flags   &= 0xFF7F;
+    obj->flags   &= (u16)~TMD_OBJECT_HIDDEN;
     func_acropolis_helicopter_landing_pad_8017D7B0(task);
     task->msgTable      = D_acropolis_helicopter_landing_pad_80182328;
     task->killCountdown = 0;
@@ -213,9 +213,9 @@ static void func_acropolis_helicopter_landing_pad_8017D6E0(Task* task)
     }
     if (gGameSession->viewReady != 0) {
         if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->at4.loc.view] != 0) {
-            obj->flags &= 0xFF7F;
+            obj->flags &= (u16)~TMD_OBJECT_HIDDEN;
         } else {
-            obj->flags |= 0x80;
+            obj->flags |= TMD_OBJECT_HIDDEN;
         }
     }
 }

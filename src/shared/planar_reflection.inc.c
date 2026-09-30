@@ -78,11 +78,11 @@ static void Reflection_InitPlayer(Task* task)
         taskKill(task);
         return;
     }
-    task->work   = (TaskIdMap*)work;
-    extra->tpage = 6;
+    task->work               = (TaskIdMap*)work;
+    extra->texturePageOffset = 6;
     tmdProcessStream(extra);
     tmdProcessStream(extra);
-    extra->flags    = 0x10;
+    extra->flags    = TMD_OBJECT_REVERSE_CULLING;
     extra->otOffset = 0x1F;
     if (task->spawnArg1.value == 0) {
         gGameSession->field_4E = 1;
@@ -95,7 +95,7 @@ static void Reflection_InitPlayer(Task* task)
     work->viewFlg   = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     work->field_4   = 1;
     work->configRev = -1;
-    extra->flags   |= 0x80;
+    extra->flags   |= TMD_OBJECT_HIDDEN;
     work->field_4   = 0;
     work->viewFlg   = -1;
     actor           = (GameActor*)owner->work;
@@ -181,7 +181,7 @@ static void Reflection_UpdatePlayer(Task* task)
             }
         }
     }
-    extra->flags |= 0x10;
+    extra->flags |= TMD_OBJECT_REVERSE_CULLING;
     viewFlg       = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
     if (work->viewFlg != viewFlg) {
         GfxCoord* viewParent;
@@ -212,15 +212,15 @@ static void Reflection_UpdatePlayer(Task* task)
                 if (area == 7) {
                     if (view >= 6 && view < 12 && gGameSession->at4.loc.room == 2) {
                         work->coord.coord.t[1] += 0x9B;
-                        extra->flags           &= ~0x80;
+                        extra->flags           &= ~TMD_OBJECT_HIDDEN;
                         work->field_8           = 0;
                     } else {
                         work->field_4 = 0;
-                        extra->flags |= 0x80;
+                        extra->flags |= TMD_OBJECT_HIDDEN;
                     }
                 }
             } else if (area == 1) {
-                extra->flags |= 0x80;
+                extra->flags |= TMD_OBJECT_HIDDEN;
                 if (view == 9) {
                     work->field_4 = 0;
                 }
@@ -230,14 +230,14 @@ static void Reflection_UpdatePlayer(Task* task)
                 }
                 work->field_8 = 1;
                 if ((area == 0x11 && view == 5) || (area == 2 && (view == 7 || view == 5))) {
-                    extra->flags |= 0x80;
+                    extra->flags |= TMD_OBJECT_HIDDEN;
                 } else {
-                    extra->flags &= ~0x80;
+                    extra->flags &= ~TMD_OBJECT_HIDDEN;
                 }
             }
         } else {
             model         = task->extra.tmd;
-            model->flags &= ~0x80;
+            model->flags &= ~TMD_OBJECT_HIDDEN;
             if (stage == 1) {
                 switch (area) {
                     case 0x11:
@@ -272,7 +272,7 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = 0;
                                 break;
                             default:
-                                model->flags |= 0x80;
+                                model->flags |= TMD_OBJECT_HIDDEN;
                                 break;
                         }
                         break;
@@ -301,7 +301,7 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = 0x14B4;
                                 break;
                             default:
-                                model->flags |= 0x80;
+                                model->flags |= TMD_OBJECT_HIDDEN;
                                 break;
                         }
                         break;
@@ -336,12 +336,12 @@ static void Reflection_UpdatePlayer(Task* task)
                                 plane->offset.vz = -0x640;
                                 break;
                             default:
-                                model->flags |= 0x80;
+                                model->flags |= TMD_OBJECT_HIDDEN;
                                 break;
                         }
                         break;
                     default:
-                        model->flags |= 0x80;
+                        model->flags |= TMD_OBJECT_HIDDEN;
                         break;
                 }
             } else if (view == 8 || view == 1) {
@@ -353,9 +353,9 @@ static void Reflection_UpdatePlayer(Task* task)
                 plane->offset.vy = 0;
                 plane->offset.vz = 0;
             } else {
-                model->flags |= 0x80;
+                model->flags |= TMD_OBJECT_HIDDEN;
             }
-            if (!(model->flags & 0x80)) {
+            if (!(model->flags & TMD_OBJECT_HIDDEN)) {
                 plane->leastAbs = plane->normal.vx;
                 if (plane->leastAbs < 0) {
                     plane->leastAbs = -plane->leastAbs;
@@ -506,7 +506,7 @@ static void Reflection_UpdatePlayer(Task* task)
     }
 
     extra->flags = work->field_C;
-    if (!(extra->flags & 0x80) && gGameSession->field_65 == 0) {
+    if (!(extra->flags & TMD_OBJECT_HIDDEN) && gGameSession->field_65 == 0) {
         parts   = task->extra.tmd->coords;
         owner   = gameGetPtrSlot(3);
         refPart = &parts[1];
@@ -628,7 +628,7 @@ static void Reflection_UpdatePlayer(Task* task)
                 addPrim(&gGpuCurrentOt[(((extent->otzFoot << gDisplayState.otDepthShift) & 0x3FFF) >> 4) + extra->otOffset - 15],
                         mode);
             } else {
-                extra->flags |= 0x80;
+                extra->flags |= TMD_OBJECT_HIDDEN;
             }
             SCRATCH_POP_BYTES(0x34);
         }
@@ -686,12 +686,12 @@ static void Reflection_HeldObjectTask(Task* task)
             Task_CallExit(task);
             return;
         }
-        extra        = task->extra.tmd;
-        parts        = extra->coords;
-        extra->tpage = src->tpage;
+        extra                    = task->extra.tmd;
+        parts                    = extra->coords;
+        extra->texturePageOffset = src->texturePageOffset;
         tmdProcessStream(extra);
         tmdProcessStream(extra);
-        extra->flags    = 0x10;
+        extra->flags    = TMD_OBJECT_REVERSE_CULLING;
         extra->otOffset = 0x1F;
         parts->parent   = mirrorPart;
         extra->lightMtx = &work->light;

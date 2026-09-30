@@ -1027,12 +1027,12 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_stsv(&ws->elemNormal);
             arg2 += ws->elemStride;
             gte_strgb(ws->preXformWrite + rec[3]);
-            if (ws->obj->lightLevel < 0x1000) {
-                gte_lddp(ws->obj->lightLevel);
+            if (ws->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
+                gte_lddp(ws->obj->shading.colorBlend);
                 cptr = ws->preXformWrite + rec[3];
                 gte_ldcv(cptr);
                 gte_gpf12();
-                gte_lddp(0x1000 - ws->obj->lightLevel);
+                gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - ws->obj->shading.colorBlend);
                 gte_ldcv(&col2);
                 gte_gpl12();
                 gte_stcv(cptr);
@@ -1041,7 +1041,7 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             page = 0;
             dest = ws->preXformWrite + rec[2] + 4;
             sv   = &ws->elemNormal;
-            gte_lddp(ws->obj->lightLevel >> 9);
+            gte_lddp(ws->obj->shading.colorBlend >> 9);
             gte_ldsv(sv);
             gte_gpf12();
             gte_stsv(sv);

@@ -607,7 +607,7 @@ static void func_actor_350700_80161E88(Task* arg0)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x200, Gp_State1C->groundShade);
         }
@@ -1007,22 +1007,22 @@ s32 func_actor_350700_80162A14(Task* task, s32 arg1, s32 mode)
     ret = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags                                   |= 0x80;
+            obj->flags                                   |= TMD_OBJECT_HIDDEN;
             ((Actor350500Work*)task->work)->freeCountdown = mode;
-            obj->flags                                   |= 4;
+            obj->flags                                   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;
@@ -1053,7 +1053,7 @@ s32 func_actor_350700_80162AF4(Task* task, s32 arg1, GpCmdArg* msg)
 /// The parent's spawn handler. Allocates the 0x50C `Actor135600Work` block, seeds it, and spawns the
 /// three children `D_actor_350700_801708DC` holds -- table entries 1, 2 and 3 --
 /// parking them at `child0` / `child1` / `child2`. The first two are
-/// models: each has `TmdObject::tpage` / `field_25` loaded with the texture
+/// models: each has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture
 /// page and CLUT row of the `AreaPlacement` that entry selects, reached through
 /// the area key `&gGameSession->at4.loc` and indexed by the model id the child's
 /// own `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
@@ -1097,10 +1097,10 @@ static void func_actor_350700_80162B30(Task* arg0)
         key.room     = sessionKey->room;
         key.view     = sessionKey->view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1123,10 +1123,10 @@ static void func_actor_350700_80162B30(Task* arg0)
         key.room   = keyAddr->room;
         key.view   = gGameSession->at4.loc.view;
         areaSyncLocationVariant(&key);
-        rec          = Gp_GetNestedAreaRec(&key);
-        place        = gpAreaPlaceAt(rec->field_0, idx);
-        model->tpage = place->texturePageOffset;
-        model->clut  = place->clutRowOffset;
+        rec                      = Gp_GetNestedAreaRec(&key);
+        place                    = gpAreaPlaceAt(rec->field_0, idx);
+        model->texturePageOffset = place->texturePageOffset;
+        model->clutRowOffset     = place->clutRowOffset;
         if (model->buffer != NULL) {
             tmdProcessStream(model);
             tmdProcessStream(model);
@@ -1181,7 +1181,7 @@ static void func_actor_350700_80162D5C(Task* arg0)
             Gp_AnimTickIndex(&work->rig.anim, i);
         }
     }
-    if (!(ext->flags & 0x80)) {
+    if (!(ext->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &pos) != 0) {
             Gp_DrawEffGroundQuad(&pos, 0x300, Gp_State1C->groundShade);
         }
@@ -1586,22 +1586,22 @@ s32 func_actor_350700_80163840(Task* task, s32 arg1, s32 mode)
     ret  = 0;
     switch (mode) {
         case 0:
-            obj->flags |= 0x80;
-            obj->flags &= ~4;
+            obj->flags |= TMD_OBJECT_HIDDEN;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 1:
-            obj->flags &= ~0x80;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
             Tmd_AllocBuffers(obj);
-            obj->flags &= ~4;
+            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 2:
-            obj->flags         |= 0x80;
+            obj->flags         |= TMD_OBJECT_HIDDEN;
             work->freeCountdown = mode;
-            obj->flags         |= 4;
+            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         case 3:
-            obj->flags &= ~0x80;
-            obj->flags |= 4;
+            obj->flags &= ~TMD_OBJECT_HIDDEN;
+            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
             ret = 1;

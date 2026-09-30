@@ -1757,7 +1757,7 @@ static void func_actor_800300_80162064(Task* arg0)
     actor->field_88[2].motionDirection.vx = sc->vec.vx;
     actor->field_88[2].motionDirection.vy = sc->vec.vy;
     actor->field_88[2].motionDirection.vz = sc->vec.vz;
-    if (!(extra->flags & 0x80)) {
+    if (!(extra->flags & TMD_OBJECT_HIDDEN)) {
         if (func_800EA1A8(MATRIX_TRANS(&coord->workm), (VECTOR3*)sc) != 0) {
             Gp_DrawEffGroundQuad((VECTOR3*)sc, 0x200, Gp_State1C->groundShade);
         }
