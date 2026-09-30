@@ -117,7 +117,7 @@ typedef struct Actor104400Work {
     /* 0x2EC */ WorldCollisionContact rec_2EC[8];
     /* 0x3AC */ WorldCollisionBody    obj_3AC;
     /* 0x3CC */ WorldCollisionContact rec_3CC[2];
-    /* 0x3FC */ GpEffArg              eff_3FC;   // field_0 is the model's second coord part
+    /* 0x3FC */ EffectSpawnArg        eff_3FC;   // `coord` is the model's `coords[1]`
     /* 0x404 */ byte                  pad_404[0x8];
     /* 0x40C */ s16                   field_40C; // heading Actor04400_Fn017B0 moves the root along
     /* 0x40E */ s16                   field_40E; // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame

@@ -83,7 +83,7 @@ STATIC_ASSERT_SIZEOF(Actor205200CtrlWork, 0x30);
 typedef struct Actor205200Part {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact recs[3];
-    /* 0x68 */ GpEffArg              field_68; // record the part's effects are spawned with
+    /* 0x68 */ EffectSpawnArg        field_68; // record the part's effects are spawned with
     /* 0x70 */ s16                   field_70; // hit-stun countdown; hits are ignored while non-zero
     /* 0x72 */ s16                   field_72; // state of the teardown handler `func_actor_205200_8014B484`
     /* 0x74 */ u16                   field_74; // effect timer

@@ -646,7 +646,7 @@ static inline void _actor311500SpawnEffect(Task* task)
 {
     Actor311500Work* work = task->work;
     SVECTOR          pos;
-    GpEffArg         eff;
+    EffectSpawnArg   eff;
 
     eff.coord      = &task->extra.tmd->coords[2];
     eff.spawnArgLo = 0x100;

@@ -61,7 +61,7 @@ typedef struct Actor205200Work {
     /* 0x4E4 */ WorldCollisionBody    field_4E4;
     /* 0x504 */ WorldCollisionContact field_504;
     /* 0x51C */ byte                  pad_51C[0x38];
-    /* 0x554 */ GpEffArg              field_554; // record the charge's hit effect is spawned with
+    /* 0x554 */ EffectSpawnArg        field_554; // record the charge's hit effect is spawned with
     /* 0x55C */ byte                  pad_55C[0x20];
     /* 0x57C */ s16                   field_57C;
     /* 0x57E */ s16                   field_57E; // animation id the work is playing

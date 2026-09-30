@@ -27,7 +27,7 @@ extern u8 D_80113388[];
 
 extern TaskDesc D_80113340[2];
 
-extern GpEffArg D_80113358;
+extern EffectSpawnArg D_80113358;
 
 extern u16 Gp_AllyIdBase[4];
 

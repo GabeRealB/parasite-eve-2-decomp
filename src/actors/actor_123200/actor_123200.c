@@ -131,7 +131,7 @@ static SVECTOR ActorContact_ScratchPosition;
 /// Overlay-wide spawn record the spawn handler fills for the instance's own
 /// coordinate, with the 0x100 / 1 argument pair. Each overlay that spawns this
 /// way keeps one, and they differ only in the coordinate and the argument.
-extern GpEffArg D_actor_123200_80137248;
+extern EffectSpawnArg D_actor_123200_80137248;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -617,7 +617,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-GpEffArg D_actor_123200_80137248;
+EffectSpawnArg D_actor_123200_80137248;
 
 static s32             func_actor_123200_80133450(Actor123200Work* arg0);
 static __inline__ void Actor123200_ScaleForward(SVECTOR* dir);

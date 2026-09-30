@@ -254,7 +254,7 @@ typedef struct Actor107000Work {
     /* 0x22C */ byte                  pad_22C[0x48];
     /* 0x274 */ VECTOR3               field_274; // saved root translation
     /* 0x280 */ byte                  pad_280[4];
-    /* 0x284 */ GpEffArg              field_284; // hit-effect coordinate and parameters
+    /* 0x284 */ EffectSpawnArg        field_284; // hit-effect coordinate and parameters
     /* 0x28C */ MATRIX                field_28C; // transform folded onto the model part
     /* 0x2AC */ s32                   field_2AC; // advanced by 0xC8 a frame while the death flag runs
     /* 0x2B0 */ s16                   field_2B0; // heading the specimen is turned toward; stepped 0x20 a frame
@@ -957,7 +957,7 @@ typedef struct Actor107000Spawn2Work {
     /* 0x2EC */ byte                  pad_2EC[0x50];
     /* 0x33C */ VECTOR3               field_33C; // saved position restored by collision response 2
     /* 0x348 */ byte                  pad_348[0x14];
-    GpEffArg                          hitEffect; // Hit effect placement and spawn arguments
+    EffectSpawnArg                    hitEffect; // Hit effect placement and spawn arguments
     /* 0x364 */ s16                   field_364; // spawn arg's high half
     /* 0x366 */ u16                   field_366; // spawn arg's low half
     /* 0x368 */ byte                  pad_368[0x2];

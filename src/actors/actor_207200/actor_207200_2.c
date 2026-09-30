@@ -78,9 +78,9 @@ typedef struct {
     /* 0x394 */ WorldCollisionContact rec4[1];
     /* 0x3AC */ WorldCollisionBody    obj5;
     /* 0x3CC */ WorldCollisionContact rec5[1];
-    /* 0x3E4 */ GpEffArg              eff0;
-    /* 0x3EC */ GpEffArg              eff1;
-    /* 0x3F4 */ GpEffArg              eff2;
+    /* 0x3E4 */ EffectSpawnArg        eff0;
+    /* 0x3EC */ EffectSpawnArg        eff1;
+    /* 0x3F4 */ EffectSpawnArg        eff2;
     /* 0x3FC */ byte                  pad_3FC[0x50];
     /* 0x44C */ SVECTOR               field_44C;
     /* 0x454 */ s32                   field_454;
@@ -1229,7 +1229,7 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
     _Actor207200LargeWork* work;
     GpEnemy*               ctx;
     GfxCoord*              coord;
-    GpEffArg*              effArg;
+    EffectSpawnArg*        effArg;
     s32                    snd;
 
     work  = arg0->work;
@@ -1424,7 +1424,7 @@ static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
 /// two timers on the work area and unlinks its third display object.
 static void func_actor_207200_8014CFEC(Task* arg0)
 {
-    GpEffArg*              effArg;
+    EffectSpawnArg*        effArg;
     struct GpEffWork*      effect;
     _Actor207200LargeWork* work;
     GpEnemy*               ctx;

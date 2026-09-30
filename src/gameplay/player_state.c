@@ -812,14 +812,14 @@ void func_8010AC54(Task* arg0)
 
 void func_8010AD64(Task* arg0)
 {
-    void**     scratch;
-    u8*        head;
-    SVECTOR*   vec;
-    GameActor* inner;
-    GpEffArg*  params;
-    GfxCoord*  coord;
-    s32        val;
-    s32        idx;
+    void**          scratch;
+    u8*             head;
+    SVECTOR*        vec;
+    GameActor*      inner;
+    EffectSpawnArg* params;
+    GfxCoord*       coord;
+    s32             val;
+    s32             idx;
 
     inner                             = arg0->work;
     scratch                           = SCRATCH_HEAD_ADDR;
@@ -1091,13 +1091,13 @@ static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
 
 void func_8010B3F8(Task* arg0)
 {
-    Task*     slot;
-    GpEffArg* params;
-    GfxCoord* coords;
-    s32       argLo;
-    s32       idx;
-    u16       count;
-    s16       next;
+    Task*           slot;
+    EffectSpawnArg* params;
+    GfxCoord*       coords;
+    s32             argLo;
+    s32             idx;
+    u16             count;
+    s16             next;
 
     slot = gameGetPtrSlot(3);
     switch (arg0->state) {
@@ -1132,11 +1132,11 @@ void func_8010B3F8(Task* arg0)
 
 void func_8010B520(Task* arg0)
 {
-    GfxCoord*  raw;
-    Task*      slot;
-    TmdObject* extra;
-    GpEffArg*  params;
-    GfxCoord*  coords;
+    GfxCoord*       raw;
+    Task*           slot;
+    TmdObject*      extra;
+    EffectSpawnArg* params;
+    GfxCoord*       coords;
 
     params             = &D_80113358;
     slot               = gameGetPtrSlot(3);

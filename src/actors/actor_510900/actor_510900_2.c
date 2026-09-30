@@ -225,7 +225,7 @@ extern Actor510900PatrolStep D_actor_510900_80167B94[4];
 
 /// `func_800FDB18` argument record the state-3 handler refreshes every sixth
 /// frame from the player's model coordinates.
-extern GpEffArg D_actor_510900_80167B7C;
+extern EffectSpawnArg D_actor_510900_80167B7C;
 
 /// The yaws `func_actor_510900_801387F4` turns the actor's coordinate
 /// towards, indexed by `Actor510900Work::field_5A8` (one entry further on
@@ -600,7 +600,7 @@ s16 D_actor_510900_80167B38[34] = {
     0,
 };
 
-GpEffArg D_actor_510900_80167B7C = { NULL, 300, 1 };
+EffectSpawnArg D_actor_510900_80167B7C = { NULL, 300, 1 };
 
 Actor510900PatrolCorner D_actor_510900_80167B84[4] = {
     { -6600, -6600 },

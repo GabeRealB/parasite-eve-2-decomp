@@ -63,7 +63,7 @@ typedef struct Actor101500Work {
     /* 0x264 */ WorldCollisionContact field_264[5];
     /* 0x2DC */ WorldCollisionBody    field_2DC;
     /* 0x2FC */ WorldCollisionContact field_2FC[1];
-    /* 0x314 */ GpEffArg              field_314; // record the hit's effect is spawned with
+    /* 0x314 */ EffectSpawnArg        field_314; // record the hit's effect is spawned with
     /* 0x31C */ VECTOR3               field_31C; // position before this frame's step
     /* 0x328 */ byte                  pad_328[4];
     /* 0x32C */ MATRIX                field_32C;

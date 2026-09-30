@@ -86,8 +86,8 @@ extern Actor323400MessageEntry D_actor_323400_801711D4[7];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpEffArg value;
-    u8       retained[88];
+    EffectSpawnArg value;
+    u8             retained[88];
 } Actor323400Storage1228;
 STATIC_ASSERT_SIZEOF(Actor323400Storage1228, 96);
 

@@ -132,7 +132,7 @@ typedef struct Actor100300Work {
     /* 0x558 */ WorldCollisionContact rec558[4];
     /* 0x5B8 */ WorldCollisionBody    obj5B8;
     /* 0x5D8 */ WorldCollisionContact rec5D8;
-    /* 0x5F0 */ GpEffArg              effArg5F0;
+    /* 0x5F0 */ EffectSpawnArg        effArg5F0;
     /* 0x5F8 */ s32                   field_5F8;
     /* 0x5FC */ s32                   field_5FC;
     /* 0x600 */ s32                   field_600;

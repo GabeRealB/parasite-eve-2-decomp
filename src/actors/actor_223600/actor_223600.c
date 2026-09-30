@@ -116,7 +116,7 @@ STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
 
 /// Effect record the spawn handler fills with the instance's own coordinate
 /// and the 0x100 / 1 argument pair.
-extern GpEffArg D_actor_223600_80150B5C;
+extern EffectSpawnArg D_actor_223600_80150B5C;
 
 /// Pair source the spawn handler installs at `GpEnemy::param`.
 extern GpPairSrcE D_actor_223600_8014CFCC;
@@ -850,7 +850,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-GpEffArg D_actor_223600_80150B5C = { 0 };
+EffectSpawnArg D_actor_223600_80150B5C = { 0 };
 
 static s32             func_actor_223600_8014B464(Actor223600Work* arg0);
 static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount);

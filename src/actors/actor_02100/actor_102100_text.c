@@ -185,7 +185,7 @@ typedef struct Actor02100Work {
     /* 0x0F8 */ s16                    field_F8;
     /* 0x0FA */ s16                    field_FA;
     /* 0x0FC */ WorldCollisionContact* field_FC;
-    /* 0x100 */ GpEffArg               field_100;
+    /* 0x100 */ EffectSpawnArg         field_100;
     /* 0x108 */ VECTOR                 field_108;
     /* 0x118 */ s16                    field_118;
     /* 0x11A */ s16                    field_11A;

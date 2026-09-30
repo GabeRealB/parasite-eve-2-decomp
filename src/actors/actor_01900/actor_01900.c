@@ -95,7 +95,7 @@ typedef struct Actor01900Work {
     /* 0x8B0 */ s16                   field_8B0;
     /* 0x8B2 */ byte                  pad_8B2[2];
     /* 0x8B4 */ s32                   field_8B4;
-    /* 0x8B8 */ GpEffArg              field_8B8;
+    /* 0x8B8 */ EffectSpawnArg        field_8B8;
     /* 0x8C0 */ byte                  pad_8C0[8];
     /* 0x8C8 */ WorldCollisionBody    field_8C8;
     /* 0x8E8 */ WorldCollisionContact field_8E8;

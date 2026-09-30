@@ -37,7 +37,7 @@ typedef struct Actor403600Work {
     /* 0x5C0 */ WorldCollisionBody    field_5C0;
     /* 0x5E0 */ byte                  pad_5E0[0x18];
     /* 0x5F8 */ WorldCollisionContact field_5F8[4];
-    /* 0x658 */ GpEffArg              field_658;
+    /* 0x658 */ EffectSpawnArg        field_658;
     /* 0x660 */ byte                  pad_660[0x50];
     /* 0x6B0 */ VECTOR                field_6B0;
     /* 0x6C0 */ GfxCoord*             field_6C0;

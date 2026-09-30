@@ -274,8 +274,8 @@ typedef struct Actor206100Work {
     /// Effect argument: the root coordinate's second part with the overlay's
     /// effect id and part index, the same coordinate / id / 3 trio
     /// `Actor503500Work::field_6E4` holds.
-    /* 0x4C0 */ GpEffArg eff_4C0;
-    /* 0x4C8 */ byte     pad_4C8[0x8];
+    /* 0x4C0 */ EffectSpawnArg eff_4C0;
+    /* 0x4C8 */ byte           pad_4C8[0x8];
     /// Walk target the two state dispatchers `func_actor_206100_8014D380` /
     /// `func_actor_206100_8014D6F4` steer the actor toward: after the sub-state
     /// handler they fold the root coordinate's heading onto the vector from the

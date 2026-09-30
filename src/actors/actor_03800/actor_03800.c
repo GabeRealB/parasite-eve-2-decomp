@@ -84,7 +84,7 @@ typedef struct Actor103800Work {
     /* 0x2A8 */ u16                    field_2A8;
     /* 0x2AA */ u16                    field_2AA;
     /* 0x2AC */ WorldCollisionContact  field_2AC[1];
-    /* 0x2C4 */ GpEffArg               field_2C4; // record the death effect is spawned with
+    /* 0x2C4 */ EffectSpawnArg         field_2C4; // record the death effect is spawned with
     /* 0x2CC */ MATRIX                 field_2CC;
     /* 0x2EC */ s16                    field_2EC;
     /* 0x2EE */ s16                    field_2EE;

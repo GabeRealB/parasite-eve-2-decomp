@@ -495,7 +495,7 @@ static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
 {
     Actor210600Work* work;
     SVECTOR          vec;
-    GpEffArg         eff;
+    EffectSpawnArg   eff;
     s32              id;
 
     work = (Actor210600Work*)task->work;

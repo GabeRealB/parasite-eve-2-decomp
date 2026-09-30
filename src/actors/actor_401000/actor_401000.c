@@ -142,8 +142,8 @@ typedef struct Actor401000Work {
     /* 0x8B2 */ byte pad_8B2[2];
     /// Last animation state `func_actor_401000_8013922C` acted on; the same
     /// de-duplication slot `Actor401300Work` keeps at +0x8BC.
-    /* 0x8B4 */ s32      field_8B4;
-    /* 0x8B8 */ GpEffArg field_8B8;
+    /* 0x8B4 */ s32            field_8B4;
+    /* 0x8B8 */ EffectSpawnArg field_8B8;
     /// Offset the actor's state-3/5/7/8 effects spawn at, passed as the
     /// `Gp_SpawnEff` position: the same local `SVECTOR` `Actor401300` keeps on
     /// the stack for the 3013B6E8 triple, materialised into the work block

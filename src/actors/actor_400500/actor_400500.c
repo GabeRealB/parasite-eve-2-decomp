@@ -133,7 +133,7 @@ typedef struct Actor400500Work {
     /* 0x8E8 */ WorldCollisionBody    obj3;
     /* 0x908 */ WorldCollisionBody    obj4;
     /* 0x928 */ WorldCollisionContact rec2[1];
-    /* 0x940 */ GpEffArg              eff_940; // part-3 coord, scale 0x100, count 3
+    /* 0x940 */ EffectSpawnArg        eff_940; // part-3 coord, scale 0x100, count 3
     /* 0x948 */ s16                   field_948;
     /* 0x94A */ s16                   field_94A;
     /* 0x94C */ s16                   field_94C;

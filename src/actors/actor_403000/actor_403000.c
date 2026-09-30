@@ -168,43 +168,43 @@ typedef struct Actor403000Work {
     /* 0xF86 */ s16  field_F86;
     /// Bitmask of the four trigger points in `D_actor_403000_80158D64` last
     /// latched from `GameFlag_GetNibble(0xE2)` by `func_actor_403000_80134E00`.
-    /* 0xF88 */ s16      field_F88;
-    /* 0xF8A */ byte     pad_F8A[0x2];
-    /* 0xF8C */ s16      field_F8C;
-    /* 0xF8E */ byte     pad_F8E[0x2];
-    /* 0xF90 */ void*    field_F90;
-    /* 0xF94 */ s32      field_F94;
-    /* 0xF98 */ s32      field_F98;
-    /* 0xF9C */ s32      field_F9C;
-    /* 0xFA0 */ s32      field_FA0;
-    /* 0xFA4 */ u8       field_FA4;
-    /* 0xFA5 */ u8       field_FA5;
-    /* 0xFA6 */ u8       field_FA6;
-    /* 0xFA7 */ byte     pad_FA7[0x1];
-    /* 0xFA8 */ GpEffArg field_FA8; // `func_800FDB18` argument record
-    /* 0xFB0 */ SVECTOR  field_FB0;
-    /* 0xFB8 */ s16      field_FB8;
-    /* 0xFBA */ s16      field_FBA;
-    /* 0xFBC */ s16      field_FBC;
-    /* 0xFBE */ byte     pad_FBE[0x2];
-    /* 0xFC0 */ s16      field_FC0;
-    /* 0xFC2 */ s16      field_FC2;
-    /* 0xFC4 */ byte     pad_FC4[0x4];
-    /* 0xFC8 */ s16      field_FC8;
-    /* 0xFCA */ s16      field_FCA;
-    /* 0xFCC */ u16      field_FCC;
-    /* 0xFCE */ byte     pad_FCE[0x3];
-    /* 0xFD1 */ s8       field_FD1;
-    /* 0xFD2 */ s8       field_FD2;
-    /* 0xFD3 */ s8       field_FD3;
-    /* 0xFD4 */ s8       field_FD4;
-    /* 0xFD5 */ s8       field_FD5;
-    /* 0xFD6 */ u8       field_FD6;
-    /* 0xFD7 */ s8       field_FD7;
-    /* 0xFD8 */ s8       field_FD8;
-    /* 0xFD9 */ u8       field_FD9;
-    /* 0xFDA */ u8       field_FDA;
-    /* 0xFDB */ byte     pad_FDB[0x1];
+    /* 0xF88 */ s16            field_F88;
+    /* 0xF8A */ byte           pad_F8A[0x2];
+    /* 0xF8C */ s16            field_F8C;
+    /* 0xF8E */ byte           pad_F8E[0x2];
+    /* 0xF90 */ void*          field_F90;
+    /* 0xF94 */ s32            field_F94;
+    /* 0xF98 */ s32            field_F98;
+    /* 0xF9C */ s32            field_F9C;
+    /* 0xFA0 */ s32            field_FA0;
+    /* 0xFA4 */ u8             field_FA4;
+    /* 0xFA5 */ u8             field_FA5;
+    /* 0xFA6 */ u8             field_FA6;
+    /* 0xFA7 */ byte           pad_FA7[0x1];
+    /* 0xFA8 */ EffectSpawnArg field_FA8; // `func_800FDB18` argument record
+    /* 0xFB0 */ SVECTOR        field_FB0;
+    /* 0xFB8 */ s16            field_FB8;
+    /* 0xFBA */ s16            field_FBA;
+    /* 0xFBC */ s16            field_FBC;
+    /* 0xFBE */ byte           pad_FBE[0x2];
+    /* 0xFC0 */ s16            field_FC0;
+    /* 0xFC2 */ s16            field_FC2;
+    /* 0xFC4 */ byte           pad_FC4[0x4];
+    /* 0xFC8 */ s16            field_FC8;
+    /* 0xFCA */ s16            field_FCA;
+    /* 0xFCC */ u16            field_FCC;
+    /* 0xFCE */ byte           pad_FCE[0x3];
+    /* 0xFD1 */ s8             field_FD1;
+    /* 0xFD2 */ s8             field_FD2;
+    /* 0xFD3 */ s8             field_FD3;
+    /* 0xFD4 */ s8             field_FD4;
+    /* 0xFD5 */ s8             field_FD5;
+    /* 0xFD6 */ u8             field_FD6;
+    /* 0xFD7 */ s8             field_FD7;
+    /* 0xFD8 */ s8             field_FD8;
+    /* 0xFD9 */ u8             field_FD9;
+    /* 0xFDA */ u8             field_FDA;
+    /* 0xFDB */ byte           pad_FDB[0x1];
 } Actor403000Work;
 STATIC_ASSERT_SIZEOF(Actor403000Work, 0xFDC);
 
@@ -4739,7 +4739,7 @@ static void func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2)
 {
     SVECTOR*         scratch;
     Actor403000Work* work;
-    GpEffArg*        eff;
+    EffectSpawnArg*  eff;
     s32              mag;
 
     scratch = (SCRATCH_STACK_CURSOR(SVECTOR) -= 2);

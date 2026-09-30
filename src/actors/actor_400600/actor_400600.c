@@ -136,7 +136,7 @@ typedef struct Actor400600Work {
     /* 0x604 */ WorldCollisionBody    obj_604;    // collision node; flags bit 0x4000 cleared
     /* 0x624 */ GpActorD4Rec          rec_624;    // obj_604's payload (flags kind 3)
     /* 0x63C */ WorldCollisionContact rec_63C[8]; // occupancy cleared by func_actor_400600_80138D78
-    /* 0x6FC */ GpEffArg              eff_6FC;    // fourth model part's coordinate
+    /* 0x6FC */ EffectSpawnArg        eff_6FC;    // fourth model part's coordinate
     /* 0x704 */ Task*                 field_704;  // child task, killed on death
     /* 0x708 */ Task*                 field_708;  // child task, killed on death
     /* 0x70C */ byte                  pad_70C[0x4];

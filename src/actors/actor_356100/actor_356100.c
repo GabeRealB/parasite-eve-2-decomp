@@ -697,7 +697,7 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-GpEffArg D_actor_356100_801732A8 = { NULL, 0, 0 };
+EffectSpawnArg D_actor_356100_801732A8 = { NULL, 0, 0 };
 
 Actor356100Storage32B0 D_actor_356100_801732B0;
 
@@ -820,7 +820,7 @@ static SVECTOR ActorContact_ScratchPosition;
 /// Effect record `func_actor_356100_80167818` fills for `func_800FDB18`:
 /// coordinate index 5 of the model, scale 0x100 and count 2. Same shape and
 /// roles as `Actor401300Work.field_910`.
-extern GpEffArg D_actor_356100_801732A8;
+extern EffectSpawnArg D_actor_356100_801732A8;
 
 /// Animation bank `func_800B3F84` seeds both of the work block's slot arrays
 /// from. Same role as `Actor01900_D17174`.

@@ -166,7 +166,7 @@ extern GpEvsCmd D_actor_342100_801649C8[];
 /// and `field_4` the scale that goes with it (0x100 for the wide pick, 0x10
 /// for the narrow one). Ships as `{ NULL, 0, 1 }` in the data blob, directly
 /// before the part table below.
-extern GpEffArg D_actor_342100_801649A0;
+extern EffectSpawnArg D_actor_342100_801649A0;
 
 /// The player-model parts the effect record above is aimed at, as indices into
 /// the player's coordinate array (`TmdObject::coords`): sixteen `u16`s
@@ -327,7 +327,7 @@ SVECTOR D_actor_342100_80164980[4] = {
     { 0, 0, 0, 0 },
 };
 
-GpEffArg D_actor_342100_801649A0 = { NULL, 0, 1 };
+EffectSpawnArg D_actor_342100_801649A0 = { NULL, 0, 1 };
 
 u16 D_actor_342100_801649A8[16] = {
     2,
@@ -526,7 +526,7 @@ static s32 func_actor_342100_801629B8(Task* arg0)
     goto ret1;
 }
 
-/// State 0 allocates the overlay's effect record -- eight bytes, scale 0x100,
+/// State 0 allocates the overlay's effect record -- `sizeof(EffectSpawnArg)`, scale 0x100,
 /// count 1, aimed at the model's root coordinate -- through `arg0->work`,
 /// which is also where the null check reads it back: that is what leaves the
 /// copy into `eff` after the branch instead of before it. State 1 waits out
@@ -544,25 +544,25 @@ static s32 func_actor_342100_801629B8(Task* arg0)
 /// and takes $a1, the constant falling to $a2 (100.00%).
 void func_actor_342100_80162AB0(Task* arg0)
 {
-    GpEffArg* eff;
-    GfxCoord* coord;
-    SVECTOR   vec;
-    s32       rng;
-    s32       rng2;
-    s32       vx;
-    s32       vz;
+    EffectSpawnArg* eff;
+    GfxCoord*       coord;
+    SVECTOR         vec;
+    s32             rng;
+    s32             rng2;
+    s32             vx;
+    s32             vz;
 
-    eff   = (GpEffArg*)arg0->work;
+    eff   = (EffectSpawnArg*)arg0->work;
     coord = arg0->extra.coordBody->coord;
     switch (arg0->state) {
         case 0:
-            arg0->work = Mem_Malloc(8, 0);
+            arg0->work = Mem_Malloc(sizeof(EffectSpawnArg), 0);
             if (arg0->work == NULL) {
                 taskKill(arg0);
                 return;
             }
-            eff = (GpEffArg*)arg0->work;
-            Mem_Set(eff, 0, 8);
+            eff = (EffectSpawnArg*)arg0->work;
+            Mem_Set(eff, 0, sizeof(EffectSpawnArg));
             eff->spawnArgLo = 0x100;
             eff->coord      = arg0->extra.coordBody->coord;
             eff->spawnArgHi = 1;

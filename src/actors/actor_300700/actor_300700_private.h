@@ -42,7 +42,7 @@ typedef struct Actor300700Work {
     /* 0x1FA */ u16                       field_1FA;
     /* 0x1FC */ WorldCollisionContact     sensorContacts[1]; // Single result for the player sensor
     /* 0x214 */ byte                      pad_214[0x10];
-    /* 0x224 */ GpEffArg                  field_224;
+    /* 0x224 */ EffectSpawnArg            field_224;
     /* 0x22C */ Actor300700ContactStorage field_22C;
     /* 0x27C */ byte                      field_27C[0x30];
     /* 0x2AC */ s32                       field_2AC;
@@ -66,7 +66,7 @@ typedef struct Actor300700Work {
     /* 0x2E8 */ byte                      pad_2E8[0x32];
     /* 0x31A */ u16                       field_31A;
     /* 0x31C */ WorldCollisionContact     attackContacts[1]; // Single result for the paired attack body
-    /* 0x334 */ GpEffArg                  field_334;         // record the hit's effect is spawned with
+    /* 0x334 */ EffectSpawnArg            field_334;         // record the hit's effect is spawned with
     /* 0x33C */ GfxCoord*                 field_33C;
     /* 0x340 */ MATRIX                    field_340;
     /* 0x360 */ s32                       field_360;

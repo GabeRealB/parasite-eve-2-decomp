@@ -72,7 +72,7 @@ typedef struct Actor104600Work {
     /* 0x224 */ byte                  pad_224[0x50];
     /* 0x274 */ VECTOR3               field_274; // root translation before the last step
     /* 0x280 */ byte                  pad_280[4];
-    /* 0x284 */ GpEffArg              field_284; // hit-effect coordinate and parameters
+    /* 0x284 */ EffectSpawnArg        field_284; // hit-effect coordinate and parameters
     /* 0x28C */ MATRIX                field_28C; // root transform saved when the enemy dies
     /* 0x2AC */ s32                   field_2AC; // scale factor of the model's second part
     /* 0x2B0 */ s16                   field_2B0; // heading, stepped 0x20 a frame toward the player

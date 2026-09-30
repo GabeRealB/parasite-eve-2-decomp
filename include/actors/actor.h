@@ -563,7 +563,7 @@ typedef struct Actor341700Work {
     WorldCollisionContact rec_2EC[8];
     WorldCollisionBody    obj_3AC;
     WorldCollisionContact rec_3CC[2]; // records of `obj_3AC`
-    GpEffArg              eff_3FC;    // `func_800FDB18`'s arg3; field_0 is the model's second coord part
+    EffectSpawnArg        eff_3FC;    // `func_800FDB18`'s argument record; `coord` is the model's `coords[1]`
     byte                  pad_404[0x8];
     s16                   field_40C;  // heading the root is moved along
     s16                   field_40E;  // hit cooldown: `Gp_GetIdParam2` of the last hit, counted down each frame
@@ -623,7 +623,7 @@ typedef struct Actor105500Work {
     WorldCollisionContact field_304[1];
     WorldCollisionBody    field_31C;
     WorldCollisionContact field_33C[1];
-    GpEffArg              field_354;
+    EffectSpawnArg        field_354;
     VECTOR3               field_35C;
     byte                  pad_368[4];
     TaskDesc*             field_36C;
@@ -709,7 +709,7 @@ typedef struct Actor05300Work {
     WorldCollisionBody    node0;
     WorldCollisionBody    node1;
     WorldCollisionContact rec18[2];
-    GpEffArg              field_2F4;
+    EffectSpawnArg        field_2F4;
     MATRIX                field_2FC;
     s32                   field_31C;
     u16                   field_320;
@@ -745,7 +745,7 @@ STATIC_ASSERT_SIZEOF(Actor05300Clip, 0x4);
 typedef struct Actor05300Part {
     WorldCollisionBody    obj;
     WorldCollisionContact rec18[1];
-    GpEffArg              field_38; // record this part's death effect is spawned with
+    EffectSpawnArg        field_38; // record this part's death effect is spawned with
     s16                   field_40;
     u16                   field_42;
     s16                   field_44;
@@ -1066,11 +1066,11 @@ typedef struct Actor402200Work {
     WorldCollisionContact field_644;
     /// `func_800FDB18` argument record for the hit spark: the fourth part's
     /// coordinate, 0x500, 2.
-    GpEffArg field_65C;
-    s32      field_664;
-    s32      field_668;
-    s32      field_66C;
-    byte     pad_670[4];
+    EffectSpawnArg field_65C;
+    s32            field_664;
+    s32            field_668;
+    s32            field_66C;
+    byte           pad_670[4];
     /// Copy of the root coordinate's matrix `func_actor_402200_80134968`
     /// takes when its fade-out finishes, with `scale` reset to 0x1000 beside
     /// it.
@@ -1432,10 +1432,10 @@ STATIC_ASSERT_SIZEOF(Actor403200SpawnScratch, 0xC);
 
 /// Scratchpad frame the hit-effect spawner `func_actor_403200_80134044` carves
 /// off the scratch-pad stack to hand `func_800FDB18` an effect rotation together with
-/// the `GpEffArg` naming the coordinate the effect hangs off.
+/// the `EffectSpawnArg` naming the coordinate the effect hangs off.
 typedef struct Actor403200EffScratch {
-    SVECTOR  rot; // effect rotation, chosen from the attack's param 0
-    GpEffArg eff; // coordinate, 0x500, 3
+    SVECTOR        rot; // effect rotation, chosen from the attack's param 0
+    EffectSpawnArg eff; // coordinate, 0x500, 3
 } Actor403200EffScratch;
 STATIC_ASSERT_SIZEOF(Actor403200EffScratch, 0x10);
 
@@ -1829,7 +1829,7 @@ typedef struct Actor105600Work {
     GpActorD4Rec          field_63C;
     WorldCollisionContact field_654[1];
     TaskDesc*             field_66C;
-    GpEffArg              field_670;
+    EffectSpawnArg        field_670;
     s32                   field_678;
     s32                   field_67C;
     s32                   field_680;

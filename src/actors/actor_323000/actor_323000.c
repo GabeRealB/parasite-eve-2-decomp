@@ -49,8 +49,8 @@ extern u8 D_actor_323000_8017387C[];
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
 typedef struct {
-    GpEffArg value;
-    u8       retained[88];
+    EffectSpawnArg value;
+    u8             retained[88];
 } Actor323000Storage3A24;
 STATIC_ASSERT_SIZEOF(Actor323000Storage3A24, 96);
 

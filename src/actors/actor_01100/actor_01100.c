@@ -195,7 +195,7 @@ typedef struct ActorsShared80138efcWork {
     /// step on it (`lbu`).
     /* 0xBAF */ u8 field_BAF;
     /// Placement of the hit sparks, on the model's part 4.
-    /* 0xBB0 */ GpEffArg effArg;
+    /* 0xBB0 */ EffectSpawnArg effArg;
     /// Sound variant bit the slot's setup body at 0x8013279C picks from the
     /// spawn record, 0 or 1. `func_actor_104900_80138D58` and the bodies at
     /// 0x80132D78 / 0x80136230 shift it into bit 22 of the id they hand

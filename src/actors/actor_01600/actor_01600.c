@@ -106,7 +106,7 @@ typedef struct Actor01600Work {
     /* 0x3E8 */ s16                    field_3E8;
     /* 0x3EA */ u16                    field_3EA;
     /* 0x3EC */ WorldCollisionContact  contact_3EC;
-    /* 0x404 */ GpEffArg               hitEffect;
+    /* 0x404 */ EffectSpawnArg         hitEffect;
     /* 0x40C */ byte                   field_40C[8];
     /* 0x414 */ GfxCoord*              field_414;
     /* 0x418 */ s8*                    field_418;

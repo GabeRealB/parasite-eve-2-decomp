@@ -257,7 +257,7 @@ extern Actor444000MessageEntry D_actor_444000_80161818[7];
 /// Spawn table of the seven escorts, indexed 0..6.
 extern TaskDesc D_actor_444000_801616B0[];
 /// Effect argument block the spawn state points at the host's root coordinate.
-extern GpEffArg D_actor_444000_80161880;
+extern EffectSpawnArg D_actor_444000_80161880;
 /// Shared 0x7DA payload buffer, also used by `func_actor_444000_80141618`.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
@@ -2692,7 +2692,7 @@ SVECTOR D_actor_444000_80161870 = { 0, 0, 0, 0 };
 
 Actor444000Storage1878 D_actor_444000_80161878 = { NULL, { 0, 0, 0, 0 } };
 
-GpEffArg D_actor_444000_80161880 = { NULL, 0, 0 };
+EffectSpawnArg D_actor_444000_80161880 = { NULL, 0, 0 };
 
 Actor444000Storage1888 D_actor_444000_80161888 = { { { .loc = { 0, 0 } }, 0 }, { 0, 0, 0, 0 } };
 

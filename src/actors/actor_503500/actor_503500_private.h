@@ -79,24 +79,24 @@ typedef struct Actor503500Work {
     /// alongside its collision body: `func_actor_503500_8013ECBC` stores the
     /// task's own `TmdObject::coords` in it and seeds the record's 0x600 / 3
     /// argument pair.
-    /* 0x0E0 */ GpEffArg field_E0; // record the block's effects are spawned with
-    /* 0x0E8 */ s16      field_E8; // per-frame countdown, clamped at 0
-    /* 0x0EA */ s16      field_EA;
-    /* 0x0EC */ s8       field_EC; // sub-state index
-    /* 0x0ED */ s8       field_ED; // sub-state index
-    /* 0x0EE */ s8       field_EE; // sub-state phase, cleared with field_ED
-    /* 0x0EF */ byte     pad_EF[0x1];
-    /* 0x0F0 */ s8       field_F0; // sub-state index
-    /* 0x0F1 */ s8       field_F1; // sub-state phase, cleared with field_F0
-    /* 0x0F2 */ byte     pad_F2[0x2E];
+    /* 0x0E0 */ EffectSpawnArg field_E0; // record the block's effects are spawned with
+    /* 0x0E8 */ s16            field_E8; // per-frame countdown, clamped at 0
+    /* 0x0EA */ s16            field_EA;
+    /* 0x0EC */ s8             field_EC; // sub-state index
+    /* 0x0ED */ s8             field_ED; // sub-state index
+    /* 0x0EE */ s8             field_EE; // sub-state phase, cleared with field_ED
+    /* 0x0EF */ byte           pad_EF[0x1];
+    /* 0x0F0 */ s8             field_F0; // sub-state index
+    /* 0x0F1 */ s8             field_F1; // sub-state phase, cleared with field_F0
+    /* 0x0F2 */ byte           pad_F2[0x2E];
     /// The 0x160 block's own spawn record, seeded the way `field_E0` is:
     /// `func_actor_503500_801372C8` republishes the task's `TmdObject::coords`
     /// here alongside the 0x400 / 3 pair it seeds.
-    /* 0x120 */ GpEffArg field_120; // record the block's effects are spawned with
-                                    /// 16.16 Euler angles, velocity and position of the 0x160 block's death
-                                    /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
-                                    /// build the rotation and the position's high halves are added onto the
-                                    /// coordinate's translation each frame.
+    /* 0x120 */ EffectSpawnArg field_120; // record the block's effects are spawned with
+                                          /// 16.16 Euler angles, velocity and position of the 0x160 block's death
+                                          /// fall, stepped by `func_actor_503500_80137678`: the angles' high halves
+                                          /// build the rotation and the position's high halves are added onto the
+                                          /// coordinate's translation each frame.
     /* 0x128 */ Actor503500FixVec rot;
     /* 0x138 */ Actor503500FixVec vel;
     /* 0x148 */ Actor503500FixVec pos;
@@ -221,8 +221,8 @@ typedef struct Actor503500Work {
                                   /// `func_actor_503500_80132F64` stores model part 3 here and
                                   /// `func_actor_503500_80134EAC` hands the record to `func_800FDB18` as its
                                   /// hit-effect argument.
-    /* 0x6E4 */ GpEffArg field_6E4;
-    /* 0x6EC */ GpEnemy* enemies[0x11];
+    /* 0x6E4 */ EffectSpawnArg field_6E4;
+    /* 0x6EC */ GpEnemy*       enemies[0x11];
     /// Two parallel per-slot halfword arrays covering the same 0x11 slots as
     /// `enemies`: `func_actor_503500_80136F40` writes both when it asks a slot
     /// to die, `func_actor_503500_80136FDC` reads `field_752` as a gate on

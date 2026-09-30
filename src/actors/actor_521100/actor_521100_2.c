@@ -100,8 +100,8 @@ extern Actor5211002MessageEntry D_actor_521100_8016A358[6];
 extern TaskDesc                 D_actor_521100_8016A388[];
 extern AnimationSet*            D_actor_521100_8016A3A0[11];
 
-extern GpEffArg D_actor_521100_8016A3CC;
-extern u16      D_actor_521100_8016A3D4;
+extern EffectSpawnArg D_actor_521100_8016A3CC;
+extern u16            D_actor_521100_8016A3D4;
 
 /// The task `func_actor_521100_80136604` runs, stored by its create state
 /// `func_actor_521100_80135DDC`.
@@ -185,7 +185,7 @@ AnimationSet* D_actor_521100_8015F7CC[14] = {
     &D_actor_521100_8015F528,
 };
 
-GpEffArg D_actor_521100_8015F804 = { NULL, 300, 1 };
+EffectSpawnArg D_actor_521100_8015F804 = { NULL, 300, 1 };
 
 Actor521100FireRow D_actor_521100_8015F80C[2][17] = {
     { { 2, 0xFFFB }, { 5, 0xFFF6 }, { 9, 0xFFFB }, { 12, 0xFFDF }, { 14, 0xFFBF }, { 17, 0xFFD8 }, { 23, 0xFFD0 }, { 28, 0xFFE8 }, { 30, 40 }, { 33, 170 }, { 34, 290 }, { 36, 220 }, { 38, 135 }, { 43, 60 }, { 52, 33 }, { 57, 2 }, { 69, 0 } },
@@ -403,7 +403,7 @@ AnimationSet* D_actor_521100_8016A3A0[11] = {
     &D_actor_521100_8016A330,
 };
 
-GpEffArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
+EffectSpawnArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
 
 u16 D_actor_521100_8016A3D4 = 5;
 
@@ -646,7 +646,7 @@ static void func_actor_521100_80136290(GpEnemy* arg0, Task* task)
 /// vertical jitter of `(LCG top half - 0x8000) * 200 / 0x10000` (so within
 /// +/-100); with 1 the player's (slot 3) first coordinate, moved by a fixed
 /// (0x2BC, -0x384). The anchor is then cleared, updated and handed to the
-/// effect spawner `func_800FDB18` through the `GpEffArg` record beside it.
+/// effect spawner `func_800FDB18` through the `EffectSpawnArg` record beside it.
 ///
 /// `Task::state` is the frame counter as well as the run gate - it advances
 /// every frame and the body stops re-anchoring once it reaches 0x83, killing

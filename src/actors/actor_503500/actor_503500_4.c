@@ -77,10 +77,10 @@ typedef struct Actor503500Work224 {
     /* 0x180 */ WorldCollisionContact rec1[4];
     /// The 0x224 block's own spawn record, seeded the way
     /// `Actor503500Work::field_E0` is.
-    /* 0x1E0 */ GpEffArg field_1E0; // record the 0x224 block's effects are spawned with
-                                    /// 16.16 Euler angles, velocity and position of the death fall stepped
-                                    /// by `func_actor_503500_80142980`, as `Actor503500Work::rot` / `vel` /
-                                    /// `pos` are for the 0x160 block.
+    /* 0x1E0 */ EffectSpawnArg field_1E0; // record the 0x224 block's effects are spawned with
+                                          /// 16.16 Euler angles, velocity and position of the death fall stepped
+                                          /// by `func_actor_503500_80142980`, as `Actor503500Work::rot` / `vel` /
+                                          /// `pos` are for the 0x160 block.
     /* 0x1E8 */ Actor503500FixVec rot;
     /* 0x1F8 */ Actor503500FixVec vel;
     /* 0x208 */ Actor503500FixVec pos;
@@ -146,7 +146,7 @@ typedef struct Actor503500Work3D8 {
     /* 0x180 */ WorldCollisionContact rec180[8]; // obj160's table, count 8
     /* 0x240 */ WorldCollisionBody    obj240;
     /* 0x260 */ WorldCollisionContact rec260[4]; // obj240's table, count 4
-    /* 0x2C0 */ GpEffArg              field_2C0; // record this block's effects are spawned with
+    /* 0x2C0 */ EffectSpawnArg        field_2C0; // record this block's effects are spawned with
     /* 0x2C8 */ SVECTOR               pts[9];
     /* 0x310 */ SVECTOR               angles[9];
     /* 0x358 */ SVECTOR               field_358;
@@ -241,7 +241,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work38, 0x38);
 typedef struct Actor503500WorkF4 {
     /* 0x00 */ WorldCollisionBody    obj; // the collision body, as in `Actor503500Work`
     /* 0x20 */ WorldCollisionContact rec[8];
-    /* 0xE0 */ GpEffArg              field_E0;
+    /* 0xE0 */ EffectSpawnArg        field_E0;
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
     /* 0xEA */ u16                   field_EA; // sub-state frame counter
     /* 0xEC */ s16                   field_EC;
@@ -266,7 +266,7 @@ STATIC_ASSERT_SIZEOF(Actor503500WorkF4, 0xF4);
 typedef struct Actor503500Work770E8 {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE0 */ EffectSpawnArg        field_E0; // record the block's effects are spawned with
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
     /* 0xEA */ byte                  pad_EA[0x2];
     /* 0xEC */ u16                   field_EC; // sub-state frame counter
@@ -288,7 +288,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work770E8, 0xF4);
 typedef struct Actor503500Work776A0 {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];   // Gp_InitRec18Table(rec, 8, 0)
-    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE0 */ EffectSpawnArg        field_E0; // record the block's effects are spawned with
     /* 0xE8 */ s16                   field_E8; // per-frame countdown, as in `Actor503500Work`
     /* 0xEA */ s16                   field_EA; // sub-state frame counter
     /* 0xEC */ u16                   field_EC; // scale handed to func_actor_503500_80135E20
@@ -309,7 +309,7 @@ STATIC_ASSERT_SIZEOF(Actor503500Work776A0, 0xF4);
 typedef struct Actor503500Work774C0 {
     /* 0x00 */ WorldCollisionBody    obj;
     /* 0x20 */ WorldCollisionContact rec[8];
-    /* 0xE0 */ GpEffArg              field_E0; // record the block's effects are spawned with
+    /* 0xE0 */ EffectSpawnArg        field_E0; // record the block's effects are spawned with
     /* 0xE8 */ byte                  pad_E8[0x4];
     /* 0xEC */ s8                    field_EC;
     /* 0xED */ byte                  pad_ED[0x3];

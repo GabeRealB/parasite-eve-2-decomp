@@ -52,9 +52,9 @@ typedef struct Actor207200Work {
     /* 0x2FC */ byte           pad_2FC[0x78];
     /* 0x374 */ Actor207200Obj field_374;
     /* 0x3AC */ Actor207200Obj field_3AC;
-    /* 0x3E4 */ GpEffArg       field_3E4; // `func_800FDB18` argument record
-    /* 0x3EC */ GpEffArg       field_3EC; // `func_800FDB18` argument record
-    /* 0x3F4 */ GpEffArg       field_3F4; // `func_800FDB18` argument record
+    /* 0x3E4 */ EffectSpawnArg field_3E4; // `func_800FDB18` argument record
+    /* 0x3EC */ EffectSpawnArg field_3EC; // `func_800FDB18` argument record
+    /* 0x3F4 */ EffectSpawnArg field_3F4; // `func_800FDB18` argument record
     /* 0x3FC */ byte           pad_3FC[0x50];
     /* 0x44C */ SVECTOR        field_44C; // rotation `field_484` turns about y
     /* 0x454 */ s32            field_454; // model position while the actor idles

@@ -116,9 +116,9 @@ typedef struct Actor401300Work {
     /* 0x8BC */ s32  field_8BC;
     /// Effect anchor `func_actor_401300_80139134` places at the actor's
     /// view-space position before spawning effect 0x600A5.
-    /* 0x8C0 */ GfxCoord field_8C0;
-    /* 0x910 */ GpEffArg field_910;
-    /* 0x918 */ byte     pad_918[8];
+    /* 0x8C0 */ GfxCoord       field_8C0;
+    /* 0x910 */ EffectSpawnArg field_910;
+    /* 0x918 */ byte           pad_918[8];
     /// Fixed pose `func_actor_401300_80134454` anchors above the root
     /// coordinate (identity rotation, 0x15E up) for the `field_AB0` node.
     /* 0x920 */ GfxCoord           field_920;

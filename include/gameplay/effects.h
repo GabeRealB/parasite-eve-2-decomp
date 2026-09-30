@@ -77,24 +77,32 @@ typedef struct _GpBandScratch {
 } GpBandScratch;
 STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
 
-/// Argument record for `func_800FDB18`, the id-dispatched effect spawner: the
-/// coordinate its effects are placed under, and the word they are spawned with.
+/// Argument record for `func_800FDB18`, the id-dispatched effect spawner.
 ///
-/// The spawner fills `coord` in on first use -- while it is NULL it takes the
-/// coordinate the call was handed, or the view coordinate if it was handed none
-/// -- so a record that outlives one call carries its coordinate into the next.
-/// Every effect the call spawns reads the two halves back as its own
-/// `Task::spawnArg1`, where what they mean is that effect's business; the
-/// effects that come in a series are spawned `spawnArgHi` times.
+/// `coord` is the coordinate the effects hang off, and it is borrowed: the
+/// record does not own it. While it is NULL the spawner copies in the
+/// coordinate the call passed, or the view coordinate when the call passed
+/// none, and a later call that passes no coordinate reuses it. Some effect
+/// ids place the effect on this stored coordinate even when the call also
+/// passes one.
 ///
-/// A record is either a global of the overlay that spawns the effects or a
-/// member of the work block the spawner keeps beside it.
+/// `spawnArgLo` and `spawnArgHi` are the signed halves of one spawn-argument
+/// word, the low half in bits 0..15. Effect ids that hand the word on pack it
+/// into the spawned effect's `Task::spawnArg1`, and that effect decides what
+/// the halves mean. Ids that spawn a series use `spawnArgHi` as the repeat
+/// count, one of them triples it, and do not pass `spawnArgLo`. Some ids
+/// pass only `spawnArgLo` and force the high half to 1. One id reads neither
+/// half. Callers store non-negative magnitudes in the low half and small
+/// positive counts in the high half.
+///
+/// A caller keeps the record as a global or as a member of the work block
+/// beside the spawner. One effect task also allocates its own into `Task::work`.
 typedef struct {
-    GfxCoord* coord;      // coordinate the effects are placed under, filled in on first use
-    s16       spawnArgLo; // low half of the spawned effect's `Task::spawnArg1`
-    s16       spawnArgHi; // high half; also the repeat count of an effect spawned in a series
-} GpEffArg;
-STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
+    GfxCoord* coord;      // borrowed coordinate the effects hang off; NULL until a call fills it
+    s16       spawnArgLo; // signed low half of the spawn-argument word; series spawns leave it unused
+    s16       spawnArgHi; // signed high half of that word, or the repeat count of a series spawn
+} EffectSpawnArg;
+STATIC_ASSERT_SIZEOF(EffectSpawnArg, 0x8);
 
 /// Per-effect work area. `Gp_SpawnEff` allocates one (`memCalloc(0x2C)`) for
 /// every effect it spawns and parks it in that task's `Task::spawnArg2`, which

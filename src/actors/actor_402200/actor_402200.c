@@ -149,7 +149,7 @@ extern u16 D_actor_402200_80153C18[];
 extern AnimationSet* D_actor_402200_8015415C[5];
 
 /// `func_800FDB18` argument record for the grab's finishing spark.
-extern GpEffArg D_actor_402200_80154170;
+extern EffectSpawnArg D_actor_402200_80154170;
 
 /// The two four-vertex index rows the trail's shaded quads take their corners
 /// from, into the scratch block's six-entry x / y runs.
@@ -1249,7 +1249,7 @@ AnimationSet* D_actor_402200_8015415C[5] = {
     &D_actor_402200_80153BC4,
 };
 
-GpEffArg D_actor_402200_80154170 = { NULL, 300, 1 };
+EffectSpawnArg D_actor_402200_80154170 = { NULL, 300, 1 };
 
 s16 D_actor_402200_80154178[2][4] = {
     { 0, 1, 2, 3 },

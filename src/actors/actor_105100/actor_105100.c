@@ -132,7 +132,7 @@ typedef struct Actor105100Work {
     /* 0x504 */ WorldCollisionContact field_504[1];
     /* 0x51C */ WorldCollisionBody    obj51C;
     /* 0x53C */ WorldCollisionContact field_53C[1];
-    /* 0x554 */ GpEffArg              field_554; // record the death effect is spawned with
+    /* 0x554 */ EffectSpawnArg        field_554; // record the death effect is spawned with
     /* 0x55C */ GpEffWork*            field_55C;
     /* 0x560 */ MATRIX                field_560;
     /* 0x580 */ s32                   field_580;

@@ -162,7 +162,7 @@ extern GpEvsCmd D_shelter_b3_garbage_incinerator_80186FB8[];
 
 /// Effect record handed to `func_800FDB18`: `coord` is the chosen part of the
 /// model and `spawnArgLo` the scale that goes with it.
-extern GpEffArg D_shelter_b3_garbage_incinerator_80186F90;
+extern EffectSpawnArg D_shelter_b3_garbage_incinerator_80186F90;
 
 /// Model parts the effect record is aimed at, as indices into the
 /// display object's coordinate array.
@@ -335,7 +335,7 @@ s16 D_shelter_b3_garbage_incinerator_80186F88[4] = {
     0,
 };
 
-GpEffArg D_shelter_b3_garbage_incinerator_80186F90 = { NULL, 0, 1 };
+EffectSpawnArg D_shelter_b3_garbage_incinerator_80186F90 = { NULL, 0, 1 };
 
 u16 D_shelter_b3_garbage_incinerator_80186F98[16] = {
     2,

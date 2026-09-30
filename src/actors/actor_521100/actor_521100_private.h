@@ -48,13 +48,13 @@ typedef struct Actor521100Work {
     /* 0x62C */ WorldCollisionContact rec62C[1];
     /// `func_800FDB18` argument record `func_actor_521100_80135230` refreshes
     /// on the effect frames of the burn-out sequence.
-    /* 0x644 */ GpEffArg eff;
-    /* 0x64C */ s16      field_64C; // the attach coordinate's translation, snapshotted each frame
-    /* 0x64E */ s16      field_64E;
-    /* 0x650 */ s16      field_650;
-    /* 0x652 */ byte     pad_652[2];
-    /* 0x654 */ Task*    field_654;
-    /* 0x658 */ byte     pad_658[0x20];
+    /* 0x644 */ EffectSpawnArg eff;
+    /* 0x64C */ s16            field_64C; // the attach coordinate's translation, snapshotted each frame
+    /* 0x64E */ s16            field_64E;
+    /* 0x650 */ s16            field_650;
+    /* 0x652 */ byte           pad_652[2];
+    /* 0x654 */ Task*          field_654;
+    /* 0x658 */ byte           pad_658[0x20];
     /// Residual twist of the coordinate at `field_8[3]`, two angles of the
     /// +/-(0x40..0xBF) range the hit body `func_actor_521100_801322F8` draws
     /// from `Gp_LcgState` on the frame it takes a hit. It writes them here and
@@ -220,7 +220,7 @@ extern AnimationSet* D_actor_521100_8015F73C[36];
 
 extern AnimationSet* D_actor_521100_8015F7CC[14];
 
-extern GpEffArg D_actor_521100_8015F804;
+extern EffectSpawnArg D_actor_521100_8015F804;
 
 extern s16 D_actor_521100_8015F894[20];
 

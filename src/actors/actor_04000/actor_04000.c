@@ -122,7 +122,7 @@ typedef struct Actor104000Work {
     /* 0x388 */ WorldCollisionBody    obj388;
     /* 0x3A8 */ WorldCollisionContact rec3A8;
     /* 0x3C0 */ WorldCollisionBody    obj3C0;
-    /* 0x3E0 */ GpEffArg              eff;           // `func_800FDB18` argument record
+    /* 0x3E0 */ EffectSpawnArg        eff;           // `func_800FDB18` argument record
     /* 0x3E8 */ SVECTOR               effOfs;        // offset handed to `func_800FDB18`; `pad` picks the coordinate
     /* 0x3F0 */ SVECTOR               origin;        // model position at spawn
     /* 0x3F8 */ SVECTOR               dir;           // facing direction captured on restart

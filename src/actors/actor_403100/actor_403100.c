@@ -3071,7 +3071,7 @@ TaskDesc D_actor_403100_8015560C[2] = {
 
 TaskDesc D_actor_403100_80155624 = { TASK_BODY_COORD, 96, func_actor_403100_8013E0A4, { .model = NULL } };
 
-GpEffArg D_actor_403100_80155630 = { NULL, 1536, 3 };
+EffectSpawnArg D_actor_403100_80155630 = { NULL, 1536, 3 };
 
 Actor403100RectEntry D_actor_403100_80155638[8] = {
     { -7100, 9200, 3600, 1900, 1 },
@@ -3188,7 +3188,7 @@ extern Actor403100Work* D_actor_403100_80155808;
 
 extern GpEnemy* D_actor_403100_8015580C;
 
-extern GpEffArg D_actor_403100_80155630;
+extern EffectSpawnArg D_actor_403100_80155630;
 
 extern Actor403100MessageEntry D_actor_403100_801556EC[4];
 

@@ -160,7 +160,7 @@ typedef struct Actor421600Work {
     /// Argument record `func_actor_421600_801350BC` fills for `func_800FDB18`:
     /// the model part coordinate `sc->pad` names, scale 0x100 and count 2.
     /// Same slot actor 00100 keeps at its own 0x890.
-    /* 0x890 */ GpEffArg field_890;
+    /* 0x890 */ EffectSpawnArg field_890;
     /// Hit position `func_actor_421600_801350BC` copies out of its scratch
     /// vector and hands to `func_800FDB18` as the effect rotation.
     /* 0x898 */ SVECTOR field_898;

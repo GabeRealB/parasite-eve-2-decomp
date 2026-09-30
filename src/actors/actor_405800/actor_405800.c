@@ -148,7 +148,7 @@ typedef struct Actor405800Work {
     /* 0x724 */ WorldCollisionBody    obj_724;    // collision node; flags bit 0x4000 cleared by func_actor_405800_801379F8
     /* 0x744 */ GpActorD4Rec          rec_744;    // obj_724 payload (flags kind 3)
     /* 0x75C */ WorldCollisionContact rec_75C[8]; // occupancy table behind rec_744
-    /* 0x81C */ GpEffArg              eff_81C;    // fourth model part's coordinate
+    /* 0x81C */ EffectSpawnArg        eff_81C;    // fourth model part's coordinate
     /* 0x824 */ Task*                 field_824;  // child task, killed on state exit
     /* 0x828 */ Task*                 field_828;  // child task, killed on state exit
     /* 0x82C */ byte                  pad_82C[4];

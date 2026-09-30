@@ -144,8 +144,8 @@ typedef struct Actor401800Work {
     /* 0x8B4 */ s32 field_8B4;
     /// `func_800FDB18` argument record: the coordinate handed to it plus the
     /// effect scale / count pair. Same slot `Actor01900Work.field_8B8` keeps.
-    /* 0x8B8 */ GpEffArg field_8B8;
-    /* 0x8C0 */ byte     pad_8C0[2];
+    /* 0x8B8 */ EffectSpawnArg field_8B8;
+    /* 0x8C0 */ byte           pad_8C0[2];
     /// Frame counter the aim-and-rescale body decrements once per frame while
     /// it is non-zero. Same role `Actor01900Work.field_C37` plays in the
     /// matching chase body.

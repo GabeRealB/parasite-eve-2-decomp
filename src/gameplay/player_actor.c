@@ -197,7 +197,7 @@ typedef struct _GpPadEvt {
 } GpPadEvt;
 STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
 
-extern GpEffArg D_80112C74;
+extern EffectSpawnArg D_80112C74;
 
 extern s32 D_80112C7C[];
 
@@ -930,8 +930,8 @@ u16 D_80112C6C[4] = {
     3140,
     1100,
 };
-GpEffArg D_80112C74    = { NULL, 512, 1 };
-s32      D_80112C7C[3] = {
+EffectSpawnArg D_80112C74    = { NULL, 512, 1 };
+s32            D_80112C7C[3] = {
     -0x1FF4FFFF,
     -0x1FF1FFFF,
     -0x1FEEFFFF,
@@ -1273,8 +1273,8 @@ TaskDesc D_80113340[2] = {
     { 0, 192, func_8010B3F8, { NULL } },
     { 0, 192, func_8010B520, { NULL } },
 };
-GpEffArg D_80113358       = { NULL, 512, 3 };
-u16      Gp_AllyIdBase[4] = {
+EffectSpawnArg D_80113358       = { NULL, 512, 3 };
+u16            Gp_AllyIdBase[4] = {
     1,
     6,
     7,
@@ -3459,7 +3459,7 @@ void Gp_EffSprTaskA7(Task* arg0)
     }
 }
 
-void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, GpEffArg* arg3)
+void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3)
 {
     GameActor* actor;
     s32        i;
@@ -9044,15 +9044,15 @@ static inline s32 _gpCapLevel(s32 level)
 
 static void func_80109844(Task* arg0)
 {
-    u8*        head;
-    SVECTOR*   vec;
-    GameActor* inner;
-    GameActor* inner2;
-    GpEffArg*  params;
-    GfxCoord*  coord;
-    s32        idx;
-    s32        temp;
-    s32        val;
+    u8*             head;
+    SVECTOR*        vec;
+    GameActor*      inner;
+    GameActor*      inner2;
+    EffectSpawnArg* params;
+    GfxCoord*       coord;
+    s32             idx;
+    s32             temp;
+    s32             val;
 
     inner                    = arg0->work;
     temp                     = (u16)inner->field_96E / 12;
@@ -9114,11 +9114,11 @@ static void func_80109844(Task* arg0)
 
 static void func_80109A1C(Task* arg0)
 {
-    GameActor* inner;
-    GpEffArg*  params;
-    GfxCoord*  coords;
-    s32        idx;
-    s32        temp;
+    GameActor*      inner;
+    EffectSpawnArg* params;
+    GfxCoord*       coords;
+    s32             idx;
+    s32             temp;
 
     inner = arg0->work;
     switch (inner->field_95E) {

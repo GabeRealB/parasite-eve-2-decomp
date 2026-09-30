@@ -77,7 +77,7 @@ typedef struct Actor02400Work {
     /* 0x060 */ WorldCollisionContact rec60[4];
     /* 0x0C0 */ WorldCollisionBody    objC0;
     /* 0x0E0 */ WorldCollisionContact recE0;
-    /* 0x0F8 */ GpEffArg              effArg;
+    /* 0x0F8 */ EffectSpawnArg        effArg;
     /* 0x100 */ MATRIX                field_100;
     /* 0x120 */ s16                   field_120;
     /* 0x122 */ s16                   field_122;

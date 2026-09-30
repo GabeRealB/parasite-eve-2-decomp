@@ -129,7 +129,7 @@ typedef struct Actor00100Work {
     /* 0x846 */ byte                   pad_846[6];
     /* 0x84C */ u32                    field_84C;
     /* 0x850 */ byte                   pad_850[0x40];
-    /* 0x890 */ GpEffArg               field_890;
+    /* 0x890 */ EffectSpawnArg         field_890;
     /* 0x898 */ SVECTOR                field_898;
     /* 0x8A0 */ byte                   pad_8A0[8];
     /* 0x8A8 */ SVECTOR                field_8A8;
@@ -354,8 +354,8 @@ typedef struct Actor00100DamageWork {
     u8  pad_846[0x4A];
     /// Argument record `Actor00100_Fn03340` fills for `func_800FDB18`: the
     /// model part coordinate `sc->pad` names, scale 0x100 and count 2.
-    GpEffArg field_890;
-    u8       pad_898[0x8];
+    EffectSpawnArg field_890;
+    u8             pad_898[0x8];
     /// Hit position `Actor00100_Fn03340` copies out of its scratch vector and
     /// hands to `func_800FDB18` as the effect rotation.
     SVECTOR               field_8A0;

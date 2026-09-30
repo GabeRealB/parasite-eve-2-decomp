@@ -63,7 +63,7 @@ typedef struct Actor02500Work {
     /* 0x22C */ WorldCollisionContact field_22C[5];
     /* 0x2A4 */ WorldCollisionBody    obj2A4;
     /* 0x2C4 */ WorldCollisionContact field_2C4[1];
-    /* 0x2DC */ GpEffArg              field_2DC; // record the hit's effect is spawned with
+    /* 0x2DC */ EffectSpawnArg        field_2DC; // record the hit's effect is spawned with
     /* 0x2E4 */ MATRIX                field_2E4;
     /* 0x304 */ s32                   field_304;
     /* 0x308 */ s32                   field_308;

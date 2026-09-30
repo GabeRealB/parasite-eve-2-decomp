@@ -24203,7 +24203,7 @@ stays as `%hi` rather than being completed to the full address (`addiu s0, s0, %
 ```c
 s32*           raw;
 GfxCoord* coords;
-GpEffArg*      params;
+EffectSpawnArg*      params;
 
 params          = &D_80113358;          /* before the call — pins $s0 */
 slot            = gameGetPtrSlot(3);
@@ -97230,7 +97230,7 @@ here `Gp_GetIdParam1(0x1001)` next to `func_800FDB18`, or `Gp_PackObjPair((GpObj
 with message `0x3FF`. Read that sibling's *source*, not just its asm: it also
 carried the statement order the next paragraph needed.
 
-The neighbouring `field_8B8` block (a `GpEffArg` the effect call fills) needed
+The neighbouring `field_8B8` block (an `EffectSpawnArg` the effect call fills) needed
 that order rather than a different register: with the pointer store written
 *first*, `work->field_8B8.coord = index->field_2C->field_8 + 5;` before the two
 constant halfword stores, sched1 issues the `field_8` load chain early, the
@@ -129211,7 +129211,7 @@ Inputs: `h2.c` (barrier before `x = 1`) 95.674%, `h3.c` (between `x = 1` and the
 
 ## Assignment order inside a straight-line block is the scheduler's load hoisting (func_actor_311500_80162F28, 2026-09-17)
 
-Case 0 fills an `SVECTOR` and a `GpEffArg` and passes both, plus
+Case 0 fills an `SVECTOR` and an `EffectSpawnArg` and passes both, plus
 `&index->field_2C->field_8[2]`, to `func_800FDB18`. The target's block opens with
 the three loads that feed those expressions and only then runs the five constant
 stores; writing the stores first (the natural reading order) left them first and
@@ -137205,7 +137205,7 @@ Two preplanned experiments separated the causes:
   node stores acquire anti-dependencies on it. The value returns to v1 with the
   address in v0; the node and record addresses remain a1/s0. Score: 100.000%.
 - `base_3`: replace the scratch's flat work layout with the overlay's normal
-  `WorldCollisionBody`, `GpEffArg` and animation members. Assembly remains identical at 100%.
+  `WorldCollisionBody`, `EffectSpawnArg` and animation members. Assembly remains identical at 100%.
 
 This is `sched.c:true_dependence`/`anti_dependence`'s fixed-scalar versus
 varying-structure exception. An array access carries `MEM_IN_STRUCT_P`, so the

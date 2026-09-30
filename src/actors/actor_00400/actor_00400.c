@@ -187,7 +187,7 @@ typedef struct Actor100400Work {
     /* 0x57C */ MATRIX                field_57C;
     /* 0x59C */ MATRIX                field_59C;
     /* 0x5BC */ MATRIX                field_5BC;
-    /* 0x5DC */ GpEffArg              field_5DC;
+    /* 0x5DC */ EffectSpawnArg        field_5DC;
     /* 0x5E4 */ SVECTOR               field_5E4;
     /* 0x5EC */ SVECTOR               field_5EC;
     /* 0x5F4 */ SVECTOR               field_5F4;

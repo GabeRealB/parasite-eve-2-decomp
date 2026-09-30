@@ -85,7 +85,7 @@ typedef struct Actor01200Work {
     /* 0x198 */ u16                   field_198;
     /* 0x19A */ u16                   field_19A;
     /* 0x19C */ byte                  pad_19C[0xC];
-    /* 0x1A8 */ GpEffArg              eff1A8; // `func_800FDB18`'s argument record
+    /* 0x1A8 */ EffectSpawnArg        eff1A8; // `func_800FDB18`'s argument record
     /* 0x1B0 */ SVECTOR               effOfs; // offset handed to `func_800FDB18`; `pad` picks the coordinate
     /* 0x1B8 */ WorldCollisionContact rootContacts[5];
     /* 0x230 */ WorldCollisionBody    obj230;

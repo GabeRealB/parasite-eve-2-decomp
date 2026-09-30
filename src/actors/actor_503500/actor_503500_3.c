@@ -66,7 +66,7 @@ typedef struct Actor503500Work160 {
     MATRIX                color;
     Actor503500Slot40     slot40;
     WorldCollisionContact rec60[8];
-    GpEffArg              field_120;
+    EffectSpawnArg        field_120;
     Actor503500FixVec     rot;
     Actor503500FixVec     vel;
     Actor503500FixVec     pos;
@@ -94,7 +94,7 @@ typedef struct Actor503500Work2EC {
     /* 0x040 */ MATRIX                mats[9];
     /* 0x160 */ WorldCollisionBody    obj;
     /* 0x180 */ WorldCollisionContact rec[8];    // Gp_InitRec18Table(rec, 8, 0)
-    /* 0x240 */ GpEffArg              field_240; // record the 0x2EC block's effects are spawned with
+    /* 0x240 */ EffectSpawnArg        field_240; // record the 0x2EC block's effects are spawned with
                                                  /// Cleared by `func_actor_503500_801395BC` once `field_2E2` has faded
                                                  /// to 0; the same offset as the shared view's `obj240.field_8`.
     /* 0x248 */ void* field_248;

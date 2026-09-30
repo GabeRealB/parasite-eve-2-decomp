@@ -62,7 +62,7 @@ typedef struct Actor103700Work {
     /* 0x184 */ MATRIX                lightMtx;
     /* 0x1A4 */ WorldCollisionBody    obj;
     /* 0x1C4 */ WorldCollisionContact records[4];
-    /* 0x224 */ GpEffArg              field_224; // hit-spark record for `func_800FDB18`
+    /* 0x224 */ EffectSpawnArg        field_224; // hit-spark record for `func_800FDB18`
     /* 0x22C */ SVECTOR               field_22C;
     /* 0x234 */ SVECTOR               field_234;
     /* 0x23C */ SVECTOR               field_23C;

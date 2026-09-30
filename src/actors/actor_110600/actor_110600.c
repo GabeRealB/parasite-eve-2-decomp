@@ -430,7 +430,7 @@ extern Actor110600Storage8688 D_actor_110600_80148688;
 
 /// Argument record `func_actor_110600_80135E20` fills for `func_800FDB18`:
 /// model part 1's coordinate, scale 0x100 and count 3.
-extern GpEffArg D_actor_110600_80148698;
+extern EffectSpawnArg D_actor_110600_80148698;
 
 /// `Task::exitCallback` installed by the spawn handler: bump the two helper
 /// tasks' `state` if present, unlink the three display nodes, drop the enemy's
@@ -1128,7 +1128,7 @@ Actor110600Storage8688 D_actor_110600_80148688 = { 0, { 0, 0, 0, 0, 0, 0 } };
 
 SVECTOR D_actor_110600_80148690 = { 0, 0, 0, 0 };
 
-GpEffArg D_actor_110600_80148698 = { NULL, 0, 0 };
+EffectSpawnArg D_actor_110600_80148698 = { NULL, 0, 0 };
 
 /// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
 extern SVECTOR D_actor_110600_80148690;
@@ -3514,8 +3514,8 @@ static void func_actor_110600_801372CC(Task* arg0)
     Actor110600Work* work;
     GpEnemy*         enemy;
     SVECTOR          vec;
-    GpEffArg*        d;
-    GpEffArg*        tailEffect;
+    EffectSpawnArg*  d;
+    EffectSpawnArg*  tailEffect;
     GfxCoord*        effectCoord;
     GfxCoord*        effectCoord2;
     GfxCoord*        effectCoord3;

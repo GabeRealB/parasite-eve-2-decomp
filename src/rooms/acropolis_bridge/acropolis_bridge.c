@@ -275,7 +275,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeModelWork, 0x4);
 /// -- whose `flags` bit 15 the handlers toggle to enable one and disable the
 /// other, and `recs` / `hitRecs` are their collision record tables.
 /// `lightMtx` / `colorMtx` are the matrices the model's `TmdObject` is pointed
-/// at, `field_1F0` is the `GpEffArg` the death effect is spawned with and
+/// at, `field_1F0` is the `EffectSpawnArg` the death effect is spawned with and
 /// `field_290` the death-sequence frame counter.
 typedef struct AcropolisBridgeEnemyWork {
     /* 0x000 */ s16                   field_0;
@@ -301,7 +301,7 @@ typedef struct AcropolisBridgeEnemyWork {
     /* 0x198 */ WorldCollisionContact hitRecs[1];
     /* 0x1B0 */ MATRIX                lightMtx;
     /* 0x1D0 */ MATRIX                colorMtx;
-    /* 0x1F0 */ GpEffArg              field_1F0;
+    /* 0x1F0 */ EffectSpawnArg        field_1F0;
     /* 0x1F8 */ s16                   field_1F8;
     /* 0x1FA */ s16                   field_1FA;
     /* 0x1FC */ OverlayWalker         walker;

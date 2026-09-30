@@ -45,7 +45,7 @@ void Gp_PlayObjSfx(GfxCoord* coord, s32 sfx, s32 arg2);
 
 void Gp_PulseState1C80(void);
 
-void func_800FDB18(s32 arg0, struct GfxCoord* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_800FDB18(s32 arg0, struct GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3);
 
 s32 func_801011D0(struct GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* arg3);
 
