@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_pavilion.
-D_neo_ark_pavilion_801838A8 = 0x801838A8; // size:0xC defined:True
+RoomFx_DiscShades = 0x801838A8; // size:0xC defined:True
 D_neo_ark_pavilion_80183864 = 0x80183864; // size:0xC defined:True
 D_neo_ark_pavilion_80183870 = 0x80183870; // size:0x28 defined:True
 D_neo_ark_pavilion_801838B4 = 0x801838B4; // size:0x20 defined:True
@@ -10,7 +10,7 @@ D_neo_ark_pavilion_801838F4 = 0x801838F4; // size:0x4 defined:True
 D_neo_ark_pavilion_8018384C = 0x8018384C; // size:0xC defined:True
 D_neo_ark_pavilion_80183858 = 0x80183858; // size:0xC defined:True
 D_neo_ark_pavilion_801838F8 = 0x801838F8; // size:0xA8 defined:True
-D_neo_ark_pavilion_80183898 = 0x80183898; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80183898; // size:0x10 defined:True
 D_neo_ark_pavilion_801839A0 = 0x801839A0; // size:0x4 defined:True
 D_neo_ark_pavilion_801839A4 = 0x801839A4; // size:0x40 defined:True
 D_neo_ark_pavilion_801839E4 = 0x801839E4; // size:0x40 defined:True
@@ -88,3 +88,12 @@ func_neo_ark_pavilion_80181C44 = 0x80181C44; // type:func
 func_neo_ark_pavilion_8018219C = 0x8018219C; // type:func
 
 func_neo_ark_pavilion_80182DFC = 0x80182DFC; // type:func
+RoomFx_DrawFlashRing = 0x8017FF54; // type:func
+RoomFx_DrawFlashDisc = 0x80180380; // type:func
+RoomFx_DrawTwinTrail = 0x80180C04; // type:func
+RoomFx_DrawBurstStar = 0x80181284; // type:func
+RoomFx_DrawFlyingSpark = 0x801823C0; // type:func
+RoomFx_DrawFlyingRing = 0x80182644; // type:func
+RoomFx_DrawFlyingDisc = 0x80182A68; // type:func
+RoomFx_DrawBurst2Glow = 0x80182FA8; // type:func
+RoomFx_DrawGround2Quad = 0x801834D4; // type:func
