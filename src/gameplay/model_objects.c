@@ -33,17 +33,17 @@ static TmdListNode _gModelObjectSavedDisp2dList = { NULL, NULL };
 /// Temporary draw task active while the previous body lists are stashed.
 static Task* _gModelObjectTemporaryDrawTask = NULL;
 
-static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2);
+static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2);
 
 static __inline__ void _gpRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
-static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+static u32* func_8009A804(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
-static u32* func_8009AA5C(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
-static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
-static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2)
+static inline u32* _gpPreXformEnvMapLit(TmdStreamWorkspace* ws, u32* arg2)
 {
     s32  prev;
     s32  count;
@@ -66,8 +66,8 @@ static inline u32* _gpPreXformEnvMapLit(TmdScratchModelBlock* ws, u32* arg2)
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
@@ -452,7 +452,7 @@ void Gp_DrawDisp2dOt(Task* unused)
     Gp_DrawActorTmdActive(&Gpu_OtBuffers[gDisplayState.drawBuffer]);
 }
 
-u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F4*      poly;
     s32*          opz;
@@ -466,7 +466,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     poly = (POLY_F4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
@@ -517,7 +517,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F3*      poly;
     s32*          opz;
@@ -531,7 +531,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     poly = (POLY_F3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
@@ -570,7 +570,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -590,7 +590,7 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         len      = 9;
         code     = 0x34;
         ds       = &gDisplayState;
@@ -658,7 +658,7 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
     return stream;
 }
 
-u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -678,7 +678,7 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         len      = 12;
         code     = 0x3C;
         ds       = &gDisplayState;
@@ -766,7 +766,7 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
     return stream;
 }
 
-u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     POLY_GT3*     xy;
@@ -783,7 +783,7 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     poly = (POLY_GT3*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         len      = 9;
         code     = 0x34;
         ds       = &gDisplayState;
@@ -830,7 +830,7 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     return stream;
 }
 
-u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4*     poly;
     POLY_GT4*     xy;
@@ -847,7 +847,7 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
     poly = (POLY_GT4*)ws->preXformWrite;
     if (ws->elemCount-- > 0) {
         opz      = &ws->gteResult;
-        clipMask = 0x80000000;
+        clipMask = TMD_VERTEX_DEPTH_INVALID;
         len      = 12;
         code     = 0x3C;
         ds       = &gDisplayState;
@@ -910,7 +910,7 @@ const CVECTOR gGpColorGrey   = { 0x80, 0x80, 0x80, 0 };
 const CVECTOR Gp_ColorOrange = { 0xFF, 0xA0, 0x60, 0 };
 const CVECTOR gGpColorWhite  = { 0xFF, 0xFF, 0xFF, 0 };
 
-static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+static u32* func_8009A804(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32     prev;
     s32     count;
@@ -937,8 +937,8 @@ static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
@@ -971,7 +971,7 @@ static u32* func_8009A804(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-static u32* func_8009AA5C(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     CVECTOR col;
 
@@ -980,7 +980,7 @@ static u32* func_8009AA5C(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return _gpPreXformEnvMapLit(ws, arg2);
 }
 
-static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+static u32* func_8009AC58(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
     s32      count;
@@ -1013,8 +1013,8 @@ static u32* func_8009AC58(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }

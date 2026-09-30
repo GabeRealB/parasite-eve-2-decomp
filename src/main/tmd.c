@@ -40,7 +40,7 @@
 /// Handlers may change scratch cursors and counters and must use only the fields
 /// initialized by their pass. Resolution stores draw callbacks in the stream;
 /// packet construction selects its callbacks directly from the opcode.
-typedef u32* (*_TmdModelStreamHandler)(TmdScratchModelBlock* scratch, s32 objectFlags, u32* elements);
+typedef u32* (*_TmdModelStreamHandler)(TmdStreamWorkspace* scratch, s32 objectFlags, u32* elements);
 
 /// A model-stream word is normally serialized data. Resolution writes a draw
 /// callback into the second word of each command, which Tmd_DispatchStream calls.
@@ -60,6 +60,12 @@ enum {
     TMD_BUFFER_HALF_COUNT       = 2  // Primitive buffers alternate between two halves
 };
 
+/// Number of cached vertex depths in the draw pass's CPU-stack table.
+enum { TMD_DRAW_VERTEX_DEPTH_COUNT = 1024 };
+
+/// Bit position of the row coordinate in an encoded GPU CLUT word.
+enum { TMD_ENCODED_CLUT_ROW_SHIFT = 6 };
+
 static const TaskFuncTable3 Tmd_TaskStates;
 
 static void Tmd_InitSourceStream(TmdSource* src);
@@ -77,25 +83,25 @@ static void Tmd_FlagAllNodes(Task* task);
 /// Releases the buffer of every attached model.
 static void Tmd_FreeNodeBuffers(Task* task);
 
-u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136224(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136500(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8013685C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80136C00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136C00(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_8013700C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8013700C(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80137300(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80137300(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801375F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801375F8(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 static const TaskFuncTable3 Tmd_TaskStates = { {
     Tmd_FlagAllNodes,
@@ -336,7 +342,7 @@ static void Tmd_InitSourceStream(TmdSource* src)
 
 void tmdProcessStream(TmdObject* obj)
 {
-    TmdScratchModelBlock*  ws;
+    TmdStreamWorkspace*    ws;
     TmdSource*             src;
     u32*                   stream;
     u32                    id;
@@ -344,17 +350,17 @@ void tmdProcessStream(TmdObject* obj)
     s32                    flag;
     void*                  buf;
     u32                    hi;
-    TmdScratchModelBlock*  head;
-    TmdScratchModelBlock*  tmp;
+    TmdStreamWorkspace*    head;
+    TmdStreamWorkspace*    tmp;
 
-    flag                               = 0;
-    src                                = obj->source;
-    tmp                                = SCRATCH_HEAD(TmdScratchModelBlock);
-    stream                             = src->stream;
-    hi                                 = GAME_LOCATION_WORD(gGameSession->at4.loc);
-    head                               = tmp - 1;
-    hi                                &= GAME_LOCATION_STAGE_AREA_MASK;
-    SCRATCH_HEAD(TmdScratchModelBlock) = head;
+    flag                             = 0;
+    src                              = obj->source;
+    tmp                              = SCRATCH_HEAD(TmdStreamWorkspace);
+    stream                           = src->stream;
+    hi                               = GAME_LOCATION_WORD(gGameSession->at4.loc);
+    head                             = tmp - 1;
+    hi                              &= GAME_LOCATION_STAGE_AREA_MASK;
+    SCRATCH_HEAD(TmdStreamWorkspace) = head;
     if ((hi == GAME_LOCATION_KEY(2, 15, 0, 0)) || (hi == GAME_LOCATION_KEY(2, 16, 0, 0))) {
         flag = 1;
     }
@@ -366,13 +372,13 @@ void tmdProcessStream(TmdObject* obj)
     if (obj->nextBufferHalf != 0) {
         ws->primWrite = (u8*)buf + obj->bufferHalfBytes;
     }
-    ws->preXformWrite    = ws->primWrite;
-    ws->primWrite        = ws->primWrite + src->preXformRegionBytes;
-    obj->nextBufferHalf ^= 1;
-    ws->verts            = obj->source->verts;
-    ws->normals          = obj->source->normals;
-    ws->tpage            = obj->texturePageOffset;
-    ws->clut             = obj->clutRowOffset << 6;
+    ws->preXformWrite     = ws->primWrite;
+    ws->primWrite         = ws->primWrite + src->preXformRegionBytes;
+    obj->nextBufferHalf  ^= 1;
+    ws->verts             = obj->source->verts;
+    ws->normals           = obj->source->normals;
+    ws->texturePageOffset = obj->texturePageOffset;
+    ws->encodedClutOffset = obj->clutRowOffset << TMD_ENCODED_CLUT_ROW_SHIFT;
     goto read_id;
 
     for (;;) {
@@ -515,7 +521,7 @@ void tmdProcessStream(TmdObject* obj)
         }
     }
 done:
-    SCRATCH_POP(TmdScratchModelBlock);
+    SCRATCH_POP(TmdStreamWorkspace);
 }
 
 TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
@@ -573,7 +579,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 bufferFlags)
 
 static void Tmd_SetupDraw(TmdObject* obj)
 {
-    u8                   buf[0x1000];
+    s32                  vertexDepths[TMD_DRAW_VERTEX_DEPTH_COUNT];
     TmdScratchDrawBlock* tmp;
     TmdScratchDrawBlock* ws;
     void*                stream;
@@ -583,58 +589,59 @@ static void Tmd_SetupDraw(TmdObject* obj)
     u_long*              ot;
     TmdSource*           p;
     s32                  e;
-    void*                b;
+    s32*                 depthTable;
     SVECTOR*             normals;
 
     {
         TmdSource* p;
 
-        p                = obj->source;
-        tmp              = SCRATCH_HEAD(TmdScratchDrawBlock);
-        stream           = p->stream;
-        disp             = gDisplayState.otDepthShift;
-        ws               = tmp - 1;
-        ws->obj          = obj;
-        ws->otDepthShift = disp;
+        p                       = obj->source;
+        tmp                     = SCRATCH_HEAD(TmdScratchDrawBlock);
+        stream                  = p->stream;
+        disp                    = gDisplayState.otDepthShift;
+        ws                      = tmp - 1;
+        ws->stream.obj          = obj;
+        ws->stream.otDepthShift = disp;
     }
     bufptr                            = obj->buffer;
-    ws->primWrite                     = bufptr;
+    ws->stream.primWrite              = bufptr;
     SCRATCH_HEAD(TmdScratchDrawBlock) = ws;
     if (obj->nextBufferHalf != 0) {
-        ws->primWrite = (u8*)bufptr + obj->bufferHalfBytes;
+        ws->stream.primWrite = (u8*)bufptr + obj->bufferHalfBytes;
     }
-    ws->preXformWrite    = ws->primWrite;
-    ws->primWrite        = ws->primWrite + obj->source->preXformRegionBytes;
-    obj->nextBufferHalf ^= 1;
-    ws->verts            = obj->source->verts;
-    ot                   = gGpuCurrentOt;
-    p                    = obj->source;
-    normals              = p->normals;
-    ws->ot               = ot;
-    ws->normals          = normals;
-    e                    = obj->otOffset;
-    b                    = buf;
-    ws->szTable          = b;
-    ws->ot               = ot + e;
+    ws->stream.preXformWrite = ws->stream.primWrite;
+    ws->stream.primWrite     = ws->stream.primWrite + obj->source->preXformRegionBytes;
+    obj->nextBufferHalf     ^= 1;
+    ws->stream.verts         = obj->source->verts;
+    ot                       = gGpuCurrentOt;
+    p                        = obj->source;
+    normals                  = p->normals;
+    ws->stream.ot            = ot;
+    ws->stream.normals       = normals;
+    e                        = obj->otOffset;
+    depthTable               = vertexDepths;
+    ws->stream.szTable       = depthTable;
+    ws->stream.ot            = ot + e;
 
     gte_SetColorMatrix(obj->colorMtx);
     gte_ldbkdir(obj->colorMtx->t[0], obj->colorMtx->t[1], obj->colorMtx->t[2]);
 
     flags = obj->flags;
-    gte_TransposeMatrix(&gGfxViewCoord.workm, &ws->mat);
+    // Remove the view rotation before combining the light directions with each part.
+    gte_TransposeMatrix(&gGfxViewCoord.workm, &ws->stream.viewLightRotation);
 
     gte_SetRotMatrix(obj->lightMtx);
-    gte_ldclmv(&ws->mat.m[0][0]);
+    gte_ldclmv(&ws->stream.viewLightRotation[0][0]);
     gte_rtir();
-    gte_stclmv(&ws->mat.m[0][0]);
-    gte_ldclmv(&ws->mat.m[0][1]);
+    gte_stclmv(&ws->stream.viewLightRotation[0][0]);
+    gte_ldclmv(&ws->stream.viewLightRotation[0][1]);
     gte_rtir();
-    gte_stclmv(&ws->mat.m[0][1]);
-    gte_ldclmv(&ws->mat.m[0][2]);
+    gte_stclmv(&ws->stream.viewLightRotation[0][1]);
+    gte_ldclmv(&ws->stream.viewLightRotation[0][2]);
     gte_rtir();
-    gte_stclmv(&ws->mat.m[0][2]);
+    gte_stclmv(&ws->stream.viewLightRotation[0][2]);
 
-    Tmd_SetupGteMatrices(ws, flags, stream, obj);
+    Tmd_SetupGteMatrices(&ws->stream, flags, stream, obj);
 
     SCRATCH_POP(TmdScratchDrawBlock);
 }

@@ -76,9 +76,9 @@ extern CVECTOR D_80114BA8;
 /// Unreferenced nonzero word before the stored BSS.
 extern u32 D_80114BAC;
 
-static u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32* func_8009FCDC(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-static u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+static u32* func_8009FD28(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
 void func_807150F8(s32 arg0);
 
@@ -202,7 +202,7 @@ u32 D_80114BAC = 0x10FF2220;
     : "r"(r1), "r"(r2)                           \
     : "$12", "$13", "$14", "$15", "$16", "memory")
 
-u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     s32      prev;
     s32      count;
@@ -233,8 +233,8 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)arg2 >> 3] = ws->gteResult;
             }
@@ -305,7 +305,7 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     s32     prev;
     s32     count;
@@ -342,8 +342,8 @@ u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* str
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
             }
@@ -368,7 +368,7 @@ u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* str
     return stream;
 }
 
-u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+u32* func_8009B500(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     POLY_GT3* poly;
     u16*      rec;
@@ -589,7 +589,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -667,7 +667,7 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
     return stream;
 }
 
-u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -699,7 +699,7 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
     col2.r = inv;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         do {
             rec   = (u16*)stream;
@@ -768,7 +768,7 @@ u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
     return stream;
 }
 
-u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+u32* func_8009C414(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
 {
     POLY_GT4* poly;
     s32*      opz;
@@ -802,7 +802,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
             gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
             gte_rtpt();
             gte_stflg(flg);
-            if ((ws->gteFlag & 0x80000000) == 0) {
+            if ((ws->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
                 gte_nclip();
                 gte_stopz(opz);
                 gte_stsxy3_gt4(&poly[0]);
@@ -810,7 +810,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
                 gte_ldv0((u8*)ws->verts + (rec[3] & 0xFFF8));
                 gte_rtps();
                 gte_stflg(flg);
-                if ((ws->gteFlag & 0x80000000) == 0) {
+                if ((ws->gteFlag & TMD_GTE_ERROR_FLAG) == 0) {
                     gte_nclip();
                     gte_stsxy2(&poly[0].x3);
                     gte_stsxy2(&poly[1].x3);
@@ -1079,7 +1079,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -1126,7 +1126,7 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     return stream;
 }
 
-u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -1140,7 +1140,7 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1192,14 +1192,14 @@ u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
     return stream;
 }
 
-u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009D388(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_FT3*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_FT3*           poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_FT3*)ws->primWrite;
@@ -1232,22 +1232,22 @@ u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009D518(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_FT4*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_FT4*           poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_FT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1288,22 +1288,22 @@ u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009D718(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_GT4*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_GT4*           poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_GT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1342,22 +1342,22 @@ u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009D900(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_F4*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_F4*            poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_F4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1398,22 +1398,22 @@ u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009DB00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_F3*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_F3*            poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_F3*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1445,14 +1445,14 @@ u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009DCB8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_FT3*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_FT3*           poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_FT3*)ws->primWrite;
@@ -1485,22 +1485,22 @@ u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009DE48(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_FT4*             poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_FT4*           poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_FT4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1541,14 +1541,14 @@ u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009E048(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_G3*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_G3*            poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_G3*)ws->primWrite;
@@ -1593,14 +1593,14 @@ u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009E274(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_G3*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_G3*            poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_G3*)ws->primWrite;
@@ -1645,22 +1645,22 @@ u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+u32* func_8009E4A0(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
-    TmdScratchModelBlock* ws;
-    POLY_G4*              poly;
-    s32*                  opz;
-    DisplayState*         ds;
-    u32                   clipMask;
-    s32*                  flg;
-    u16*                  rec;
-    u8*                   verts;
+    TmdStreamWorkspace* ws;
+    POLY_G4*            poly;
+    s32*                opz;
+    DisplayState*       ds;
+    u32                 clipMask;
+    s32*                flg;
+    u16*                rec;
+    u8*                 verts;
 
     ws   = arg0;
     poly = (POLY_G4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1717,7 +1717,7 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_G4*      poly;
     s32*          opz;
@@ -1730,7 +1730,7 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags
     poly = (POLY_G4*)ws->primWrite;
     if (ws->elemCount-- > 0) {
         flg      = &ws->gteFlag;
-        clipMask = 0x80000000;
+        clipMask = TMD_GTE_ERROR_FLAG;
         opz      = &ws->gteResult;
         ds       = &gDisplayState;
         do {
@@ -1807,7 +1807,7 @@ void func_8009EA50(s32 arg0)
     D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = temp;
 }
 
-u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     s32  prev;
     s32  count;
@@ -1828,8 +1828,8 @@ u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
                 gte_ldv0((u8*)ws->verts + (idx & 0xFFF8));
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[*(u16*)stream >> 3] = ws->gteResult;
             }
@@ -1841,7 +1841,7 @@ u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -1851,8 +1851,8 @@ u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -1861,7 +1861,7 @@ u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -1872,8 +1872,8 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
             *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -1882,7 +1882,7 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F4* poly;
     s32      color;
@@ -1902,7 +1902,7 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F3* poly;
     s32      color;
@@ -1922,7 +1922,7 @@ u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -1932,8 +1932,8 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
             *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -1942,7 +1942,7 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -1953,8 +1953,8 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
             *(u16*)&poly->u2                    = (u16)stream[6];
             *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -1963,7 +1963,7 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -1973,8 +1973,8 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[4];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
             *(u16*)&poly->u2                    = (u16)stream[6];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -1983,7 +1983,7 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -1993,8 +1993,8 @@ u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[6];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[7];
             *(u16*)&poly->u2                    = (u16)stream[8];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2003,7 +2003,7 @@ u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
     return stream;
 }
 
-u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -2014,8 +2014,8 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[6];
             *(u16*)&poly->u2                    = (u16)stream[7];
             *(u16*)&poly->u3                    = ((u16*)&stream[7])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2024,7 +2024,7 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -2035,8 +2035,8 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[9];
             *(u16*)&poly->u2                    = (u16)stream[10];
             *(u16*)&poly->u3                    = ((u16*)&stream[10])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2045,7 +2045,7 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
     return stream;
 }
 
-u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -2055,8 +2055,8 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2065,7 +2065,7 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -2076,8 +2076,8 @@ u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
             *(u16*)&poly->u2                    = (u16)stream[5];
             *(u16*)&poly->u3                    = ((u16*)&stream[5])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2086,7 +2086,7 @@ u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
     s32       color;
@@ -2105,8 +2105,8 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[7];
             *(u16*)&poly->u2                    = (u16)stream[8];
             *(u16*)&poly->u3                    = ((u16*)&stream[8])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2115,7 +2115,7 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimFt3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_FT3* poly;
 
@@ -2125,8 +2125,8 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2135,7 +2135,7 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_FT4* poly;
 
@@ -2146,8 +2146,8 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
             *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2156,7 +2156,7 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F4* poly;
     s32      color;
@@ -2176,7 +2176,7 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_F3* poly;
     s32      color;
@@ -2196,7 +2196,7 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
     s32       tpage;
@@ -2219,8 +2219,8 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
             *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2229,7 +2229,7 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3Base(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -2240,8 +2240,8 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[3];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[4];
             *(u16*)&poly->u2                    = (u16)stream[5];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2250,7 +2250,7 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
     s32       tpage;
@@ -2274,8 +2274,8 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
             *(u16*)&poly->u2                    = (u16)stream[6];
             *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2284,7 +2284,7 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
     return stream;
 }
 
-u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4Base(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -2296,8 +2296,8 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[5];
             *(u16*)&poly->u2                    = (u16)stream[6];
             *(u16*)&poly->u3                    = ((u16*)&stream[6])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2306,7 +2306,7 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
 
@@ -2319,8 +2319,8 @@ u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32*
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2329,7 +2329,7 @@ u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32*
     return stream;
 }
 
-u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
 
@@ -2343,8 +2343,8 @@ u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stre
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
             *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2353,7 +2353,7 @@ u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stre
     return stream;
 }
 
-u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT3* poly;
     s32       tpage;
@@ -2375,8 +2375,8 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             MODEL_LIGHTING_UV0_CLUT_WORD(poly)  = stream[2];
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2385,7 +2385,7 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
     return stream;
 }
 
-u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     POLY_GT4* poly;
     s32       tpage;
@@ -2409,8 +2409,8 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
             MODEL_LIGHTING_UV1_TPAGE_WORD(poly) = stream[3];
             *(u16*)&poly->u2                    = (u16)stream[4];
             *(u16*)&poly->u3                    = ((u16*)&stream[4])[1];
-            poly->tpage                        += ws->tpage;
-            poly->clut                         += ws->clut;
+            poly->tpage                        += ws->texturePageOffset;
+            poly->clut                         += ws->encodedClutOffset;
             poly++;
             stream += ws->elemStride;
         } while (ws->elemCount-- > 0);
@@ -2419,7 +2419,7 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
     return stream;
 }
 
-u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     u8* prims;
     s32 stride;
@@ -2436,7 +2436,7 @@ u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+u32* gpStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     u8* prims;
     s32 stride;
@@ -2453,7 +2453,7 @@ u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream)
     return stream;
 }
 
-static u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009FCDC(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     u8* prims;
     s32 stride;
@@ -2470,7 +2470,7 @@ static u32* func_8009FCDC(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-static u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_8009FD28(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     u8* prims;
     s32 stride;

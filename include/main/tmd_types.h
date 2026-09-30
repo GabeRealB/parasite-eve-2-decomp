@@ -169,46 +169,62 @@ STATIC_ASSERT_SIZEOF(TmdAllocation, 0x34);
 STATIC_ASSERT(OFFSET_OF(TmdAllocation, object) == 0, tmd_allocation_object_offset);
 STATIC_ASSERT(OFFSET_OF(TmdAllocation, coords) == sizeof(TmdObject), tmd_allocation_coords_offset);
 
-/// One frame of the scratch a model's packet stream is walked in: what
-/// `tmdProcessStream` pushes on the scratch stack and passes to every stream
-/// command it runs.
+/// Borrowed scratch workspace for TMD stream construction and draw callbacks.
 ///
-/// The frame carries the walk itself — which record is being run, how long its
-/// elements are and how many of them there are, and where the next packet goes
-/// — and the model state a command reads: the vertex and normal arrays, the
-/// texture page and CLUT every textured primitive is offset by, and the object
-/// being compiled.
+/// Construction reserves one workspace on the scratch stack. Drawing embeds
+/// the same workspace at the start of a larger frame and passes its address
+/// to the callbacks. Neither pass clears it: commands may use only state
+/// initialized by their pass or by an earlier command in the same walk.
+/// Callbacks must not retain the workspace or its draw depth-cache pointer
+/// after the walk.
 ///
-/// A buffer half is two regions and the primitive's own opcode picks one: the
-/// pre-transformed primitives, which are already in screen space, are built in
-/// the first region, and every other primitive in the second.
+/// Packet cursors address heterogeneous GPU packets within the selected buffer
+/// half. Construction initializes texture displacements and persistent packet
+/// data; drawing updates positions, colours and ordering-table links. Each
+/// cursor must stay within its source-defined region. Geometry is borrowed
+/// from `TmdSource`; stream geometry references encode byte offsets into
+/// eight-byte SVECTOR entries, sometimes with flags in the low bits. Neither
+/// geometry array's complete extent is stored in the workspace.
 ///
-/// The draw pass walks the same stream under `TmdScratchDrawBlock`, a second
-/// frame over the same layout, and the commands are declared with one of the
-/// two types. The slots only the draw pass fills — the screen-Z table, the
-/// ordering table, the two GTE results, the vector scratches and the depth
-/// shift — are declared here for that reason, and the run of bytes it reads and
-/// this pass does not is left as a pad.
+/// Drawing supplies a 1024-entry depth cache. Projection commands write GTE
+/// screen Z with `TMD_VERTEX_DEPTH_INVALID` on failure; later pre-transformed
+/// commands address it with four-byte entry offsets. Every depth reference
+/// must fit that cache and follow the corresponding projection. OT indices,
+/// including the object's signed table offset, must fit the selected table.
+/// Unknown storage has no established role or subdivision.
 typedef struct {
-    u8*        primWrite;     // Write cursor of the half's second region: the primitives the draw pass transforms
-    u8*        preXformWrite; // Write cursor of its first region: the pre-transformed primitives, already in screen space
-    SVECTOR*   verts;         // Vertex array the commands index
-    SVECTOR*   normals;       // Normal array, indexed independently of the vertices
-    s32*       szTable;       // Screen Z per vertex, written as the draw pass projects each one and read back by the primitives it does not project again
-    u_long*    ot;            // Ordering table the primitives are linked into, at the object's own offset
-    s32        elemStride;    // Stride of one element of the record, in words
-    s32        elemCount;     // Elements in the record, counted down as the commands build them
-    u32        opcode;        // Opcode word of the record, flags included
-    s32        gteFlag;       // GTE FLAG as the element's last transform left it
-    s32        gteResult;     // What the last GTE step left: a facing, a depth or a vertex's screen Z
-    byte       pad_2C[0x44];
-    s16        tpage;         // Texture page every textured primitive is offset by
-    s16        clut;          // CLUT every textured primitive is offset by, in 64-entry rows
-    SVECTOR    elemNormal;    // The element's normal, transformed and lit, held while its texture coordinate is computed
-    DVECTOR    texCoord;      // Texture coordinate being computed for the element
-    TmdObject* obj;           // The object whose stream is being walked
-    s32        otDepthShift;  // Ordering-table depth shift a primitive is linked under
-} TmdScratchModelBlock;
-STATIC_ASSERT_SIZEOF(TmdScratchModelBlock, 0x88);
+    u8*        primWrite;               // Byte cursor in the half's second region, for directly transformed packets
+    u8*        preXformWrite;           // Byte cursor/base in the first region, for packets whose positions are written by projection commands
+    SVECTOR*   verts;                   // Borrowed integer part-local vertices; stream references must fit the source array
+    SVECTOR*   normals;                 // Borrowed part-local normals; indexed independently of vertices
+    s32*       szTable;                 // Draw-only vertex depths: low 16 bits screen Z, bit 31 marks a rejected projection
+    u_long*    ot;                      // Draw-only OT base, already displaced by the object's signed entry offset
+    s32        elemStride;              // Element stride in u32 words, decoded from the unsigned low half of the record dimensions
+    s32        elemCount;               // Initially 0..65535 elements; C handlers may decrement it through -1
+    u32        opcode;                  // Complete stream-record opcode, including its handler-selection flags
+    s32        gteFlag;                 // Draw-only GTE FLAG word; TMD_GTE_ERROR_FLAG is also tested with signed comparisons
+    s32        gteResult;               // Draw-only reusable signed GTE result: facing area, OT depth or vertex screen Z/error marker
+    u32        dispatchReturnAddress;   // Saved MIPS continuation address for the draw dispatcher
+    s32        dispatchObjectFlags;     // Draw dispatcher's saved, zero-extended TmdObject.flags argument
+    byte       unknown_34[0x1C];        // Purpose and internal subdivision unproven
+    s16        viewLightRotation[3][3]; // Draw-only light matrix times inverse view rotation; coefficients have 12 fractional bits
+    byte       unknown_62[0xE];         // Purpose and internal subdivision unproven; no matrix translation is accessed here
+    s16        texturePageOffset;       // Construction-only signed encoded-page displacement (-128..127)
+    s16        encodedClutOffset;       // Construction-only signed encoded CLUT displacement; one source row contributes 64 (-8192..8128)
+    SVECTOR    elemNormal;              // Draw-only rotated normal scratch; some handlers scale it for texture mapping
+    DVECTOR    texCoord;                // Draw-only signed screen XY, then texture-mapping intermediates; stored U/V truncate to bytes
+    TmdObject* obj;                     // Borrowed runtime object whose stream and selected buffer half are being processed
+    s32        otDepthShift;            // Draw-only left shift of GTE depth before selecting an OT bucket
+} TmdStreamWorkspace;
+STATIC_ASSERT_SIZEOF(TmdStreamWorkspace, 0x88);
+STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, dispatchReturnAddress) == 0x2C, tmd_workspace_dispatch_return_offset);
+STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, viewLightRotation) == 0x50, tmd_workspace_light_rotation_offset);
+STATIC_ASSERT(OFFSET_OF(TmdStreamWorkspace, obj) == 0x80, tmd_workspace_object_offset);
+
+/// High-bit marker on a cached vertex depth whose projection raised a GTE error.
+#define TMD_VERTEX_DEPTH_INVALID 0x80000000U
+
+/// Summary error bit in the GTE FLAG word saved by stream draw handlers.
+#define TMD_GTE_ERROR_FLAG 0x80000000U
 
 #endif // MAIN_TMD_TYPES_H

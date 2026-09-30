@@ -10,7 +10,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
 
 void func_8009EA50(s32 arg0);
 
-u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+u32* func_8009AF90(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
 /// Handler of a stream's layered transform records (`0x40C8`): each element
 /// projects the vertex it names into one corner of both primitives of a layered
@@ -39,9 +39,9 @@ u32* func_8009AF90(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
 /// handler reads neither.
 ///
 /// The record has no variant for `flags` to select, so it goes unread.
-u32* gpXformStreamVertsOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpXformStreamVertsOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+u32* func_8009B500(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
 /// The draw pass's handler for a stream's layered textured-triangle records
 /// (`0x4038`) whose semi-transparent layer is textured from the object: each
@@ -67,7 +67,7 @@ u32* func_8009B500(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
 /// The place the session is in picks between this handler and a sibling that
 /// textures the layer itself. The walk's `flags` select no variant of the record
 /// on top of that, so they go unread.
-u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's layered textured-quad records
 /// (`0x4078`) whose semi-transparent layer takes its texture page from the
@@ -94,9 +94,9 @@ u32* gpDrawStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* st
 /// the camera, keeps its packets out of the ordering table — the room is consumed
 /// either way, since the process pass reserved it for every element of the record.
 /// The record has no variant for `flags` to select, so it goes unread.
-u32* gpDrawStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
+u32* func_8009C414(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
 
 /// The draw pass's handler for a stream's colour-carrying textured-triangle
 /// records (`0x30`): each element's triangle is projected and lit from the three
@@ -122,7 +122,7 @@ u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2);
 /// projection the GTE reports off screen, or whose triangle turns away, is stepped
 /// over rather than drawn, though its packet slot is passed over either way, so the
 /// primitives stay in step with the elements that named them.
-u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's colour-carrying textured-quad records
 /// (`0x70`): each element contributes one `POLY_GT4` to the buffer half's second
@@ -150,27 +150,27 @@ u32* gpDrawStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// stream was compiled into the buffer, so this command completes it in place.
 /// `flags` selects nothing: the blended form is the object's to ask for rather
 /// than the record's, so the parameter goes unread.
-u32* gpDrawStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* func_8009D388(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009D388(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009D518(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009D518(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009D718(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009D718(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009D900(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009D900(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009DB00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009DB00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009DCB8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009DE48(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009DE48(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009E048(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009E048(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009E274(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009E274(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
-u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
+u32* func_8009E4A0(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
 
 /// The draw pass's handler for a stream's untextured quad records that name a
 /// colour and a normal per corner, in their semi-transparent form (`0x162`):
@@ -195,7 +195,7 @@ u32* func_8009E4A0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
 /// cursor this handler stays in step with.
 ///
 /// `flags` selects no variant of the record, so it goes unread here.
-u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's unlit transform pre-pass records (`0xC4`): each element
 /// projects the vertex it names into the buffer half, and the record writes no
@@ -215,7 +215,7 @@ u32* gpDrawStreamPrimG4CornerColorsSemiTrans(TmdScratchModelBlock* ws, s32 flags
 /// stored one.
 ///
 /// The record has no variant for `flags` to select, so it goes unread.
-u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpXformStreamVertsUnlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed textured-triangle records (`0x31`,
 /// `0x39`, `0x3B`, `0x131`, `0x8039`): each element contributes one triangle to
@@ -226,7 +226,7 @@ u32* gpXformStreamVertsUnlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// is no transform or cull for this command to do. It writes the polygon's
 /// `u`/`v` fields, and adds the model's texture page and CLUT to the primitive's
 /// own, which are stored relative to the model.
-u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed textured-quad records (`0x71`, `0x79`,
 /// `0x7B`, `0x171`, `0x8079`): each element contributes one quad to the buffer
@@ -236,7 +236,7 @@ u32* gpStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// no transform or cull for this command to do. It writes the polygon's `u`/`v`
 /// fields, and adds the model's texture page and CLUT to the primitive's own,
 /// which are stored relative to the model.
-u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-quad records (`0x45`): each
 /// element contributes one untextured quad to the buffer half's first region,
@@ -247,7 +247,7 @@ u32* gpStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// stream's vertex commands, and the draw pass culls the quad and links it into
 /// the order table (`gpDrawStreamPrimF4PreXform`), so neither is this command's
 /// work.
-u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed flat-triangle records (`0x5`): each
 /// element contributes one untextured triangle to the buffer half's first
@@ -257,7 +257,7 @@ u32* gpStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// code and the element's colour. A pre-transformed triangle's vertices come
 /// from the stream's vertex commands, and the draw pass culls the triangle and
 /// links it into the order table, so neither is this command's work.
-u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-triangle records (`0x38`, `0x3A`, `0x8038`,
 /// `0x10038`, `0x1003A`, `0x20038`): each element contributes one triangle to
@@ -268,7 +268,7 @@ u32* gpStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
 /// and adds the model's texture page and CLUT to the primitive's own, which are
 /// stored relative to the model.
-u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records (`0x78`, `0x7A`, `0x8078`,
 /// `0x10078`, `0x20078`): each element contributes one quad to the buffer half's
@@ -278,7 +278,7 @@ u32* gpStreamPrimGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// draw pass transforms; this command writes only the polygon's `u`/`v` fields,
 /// and adds the model's texture page and CLUT to the primitive's own, which are
 /// stored relative to the model.
-u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's colour-carrying textured-triangle records (`0x30`):
 /// each element contributes one triangle to the buffer half's second region,
@@ -291,7 +291,7 @@ u32* gpStreamPrimGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// transforms; this command writes only the polygon's `u`/`v` fields, and adds
 /// the model's texture page and CLUT to the primitive's own, which are stored
 /// relative to the model.
-u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-triangle records that carry a colour per corner
 /// (`0x130`): each element contributes one triangle to the buffer half's second
@@ -308,7 +308,7 @@ u32* gpStreamPrimGt3ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The corner colours are the transform pass's: it lights each corner from the
 /// colour the element carries for it, and this command only steps over them to
 /// reach the texture words that follow.
-u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records whose elements carry a colour
 /// (`0x70`): each element contributes one quad to the buffer half's second
@@ -325,7 +325,7 @@ u32* gpStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
 /// with, where the other family's records carry none and are lit against a fixed
 /// colour. That is why the texture words are one word further into the element
 /// here.
-u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4ElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records that carry a colour per corner
 /// (`0x170`): each element contributes one quad to the buffer half's second
@@ -338,7 +338,7 @@ u32* gpStreamPrimGt4ElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// colour for each of the quad's corners — the material the record's transform
 /// pass lights into the primitive's own corner colours — so the texture words
 /// sit further into the record than `gpStreamPrimGt4`'s do.
-u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's one-normal textured-triangle records (`0x18`, `0x1A`):
 /// each element contributes one triangle to the buffer half's second region, with
@@ -350,7 +350,7 @@ u32* gpStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* strea
 /// region the draw pass transforms; this command writes only the polygon's `u`/`v`
 /// fields, and adds the model's texture page and CLUT to the primitive's own,
 /// which are stored relative to the model.
-u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`): each
 /// element contributes one quad to the buffer half's second region, with the
@@ -363,7 +363,7 @@ u32* gpStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// per-corner-normal records carry one per corner, so the whole quad is lit from
 /// that one normal and the element is a word shorter than the one
 /// `gpStreamPrimGt4` reads.
-u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's unlit textured-quad records (`0x156`): each element
 /// contributes one quad to the buffer half's second region, with the element's
@@ -376,7 +376,7 @@ u32* gpStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// time from the model's flags. The element's texture words are written as they
 /// are for a lit quad, with the model's texture page and CLUT added to the
 /// primitive's own, which are stored relative to the model.
-u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4Unlit(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's flat textured-triangle records (`0x1C`, `0x1E`): each
 /// element contributes one triangle to the buffer half's second region, with the
@@ -388,7 +388,7 @@ u32* gpStreamPrimGt4Unlit(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// stored relative to the model. The opcode selects the flat variant of the
 /// textured triangle, which takes one colour for the whole primitive rather than
 /// one per corner, where `gpStreamPrimGt3` builds the gouraud one.
-u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimFt3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's flat-textured-quad records (`0x5C`, `0x5E`): each
 /// element contributes one quad to the buffer half's second region, with the
@@ -400,7 +400,7 @@ u32* gpStreamPrimFt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// this command writes only the polygon's `u`/`v` fields, and adds the model's
 /// texture page and CLUT to the primitive's own, which are stored relative to
 /// the model.
-u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's flat-quad records (`0x44`): each element contributes one
 /// untextured quad to the buffer half's second region, with the element's colour
@@ -409,7 +409,7 @@ u32* gpStreamPrimFt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The record is not pre-transformed, so its quad belongs to the region the draw
 /// pass transforms: only the packet's fixed fields are written here — its length,
 /// its primitive code and the element's colour.
-u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's flat-triangle records (`0x4`): each element contributes
 /// one untextured triangle to the buffer half's second region, with the
@@ -418,7 +418,7 @@ u32* gpStreamPrimF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// The record is not pre-transformed, so its triangle is built in the region the
 /// draw pass transforms; this command writes only the packet's fixed fields — its
 /// length, its primitive code and the element's colour.
-u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose
 /// semi-transparent layer is textured from the object: each element contributes two
@@ -433,7 +433,7 @@ u32* gpStreamPrimF3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// `u`/`v` fields go into both primitives, the base takes the model's texture page
 /// and CLUT, and the layer takes those plus the object's extra page and CLUT offsets,
 /// along with the semi-transparency rate it blends at.
-u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose layer
 /// is the transform pass's to texture: each element contributes two triangles to
@@ -448,7 +448,7 @@ u32* gpStreamPrimGt3OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// layer's texture words are the transform pass's, worked out from the triangle it
 /// draws. `gpStreamPrimGt3OffsetLayer` is the walk's other choice, taken where the
 /// layer is textured from the element as well.
-u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3Base(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-quad records (`0x4078`) whose
 /// semi-transparent layer takes its texture page from the object: each element
@@ -463,7 +463,7 @@ u32* gpStreamPrimGt3Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// the same `u`/`v` fields go into each, the base takes the model's texture page
 /// and CLUT, and the layer takes the object's extra page and CLUT offsets, along
 /// with the semi-transparency rate it blends at.
-u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4OffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-quad records (`0x4078`): each element
 /// contributes the quad the model is drawn from to the buffer half's second region,
@@ -476,7 +476,7 @@ u32* gpStreamPrimGt4OffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// past both, and the layer is left for the transform pass, which draws it from a
 /// page of its own. Where the layer's `u`/`v` are to come from the record as well,
 /// the walk takes a sibling handler instead.
-u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4Base(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-triangle records (`0x4039`): each element
 /// contributes two triangles to the buffer half's first region — the base the model
@@ -490,7 +490,7 @@ u32* gpStreamPrimGt4Base(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// page and CLUT offsets. The pair is drawn by
 /// `gpDrawStreamPrimGt3PreXformFixedLayer`, which settles the page the layer is
 /// finally drawn from.
-u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`):
 /// each element contributes two quads to the buffer half's first region — the base
@@ -509,7 +509,7 @@ u32* gpStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32*
 /// transform or cull for this command to do. Where the layer is textured from the
 /// object's page and CLUT offsets instead, the walk takes the record's other
 /// handler.
-u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's pre-transformed layered textured-triangle records
 /// (`0x4039`) whose semi-transparent layer is textured from the object: each
@@ -526,7 +526,7 @@ u32* gpStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// The walk picks between this handler and one that textures the layer from a fixed
 /// page of its own: it takes this one in the areas whose layered draws are textured
 /// from the object.
-u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered pre-transformed textured-quad records (`0x4079`)
 /// whose semi-transparent layer is textured from the object: each element
@@ -542,7 +542,7 @@ u32* gpStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// model's texture page and CLUT added to the record's own, and the layer takes the
 /// object's extra page and CLUT offsets in their place, along with the
 /// semi-transparency rate it blends at.
-u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's untextured gouraud-quad records (`0x40`, `0x60`, `0x160`,
 /// `0x4040`, `0x4060`, `0x4160`): each element is one `POLY_G4` in the buffer half's
@@ -555,7 +555,7 @@ u32* gpStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32
 /// passes, so a record one of them skipped would put every primitive after it at the
 /// wrong address in the other. What fills the room a `0x60` record reserves is the
 /// draw pass's (`tmdDrawStreamPrimG4CornerNormals`), one quad per element.
-u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`, `0x20`,
 /// `0x120`, `0x4000`, `0x4020`, `0x4120`): each element reserves one `POLY_G3`'s
@@ -569,6 +569,6 @@ u32* gpStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// that follow building where the draw pass will look for them, and the `0x0`
 /// records are built there by `tmdDrawStreamPrimG3`, the `0x20` ones — the same
 /// packet, lit from a normal per corner — by `tmdDrawStreamPrimG3CornerNormals`.
-u32* gpStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 #endif // GAMEPLAY_MODEL_LIGHTING_H

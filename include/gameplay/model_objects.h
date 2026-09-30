@@ -91,7 +91,7 @@ void Gp_DrawDisp2dOt(struct Task* unused);
 /// The record's other half is the build pass's command (`gpStreamPrimF4PreXform`),
 /// which laid the packet out and gave it its length, its primitive code and the
 /// element's colour; this command writes none of the three.
-u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's pre-transformed flat-triangle records
 /// (`0x5`): each element contributes one untextured `POLY_F3` to the buffer
@@ -111,7 +111,7 @@ u32* gpDrawStreamPrimF4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// An element whose cached depth is marked off screen, or whose triangle turns
 /// away, is stepped over rather than linked. The record has no variant for
 /// `flags` to select, so it goes unread.
-u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-triangle
 /// records whose semi-transparent layer is textured from a page of its own
@@ -144,7 +144,7 @@ u32* gpDrawStreamPrimF3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream
 /// the walk takes the record's other entry, which leaves the page alone. The entry
 /// is picked when the model's stream is resolved, by the area the session is in, so
 /// `flags` selects nothing here and goes unread.
-u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's layered pre-transformed textured-quad records
 /// (`0x4079`): each element's two quads — the base the model is drawn from and the
@@ -179,7 +179,7 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdScratchModelBlock* ws, s32 flags, 
 /// (`gpStreamPrimGt4PreXformOffsetLayer` is that record's process-pass handler).
 /// Which of the two a record gets is settled where its handler is resolved, from
 /// the area the session is in, so the `flags` this one is handed goes unread.
-u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's layered pre-transformed textured-triangle records
 /// (`0x4039`) whose semi-transparent layer is textured from the drawing object:
@@ -207,7 +207,7 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// offsets, which the pass that builds the primitives wrote in. The record's other
 /// entry is the same walk with the layer's page settled there instead, and the
 /// session's current place is what picks between them; neither entry reads `flags`.
-u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's layered pre-transformed textured-quad
 /// records (`0x4079`) whose semi-transparent layer is textured from the object:
@@ -235,6 +235,6 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags,
 /// record's other handler, which is taken where the layer is the drawing pass's
 /// to texture. The record has no variant for `flags` to select, so it goes
 /// unread.
-u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 #endif // GAMEPLAY_MODEL_OBJECTS_H

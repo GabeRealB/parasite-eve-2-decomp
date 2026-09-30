@@ -912,16 +912,16 @@ static void        func_actor_403600_8013289C(s32 x, s32 corner, Actor403600Grid
 static inline void _actor403600ApplyMatrixSv(MATRIX* m, SVECTOR* in, SVECTOR* out);
 static inline void _actor403600TrailTick(ActorEffectState* state);
 static inline s32  _actor403600TrailEmpty(ActorEffectState* state);
-static u32*        func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2);
-static u32*        func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-static u32*        func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-static u32*        func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+static u32*        func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2);
+static u32*        func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+static u32*        func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+static u32*        func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Links primitive `p` at the head of ordering-table entry `ot` through tag words.
 ///
@@ -2399,7 +2399,7 @@ void func_actor_403600_80135C28(Task* arg0)
     }
 }
 
-static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136224(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2485,7 +2485,7 @@ static u32* func_actor_403600_80136224(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT3*     poly;
     s32*          opz;
@@ -2507,7 +2507,7 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
     fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
-        clip_mask   = 0x80000000;
+        clip_mask   = TMD_VERTEX_DEPTH_INVALID;
         upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
@@ -2595,7 +2595,7 @@ static u32* func_actor_403600_80136500(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_8013685C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2620,7 +2620,7 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
     gte_ldrgb(&col);
     if (arg0->elemCount-- > 0) {
         flg         = &arg0->gteFlag;
-        clip_mask   = 0x80000000;
+        clip_mask   = TMD_GTE_ERROR_FLAG;
         opz         = &arg0->gteResult;
         upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
@@ -2703,7 +2703,7 @@ static u32* func_actor_403600_8013685C(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     POLY_GT4*     poly;
     s32*          opz;
@@ -2725,7 +2725,7 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
     fadeDistance = arg0->obj->shading.screenFadeDistance;
     if (arg0->elemCount-- > 0) {
         opz         = &arg0->gteResult;
-        clip_mask   = 0x80000000;
+        clip_mask   = TMD_VERTEX_DEPTH_INVALID;
         upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
         do {
@@ -2837,7 +2837,7 @@ static u32* func_actor_403600_80136C00(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_8013700C(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -2925,7 +2925,7 @@ static u32* func_actor_403600_8013700C(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_80137300(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -3013,7 +3013,7 @@ static u32* func_actor_403600_80137300(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+static u32* func_actor_403600_801375F8(TmdStreamWorkspace* arg0, s32 arg1, u32* arg2)
 {
     CVECTOR       col;
     s16           upper_y;
@@ -3038,7 +3038,7 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
     gte_ldrgb(&col);
     if (arg0->elemCount-- > 0) {
         flg         = &arg0->gteFlag;
-        clip_mask   = 0x80000000;
+        clip_mask   = TMD_GTE_ERROR_FLAG;
         opz         = &arg0->gteResult;
         upper_limit = 0x168 - fadeDistance;
         ds          = &gDisplayState;
@@ -3123,7 +3123,7 @@ static u32* func_actor_403600_801375F8(TmdScratchModelBlock* arg0, s32 arg1, u32
     return arg2;
 }
 
-static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_801379B4(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;
@@ -3172,7 +3172,7 @@ static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32*
             gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
             gte_rtpt();
             gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & 0x80000000) {
+            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
             gte_nclip();
@@ -3199,7 +3199,7 @@ static u32* func_actor_403600_801379B4(TmdScratchModelBlock* ws, s32 flags, u32*
     return tmdDrawStreamGt3(ws, flags, stream);
 }
 
-static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_80138004(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                  color;
     u8*                      head;
@@ -3249,7 +3249,7 @@ static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32*
             gte_ldv3(&sc->verts[0], &sc->verts[1], &sc->verts[2]);
             gte_rtpt();
             gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & 0x80000000) {
+            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
             gte_nclip();
@@ -3258,7 +3258,7 @@ static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32*
             gte_ldv0(&sc->verts[3]);
             gte_rtps();
             gte_stflg(&ws->gteFlag);
-            if (ws->gteFlag & 0x80000000) {
+            if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
                 continue;
             }
             /* Drawn when either triangle of the quad faces the camera. */
@@ -3291,7 +3291,7 @@ static u32* func_actor_403600_80138004(TmdScratchModelBlock* ws, s32 flags, u32*
     return tmdDrawStreamGt4(ws, flags, stream);
 }
 
-static u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream)
+static u32* func_actor_403600_801386EC(TmdStreamWorkspace* ws, s32 flags, u32* stream)
 {
     CVECTOR                 color;
     u8*                     head;
@@ -3339,8 +3339,8 @@ static u32* func_actor_403600_801386EC(TmdScratchModelBlock* ws, s32 flags, u32*
                 gte_rtps();
                 gte_stsz(&ws->gteResult);
                 gte_stflg(&ws->gteFlag);
-                if (ws->gteFlag & 0x80000000) {
-                    ws->gteResult |= 0x80000000;
+                if (ws->gteFlag & TMD_GTE_ERROR_FLAG) {
+                    ws->gteResult |= TMD_VERTEX_DEPTH_INVALID;
                 }
                 ws->szTable[rec[0] >> 3] = ws->gteResult;
             }

@@ -13,26 +13,16 @@ struct Task;
 
 /// 0x98-byte scratch for Tmd_SetupDraw (draw path).
 typedef struct {
-    /* 0x00 */ u8*        primWrite;
-    /* 0x04 */ u8*        preXformWrite;
-    /* 0x08 */ SVECTOR*   verts;
-    /* 0x0C */ SVECTOR*   normals;
-    /* 0x10 */ s32*       szTable;
-    /* 0x14 */ u_long*    ot;
-    /* 0x18 */ byte       pad_18[0x38]; // Dispatch stores 0x18/0x1C/0x20/0x2C/0x30
-    /* 0x50 */ MATRIX     mat;
-    /* 0x70 */ byte       pad_70[0x10];
-    /* 0x80 */ TmdObject* obj;
-    /* 0x84 */ s32        otDepthShift;
-    /* 0x88 */ byte       pad_88[0x10];
+    TmdStreamWorkspace stream; // Shared construction/draw callback layout
+    byte               pad_88[0x10];
 } TmdScratchDrawBlock;
 STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
 
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
-void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
+void Tmd_SetupGteMatrices(TmdStreamWorkspace* ws, u32 flags, void* stream, TmdObject* node);
 
 /// Walk stream records and jalr each draw handler until `TMD_STREAM_GROUP_END`.
-u32* Tmd_DispatchStream(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
+u32* Tmd_DispatchStream(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 // The per-frame callback of the task that holds the models' buffers, and the
 // states it runs in sequence. The hide and buffer-release states walk the
@@ -51,9 +41,9 @@ void Tmd_AllocNodeBuffers(struct Task* task);
 /// opcode names no handler of its own is left with this one, which is how both
 /// passes over a model's stream step over what they do not build. The record
 /// has no variant for `flags` to select, so it goes unread.
-u32* tmdSkipStreamRecord(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdSkipStreamRecord(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim32(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's pre-transformed untextured gouraud-triangle
 /// records (`0x21`, `0x121`): each element contributes one `POLY_G3` to the
@@ -80,9 +70,9 @@ u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 ///
 /// The blended primitive is an entry of its own (`Tmd_StreamHandler_Prim32`)
 /// rather than a `flags` choice, so `flags` goes unread here.
-u32* tmdDrawStreamPrimG3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
-u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim3A(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's pre-transformed untextured quad records
 /// (`0x61`, `0x161`): each element completes one `POLY_G4` in the buffer half's
@@ -109,7 +99,7 @@ u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// entry's own constant, and the body's other entry
 /// (`Tmd_StreamHandler_Prim3A`) stamps the blended one, which no opcode resolves
 /// to.
-u32* tmdDrawStreamPrimG4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 // Draw-pass handlers, one per record family: the early image's in
 // Tmd_StreamHandlers_Ops.s, the gameplay overlay's in that overlay's own units.
@@ -140,7 +130,7 @@ u32* tmdDrawStreamPrimG4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* strea
 /// `flags`: a semi-transparent variant is not this one's to select, because the
 /// packet's code byte is the element's own — carried in its colour word and
 /// taken to the packet by the lighting step.
-u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG3CornerNormals(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's untextured gouraud-quad records (`0x60`): each
 /// element is one `POLY_G4` in the buffer half's second region, built whole here
@@ -161,7 +151,7 @@ u32* tmdDrawStreamPrimG3CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// The packet's primitive code is the top byte of that same colour word, which is
 /// all the record's `0x62` form — the semi-transparent one — differs in. The two
 /// share this body, so `flags` has no variant to select and goes unread.
-u32* tmdDrawStreamPrimG4CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG4CornerNormals(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's transform pre-pass records that carry a colour of
 /// their own (`0xC0`): `tmdXformStreamVerts`'s pass with the element's colour
@@ -178,7 +168,7 @@ u32* tmdDrawStreamPrimG4CornerNormals(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// elements name the same vertex, the depth each transform leaves in the
 /// per-vertex cache, and the flag a rejected projection sets there. The record
 /// has no variant for `flags` to select, so it goes unread.
-u32* tmdXformStreamVertsElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdXformStreamVertsElemColor(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's gouraud textured-triangle records that
 /// ask for the semi-transparent primitive (`0x3A`): each element's three corners
@@ -193,7 +183,7 @@ u32* tmdXformStreamVertsElemColor(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// `0x36` here, the semi-transparency bit between the two. The opcode settles
 /// that choice on its own, so this entry draws the semi-transparent form
 /// unconditionally, where the `0x38` entry is the one that asks `flags` for it.
-u32* tmdDrawStreamGt3SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamGt3SemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's gouraud textured-quad records that ask
 /// for the semi-transparent primitive (`0x7A`): each element contributes one quad,
@@ -209,7 +199,7 @@ u32* tmdDrawStreamGt3SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 /// fixed mid-grey, and the same constant carries both, the code in its top byte.
 /// The opcode alone settles the variant: this entry does not test the `flags` bit
 /// the `0x78` one picks its code from.
-u32* tmdDrawStreamGt4SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamGt4SemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's pre-transformed textured-triangle
 /// records that ask for the semi-transparent primitive (`0x3B`): each element's
@@ -230,7 +220,7 @@ u32* tmdDrawStreamGt4SemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream)
 /// that entry picks it from the drawing object's flags. Both read `flags` for
 /// one thing besides — the bit a model drawn as a reflection sets, which sends
 /// the facing test the other way round.
-u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's pre-transformed gouraud textured-triangle
 /// records (`0x31`, `0x39`, `0x131`): each element contributes one triangle to
@@ -253,7 +243,7 @@ u32* tmdDrawStreamPrimGt3PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, 
 /// This entry is the whole family's and is the one that chooses between the two
 /// primitive codes: it reaches `tmdDrawStreamPrimGt3PreXformSemiTrans` when the
 /// drawing object's flags ask for the blended form.
-u32* tmdDrawStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's pre-transformed textured-quad records
 /// that ask for the semi-transparent primitive (`0x7B`): each element's quad is
@@ -275,7 +265,7 @@ u32* tmdDrawStreamPrimGt3PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// the drawing object's flags. Both read `flags` for one thing besides — the bit
 /// a model drawn as a reflection sets, which sends the facing tests the other way
 /// round.
-u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw-pass handler of a stream's pre-transformed textured-quad records
 /// (`0x71`, `0x79`, `0x171`): each element contributes one quad to the buffer
@@ -299,7 +289,7 @@ u32* tmdDrawStreamPrimGt4PreXformSemiTrans(TmdScratchModelBlock* ws, s32 flags, 
 /// primitive codes: it reaches `tmdDrawStreamPrimGt4PreXformSemiTrans` when the
 /// drawing object's flags ask for the blended form, and stamps the opaque `0x3C`
 /// where they do not.
-u32* tmdDrawStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's untextured gouraud-triangle records (`0x0`): each
 /// element is one `POLY_G3` in the buffer half's second region, built whole here
@@ -318,7 +308,7 @@ u32* tmdDrawStreamPrimGt4PreXform(TmdScratchModelBlock* ws, s32 flags, u32* stre
 /// `tmdDrawStreamPrimG3PreXform`'s, which files that same packet in the buffer
 /// half's first region.
 /// The record has no variant for `flags` to select, so it goes unread.
-u32* tmdDrawStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's untextured gouraud-quad records (`0x40`): each
 /// element is one `POLY_G4` in the buffer half's second region, built whole here
@@ -340,7 +330,7 @@ u32* tmdDrawStreamPrimG3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// and colour word are lit in one step whose result, the code byte included,
 /// colours all four corners alike. The record has no variant for `flags` to
 /// select, so it goes unread.
-u32* tmdDrawStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimG4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's one-normal textured-triangle records
 /// that ask for the semi-transparent primitive (`0x1A`): each element's triangle
@@ -357,7 +347,7 @@ u32* tmdDrawStreamPrimG4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// names no colour, so the triangle is lit from a fixed mid-grey, and the same
 /// constant carries both, the code in its top byte. The opcode alone selects the
 /// variant, so `flags` goes unread.
-u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's one-normal textured-triangle records (`0x18`,
 /// `0x1A`): each element's triangle is transformed and culled, its screen
@@ -374,7 +364,7 @@ u32* tmdDrawStreamPrimGt3OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags,
 /// polygon is drawn with, which this family carries in a fixed material colour
 /// instead of reading one from the element: `0x34` opaque, `0x36` blended. Which
 /// of the two is drawn is settled by the opcode alone, so `flags` selects nothing.
-u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's one-normal textured-quad records (`0x58`, `0x5A`):
 /// each element's quad is transformed and culled, its four corners' screen
@@ -395,7 +385,7 @@ u32* tmdDrawStreamPrimGt3OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* str
 /// This entry is the opaque one; the `0x5A` record's entry shares this body and
 /// asks for the blended form by its opcode alone, so `flags` selects nothing
 /// here either.
-u32* tmdDrawStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4OneNormal(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// The draw pass's handler for a stream's one-normal textured-quad records that
 /// ask for the semi-transparent primitive (`0x5A`): each element's quad is taken to
@@ -411,7 +401,7 @@ u32* tmdDrawStreamPrimGt4OneNormal(TmdScratchModelBlock* ws, s32 flags, u32* str
 /// colour, so the quad is lit from a fixed mid-grey, and the same constant carries
 /// both, the code in its top byte. The opcode alone selects the variant, so `flags`
 /// goes unread.
-u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-triangle records that carry a colour per
 /// corner (`0x130`): each element contributes one triangle, projected, shaded
@@ -427,7 +417,7 @@ u32* tmdDrawStreamPrimGt4OneNormalSemiTrans(TmdScratchModelBlock* ws, s32 flags,
 /// The element's texture words are not this handler's: the other pass over the
 /// same stream copies them into the model's buffer when the model is created,
 /// and this one leaves them where they lie.
-u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt3CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's textured-quad records that name one colour per corner
 /// (`0x170`): each element contributes one quad to the buffer half's second
@@ -442,6 +432,6 @@ u32* tmdDrawStreamPrimGt3CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* 
 /// corner colours, the primitive code and the ordering-table link. The primitive
 /// itself, texture words included, was written when the stream was compiled into
 /// the buffer, so this command completes it in place.
-u32* tmdDrawStreamPrimGt4CornerColors(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamPrimGt4CornerColors(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 #endif // MAIN_PRIVATE_TMD_H

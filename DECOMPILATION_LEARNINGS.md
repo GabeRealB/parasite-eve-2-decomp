@@ -20601,7 +20601,7 @@ adjusted pointer into the pinned `v1` register:
 ```c
 {
     register void**             scratch asm("a0");
-    register ScratchModelBlock* head asm("v1");
+    register TmdStreamWorkspace* head asm("v1");
     void*                       tmp;
 
     scratch  = SCRATCH_STACK_CURSOR_SLOT;
@@ -20609,7 +20609,7 @@ adjusted pointer into the pinned `v1` register:
     tmp      = *scratch;                /* unpinned load */
     stream   = src->field_20;
     hi       = *(u32*)&g->field_4;
-    head     = (ScratchModelBlock*)((u8*)tmp - 0x88); /* addiu v1, … */
+    head     = (TmdStreamWorkspace*)((u8*)tmp - 0x88); /* addiu v1, … */
     hi      &= 0xFFFF0000;
     *scratch = head;
     if ((hi == 0x020F0000) || (hi == 0x02100000)) {
@@ -134448,7 +134448,7 @@ is a `POLY_F4`'s 24 bytes and the one that writes a single colour into it stamps
 
 The overlay's stream handlers open with the frame pointer copied out of the
 argument register — `addu $a1, $a0, $zero`, which is what a body carrying the
-m2c `TmdScratchModelBlock* ws; ... ws = index;` pair compiles to. The instruction
+m2c `TmdStreamWorkspace* ws; ... ws = index;` pair compiles to. The instruction
 does not date from that local, and naming the parameter does not disturb it: it
 is where the allocator moves a parameter whose own register is reused inside the
 body. `gpDrawStreamPrimF4PreXform` is the case in point — `$a0` becomes the

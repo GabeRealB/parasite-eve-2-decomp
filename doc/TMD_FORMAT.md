@@ -561,8 +561,8 @@ Each handler copies the UV words straight into the primitive and then biases
 the page registers:
 
 ```c
-poly->tpage += ws->tpage;      // from TmdObject.texturePageOffset
-poly->clut  += ws->clut;      // from TmdObject.clutRowOffset << 6
+poly->tpage += ws->texturePageOffset; // from TmdObject.texturePageOffset
+poly->clut  += ws->encodedClutOffset; // from TmdObject.clutRowOffset << 6
 ```
 
 So the stored `tpage`/`clut` are **relative** — the object's texture-page

@@ -91,7 +91,7 @@ void Tmd_DrawActiveNodes(TmdObject* node);
 /// the body's two copies of the walk, which keep opposite signs of the facing
 /// result: a model drawn as a reflection asks for it, because a mirroring
 /// transform reverses the model's faces.
-u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamGt3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Draw handler of a stream's gouraud textured-quad records (`0x78`): each
 /// element contributes one quad, projected and lit into the buffer slot the build
@@ -114,7 +114,7 @@ u32* tmdDrawStreamGt3(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// it, which is what this handler reads `flags` for: the `0x7A` record's handler,
 /// `tmdDrawStreamGt4SemiTrans`, shares this body and takes that code whatever the
 /// flags say.
-u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdDrawStreamGt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's transform pre-pass records (`0xC8`): each element
 /// contributes one transformed vertex to the buffer half, and the record builds
@@ -133,6 +133,6 @@ u32* tmdDrawStreamGt4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 /// to order it, and a vertex whose transform reported an error is stored with
 /// its sign bit set, which is how those commands know the primitive cannot be
 /// drawn. The record has no variant for `flags` to select, so it goes unread.
-u32* tmdXformStreamVerts(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* tmdXformStreamVerts(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 #endif // MAIN_TMD_H
