@@ -294,7 +294,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* song, MidiTrack* unused)
 
 static s32 SndBank_SetupFromLoad(SndLoadState* load);
 
-/// Turn the waveform addresses of the first `count` notes of `bank` from
+/// Turn the waveform addresses of the first `count` sample layers of `bank` from
 /// offsets into its waveform data into absolute SPU RAM addresses.
 static inline void _sndBankRebaseNotes(SndBank* bank, s32 count);
 
@@ -666,13 +666,13 @@ s32 Midi_InitSystem(u32 unused)
         bank                   = &Snd_Banks[Snd_BankSlotsByType[15]];
         state->bank            = bank;
         bank->bankId           = 0xF0FF;
-        state->bank->heapBlock = SndHeap_Malloc(0x582);
+        state->bank->heapBlock = SndHeap_Malloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
     } while (0);
-    state->bank->groups     = state->bank->heapBlock;
-    state->bank->notes      = state->bank->heapBlock;
-    state->bank->groupIndex = state->bank->heapBlock;
-    Snd_SequenceBankBuffer  = state->bank->heapBlock;
-    state->waveBytes        = 0x10;
+    state->bank->groups          = state->bank->heapBlock;
+    state->bank->layers          = state->bank->heapBlock;
+    state->bank->groupFirstLayer = state->bank->heapBlock;
+    Snd_SequenceBankBuffer       = state->bank->heapBlock;
+    state->waveBytes             = 0x10;
     return -1;
 }
 
@@ -727,7 +727,7 @@ static s32 Midi_InitSequence(u8 arg0, u16 arg1)
                 }
 
                 obj->groups          = obj->bank->groups;
-                obj->notes           = obj->bank->notes;
+                obj->notes           = obj->bank->layers;
                 obj->ticksPerQuarter = (data[0xC] << 8) | data[0xD];
                 obj->field_6         = 0xFF;
                 obj->field_4         = 0xFF;
@@ -1772,7 +1772,7 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 src = arg0 + 5;
                 dst = tmp->heapBlock;
             }
-            count = (state->payload.header.noteCount * (s32)(sizeof(*state->bank->notes) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
+            count = (state->payload.header.noteCount * (s32)(sizeof(*state->bank->layers) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
             i     = 0;
             if (count != 0) {
                 do {
@@ -1783,9 +1783,9 @@ s32 SndLoad_ProcessSector(u32* arg0)
                 } while ((s32)i < count);
             }
             (state->bank)->groupCount = state->payload.header.groupCount;
-            (state->bank)->noteCount  = state->payload.header.noteCount;
+            (state->bank)->layerCount = state->payload.header.noteCount;
             (state->bank)->bankId     = state->payload.header.bankId;
-            (state->bank)->imageSize  = state->payload.header.waveBytes;
+            (state->bank)->waveBytes  = state->payload.header.waveBytes;
             state->field_2            = 1;
             break;
 
@@ -1909,7 +1909,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     SndBankLayer* bankLayer;
 
     bank = load->bank;
-    if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+    if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
     fail:
         D_800689E4 = 0xFF;
         return -1;
@@ -1931,7 +1931,7 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     obj->spuAddr = bank->spuAddr;
     i            = load->payload.header.noteCount;
     spuAddr      = bank->spuAddr;
-    bankLayer    = bank->notes;
+    bankLayer    = bank->layers;
     for (i--; i != -1; i--) {
         bankLayer->waveAddr += spuAddr;
         bankLayer++;
@@ -1945,12 +1945,12 @@ static s32 SndBank_SetupFromLoad(SndLoadState* load)
     return 0;
 }
 
-/// Turn the waveform addresses of the first `count` notes of `bank` from
+/// Turn the waveform addresses of the first `count` sample layers of `bank` from
 /// offsets into its waveform data into absolute SPU RAM addresses.
 static inline void _sndBankRebaseNotes(SndBank* bank, s32 count)
 {
     u32           base      = bank->spuAddr;
-    SndBankLayer* bankLayer = bank->notes;
+    SndBankLayer* bankLayer = bank->layers;
 
     while (--count != -1) {
         bankLayer->waveAddr += base;
@@ -1973,7 +1973,7 @@ static s32 SndLoad_Complete(SndLoadState* load)
         switch (load->payload.header.variant) {
             case 0:
                 bank = load->bank;
-                if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
+                if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
                     D_800689E4 = 0xFF;
                 } else {
                     id                 &= 0xFF;
@@ -2101,7 +2101,7 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     bank = load->bank;
     if (D_800689E8 == 0) {
         index = bank->bankId;
-        if (index != 0xFFFF) {
+        if (index != SOUND_BANK_ID_FREE) {
             goto success;
         }
     }
@@ -2119,7 +2119,7 @@ success:
     state->waveBytes     = load->payload.header.waveBytes;
     i                    = load->payload.header.noteCount;
     base                 = ((volatile SndBank*)bank)->spuAddr;
-    bankLayer            = ((volatile SndBank*)bank)->notes;
+    bankLayer            = ((volatile SndBank*)bank)->layers;
     i                    = i - 1;
     if (i != -1) {
         end = -1;

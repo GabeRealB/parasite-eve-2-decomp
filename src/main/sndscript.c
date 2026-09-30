@@ -419,7 +419,7 @@ s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
             }
             if ((s8)D_80082122 > 0 && (s8)D_80082122 < 3) {
                 arg0 = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
-                       Snd_Banks[(s8)D_80082122 + 3].imageSize;
+                       Snd_Banks[(s8)D_80082122 + 3].waveBytes;
                 D_80082122 += 1;
                 goto store_size;
             }
@@ -670,20 +670,21 @@ s32 Snd_InitBanks(u32 unused)
     banks = Snd_Banks;
     entry = Snd_BankInitTable;
 loop:
-    slot         = *(s8*)(entry->field_0 + (s32)map);
-    obj          = SndBankSlot_Get(slot);
-    id           = entry->field_2;
-    bank         = (SndBank*)(((s32)slot << 5) + (s32)banks);
+    slot = *(s8*)(entry->field_0 + (s32)map);
+    obj  = SndBankSlot_Get(slot);
+    id   = entry->field_2;
+    // Subtraction preserves the scaled slot first in the address addition.
+    bank         = banks - -slot;
     obj->bank    = bank;
     obj->bankId  = id;
     bank->bankId = entry->field_2;
     i++;
-    obj->bank->heapBlock  = SndHeap_Malloc(entry->field_4);
-    obj->bank->groups     = obj->bank->heapBlock;
-    obj->bank->notes      = obj->bank->heapBlock;
-    obj->bank->groupIndex = obj->bank->heapBlock;
-    obj->image            = SndHeap_Malloc(entry->field_6);
-    obj->spuAddr          = entry->field_8;
+    obj->bank->heapBlock       = SndHeap_Malloc(entry->field_4);
+    obj->bank->groups          = obj->bank->heapBlock;
+    obj->bank->layers          = obj->bank->heapBlock;
+    obj->bank->groupFirstLayer = obj->bank->heapBlock;
+    obj->image                 = SndHeap_Malloc(entry->field_6);
+    obj->spuAddr               = entry->field_8;
     entry++;
     if (i < 2) {
         goto loop;
@@ -1952,12 +1953,12 @@ static SndBankSlot* sndBankSlotFind(u16 bankId, s32 byType)
             return NULL;
         case 1:
             i    = 0;
-            key  = bankId & 0xF000;
+            key  = bankId & SOUND_BANK_TYPE_MASK;
             slot = _gSndBankSlots;
             do {
                 bank = slot->bank;
                 if (bank != NULL) {
-                    if ((bank->bankId & 0xF000) == key) {
+                    if ((bank->bankId & SOUND_BANK_TYPE_MASK) == key) {
                         return slot;
                     }
                 }

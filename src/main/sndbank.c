@@ -406,10 +406,15 @@ end:
 
 SndBank* Snd_AllocBank(SndBankPayload* payload)
 {
+    // These bank types reserve a minimum table block, in bytes, even for smaller loads.
+    enum {
+        SOUND_BANK_TYPE_2_MIN_TABLE_BYTES  = 0xCE,
+        SOUND_BANK_TYPE_14_MIN_TABLE_BYTES = 0x78
+    };
     SndBank* bank;
     s32      size;
     u8*      heap;
-    u16      type  = payload->bankId & 0xF000;
+    u16      type  = payload->bankId & SOUND_BANK_TYPE_MASK;
     s32      entry = Snd_BankSlotsByType[type >> 12];
     s8       slot  = entry;
 
@@ -421,29 +426,29 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         slot = D_80082122 + 4;
     }
 
-    if (type == 0xF000 && Snd_SequenceBankBuffer != 0) {
+    if (type == SOUND_BANK_TYPE_SEQUENCE && Snd_SequenceBankBuffer != 0) {
         bank            = &Snd_Banks[slot];
         bank->heapBlock = Snd_SequenceBankBuffer;
     } else {
         bank = &Snd_Banks[slot];
         Snd_FreeBank(bank);
 
-        size = (payload->noteCount * (s32)(sizeof(*bank->notes) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * 4 + payload->groupCount * 2;
+        size = (payload->noteCount * (s32)(sizeof(*bank->layers) / sizeof(u32)) + payload->groupCount * (s32)(sizeof(*bank->groups) / sizeof(u32))) * (s32)sizeof(u32) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
 
-        switch (payload->bankId & 0xF000) {
+        switch (payload->bankId & SOUND_BANK_TYPE_MASK) {
             case 0x2000:
-                if (size < 0xCF) {
-                    size = 0xCE;
+                if (size < SOUND_BANK_TYPE_2_MIN_TABLE_BYTES + 1) {
+                    size = SOUND_BANK_TYPE_2_MIN_TABLE_BYTES;
                 }
                 break;
             case 0xE000:
-                if (size < 0x79) {
-                    size = 0x78;
+                if (size < SOUND_BANK_TYPE_14_MIN_TABLE_BYTES + 1) {
+                    size = SOUND_BANK_TYPE_14_MIN_TABLE_BYTES;
                 }
                 break;
-            case 0xF000:
-                if (size < 0x583) {
-                    size = 0x582;
+            case SOUND_BANK_TYPE_SEQUENCE:
+                if (size < SOUND_BANK_SEQUENCE_TABLE_BYTES + 1) {
+                    size = SOUND_BANK_SEQUENCE_TABLE_BYTES;
                 }
                 break;
         }
@@ -454,11 +459,11 @@ SndBank* Snd_AllocBank(SndBankPayload* payload)
         }
     }
 
-    heap             = bank->heapBlock;
-    bank->groups     = bank->heapBlock;
-    heap            += payload->groupCount * (s32)sizeof(*bank->groups);
-    bank->notes      = (SndBankLayer*)heap;
-    bank->groupIndex = (u16*)(heap + payload->noteCount * (s32)sizeof(*bank->notes));
+    heap                  = bank->heapBlock;
+    bank->groups          = bank->heapBlock;
+    heap                 += payload->groupCount * (s32)sizeof(*bank->groups);
+    bank->layers          = (SndBankLayer*)heap;
+    bank->groupFirstLayer = (u16*)(heap + payload->noteCount * (s32)sizeof(*bank->layers));
     return bank;
 }
 
@@ -503,12 +508,12 @@ static void Snd_ClearBanks(void)
         *p = 0;
         i++;
         p++;
-    } while ((u32)i < 0x80);
+    } while ((u32)i < sizeof(Snd_Banks) / sizeof(*p));
 
-    flag = 0xFFFF;
-    i    = 0xF;
+    flag = SOUND_BANK_ID_FREE;
+    i    = (s32)ARRAY_SIZE(Snd_Banks) - 1;
     ptr  = Snd_Banks;
-    ptr += 0xF;
+    ptr += ARRAY_SIZE(Snd_Banks) - 1;
     do {
         ptr->bankId = flag;
         i--;
@@ -520,14 +525,14 @@ static void Snd_ClearBanks(void)
 
 void Snd_FreeBank(SndBank* bank)
 {
-    if ((bank != NULL) && ((bank->bankId & 0xF000) != 0xF000)) {
+    if ((bank != NULL) && ((bank->bankId & SOUND_BANK_TYPE_MASK) != SOUND_BANK_TYPE_SEQUENCE)) {
         SndHeap_Free(bank->heapBlock);
-        bank->heapBlock  = NULL;
-        bank->groups     = NULL;
-        bank->notes      = NULL;
-        bank->groupIndex = NULL;
-        bank->bankId     = 0xFFFF;
-        bank->imageSize  = 0;
+        bank->heapBlock       = NULL;
+        bank->groups          = NULL;
+        bank->layers          = NULL;
+        bank->groupFirstLayer = NULL;
+        bank->bankId          = SOUND_BANK_ID_FREE;
+        bank->waveBytes       = 0;
     }
 }
 
@@ -537,12 +542,12 @@ SndBank* Snd_FindBank(u16 bankId)
     SndBank* ptr;
     s32      id;
 
-    if (bankId == 0xFFFF) {
+    if (bankId == SOUND_BANK_ID_FREE) {
         bankId = 0;
     }
     id = bankId;
 
-    for (i = 0, ptr = Snd_Banks; i < 0x10; i++, ptr++) {
+    for (i = 0, ptr = Snd_Banks; i < (s32)ARRAY_SIZE(Snd_Banks); i++, ptr++) {
         if (ptr->bankId == id) {
             return ptr;
         }
@@ -557,7 +562,7 @@ void Snd_BuildGroupIndex(SndBank* bank)
     s32           i;
     u8            count;
 
-    table = bank->groupIndex;
+    table = bank->groupFirstLayer;
     if (table != NULL) {
         group  = bank->groups;
         *table = 0;

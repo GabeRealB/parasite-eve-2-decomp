@@ -17269,10 +17269,10 @@ reads only:
 
 ```c
 base = ((volatile SndBank*)bank)->spuAddr;
-bankLayer = ((volatile SndBank*)bank)->notes;
+bankLayer = ((volatile SndBank*)bank)->layers;
 ```
 
-Plain `base = bank->spuAddr; bankLayer = bank->notes;` is free to swap the loads
+Plain `base = bank->spuAddr; bankLayer = bank->layers;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
 of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup).

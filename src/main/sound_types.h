@@ -6,8 +6,6 @@
 
 #include "common.h"
 
-struct SndBank;
-
 /// Per-frame audio callback; return -1 to remove the registration.
 typedef s32 (*AudioTickPoll)(s32* arg);
 
@@ -16,7 +14,88 @@ typedef void (*AudioTickOnRemove)(void);
 /// Per-voice SPU runtime (Spu_VoiceState). 24 voices.
 typedef void (*SpuVoiceCallback)(void* context);
 
-typedef struct SndBank SndBank;
+/// A sound-bank program's layer count and shared volume and pan controls.
+///
+/// Records are indexed by program number, below the bank's `groupCount`.
+/// Each describes a consecutive run of `SndBankLayer` layers; their counts must sum
+/// to the bank's `layerCount`. The bank owns this table until it is released.
+typedef struct {
+    u8 layerCount; // Number of consecutive `SndBankLayer` layers in this program
+    u8 field_1;    // Serialized byte with no individual reader; role unproven
+    u8 volume;     // Unsigned Q7 gain; layer volume is multiplied by this / 128
+    u8 pan;        // Added to layer pan with 64 removed; 64 leaves layer pan unchanged
+} SndBankGroup;
+STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
+
+/// A sound-bank sample layer and its default voice controls.
+///
+/// A bank owns `layerCount` consecutive records, partitioned into the runs
+/// described by its groups. Layer pointers remain valid until that bank is
+/// released or reloaded. A layer index is below its group's `layerCount`.
+/// MIDI selects every layer whose inclusive key range
+/// contains the played key; scripts select a layer directly and use `keyMin`
+/// as the base key for their Q7 pitch offset. Scripts may override the layer's
+/// volume, pan and ADSR, and choose reverb independently.
+///
+/// The serialized sample offset is rebased once after upload, so playback
+/// requires the completed load's absolute SPU byte address in `waveAddr`.
+typedef struct {
+    u8  reverb;   // MIDI reverb send (1 enabled, every other value disabled)
+    u8  pan;      // Stereo pan (0 left, 64 centre, 127 right)
+    u8  field_2;  // Serialized byte with no individual reader; role unproven
+    u8  volume;   // Gain (0 silent, 127 full); MIDI combines group gain / 128
+    u8  rootKey;  // MIDI key giving recorded sample pitch when fineTune is zero
+    u8  fineTune; // Added playback tuning, in 1/128 semitone steps (0..127)
+    u16 priority; // Higher values can steal lower-priority voices; 0 tries range 2 first
+    u8  keyMin;   // Inclusive lowest MIDI key; also the script pitch's base key
+    u8  keyMax;   // Inclusive highest MIDI key (keyMin <= keyMax <= 127)
+    u8  bendDown; // Downward MIDI pitch-bend range, in semitones
+    u8  bendUp;   // Upward MIDI pitch-bend range, in semitones
+    u16 adsr1;    // Packed SPU attack/decay/sustain-level register
+    u16 adsr2;    // Packed SPU sustain/release register
+    u32 waveAddr; // Sample byte offset before rebasing, absolute SPU byte address after
+} SndBankLayer;
+STATIC_ASSERT_SIZEOF(SndBankLayer, 0x14);
+
+// Bank ids encode their storage class in the high nibble. Sequence table
+// storage is retained across reloads; the free id belongs to that same band.
+enum {
+    SOUND_BANK_TYPE_MASK     = 0xF000,
+    SOUND_BANK_TYPE_SEQUENCE = 0xF000,
+    SOUND_BANK_ID_FREE       = 0xFFFF
+};
+
+// Sequence table preallocation size in bytes; reused layouts must fit the retained block.
+enum { SOUND_BANK_SEQUENCE_TABLE_BYTES = 0x582 };
+
+/// Runtime sound-bank descriptor: program/layer tables and their SPU sample pool.
+///
+/// The loader partitions `heapBlock` into `groupCount` groups, `layerCount`
+/// layers and `groupCount` first-layer indices, in that order. Group layer
+/// counts sum to `layerCount`; each index is an element offset into `layers`.
+/// Playback requires a completed load: indices have been built and each layer's
+/// sample offset has been rebased to an absolute SPU byte address.
+///
+/// Boot preallocations alias all three table pointers to `heapBlock` until a
+/// load partitions it. All three tables must fit the block when it is reused.
+/// Reloading invalidates table contents and layer pointers.
+/// Releasing a non-sequence bank frees its tables and marks `bankId` free;
+/// sequence banks retain their shared table storage across releases. The MIDI
+/// sequence or script image is a separate allocation, outside this descriptor.
+typedef struct {
+    SndBankGroup* groups;          // Program records, indexed below groupCount after loading
+    SndBankLayer* layers;          // Consecutive sample layers, partitioned by the programs
+    u16           bankId;          // High nibble selects bank type; SOUND_BANK_ID_FREE means free
+    u8            field_A;         // No individual access; role and representation unproven
+    u8            groupCount;      // Loaded program count and length of groupFirstLayer
+    u8            layerCount;      // Loaded layer count, equal to the sum of program layer counts
+    byte          unknown_D[0x3];  // No individual access; grouping and role unproven
+    u16*          groupFirstLayer; // First layer's element index for each program
+    u32           waveBytes;       // Sample-pool byte length, used to place the next bank in SPU RAM
+    u32           spuAddr;         // Sample-pool base byte address in SPU RAM
+    void*         heapBlock;       // Sound-heap table block; sequence storage is retained across reloads
+} SndBank;
+STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
 /// The voice parameters a sound-bank entry starts a sound with, carried as the
 /// `oneC` command that opens the entry's script program.
@@ -66,7 +145,7 @@ STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 /// One record of `_gSndBankSlots`, holding the sound bank a slot has loaded.
 ///
 /// The bank is held twice over: the image, which a script reads its entry
-/// offsets and `oneA` chunks from, and the descriptor, which holds the notes a
+/// offsets and `oneA` chunks from, and the descriptor, which holds the layers a
 /// voice plays. Lookup matches the descriptor's own id, exactly or by its
 /// 0xF000 group; releasing the record hands the image back to the sound heap
 /// and sets `bankId` to -1.
@@ -199,74 +278,6 @@ typedef struct _SndLoadState {
     /* 0x1C */ SndLoadPayload payload;
 } SndLoadState;
 STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
-
-/// A sound-bank program's layer count and shared volume and pan controls.
-///
-/// Records are indexed by program number, below the bank's `groupCount`.
-/// Each describes a consecutive run of `SndBankLayer` layers; their counts must sum
-/// to the bank's `noteCount`. The bank owns this table until it is released.
-typedef struct {
-    u8 layerCount; // Number of consecutive `SndBankLayer` layers in this program
-    u8 field_1;    // Serialized byte with no individual reader; role unproven
-    u8 volume;     // Unsigned Q7 gain; layer volume is multiplied by this / 128
-    u8 pan;        // Added to layer pan with 64 removed; 64 leaves layer pan unchanged
-} SndBankGroup;
-STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
-
-/// A sound-bank sample layer and its default voice controls.
-///
-/// A bank owns `noteCount` consecutive records, partitioned into the runs
-/// described by its groups. Layer pointers remain valid until that bank is
-/// released or reloaded. A layer index is below its group's `layerCount`.
-/// MIDI selects every layer whose inclusive key range
-/// contains the played key; scripts select a layer directly and use `keyMin`
-/// as the base key for their Q7 pitch offset. Scripts may override the layer's
-/// volume, pan and ADSR, and choose reverb independently.
-///
-/// The serialized sample offset is rebased once after upload, so playback
-/// requires the completed load's absolute SPU byte address in `waveAddr`.
-typedef struct {
-    u8  reverb;   // MIDI reverb send (1 enabled, every other value disabled)
-    u8  pan;      // Stereo pan (0 left, 64 centre, 127 right)
-    u8  field_2;  // Serialized byte with no individual reader; role unproven
-    u8  volume;   // Gain (0 silent, 127 full); MIDI combines group gain / 128
-    u8  rootKey;  // MIDI key giving recorded sample pitch when fineTune is zero
-    u8  fineTune; // Added playback tuning, in 1/128 semitone steps (0..127)
-    u16 priority; // Higher values can steal lower-priority voices; 0 tries range 2 first
-    u8  keyMin;   // Inclusive lowest MIDI key; also the script pitch's base key
-    u8  keyMax;   // Inclusive highest MIDI key (keyMin <= keyMax <= 127)
-    u8  bendDown; // Downward MIDI pitch-bend range, in semitones
-    u8  bendUp;   // Upward MIDI pitch-bend range, in semitones
-    u16 adsr1;    // Packed SPU attack/decay/sustain-level register
-    u16 adsr2;    // Packed SPU sustain/release register
-    u32 waveAddr; // Sample byte offset before rebasing, absolute SPU byte address after
-} SndBankLayer;
-STATIC_ASSERT_SIZEOF(SndBankLayer, 0x14);
-
-/// One entry of `Snd_Banks`: the tables a bank image's programs play their notes
-/// from, plus what the loader recorded about the image they came out of.
-///
-/// A bank is filled either from an image the loader reads out of a CD sector and
-/// streams into SPU RAM, or from `Snd_BankInitTable` for the banks that are
-/// resident from boot; a slot whose `bankId` is 0xFFFF is free. The group, note
-/// and index tables live in one `SndHeap` block, laid out in that order as the
-/// image is loaded, so its own counts decide where each table starts. A note's
-/// waveform address is relative to the image's SPU address and the loader
-/// rebases it once the image has been placed.
-struct SndBank {
-    SndBankGroup* groups;     // Group table, one group per program
-    SndBankLayer* notes;      // Note layers of every group, one group after another
-    u16           bankId;     // Bank id; 0xFFFF marks a free slot
-    u8            field_A;    // Role unproven
-    u8            groupCount; // Groups in `groups`, and the length of the index table
-    u8            noteCount;  // Notes in `notes`, the groups' counts summed
-    byte          unknown_D[0x3];
-    u16*          groupIndex; // First note of each group, indexed by program
-    u32           imageSize;  // Byte length of the image the bank was loaded from
-    u32           spuAddr;    // SPU RAM address the image's waveform data was loaded to
-    void*         heapBlock;  // `SndHeap` block the three tables are carved from
-};
-STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
 /// Out-parameter for `Spu_GetVoiceRef` (voice slot lookup/alloc).
 /// field_0 = voice index; field_4 = SpuVoiceAttr*.
