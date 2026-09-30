@@ -69,10 +69,6 @@
 #include "../../shared/jukebox.h"
 #include "../../shared/room_variants.h"
 
-#define D_dryfield_night_saloon_g_r_801850DC (D_dryfield_night_saloon_g_r_80185074 + 13)
-#define D_dryfield_night_saloon_g_r_801850E4 (D_dryfield_night_saloon_g_r_80185074[14])
-#define D_dryfield_night_saloon_g_r_801850FC (D_dryfield_night_saloon_g_r_80185074[17])
-
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 gRoomEventActive[4];
@@ -139,13 +135,7 @@ extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 /// The room's effect positions in the model's local space. The frame hook
 /// draws a quad at each of 0-10 and 20-27; 12 and 13 are the two ends
 /// `func_dryfield_night_saloon_g_r_8017F0A4` is handed; 14-19 are the two
-/// light shafts of `func_dryfield_night_saloon_g_r_8017EB38`.
-
-/// Entry 13 of `D_dryfield_night_saloon_g_r_80185074`, reached under a label
-/// of its own.
-
-/// Entries 14 and 17 of `D_dryfield_night_saloon_g_r_80185074`, the two
-/// shaft roots, which the code also reaches under labels of their own.
+/// light shafts of `glowDrawTwinShafts`.
 
 /// One view bitmask per effect, tested against `1 << view`. Entries 0-10 gate
 /// positions 0-10, entries 11 and 12 the two helper effects, and entries 13-20
@@ -155,7 +145,6 @@ extern s16 D_dryfield_night_saloon_g_r_80185154[];
 static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
 static void func_dryfield_night_saloon_g_r_8017E040(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
-static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord);
 static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* arg1, SVECTOR* arg2, s32 arg3);
 
 // Indexed views below share one contiguous table.
@@ -1023,7 +1012,7 @@ UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, f
 
 TaskDesc D_dryfield_night_saloon_g_r_80185068 = { 0, 192, jukeboxHostTask, { .model = NULL } };
 
-SVECTOR D_dryfield_night_saloon_g_r_80185074[28] = {
+SVECTOR gSaloonLightPoints[28] = {
     { 4915, -1870, -727, 0 },
     { 4915, -1870, -2339, 0 },
     { 4915, -1870, -4188, 0 },
@@ -2206,141 +2195,36 @@ void func_dryfield_night_saloon_g_r_8017E6C8(Task* arg0)
     Gp_UpdateCoord(coord);
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i]) {
-            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 1, 0x1C0);
+            glowDrawFlare(&gSaloonLightPoints[i], 1, 0x1C0);
         }
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[12]) {
-        func_dryfield_night_saloon_g_r_8017EB38(coord);
+        glowDrawTwinShafts(coord);
     }
     if (mask & D_dryfield_night_saloon_g_r_80185154[11]) {
-        func_dryfield_night_saloon_g_r_8017F0A4(coord, D_dryfield_night_saloon_g_r_801850DC,
-                                                D_dryfield_night_saloon_g_r_801850DC - 1, 0x100);
+        func_dryfield_night_saloon_g_r_8017F0A4(coord, &gSaloonLightPoints[13],
+                                                &gSaloonLightPoints[12], 0x100);
     }
     for (i = 20; i < 23; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x200);
+            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 23; i < 28; i++) {
         if (mask & D_dryfield_night_saloon_g_r_80185154[i - 7]) {
-            glowDrawFlare(&D_dryfield_night_saloon_g_r_80185074[i], 0, 0x300);
+            glowDrawFlare(&gSaloonLightPoints[i], 0, 0x300);
         }
     }
 }
 
 #include "../../shared/glow_draw_flare.inc.c"
 
-/// Draws the room's two light shafts as Gouraud quads. Both shafts share the
-/// roots at positions 14 and 17 of `D_dryfield_night_saloon_g_r_80185074`;
-/// each root's tip lies at four times its offset to a later entry (15 and 18
-/// for the first shaft, 16 and 19 for the second). All four corners are
-/// moved to world space through `coord->workm` and projected through
-/// `GsWSMATRIX`. The roots take a grey of 0x20 or 0x30 depending on the
-/// parity of `gDisplayState.animFrame` and the tips are black, so the shaft
-/// fades outward. The quad is sorted by `tipB`'s `otz` and skipped when that
-/// is below 0x11.
-static void func_dryfield_night_saloon_g_r_8017EB38(GfxCoord* coord)
-{
-    u8*                    head;
-    RoomLightShaftScratch* block;
-    POLY_G4*               prim;
-    SVECTOR*               dirA;
-    SVECTOR*               dirB;
-    s32                    i;
-    s32                    j;
-    s32                    rgb;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x24;
-        *scratch = tmp;
-        block    = (RoomLightShaftScratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_saloon_g_r_801850E4);
-    gte_rtv0();
-    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootA);
-    (u16) block->rootA.vx = (u16)block->rootA.vx + (u16)coord->workm.t[0];
-    (u16) block->rootA.vy = (u16)block->rootA.vy + (u16)coord->workm.t[1];
-    (u16) block->rootA.vz = (u16)block->rootA.vz + (u16)coord->workm.t[2];
-
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_night_saloon_g_r_801850FC);
-    gte_rtv0();
-    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootB);
-    (u16) block->rootB.vx = (u16)block->rootB.vx + (u16)coord->workm.t[0];
-    (u16) block->rootB.vy = (u16)block->rootB.vy + (u16)coord->workm.t[1];
-    (u16) block->rootB.vz = (u16)block->rootB.vz + (u16)coord->workm.t[2];
-
-    for (i = 0; i < 2; i++) {
-        j                    = i + 15;
-        dirA                 = &D_dryfield_night_saloon_g_r_80185074[j];
-        (u16) block->tipA.vx = (u16)D_dryfield_night_saloon_g_r_80185074[14].vx +
-                               ((u16)dirA->vx - (u16)D_dryfield_night_saloon_g_r_80185074[14].vx) * 4;
-        (u16) block->tipA.vy = (u16)D_dryfield_night_saloon_g_r_80185074[14].vy +
-                               ((u16)dirA->vy - (u16)D_dryfield_night_saloon_g_r_80185074[14].vy) * 4;
-        (u16) block->tipA.vz = (u16)D_dryfield_night_saloon_g_r_80185074[14].vz +
-                               ((u16)dirA->vz - (u16)D_dryfield_night_saloon_g_r_80185074[14].vz) * 4;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
-        gte_rtv0();
-        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
-        (u16) block->tipA.vx = (u16)block->tipA.vx + (u16)coord->workm.t[0];
-        (u16) block->tipA.vy = (u16)block->tipA.vy + (u16)coord->workm.t[1];
-        (u16) block->tipA.vz = (u16)block->tipA.vz + (u16)coord->workm.t[2];
-
-        j                    = i + 18;
-        dirB                 = &D_dryfield_night_saloon_g_r_80185074[j];
-        (u16) block->tipB.vx = (u16)D_dryfield_night_saloon_g_r_80185074[17].vx +
-                               ((u16)dirB->vx - (u16)D_dryfield_night_saloon_g_r_80185074[17].vx) * 4;
-        (u16) block->tipB.vy = (u16)D_dryfield_night_saloon_g_r_80185074[17].vy +
-                               ((u16)dirB->vy - (u16)D_dryfield_night_saloon_g_r_80185074[17].vy) * 4;
-        (u16) block->tipB.vz = (u16)D_dryfield_night_saloon_g_r_80185074[17].vz +
-                               ((u16)dirB->vz - (u16)D_dryfield_night_saloon_g_r_80185074[17].vz) * 4;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        gte_rtv0();
-        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        (u16) block->tipB.vx = (u16)block->tipB.vx + (u16)coord->workm.t[0];
-        (u16) block->tipB.vy = (u16)block->tipB.vy + (u16)coord->workm.t[1];
-        (u16) block->tipB.vz = (u16)block->tipB.vz + (u16)coord->workm.t[2];
-
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->rootA);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        gte_stsxy(&prim->x0);
-        gte_ldv3(&block->rootB, &((RoomLightShaftScratch*)(head - 0x24))->tipA,
-                 &((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        gte_rtpt();
-        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&block->otz);
-        if (block->otz >= 0x11) {
-            rgb = ((u8)gDisplayState.animFrame & 1) * 16 + 0x20;
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            setRGB0(prim, rgb, rgb, rgb);
-            setRGB1(prim, rgb, rgb, rgb);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x24);
-}
+#include "../../shared/glow_draw_twin_shafts.inc.c"
 
 /// Draws a tapered beam between two points of `coord`'s local space. `arg1`
 /// and `arg2` are rotated by `coord->workm` and offset by its translation,

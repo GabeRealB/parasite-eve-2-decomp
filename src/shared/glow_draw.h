@@ -60,4 +60,6 @@ void glowDrawPulsingStar(SVECTOR* arg0, s16 arg1, s32 arg2);
 
 void glowDrawGreyCapsule(SVECTOR* arg0, s32 arg1, s32 arg2);
 
+void glowDrawTwinShafts(GfxCoord* coord);
+
 #endif /* SRC_SHARED_GLOW_DRAW_H */

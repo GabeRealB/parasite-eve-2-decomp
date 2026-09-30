@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_saloon_g_r.
-D_dryfield_saloon_g_r_8017ECE4 = 0x8017ECE4; // size:0xA0 defined:True
+gSaloonLightPoints = 0x8017ECE4; // size:0xA0 defined:True
 gRoomEventTaskDesc = 0x8017ECB0; // size:0xC defined:True
 D_dryfield_saloon_g_r_8017ECBC = 0x8017ECBC; // size:0x28 defined:True
 D_dryfield_saloon_g_r_8017ED84 = 0x8017ED84; // size:0x1C defined:True
@@ -65,3 +65,4 @@ roomEventTask = 0x8017D74C; // type:func
 glowDrawFlareLocal = 0x8017DBB4; // type:func
 glowDrawTaperedBeam = 0x8017E430; // type:func
 roomVariantSaloonMsg = 0x8017D8BC; // type:func
+glowDrawTwinShafts = 0x8017DEC4; // type:func

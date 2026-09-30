@@ -50,10 +50,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
 
-#define D_dryfield_saloon_g_r_8017ED4C (D_dryfield_saloon_g_r_8017ECE4 + 13)
-#define D_dryfield_saloon_g_r_8017ED54 (D_dryfield_saloon_g_r_8017ECE4[14])
-#define D_dryfield_saloon_g_r_8017ED6C (D_dryfield_saloon_g_r_8017ECE4[17])
-
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 gRoomEventActive[4];
@@ -69,23 +65,12 @@ extern TaskDesc gRoomEventTaskDesc;
 /// The room's message table, installed on the room task by its entry state.
 extern GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[];
 
-/// The room's effect positions in the model's local space. The frame hook
-/// draws a sprite at each of 0-10; 12 and 13 are the two ends of the beam,
-/// and 14-19 the roots and tip directions of the two light shafts.
-
-/// Entry 13 of `D_dryfield_saloon_g_r_8017ECE4`, reached under a label of its
-/// own.
-
-/// Entries 14 and 17 of `D_dryfield_saloon_g_r_8017ECE4`, the two shaft roots,
-/// which the code also reaches under labels of their own.
-
 /// One view bitmask per effect, tested against `1 << view`: entries 0-10 gate
 /// the sprites, 11 the beam and 12 the light shafts.
 extern s16 D_dryfield_saloon_g_r_8017ED84[];
 
 static void func_dryfield_saloon_g_r_8017D9CC(Task* task);
 static void func_dryfield_saloon_g_r_8017DA10(Task* task);
-static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord);
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg);
@@ -114,7 +99,10 @@ GpMsgEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-SVECTOR D_dryfield_saloon_g_r_8017ECE4[20] = {
+/// The room's effect positions in the model's local space. The frame hook
+/// draws a sprite at each of 0-10; 12 and 13 are the two ends of the beam,
+/// and 14-19 the roots and tip directions of the two light shafts.
+SVECTOR gSaloonLightPoints[20] = {
     { 4915, -1870, -727, 0 },
     { 4915, -1870, -2339, 0 },
     { 4915, -1870, -4188, 0 },
@@ -811,129 +799,24 @@ void func_dryfield_saloon_g_r_8017DA70(Task* arg0)
     mask  = 1 << gGameSession->location.loc.view;
     for (i = 0; i < 6; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            glowDrawFlareLocal(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 0, 0x200);
+            glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 0, 0x200);
         }
     }
     for (i = 6; i < 11; i++) {
         if (mask & D_dryfield_saloon_g_r_8017ED84[i]) {
-            glowDrawFlareLocal(coord, &D_dryfield_saloon_g_r_8017ECE4[i], 2, 0x200);
+            glowDrawFlareLocal(coord, &gSaloonLightPoints[i], 2, 0x200);
         }
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[12]) {
-        func_dryfield_saloon_g_r_8017DEC4(coord);
+        glowDrawTwinShafts(coord);
     }
     if (mask & D_dryfield_saloon_g_r_8017ED84[11]) {
-        glowDrawTaperedBeam(coord, D_dryfield_saloon_g_r_8017ED4C, D_dryfield_saloon_g_r_8017ED4C - 1, 0x100);
+        glowDrawTaperedBeam(coord, &gSaloonLightPoints[13], &gSaloonLightPoints[12], 0x100);
     }
 }
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
-/// Draws the room's two light shafts as Gouraud quads. Both shafts share the
-/// roots at positions 14 and 17 of `D_dryfield_saloon_g_r_8017ECE4`; each
-/// root's tip lies at four times its offset to a later entry (15 and 18 for
-/// the first shaft, 16 and 19 for the second). All four corners are moved to
-/// world space through `coord->workm` and projected through `GsWSMATRIX`. The
-/// roots take a grey of 0x20 or 0x30 on the parity of
-/// `gDisplayState.animFrame` and the tips are black, so the shaft fades
-/// outward. The quad is sorted by `tipB`'s `otz` and skipped when that is
-/// below 0x11.
-static void func_dryfield_saloon_g_r_8017DEC4(GfxCoord* coord)
-{
-    u8*                    head;
-    RoomLightShaftScratch* block;
-    POLY_G4*               prim;
-    SVECTOR*               dirA;
-    SVECTOR*               dirB;
-    s32                    i;
-    s32                    j;
-    s32                    rgb;
-
-    {
-        void** scratch;
-        u8*    tmp;
-
-        scratch  = SCRATCH_STACK_CURSOR_SLOT;
-        head     = *scratch;
-        tmp      = head - 0x24;
-        *scratch = tmp;
-        block    = (RoomLightShaftScratch*)tmp;
-    }
-
-    gte_SetTransMatrix(&GsWSMATRIX);
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_saloon_g_r_8017ED54);
-    gte_rtv0();
-    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootA);
-    (u16) block->rootA.vx = (u16)block->rootA.vx + (u16)coord->workm.t[0];
-    (u16) block->rootA.vy = (u16)block->rootA.vy + (u16)coord->workm.t[1];
-    (u16) block->rootA.vz = (u16)block->rootA.vz + (u16)coord->workm.t[2];
-
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&D_dryfield_saloon_g_r_8017ED6C);
-    gte_rtv0();
-    gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->rootB);
-    (u16) block->rootB.vx = (u16)block->rootB.vx + (u16)coord->workm.t[0];
-    (u16) block->rootB.vy = (u16)block->rootB.vy + (u16)coord->workm.t[1];
-    (u16) block->rootB.vz = (u16)block->rootB.vz + (u16)coord->workm.t[2];
-
-    for (i = 0; i < 2; i++) {
-        j                    = i + 15;
-        dirA                 = &D_dryfield_saloon_g_r_8017ECE4[j];
-        (u16) block->tipA.vx = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vx +
-                               ((u16)dirA->vx - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vx) * 4;
-        (u16) block->tipA.vy = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vy +
-                               ((u16)dirA->vy - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vy) * 4;
-        (u16) block->tipA.vz = (u16)D_dryfield_saloon_g_r_8017ECE4[14].vz +
-                               ((u16)dirA->vz - (u16)D_dryfield_saloon_g_r_8017ECE4[14].vz) * 4;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
-        gte_rtv0();
-        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipA);
-        (u16) block->tipA.vx = (u16)block->tipA.vx + (u16)coord->workm.t[0];
-        (u16) block->tipA.vy = (u16)block->tipA.vy + (u16)coord->workm.t[1];
-        (u16) block->tipA.vz = (u16)block->tipA.vz + (u16)coord->workm.t[2];
-
-        j                    = i + 18;
-        dirB                 = &D_dryfield_saloon_g_r_8017ECE4[j];
-        (u16) block->tipB.vx = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vx +
-                               ((u16)dirB->vx - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vx) * 4;
-        (u16) block->tipB.vy = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vy +
-                               ((u16)dirB->vy - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vy) * 4;
-        (u16) block->tipB.vz = (u16)D_dryfield_saloon_g_r_8017ECE4[17].vz +
-                               ((u16)dirB->vz - (u16)D_dryfield_saloon_g_r_8017ECE4[17].vz) * 4;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        gte_rtv0();
-        gte_stsv(&((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        (u16) block->tipB.vx = (u16)block->tipB.vx + (u16)coord->workm.t[0];
-        (u16) block->tipB.vy = (u16)block->tipB.vy + (u16)coord->workm.t[1];
-        (u16) block->tipB.vz = (u16)block->tipB.vz + (u16)coord->workm.t[2];
-
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->rootA);
-        gte_rtps();
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG4(prim);
-        gte_stsxy(&prim->x0);
-        gte_ldv3(&block->rootB, &((RoomLightShaftScratch*)(head - 0x24))->tipA,
-                 &((RoomLightShaftScratch*)(head - 0x24))->tipB);
-        gte_rtpt();
-        gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
-        gte_stszotz(&block->otz);
-        if (block->otz >= 0x11) {
-            rgb = ((u8)gDisplayState.animFrame & 1) * 16 + 0x20;
-            setRGB2(prim, 0, 0, 0);
-            setRGB3(prim, 0, 0, 0);
-            setRGB0(prim, rgb, rgb, rgb);
-            setRGB1(prim, rgb, rgb, rgb);
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
-        }
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x24);
-}
+#include "../../shared/glow_draw_twin_shafts.inc.c"
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"
