@@ -103,7 +103,7 @@ D_shelter_b2_main_corridor_801828E0 = 0x801828E0; // size:0x10 defined:True
 
 func_shelter_b2_main_corridor_8017EF24 = 0x8017EF24; // type:func
 
-func_shelter_b2_main_corridor_8017F3AC = 0x8017F3AC; // type:func
+waterDriftTaskNoUpdate = 0x8017F3AC; // type:func
 
 func_shelter_b2_main_corridor_8018094C = 0x8018094C; // type:func
 

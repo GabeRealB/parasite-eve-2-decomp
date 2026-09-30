@@ -41,4 +41,6 @@ void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);
 void waterDistortBandTask(Task* task);
 void waterRefractionTask(Task* task);
 
+void waterDriftTaskNoUpdate(Task* task);
+
 #endif /* SRC_SHARED_WATER_EFFECTS_H */
