@@ -30,6 +30,14 @@
 
 struct _UiObject;
 
+/// Serialized preview range and place-label values used by the slot UI.
+enum {
+    MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET   = 0x200,
+    MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES = 0x38,
+    MEMORY_CARD_SAVE_POINT_COUNT           = 16,
+    MEMORY_CARD_SAVE_POINT_OPENING         = 15,
+};
+
 /// Pair of prompt / dialog data pointers. Mc_PromptTable is an array of these,
 /// indexed by mode (see Mc_DrawPrompt).
 typedef struct _McPromptPair {
@@ -311,7 +319,7 @@ static inline void _mcWriteWorkChecksum(McWork* work);
 static void Mc_StateFinishWrite(Task* task, McWork* work);
 
 /// Inline form of Mc_VerifySaveHdrChecksum: whether a save header names a valid
-/// save point and carries the checksum of its 0x38 bytes from `at4`.
+/// save point and carries the checksum of its 56 bytes from `McSavePreview.location`.
 static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save);
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object);
@@ -1017,8 +1025,8 @@ static inline void Mc_UpdateTitleHeaderChecksum(void)
 
     sum                                 = 0;
     ptr                                 = (u8*)&Mc_SaveData[0];
-    ptr                                += 4;
-    limit                               = 0x38;
+    ptr                                += OFFSET_OF(McSavePreview, location);
+    limit                               = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
     i                                   = 0;
     Mc_SaveData[0].state.hdrChecksum    = 0;
     Mc_SaveData[0].state.hdrChecksumInv = 0xFFFF;
@@ -2330,7 +2338,7 @@ static void Mc_StateFinishWrite(Task* task, McWork* work)
 }
 
 /// Inline form of Mc_VerifySaveHdrChecksum: whether a save header names a valid
-/// save point and carries the checksum of its 0x38 bytes from `at4`.
+/// save point and carries the checksum of its 56 bytes from `McSavePreview.location`.
 static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save)
 {
     u16 sum;
@@ -2339,30 +2347,31 @@ static inline s32 _mcVerifySaveHdrChecksum(McSavePreview* save)
     s32 i;
 
     sum = 0;
-    if ((u32)(save->savePoint - 1) >= 0x10U) {
+    if ((u32)(save->savePoint - 1) >= (u32)MEMORY_CARD_SAVE_POINT_COUNT) {
         return 0;
     }
-    ptr   = (u8*)save + OFFSET_OF(McSavePreview, at4);
-    limit = 0x38;
+    // The serialized checksum spans fields and retained bytes beyond the location cell.
+    ptr   = (u8*)save + OFFSET_OF(McSavePreview, location);
+    limit = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
     i     = 0;
     do {
         i   += 1;
         sum += (s8)*ptr;
         ptr += 1;
     } while (i < limit);
-    return save->hdrChecksum == sum;
+    return save->headerChecksum == sum;
 }
 
 static void Mc_StateSaveSlotUi(UiList* list, UiObject* object)
 {
     McWork* base;
-    s32     off;
+    s32     previewByteOffset;
     s32     enabled;
 
-    enabled = 1;
-    off     = list->field_8 * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
-    base    = object->owner->spawnArg1.pointer;
-    if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)base + off))) {
+    enabled           = 1;
+    previewByteOffset = list->field_8 * sizeof(McSavePreview) + OFFSET_OF(McWork, previews);
+    base              = object->owner->spawnArg1.pointer;
+    if (!_mcVerifySaveHdrChecksum((McSavePreview*)((u8*)base + previewByteOffset))) {
         enabled = 0;
         Ui_LookupTable(object, 2);
     }
@@ -2397,14 +2406,12 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
     TextDrawReq    sp90;
     s32            x;
     s32            y;
-    s32            off;
     s32            textX;
     s32            color;
     McSavePreview* save;
 
     color = Ui_LookupTable(object, 1);
     if (slot < work->entryCount) {
-        off  = (slot << 7) + 0x294;
         save = &work->previews[slot];
         if (!_mcVerifySaveHdrChecksum(save)) {
             x = arg3 + object->panel.field_1C.s + 8;
@@ -2433,7 +2440,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         sp50.glyphTable = 0;
         sp50.centerMode = 0;
         sp50.field_E    = 3;
-        Text_DrawString(&sp50, Text_FormatTime(sp20.buf, (s32)save->playTime));
+        Text_DrawString(&sp50, Text_FormatTime(sp20.buf, save->playTime));
         if (save->clearCount > 0) {
             x                   = (arg3 + (s16)object->panel.field_1E.u) - 4;
             y                   = (arg4 + (s16)object->panel.field_1A.u) - 0xB;
@@ -2452,8 +2459,8 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
             sp70.glyphTable = 0;
             sp70.centerMode = 2;
             sp70.field_E    = 3;
-            Text_DrawString(&sp70, Text_ItoaUnsigned(sp20.buf, (u32)save->clearCount));
-            if ((s8)save->savePoint != 0xF) {
+            Text_DrawString(&sp70, Text_ItoaUnsigned(sp20.buf, save->clearCount));
+            if ((s8)save->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
                 sp80.x          = object->panel.field_20.u + x;
                 sp80.y          = object->panel.field_22.u + 8 + y;
                 sp80.otIndex    = object->panel.field_14.s + 1;
@@ -2469,7 +2476,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         Text_DrawPrompt(object, x, y, Mc_LocationLabels[(s8)save->savePoint], color, 1, 0);
         sp60.buf[0] = 0;
         Text_Strcat(sp60.buf, McText_OpenParen);
-        Text_Strcat(sp60.buf, Text_ItoaSigned(sp20.buf, (s32)save->saveNumber));
+        Text_Strcat(sp60.buf, Text_ItoaSigned(sp20.buf, save->saveNumber));
         Text_Strcat(sp60.buf, McText_CloseParen);
         sp70.x          = object->panel.field_20.u + (x + Text_MeasureWidth(Mc_LocationLabels[(s8)save->savePoint]));
         sp70.y          = object->panel.field_22.u + (y - 3);
@@ -2491,7 +2498,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         sp70.centerMode = 0;
         sp70.field_E    = 1;
         Text_DrawString(&sp70, McText_Exp);
-        if ((s8)save->savePoint != 0xF) {
+        if ((s8)save->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
             sp80.x          = object->panel.field_20.u + x;
             sp80.y          = object->panel.field_22.u + y;
             sp80.otIndex    = object->panel.field_14.s + 1;
@@ -2519,7 +2526,7 @@ void Mc_DrawSlotDetails(UiObject* object, McWork* work, s32 slot, s32 arg3, s32 
         sp80.centerMode = 0;
         sp80.field_E    = 1;
         Text_DrawString(&sp80, McText_Bp);
-        if ((s8)save->savePoint != 0xF) {
+        if ((s8)save->savePoint != MEMORY_CARD_SAVE_POINT_OPENING) {
             sp90.x          = object->panel.field_20.u + 0x1E + x;
             sp90.y          = object->panel.field_22.u + y;
             sp90.otIndex    = object->panel.field_14.s + 1;
@@ -2622,8 +2629,8 @@ static void Mc_WriteSaveHdrChecksum(void)
 
     sum                                 = 0;
     ptr                                 = (u8*)&Mc_SaveData[0];
-    ptr                                += 4;
-    limit                               = 0x38;
+    ptr                                += OFFSET_OF(McSavePreview, location);
+    limit                               = MEMORY_CARD_SAVE_HEADER_CHECKSUM_BYTES;
     i                                   = 0;
     Mc_SaveData[0].state.hdrChecksum    = 0;
     Mc_SaveData[0].state.hdrChecksumInv = 0xFFFF;
@@ -3441,7 +3448,8 @@ static void Mc_StateReadHeader(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    if (MemCardReadData((u_long*)&work->previews[work->currentSlot], 0x200, 0x80) != 0) {
+    if (MemCardReadData((u_long*)&work->previews[work->currentSlot], MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET,
+                        sizeof(work->previews[work->currentSlot])) != 0) {
         work->field_4 = 0;
         task->state   = task->state + 1;
     } else {
@@ -3955,7 +3963,8 @@ static void Mc_StateReadSlot(Task* task, McWork* work)
     McPromptPair* base;
     s32           idx;
 
-    if (MemCardReadData((u_long*)&work->previews[work->currentSlot], 0x200, 0x80) != 0) {
+    if (MemCardReadData((u_long*)&work->previews[work->currentSlot], MEMORY_CARD_SAVE_PREVIEW_FILE_OFFSET,
+                        sizeof(work->previews[work->currentSlot])) != 0) {
         work->field_4 = 0;
         task->state   = task->state + 1;
     } else {

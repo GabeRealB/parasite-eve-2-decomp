@@ -17668,7 +17668,7 @@ Also pair with `register s32 temp asm("s2")` when a long-lived work pointer
 must occupy `$s2` (otherwise it steals `$s1` and flips the arg colors).
 
 `Mc_StateSaveSlotUi` is the pure example (checksum gate + confirm/cancel pad path
-over `McWork::field_294[slot]`).
+over `McWork::previews[slot]`).
 
 ## Force `(idx << k) + C` before base add for `addiu`/`addu` order
 
@@ -17684,8 +17684,8 @@ addu   a2, s2, v0
 compute the scaled offset first:
 
 ```c
-off = (arg0->field_8 << 7) + 0x294;
-save = (McSaveData*)(work + off);
+previewByteOffset = (arg0->field_8 << 7) + 0x294;
+save = (McSavePreview*)((u8*)work + previewByteOffset);
 ```
 
 ## `if (x >= K)` for `slti`/`bnez` fall-through compute + `j` join
@@ -143852,7 +143852,7 @@ In a byte-sum loop compared against a stored `u16` checksum, an `s16 sum` gives
 the `lbu`/`sll 24`/`sra 24` load but adds into a second register and copies it
 back (`addu v1,a2,v0` ... `move a2,v1`); an `s32 sum` drops the copy but folds the
 load to `lb`. Declaring the accumulator `u16` and comparing directly,
-`return save->hdrChecksum == sum;`, gives both the long load and the in-place
+`return save->headerChecksum == sum;`, gives both the long load and the in-place
 `addu v1,v1,v0`, with the `andi 0xFFFF` after the loop. A `register s16 sum
 asm("v1")` plus a `volatile u8*` walker in such a loop stands for this. The
 loop counter compares against a `limit` local (`slt` with a register), since a

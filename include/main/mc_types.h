@@ -152,26 +152,34 @@ typedef struct {
     u16                bufferChecksumInv; // Complement of `bufferChecksum`, written with it
 } McSaveState;
 
-/// Exact 128-byte save prefix read for a memory-card slot preview.
-/// The trailing bytes are retained for the header checksum and are not
-/// interpreted as the remainder of the full save.
+/// First 128 bytes of a saved-state block, cached for a memory-card slot.
+///
+/// Read from byte offset 0x200 in the card file. The displayed values mirror
+/// the corresponding fields of `McSaveState`; this sector is not a full state.
+/// `headerChecksum` covers 56 signed bytes beginning at `location`, including
+/// the header checksum pair and the first 28 bytes of `remainingBytes`.
+/// Both sums retain their low 16 bits. The full-block `saveChecksum` cannot
+/// be verified from this prefix alone.
 typedef struct {
-    byte    unknown_0[0x4];
-    GameLoc at4;            // Place the save was made at, as `GameSession.at4`
-    u16     playTime;       // Played time in minutes (capped at 0xEA5F)
-    s8      clearCount;     // Times the game has been completed (0 never, capped at 99)
-    s8      gameMode;       // Mode the run is played in (0..2); the stat, cost and item-grant tables have one variant per mode
-    u8      visitFlags;     // One bit per stage marking it as visited; bit 0 marks the new-game setup as done
-    s8      saveNumber;     // Number of this save among those made at the same save point (1..99)
-    u8      savePoint;      // Save point the save was made at, indexing the tables of place names the slot and the save header print (1..16)
-    s8      companionType;  // Companion the save carries (0 none, otherwise 1..3 index `Gp_AllyIdBase`)
-    s32     playerExp;      // Player experience as of the save, as `Player_Status.exp`
-    s32     playerBp;       // Player BP as of the save, as `Player_Status.bp`
-    u16     hdrChecksum;    // Sum over the header's 0x38 bytes, which start at `at4`
-    u16     hdrChecksumInv; // Complement of `hdrChecksum`, written with it
-    u8      remainingBytes[0x60];
+    s16     saveChecksum;             // Sum of the 0x940 signed payload bytes in the full saved-state block
+    s16     saveChecksumComplement;   // Ones' complement of `saveChecksum`
+    GameLoc location;                 // Saved world location
+    u16     playTime;                 // Minutes played (0..59999)
+    s8      clearCount;               // Completed runs (0 never completed, 1..99 completed)
+    s8      gameMode;                 // Run mode (0 normal/replay, 1 Bounty, 2 Scavenger, 3 Nightmare)
+    u8      visitFlags;               // Bit 0: new-game setup done; bits 1..5: visited stages
+    s8      saveNumber;               // Save label number at this save point (1..99), distinct from total saves
+    u8      savePoint;                // Place-label index (1..16); 15 is Opening and hides mode/EXP/BP in the preview
+    s8      companionType;            // Saved companion family (0 none, 1..3 companion)
+    s32     playerExp;                // Player experience captured for the save
+    s32     playerBp;                 // Player BP captured for the save
+    u16     headerChecksum;           // Sum of the 56 signed bytes beginning at `location`
+    u16     headerChecksumComplement; // Ones' complement of `headerChecksum`
+    u8      remainingBytes[0x60];     // Rest of the sector; the preview retains its representation without interpreting it
 } McSavePreview;
 STATIC_ASSERT_SIZEOF(McSavePreview, 0x80);
+STATIC_ASSERT(OFFSET_OF(McSavePreview, location) == 4, McSavePreview_location);
+STATIC_ASSERT(OFFSET_OF(McSavePreview, remainingBytes) == 0x20, McSavePreview_remainingBytes);
 
 /// Full save image and its bounded cached-preview representation.
 /// Both records have the same initial fields through the checksum pair.
