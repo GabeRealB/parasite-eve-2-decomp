@@ -50,11 +50,28 @@ void Task_ExecListFiltered(TaskNode* node, s32 filter);
 /// suppresses repeated teardown. The caller owns task and resource release.
 void taskNoopCallback(Task* unusedTask);
 
-/// Task callback that counts a task's `killCountdown` down and releases the body
-/// it owns when the count reaches zero: a TMD model comes off the model list and
-/// has its buffer and object freed, a coordinate body is freed, and a task owning
-/// neither is only marked. The mark is `bodyKind` 0xFF, which the next exec pass
-/// collects the task on.
+/// Counts down a task and, on reaching zero, releases its body and marks it for collection.
+///
+/// Every dispatch decrements the signed `killCountdown`. The releasing dispatch
+/// is the one that stores zero, so a positive count lasts that many dispatches.
+/// A count that is already zero or negative releases only on a later dispatch
+/// that stores zero. A TMD model is unlinked from the live model list and
+/// freed, including any primitive buffer it owns. A coordinate body is freed
+/// with its list link left unchanged. Any other kind receives only the mark.
+/// `extra` keeps its pointer, which must not be dereferenced once the task is
+/// marked.
+///
+/// The mark is `bodyKind` 0xFF. The walk that called this callback may unlink
+/// and free the task on return, in that same walk. A stop request leaves the
+/// marked task linked until a later walk reaches it without stopping. The mark
+/// makes the task eligible for collection without reserving another pass. A
+/// later dispatch before collection finds the count already off zero and leaves
+/// the body alone. The task, its work block and its children stay allocated
+/// across this call.
+///
+/// Normal model teardown installs this callback with a count of two after
+/// suppressing the model's active drawing. System-bank descriptor 1 also names
+/// it as the callback of a task that attaches no body.
 void taskCountdownCallback(Task* task);
 
 s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);

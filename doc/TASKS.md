@@ -81,7 +81,7 @@ Spawn type (low byte of `flags`, stored as `Task::bodyKind`) is the body:
 | Type | Attach (`Task::extra`) | Kill teardown |
 |------|------------------------|---------------|
 | 0 | none | free the `Task` |
-| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normally deferred 2 frames) |
+| 1 (`TASK_BODY_TMD`) | `Gp_AttachTmdFlags(task, arg.model, flags)` — `extra.tmd` | unlink + free TMD (normal teardown waits two countdown-callback dispatches) |
 | 2 | `gpAttachDisp2d(task)` — `extra.coordBody` | unlink + free coordinate body immediately |
 
 `TaskBody` holds one allocation pointer. Select its typed member using
@@ -130,12 +130,15 @@ exit callbacks.
 5. Normally sets `bodyKind = 0xFF` for collection after the callback returns;
    the immediate path also unlinks and frees the task during this call.
 
-Type 1 often swaps `callback` to `taskCountdownCallback` with
-`killCountdown = 2` instead of freeing immediately. Normal teardown installs
-`taskNoopCallback` as `exitCallback` to suppress repeated cleanup. For type 0/2
-it also replaces `callback` with this inert handler; `bodyKind` is marked
-released during the same teardown call, and the execution pass collects the
-task after its callback returns.
+Normal type-1 teardown installs `taskCountdownCallback` with `killCountdown` 2
+instead of freeing the model in that call. That callback unlinks and frees the
+model on the dispatch that stores zero, then marks `bodyKind` 0xFF so the
+invoking walk can collect the task unless it stops first.
+
+Normal teardown installs `taskNoopCallback` as `exitCallback` to suppress
+repeated cleanup. For type 0/2 it also replaces `callback` with this inert
+handler; `bodyKind` is marked released during the same teardown call, and the
+execution pass collects the task after its callback returns.
 
 `Task_RequestKill` marks `status = 0xFF` and stashes a result in `extraState`;
 it installs `taskNoopCallback` to suspend frame updates. `Task_PollKill` reads
@@ -215,7 +218,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | Type | Pri | Callback | Notes |
 |------|-----|----------|-------|
 | `00` | `C0` | `taskNoopCallback` | Inert handler; also suppresses updates and repeated teardown |
-| `01` | `C0` | `taskCountdownCallback` | Decrement `killCountdown`, then kill |
+| `01` | `C0` | `taskCountdownCallback` | Decrement signed `killCountdown`; at zero, release the body and mark for collection |
 | `02` | `C0` | `Title_Dispatch` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |
 | `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |

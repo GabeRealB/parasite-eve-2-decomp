@@ -678,6 +678,8 @@ void taskCountdownCallback(Task* task)
         return;
     }
 
+    // Releasing dispatch. A model is unlinked, then freed; a coordinate body is
+    // freed with its link unchanged.
     switch (task->bodyKind) {
         case TASK_BODY_TMD:
             model = task->extra.tmd;
