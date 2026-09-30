@@ -235,9 +235,9 @@ extern const char           D_dryfield_night_saloon_g_r_8017D85C[20];
 void                        func_dryfield_night_saloon_g_r_8017E0A8(u8);
 
 s32  func_dryfield_night_saloon_g_r_8017DCA4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DD7C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_saloon_g_r_8017DD84(Task*, s32, s32, s32);
-s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32  func_dryfield_night_saloon_g_r_8017DE68(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_dryfield_night_saloon_g_r_8017DA04(Task*);
 void func_dryfield_night_saloon_g_r_8017DB74(Task*);
 
@@ -2097,7 +2097,7 @@ s32 func_dryfield_night_saloon_g_r_8017DCA4(Task* arg0, s32 arg1, RoomEventMsg* 
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_night_saloon_g_r_8017DD7C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DD7C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -2133,7 +2133,7 @@ s32 func_dryfield_night_saloon_g_r_8017DD84(Task* task, s32 msgId, s32 arg2, s32
 /// while action 2 announces the visit to the
 /// slot-4 task with message 0x7DA carrying the session's two id bytes and a
 /// non-zero action halfword, and sets nibble 0xB0. Always returns 0.
-s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     ActorCommand msg;
     u8           temp_s0;

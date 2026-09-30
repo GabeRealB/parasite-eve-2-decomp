@@ -98,13 +98,13 @@ static TaskDesc             D_shelter_r47_80187020;
 static ShelterR47SpritePart* D_shelter_r47_8018729C[];
 static TaskDesc              D_shelter_r47_801872F0;
 static void                  func_shelter_r47_8017F628(Task*);
-static s32                   func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, GpMessageArg);
-static s32                   func_shelter_r47_801801DC(Task*, s32, s32, GpMessageArg);
+static s32                   func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, TaskMessageArg);
+static s32                   func_shelter_r47_801801DC(Task*, s32, s32, TaskMessageArg);
 static void                  func_shelter_r47_80180324(Task*);
 static void                  func_shelter_r47_80180540(Task*);
-static s32                   func_shelter_r47_801805D0(Task*, s32, GpMessageArg, GpMessageArg);
+static s32                   func_shelter_r47_801805D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 static s32                   func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32                   func_shelter_r47_8018061C(Task*, s32, s32, GpMessageArg);
+static s32                   func_shelter_r47_8018061C(Task*, s32, s32, TaskMessageArg);
 static void                  func_shelter_r47_80180650(Task*);
 static void                  func_shelter_r47_80180714(Task*);
 static void                  func_shelter_r47_8018080C(Task*);
@@ -776,7 +776,7 @@ static void func_shelter_r47_8017FCC0(Task* task)
     }
 }
 
-static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
+static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
     Task*    spawned_p;
     Task*    spawned_p6;
@@ -924,7 +924,7 @@ done:
 /// 2-bit flag 0x22 reads 1); the first time, it sets that flag and spawns entry
 /// 2 of the room's task table. Request 8 spawns entry 0 or 1 of the second task
 /// table, depending on which of flags 0x83 and 0x80 is set.
-static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x13E) != 0) {
@@ -1027,7 +1027,7 @@ static void func_shelter_r47_80180540(Task* task)
     }
 }
 
-static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1041,7 +1041,7 @@ static s32 func_shelter_r47_801805D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(0x542F0011, 0, 0);

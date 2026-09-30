@@ -35,10 +35,10 @@ extern GpMsgEntry D_neo_ark_r31_8017D9F4[];
 extern s32        D_80133F90;
 extern s32        D_80134470;
 
-s32  func_neo_ark_r31_8017D8B0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_r31_8017D8B0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_r31_8017D8B8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_r31_8017D8FC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_r31_8017D904(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_r31_8017D8FC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_r31_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_neo_ark_r31_8017D5D0(Task*);
 
 TaskDesc D_neo_ark_r31_8017D9E8 = { 0, 192, func_neo_ark_r31_8017D5D0, { .model = NULL } };
@@ -209,7 +209,7 @@ void func_neo_ark_r31_8017D5D0(Task* task)
     addPrim(gGpuCurrentOt + 0x3FF, stp);
 }
 
-s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r31_8017D8B0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -223,12 +223,12 @@ s32 func_neo_ark_r31_8017D8B8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     return 1;
 }
 
-s32 func_neo_ark_r31_8017D8FC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r31_8017D8FC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r31_8017D904(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

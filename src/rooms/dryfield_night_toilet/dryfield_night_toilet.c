@@ -49,9 +49,9 @@ extern TaskDesc D_8013E51C[];
 
 s32 func_dryfield_night_toilet_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_dryfield_night_toilet_8017D644(Task*, s32, s32, s32);
-s32 func_dryfield_night_toilet_8017D678(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_toilet_8017D680(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_toilet_8017D688(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_toilet_8017D678(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_toilet_8017D680(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_toilet_8017D688(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_toilet_8017DD88[1];
 extern GpObj3A        D_dryfield_night_toilet_8017F2C4[1];
@@ -501,19 +501,19 @@ s32 func_dryfield_night_toilet_8017D644(Task* task, s32 msgId, s32 arg2, s32 arg
 }
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D678(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_toilet_8017D678(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D680(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_toilet_8017D680(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_toilet_8017D688(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

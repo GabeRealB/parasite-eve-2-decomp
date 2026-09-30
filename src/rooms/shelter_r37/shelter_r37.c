@@ -24,10 +24,10 @@
 /// The room's message table, handed to its event task in state 0.
 extern GpMsgEntry D_shelter_r37_8017D6D0[];
 
-s32 func_shelter_r37_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r37_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_r37_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_r37_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_r37_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_r37_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_r37_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_shelter_r37_8017D6D0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r37_8017D5D8 },
@@ -177,7 +177,7 @@ static void func_shelter_r37_8017D62C(Task* task);
 static void func_shelter_r37_8017D670(Task* task);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_r37_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_r37_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -192,13 +192,13 @@ s32 func_shelter_r37_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 }
 
 /// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_shelter_r37_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_r37_8017D61C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_r37_8017D624(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_r37_8017D624(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

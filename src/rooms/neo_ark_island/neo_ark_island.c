@@ -1312,7 +1312,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
     }
 }
 
-s32 func_neo_ark_island_8017E960(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_island_8017E960(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1338,12 +1338,12 @@ s32 func_neo_ark_island_8017E968(Task* task, s32 msgId, RoomEventMsg* src, RoomE
     return 1;
 }
 
-s32 func_neo_ark_island_8017EA24(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_island_8017EA24(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_island_8017EA2C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_island_8017EA2C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1352,7 +1352,7 @@ s32 func_neo_ark_island_8017EA2C(Task* task, s32 msgId, GpMessageArg arg2, GpMes
 /// key 3 plays `0x550E0003` outright, key 0x65 plays `0x550E0004` only while
 /// the running cap script reports no event key. Every other key, and key 0x65
 /// with a script still parked on one, is ignored. Always returns 0.
-s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_island_8017EA34(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32 id;
 

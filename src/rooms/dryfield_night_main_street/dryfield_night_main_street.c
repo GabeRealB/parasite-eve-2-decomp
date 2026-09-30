@@ -189,9 +189,9 @@ static void func_dryfield_night_main_street_80181598(GfxCoord* arg0, s16 arg1, u
 
 s32  func_dryfield_night_main_street_8017DA6C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_main_street_8017DEF0(Task*, s32, s32, s32);
-s32  func_dryfield_night_main_street_8017DFC8(Task*, s32, s32, GpMessageArg);
-s32  func_dryfield_night_main_street_8017E054(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_night_main_street_8017E05C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_main_street_8017DFC8(Task*, s32, s32, TaskMessageArg);
+s32  func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_dryfield_night_main_street_8017D600(Task*);
 void func_dryfield_night_main_street_8017D8FC(Task*);
 void func_dryfield_night_main_street_8017DE78(Task*);
@@ -1981,7 +1981,7 @@ s32 func_dryfield_night_main_street_8017DEF0(Task* task, s32 msgId, s32 arg2, s3
 /// 0x119, sets current-bit flag 0x1B unless collected bit 0x119 is held,
 /// spawns CAP entry 1 and the task above; before that it spawns CAP entry
 /// 0x14 instead.
-s32 func_dryfield_night_main_street_8017DFC8(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_main_street_8017DFC8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x7B) >= 2) {
@@ -1998,12 +1998,12 @@ s32 func_dryfield_night_main_street_8017DFC8(Task* arg0, s32 arg1, s32 arg2, GpM
     return 0;
 }
 
-s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_main_street_8017E054(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_main_street_8017E05C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

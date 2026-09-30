@@ -47,12 +47,12 @@ static const TaskFuncTable3 D_shelter_b3_garbage_incinerator_8017D5C4 = { {
 } };
 
 void func_shelter_b3_garbage_incinerator_8017D6EC(Task*);
-s32  func_shelter_b3_garbage_incinerator_8017D838(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017D838(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b3_garbage_incinerator_8017D840(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_garbage_incinerator_8017D9B4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017D9B4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b3_garbage_incinerator_8017D9BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017DA74(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b3_garbage_incinerator_8017DB2C(Task*, s32, s32, TaskMessageArg);
 
 GpMsgEntry D_shelter_b3_garbage_incinerator_80185594[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_garbage_incinerator_8017D840 },
@@ -109,7 +109,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
     }
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017D838(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b3_garbage_incinerator_8017D838(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -145,7 +145,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEvent
     return 1;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b3_garbage_incinerator_8017D9B4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -165,7 +165,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEvent
     return 0;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 0:
@@ -184,7 +184,7 @@ s32 func_shelter_b3_garbage_incinerator_8017DA74(Task* arg0, s32 arg1, s32 arg2,
     return 0;
 }
 
-s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b3_garbage_incinerator_8017DB2C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 9:

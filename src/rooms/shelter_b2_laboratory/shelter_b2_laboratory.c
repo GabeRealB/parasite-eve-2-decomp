@@ -211,11 +211,11 @@ static void func_shelter_b2_laboratory_801812F8(SVECTOR* arg0, s32 arg1, s32 arg
 static void func_shelter_b2_laboratory_8018176C(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b2_laboratory_801820F4(s16 arg0);
 
-s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_b2_laboratory_801800F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b2_laboratory_801800F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b2_laboratory_801801D0(Task*, s32, DirectionActionRequest* request, s32);
-s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b2_laboratory_8017F4D8(Task*);
 void func_shelter_b2_laboratory_8017FBA8(Task*);
 void func_shelter_b2_laboratory_8017FEB8(Task*);
@@ -1366,7 +1366,7 @@ void func_shelter_b2_laboratory_8017FBA8(Task* task)
     }
 }
 
-s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
         D_shelter_b2_laboratory_801864B8 = 0;
@@ -1484,7 +1484,7 @@ void func_shelter_b2_laboratory_80180064(Task* task)
     }
 }
 
-s32 func_shelter_b2_laboratory_801800F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_laboratory_801800F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1533,7 +1533,7 @@ s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, DirectionActionRe
     return 0;
 }
 
-s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b2_laboratory_8018025C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(0x541F0017, 0, 0);

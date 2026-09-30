@@ -1088,7 +1088,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEv
 }
 
 /// Does nothing and returns 0.
-s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1098,7 +1098,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E49C(Task* task, s32 msgId, GpMess
 /// still 0, starts the helicopter sequence: flags the session, loads the
 /// bank pair, moves to phase 1 and swaps the visible `GpObj4A` from element
 /// 4 to element 0. Action 1 latches `D_acropolis_helicopter_landing_pad_80187F84`.
-s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
 {
     u8       actionId;
     GpObj4A* obj;
@@ -1121,7 +1121,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E4A4(Task* task, s32 msgId, Direct
     return 0;
 }
 
-s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
         Task_SpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);

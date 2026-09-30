@@ -93,9 +93,9 @@ static void func_shelter_1f_vehicular_airlock_80180290(GfxCoord* arg0, s16 arg1,
 
 void func_shelter_1f_vehicular_airlock_8017D644(Task*);
 s32  func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern u32     D_shelter_1f_vehicular_airlock_80180C74[1];
 extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
@@ -459,12 +459,12 @@ s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
         if (Gp_GetCurBit2Flag(6) == 2 && GameFlag_GetNibble(0x7A) >= 6) {
@@ -475,7 +475,7 @@ s32 func_shelter_1f_vehicular_airlock_8017D990(Task* arg0, s32 arg1, s32 arg2, G
     return 0;
 }
 
-s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

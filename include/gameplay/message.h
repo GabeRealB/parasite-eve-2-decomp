@@ -63,34 +63,37 @@ typedef struct {
 } ActorTransform;
 STATIC_ASSERT_SIZEOF(ActorTransform, 0x18);
 
-struct AnimationPlayRequest;
 struct ActorCommand;
 struct AnimationSet;
 
-struct DirectionActionRequest;
-
-/// One payload word in the PS1 message ABI. A message id determines whether
-/// the recipient interprets the word as an integer or as an object address.
-typedef union GpMessageArg {
-    s32                            value;
-    const void*                    pointer;
-    void*                          storage;
-    u8*                            bytes;
-    VECTOR*                        vector;
-    ActorTransform*                transform;
-    struct AnimationPlayRequest*   animation;
-    struct ActorCommand*           command;
-    RoomEventMsg*                  location;
-    struct DirectionActionRequest* direction;
-    RoomEventMsg*                  roomEvent;
-} GpMessageArg __attribute__((transparent_union));
-STATIC_ASSERT_SIZEOF(GpMessageArg, 4);
+/// One integer or object address passed to a task's message handler.
+///
+/// The message id and receiver determine the interpretation of each of the two
+/// argument words, including whether zero denotes an absent optional payload.
+/// Pointer arguments borrow storage rather than copying the pointed-to object;
+/// keep it live through synchronous dispatch. Any storage retained by a handler
+/// must remain live for that handler's use. Writable reply storage must satisfy
+/// the selected handler's payload type and complete extent.
+///
+/// `pointer` transports arbitrary object addresses without changing their bits;
+/// its const qualification does not describe the receiver's write permission.
+/// The typed views identify command records in event-script operands and room
+/// transition requests/replies. This union is one four-byte PS1 argument word,
+/// not the payload record itself. Keep `value` first: the transparent union
+/// accepts integer and pointer arguments using the integer calling convention.
+typedef union {
+    s32                  value;     // Integer argument or the complete transported address bits
+    const void*          pointer;   // Generic borrowed object address for transport
+    struct ActorCommand* command;   // ACTOR_COMMAND_MESSAGE_APPLY: borrowed actor command
+    RoomEventMsg*        roomEvent; // ROOM_EVENT_MESSAGE_RESOLVE: borrowed request or writable reply
+} TaskMessageArg __attribute__((transparent_union));
+STATIC_ASSERT_SIZEOF(TaskMessageArg, 4);
 
 /// 8-byte id/handler record. `Task::msgTable` points at a table of these
 /// (`Gp_Slot4MsgTable`, `D_8010FB90`, …). `Gp_DispatchMsg` walks it and calls the
 /// matching handler with the same four arguments. Terminator id is
 /// `0x7FFFFFFF`.
-typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3);
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3);
 
 typedef struct _GpMsgEntry {
     /* 0x0 */ s32          id;
@@ -254,7 +257,7 @@ s32 Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Send an object address in arg2; the recipient's message id defines its type.
 static __inline__ s32 Gp_DispatchMsgPtr(Task* task, s32 id, const void* data, s32 arg3)
 {
-    GpMessageArg payload;
+    TaskMessageArg payload;
     payload.pointer = data;
     return Gp_DispatchMsg(task, id, payload.value, arg3);
 }
@@ -262,7 +265,7 @@ static __inline__ s32 Gp_DispatchMsgPtr(Task* task, s32 id, const void* data, s3
 /// Send an object address in arg3, commonly an output/reply destination.
 static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const void* reply)
 {
-    GpMessageArg payload;
+    TaskMessageArg payload;
     payload.pointer = reply;
     return Gp_DispatchMsg(task, id, arg2, payload.value);
 }
@@ -270,8 +273,8 @@ static __inline__ s32 Gp_DispatchMsgReply(Task* task, s32 id, s32 arg2, const vo
 /// Send two object addresses through the same word-based message interface.
 static __inline__ s32 Gp_DispatchMsgPtrs(Task* task, s32 id, const void* data, const void* reply)
 {
-    GpMessageArg payload;
-    GpMessageArg response;
+    TaskMessageArg payload;
+    TaskMessageArg response;
     payload.pointer  = data;
     response.pointer = reply;
     return Gp_DispatchMsg(task, id, payload.value, response.value);

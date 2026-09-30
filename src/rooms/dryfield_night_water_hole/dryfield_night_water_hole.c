@@ -185,7 +185,7 @@ extern GpRoomParamRec D_dryfield_night_water_hole_801835B0[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835B8[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835C0[1];
 
-s32  func_dryfield_night_water_hole_8017DAD4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_water_hole_8017DAD4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_water_hole_8017DADC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_night_water_hole_8017DC28(Task*, s32, s32, s32);
 s32  func_dryfield_night_water_hole_8017DD5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -1274,7 +1274,7 @@ static const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_water_hole_8017DAD4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

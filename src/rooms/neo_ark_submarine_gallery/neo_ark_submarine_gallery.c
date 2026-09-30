@@ -844,7 +844,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
     }
 }
 
-s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -869,7 +869,7 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg*
     return 1;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 2:
@@ -892,7 +892,7 @@ s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, GpMe
     return 0;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EB48(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_submarine_gallery_8017EB48(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

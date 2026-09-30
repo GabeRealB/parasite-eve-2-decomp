@@ -262,17 +262,17 @@ s32 func_dryfield_night_motel_balcony_8017DBC8(Task* task, s32 msgId, s32 arg2, 
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC18(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC18(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC20(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC20(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_motel_balcony_8017DC28(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_balcony_8017DC28(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

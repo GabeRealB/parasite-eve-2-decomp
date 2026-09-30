@@ -27,7 +27,7 @@ typedef union GpEvsOperand {
     GpOverlayIds*         overlays;
     struct _GpScriptCmd*  padCommands;
     struct _GpScriptRec*  padRecords;
-    GpMessageArg          message;
+    TaskMessageArg        message;
     TaskSpawnArg          spawn;
     // The exported callback address uses the word-register event ABI. Some
     // callbacks ignore that register or consume only its low byte/halfword;

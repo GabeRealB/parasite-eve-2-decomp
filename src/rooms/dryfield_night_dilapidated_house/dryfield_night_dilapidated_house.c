@@ -283,7 +283,7 @@ void func_dryfield_night_dilapidated_house_8017D764(Task* task)
     }
 }
 
-s32 func_dryfield_night_dilapidated_house_8017D8D4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_dilapidated_house_8017D8D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -310,12 +310,12 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
     return 1;
 }
 
-s32 func_dryfield_night_dilapidated_house_8017D960(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_dilapidated_house_8017D960(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

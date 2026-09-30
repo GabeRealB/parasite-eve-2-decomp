@@ -51,10 +51,10 @@ static void func_shelter_1f_airlock_8017D8A8(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_1f_airlock_8017E0F0(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 // Indexed views below share one contiguous table.
-s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_airlock_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_airlock_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_airlock_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_airlock_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_airlock_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_shelter_1f_airlock_8017E838[1];
 extern GpObj3A        D_shelter_1f_airlock_8017F7B8[2];
@@ -394,7 +394,7 @@ GpRoomParamRec* D_shelter_1f_airlock_8017F84C[8] = {
 static void func_shelter_1f_airlock_8017D62C(Task* task);
 static void func_shelter_1f_airlock_8017D670(Task* task);
 
-s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -408,12 +408,12 @@ s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_shelter_1f_airlock_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D61C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_airlock_8017D624(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

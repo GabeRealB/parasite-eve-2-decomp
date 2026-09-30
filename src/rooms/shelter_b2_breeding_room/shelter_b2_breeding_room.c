@@ -28,11 +28,11 @@ extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 /// Message table `func_shelter_b2_breeding_room_8017D7EC` installs on its task.
 extern GpMsgEntry D_shelter_b2_breeding_room_80180414[];
 
-s32  func_shelter_b2_breeding_room_8017D658(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_breeding_room_8017D658(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_breeding_room_8017D660(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b2_breeding_room_8017D6A4(Task*, s32, s32, s32);
-s32  func_shelter_b2_breeding_room_8017D750(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b2_breeding_room_8017D758(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b2_breeding_room_8017D750(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_breeding_room_8017D758(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b2_breeding_room_8017D7A8(Task*);
 
 extern SVECTOR D_shelter_b2_breeding_room_801803A4[4];
@@ -87,7 +87,7 @@ void func_shelter_b2_breeding_room_8017D5F8(Task* task)
     }
 }
 
-s32 func_shelter_b2_breeding_room_8017D658(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_breeding_room_8017D658(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -124,12 +124,12 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D750(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_breeding_room_8017D750(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 7:

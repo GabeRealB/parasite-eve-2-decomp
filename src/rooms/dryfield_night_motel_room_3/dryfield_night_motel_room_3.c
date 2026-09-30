@@ -12,10 +12,10 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
-s32 func_dryfield_night_motel_room_3_8017D5F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_3_8017D5F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_3_8017D5FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_motel_room_3_8017D684(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_3_8017D68C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_3_8017D684(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_room_3_8017D68C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_motel_room_3_8017D5FC },
@@ -29,7 +29,7 @@ static void func_dryfield_night_motel_room_3_8017D694(Task* task);
 static void func_dryfield_night_motel_room_3_8017D6D8(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_3_8017D5F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -57,13 +57,13 @@ s32 func_dryfield_night_motel_room_3_8017D5FC(Task* arg0, s32 arg1, RoomEventMsg
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D684(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_3_8017D684(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D68C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_3_8017D68C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

@@ -150,7 +150,7 @@ void func_neo_ark_forest_zone_8017D644(Task* arg0)
     }
 }
 
-s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -205,7 +205,7 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return NeoArkForestZone_StartEvent(out, &event);
 }
 
-s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_8017D950(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

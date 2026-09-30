@@ -56,7 +56,7 @@ STATIC_ASSERT_SIZEOF(AhlpEnemyWork, 0x54);
 typedef struct {
     s32 id; // Message id; 0x7FFFFFFF terminates the table
     union {
-        s32 (*animation)(Task*, s32, AnimationPlayRequest*, GpMessageArg);
+        s32 (*animation)(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
         s32 (*placement)(Task*, s32, ActorTransform*, s32);
     } handler; // Callback with the argument views required by that message
 } _AcropolisHelicopterLandingPadMessageEntry;
@@ -74,7 +74,7 @@ extern ActorTransform D_acropolis_helicopter_landing_pad_801823AC;
 static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task);
 s32         func_acropolis_helicopter_landing_pad_8017D8E8(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
 
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, GpMessageArg);
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task*, s32, AnimationPlayRequest*, TaskMessageArg);
 s32 func_acropolis_helicopter_landing_pad_8017D8E8(Task*, s32, ActorTransform* placement, s32);
 
 _AcropolisHelicopterLandingPadMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
@@ -240,7 +240,7 @@ static void func_acropolis_helicopter_landing_pad_8017D7B0(Task* task)
 ///
 /// The two opening phases arm a countdown and movement step; the last
 /// returns to the first placement and clears the countdown.
-s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AnimationPlayRequest* msg, GpMessageArg arg3)
+s32 func_acropolis_helicopter_landing_pad_8017D824(Task* task, s32 msgId, AnimationPlayRequest* msg, TaskMessageArg arg3)
 {
     AhlpEnemyWork* work = (AhlpEnemyWork*)task->work;
 

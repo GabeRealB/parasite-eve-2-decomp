@@ -77,10 +77,10 @@ extern GpObj4C        D_dryfield_parking_lot_8017F3A0[11];
 extern GpRoomCoordSet D_dryfield_parking_lot_8017F9FC[1];
 extern TaskDesc       D_8014D8A4;
 s32                   func_dryfield_parking_lot_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, GpMessageArg);
-s32                   func_dryfield_parking_lot_8017DAF0(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_parking_lot_8017DAF8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_parking_lot_8017DB00(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_parking_lot_8017DAA0(Task*, s32, s32, TaskMessageArg);
+s32                   func_dryfield_parking_lot_8017DAF0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_dryfield_parking_lot_8017DAF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_dryfield_parking_lot_8017DB00(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                  func_dryfield_parking_lot_8017D74C(Task*);
 
 TaskDesc D_dryfield_parking_lot_8017DBF8 = { 0, 32, func_dryfield_parking_lot_8017D74C, { .model = NULL } };
@@ -644,7 +644,7 @@ s32 func_dryfield_parking_lot_8017D8BC(Task* task, s32 msgId, RoomEventMsg* msg,
 /// Handler for message 0x13F2 in the room's message table, keyed by `arg2`:
 /// point 9 plays stage sound 0x520F0009 and point 10 plays 0x520F000A. Always
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DAA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DAA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 9:
@@ -659,21 +659,21 @@ s32 func_dryfield_parking_lot_8017DAA0(Task* arg0, s32 arg1, s32 arg2, GpMessage
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DAF0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DAF0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DAF8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DAF8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_parking_lot_8017DB00(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

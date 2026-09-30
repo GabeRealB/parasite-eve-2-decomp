@@ -29,11 +29,11 @@ s32 func_dryfield_night_motel_balcony_8017D968(Task*, s32, RoomEventMsg*, RoomEv
 
 s32 func_dryfield_night_motel_balcony_8017DBC8(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_motel_balcony_8017DC18(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC18(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-s32 func_dryfield_night_motel_balcony_8017DC20(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC20(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-s32 func_dryfield_night_motel_balcony_8017DC28(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_balcony_8017DC28(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 void func_dryfield_night_motel_balcony_8017E0C8(Task*);
 

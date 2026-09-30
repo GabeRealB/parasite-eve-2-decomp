@@ -99,10 +99,10 @@ extern GpObj4C                    D_shelter_1f_parking_garage_80181728[5];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
 extern GpRoomCoordSet             D_shelter_1f_parking_garage_801815E0[1];
 
-s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_parking_garage_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_1f_parking_garage_8017DCF4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32  func_shelter_1f_parking_garage_8017DE44(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_1f_parking_garage_8017DE4C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_shelter_1f_parking_garage_8017D7E8(Task*);
 void func_shelter_1f_parking_garage_8017D958(Task*);
 void func_shelter_1f_parking_garage_8017DAF0(Task*);
@@ -669,7 +669,7 @@ void func_shelter_1f_parking_garage_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_1f_parking_garage_8017DCEC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DCEC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -693,12 +693,12 @@ s32 func_shelter_1f_parking_garage_8017DCF4(Task* arg0, s32 arg1, RoomEventMsg* 
     return _shelter1fParkingGarageStartEvent(out, &event);
 }
 
-s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DE44(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_shelter_1f_parking_garage_8017DE4C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if (request->actionId == 0xA) {
         Gp_MsgPlayerWeapon(0);

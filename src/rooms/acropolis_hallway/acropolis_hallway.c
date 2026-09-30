@@ -63,8 +63,8 @@ extern GpObj4C        D_acropolis_hallway_8017E5F4[4];
 extern GpObj4C        D_acropolis_hallway_8017E724[9];
 extern GpRoomCoordSet D_acropolis_hallway_8017EBC4[1];
 s32                   func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_acropolis_hallway_8017D72C(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_acropolis_hallway_8017D734(Task*, s32, s32, GpMessageArg);
+s32                   func_acropolis_hallway_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_acropolis_hallway_8017D734(Task*, s32, s32, TaskMessageArg);
 
 GpMsgEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
@@ -360,12 +360,12 @@ s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, Room
 }
 
 /// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_hallway_8017D72C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_hallway_8017D72C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) { /* irregular */
         case 6:

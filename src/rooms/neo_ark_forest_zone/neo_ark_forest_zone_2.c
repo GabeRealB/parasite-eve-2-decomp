@@ -86,8 +86,8 @@ extern s16 D_neo_ark_forest_zone_80182D6A;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
-        s32  (*call1)(Task*, s32, u8*, GpMessageArg);
+        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
+        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
         void (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkForestZone2MsgEntry;
@@ -116,11 +116,11 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32  func_neo_ark_forest_zone_80180A60(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_forest_zone_801813BC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_forest_zone_801813C4(Task*, s32, u8*, GpMessageArg);
-s32  func_neo_ark_forest_zone_80181494(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, GpMessageArg);
+s32  func_neo_ark_forest_zone_80180A60(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_forest_zone_801813BC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_forest_zone_801813C4(Task*, s32, u8*, TaskMessageArg);
+s32  func_neo_ark_forest_zone_80181494(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_forest_zone_801814B0(Task*, s32, u8*, TaskMessageArg);
 void func_neo_ark_forest_zone_801803B4(Task*, s32, s32);
 
 extern GpGridParams   D_neo_ark_forest_zone_80182274[1];
@@ -773,7 +773,7 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
 /// spawn slot 0 to the first slot-4 task, sends it message 0x7DB and places it
 /// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
 /// for command 2.
-s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, GpMessageArg msg, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
 {
     s32      result;
     u16      cmd;
@@ -982,7 +982,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     D_neo_ark_forest_zone_80182D66 = 0;
 }
 
-s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -990,7 +990,7 @@ s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, GpMessageArg arg2, 
 /* Publishes the byte at 0x2 of `arg2` as `D_neo_ark_forest_zone_80182D66` only
  * while the counter is idle, and remembers the byte in `D_...80182D68` either
  * way; a change arriving while the counter runs is suppressed to zero. */
-s32 func_neo_ark_forest_zone_801813C4(Task* arg0, s32 arg1, u8* arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_801813C4(Task* arg0, s32 arg1, u8* arg2, TaskMessageArg arg3)
 {
     s16 counter;
 
@@ -1024,7 +1024,7 @@ void func_neo_ark_forest_zone_80181430(Task* task)
     sp.funcs[task->state](task);
 }
 
-s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_neo_ark_forest_zone_80182D62 += 0x5A;
     return 1;
@@ -1033,7 +1033,7 @@ s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, GpMessageArg arg2, 
 /* The same latch as func_neo_ark_forest_zone_801813C4 directly above, emitted a
  * second time at 0x801814B0 - two objects in the overlay, so shared code
  * cannot cover it. */
-s32 func_neo_ark_forest_zone_801814B0(Task* arg0, s32 arg1, u8* arg2, GpMessageArg arg3)
+s32 func_neo_ark_forest_zone_801814B0(Task* arg0, s32 arg1, u8* arg2, TaskMessageArg arg3)
 {
     s16 counter;
 

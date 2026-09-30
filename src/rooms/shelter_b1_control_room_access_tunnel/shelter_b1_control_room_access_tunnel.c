@@ -49,10 +49,10 @@ static void func_shelter_b1_control_room_access_tunnel_8017E9A8(GfxCoord* arg0, 
 static void func_shelter_b1_control_room_access_tunnel_8017F22C(GfxCoord* arg0, GfxCoord* arg1, s16 arg2, s16 arg3);
 static void func_shelter_b1_control_room_access_tunnel_8017F8AC(GfxCoord* arg0, s16 arg1, u8* arg2);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
@@ -87,7 +87,7 @@ static void func_shelter_b1_control_room_access_tunnel_8017D684(Task* task);
 static void func_shelter_b1_control_room_access_tunnel_8017D6E4(SVECTOR* arg0, s32 arg1, s32 arg2);
 static void func_shelter_b1_control_room_access_tunnel_8017DE60(SVECTOR* arg0, s16 arg1);
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D5E4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -101,12 +101,12 @@ s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, Ro
     return 1;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D630(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_control_room_access_tunnel_8017D638(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

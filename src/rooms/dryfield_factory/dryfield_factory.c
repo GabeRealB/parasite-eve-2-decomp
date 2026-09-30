@@ -953,7 +953,7 @@ static const TaskFuncTable3 D_dryfield_factory_8017D5DC = {
     { func_dryfield_factory_8017D9CC, func_dryfield_factory_8017DF80, taskKill },
 };
 
-s32 func_dryfield_factory_8017DDA0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_factory_8017DDA0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -966,7 +966,7 @@ s32 func_dryfield_factory_8017DDA0(Task* task, s32 msgId, GpMessageArg arg2, GpM
 ///
 /// The `goto`s give every path the single `return 0` at `end`, the target's
 /// shape.
-s32 func_dryfield_factory_8017DDA8(Task* arg0, s32 arg1, s32 cmd, GpMessageArg arg3)
+s32 func_dryfield_factory_8017DDA8(Task* arg0, s32 arg1, s32 cmd, TaskMessageArg arg3)
 {
     TaskDesc* table;
     s32       idx;
@@ -1044,7 +1044,7 @@ s32 func_dryfield_factory_8017DEA8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_factory_8017DF14(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);

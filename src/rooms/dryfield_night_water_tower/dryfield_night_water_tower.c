@@ -207,7 +207,7 @@ s32 func_dryfield_night_water_tower_8017D8E0(Task* task, s32 msgId, RoomEventMsg
 
 /// The room's handler for message 0x13F2: plays the stage sound for script
 /// events 8 and 13 and answers 0 for every event.
-s32 func_dryfield_night_water_tower_8017DA4C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DA4C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 8:
@@ -221,14 +221,14 @@ s32 func_dryfield_night_water_tower_8017DA4C(Task* arg0, s32 arg1, s32 arg2, GpM
 }
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13F0: script event 7 starts CAP slot 7;
 /// every event answers 0.
-s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 7) {
         Gp_StartCapSlot(7, 1, 3);
@@ -237,7 +237,7 @@ s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, GpM
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_water_tower_8017DAD4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

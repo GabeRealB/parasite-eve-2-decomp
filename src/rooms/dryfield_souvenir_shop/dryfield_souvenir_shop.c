@@ -44,10 +44,10 @@ extern GpMsgEntry D_dryfield_souvenir_shop_8017E014[];
 /// `[8..15]`.
 extern SVECTOR D_dryfield_souvenir_shop_8017E03C[];
 
-s32 func_dryfield_souvenir_shop_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_souvenir_shop_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_souvenir_shop_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_souvenir_shop_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_souvenir_shop_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_souvenir_shop_8017E5DC[1];
 extern GpObj4C        D_dryfield_souvenir_shop_8017EEF4[2];
@@ -375,7 +375,7 @@ static void func_dryfield_souvenir_shop_8017D654(Task* task);
 static void func_dryfield_souvenir_shop_8017D6B4(GfxCoord* coord, s16 arg1);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_souvenir_shop_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -389,13 +389,13 @@ s32 func_dryfield_souvenir_shop_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D600(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_souvenir_shop_8017D600(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_souvenir_shop_8017D608(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_souvenir_shop_8017D608(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

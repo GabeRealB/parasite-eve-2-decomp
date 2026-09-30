@@ -223,9 +223,9 @@ extern GpObj4C                    D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
 extern GpRoomCoordSet             D_shelter_1f_heliport_80182160[1];
 s32                               func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, GpMessageArg);
-s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, GpMessageArg);
-s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, TaskMessageArg);
+s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, TaskMessageArg);
+s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
 void func_shelter_1f_heliport_8017FF08(Task*);
 void func_shelter_1f_heliport_80180594(Task*);
@@ -741,7 +741,7 @@ void func_shelter_1f_heliport_801802AC(s32 arg0)
     func_shelter_1f_heliport_8018085C(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
-s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -769,7 +769,7 @@ s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, GpMessageA
     return 0;
 }
 
-s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32 need;
 
@@ -789,7 +789,7 @@ s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, GpMessageA
     return 0;
 }
 
-s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
 {
     switch (in->warp) {
         case 1:

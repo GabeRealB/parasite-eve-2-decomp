@@ -92,10 +92,10 @@ extern GpObj4C        D_neo_ark_north_promenade_80182DB4[8];
 extern GpObj4C        D_neo_ark_north_promenade_801830C4[6];
 extern GpRoomCoordSet D_neo_ark_north_promenade_80182D9C[1];
 
-s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_north_promenade_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_north_promenade_8017D674(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_north_promenade_8017D66C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_north_promenade_8017D674(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_neo_ark_north_promenade_80181D68[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
@@ -410,7 +410,7 @@ GpRoomParamRec* D_neo_ark_north_promenade_801832EC[8] = {
 
 /// Message handler the room's message table names for one of its entries:
 /// accepts the message and does nothing.
-s32 func_neo_ark_north_promenade_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_north_promenade_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -433,12 +433,12 @@ s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in
     return 0;
 }
 
-s32 func_neo_ark_north_promenade_8017D66C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_north_promenade_8017D66C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_north_promenade_8017D674(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_north_promenade_8017D674(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

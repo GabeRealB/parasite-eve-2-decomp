@@ -52,10 +52,10 @@ extern SVECTOR D_dryfield_night_warehouse_8017E858[];
 /// Ring radii, parallel to the centres.
 extern s16 D_dryfield_night_warehouse_8017E8D8[];
 
-s32 func_dryfield_night_warehouse_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_warehouse_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_warehouse_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_warehouse_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_warehouse_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_warehouse_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_warehouse_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams               D_dryfield_night_warehouse_8017EF08[1];
 extern GpObj4C                    D_dryfield_night_warehouse_8017F6F4[4];
@@ -365,7 +365,7 @@ GpRoomParamRec* D_dryfield_night_warehouse_8017FC24[8] = {
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and answers 0.
-s32 func_dryfield_night_warehouse_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_warehouse_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -380,14 +380,14 @@ s32 func_dryfield_night_warehouse_8017D5D8(Task* task, s32 msgId, RoomEventMsg* 
 
 /// Handler for message 0x13F0 in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_warehouse_8017D600(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_warehouse_8017D600(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13EF in the room's message table: does nothing and
 /// answers 0.
-s32 func_dryfield_night_warehouse_8017D608(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_warehouse_8017D608(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

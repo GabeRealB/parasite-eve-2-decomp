@@ -121,10 +121,10 @@ extern AnimationSet         D_dryfield_night_driveway_8017F044;
 extern AnimationSet         D_dryfield_night_driveway_8017F324;
 extern GpCopyArg            D_dryfield_night_driveway_8017F378;
 s32                         func_dryfield_night_driveway_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                         func_dryfield_night_driveway_8017DC94(Task*, s32, s32, GpMessageArg);
-s32                         func_dryfield_night_driveway_8017DCE4(Task*, s32, GpMessageArg, GpMessageArg);
-s32                         func_dryfield_night_driveway_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
-s32                         func_dryfield_night_driveway_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
+s32                         func_dryfield_night_driveway_8017DC94(Task*, s32, s32, TaskMessageArg);
+s32                         func_dryfield_night_driveway_8017DCE4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_night_driveway_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                         func_dryfield_night_driveway_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                        func_dryfield_night_driveway_8017DC6C(s32);
 void                        func_dryfield_night_driveway_8017DC78(s16);
 void                        func_dryfield_night_driveway_8017DC88(u8);
@@ -1160,7 +1160,7 @@ void func_dryfield_night_driveway_8017DC88(u8 arg0)
 
 /// Script-event hook: events 8 and 10 each queue their stage sound; every
 /// event returns 0.
-s32 func_dryfield_night_driveway_8017DC94(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DC94(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 8:
@@ -1175,17 +1175,17 @@ s32 func_dryfield_night_driveway_8017DC94(Task* arg0, s32 arg1, s32 arg2, GpMess
 
 /// Message handlers that answer 0 (messages 0x13F1, 0x13F0 and 0x13EF of the
 /// room's message table).
-s32 func_dryfield_night_driveway_8017DCE4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCE4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_driveway_8017DCEC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCEC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_driveway_8017DCF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

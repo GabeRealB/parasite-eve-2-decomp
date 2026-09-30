@@ -159,9 +159,9 @@ extern GpRoomCoordSet D_neo_ark_observatory_80186EBC[1];
 
 extern NeoArkObservatoryAnimStorage11E0 D_neo_ark_observatory_801811E0;
 s32                                     func_neo_ark_observatory_8017F6F8(Task*, s32, DirectionActionRequest* request, s32);
-s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                                     func_neo_ark_observatory_8017FBE0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                                     func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, GpMessageArg);
+s32                                     func_neo_ark_observatory_8017FCA0(Task*, s32, s32, TaskMessageArg);
 
 void func_neo_ark_observatory_8017F588(Task*);
 void func_neo_ark_observatory_8017FB1C(Task*);
@@ -1875,7 +1875,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
     }
 }
 
-s32 func_neo_ark_observatory_8017FBE0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_observatory_8017FBE0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1897,7 +1897,7 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 1;
 }
 
-s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         Gp_MsgPlayerWeapon(0);

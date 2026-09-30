@@ -46,9 +46,9 @@ static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
 };
 
 void func_neo_ark_altar_8017D668(Task*);
-s32  func_neo_ark_altar_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_altar_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_altar_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_altar_8017D908(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_altar_8017D908(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskDesc D_neo_ark_altar_8017EF8C = { 0, 32, func_neo_ark_altar_8017D668, { .model = NULL } };
@@ -143,7 +143,7 @@ void func_neo_ark_altar_8017D668(Task* task)
     }
 }
 
-s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -158,7 +158,7 @@ s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
     return 1;
 }
 
-s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

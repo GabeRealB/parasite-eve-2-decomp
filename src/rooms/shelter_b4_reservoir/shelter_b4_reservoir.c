@@ -204,11 +204,11 @@ extern TaskDesc       D_80142604;
 extern TaskDesc       D_80147E48;
 extern TaskDesc       D_801575F0;
 
-s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_reservoir_8017E25C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_reservoir_8017E264(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b4_reservoir_8017E354(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b4_reservoir_8017E3C4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b4_reservoir_8017E3CC(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b4_reservoir_8017D650(Task*);
 void func_shelter_b4_reservoir_8017DE8C(Task*);
 void func_shelter_b4_reservoir_8017E0AC(Task*);
@@ -1271,7 +1271,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
     }
 }
 
-s32 func_shelter_b4_reservoir_8017E25C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_reservoir_8017E25C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1299,7 +1299,7 @@ s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src,
     return 1;
 }
 
-s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
         Gp_MsgPlayer3F3(0);
@@ -1313,12 +1313,12 @@ s32 func_shelter_b4_reservoir_8017E354(Task* arg0, s32 arg1, s32 arg2, GpMessage
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E3C4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_reservoir_8017E3C4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b4_reservoir_8017E3CC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b4_reservoir_8017E3CC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 2) {
         SndEvt_EnqueueType6(0x542D0000 | 2, 0, 0);

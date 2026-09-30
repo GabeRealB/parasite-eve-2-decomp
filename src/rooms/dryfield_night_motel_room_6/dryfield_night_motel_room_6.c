@@ -178,10 +178,10 @@ extern GpObj4C        D_dryfield_night_motel_room_6_80185A48[10];
 extern GpObj4C        D_dryfield_night_motel_room_6_80185D40[15];
 extern GpRoomCoordSet D_dryfield_night_motel_room_6_80185A30[1];
 s32                   func_dryfield_night_motel_room_6_8018175C(Task*, s32, s32, s32);
-s32                   func_dryfield_night_motel_room_6_80181B74(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_dryfield_night_motel_room_6_80181B74(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                   func_dryfield_night_motel_room_6_80181B7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_dryfield_night_motel_room_6_80181BF8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, GpMessageArg);
+s32                   func_dryfield_night_motel_room_6_80181BF8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_dryfield_night_motel_room_6_80181C00(Task*, s32, s32, TaskMessageArg);
 void                  func_dryfield_night_motel_room_6_8018189C(Task*);
 
 #include "../../shared/telephone_data.inc.c"
@@ -1259,7 +1259,7 @@ static s32 func_dryfield_night_motel_room_6_80181A9C(Task* arg0, s32 arg1, s32 a
 }
 
 /// Handler of message 0x13F1 in the room's message table: does nothing.
-s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181B74(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1285,14 +1285,14 @@ s32 func_dryfield_night_motel_room_6_80181B7C(Task* arg0, s32 arg1, RoomEventMsg
 }
 
 /// Handler of message 0x13EF in the room's message table: does nothing.
-s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181BF8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler of message 0x13F2 in the room's message table: plays sound event
 /// 0x531E000C for event 0x63.
-s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_6_80181C00(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0x63) {
         SndEvt_EnqueueType6(0x531E000C, 0, 0);

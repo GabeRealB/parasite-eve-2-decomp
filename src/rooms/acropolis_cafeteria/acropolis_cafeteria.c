@@ -100,7 +100,7 @@ extern GpObj4C      D_acropolis_cafeteria_801896A4[20];
 
 extern AnimationSet D_acropolis_cafeteria_80184CC4;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
 s32                 func_acropolis_cafeteria_8017E154(Task*, s32, DirectionActionRequest* request, s32);
 s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
@@ -2775,7 +2775,7 @@ void func_acropolis_cafeteria_8017DF68(Task* task)
 }
 
 /// Message handler that accepts its message and does nothing else.
-s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

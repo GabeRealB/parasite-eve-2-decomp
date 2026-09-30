@@ -113,9 +113,9 @@ extern GpObj4C              D_acropolis_east_elevator_hall_80186A24[7];
 extern GpOverlayIds         D_acropolis_east_elevator_hall_80185CB4;
 extern GpRoomCoordSet       D_acropolis_east_elevator_hall_80187A44[1];
 s32                         func_acropolis_east_elevator_hall_8017F348(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, GpMessageArg, GpMessageArg);
+s32                         func_acropolis_east_elevator_hall_8017F370(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                         func_acropolis_east_elevator_hall_8017F378(Task*, s32, DirectionActionRequest* request, s32);
-s32                         func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, GpMessageArg);
+s32                         func_acropolis_east_elevator_hall_8017F420(Task*, s32, s32, TaskMessageArg);
 void                        func_acropolis_east_elevator_hall_8017F450(void);
 
 #include "../../shared/planar_reflection_data.inc.c"
@@ -673,7 +673,7 @@ s32 func_acropolis_east_elevator_hall_8017F348(Task* task, s32 msgId, RoomEventM
 }
 
 /// Message handler that accepts the message and does nothing else.
-s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_east_elevator_hall_8017F370(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -692,7 +692,7 @@ s32 func_acropolis_east_elevator_hall_8017F378(Task* task, s32 msgId, DirectionA
     return 0;
 }
 
-s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 2) {
         func_800E8614(D_acropolis_east_elevator_hall_8018621C, 0);

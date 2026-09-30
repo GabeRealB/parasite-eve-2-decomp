@@ -174,8 +174,8 @@ extern TaskDesc D_80147E48;
 
 s32  func_shelter_b2_main_corridor_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_shelter_b2_main_corridor_8017DC88(Task*, s32, DirectionActionRequest* request, s32);
-s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_main_corridor_8017E1CC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_main_corridor_8017E1D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_main_corridor_8017E1DC(Task*, s32, s32, s32);
 void func_shelter_b2_main_corridor_8017D6BC(Task*);
 void func_shelter_b2_main_corridor_8017D82C(Task*);
@@ -1989,12 +1989,12 @@ static s32 func_shelter_b2_main_corridor_8017E0FC(RoomEventMsg* in, RoomEventMsg
     return 1;
 }
 
-s32 func_shelter_b2_main_corridor_8017E1CC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_main_corridor_8017E1CC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_main_corridor_8017E1D4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_main_corridor_8017E1D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

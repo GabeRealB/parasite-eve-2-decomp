@@ -150,9 +150,9 @@ static void func_shelter_b4_water_supply_8018226C(GfxCoord* arg0, s32 arg1);
 
 void func_shelter_b4_water_supply_8017D650(Task*);
 void func_shelter_b4_water_supply_8017D7C0(Task*);
-s32  func_shelter_b4_water_supply_8017D970(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_water_supply_8017D970(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_water_supply_8017DA28(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_water_supply_8017DA30(Task*, s32, DirectionActionRequest* request, s32);
 s32  func_shelter_b4_water_supply_8017DAE4(Task*, s32, s32, s32);
 void func_shelter_b4_water_supply_8017DC28(Task*);
@@ -912,7 +912,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
     }
 }
 
-s32 func_shelter_b4_water_supply_8017D970(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_water_supply_8017D970(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -937,7 +937,7 @@ s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* s
     return 1;
 }
 
-s32 func_shelter_b4_water_supply_8017DA28(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_water_supply_8017DA28(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

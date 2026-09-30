@@ -43,10 +43,10 @@ void func_dryfield_night_general_store_8017D794(Task*);
 s32  func_dryfield_night_general_store_8017D904(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_dryfield_night_general_store_8017DAF0(Task*);
 void func_dryfield_night_general_store_8017DCA8(Task*);
-s32  func_dryfield_night_general_store_8017DD88(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_general_store_8017DD88(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_night_general_store_8017DDF0(Task*, s32, s32, s32);
-s32  func_dryfield_night_general_store_8017DE24(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_night_general_store_8017DE2C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_general_store_8017DE24(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_general_store_8017DE2C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_dryfield_night_general_store_8017E78C = { 0, 32, func_dryfield_night_general_store_8017D794, { .model = NULL } };
 
@@ -355,7 +355,7 @@ void func_dryfield_night_general_store_8017DCA8(Task* task)
 /// `Gp_SpawnIfCapIdle` 0x18 when pointer slot 0xA holds a task and 0x19
 /// otherwise; action 9 spawns the room's CAP-command task to run CAP command 9
 /// and toggle flag nibble 0x53. Always returns 0.
-s32 func_dryfield_night_general_store_8017DD88(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_general_store_8017DD88(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32   arg;
     void* slot;
@@ -386,14 +386,14 @@ s32 func_dryfield_night_general_store_8017DDF0(Task* task, s32 msgId, s32 arg2, 
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_general_store_8017DE24(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_general_store_8017DE2C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

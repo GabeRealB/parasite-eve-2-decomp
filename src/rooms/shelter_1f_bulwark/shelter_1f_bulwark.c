@@ -89,9 +89,9 @@ extern GpObj4C        D_shelter_1f_bulwark_80180B24[8];
 extern GpRoomCoordSet D_shelter_1f_bulwark_80180A74[1];
 
 s32  func_shelter_1f_bulwark_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_1f_bulwark_8017DBBC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_1f_bulwark_8017DBC4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_1f_bulwark_8017DBCC(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_shelter_1f_bulwark_8017D61C(Task*);
 void func_shelter_1f_bulwark_8017DA60(Task*);
 void func_shelter_1f_bulwark_8017DC78(Task*);
@@ -473,17 +473,17 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
     }
 }
 
-s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBBC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBC4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_bulwark_8017DBCC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

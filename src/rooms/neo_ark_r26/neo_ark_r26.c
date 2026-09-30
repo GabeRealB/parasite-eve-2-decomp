@@ -42,10 +42,10 @@ extern GpEvsCmd D_neo_ark_r26_8017DFCC[];
 /// Room message handler table installed into `Task::msgTable`.
 extern GpMsgEntry D_neo_ark_r26_8017E0A4[];
 
-s32 func_neo_ark_r26_8017D648(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r26_8017D648(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_r26_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_neo_ark_r26_8017D69C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_r26_8017D694(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_r26_8017D69C(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams               D_neo_ark_r26_8017E19C[1];
 extern WorldCoordRoomAmbientEntry D_neo_ark_r26_8017E9EC[5];
@@ -460,7 +460,7 @@ void func_neo_ark_r26_8017D5D0(void)
     }
 }
 
-s32 func_neo_ark_r26_8017D648(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r26_8017D648(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -474,12 +474,12 @@ s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
     return 1;
 }
 
-s32 func_neo_ark_r26_8017D694(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r26_8017D694(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_neo_ark_r26_8017D69C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_r26_8017D69C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

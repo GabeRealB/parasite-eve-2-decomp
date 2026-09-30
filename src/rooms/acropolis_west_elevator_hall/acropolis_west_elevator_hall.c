@@ -130,11 +130,11 @@ static const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720
 /// in view 5.
 static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
 
-s32 func_acropolis_west_elevator_hall_8017F470(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_8017F498(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F470(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F498(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_acropolis_west_elevator_hall_8017F4C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_west_elevator_hall_8017F560(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_acropolis_west_elevator_hall_80180274(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern AnimationPlayRequest D_acropolis_west_elevator_hall_80184598;
 extern GpCopyArg            D_acropolis_west_elevator_hall_80184590;
@@ -990,7 +990,7 @@ void func_acropolis_west_elevator_hall_8017F418(Task* task)
 
 /// Sets both of the hall's elevator-car tasks moving forwards, by storing 1 in
 /// each task's `spawnArg1` (the per-frame step direction the car task reads).
-s32 func_acropolis_west_elevator_hall_8017F470(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_west_elevator_hall_8017F470(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_acropolis_west_elevator_hall_80186AE4[0]->spawnArg1.value = 1;
     D_acropolis_west_elevator_hall_80186AE4[1]->spawnArg1.value = 1;
@@ -999,7 +999,7 @@ s32 func_acropolis_west_elevator_hall_8017F470(Task* task, s32 msgId, GpMessageA
 
 /// Sets both elevator-car tasks moving backwards, by storing -1 in each task's
 /// `spawnArg1`.
-s32 func_acropolis_west_elevator_hall_8017F498(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_west_elevator_hall_8017F498(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_acropolis_west_elevator_hall_80186AE4[0]->spawnArg1.value = -1;
     D_acropolis_west_elevator_hall_80186AE4[1]->spawnArg1.value = -1;
@@ -1017,7 +1017,7 @@ s32 func_acropolis_west_elevator_hall_8017F4C0(Task* task, s32 msgId, RoomEventM
     return 1;
 }
 
-s32 func_acropolis_west_elevator_hall_8017F560(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_west_elevator_hall_8017F560(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1367,7 +1367,7 @@ void func_acropolis_west_elevator_hall_8017FFE4(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     Gp_SpawnEff(0x60033, NULL, 0, NULL);
     return 0;

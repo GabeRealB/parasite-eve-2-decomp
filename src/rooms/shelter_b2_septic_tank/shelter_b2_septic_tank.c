@@ -124,10 +124,10 @@ void                        func_shelter_b2_septic_tank_8017D9A0(void);
 
 extern TaskDesc D_80147E48;
 
-s32  func_shelter_b2_septic_tank_8017D7AC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_septic_tank_8017D7AC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, TaskMessageArg);
 void func_shelter_b2_septic_tank_8017D614(Task*);
 
 AnimationPackedPose D_shelter_b2_septic_tank_80182B74[6] = {
@@ -1262,7 +1262,7 @@ void func_shelter_b2_septic_tank_8017D614(Task* arg0)
     }
 }
 
-s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1286,12 +1286,12 @@ s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in,
     return _shelterB2SepticTankStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D904(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
+s32 func_shelter_b2_septic_tank_8017D90C(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
     u8  kind;
     s32 flag;

@@ -27,10 +27,10 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern GpMsgEntry D_dryfield_motel_room_2_8017D6BC[];
 
-s32 func_dryfield_motel_room_2_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_motel_room_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_motel_room_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_motel_room_2_8017D600(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_motel_room_2_8017D608(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_motel_room_2_8017D600(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_motel_room_2_8017D608(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams D_dryfield_motel_room_2_8017DE0C[1];
 extern GpObj3A      D_dryfield_motel_room_2_80180140[2];
@@ -669,7 +669,7 @@ static void func_dryfield_motel_room_2_8017D610(Task* task);
 static void func_dryfield_motel_room_2_8017D654(Task* task);
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_room_2_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -683,13 +683,13 @@ s32 func_dryfield_motel_room_2_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in,
 }
 
 /// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D600(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_room_2_8017D600(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_motel_room_2_8017D608(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_room_2_8017D608(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

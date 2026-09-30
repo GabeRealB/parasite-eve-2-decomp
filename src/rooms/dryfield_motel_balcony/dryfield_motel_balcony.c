@@ -111,9 +111,9 @@ extern GpAreaTmdRec D_dryfield_motel_balcony_801861A8[1];
 
 s32  func_dryfield_motel_balcony_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_motel_balcony_8017DB1C(Task*, s32, s32, s32);
-s32  func_dryfield_motel_balcony_8017DB6C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_motel_balcony_8017DB74(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_motel_balcony_8017DB7C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_motel_balcony_8017DB6C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_motel_balcony_8017DB74(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_motel_balcony_8017DB7C(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_dryfield_motel_balcony_8017D74C(Task*);
 
 TaskDesc D_dryfield_motel_balcony_80182270 = { 0, 32, func_dryfield_motel_balcony_8017D74C, { .model = NULL } };
@@ -1345,17 +1345,17 @@ s32 func_dryfield_motel_balcony_8017DB1C(Task* task, s32 msgId, s32 arg2, s32 ar
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB6C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB74(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB74(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_balcony_8017DB7C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

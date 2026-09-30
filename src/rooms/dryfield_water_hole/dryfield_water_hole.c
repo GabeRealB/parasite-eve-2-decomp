@@ -121,10 +121,10 @@ extern WorldCoordRoomAmbientEntry D_dryfield_water_hole_80182824[9];
 extern GpRoomCoordSet             D_dryfield_water_hole_80182468[1];
 extern GpRoomCoordSet             D_dryfield_water_hole_8018278C[1];
 
-s32  func_dryfield_water_hole_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_water_hole_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_water_hole_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
-s32  func_dryfield_water_hole_8017D784(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_water_hole_8017D784(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
 void func_dryfield_water_hole_8017DFA0(Task*);
 
@@ -1342,7 +1342,7 @@ static void func_dryfield_water_hole_8017D898(Task* task);
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_water_hole_8017D5E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1412,7 +1412,7 @@ s32 func_dryfield_water_hole_8017D73C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// Handler for message 0x13EF in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_water_hole_8017D784(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_water_hole_8017D784(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

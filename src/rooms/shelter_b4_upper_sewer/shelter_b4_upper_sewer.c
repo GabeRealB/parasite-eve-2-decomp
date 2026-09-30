@@ -140,11 +140,11 @@ static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
 
 void func_shelter_b4_upper_sewer_8017E4F4(Task*);
 
-s32  func_shelter_b4_upper_sewer_8017D9BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b4_upper_sewer_8017D9BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_b4_upper_sewer_8017DB50(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b4_upper_sewer_8017DB50(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b4_upper_sewer_8017D660(Task*);
 void func_shelter_b4_upper_sewer_8017D80C(Task*);
 void func_shelter_b4_upper_sewer_8017DB94(void);
@@ -900,7 +900,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
     }
 }
 
-s32 func_shelter_b4_upper_sewer_8017D9BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_upper_sewer_8017D9BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -930,7 +930,7 @@ s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* sr
     return 1;
 }
 
-s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, TaskMessageArg arg3)
 {
     u8 temp_a1;
 
@@ -952,12 +952,12 @@ s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, GpMess
     return 0;
 }
 
-s32 func_shelter_b4_upper_sewer_8017DB50(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b4_upper_sewer_8017DB50(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
         func_shelter_b4_upper_sewer_8017E59C(1);

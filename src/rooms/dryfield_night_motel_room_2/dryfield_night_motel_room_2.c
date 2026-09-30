@@ -52,10 +52,10 @@ extern GpMsgEntry D_dryfield_night_motel_room_2_8017DA1C[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA44[];
 extern SVECTOR D_dryfield_night_motel_room_2_8017DA54[];
 
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_motel_room_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D660(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_motel_room_2_8017D668(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_motel_room_2_8017E184[1];
 extern GpObj3A        D_dryfield_night_motel_room_2_80180580[2];
@@ -1056,7 +1056,7 @@ static void func_dryfield_night_motel_room_2_8017D6B4(Task* task);
 static void func_dryfield_night_motel_room_2_8017D714(SVECTOR* arg0, s32 arg1, s32 arg2);
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1084,13 +1084,13 @@ s32 func_dryfield_night_motel_room_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg
 }
 
 /// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D660(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D660(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_dryfield_night_motel_room_2_8017D668(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_motel_room_2_8017D668(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

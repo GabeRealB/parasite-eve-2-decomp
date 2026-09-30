@@ -88,9 +88,9 @@ static void func_dryfield_saloon_g_r_8017E430(GfxCoord* arg0, SVECTOR* arg1, SVE
 // Indexed views below share one contiguous table.
 void func_dryfield_saloon_g_r_8017D74C(Task*);
 s32  func_dryfield_saloon_g_r_8017D8BC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_saloon_g_r_8017D994(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, GpMessageArg);
-s32  func_dryfield_saloon_g_r_8017D9C4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_saloon_g_r_8017D994(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_saloon_g_r_8017D99C(Task*, s32, s32, TaskMessageArg);
+s32  func_dryfield_saloon_g_r_8017D9C4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_saloon_g_r_8017F780[1];
 extern GpObj3A        D_dryfield_saloon_g_r_801817B0[2];
@@ -882,14 +882,14 @@ s32 func_dryfield_saloon_g_r_8017D8BC(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
 /// Handler for message 0x13F1 in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D994(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: on action 4 it
 /// runs cap command 4. Always returns 0.
-s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(4);
@@ -899,7 +899,7 @@ s32 func_dryfield_saloon_g_r_8017D99C(Task* arg0, s32 arg1, s32 arg2, GpMessageA
 
 /// Handler for message 0x13EF in the room's message table: the room takes no
 /// action and reports the message as not handled.
-s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_saloon_g_r_8017D9C4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

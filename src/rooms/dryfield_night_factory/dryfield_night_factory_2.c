@@ -93,10 +93,10 @@ static void func_dryfield_night_factory_8018182C(Task* task);
 static void func_dryfield_night_factory_80181BB4(Task* task);
 
 s32  func_dryfield_night_factory_80180574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_factory_8018080C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_night_factory_80180814(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_night_factory_8018080C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_factory_80180814(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_night_factory_80180914(Task*, s32, s32, s32);
-s32  func_dryfield_night_factory_80180980(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32  func_dryfield_night_factory_80180980(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void func_dryfield_night_factory_801802C8(Task*);
 void func_dryfield_night_factory_8018076C(Task*);
 void func_dryfield_night_factory_8018169C(Task*);
@@ -1084,7 +1084,7 @@ void func_dryfield_night_factory_8018076C(Task* task)
     }
 }
 
-s32 func_dryfield_night_factory_8018080C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_factory_8018080C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1104,7 +1104,7 @@ s32 func_dryfield_night_factory_8018080C(Task* task, s32 msgId, GpMessageArg arg
 ///
 /// The `goto`s are the target's shape: every path shares the single `return 0`
 /// at `end`, so the exit block is the only place `$v0` is zeroed.
-s32 func_dryfield_night_factory_80180814(Task* arg0, s32 arg1, s32 cmd, GpMessageArg arg3)
+s32 func_dryfield_night_factory_80180814(Task* arg0, s32 arg1, s32 cmd, TaskMessageArg arg3)
 {
     TaskDesc* table;
     s32       idx;
@@ -1168,7 +1168,7 @@ s32 func_dryfield_night_factory_80180914(Task* task, s32 msgId, s32 arg2, s32 ar
 
 /// Message handler: the first message with `actionId` 1 while game flag 0x2C is
 /// clear starts cap 0xB, sets the flag and plays sound 0x5217000A.
-s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_night_factory_80180980(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if ((request->actionId == 1) && (GameFlag_GetNibble(0x2C) == 0)) {
         Gp_SpawnIfCapIdle(0xB, 1);

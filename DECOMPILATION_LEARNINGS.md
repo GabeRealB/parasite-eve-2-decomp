@@ -63529,7 +63529,7 @@ mismatch is on.
 
 Overlay message handlers are reached through a `{ s32 id, GpMsgHandler handler }`
 table in the overlay's data (`D_actor_323000_801739D0`), and
-`Gp_DispatchMsg(Task*, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)` calls
+`Gp_DispatchMsg` forwards `(Task*, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)` to
 the entry with all four registers live. A
 handler that only touches the task and the payload therefore reads `$a0` and
 `$a2` with nothing in between, and m2c — which names parameters by the

@@ -46,13 +46,13 @@ extern DryfieldNightDilapidatedHouseSpotLightStorage D_dryfield_night_dilapidate
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_night_dilapidated_house_8017D764(Task*);
 
-s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_dryfield_night_dilapidated_house_8017D8DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_dryfield_night_dilapidated_house_8017D960(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D960(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-s32 func_dryfield_night_dilapidated_house_8017D968(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_dilapidated_house_8017D968(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 void func_dryfield_night_dilapidated_house_8017DA70(void);
 

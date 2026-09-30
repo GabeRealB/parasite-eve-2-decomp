@@ -115,9 +115,9 @@ static void func_shelter_b1_access_tunnel_8017DEC0(SVECTOR* arg0, s32 arg1, s32 
 void func_shelter_b1_access_tunnel_8017D760(Task*);
 void func_shelter_b1_access_tunnel_8017D8D0(Task*);
 s32  func_shelter_b1_access_tunnel_8017DA68(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_access_tunnel_8017DCA4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b1_access_tunnel_8017DCAC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b1_access_tunnel_8017DCB4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 TaskDesc D_shelter_b1_access_tunnel_8017E704 = { 0, 32, func_shelter_b1_access_tunnel_8017D760, { .model = NULL } };
 
@@ -766,17 +766,17 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     return 1;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCA4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_access_tunnel_8017DCA4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCAC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_access_tunnel_8017DCAC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_access_tunnel_8017DCB4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_access_tunnel_8017DCB4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

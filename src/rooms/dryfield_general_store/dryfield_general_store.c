@@ -96,10 +96,10 @@ extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern GpRoomCoordSet             D_dryfield_general_store_801854E8[1];
 
 s32  func_dryfield_general_store_8017D8D4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, GpMessageArg);
+s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
-s32  func_dryfield_general_store_8017DDF4(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessageArg);
 void func_dryfield_general_store_8017D764(Task*);
 void func_dryfield_general_store_8017DAC0(Task*);
 void func_dryfield_general_store_8017DC78(Task*);
@@ -1859,7 +1859,7 @@ void func_dryfield_general_store_8017DC78(Task* task)
     }
 }
 
-s32 func_dryfield_general_store_8017DD58(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_general_store_8017DD58(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32   arg;
     void* slot;
@@ -1890,7 +1890,7 @@ s32 func_dryfield_general_store_8017DDC0(Task* task, s32 msgId, s32 arg2, s32 ar
 
 /// Message handler that takes no action and reports the message as not
 /// handled.
-s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1898,7 +1898,7 @@ s32 func_dryfield_general_store_8017DDF4(Task* task, s32 msgId, GpMessageArg arg
 /// Message handler on the slot-4 table that owns the store's story flag 0x5E:
 /// message 1 spawns the cutscene task once the flag is still clear, message 2
 /// arms the cutscene object and then both paths advance the flag.
-s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, GpMessageArg arg3)
+s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
     switch (arg2->warp) {
         case 1:

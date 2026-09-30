@@ -26,10 +26,10 @@ extern GpMsgEntry D_dryfield_night_junk_yard_8018055C[];
 extern s32      D_dryfield_night_junk_yard_801805A0;
 extern GpEvsCmd D_dryfield_night_junk_yard_801805A4[];
 
-s32 func_dryfield_night_junk_yard_8017D5F4(Task*, s32, s32, GpMessageArg);
-s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D5F4(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_night_junk_yard_8017D6A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_junk_yard_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32 func_dryfield_night_junk_yard_8017D82C(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
 extern AnimationPlayRequest D_dryfield_night_junk_yard_80180584;
 extern ActorCommand         D_dryfield_night_junk_yard_80180598;
@@ -80,7 +80,7 @@ static void func_dryfield_night_junk_yard_8017D958(Task* task);
 /// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
 /// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
 /// point's own CAP slot starts. Always returns 0.
-s32 func_dryfield_night_junk_yard_8017D5F4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D5F4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 6:
@@ -103,7 +103,7 @@ s32 func_dryfield_night_junk_yard_8017D5F4(Task* arg0, s32 arg1, s32 arg2, GpMes
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D6A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -176,7 +176,7 @@ s32 func_dryfield_night_junk_yard_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* i
 /// `field_2` is 3 on the visit whose `place` is 1, it latches nibble 0x9F once
 /// and passes `D_dryfield_night_junk_yard_801805A4` to `func_800E8614`. Always
 /// returns 0.
-s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, GpMessageArg arg3)
+s32 func_dryfield_night_junk_yard_8017D82C(Task* arg0, s32 arg1, RoomEventMsg* in, TaskMessageArg arg3)
 {
     if ((in->warp == 3) && (gGameSession->at4.loc.variant == 1) && (GameFlag_GetNibble(0x9F) == 0)) {
         GameFlag_SetNibble(0x9F, 1);

@@ -122,13 +122,13 @@ void func_dryfield_water_tank_8017EDF4(Task*);
 // Callbacks referenced by the overlay's shared data tables.
 void func_dryfield_water_tank_8017D618(Task*);
 
-s32 func_dryfield_water_tank_8017D7BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_water_tank_8017D7BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_dryfield_water_tank_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_dryfield_water_tank_8017D7EC(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32 func_dryfield_water_tank_8017D7EC(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
-s32 func_dryfield_water_tank_8017D910(Task*, s32, s32, GpMessageArg);
+s32 func_dryfield_water_tank_8017D910(Task*, s32, s32, TaskMessageArg);
 
 void func_dryfield_water_tank_8017D948(Task*);
 

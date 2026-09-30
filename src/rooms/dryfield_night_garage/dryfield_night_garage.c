@@ -185,10 +185,10 @@ static void func_dryfield_night_garage_80180604(s32 arg0);
 #include "../../shared/shop.h"
 
 s32 func_dryfield_night_garage_801800C8(Task*, s32, DirectionActionRequest* msg, s32);
-s32 func_dryfield_night_garage_80180300(Task*, s32, s32, GpMessageArg);
-s32 func_dryfield_night_garage_80180358(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_garage_80180300(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_night_garage_80180358(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_garage_80180360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_garage_801803A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_garage_801803A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -452,7 +452,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, DirectionActionRe
 
 /// Room event callback: event 9 plays stage sound 0x52030009 and event 0x6C
 /// reads the caption event key. Always returns 0.
-s32 func_dryfield_night_garage_80180300(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_garage_80180300(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 0x9:
@@ -465,7 +465,7 @@ s32 func_dryfield_night_garage_80180300(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_garage_80180358(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -479,7 +479,7 @@ s32 func_dryfield_night_garage_80180360(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_dryfield_night_garage_801803A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_garage_801803A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

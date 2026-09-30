@@ -24,10 +24,10 @@
 /// The room's message table, handed to its event task in state 0.
 extern GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[];
 
-s32 func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 GpMsgEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_s4_8017D5D8 },
@@ -164,7 +164,7 @@ GpRoomParamRec* D_shelter_1f_heliport_s4_8017E060[8] = {
 static void func_shelter_1f_heliport_s4_8017D62C(Task* task);
 static void func_shelter_1f_heliport_s4_8017D670(Task* task);
 
-s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -178,12 +178,12 @@ s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in,
     return 1;
 }
 
-s32 func_shelter_1f_heliport_s4_8017D61C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_s4_8017D61C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_1f_heliport_s4_8017D624(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_heliport_s4_8017D624(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

@@ -290,9 +290,9 @@ extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
 s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                            func_mine_mesa_80181894(Task*);
 
-s32  func_mine_mesa_8017D8F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_mine_mesa_8017DA7C(Task*, s32, s32, GpMessageArg);
+s32  func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
 s32  func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
 s32  func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 void func_mine_mesa_8017D670(Task*);
@@ -2661,7 +2661,7 @@ static void func_mine_mesa_8017D808(Task* task)
     }
 }
 
-s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_mesa_8017D8F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -2713,7 +2713,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     return MineMesa_StartEvent(out, &event);
 }
 
-s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_mine_mesa_8017DA7C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0xD) {
         Gp_RunCapCmd1(GameFlag_GetNibble(0x11A) >= 2 ? 0xD : 0xC);

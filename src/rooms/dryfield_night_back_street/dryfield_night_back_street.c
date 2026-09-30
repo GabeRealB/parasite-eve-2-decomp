@@ -69,9 +69,9 @@ static void func_dryfield_night_back_street_8017F964(GfxCoord* arg0, s16 arg1, u
 
 // Indexed views below share one contiguous table.
 s32 func_dryfield_night_back_street_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_back_street_8017D724(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_back_street_8017D72C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_dryfield_night_back_street_8017D734(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_back_street_8017D724(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_back_street_8017D72C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_dryfield_night_back_street_8017D734(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams               D_dryfield_night_back_street_80180B34[1];
 extern GpObj4C                    D_dryfield_night_back_street_80180D70[6];
@@ -385,17 +385,17 @@ s32 func_dryfield_night_back_street_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg*
     return 1;
 }
 
-s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D724(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_back_street_8017D72C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D72C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_back_street_8017D734(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

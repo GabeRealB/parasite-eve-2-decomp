@@ -836,7 +836,7 @@ void func_neo_ark_garden_8017E2A0(Task* task)
     SCRATCH_POP_BYTES(0x40);
 }
 
-s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_garden_8017E840(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -859,7 +859,7 @@ s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEve
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);
@@ -877,7 +877,7 @@ s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg ar
     return 0;
 }
 
-s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_garden_8017E9AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

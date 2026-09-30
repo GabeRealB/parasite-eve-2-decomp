@@ -177,10 +177,10 @@ extern SVECTOR D_mine_forked_tunnel_801808A0[12];
 extern TmdBone D_mine_forked_tunnel_801807D8[1];
 extern u32     D_mine_forked_tunnel_80180900[104];
 
-s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_mine_forked_tunnel_8017E0E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, GpMessageArg);
-s32 func_mine_forked_tunnel_8017E19C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32 func_mine_forked_tunnel_8017E134(Task*, s32, s32, TaskMessageArg);
+s32 func_mine_forked_tunnel_8017E19C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
 void func_mine_forked_tunnel_8017E38C(Task*);
@@ -1837,7 +1837,7 @@ static void func_mine_forked_tunnel_8017DF34(s32 arg0)
     }
 }
 
-s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E0E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1851,7 +1851,7 @@ s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if ((arg2 == 2) && (Gp_GetCurBit2Flag(1) == 1)) {
         if (GameFlag_GetNibble(0x152) == 0) {
@@ -1865,7 +1865,7 @@ s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 
 /// Message 1 handler: spawn the room's `Task_SpawnFromTable` entry when the
 /// tunnel switch flag is still clear.
-s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_mine_forked_tunnel_8017E19C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if ((request->actionId == 1) && (GameFlag_GetNibble(0x75) == 0)) {
         Task_SpawnFromTable(D_mine_forked_tunnel_80183104, 0, 0, 0);

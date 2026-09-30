@@ -78,10 +78,10 @@ static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
 };
 
 void func_neo_ark_pyramid_8017D600(Task*);
-s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_pyramid_8017D9F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32  func_neo_ark_pyramid_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_pyramid_8017DA44(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
 extern GpGridParams   D_neo_ark_pyramid_801802C4[1];
 extern GpObj3A        D_neo_ark_pyramid_80181790[3];
@@ -620,7 +620,7 @@ static void func_neo_ark_pyramid_8017D7F4(s32 arg0)
 }
 
 /// Handler for message 0x13F1 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_pyramid_8017D9F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -636,7 +636,7 @@ s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
 }
 
 /// Handler for message 0x13F0 in the room's message table; does nothing.
-s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -645,7 +645,7 @@ s32 func_neo_ark_pyramid_8017DA3C(Task* task, s32 msgId, GpMessageArg arg2, GpMe
 /// `actionId` is 1 it resets the quad's angle; once the quad has turned four
 /// times it spawns capture event 3, otherwise it has the player lower the
 /// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if (request->actionId == 1) {
         func_neo_ark_pyramid_8017DAC0(0);

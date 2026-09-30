@@ -68,10 +68,10 @@ extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
 void func_dryfield_night_g_r_kitchen_8017D74C(Task*);
-s32  func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_g_r_kitchen_8017D8BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_g_r_kitchen_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_night_g_r_kitchen_8017D948(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_dryfield_night_g_r_kitchen_8017D950(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_g_r_kitchen_8017E554[1];
 extern GpObj4C        D_dryfield_night_g_r_kitchen_8017E864[2];
@@ -396,7 +396,7 @@ void func_dryfield_night_g_r_kitchen_8017D74C(Task* task)
 }
 
 /// The room's handler for message 0x13F1: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D8BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -424,13 +424,13 @@ s32 func_dryfield_night_g_r_kitchen_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg*
 }
 
 /// The room's handler for message 0x13F0: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D948(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13EF: answers 0.
-s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_g_r_kitchen_8017D950(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

@@ -163,9 +163,9 @@ static void func_shelter_b1_armory_80180784(Task* task);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xD3"
 #include "../../shared/shop.h"
 
-s32 func_shelter_b1_armory_80180468(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_b1_armory_80180468(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b1_armory_801805A8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_armory_80180698(Task*, s32, s32, GpMessageArg);
+s32 func_shelter_b1_armory_80180698(Task*, s32, s32, TaskMessageArg);
 s32 func_shelter_b1_armory_801806F8(Task*, s32, DirectionActionRequest* request, s32);
 
 void func_shelter_b1_armory_801800A4(Task*);
@@ -392,7 +392,7 @@ void func_shelter_b1_armory_8018034C(Task* task)
 /// Answers 1 and spawns the armory task when a pending mode-5 object with
 /// `field_48` 0xFF exists and `arg2` is 0x105, 0x121 or 0x122. Event nibble
 /// 0xF0 selects the task's parameter; on 0x105 a first visit also sets it.
-s32 func_shelter_b1_armory_80180468(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b1_armory_80180468(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -459,7 +459,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     return 0;
 }
 
-s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b1_armory_80180698(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 12:

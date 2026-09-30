@@ -45,10 +45,10 @@ extern GpMsgEntry D_dryfield_night_cellar_8017DAA8[];
 extern SVECTOR D_dryfield_night_cellar_8017DAD0[];
 extern SVECTOR D_dryfield_night_cellar_8017DAE0[];
 
-s32 func_dryfield_night_cellar_8017D5D0(Task*, s32, s32, GpMessageArg);
-s32 func_dryfield_night_cellar_8017D62C(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_cellar_8017D5D0(Task*, s32, s32, TaskMessageArg);
+s32 func_dryfield_night_cellar_8017D62C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_dryfield_night_cellar_8017D634(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_night_cellar_8017D6F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_dryfield_night_cellar_8017DE60[1];
 extern GpObj3A        D_dryfield_night_cellar_801802F4[1];
@@ -716,7 +716,7 @@ static void func_dryfield_night_cellar_8017D7A0(SVECTOR* arg0, s32 arg1, s32 arg
 /// command: 0xD while event nibble 0x11B is below 2, otherwise 4 or 0xE
 /// depending on whether `func_800B7420(0x83)` reports non-zero. Every other
 /// event does nothing. Always answers 0.
-s32 func_dryfield_night_cellar_8017D5D0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_cellar_8017D5D0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 != 8) {
         if (arg2 == 0xD) {
@@ -735,7 +735,7 @@ s32 func_dryfield_night_cellar_8017D5D0(Task* arg0, s32 arg1, s32 arg2, GpMessag
 }
 
 /// Message-table handler for message 0x13F1: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_cellar_8017D62C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -769,7 +769,7 @@ s32 func_dryfield_night_cellar_8017D634(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// Message-table handler for message 0x13EF: does nothing and answers 0.
-s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_cellar_8017D6F4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

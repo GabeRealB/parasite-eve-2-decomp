@@ -283,10 +283,10 @@ extern GpScriptRec                D_dryfield_dilapidated_house_80189B38[2];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B50[3];
 extern GpScriptRec                D_dryfield_dilapidated_house_80189B64[2];
 extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
-s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E56C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, GpMessageArg, GpMessageArg);
-s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E684(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                               func_dryfield_dilapidated_house_8017E68C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void                              func_dryfield_dilapidated_house_8017D64C(Task*);
 void                              func_dryfield_dilapidated_house_8017DE88(Task*);
 void                              func_dryfield_dilapidated_house_8017E144(Task*);
@@ -2144,7 +2144,7 @@ static void func_dryfield_dilapidated_house_8017E48C(void)
     } while (i < 0x4B00);
 }
 
-s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E56C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -2191,12 +2191,12 @@ s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg*
     return 1;
 }
 
-s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E684(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     u8 actionId;
 

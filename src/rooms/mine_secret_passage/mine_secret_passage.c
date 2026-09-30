@@ -113,7 +113,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
     }
 }
 
-s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -142,12 +142,12 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

@@ -190,10 +190,10 @@ extern GpObj4C                    D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
 extern GpRoomCoordSet             D_dryfield_motel_room_6_801866C0[1];
 s32                               func_dryfield_motel_room_6_80181740(Task*, s32, s32, s32);
-s32                               func_dryfield_motel_room_6_80181918(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_motel_room_6_80181918(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, DirectionActionRequest* request, GpMessageArg);
-s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_dryfield_motel_room_6_801819A8(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32                               func_dryfield_motel_room_6_80181A00(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
 
 extern DryfieldMotelRoom6SpotLightStorage D_dryfield_motel_room_6_80186288;
@@ -2084,7 +2084,7 @@ static void func_dryfield_motel_room_6_80181910(Task* arg0, s32 arg1, s32 arg2, 
 {
 }
 
-s32 func_dryfield_motel_room_6_80181918(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_room_6_80181918(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -2119,7 +2119,7 @@ s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, 
 /// arms the room's script task from `D_dryfield_motel_room_6_80182D78`.
 /// Where the sibling gates of this shape (`func_acropolis_security_room_8017D740`,
 /// `func_acropolis_sanctuary_8017D848`) answer 0, this one answers 1.
-s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if (request->actionId == 0 && GameFlag_GetNibble(0x31) == 0) {
         GameFlag_SetNibble(0x31, 1);
@@ -2128,7 +2128,7 @@ s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, DirectionActionReq
     return 1;
 }
 
-s32 func_dryfield_motel_room_6_80181A00(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_motel_room_6_80181A00(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

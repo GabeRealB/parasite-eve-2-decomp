@@ -98,11 +98,11 @@ extern GpPointLight D_shelter_r48_8018A08C[57];
 extern GpObj4C        D_shelter_r48_8018B670[16];
 extern GpObj4C        D_shelter_r48_8018BC78[5];
 extern GpRoomCoordSet D_shelter_r48_8018B658[1];
-s32                   func_shelter_r48_8017DF50(Task*, s32, s32, GpMessageArg);
+s32                   func_shelter_r48_8017DF50(Task*, s32, s32, TaskMessageArg);
 s32                   func_shelter_r48_8017E044(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_r48_8017E088(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, GpMessageArg);
-s32                   func_shelter_r48_8017E0EC(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_r48_8017E088(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_shelter_r48_8017E090(Task*, s32, RoomEventMsg*, TaskMessageArg);
+s32                   func_shelter_r48_8017E0EC(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern TmdBone D_shelter_r48_8018BE30[1];
 void           func_shelter_r48_8017D660(Task*);
@@ -2092,7 +2092,7 @@ void func_shelter_r48_8017D660(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(OverlayRippleScratch);
 }
 
-s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_r48_8017DF50(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -2140,12 +2140,12 @@ s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventM
 }
 
 /// Message-table handler for message 0x13F0: does nothing and answers 0.
-s32 func_shelter_r48_8017E088(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_r48_8017E088(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, GpMessageArg arg3)
+s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, TaskMessageArg arg3)
 {
     if (in->warp == 1) {
         switch (GameFlag_GetNibble(0x100)) {
@@ -2160,7 +2160,7 @@ s32 func_shelter_r48_8017E090(Task* task, s32 msgId, RoomEventMsg* in, GpMessage
     return 0;
 }
 
-s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_r48_8017E0EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     if (GameFlag_GetNibble(0x12A) == 1) {
         func_800E8614(&D_8014D158, 0);

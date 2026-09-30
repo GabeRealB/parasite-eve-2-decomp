@@ -129,9 +129,9 @@ static void func_shelter_b2_south_maintenance_walkway_80181C94(GfxCoord* coord, 
 static void func_shelter_b2_south_maintenance_walkway_801821C0(GfxCoord* arg0, s32 arg1);
 
 s32  func_shelter_b2_south_maintenance_walkway_8017DA7C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_south_maintenance_walkway_8017DC08(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b2_south_maintenance_walkway_8017DC10(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC08(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC10(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b2_south_maintenance_walkway_8017DC18(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_shelter_b2_south_maintenance_walkway_8017D774(Task*);
 void func_shelter_b2_south_maintenance_walkway_8017D8E4(Task*);
 
@@ -719,17 +719,17 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
     return _walkwayStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC08(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC10(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b2_south_maintenance_walkway_8017DC18(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

@@ -103,10 +103,10 @@ static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
 static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
 void func_dryfield_junk_yard_8017D848(Task*);
-s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, GpMessageArg);
-s32  func_dryfield_junk_yard_8017DA44(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_dryfield_junk_yard_8017D994(Task*, s32, s32, TaskMessageArg);
+s32  func_dryfield_junk_yard_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, GpMessageArg);
+s32  func_dryfield_junk_yard_8017DB78(Task*, s32, DirectionActionRequest* msg, TaskMessageArg);
 
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD60;
 extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
@@ -1620,7 +1620,7 @@ void func_dryfield_junk_yard_8017D848(Task* task)
 /// plays command 9 unless bit flag 0x1C is set; with it set, command 8 plays
 /// only while nibble 0x73 is still clear and 0x7C is set, and otherwise the
 /// point's own CAP slot starts. Always returns 0.
-s32 func_dryfield_junk_yard_8017D994(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_junk_yard_8017D994(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 6:
@@ -1643,7 +1643,7 @@ s32 func_dryfield_junk_yard_8017D994(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DA44(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1688,7 +1688,7 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
 /// spawns the sequence task. When it is 2, the slot-0xA task stands at x
 /// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
 /// starts a `func_800E8634` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionRequest* msg, GpMessageArg arg3)
+s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, DirectionActionRequest* msg, TaskMessageArg arg3)
 {
     Task* player;
 

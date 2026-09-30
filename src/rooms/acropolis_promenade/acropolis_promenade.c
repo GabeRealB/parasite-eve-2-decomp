@@ -102,9 +102,9 @@ extern Task*        D_acropolis_promenade_801862D8;
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
+        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
         s32  (*call1)(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-        s32  (*call2)(Task*, s32, s32, GpMessageArg);
+        s32  (*call2)(Task*, s32, s32, TaskMessageArg);
         void (*call3)(void);
     } handler;
 } AcropolisPromenadeMsgEntry;
@@ -168,9 +168,9 @@ extern GpSprtElem  D_acropolis_promenade_8018526C[32];
 extern GpSprtElem  D_acropolis_promenade_8018552C[46];
 extern GpSprtElem  D_acropolis_promenade_8018590C[78];
 s32                func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                func_acropolis_promenade_8017D8D8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                func_acropolis_promenade_8017D8E0(Task*, s32, s32, GpMessageArg);
-s32                func_acropolis_promenade_8017D938(Task*, s32, s32, GpMessageArg);
+s32                func_acropolis_promenade_8017D8D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                func_acropolis_promenade_8017D8E0(Task*, s32, s32, TaskMessageArg);
+s32                func_acropolis_promenade_8017D938(Task*, s32, s32, TaskMessageArg);
 void               func_acropolis_promenade_8017D930(void);
 void               func_acropolis_promenade_8017D988(Task*);
 
@@ -1626,12 +1626,12 @@ s32 func_acropolis_promenade_8017D70C(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_acropolis_promenade_8017D8D8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_promenade_8017D8D8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_promenade_8017D8E0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 5) {
         if (Gp_GetCurBit2Flag(0x15) != 2) {
@@ -1647,7 +1647,7 @@ void func_acropolis_promenade_8017D930(void)
 {
 }
 
-s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 0xA:

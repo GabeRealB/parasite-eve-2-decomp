@@ -42,13 +42,13 @@ s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 void func_dryfield_factory_8017DD00(Task*);
 
-s32 func_dryfield_factory_8017DDA0(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_dryfield_factory_8017DDA0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-s32 func_dryfield_factory_8017DDA8(Task*, s32, s32, GpMessageArg);
+s32 func_dryfield_factory_8017DDA8(Task*, s32, s32, TaskMessageArg);
 
 s32 func_dryfield_factory_8017DEA8(Task*, s32, s32, s32);
 
-s32 func_dryfield_factory_8017DF14(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32 func_dryfield_factory_8017DF14(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 
 void func_dryfield_factory_8017FC18(Task*);
 

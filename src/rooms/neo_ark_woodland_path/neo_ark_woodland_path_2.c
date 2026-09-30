@@ -113,8 +113,8 @@ extern u8 D_neo_ark_woodland_path_80184980[];
 typedef struct {
     s32 id;
     union {
-        s32  (*call0)(Task*, s32, GpMessageArg, GpMessageArg);
-        s32  (*call1)(Task*, s32, u8*, GpMessageArg);
+        s32  (*call0)(Task*, s32, TaskMessageArg, TaskMessageArg);
+        s32  (*call1)(Task*, s32, u8*, TaskMessageArg);
         void (*call2)(Task*, s32, s32);
     } handler;
 } NeoArkWoodlandPath2MsgEntry;
@@ -173,11 +173,11 @@ static void func_neo_ark_woodland_path_8017F5F4(GfxCoord* arg0, s32 arg1, s32 ar
 static void func_neo_ark_woodland_path_8017FDE4(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_woodland_path_801801D0(GfxCoord* arg0, s32 arg1, s32 arg2);
 
-s32  func_neo_ark_woodland_path_80180B18(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_woodland_path_80181474(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_woodland_path_8018147C(Task*, s32, u8*, GpMessageArg);
-s32  func_neo_ark_woodland_path_8018154C(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_neo_ark_woodland_path_80181568(Task*, s32, u8*, GpMessageArg);
+s32  func_neo_ark_woodland_path_80180B18(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_woodland_path_80181474(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_woodland_path_8018147C(Task*, s32, u8*, TaskMessageArg);
+s32  func_neo_ark_woodland_path_8018154C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_neo_ark_woodland_path_80181568(Task*, s32, u8*, TaskMessageArg);
 void func_neo_ark_woodland_path_8018046C(Task*, s32, s32);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
@@ -1082,7 +1082,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
       func_neo_ark_woodland_path_801814D4, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, GpMessageArg msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
 {
     s32      result;
     u16      cmd;
@@ -1306,7 +1306,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
       func_neo_ark_woodland_path_801815C0, taskKill }
 };
 
-s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1315,7 +1315,7 @@ s32 func_neo_ark_woodland_path_80181474(Task* task, s32 msgId, GpMessageArg arg2
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_8018147C(Task* task, s32 msgId, u8* msg, TaskMessageArg arg3)
 {
     s16 counter;
 
@@ -1350,7 +1350,7 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
     sp.funcs[task->state](task);
 }
 
-s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     D_neo_ark_woodland_path_8018498E += 0x5A;
     return 1;
@@ -1360,7 +1360,7 @@ s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, GpMessageArg arg2
 /// requested spawn point, unless it repeats the previous request or the
 /// room's countdown `D_neo_ark_woodland_path_8018498E` is still running, in
 /// which case any pending request is cleared. Always answers 1.
-s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, u8* msg, TaskMessageArg arg3)
 {
     s16 counter;
 

@@ -99,10 +99,10 @@ extern GpObj4C        D_neo_ark_power_plant_2_801828C0[8];
 extern GpObj4C        D_neo_ark_power_plant_2_80182B20[8];
 extern GpRoomCoordSet D_neo_ark_power_plant_2_801828A8[1];
 
-s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_power_plant_2_8017D5D0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, GpMessageArg);
-s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, TaskMessageArg);
+s32  func_neo_ark_power_plant_2_8017D694(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_neo_ark_power_plant_2_8017D69C(void);
 void func_neo_ark_power_plant_2_8017D6D4(void);
 
@@ -784,7 +784,7 @@ GpAreaApplyRec D_neo_ark_power_plant_2_80182F94[4] = {
 
 /// Message handler the room's message table names for one of its entries:
 /// accepts the message and does nothing.
-s32 func_neo_ark_power_plant_2_8017D5D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_power_plant_2_8017D5D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -798,7 +798,7 @@ s32 func_neo_ark_power_plant_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     s32 cmd;
 
@@ -824,7 +824,7 @@ done:
     return 0;
 }
 
-s32 func_neo_ark_power_plant_2_8017D694(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_power_plant_2_8017D694(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

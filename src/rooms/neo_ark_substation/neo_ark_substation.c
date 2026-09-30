@@ -68,10 +68,10 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
 };
 
 void func_neo_ark_substation_8017D608(Task*);
-s32  func_neo_ark_substation_8017D71C(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_substation_8017D71C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_substation_8017D768(Task*, s32, s32, GpMessageArg);
-s32  func_neo_ark_substation_8017D7A4(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_neo_ark_substation_8017D768(Task*, s32, s32, TaskMessageArg);
+s32  func_neo_ark_substation_8017D7A4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_neo_ark_substation_8017E8A4[1];
 extern GpObj4C        D_neo_ark_substation_8017FC5C[12];
@@ -556,7 +556,7 @@ void func_neo_ark_substation_8017D608(Task* task)
     }
 }
 
-s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_substation_8017D71C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -571,7 +571,7 @@ s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
         Gp_RunCapCmd1(GameFlag_GetNibble(0xDF) != 0 ? 3 : 5);
@@ -579,7 +579,7 @@ s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, GpMessageAr
     return 0;
 }
 
-s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_substation_8017D7A4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

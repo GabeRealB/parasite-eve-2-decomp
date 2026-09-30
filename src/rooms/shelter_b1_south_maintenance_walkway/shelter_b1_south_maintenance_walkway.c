@@ -102,9 +102,9 @@ extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801830AC[6];
 extern GpObj4C        D_shelter_b1_south_maintenance_walkway_801832B0[2];
 extern GpRoomCoordSet D_shelter_b1_south_maintenance_walkway_80183094[1];
 s32                   func_shelter_b1_south_maintenance_walkway_8017D790(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                   func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, GpMessageArg, GpMessageArg);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9D0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9D8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                   func_shelter_b1_south_maintenance_walkway_8017D9E0(Task*, s32, TaskMessageArg, TaskMessageArg);
 void                  func_shelter_b1_south_maintenance_walkway_8017D5F8(Task*);
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { 0, 32, func_shelter_b1_south_maintenance_walkway_8017D5F8, { .model = NULL } };
@@ -564,17 +564,17 @@ s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, Roo
     return 1;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9D0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9D8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_south_maintenance_walkway_8017D9E0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

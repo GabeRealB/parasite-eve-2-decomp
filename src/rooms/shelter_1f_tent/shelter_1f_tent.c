@@ -122,10 +122,10 @@ void func_shelter_1f_tent_8017F484(Task*);
 void func_shelter_1f_tent_8017F484(Task*);
 void func_shelter_1f_tent_8017FBC4(Task*);
 
-s32 func_shelter_1f_tent_8017FC54(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_1f_tent_8017FC54(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_1f_tent_8017FC5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, GpMessageArg);
-s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -421,7 +421,7 @@ void func_shelter_1f_tent_8017FBC4(Task* task)
     }
 }
 
-s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -435,7 +435,7 @@ s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEv
     return 1;
 }
 
-s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0x169) == 0) {
@@ -456,7 +456,7 @@ s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg a
     return 0;
 }
 
-s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
+s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
     if (arg2->warp == 1) {
         func_801322B8();

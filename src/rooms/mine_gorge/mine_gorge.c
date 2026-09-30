@@ -47,11 +47,11 @@ extern GpEvsCmd D_mine_gorge_8017E610[];
 static void func_mine_gorge_8017D8D4(Task* arg0);
 static void func_mine_gorge_8017D998(Task* task);
 
-s32 func_mine_gorge_8017D5F8(Task*, s32, s32, GpMessageArg);
+s32 func_mine_gorge_8017D5F8(Task*, s32, s32, TaskMessageArg);
 s32 func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_gorge_8017D77C(Task*, s32, GpMessageArg, GpMessageArg);
-s32 func_mine_gorge_8017D784(Task*, s32, DirectionActionRequest* request, GpMessageArg);
-s32 func_mine_gorge_8017D7F4(Task*, s32, s32, GpMessageArg);
+s32 func_mine_gorge_8017D77C(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_gorge_8017D784(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
+s32 func_mine_gorge_8017D7F4(Task*, s32, s32, TaskMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
 
@@ -175,7 +175,7 @@ GpEvsCmd D_mine_gorge_8017E610[14] = {
 /// `D_mine_gorge_8017E2B0`, moves the session to room 2 with the HUD hidden and
 /// the room objects dirty, and starts the session event. Returns 1 when it
 /// did so, 0 otherwise.
-s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     GpObj4C* node;
     s32      found;
@@ -229,7 +229,7 @@ s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMs
 }
 
 /// Answers message `0x13F0` by doing nothing.
-s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -238,7 +238,7 @@ s32 func_mine_gorge_8017D77C(Task* task, s32 msgId, GpMessageArg arg2, GpMessage
 /// action ID is 1, flag nibble `0xC5` is still clear and the session is in
 /// place 1, raises the nibble and starts the script blob at
 /// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     u8 actionId = request->actionId;
 
@@ -250,7 +250,7 @@ s32 func_mine_gorge_8017D784(Task* task, s32 msgId, DirectionActionRequest* requ
 }
 
 /// Answers message `0x13F2`: argument `0xA` queues event sound `0x5405000A`.
-s32 func_mine_gorge_8017D7F4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_mine_gorge_8017D7F4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 0xA) {
         SndEvt_EnqueueType6(0x54050000 | arg2, 0, 0);

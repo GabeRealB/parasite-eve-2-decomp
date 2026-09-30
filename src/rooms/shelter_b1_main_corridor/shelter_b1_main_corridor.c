@@ -144,9 +144,9 @@ static void func_shelter_b1_main_corridor_801826CC(GfxCoord* arg0, s16 arg1, u8*
 void func_shelter_b1_main_corridor_8017D784(Task*);
 void func_shelter_b1_main_corridor_8017D8F4(Task*);
 s32  func_shelter_b1_main_corridor_8017DA8C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_main_corridor_8017DCEC(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b1_main_corridor_8017DCF4(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b1_main_corridor_8017DCFC(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b1_main_corridor_8017DCEC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b1_main_corridor_8017DCF4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b1_main_corridor_8017DCFC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b1_main_corridor_8017DD04(Task*, s32, s32, s32);
 
 TaskDesc D_shelter_b1_main_corridor_8018308C = { 0, 32, func_shelter_b1_main_corridor_8017D784, { .model = NULL } };
@@ -980,17 +980,17 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     return 1;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCEC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCEC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCF4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCF4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b1_main_corridor_8017DCFC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

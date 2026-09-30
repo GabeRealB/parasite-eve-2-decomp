@@ -54,11 +54,11 @@ extern GpObj4C                    D_shelter_1f_guardroom_8017DE3C[2];
 extern GpObj4C                    D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
 extern GpRoomCoordSet             D_shelter_1f_guardroom_8017DE24[1];
-s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, GpMessageArg, GpMessageArg);
+s32                               func_shelter_1f_guardroom_8017D73C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, GpMessageArg);
-s32                               func_shelter_1f_guardroom_8017D7E8(Task*, s32, GpMessageArg, GpMessageArg);
-s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, GpMessageArg);
+s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, TaskMessageArg);
+s32                               func_shelter_1f_guardroom_8017D7E8(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, TaskMessageArg);
 void                              func_shelter_1f_guardroom_8017D5E8(Task*);
 void                              func_shelter_1f_guardroom_8017D8D8(Task*);
 
@@ -256,7 +256,7 @@ void func_shelter_1f_guardroom_8017D5E8(Task* task)
 }
 
 /// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_1f_guardroom_8017D73C(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_guardroom_8017D73C(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -274,7 +274,7 @@ s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, RoomEventMsg* in, R
 /// nibble 0xB2 is still clear, takes the weapon away and spawns the cutscene task
 /// `func_shelter_1f_guardroom_8017D5E8`; once the nibble is set it runs cap
 /// command 3 instead. Returns 0.
-s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 2) {
         if (GameFlag_GetNibble(0xB2) == 0) {
@@ -288,14 +288,14 @@ s32 func_shelter_1f_guardroom_8017D788(Task* arg0, s32 arg1, s32 arg2, GpMessage
 }
 
 /// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_1f_guardroom_8017D7E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_1f_guardroom_8017D7E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// The room's handler for message 0x13F2: when its third argument is 3, queues
 /// sound event 0x55060003. Returns 0.
-s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 3) {
         SndEvt_EnqueueType6(0x55060003, 0, 0);

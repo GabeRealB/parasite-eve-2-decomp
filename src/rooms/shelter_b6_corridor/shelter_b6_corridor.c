@@ -114,11 +114,11 @@ void                        func_shelter_b6_corridor_8017E204(void);
 void func_shelter_b6_corridor_8017E19C(s32);
 void func_shelter_b6_corridor_8017E204(void);
 
-s32  func_shelter_b6_corridor_8017DEA8(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b6_corridor_8017DEA8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b6_corridor_8017DEB0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b6_corridor_8017DF48(Task*, s32, s32, GpMessageArg);
-s32  func_shelter_b6_corridor_8017E020(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b6_corridor_8017E028(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b6_corridor_8017DF48(Task*, s32, s32, TaskMessageArg);
+s32  func_shelter_b6_corridor_8017E020(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b6_corridor_8017E028(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_shelter_b6_corridor_8017D5D0(Task*);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
@@ -723,7 +723,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(OverlayWaveScratch);
 }
 
-s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b6_corridor_8017DEA8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -750,7 +750,7 @@ s32 func_shelter_b6_corridor_8017DEB0(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     return 1;
 }
 
-s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 2:
@@ -784,12 +784,12 @@ s32 func_shelter_b6_corridor_8017DF48(Task* arg0, s32 arg1, s32 arg2, GpMessageA
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E020(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b6_corridor_8017E020(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b6_corridor_8017E028(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     func_800E8634(D_shelter_b6_corridor_8017F354, 0, D_shelter_b6_corridor_8017F684);
     func_800E3FAC(0xA2, 0x2F);

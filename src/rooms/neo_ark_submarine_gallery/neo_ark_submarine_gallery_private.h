@@ -18,13 +18,13 @@ void func_neo_ark_submarine_gallery_8017E2CC(Task*);
 
 void func_neo_ark_submarine_gallery_8017E86C(Task*);
 
-s32 func_neo_ark_submarine_gallery_8017EA04(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_submarine_gallery_8017EA04(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 s32 func_neo_ark_submarine_gallery_8017EA0C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_submarine_gallery_8017EABC(Task*, s32, s32, GpMessageArg);
+s32 func_neo_ark_submarine_gallery_8017EABC(Task*, s32, s32, TaskMessageArg);
 
-s32 func_neo_ark_submarine_gallery_8017EB48(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_submarine_gallery_8017EB48(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 void func_neo_ark_submarine_gallery_8017EF94(Task*);
 

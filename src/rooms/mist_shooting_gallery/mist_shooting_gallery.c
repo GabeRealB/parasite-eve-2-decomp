@@ -267,8 +267,8 @@ extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
 s32               func_mist_shooting_gallery_8017FEB0(Task*, s32, s32, s32);
 s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, GpMessageArg);
-s32               func_mist_shooting_gallery_8018008C(Task*, s32, DirectionActionRequest* request, GpMessageArg);
+s32               func_mist_shooting_gallery_80180000(Task*, s32, s32, TaskMessageArg);
+s32               func_mist_shooting_gallery_8018008C(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
 void              func_mist_shooting_gallery_8017E234(Task*);
 void              func_mist_shooting_gallery_8017E854(Task*);
 void              func_mist_shooting_gallery_8017EAE0(Task*);
@@ -1998,7 +1998,7 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
     return 1;
 }
 
-s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 >= 5) {
         if (arg2 >= 9) {
@@ -2016,7 +2016,7 @@ s32 func_mist_shooting_gallery_80180000(Task* arg0, s32 arg1, s32 arg2, GpMessag
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if ((request->actionId == 1) && (D_8014D038 == 0)) {
         Gp_MsgPlayerWeapon(0);

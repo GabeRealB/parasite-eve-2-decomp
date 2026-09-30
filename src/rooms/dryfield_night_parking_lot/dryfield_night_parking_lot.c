@@ -245,7 +245,7 @@ s32 func_dryfield_night_parking_lot_8017D8D0(Task* task, s32 msgId, RoomEventMsg
 /// Handler for message 0x13F2 in the room's message table, keyed by `arg2`:
 /// point 9 plays stage sound 0x520F0009 and point 10 plays 0x520F000A. Always
 /// returns 0.
-s32 func_dryfield_night_parking_lot_8017DAB4(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DAB4(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     switch (arg2) {
         case 9:
@@ -260,14 +260,14 @@ s32 func_dryfield_night_parking_lot_8017DAB4(Task* arg0, s32 arg1, s32 arg2, GpM
 
 /// Handler for message 0x13F1 in the room's message table: does nothing and
 /// returns 0.
-s32 func_dryfield_night_parking_lot_8017DB04(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DB04(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
 /// Handler for message 0x13F0 in the room's message table: point 4 runs CAP
 /// command 4. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 4) {
         Gp_RunCapCmd1(4);
@@ -279,7 +279,7 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, GpM
 /// `actionId` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
 /// sends the player-weapon message and passes
 /// `D_dryfield_night_parking_lot_8017ECB4` to `func_800E8614`. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, DirectionActionRequest* request, GpMessageArg arg3)
+s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, DirectionActionRequest* request, TaskMessageArg arg3)
 {
     if ((request->actionId == 1) && (gGameSession->at4.loc.variant == 3) && (GameFlag_GetNibble(0x79) == 0)) {
         GameFlag_SetNibble(0x79, 1);

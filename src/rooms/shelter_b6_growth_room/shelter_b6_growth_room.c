@@ -27,10 +27,10 @@ extern u8 D_80136308[];
 extern void func_801327A8(void);
 extern void func_80132834(void);
 
-s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b6_growth_room_8017D634(Task*, s32, s32, GpMessageArg);
-s32 func_shelter_b6_growth_room_8017D6C8(Task*, s32, RoomEventMsg*, GpMessageArg);
+s32 func_shelter_b6_growth_room_8017D634(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_b6_growth_room_8017D6C8(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
 GpMsgEntry D_shelter_b6_growth_room_8017F16C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_growth_room_8017D5F0 },
@@ -44,7 +44,7 @@ static void func_shelter_b6_growth_room_8017D71C(Task* arg0);
 static void func_shelter_b6_growth_room_8017D7CC(Task* task);
 
 /// The room's handler for message 0x13F1: accepts it and does nothing.
-s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b6_growth_room_8017D5E8(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -58,7 +58,7 @@ s32 func_shelter_b6_growth_room_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in,
     return 1;
 }
 
-s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         if (GameFlag_GetNibble(0xD8) == 0) {
@@ -74,7 +74,7 @@ s32 func_shelter_b6_growth_room_8017D634(Task* arg0, s32 arg1, s32 arg2, GpMessa
     return 0;
 }
 
-s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg2, GpMessageArg arg3)
+s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg2, TaskMessageArg arg3)
 {
     if (arg2->warp == 1) {
         func_801327A8();

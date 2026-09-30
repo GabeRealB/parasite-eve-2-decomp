@@ -134,10 +134,10 @@ extern AnimationSet D_acropolis_roof_garden_801836BC;
 extern AnimationSet D_acropolis_roof_garden_80183BB4;
 
 s32  func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_roof_garden_8017D798(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_acropolis_roof_garden_8017D798(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_acropolis_roof_garden_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_roof_garden_8017D868(Task*, s32, s32, s32);
-s32  func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, GpMessageArg);
+s32  func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, TaskMessageArg);
 void func_acropolis_roof_garden_8017D5D4(Task*);
 void func_acropolis_roof_garden_8017D970(Task*);
 void func_acropolis_roof_garden_8017DA48(Task*);
@@ -958,7 +958,7 @@ s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// Room script callback with nothing to do: always answers 0.
-s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_roof_garden_8017D798(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -995,7 +995,7 @@ s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, GpMessageArg arg3)
+s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 2) {
         if ((Gp_GetCurBit2Flag(0x13) == 0) || (Gp_GetCurBit2Flag(0x13) == 1)) {

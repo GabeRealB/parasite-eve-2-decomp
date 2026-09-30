@@ -25,7 +25,7 @@ extern GpMsgEntry D_acropolis_observatory_8017E7B8[];
 extern s32 D_acropolis_observatory_8017E7D8;
 
 s32 func_acropolis_observatory_8017D618(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_observatory_8017D7BC(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_acropolis_observatory_8017D7BC(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 GpMsgEntry D_acropolis_observatory_8017E7B8[4] = {
@@ -98,7 +98,7 @@ s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, 
 }
 
 /// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

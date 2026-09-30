@@ -51,9 +51,9 @@ extern GpMsgEntry D_neo_ark_woodland_path_80181650[];
 
 extern Task* D_neo_ark_woodland_path_80181680;
 
-s32 func_neo_ark_woodland_path_8017E888(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_8017E888(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_woodland_path_8017E890(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
 s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
 
@@ -1473,7 +1473,7 @@ void func_neo_ark_woodland_path_8017E2E8(Task* task)
     SCRATCH_POP_BYTES(0x40);
 }
 
-s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -1488,7 +1488,7 @@ s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-s32 func_neo_ark_woodland_path_8017E8D4(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_neo_ark_woodland_path_8017E8D4(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }

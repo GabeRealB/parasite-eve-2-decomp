@@ -87,11 +87,11 @@ static void func_shelter_b3_elevator_hall_80180324(GfxCoord* arg0, s16 arg1, u8*
 void func_shelter_b3_elevator_hall_8017D790(Task*);
 void func_shelter_b3_elevator_hall_8017D900(Task*);
 void func_shelter_b3_elevator_hall_8017DAF0(Task*);
-s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DC78(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, GpMessageArg, GpMessageArg);
-s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, GpMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD88(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD90(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32  func_shelter_b3_elevator_hall_8017DD98(Task*, s32, s32, TaskMessageArg);
 
 TaskDesc D_shelter_b3_elevator_hall_80182A20 = { 0, 32, func_shelter_b3_elevator_hall_8017D790, { .model = NULL } };
 
@@ -388,7 +388,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
     }
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DC78(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -421,17 +421,17 @@ s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* i
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD88(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD90(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, GpMessageArg arg3)
+s32 func_shelter_b3_elevator_hall_8017DD98(Task* task, s32 msgId, s32 arg2, TaskMessageArg arg3)
 {
     if (arg2 == 1) {
         SndEvt_EnqueueType6(0x542A0000 | 1, 0, 0);

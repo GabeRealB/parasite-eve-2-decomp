@@ -343,7 +343,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
 void func_acropolis_bridge_8017DEE4(Task*);
 void func_acropolis_bridge_8017F280(Task*);
-s32  func_acropolis_bridge_801820A0(Task*, s32, GpMessageArg, GpMessageArg);
+s32  func_acropolis_bridge_801820A0(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams D_acropolis_bridge_8018A89C[1];
 extern GpGridParams D_acropolis_bridge_8018B694[1];
@@ -363,10 +363,10 @@ extern TmdBone D_acropolis_bridge_80187DDC[1];
 extern u32     D_acropolis_bridge_80187E00[1];
 extern u32     D_acropolis_bridge_8018835C[691];
 s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32            func_acropolis_bridge_8017D7F0(Task*, s32, GpMessageArg, GpMessageArg);
+s32            func_acropolis_bridge_8017D7F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
-s32            func_acropolis_bridge_8017D868(Task*, s32, GpMessageArg, GpMessageArg);
-s32            func_acropolis_bridge_8017D870(Task*, s32, GpMessageArg, GpMessageArg);
+s32            func_acropolis_bridge_8017D868(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32            func_acropolis_bridge_8017D870(Task*, s32, TaskMessageArg, TaskMessageArg);
 void           func_acropolis_bridge_8017D878(Task*);
 void           func_acropolis_bridge_8017D8D0(Task*);
 
@@ -2524,7 +2524,7 @@ s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, Room
     return 1;
 }
 
-s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_bridge_8017D7F0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -2545,12 +2545,12 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D868(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_bridge_8017D868(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
 
-s32 func_acropolis_bridge_8017D870(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_bridge_8017D870(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     return 0;
 }
@@ -4529,7 +4529,7 @@ void func_acropolis_bridge_80181D28(Task* task)
     Gp_ReleaseState1CMem(work, task);
 }
 
-s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, GpMessageArg arg2, GpMessageArg arg3)
+s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
     GfxCoord* coord;
     SVECTOR   pos;
