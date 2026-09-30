@@ -2,7 +2,7 @@
 D_neo_ark_bridge_80181F58 = 0x80181F58; // size:0x8 defined:True
 D_neo_ark_bridge_80181F60 = 0x80181F60; // size:0x8 defined:True
 D_neo_ark_bridge_80181F68 = 0x80181F68; // size:0x8 defined:True
-D_neo_ark_bridge_80181F70 = 0x80181F70; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80181F70; // size:0x10 defined:True
 D_neo_ark_bridge_80181F30 = 0x80181F30; // size:0x28 defined:True
 D_neo_ark_bridge_80181F80 = 0x80181F80; // size:0x4 defined:True
 D_neo_ark_bridge_80181F84 = 0x80181F84; // size:0x2 defined:True
@@ -76,3 +76,7 @@ func_neo_ark_bridge_8017FF84 = 0x8017FF84; // type:func
 func_neo_ark_bridge_801809E8 = 0x801809E8; // type:func
 
 func_neo_ark_bridge_801812D0 = 0x801812D0; // type:func
+RoomFx_DrawFlashRing = 0x80180228; // type:func
+RoomFx_DrawFlashDisc = 0x80180654; // type:func
+RoomFx_DrawTwinTrail = 0x80180ED8; // type:func
+RoomFx_DrawBurstStar = 0x80181558; // type:func
