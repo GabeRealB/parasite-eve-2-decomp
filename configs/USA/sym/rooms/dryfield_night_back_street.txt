@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_back_street.
-D_dryfield_night_back_street_8018034C = 0x8018034C; // size:0x58 defined:True
-D_dryfield_night_back_street_801803A4 = 0x801803A4; // size:0x8 defined:True
+D_dryfield_night_back_street_8018034C = 0x8018034C; // size:0x50 defined:True
+RoomFx_TrailOffsets = 0x8018039C; // size:0x10 defined:True
 D_dryfield_night_back_street_80180324 = 0x80180324; // size:0x28 defined:True
 D_dryfield_night_back_street_801803AC = 0x801803AC; // size:0x10 defined:True
 D_dryfield_night_back_street_801803BC = 0x801803BC; // size:0x8 defined:True
@@ -57,3 +57,7 @@ func_dryfield_night_back_street_8017EDF4 = 0x8017EDF4; // type:func
 func_dryfield_night_back_street_8017F6DC = 0x8017F6DC; // type:func
 
 func_dryfield_night_back_street_8017D7E0 = 0x8017D7E0; // type:func
+RoomFx_DrawFlashRing = 0x8017E634; // type:func
+RoomFx_DrawFlashDisc = 0x8017EA60; // type:func
+RoomFx_DrawTwinTrail = 0x8017F2E4; // type:func
+RoomFx_DrawBurstStar = 0x8017F964; // type:func
