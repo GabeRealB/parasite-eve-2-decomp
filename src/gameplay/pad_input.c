@@ -128,8 +128,8 @@ void Gp_UpdatePadInput(void)
     Task*         work;
     GameActor*    actor;
     u16           mask;
-    register u16  prev asm("s2"); // pinned: global-alloc otherwise ranks `actor` just above %hi(gGameSession) and gives it $s2
-    u16           trig;
+    register u16  pressedButtons asm("s2"); // pinned: global-alloc otherwise ranks `actor` just above %hi(gGameSession) and gives it $s2
+    u16           releasedButtons;
 
     pad  = &Pad_States[0];
     cfg  = &Player_Status;
@@ -178,14 +178,14 @@ void Gp_UpdatePadInput(void)
             }
         }
     }
-    if (pad->status == 0x73) {
-        mask = pad->buttons;
-        prev = pad->prevButtons;
-        trig = pad->triggered;
-        if (pad->field_56 < -0x800) {
+    if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
+        mask            = pad->buttons;
+        pressedButtons  = pad->pressedButtons;
+        releasedButtons = pad->releasedButtons;
+        if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_STICK_DIRECTION_THRESHOLD) {
             mask |= 0x1000;
             if (actor->field_954 != 0 || actor->field_956 < 2) {
-                if (pad->field_56 < -0xE80) {
+                if (pad->stickAxes[PAD_STICK_LEFT_Y] < -0xE80) {
                     if (Mc_SaveData[0].state.moveMode == 0) {
                         if (Mc_SaveData[0].state.buttonLayout != 1) {
                             mask |= 0x20;
@@ -207,38 +207,38 @@ void Gp_UpdatePadInput(void)
                     }
                 }
             }
-            if (pad->field_54 >= 0x801) {
+            if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
                 mask |= 0x2000;
-            } else if (pad->field_54 < -0x800) {
+            } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
                 mask |= 0x8000;
             }
-        } else if (pad->field_56 >= 0x801) {
+        } else if (pad->stickAxes[PAD_STICK_LEFT_Y] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
             mask |= 0x4000;
-            if (pad->field_54 >= 0x801) {
+            if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
                 mask |= 0x2000;
-            } else if (pad->field_54 < -0x800) {
+            } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
                 mask |= 0x8000;
             }
         } else {
-            if (pad->field_54 >= 0x801) {
+            if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
                 mask |= 0x2000;
-            } else if (pad->field_54 < -0x800) {
+            } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
                 mask |= 0x8000;
             }
         }
     } else {
-        mask = pad->buttons;
-        prev = pad->prevButtons;
-        trig = pad->triggered;
+        mask            = pad->buttons;
+        pressedButtons  = pad->pressedButtons;
+        releasedButtons = pad->releasedButtons;
     }
     gGameSession->pad     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
-    gGameSession->padPrev = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
-    gGameSession->padTrig = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
+    gGameSession->padPrev = Gp_RemapButtons(actor, pressedButtons) & ~Gp_PadSuppressMask;
+    gGameSession->padTrig = Gp_RemapButtons(actor, releasedButtons) & ~Gp_PadSuppressMask;
     if (Gp_PadSuppressTimer != 0) {
         Gp_PadSuppressTimer--;
         gGameSession->pad     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->padPrev = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->padTrig = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->padPrev = Gp_RemapButtons(actor, pressedButtons) & ~Gp_PadSuppressMask & ~0x10;
+        gGameSession->padTrig = Gp_RemapButtons(actor, releasedButtons) & ~Gp_PadSuppressMask & ~0x10;
     }
 }
 

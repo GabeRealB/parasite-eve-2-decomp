@@ -95,6 +95,15 @@ static void GameFlow_SpawnWhenIdle(Task* task);
 
 static void Pad_TickEventBanks(PadState* pad);
 
+enum {
+    PAD_DIRECTION_REPEAT_DELAY_TICKS   = 30,
+    PAD_DIRECTION_REPEAT_RESTART_TICKS = 22,
+    PAD_DIRECTION_BUTTON_MASK          = 0xF000,
+    PAD_STICK_CENTER_WORD              = 0x80808080,
+    PAD_STICK_DEAD_ZONE_RAW            = 24,
+    PAD_LEGACY_VIBRATION_PREFIX        = 0x40,
+};
+
 GameSession* gGameSession = &D61CC0_800714C0;
 s32          D_8005ED68   = 0;
 /// Unreferenced.
@@ -381,8 +390,8 @@ static void Pad_TickEventBanks(PadState* pad)
     motor[0] = 0;
 
     // Binary requests combine by logical OR, including each request's expiry poll.
-    request = pad->events[PAD_VIBRATION_MOTOR_BINARY];
-    for (i = 0; i < ARRAY_SIZE(pad->events[PAD_VIBRATION_MOTOR_BINARY]); i++, request++) {
+    request = pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY];
+    for (i = 0; i < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_BINARY]); i++, request++) {
         if (request->active != PAD_VIBRATION_INACTIVE) {
             if (--request->pollsRemaining == 0) {
                 request->active = PAD_VIBRATION_INACTIVE;
@@ -394,8 +403,8 @@ static void Pad_TickEventBanks(PadState* pad)
     }
 
     // Variable motor requests combine by maximum intensity.
-    request = pad->events[PAD_VIBRATION_MOTOR_VARIABLE];
-    for (i = 0; i < ARRAY_SIZE(pad->events[PAD_VIBRATION_MOTOR_VARIABLE]); i++, request++) {
+    request = pad->vibrationRequests[PAD_VIBRATION_MOTOR_VARIABLE];
+    for (i = 0; i < ARRAY_SIZE(pad->vibrationRequests[PAD_VIBRATION_MOTOR_VARIABLE]); i++, request++) {
         if (request->active != PAD_VIBRATION_INACTIVE) {
             if (--request->pollsRemaining == 0) {
                 request->active = PAD_VIBRATION_INACTIVE;
@@ -407,11 +416,11 @@ static void Pad_TickEventBanks(PadState* pad)
     }
 
     if (Mc_SaveData[0].state.vibration == 0) {
-        pad->field_5A = motor[0];
-        pad->field_5B = motor[1];
+        pad->actuatorCommand[0] = motor[0];
+        pad->actuatorCommand[1] = motor[1];
     } else {
-        pad->field_5A = 0;
-        pad->field_5B = 0;
+        pad->actuatorCommand[0] = 0;
+        pad->actuatorCommand[1] = 0;
     }
 
     SCRATCH_POP_BYTES(4);
@@ -445,110 +454,112 @@ void Pad_PollControllers(void)
         state       = PadGetState(portId);
         work->state = state;
         switch (state) {
-            case 4:
+            case PadStateReqInfo:
                 break;
-            case 0:
-                pad->initialized = 1;
+            case PadStateDiscon:
+                pad->modeSetupPending = 1;
 
-            case 1:
-                pad->unknown_58[0] = 0;
+            case PadStateFindPad:
+                pad->actuatorAlignmentReady = 0;
                 break;
             default:
-            case 2:
-            case 3:
-            case 5:
-            case 6:
+            case PadStateFindCTP1:
+            case PadStateFindCTP2:
+            case PadStateExecCmd:
+            case PadStateStable:
                 modeRequested = 0;
-                if ((pad->initialized == 1) && ((PadInfoMode(work->port, 2, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->port, 1, 0) != 0)))) {
-                    pad->initialized = 0;
+                if ((pad->modeSetupPending == 1) && ((PadInfoMode(work->port, InfoModeCurExID, 0) == 0) || (modeRequested = 1, (PadSetMainMode(work->port, 1, 0) != 0)))) {
+                    pad->modeSetupPending = 0;
                 }
                 Pad_TickEventBanks(pad);
-                if ((u8)pad->unknown_58[0] == 0) {
+                if (pad->actuatorAlignmentReady == 0) {
                     savedState = work->state;
-                    if (savedState == 2) {
-                        PadSetAct(work->port, &pad->field_5A, 2);
-                        if (pad->field_5A != 0) {
-                            pad->field_5B = 1;
+                    if (savedState == PadStateFindCTP1) {
+                        // Libpad retains this buffer; encode the legacy command after registering it.
+                        PadSetAct(work->port, pad->actuatorCommand, sizeof(pad->actuatorCommand));
+                        if (pad->actuatorCommand[0] != 0) {
+                            pad->actuatorCommand[1] = 1;
                         } else {
-                            pad->field_5B = 0;
+                            pad->actuatorCommand[1] = 0;
                         }
-                        pad->field_5A = 0x40;
-                    } else if ((savedState == 6) && (modeRequested == 0)) {
-                        PadSetAct(work->port, &pad->field_5A, 2);
+                        pad->actuatorCommand[0] = PAD_LEGACY_VIBRATION_PREFIX;
+                    } else if ((savedState == PadStateStable) && (modeRequested == 0)) {
+                        PadSetAct(work->port, pad->actuatorCommand, sizeof(pad->actuatorCommand));
                         if (PadSetActAlign(work->port, D_8005ED84) != 0) {
-                            pad->unknown_58[0] = 1;
+                            pad->actuatorAlignmentReady = 1;
                         }
                     }
                 }
                 break;
         }
-        mode = PadInfoMode(work->port, 1, 0);
+        mode = PadInfoMode(work->port, InfoModeCurID, 0);
         switch (mode) {
             case 5:
             case 7:
-                if (pad->status != 0x73) {
-                    *(u32*)pad->unknown_C = 0x80808080;
-                    for (i = 0; i < 4; i++) {
-                        center = (u8)pad->unknown_C[i];
+                if (pad->inputFormat != PAD_INPUT_FORMAT_ANALOG) {
+                    *(u32*)pad->stickCenters = PAD_STICK_CENTER_WORD;
+                    for (i = 0; i < ARRAY_SIZE(pad->stickCenters); i++) {
+                        center = pad->stickCenters[i];
                         if (center < 0x1AU) {
-                            pad->unknown_C[i] = 0x1A;
+                            pad->stickCenters[i] = 0x1A;
                         } else if (center >= 0xE6U) {
-                            *(u8*)&pad->unknown_C[i] = 0xE5;
+                            pad->stickCenters[i] = 0xE5;
                         }
                     }
-                    pad->status = 0x73;
+                    pad->inputFormat = PAD_INPUT_FORMAT_ANALOG;
                 }
-                axis    = &pad->field_50;
+                // Normalize all four wire-order axes after removing the raw dead zone.
+                axis    = pad->stickAxes;
                 rawAxis = (u8*)Pad_RawPorts[port].unknown_4;
                 i       = 0;
                 do {
-                    delta       = *rawAxis - (u8)pad->unknown_C[i];
+                    delta       = *rawAxis - pad->stickCenters[i];
                     work->delta = delta;
-                    if ((u32)(delta + 0x18) < 0x31U) {
+                    if ((u32)(delta + PAD_STICK_DEAD_ZONE_RAW) < 2U * PAD_STICK_DEAD_ZONE_RAW + 1) {
                         *axis++ = 0;
                     } else {
                         if (*rawAxis < 2U) {
-                            *axis++ = -0x1000;
+                            *axis++ = -PAD_STICK_FULL_SCALE;
                         } else if (*rawAxis >= 0xFEU) {
-                            *axis++ = 0x1000;
+                            *axis++ = PAD_STICK_FULL_SCALE;
                         } else if (work->delta < 0) {
-                            work->range = (u8)pad->unknown_C[i] - 0x19;
-                            work->delta = (-0x18 - work->delta) << 12;
+                            work->range = pad->stickCenters[i] - 0x19;
+                            work->delta = (-PAD_STICK_DEAD_ZONE_RAW - work->delta) << PAD_STICK_FRACTION_BITS;
                             work->delta = work->delta / work->range;
                             *axis++     = -(s16)work->delta;
                         } else {
-                            work->range = 0xE6 - (u8)pad->unknown_C[i];
-                            work->delta = (work->delta - 0x18) << 12;
+                            work->range = 0xE6 - pad->stickCenters[i];
+                            work->delta = (work->delta - PAD_STICK_DEAD_ZONE_RAW) << PAD_STICK_FRACTION_BITS;
                             work->delta = work->delta / work->range;
                             *axis++     = (s16)work->delta;
                         }
                     }
                     i += 1;
                     rawAxis++;
-                } while (i < 4);
-                pad->status = 0x73;
+                } while (i < ARRAY_SIZE(pad->stickAxes));
+                pad->inputFormat = PAD_INPUT_FORMAT_ANALOG;
                 break;
             case 0:
             case 1:
             case 3:
             case 6:
             case 8:
-                raw           = &Pad_RawPorts[port];
-                raw->field_2  = 0xFF;
-                raw->field_3  = 0xFF;
-                status        = 0xFF;
-                pad->status   = status;
-                pad->field_56 = 0;
-                pad->field_54 = 0;
-                pad->field_52 = 0;
-                pad->field_50 = 0;
+                raw                               = &Pad_RawPorts[port];
+                raw->field_2                      = 0xFF;
+                raw->field_3                      = 0xFF;
+                status                            = PAD_INPUT_FORMAT_UNAVAILABLE;
+                pad->inputFormat                  = status;
+                pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
+                pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
+                pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
+                pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                 break;
             default:
-                pad->status   = 0x41;
-                pad->field_56 = 0;
-                pad->field_54 = 0;
-                pad->field_52 = 0;
-                pad->field_50 = 0;
+                pad->inputFormat                  = PAD_INPUT_FORMAT_DIGITAL;
+                pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
+                pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
+                pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
+                pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                 break;
         }
         port += 1;
@@ -572,23 +583,23 @@ void Pad_UpdatePort0(void)
 
     do {
         pad = &Pad_States[i];
-        if (pad->cooldown == 0) {
+        if (pad->inputBlockPolls == 0) {
             scratch->rawHi   = Pad_RawPorts[i].field_2;
             scratch->rawLo   = Pad_RawPorts[i].field_3;
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 
-            if (pad->status == 0x73) {
-                if (pad->field_54 < -0x800) {
+            if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
+                if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
                     scratch->buttons = buttons | 0x8000;
                 }
-                if (pad->field_54 >= 0x801) {
+                if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
                     scratch->buttons = scratch->buttons | 0x2000;
                 }
-                if (pad->field_56 < -0x800) {
+                if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_STICK_DIRECTION_THRESHOLD) {
                     scratch->buttons = scratch->buttons | 0x1000;
                 }
-                if (pad->field_56 >= 0x801) {
+                if (pad->stickAxes[PAD_STICK_LEFT_Y] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
                     scratch->buttons = scratch->buttons | 0x4000;
                 }
             }
@@ -596,39 +607,40 @@ void Pad_UpdatePort0(void)
             if (i == 0) {
                 if (Pad_RemapState->field_8 != 0) {
                     if (ds->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
-                        pad->field_52 = 0;
-                        pad->field_50 = 0;
-                        pad->field_56 = 0;
-                        pad->field_54 = 0;
+                        pad->stickAxes[PAD_STICK_RIGHT_Y] = 0;
+                        pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
+                        pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
+                        pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
                         Gp_ApplyPadReplay(Pad_RemapState->field_8, scratch);
                     }
                 }
             }
 
+            // Derive both edge masks before replacing the held-button sample.
             prev                 = pad->buttons;
             buttons              = scratch->buttons;
             scratch->prevButtons = prev;
-            pad->prevButtons     = buttons & (buttons ^ prev);
-            pad->triggered       = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
+            pad->pressedButtons  = buttons & (buttons ^ prev);
+            pad->releasedButtons = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->buttons         = scratch->buttons;
 
             if ((s8)gGameSession->uiOpen != 0) {
-                if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
-                    pad->autoRepeat = pad->autoRepeat + ds->frameTicks;
+                if ((scratch->prevButtons & PAD_DIRECTION_BUTTON_MASK) == (scratch->buttons & PAD_DIRECTION_BUTTON_MASK)) {
+                    pad->directionRepeatTicks = pad->directionRepeatTicks + ds->frameTicks;
                 } else {
-                    pad->autoRepeat = 0;
+                    pad->directionRepeatTicks = 0;
                 }
-                if (pad->autoRepeat >= 0x1E) {
-                    pad->autoRepeat  = 0x16;
-                    pad->prevButtons = pad->prevButtons | (pad->buttons & 0xF000);
+                if (pad->directionRepeatTicks >= PAD_DIRECTION_REPEAT_DELAY_TICKS) {
+                    pad->directionRepeatTicks = PAD_DIRECTION_REPEAT_RESTART_TICKS;
+                    pad->pressedButtons       = pad->pressedButtons | (pad->buttons & PAD_DIRECTION_BUTTON_MASK);
                 }
             }
         } else {
-            pad->cooldown--;
-            pad->prevButtons = 0;
-            pad->triggered   = 0;
-            pad->buttons     = 0;
-            if (pad->cooldown == 0) {
+            pad->inputBlockPolls--;
+            pad->pressedButtons  = 0;
+            pad->releasedButtons = 0;
+            pad->buttons         = 0;
+            if (pad->inputBlockPolls == 0) {
                 scratch->rawHi   = Pad_RawPorts[i].field_2;
                 scratch->rawLo   = Pad_RawPorts[i].field_3;
                 buttons          = ~*(u16*)&scratch->rawLo;

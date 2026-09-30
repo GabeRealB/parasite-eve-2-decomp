@@ -8564,12 +8564,12 @@ with a local pointer:
 
 ```c
 /* Wrong schedule: lui/addiu base, then i*stride */
-Pad_States[arg0].field_A = 0;
+Pad_States[arg0].inputBlockPolls = 0;
 
 /* Right schedule: i*stride, then lui/addiu base */
 volatile PadState* p;
 p = &Pad_States[arg0];
-p->field_A = 0;
+p->inputBlockPolls = 0;
 ```
 
 Keep the local pointer `volatile` as well so the store stays out of the `jr`
@@ -13843,24 +13843,24 @@ addu  v1, a3, a1      /* requests = p + bankByteOffset */
 addiu a1, a1, 0x20    /* delay of outer branch */
 ```
 
-writing the clean form `requests = p->events[i]` alone often loses the offset
+writing the clean form `requests = p->vibrationRequests[i]` alone often loses the offset
 register and rewrites the address as `sll`/`addu` on `i`. Keep a parallel
 offset temporary that starts at the first bank's byte offset and advances by
 the bank stride each outer iteration — even if it is never read in C. GCC CSE
-equates `events[i]` with `p + bankByteOffset` and emits the target's `addu` /
+equates `vibrationRequests[i]` with `p + bankByteOffset` and emits the target's `addu` /
 `addiu …, 0x20` shape:
 
 ```c
 i = 0;
-bankByteOffset = OFFSET_OF(PadState, events); /* first bank at struct offset 0x10 */
+bankByteOffset = OFFSET_OF(PadState, vibrationRequests); /* first bank at struct offset 0x10 */
 for (; i < 2; i++) {
-    requests = p->events[i]; /* not (PadVibrationRequest*)((u8*)p + bankByteOffset) */
+    requests = p->vibrationRequests[i]; /* not (PadVibrationRequest*)((u8*)p + bankByteOffset) */
     for (j = 0; j < 8; j++) {
         requests[j].active = PAD_VIBRATION_INACTIVE;
         requests[j].intensity = 0;
         requests[j].pollsRemaining = 0;
     }
-    bankByteOffset += sizeof(p->events[i]); /* bank stride; keeps a1 live for addu */
+    bankByteOffset += sizeof(p->vibrationRequests[i]); /* bank stride; keeps a1 live for addu */
 }
 ```
 
@@ -13869,7 +13869,7 @@ increment tends to CSE a separate address for a mid-struct halfword field
 (`addiu v1, a0, 2` then `sb -1(v1)` / `sh 0(v1)`), while array indexing keeps
 one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
 
-`Pad_ClearEvents` (`PadState::events[2][8]`) is the example.
+`Pad_ClearEvents` (`PadState::vibrationRequests[2][8]`) is the example.
 
 ## Capture a reused halfword field so `%lo` wins and `$a0` stays free
 
@@ -15256,23 +15256,23 @@ assign `p` and `offset`, and pin the offset register:
 
 ```c
 register s32 offset asm("a2");
-s32 tmp;
+s32 stateAddress;
 volatile PadState* base;
 volatile PadState* p;
 
 base   = Pad_States;
-tmp    = (s32)base;   /* barrier: completes base before p, load stays in $a3 */
+stateAddress    = (s32)base;   /* barrier: completes base before p, load stays in $a3 */
 p      = base;
 offset = 0;           /* now after move a1, a3 — not hoisted before lui */
 do {
-    ptr = (u8*)(offset + tmp); /* addu a0, a2, a3 */
-    /* byte-clear 0x5C; set fields via p */
+    ptr = (u8*)(offset + stateAddress); /* addu a0, a2, a3 */
+    /* clear sizeof(*p) bytes; set fields via p */
     p++;
-    offset += 0x5C;
-} while (p < base + 2); /* end materialises as addiu t0, a1, 0xb8 */
+    offset += sizeof(*p);
+} while (p < base + ARRAY_SIZE(Pad_States)); /* end materialises as addiu t0, a1, 0xb8 */
 ```
 
-`tmp` must stay live for the whole loop (used in `offset + tmp`) so it is not
+`stateAddress` must stay live for the whole loop (used in `offset + stateAddress`) so it is not
 DCE'd as a dead store. Pinning `offset` to `$a2` keeps the zero and the
 `addiu …, 0x5C` on that register. `Pad_Init` is the pure example.
 
@@ -17020,9 +17020,9 @@ For a wrap-around counter written as:
 
 ```c
 idx = idx + 1;
-p->eventIdx = idx;
+p->nextVibrationSlot = idx;
 if (idx >= 8) {
-    p->eventIdx = 0;
+    p->nextVibrationSlot = 0;
 }
 ```
 
@@ -17040,7 +17040,7 @@ sb     zero, field(t0)
 
 An `s32` index with `(u8)idx >= 8` rewrites to check-first / store-in-delay-slot
 and mismatches. `Pad_PostEvent` is the pure example (vibration-request ring at
-`PadState.eventIdx`).
+`PadState.nextVibrationSlot`).
 
 ## Force `prev = curr` before the next-pointer load in list walks
 
@@ -22086,7 +22086,7 @@ for `lw v0; addiu v0,-N; move s1,v0; sw s1`.
 
 When the target does `bnez field_A, else; nop` then inside else
 `lbu / addiu -1 / sb / lbu` (reload for the zero check), a plain
-`pad->field_A = pad->field_A - 1` reuses the compare load in the branch delay
+`pad->inputBlockPolls = pad->inputBlockPolls - 1` reuses the compare load in the branch delay
 slot (`bnez; addiu v0,v0,-1`) and skips the reload (`andi` instead of `lbu`).
 
 Fix: access the byte through a volatile pointer so the decrement and the
@@ -22095,18 +22095,18 @@ follow-up test are real memory ops:
 ```c
 } else {
     volatile u8* cooldown;
-    cooldown = &pad->field_A;
+    cooldown = &pad->inputBlockPolls;
     *cooldown = *cooldown - 1;
-    pad->field_6 = 0;
-    pad->field_8 = 0;
-    pad->field_4 = 0;
+    pad->pressedButtons = 0;
+    pad->releasedButtons = 0;
+    pad->buttons = 0;
     if (*cooldown == 0) {
-        /* re-sample buttons into pad->field_4 */
+        /* re-sample buttons into pad->buttons */
     }
 }
 ```
 
-Do **not** mark the whole `PadState*` volatile — that turns `lh field_54` into
+Do **not** mark the whole `PadState*` volatile — that turns `lh stickAxes[PAD_STICK_LEFT_X]` into
 `lhu` + sign-extend. `Pad_UpdatePort0` is the pure example.
 
 ## Volatile store before `jal` (no delay-slot fill)
@@ -52077,7 +52077,7 @@ anything local to that access.
 
 ## `(u16)x << 0x10 >> 0x15` keeps `lhu`; `x >> 5` on the same `s16` field gives `lh`
 
-Two reads of the same `PadState::field_54` in one function assemble differently
+Two reads of the same `PadState::stickAxes[PAD_STICK_LEFT_X]` in one function assemble differently
 in `func_acropolis_security_room_8017F480`: the linear analog path loads it
 `lhu` and sign-extends with a shift pair, the squared path loads it `lh`.
 
@@ -52086,19 +52086,19 @@ lhu  v0, 0x54(a0) ; sll v0, v0, 0x10 ; sra s0, v0, 0x15   # (u16) cast, then shi
 lh   v0, 0x54(a0) ; mult v0, v0                            # plain s16 read
 ```
 
-Writing `pad->field_54 >> 5` on the `s16` field folds to `lh` + `sra 5` and
+Writing `pad->stickAxes[PAD_STICK_LEFT_X] >> 5` on the `s16` field folds to `lh` + `sra 5` and
 loses the pair. Casting to `u16` first forces the zero-extending load, and the
 explicit `<< 0x10 >> 0x15` then reproduces the sign-extend-and-shift:
 
 ```c
-step = ((u16)pad->field_54 << 0x10) >> 0x15;   /* lhu, sll 16, sra 21 */
-stick = pad->field_54;                          /* lh */
+step = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;   /* lhu, sll 16, sra 21 */
+stick = pad->stickAxes[PAD_STICK_LEFT_X];                          /* lh */
 ```
 
-**Related:** `Pad_States` is declared `volatile`, and a volatile `s16` read into
-an `s32` compiles as `lhu` + `sll`/`sra` rather than `lh`. Room code that wants
-the plain `lh` has to take a non-volatile pointer:
-`PadState* pad = (PadState*)&Pad_States[port];`.
+**Related:** A volatile `PadState` object's `s16` read into an `s32` compiles
+as `lhu` + `sll`/`sra` rather than `lh`. Current room consumers take a plain
+`PadState* pad = &Pad_States[port];` for the signed `lh` path; only the
+`inputBlockPolls` member remains volatile.
 
 ## Splitting a unit for a jump table by hand, without deleting the matched `src/`
 

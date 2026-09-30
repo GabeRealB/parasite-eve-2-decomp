@@ -1003,8 +1003,8 @@ void func_800BDF6C(Task* task)
         repeatStep = 1;
     }
     pad = Pad_States;
-    if (pad->autoRepeat != 0) {
-        pad->autoRepeat += gDisplayState.frameTicks * 2;
+    if (pad->directionRepeatTicks != 0) {
+        pad->directionRepeatTicks += gDisplayState.frameTicks * 2;
     }
     status = obj->panel.control.word;
     if (status == 1) {
@@ -1014,7 +1014,7 @@ void func_800BDF6C(Task* task)
                 equipped = state->equipped;
                 if (equipped < qty) {
                     stepToSource = 1;
-                    if ((u8)pad->autoRepeat >= 0x14U) {
+                    if (pad->directionRepeatTicks >= 0x14U) {
                         stepToSource = repeatStep;
                     }
                     state->srcQty += stepToSource;
@@ -1038,7 +1038,7 @@ void func_800BDF6C(Task* task)
                     s32 step;
 
                     step = 1;
-                    if ((u8)pad->autoRepeat >= 0x14U) {
+                    if (pad->directionRepeatTicks >= 0x14U) {
                         step = repeatStep;
                     }
                     state->srcQty = state->srcQty - step;

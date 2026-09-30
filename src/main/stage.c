@@ -796,7 +796,7 @@ static void Stage_WaitCdActivate(Task* task)
     if (CdCmd_ActivatePhase2() != 0) {
         task->state += 1;
     } else {
-        Pad_States[0].cooldown = 1;
+        Pad_States[0].inputBlockPolls = 1;
         Display_SpawnFromMode();
         task->state += 2;
     }
@@ -806,7 +806,7 @@ static void Stage_WaitCdAndSpawn(Task* task)
 {
     Pad_SetCooldown(0);
     if (CdCmd_IsIdleOrOverlayPending() != 0) {
-        Pad_States[0].cooldown = 1;
+        Pad_States[0].inputBlockPolls = 1;
         Display_SpawnFromMode();
         task->state += 1;
     }

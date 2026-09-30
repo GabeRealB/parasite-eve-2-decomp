@@ -2675,7 +2675,7 @@ static void func_shelter_b1_underground_parking_80183CEC(Task* task)
     s32               port;
     s32               first;
     s32               count;
-    s32               status;
+    s32               inputFormat;
     s32               stick;
     s32               step;
     s32               mask;
@@ -2701,23 +2701,23 @@ static void func_shelter_b1_underground_parking_80183CEC(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28[port];
-        pad    = &Pad_States[port];
-        status = pad->status;
-        if (status == 0x12) {
+        prompt      = &D_80114D28[port];
+        pad         = &Pad_States[port];
+        inputFormat = pad->inputFormat;
+        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
             speed            = prompt->targetId;
-            step             = ((u16)pad->field_54 << 0x10) >> 0x15;
+            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
             prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->field_56 << 0x10) >> 0x15;
+            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
             prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (status == 0x73) {
-            stick = pad->field_54;
+        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
+            stick = pad->stickAxes[PAD_STICK_LEFT_X];
             step  = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;
             }
             prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->field_56;
+            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
             step             = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;

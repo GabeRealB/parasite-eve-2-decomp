@@ -36,26 +36,27 @@ void Pad_Init(void)
     volatile PadRawPort* vpad;
     u32                  j;
     u8                   ff;
-    s32                  tmp;
+    s32                  stateAddress;
 
-    half   = 0xFF;
-    one    = 1;
-    base   = Pad_States;
-    tmp    = (s32)base;
-    p      = base;
-    offset = 0;
+    half         = PAD_INPUT_FORMAT_UNAVAILABLE;
+    one          = 1;
+    base         = Pad_States;
+    stateAddress = (s32)base;
+    p            = base;
+    offset       = 0;
     do {
-        ptr = (u8*)(offset + tmp);
-        for (i = 0; i < 0x5C; i++) {
+        // Clear each complete state through its byte representation, then publish setup fields.
+        ptr = (u8*)(offset + stateAddress);
+        for (i = 0; i < sizeof(*p); i++) {
             *ptr++ = 0;
         }
-        p->field_5A    = 0;
-        p->field_5B    = 0;
-        p->status      = half;
-        p->initialized = one;
+        p->actuatorCommand[0] = 0;
+        p->actuatorCommand[1] = 0;
+        p->inputFormat        = half;
+        p->modeSetupPending   = one;
         p++;
-        offset += 0x5C;
-    } while (p < base + 2);
+        offset += sizeof(*p);
+    } while (p < base + ARRAY_SIZE(Pad_States));
 
     pad = Pad_RawPorts;
     PadInitDirect((u8*)pad, (u8*)(pad + 1));

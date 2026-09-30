@@ -11,6 +11,11 @@
 
 enum { PAD_VIBRATION_POLLS_PER_DURATION_UNIT = 2 };
 
+enum {
+    PAD_INPUT_BLOCK_UPDATES = 61,
+    PAD_SOFT_RESET_COMBO    = 0x90F,
+};
+
 s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
 {
     PadState* p;
@@ -19,10 +24,10 @@ s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
     p = &Pad_States[arg0];
     switch (arg1) {
         case 1:
-            val = p->prevButtons;
+            val = p->pressedButtons;
             break;
         case 3:
-            val = p->triggered;
+            val = p->releasedButtons;
             break;
         default:
             val = p->buttons;
@@ -49,17 +54,17 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 
     i        = 0;
-    requests = p->events[arg1];
-    for (; i < ARRAY_SIZE(p->events[arg1]); i++) {
-        idx     = p->eventIdx;
+    requests = p->vibrationRequests[arg1];
+    for (; i < ARRAY_SIZE(p->vibrationRequests[arg1]); i++) {
+        idx     = p->nextVibrationSlot;
         request = &requests[idx];
         if (request->active == PAD_VIBRATION_INACTIVE) {
             break;
         }
-        idx         = idx + 1;
-        p->eventIdx = idx;
-        if (idx >= ARRAY_SIZE(p->events[arg1])) {
-            p->eventIdx = 0;
+        idx                  = idx + 1;
+        p->nextVibrationSlot = idx;
+        if (idx >= ARRAY_SIZE(p->vibrationRequests[arg1])) {
+            p->nextVibrationSlot = 0;
         }
     }
 
@@ -68,10 +73,10 @@ void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     request->intensity      = arg2;
     request->pollsRemaining = durationPolls;
 
-    idx         = p->eventIdx + 1;
-    p->eventIdx = idx;
-    if (idx >= ARRAY_SIZE(p->events[arg1])) {
-        p->eventIdx = 0;
+    idx                  = p->nextVibrationSlot + 1;
+    p->nextVibrationSlot = idx;
+    if (idx >= ARRAY_SIZE(p->vibrationRequests[arg1])) {
+        p->nextVibrationSlot = 0;
     }
 }
 
@@ -79,16 +84,16 @@ void Pad_SetCooldown(s32 arg0)
 {
     volatile PadState* p;
 
-    p           = &Pad_States[arg0];
-    p->cooldown = 0x3D;
+    p                  = &Pad_States[arg0];
+    p->inputBlockPolls = PAD_INPUT_BLOCK_UPDATES;
 }
 
 void Pad_ClearCooldown(s32 arg0)
 {
     volatile PadState* p;
 
-    p           = &Pad_States[arg0];
-    p->cooldown = 0;
+    p                  = &Pad_States[arg0];
+    p->inputBlockPolls = 0;
 }
 
 s32 Pad_ReadButtonsInv(s32 arg0)
@@ -112,17 +117,17 @@ void Pad_ClearEvents(s32 arg0)
 
     p              = &Pad_States[arg0];
     i              = 0;
-    bankByteOffset = OFFSET_OF(PadState, events);
-    for (; i < ARRAY_SIZE(p->events); i++) {
-        requests = p->events[i];
-        for (j = 0; j < ARRAY_SIZE(p->events[i]); j++) {
+    bankByteOffset = OFFSET_OF(PadState, vibrationRequests);
+    for (; i < ARRAY_SIZE(p->vibrationRequests); i++) {
+        requests = p->vibrationRequests[i];
+        for (j = 0; j < ARRAY_SIZE(p->vibrationRequests[i]); j++) {
             requests[j].active         = PAD_VIBRATION_INACTIVE;
             requests[j].intensity      = 0;
             requests[j].pollsRemaining = 0;
         }
-        bankByteOffset += sizeof(p->events[i]);
+        bankByteOffset += sizeof(p->vibrationRequests[i]);
     }
-    p->eventIdx = 0;
+    p->nextVibrationSlot = 0;
 }
 
 s32 Pad_CheckSpecialCombo(void)
@@ -133,13 +138,13 @@ s32 Pad_CheckSpecialCombo(void)
 
     p   = Pad_States;
     val = p->buttons;
-    if (val == 0x90F) {
-        result = D_8005ED8A == 0x90F;
+    if (val == PAD_SOFT_RESET_COMBO) {
+        result = D_8005ED8A == PAD_SOFT_RESET_COMBO;
     } else {
         result = 0;
     }
     D_8005ED8A = val;
-    if (p->cooldown != 0) {
+    if (p->inputBlockPolls != 0) {
         D_8005ED8A = 0;
         result     = 0;
     }

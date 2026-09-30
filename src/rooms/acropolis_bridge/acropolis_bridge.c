@@ -3252,7 +3252,7 @@ static void func_acropolis_bridge_8017EB4C(s32 state, s8 dx, s8 dy)
 /// from the pads and draws them.
 ///
 /// `Task::spawnArg1` picks the ports: 1 drives port 0 only, 2 port 1 only,
-/// anything else both. Each port's analog stick (pad status 0x12 linear, 0x73
+/// anything else both. Each port's analog stick (input format 0x12 linear, 0x73
 /// squared) and then its d-pad, whose four bits pick one of eight headings,
 /// move the prompt's 1/512-pixel position, which is clamped to the screen. The
 /// confirm (0x40) and cancel (0xA0) buttons are classified into the prompt's
@@ -3265,7 +3265,7 @@ static void func_acropolis_bridge_8017ED38(Task* task)
     s32               port;
     s32               first;
     s32               count;
-    s32               status;
+    s32               inputFormat;
     s32               stick;
     s32               step;
     s32               mask;
@@ -3291,23 +3291,23 @@ static void func_acropolis_bridge_8017ED38(Task* task)
     }
 
     for (port = first; port < count; port++) {
-        prompt = &D_80114D28[port];
-        pad    = &Pad_States[port];
-        status = pad->status;
-        if (status == 0x12) {
+        prompt      = &D_80114D28[port];
+        pad         = &Pad_States[port];
+        inputFormat = pad->inputFormat;
+        if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
             speed            = prompt->targetId;
-            step             = ((u16)pad->field_54 << 0x10) >> 0x15;
+            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
             prompt->field_0 += step * speed * gDisplayState.frameTicks;
-            step             = ((u16)pad->field_56 << 0x10) >> 0x15;
+            step             = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
             prompt->field_4 += step * speed * gDisplayState.frameTicks;
-        } else if (status == 0x73) {
-            stick = pad->field_54;
+        } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
+            stick = pad->stickAxes[PAD_STICK_LEFT_X];
             step  = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;
             }
             prompt->field_0 += step * prompt->targetId * gDisplayState.frameTicks;
-            stick            = pad->field_56;
+            stick            = pad->stickAxes[PAD_STICK_LEFT_Y];
             step             = (stick * stick) >> 0x15;
             if (stick < 0) {
                 step = -step;
