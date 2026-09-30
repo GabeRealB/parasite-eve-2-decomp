@@ -216,22 +216,22 @@ static void func_800A8D5C(void);
 
 void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
-    GpXformScratch* block;
-    GpLinkNode*     node;
-    s32             mode;
-    s32             x;
-    s32             cx;
-    s32             cy;
-    s32             y;
-    s16             vx;
-    s32             vz;
-    s32             i;
-    s32             n;
-    s32             sy;
-    DR_TPAGE*       tp;
-    SPRT*           sp;
-    SPRT*           sp2;
-    POLY_GT4*       poly;
+    GpXformScratch*  block;
+    WorldTargetNode* node;
+    s32              mode;
+    s32              x;
+    s32              cx;
+    s32              cy;
+    s32              y;
+    s16              vx;
+    s32              vz;
+    s32              i;
+    s32              n;
+    s32              sy;
+    DR_TPAGE*        tp;
+    SPRT*            sp;
+    SPRT*            sp2;
+    POLY_GT4*        poly;
 
     x  = 0x61;
     y  = -0x6C;
@@ -244,7 +244,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     mode  = func_800B9D80(0x400);
     if (node != NULL) {
         do {
-            if ((node->state.word & 5) != 1) {
+            if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
                 block->vec.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
                 block->vec.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
                 block->vec.vy = 0;
@@ -259,7 +259,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                     gte_gpf12();
                     gte_stsv(&block->vec);
                 }
-                if (node->state.b.flags & 1) {
+                if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
                     goto next;
                 }
                 vx = block->vec.vx;
@@ -279,7 +279,7 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
                 block->vec.vx = (s16)(vx + 0x80) >> 8;
                 vz            = (s16)(block->vec.vz + 0x80) >> 8;
                 block->vec.vz = vz;
-                if (node->state.b.targeted != 0) {
+                if (node->state.parts.targeted != 0) {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 2);
                 } else {
                     func_800A63B4(cx + block->vec.vx, cy - vz, 1);
@@ -567,7 +567,7 @@ static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
     }
     if (arg0->param != NULL) {
         val = arg0->param->hpMax;
-        if (arg0->node.state.b.flags & 8) {
+        if (arg0->node.state.parts.flags & WORLD_TARGET_HIDE_HP) {
             val = -1;
         }
         Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->hp, val, 1);
@@ -588,10 +588,10 @@ static inline void _gpRotateVector(MATRIX* m, SVECTOR* v)
 
 void Gp_UpdateLinkXforms(void)
 {
-    GpLinkNode*     node;
-    Task*           slot;
-    GfxCoord*       player;
-    GpXformScratch* block;
+    WorldTargetNode* node;
+    Task*            slot;
+    GfxCoord*        player;
+    GpXformScratch*  block;
 
     node = Gp_LinkList;
     slot = gameGetPtrSlot(3);
@@ -602,7 +602,7 @@ void Gp_UpdateLinkXforms(void)
     block  = SCRATCH_STACK_RESERVE_BLOCK(GpXformScratch);
     TransposeMatrix(&player->workm, &block->mat);
     for (; node != NULL; node = node->next) {
-        if ((node->state.word & 5) == 1) {
+        if ((node->state.word & WORLD_TARGET_SCAN_MASK) == WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
         block->vec.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
@@ -806,10 +806,10 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 
 void Gp_HudTrackSlot0(GpHudTrack* arg0)
 {
-    GpLinkNode* target;
-    Task*       work;
-    GameActor*  actor;
-    GpLinkNode* node;
+    WorldTargetNode* target;
+    Task*            work;
+    GameActor*       actor;
+    WorldTargetNode* node;
 
     work   = Gp_ActorSlots[0];
     target = NULL;
@@ -822,7 +822,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
         if (node != NULL) {
             do {
                 if (node == target) {
-                    if (!(node->state.b.flags & 1)) {
+                    if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                         Gp_HudTrackEnemy(GP_NODE_ENEMY(node), arg0);
                         return;
                     }

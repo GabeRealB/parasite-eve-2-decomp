@@ -1196,16 +1196,16 @@ static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
     work  = arg1->work;
     switch (Gp_StateF0.field_4) {
         case 0:
-            obj->flags               = 0;
-            arg0->node.state.b.flags = 0;
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = 0;
             break;
         case 1:
             func_actor_300700_801652F4(arg1);
             func_actor_300700_8016534C(arg1);
             return;
         case 2:
-            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     if (arg0->reactionFlags != 0) {

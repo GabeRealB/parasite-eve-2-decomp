@@ -2214,16 +2214,16 @@ static void func_actor_215100_8014C660(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_215100_8014CB04;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->flags                   = 0;
-    obj->otOffset                = 1;
-    work->enemy                  = enemy;
-    spawned                      = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
+    task->exitCallback               = func_actor_215100_8014CB04;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->flags                       = 0;
+    obj->otOffset                    = 1;
+    work->enemy                      = enemy;
+    spawned                          = Gp_SpawnEnemyFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
     Task_Reparent(task, spawned->task);
     work->pairTask  = spawned->task;

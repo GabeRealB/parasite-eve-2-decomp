@@ -8,6 +8,7 @@
 
 #include "gameplay/areaplace.h"
 #include "gameplay/pairsrc.h"
+#include "gameplay/world_targets_types.h"
 
 #include "main/coord.h"
 #include "main/session_types.h"
@@ -41,7 +42,7 @@ typedef struct GpEnemy {
     u16                    placeKey;      // Key of the placement the enemy was spawned from: area, stage, and that placement's own number in the high nibble
     u16                    workType;      // Work type the enemy was spawned as, bank in the high byte and type in the low (0x900 is the plain enemy)
     s32                    waitTicks;     // Frames an enemy with no actor body waits before it is torn down
-    GpLinkNode             node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
+    WorldTargetNode        node;          // Lock-on link: the entry the aim scan, HP readout and damage reactions reach the enemy by
     GfxCoord*              coord;         // Coordinate the body sits at, usually one of the actor's model parts
     VECTOR3                bodyPos;       // Body position in `coord`'s frame: the point distance and damage-chance rolls measure from
     byte                   pad_28[4];

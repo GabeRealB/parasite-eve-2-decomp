@@ -2164,16 +2164,16 @@ done:
 /// resets the actor's move once the aim is close enough.
 static void func_actor_800100_801643F4(Task* arg0)
 {
-    void**      scratch;
-    VECTOR*     head;
-    VECTOR3*    pos;
-    GameActor*  actor;
-    GpLinkNode* node;
-    TmdObject*  extra;
-    GfxCoord*   src;
-    s32         val;
-    s32         arg;
-    s32         flag;
+    void**           scratch;
+    VECTOR*          head;
+    VECTOR3*         pos;
+    GameActor*       actor;
+    WorldTargetNode* node;
+    TmdObject*       extra;
+    GfxCoord*        src;
+    s32              val;
+    s32              arg;
+    s32              flag;
 
     actor                            = arg0->work;
     extra                            = (gameGetPtrSlot(3))->extra.tmd;
@@ -2184,7 +2184,7 @@ static void func_actor_800100_801643F4(Task* arg0)
     node                             = actor->field_90C;
     src                              = extra->coords;
     if (node != NULL) {
-        if (!(node->state.b.flags & 1)) {
+        if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, pos);
         } else {
             actor->field_95E = 2;
@@ -2252,7 +2252,7 @@ static void func_actor_800100_80164580(Task* arg0)
     switch (actor->field_95E) {
         case 0:
             if (actor->field_90C != NULL) {
-                if (actor->field_90C->state.b.flags & 1) {
+                if (actor->field_90C->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
                     actor->field_90C = Gp_FindLockNodePad(arg0);
                 }
                 Gp_GetLockPos(actor->field_90C, pos);
@@ -2300,8 +2300,8 @@ static void func_actor_800100_80164710(Task* arg0)
     GameActor*              actor2;
     GameActor*              actor3;
     GpActorD4*              d4;
-    GpLinkNode*             node;
-    GpLinkNode*             lock;
+    WorldTargetNode*        node;
+    WorldTargetNode*        lock;
     GfxCoord*               coord;
     Actor800100LockScratch* scratch;
     Actor800100LockScratch* head;
@@ -2341,7 +2341,7 @@ static void func_actor_800100_80164710(Task* arg0)
             if (dist < 0x181) {
                 actor->field_95E += 1;
             block_10:
-                if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.b.flags & 1)) {
+                if (((s8)d4->repeatCount <= 0) || (node = actor->field_90C, node == NULL) || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                     // Stored through a plain pointer: the member-access spelling schedules differently.
                     *&actor->field_90C = NULL;
                     actor->field_97E   = 1;
@@ -2493,7 +2493,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
     GfxCoord*               coord;
     GfxCoord*               target;
     Actor800100LockScratch* block;
-    GpLinkNode*             node;
+    WorldTargetNode*        node;
     void**                  scratch;
     u8*                     head;
     u16                     step;
@@ -2536,7 +2536,7 @@ static void func_actor_800100_80164B9C(Task* arg0)
     block                          = (Actor800100LockScratch*)(head - 0x20);
     node                           = actor->field_90C;
     if (node != NULL) {
-        if ((node->state.b.flags & 1) == 0) {
+        if ((node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) == 0) {
             Gp_GetLockPos(node, &block->lock);
         } else {
             actor->field_95E = 2;
@@ -3062,19 +3062,19 @@ static void func_actor_800100_80165930(Task* arg0)
 
 static void func_actor_800100_801659EC(Task* arg0)
 {
-    GameActor*  actor;
-    GpActorD4*  d4;
-    GpLinkNode* node;
-    GfxCoord*   coord;
-    VECTOR3*    lock;
-    VECTOR*     head;
-    u8*         entry;
-    u8*         offset;
-    s32         kind;
-    s32         angle;
-    s32         index;
-    s32         inRange;
-    s32         mode;
+    GameActor*       actor;
+    GpActorD4*       d4;
+    WorldTargetNode* node;
+    GfxCoord*        coord;
+    VECTOR3*         lock;
+    VECTOR*          head;
+    u8*              entry;
+    u8*              offset;
+    s32              kind;
+    s32              angle;
+    s32              index;
+    s32              inRange;
+    s32              mode;
 
     head                          = SCRATCH_STACK_CURSOR(VECTOR);
     lock                          = (VECTOR3*)(head - 1);

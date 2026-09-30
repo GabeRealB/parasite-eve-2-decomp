@@ -483,7 +483,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->coord      = &arg0->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
     enemy->hp                         = 0x32;
-    enemy->node.state.b.flags         = 0;
+    enemy->node.state.parts.flags     = 0;
     enemy->reactionFlags              = 0;
     enemy->param                      = &D_actor_311500_801692C0;
     work2->field_43C.coord            = &arg0->extra.tmd->coords[2];
@@ -716,7 +716,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     Gp_ReleaseStateF0Add(arg0, 0xA);
                     enemy->recs = 0;
                     Gp_UnlinkObj(&work->field_43C);
-                    enemy->node.state.b.flags = state;
+                    enemy->node.state.parts.flags = state;
                     break;
 
                 case 0xA:

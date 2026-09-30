@@ -303,18 +303,18 @@ static void func_actor_503500_80132F64(Task* arg0)
     tmd->otOffset       = 0x14;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    enemy->field_4             = &coord->coord;
-    part                       = &coord[3];
-    enemy->field_48            = 0;
-    enemy->coord               = part;
-    enemy->node.state.b.flags |= 9;
-    enemy->bodyPos.vx          = D_actor_503500_8016EC50.vx;
-    enemy->bodyPos.vy          = D_actor_503500_8016EC50.vy;
-    enemy->bodyPos.vz          = D_actor_503500_8016EC50.vz;
-    recs                       = work->rec5F4;
-    enemy->param               = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                = recs;
-    enemy->hp                  = enemy->param->hpMax;
+    enemy->field_4                 = &coord->coord;
+    part                           = &coord[3];
+    enemy->field_48                = 0;
+    enemy->coord                   = part;
+    enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
+    enemy->bodyPos.vx              = D_actor_503500_8016EC50.vx;
+    enemy->bodyPos.vy              = D_actor_503500_8016EC50.vy;
+    enemy->bodyPos.vz              = D_actor_503500_8016EC50.vz;
+    recs                           = work->rec5F4;
+    enemy->param                   = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
+    enemy->recs                    = recs;
+    enemy->hp                      = enemy->param->hpMax;
 
     work->field_5D4.coord            = part;
     work->field_5D4.context.contacts = recs;
@@ -1504,11 +1504,11 @@ static void func_actor_503500_801353F0(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Clears each slot enemy's `node.state.b.flags` bit 1 only when its
+/// Clears each slot enemy's not-lockable flag only when its
 /// `D_actor_503500_8016E910` entry covers both the camera's yaw sector
 /// (relative to `field_7B6`) and its height band and `gGameSession->eventState`
-/// is 0; otherwise sets it. Bit 4 is set on a height-only miss and cleared on
-/// a yaw miss.
+/// is 0; otherwise sets it. Keep-scanned is set on a height-only miss and
+/// cleared when the yaw sector or the event state excludes the slot.
 static void func_actor_503500_80135644(Task* arg0)
 {
     Actor503500Work* work;
@@ -1552,13 +1552,13 @@ static void func_actor_503500_80135644(Task* arg0)
         if (enemy != NULL) {
             bits = D_actor_503500_8016E910[i];
             if ((bits & dirMask) != dirMask || gGameSession->eventState != 0) {
-                enemy->node.state.b.flags            |= 1;
-                work->enemies[i]->node.state.b.flags &= ~4;
+                enemy->node.state.parts.flags            |= WORLD_TARGET_NOT_LOCKABLE;
+                work->enemies[i]->node.state.parts.flags &= ~WORLD_TARGET_KEEP_SCANNED;
             } else if ((bits & heightMask) != heightMask) {
-                enemy->node.state.b.flags            |= 1;
-                work->enemies[i]->node.state.b.flags |= 4;
+                enemy->node.state.parts.flags            |= WORLD_TARGET_NOT_LOCKABLE;
+                work->enemies[i]->node.state.parts.flags |= WORLD_TARGET_KEEP_SCANNED;
             } else {
-                enemy->node.state.b.flags &= ~1;
+                enemy->node.state.parts.flags &= ~WORLD_TARGET_NOT_LOCKABLE;
             }
         }
     }
@@ -2622,15 +2622,15 @@ static void func_actor_503500_801372C8(Task* arg0)
     enemy->field_4                    = &coord->coord;
     enemy->field_48                   = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord              = coord;
-    enemy->node.state.b.flags = (enemy->node.state.b.flags | 8) & 0xFE;
-    enemy->bodyPos.vx         = D_actor_503500_8016F068.vx;
-    enemy->bodyPos.vy         = D_actor_503500_8016F068.vy;
-    enemy->bodyPos.vz         = D_actor_503500_8016F068.vz;
-    rec                       = D_actor_503500_80176D88.rec60;
-    enemy->param              = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs               = rec;
-    enemy->hp                 = enemy->param->hpMax;
+    enemy->coord                  = coord;
+    enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
+    enemy->bodyPos.vx             = D_actor_503500_8016F068.vx;
+    enemy->bodyPos.vy             = D_actor_503500_8016F068.vy;
+    enemy->bodyPos.vz             = D_actor_503500_8016F068.vz;
+    rec                           = D_actor_503500_80176D88.rec60;
+    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
+    enemy->recs                   = rec;
+    enemy->hp                     = enemy->param->hpMax;
 
     D_actor_503500_80176D88.slot40.obj.coord            = coord;
     D_actor_503500_80176D88.slot40.obj.context.contacts = rec;
@@ -2992,8 +2992,8 @@ static void func_actor_503500_8013815C(Task* arg0)
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.b.flags |= 1;
+            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
             if (enemy->reactionFlags != 0) {
@@ -3179,15 +3179,15 @@ static void func_actor_503500_8013852C(Task* arg0)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord              = part;
-    enemy->node.state.b.flags = (enemy->node.state.b.flags | 8) & 0xFE;
-    enemy->bodyPos.vx         = D_actor_503500_8016F0B0.vx;
-    enemy->bodyPos.vy         = D_actor_503500_8016F0B0.vy;
-    enemy->bodyPos.vz         = D_actor_503500_8016F0B0.vz;
-    rec                       = work->rec;
-    enemy->param              = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs               = rec;
-    enemy->hp                 = enemy->param->hpMax;
+    enemy->coord                  = part;
+    enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
+    enemy->bodyPos.vx             = D_actor_503500_8016F0B0.vx;
+    enemy->bodyPos.vy             = D_actor_503500_8016F0B0.vy;
+    enemy->bodyPos.vz             = D_actor_503500_8016F0B0.vz;
+    rec                           = work->rec;
+    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
+    enemy->recs                   = rec;
+    enemy->hp                     = enemy->param->hpMax;
 
     work->obj.coord            = part;
     work->obj.context.contacts = rec;
@@ -3257,8 +3257,8 @@ static void func_actor_503500_80138898(Task* arg0)
             }
             break;
         case 2:
-            tmd->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.b.flags |= 1;
+            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
             if (enemy->reactionFlags != 0) {

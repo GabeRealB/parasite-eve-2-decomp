@@ -1477,13 +1477,13 @@ static void Actor00400_Fn00B48(Task* arg0)
     slot                       = work->field_664;
     obj->coord                 = &arg0->extra.tmd->coords[slot];
     Gp_LinkNode(&obj->node);
-    obj->node.state.b.flags = 1;
-    obj->recs               = work->field_39C;
-    obj->param              = &Actor00400_D0FDC8;
-    hp                      = Actor00400_D0FDC8.hpMax;
-    obj->hpMax              = hp;
-    obj->hp                 = hp;
-    coord->parent           = &gGfxViewCoord;
+    obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    obj->recs                   = work->field_39C;
+    obj->param                  = &Actor00400_D0FDC8;
+    hp                          = Actor00400_D0FDC8.hpMax;
+    obj->hpMax                  = hp;
+    obj->hp                     = hp;
+    coord->parent               = &gGfxViewCoord;
     func_800B3F84(&work->anim, Actor00400_D1604C, ctx, work->poses, work->slots);
     Actor00400_Fn019B4(arg0);
     work->field_556 = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2766,9 +2766,9 @@ static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
 static __inline__ void Actor00400_AttachHead(Task* arg0, GpEnemy* obj,
                                              Actor100400Work* work, s32 hide)
 {
-    obj->coord              = &arg0->extra.tmd->coords[1];
-    obj->node.state.b.flags = 0;
-    work->field_661         = hide;
+    obj->coord                  = &arg0->extra.tmd->coords[1];
+    obj->node.state.parts.flags = 0;
+    work->field_661             = hide;
 }
 
 static void Actor00400_Fn03920(Task* arg0)
@@ -2886,18 +2886,18 @@ static void Actor00400_Fn03920(Task* arg0)
             work->field_666 = 1;
             nibble          = GameFlag_GetNibble(0xEB);
             if (nibble != 2) {
-                obj->node.state.b.flags = 1;
-                w                       = arg0->work;
-                w->field_632            = 0x10;
-                w->field_628            = 1;
-                w->field_624            = 2;
-                w                       = arg0->work;
-                arg0->state             = 3;
-                w->field_638            = 0;
-                w->field_63A            = 0;
-                w                       = arg0->work;
-                w->field_638            = 0xD;
-                w->field_63A            = 0;
+                obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                w                           = arg0->work;
+                w->field_632                = 0x10;
+                w->field_628                = 1;
+                w->field_624                = 2;
+                w                           = arg0->work;
+                arg0->state                 = 3;
+                w->field_638                = 0;
+                w->field_63A                = 0;
+                w                           = arg0->work;
+                w->field_638                = 0xD;
+                w->field_63A                = 0;
             } else {
                 w            = arg0->work;
                 w->field_632 = 0x10;
@@ -2913,19 +2913,19 @@ static void Actor00400_Fn03920(Task* arg0)
             work->field_666 = 1;
             nibble          = GameFlag_GetNibble(0xEB);
             if (nibble != 2) {
-                obj->node.state.b.flags = 1;
-                work->field_666         = 1;
-                w                       = arg0->work;
-                w->field_632            = 0x10;
-                w->field_628            = 1;
-                w->field_624            = 2;
-                w                       = arg0->work;
-                arg0->state             = 3;
-                w->field_638            = 0;
-                w->field_63A            = 0;
-                w                       = arg0->work;
-                w->field_638            = 0xE;
-                w->field_63A            = 0;
+                obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                work->field_666             = 1;
+                w                           = arg0->work;
+                w->field_632                = 0x10;
+                w->field_628                = 1;
+                w->field_624                = 2;
+                w                           = arg0->work;
+                arg0->state                 = 3;
+                w->field_638                = 0;
+                w->field_63A                = 0;
+                w                           = arg0->work;
+                w->field_638                = 0xE;
+                w->field_63A                = 0;
             } else {
                 w            = arg0->work;
                 w->field_632 = 0x10;
@@ -3600,9 +3600,9 @@ static void Actor00400_Fn04E18(Task* arg0)
                 m.vec.vz = 0;
                 Actor00400_Fn0A08C(coordN, &m.vec);
                 if (w4->field_64E + 0x190 < m.vec.vy) {
-                    obj2->node.state.b.flags = 1;
+                    obj2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 } else {
-                    obj2->node.state.b.flags = 0;
+                    obj2->node.state.parts.flags = 0;
                 }
             }
             /* fallthrough */
@@ -4760,11 +4760,11 @@ static void Actor00400_Fn07B98(Task* arg0)
     Actor100400Work* work;
     TaskFuncTable3   fns;
 
-    obj                     = arg0->spawnArg2.pointer;
-    work                    = arg0->work;
-    fns                     = Actor00400_D0015C;
-    work->field_660         = 1;
-    obj->node.state.b.flags = 1;
+    obj                         = arg0->spawnArg2.pointer;
+    work                        = arg0->work;
+    fns                         = Actor00400_D0015C;
+    work->field_660             = 1;
+    obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     fns.funcs[(s16)work->field_63A](arg0);
 }
 
@@ -4791,8 +4791,8 @@ static void Actor00400_Fn07C04(Task* arg0)
         work2->field_638 = 0xB;
         work2->field_63A = 0;
     } else {
-        work->field_660         = 1;
-        obj->node.state.b.flags = 1;
+        work->field_660             = 1;
+        obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         fns.funcs[(s16)work->field_63A](arg0);
     }
 }
@@ -4972,7 +4972,7 @@ void Actor00400_Fn0805C(Task* arg0, s32 arg1, ActorCommand* request)
             work->field_65E = 5;
             break;
         case 6:
-            obj->node.state.b.flags = 0;
+            obj->node.state.parts.flags = 0;
             Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
             work->field_666   = 0;
             work->field_65E   = 6;
@@ -5504,8 +5504,8 @@ static void Actor00400_Fn090B4(Task* arg0)
     Actor100400Work* state;
     Actor100400Work* state2;
 
-    work                                                    = arg0->work;
-    ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
+    work                                                        = arg0->work;
+    ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
     Gp_IncStateF0Ref(0);
     work->flags_62C.hi.field_62E = 0;
     work->field_630              = 0x174B;
@@ -6076,7 +6076,7 @@ static void Actor00400_Fn09FDC(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     if (((Actor100400Work*)arg0->work)->field_65E == 5) {
-        obj->node.state.b.flags = 0;
+        obj->node.state.parts.flags = 0;
         Actor00400_Fn02FF8(arg0);
         Gp_IncStateF0Ref(0);
         work            = arg0->work;
@@ -6092,7 +6092,7 @@ static void Actor00400_Fn0A034(Task* arg0)
 
     obj = arg0->spawnArg2.pointer;
     if (((Actor100400Work*)arg0->work)->field_65E == 5) {
-        obj->node.state.b.flags = 0;
+        obj->node.state.parts.flags = 0;
         Actor00400_Fn02FF8(arg0);
         Gp_IncStateF0Ref(0);
         work            = arg0->work;

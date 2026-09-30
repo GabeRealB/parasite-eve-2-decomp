@@ -2037,15 +2037,15 @@ static void func_actor_800300_801628D0(Task* arg0)
 
 static void func_actor_800300_80162A98(Task* arg0)
 {
-    u8*         head;
-    VECTOR3*    vec;
-    GameActor*  actor;
-    GpLinkNode* node;
-    TmdObject*  extra;
-    GfxCoord*   src;
-    s32         val;
-    s32         arg;
-    s32         flag;
+    u8*              head;
+    VECTOR3*         vec;
+    GameActor*       actor;
+    WorldTargetNode* node;
+    TmdObject*       extra;
+    GfxCoord*        src;
+    s32              val;
+    s32              arg;
+    s32              flag;
 
     actor                    = arg0->work;
     extra                    = (gameGetPtrSlot(3))->extra.tmd;
@@ -2055,7 +2055,7 @@ static void func_actor_800300_80162A98(Task* arg0)
     node                     = actor->field_90C;
     src                      = extra->coords;
     if (node != NULL) {
-        if (!(node->state.b.flags & 1)) {
+        if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
@@ -2137,13 +2137,13 @@ static void func_actor_800300_80162C98(Task* arg0)
 
 static void func_actor_800300_80162D74(Task* arg0)
 {
-    GameActor*  actor;
-    GfxCoord*   coord;
-    GfxCoord*   target;
-    GpLinkNode* lock;
-    u8*         head;
-    VECTOR3*    vec;
-    u16         state;
+    GameActor*       actor;
+    GfxCoord*        coord;
+    GfxCoord*        target;
+    WorldTargetNode* lock;
+    u8*              head;
+    VECTOR3*         vec;
+    u16              state;
 
     coord                    = arg0->extra.tmd->coords;
     target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
@@ -2153,7 +2153,7 @@ static void func_actor_800300_80162D74(Task* arg0)
     actor                    = arg0->work;
     lock                     = actor->field_90C;
     if (lock != NULL) {
-        if (!(lock->state.b.flags & 1)) {
+        if (!(lock->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(lock, vec);
         } else {
             actor->field_95E = 2;

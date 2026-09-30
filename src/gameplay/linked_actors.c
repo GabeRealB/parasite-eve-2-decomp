@@ -84,7 +84,7 @@ typedef struct _GpCircleScratch {
 } GpCircleScratch;
 STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
 
-GpLinkNode* Gp_LinkList;
+WorldTargetNode* Gp_LinkList;
 
 static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang);
 
@@ -103,14 +103,14 @@ static inline void _gpDrawHudLabels(UiObject* obj, s32 x, s32 y, s32 color);
 
 void func_800A4904(s32 arg0)
 {
-    GpLinkNode* node;
-    GpEnemy*    enemy;
-    GpEnemy*    claim;
-    u16         val;
-    s32         idx;
+    WorldTargetNode* node;
+    GpEnemy*         enemy;
+    GpEnemy*         claim;
+    u16              val;
+    s32              idx;
 
     for (node = Gp_LinkList; node != NULL; node = node->next) {
-        if ((node->state.word & 5) != 1) {
+        if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
             enemy = GP_NODE_ENEMY(node);
             claim = enemy;
             if (arg0 == 0) {
@@ -270,13 +270,13 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    SVECTOR*    vec;
-    GpLinkNode* node;
-    GpEnemy*    enemy;
-    u16         val;
-    s32         idx;
-    s32         ry2;
-    s32         rx2;
+    SVECTOR*         vec;
+    WorldTargetNode* node;
+    GpEnemy*         enemy;
+    u16              val;
+    s32              idx;
+    s32              ry2;
+    s32              rx2;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -296,7 +296,7 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (node != NULL) {
         do {
-            if ((node->state.word & 5) != 1) {
+            if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
                 vec->vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
                 vec->vy = GP_NODE_ENEMY(node)->playerRelPos.vy;
                 vec->vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
@@ -333,14 +333,14 @@ void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    SVECTOR*    vec;
-    GpLinkNode* node;
-    GpEnemy*    enemy;
-    GpEnemy*    claim;
-    u16         val;
-    s32         idx;
-    s32         t;
-    void*       work;
+    SVECTOR*         vec;
+    WorldTargetNode* node;
+    GpEnemy*         enemy;
+    GpEnemy*         claim;
+    u16              val;
+    s32              idx;
+    s32              t;
+    void*            work;
 
     if (arg0 == 0) {
         if (arg3 == 0) {
@@ -358,7 +358,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (node != NULL) {
         do {
-            if ((node->state.word & 5) != 1) {
+            if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
                 vec->vx = (u16)GP_NODE_ENEMY(node)->playerRelPos.vx;
                 vec->vy = (u16)GP_NODE_ENEMY(node)->playerRelPos.vy;
                 vec->vz = (u16)GP_NODE_ENEMY(node)->playerRelPos.vz;

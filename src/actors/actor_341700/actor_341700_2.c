@@ -1208,7 +1208,7 @@ static void func_actor_341700_8016D130(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vy                      = 0;
     arg0->bodyPos.vz                      = 0;
     arg0->coord                           = &arg1->extra.tmd->coords[2];
-    arg0->node.state.b.flags              = 1;
+    arg0->node.state.parts.flags          = WORLD_TARGET_NOT_LOCKABLE;
     arg0->reactionFlags                   = 0;
     arg0->hpMax                           = 0;
     arg0->hp                              = 0;
@@ -1230,9 +1230,9 @@ static void func_actor_341700_8016D2B8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model                    = arg1->extra.tmd;
-        arg0->node.state.b.flags = 1;
-        model->flags             = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        model                        = arg1->extra.tmd;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                 = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
 }
 
@@ -1241,9 +1241,9 @@ static void func_actor_341700_8016D2E8(GpEnemy* arg0, Task* arg1)
     TmdObject* model;
 
     if (((Actor341700SubWork*)arg1->work)->field_4 != 0) {
-        model                    = arg1->extra.tmd;
-        arg0->node.state.b.flags = 1;
-        model->flags             = 0;
+        model                        = arg1->extra.tmd;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                 = 0;
         Tmd_AllocBuffers(model);
     }
 }

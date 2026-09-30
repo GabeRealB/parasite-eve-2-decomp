@@ -5336,12 +5336,12 @@ static void func_actor_403000_80136B14(Task* arg0)
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_SetLightMode(enemy, 1);
-        enemy->reactionFlags      = 0;
-        work->field_ACA           = 0x10;
-        work->field_AC6           = 0x1C;
-        work->field_AC0           = 2;
-        enemy->node.state.b.flags = 1;
-        work->field_FCA           = 1;
+        enemy->reactionFlags          = 0;
+        work->field_ACA               = 0x10;
+        work->field_AC6               = 0x1C;
+        work->field_AC0               = 2;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_FCA               = 1;
         Gp_ClearNodeSlots(&enemy->node);
         arg0->extra.tmd->otOffset = 8;
         work->field_6             = 0;
@@ -5389,12 +5389,12 @@ static void func_actor_403000_80136D68(Task* arg0)
         Tmd_AllocBuffers(tmd);
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_SetLightMode(enemy, 1);
-        enemy->reactionFlags      = 0;
-        work->field_ACA           = 0x10;
-        work->field_AC6           = 0x1C;
-        work->field_AC0           = 2;
-        enemy->node.state.b.flags = 1;
-        work->field_FCA           = 1;
+        enemy->reactionFlags          = 0;
+        work->field_ACA               = 0x10;
+        work->field_AC6               = 0x1C;
+        work->field_AC0               = 2;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_FCA               = 1;
         Gp_ClearNodeSlots(&enemy->node);
         arg0->extra.tmd->otOffset = 8;
         work->field_6             = 0;
@@ -7498,9 +7498,9 @@ static void func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1)
     }
     if (work->field_FCA == 0) {
         if (work->field_FD8 == 1 && work->field_FD7 == 1) {
-            arg0->node.state.b.flags = 0xC;
+            arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_KEEP_SCANNED);
         } else {
-            arg0->node.state.b.flags = 0xD;
+            arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_KEEP_SCANNED | WORLD_TARGET_NOT_LOCKABLE);
             Gp_ClearNodeSlots(&arg0->node);
         }
     }

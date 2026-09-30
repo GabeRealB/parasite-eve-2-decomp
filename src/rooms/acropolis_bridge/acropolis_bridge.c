@@ -5755,13 +5755,13 @@ static void func_acropolis_bridge_80185988(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    task->msgTable            = D_acropolis_bridge_80191744;
-    work->field_2             = -1;
-    work->field_0             = 1;
-    work->field_1F8           = 0x5DC;
-    work->field_1FA           = coord->coord.t[1];
-    coord->coord.t[1]        += work->field_1F8;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    task->msgTable                = D_acropolis_bridge_80191744;
+    work->field_2                 = -1;
+    work->field_0                 = 1;
+    work->field_1F8               = 0x5DC;
+    work->field_1FA               = coord->coord.t[1];
+    coord->coord.t[1]            += work->field_1F8;
 
     work->walker.navData.nodes    = D_acropolis_bridge_8019162C;
     work->walker.navData.count    = 0xA;
@@ -5955,7 +5955,7 @@ void func_acropolis_bridge_80185F28(Task* task)
         work->walker.scale -= 0x33;
         bridge_reset_scale_mtx_shrink(work);
     } else {
-        enemy->node.state.b.flags = 1;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
@@ -6035,21 +6035,21 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (work->field_4 != 0) {
         enemy = (GpEnemy*)task->spawnArg2.pointer;
         Gp_ArmStateF0(1);
-        enemy->node.state.b.flags = 1;
-        height                    = work->walker.field_5E;
-        walker                    = &work->walker;
-        work->walker.field_5A     = 0x100;
-        walker->field_5C          = 0xA0;
-        walker->field_60          = 6;
-        walker->field_5E          = height;
-        work->walker.state        = 1;
-        work->hit.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->hit.key             = Gp_PackObjPair(enemy, 0);
-        enemy->node.state.b.flags = 0;
-        work->field_100           = 2;
-        work->field_104           = 2;
-        work->field_108           = 0x50;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        height                        = work->walker.field_5E;
+        walker                        = &work->walker;
+        work->walker.field_5A         = 0x100;
+        walker->field_5C              = 0xA0;
+        walker->field_60              = 6;
+        walker->field_5E              = height;
+        work->walker.state            = 1;
+        work->hit.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->hit.key                 = Gp_PackObjPair(enemy, 0);
+        enemy->node.state.parts.flags = 0;
+        work->field_100               = 2;
+        work->field_104               = 2;
+        work->field_108               = 0x50;
     }
     if (work->field_1F8 > 0) {
         work->field_1F8 -= 0x3C;
@@ -6113,8 +6113,8 @@ void func_acropolis_bridge_801863A8(Task* task)
     if (work->walker.scale >= 0x500) {
         work->walker.scale -= 0x46;
         bridge_reset_scale_mtx_shrink(work);
-    } else if (enemy->node.state.b.flags == 0) {
-        enemy->node.state.b.flags = 1;
+    } else if (enemy->node.state.parts.flags == 0) {
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
     func_acropolis_bridge_8018532C(&work->walker);
     func_acropolis_bridge_8018581C(task);
@@ -6187,11 +6187,11 @@ void func_acropolis_bridge_80186618(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        enemy->node.state.b.flags = 0;
-        work->field_108           = 0x20;
-        work->field_100           = 2;
-        work->field_104           = 1;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        enemy->node.state.parts.flags = 0;
+        work->field_108               = 0x20;
+        work->field_100               = 2;
+        work->field_104               = 1;
         switch (enemy->placeKey >> 12) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = -0x22C4;
@@ -6295,25 +6295,25 @@ void func_acropolis_bridge_80186BBC(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        enemy->node.state.b.flags = 0;
-        work->field_108           = 0x20;
-        work->field_100           = 2;
-        work->field_104           = 1;
-        work->colorMtx.t[1]       = 0x80;
-        work->colorMtx.t[0]       = 0x80;
-        work->colorMtx.t[2]       = 0x5A0;
-        work->colorMtx.m[2][1]    = 0xC0;
-        work->colorMtx.m[2][0]    = 0xC0;
-        work->colorMtx.m[2][2]    = 0x5A0;
-        work->colorMtx.m[1][1]    = 0xC0;
-        work->colorMtx.m[1][0]    = 0xC0;
-        work->colorMtx.m[1][2]    = 0x5A0;
-        work->colorMtx.m[0][1]    = 0xC0;
-        work->colorMtx.m[0][0]    = 0xC0;
-        work->colorMtx.m[0][2]    = 0x5A0;
-        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
-        work->yaw                 = (u32)Gp_LcgState >> 16;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        enemy->node.state.parts.flags = 0;
+        work->field_108               = 0x20;
+        work->field_100               = 2;
+        work->field_104               = 1;
+        work->colorMtx.t[1]           = 0x80;
+        work->colorMtx.t[0]           = 0x80;
+        work->colorMtx.t[2]           = 0x5A0;
+        work->colorMtx.m[2][1]        = 0xC0;
+        work->colorMtx.m[2][0]        = 0xC0;
+        work->colorMtx.m[2][2]        = 0x5A0;
+        work->colorMtx.m[1][1]        = 0xC0;
+        work->colorMtx.m[1][0]        = 0xC0;
+        work->colorMtx.m[1][2]        = 0x5A0;
+        work->colorMtx.m[0][1]        = 0xC0;
+        work->colorMtx.m[0][0]        = 0xC0;
+        work->colorMtx.m[0][2]        = 0x5A0;
+        Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
+        work->yaw                     = (u32)Gp_LcgState >> 16;
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     height                                = task->extra.tmd->coords->coord.t[1];
@@ -6392,13 +6392,13 @@ void func_acropolis_bridge_80187078(Task* task)
     work  = (AcropolisBridgeEnemyWork*)task->work;
     enemy = (GpEnemy*)task->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        enemy->node.state.b.flags = 1;
-        work->field_100           = 1;
-        work->field_104           = 3;
-        work->field_108           = 0x10;
-        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_100               = 1;
+        work->field_104               = 3;
+        work->field_108               = 0x10;
+        Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
@@ -6443,13 +6443,13 @@ void func_acropolis_bridge_80187310(Task* task)
 
     if (work->field_4 != 0) {
         Tmd_AllocBuffers(task->extra.tmd);
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        enemy->node.state.b.flags = 1;
-        work->field_100           = 1;
-        work->field_104           = 5;
-        work->field_108           = 0x10;
-        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_100               = 1;
+        work->field_104               = 5;
+        work->field_108               = 0x10;
+        Gp_LcgState                   = Gp_LcgState * 5 + 0x71357911;
         Gfx_RotMatrixY(&task->extra.tmd->coords->coord, (u32)Gp_LcgState >> 16, 1);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         Gp_ClearNodeSlots(&enemy->node);
@@ -6495,9 +6495,9 @@ void func_acropolis_bridge_801874DC(Task* task)
     s32                       step;
 
     if (work->field_4 != 0) {
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        enemy->node.state.b.flags = 1;
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&enemy->node);
         if (Gp_StateF0.prefix.bytes.field_0 == 0 && Gp_StateF0.field_6 != 0) {
             Gp_ArmStateF0(1);
@@ -6797,10 +6797,10 @@ void func_acropolis_bridge_80187D04(Task* task)
     if (work->field_4 != 0) {
         GpEnemy* enemy = (GpEnemy*)task->spawnArg2.pointer;
 
-        extra->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        enemy->node.state.b.flags = 1;
-        work->body.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->hit.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        extra->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->hit.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         return;
     }
     extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;

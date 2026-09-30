@@ -2040,8 +2040,8 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
     scratch = (SVECTOR*)SCRATCH_PUSH_BYTES(8);
     switch (Gp_StateF0.field_4) {
         case 0:
-            actor->extra.tmd->flags = 0;
-            ctx->node.state.b.flags = 0;
+            actor->extra.tmd->flags     = 0;
+            ctx->node.state.parts.flags = 0;
             break;
         case 1:
             coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
@@ -2060,8 +2060,8 @@ static void Actor02000_Fn01A20(GpEnemy* ctx, Task* actor)
             Gp_DrawEffGroundQuad(&pos, 0x300, 0x80);
             return;
         case 2:
-            actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ctx->node.state.b.flags = 1;
+            actor->extra.tmd->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     switch (work->field_6A8) {
@@ -2618,15 +2618,15 @@ static void Actor02000_Fn02A34(GpEnemy* ctx, Task* actor)
     coord = model->coords;
     switch (Gp_StateF0.field_4) {
         case 0:
-            model->flags            = 0;
-            ctx->node.state.b.flags = 0;
+            model->flags                = 0;
+            ctx->node.state.parts.flags = 0;
             break;
         case 1:
             _actor02000Draw(actor, coord);
             return;
         case 2:
-            model->flags            = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ctx->node.state.b.flags = 1;
+            model->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
 

@@ -760,18 +760,18 @@ static void Actor03700_Fn000A4(GpEnemy* arg0, Task* task)
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->param                = &Actor03700_D07F0C;
-    arg0->coord                = coord;
-    arg0->node.state.b.flags   = 0;
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->recs                 = work->records;
-    work->field_224.coord      = &task->extra.tmd->coords[1];
-    work->field_224.spawnArgLo = 0x100;
-    work->field_224.spawnArgHi = 1;
-    work->field_246            = arg0->place->yaw;
-    kind                       = arg0->place->mode;
+    arg0->param                  = &Actor03700_D07F0C;
+    arg0->coord                  = coord;
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->recs                   = work->records;
+    work->field_224.coord        = &task->extra.tmd->coords[1];
+    work->field_224.spawnArgLo   = 0x100;
+    work->field_224.spawnArgHi   = 1;
+    work->field_246              = arg0->place->yaw;
+    kind                         = arg0->place->mode;
     switch (kind / 10) {
         case 0:
             Tmd_AllocBuffers(obj);
@@ -1875,14 +1875,14 @@ static void Actor03700_Fn025C8(Task* task)
     GfxCoord*        coord;
     s32              diff;
 
-    ext                       = task->extra.tmd;
-    work                      = (Actor103700Work*)task->work;
-    coord                     = ext->coords;
-    spawn                     = (GpEnemy*)task->spawnArg2.pointer;
-    obj                       = ext;
-    work->obj.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    obj->flags               |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-    spawn->node.state.b.flags = 1;
+    ext                           = task->extra.tmd;
+    work                          = (Actor103700Work*)task->work;
+    coord                         = ext->coords;
+    spawn                         = (GpEnemy*)task->spawnArg2.pointer;
+    obj                           = ext;
+    work->obj.flags              &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    obj->flags                   |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    spawn->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
 
     switch (work->field_250) {
         case 0:
@@ -1988,9 +1988,9 @@ static void Actor03700_Fn029C0(Task* task)
 
     switch (mode) {
         case 0:
-            work->obj.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            obj->flags             |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            ctx->node.state.b.flags = 1;
+            work->obj.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            obj->flags                 |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (Gp_StateF0.field_1A == 0) {
                 work->field_250    = 1;
                 work->obj.flags   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2094,12 +2094,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags                = 0;
-    enemy->node.state.b.flags = 0;
+    obj->flags                    = 0;
+    enemy->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    obj->flags               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    enemy->node.state.b.flags = one;
+    obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    enemy->node.state.parts.flags = one;
     return;
 default_body:
     if (work->field_24E < 7) {

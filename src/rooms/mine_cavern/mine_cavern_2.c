@@ -3067,7 +3067,7 @@ static void func_mine_cavern_80182E34(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vz = 0;
     arg0->coord      = arg1->extra.tmd->coords;
     Gp_LinkNode(&arg0->node);
-    arg0->node.state.b.flags = 1;
+    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     arg1->state++;
 }
 
@@ -3120,9 +3120,9 @@ static void func_mine_cavern_801830F0(GpEnemy* arg0, Task* arg1)
 
     if (overlayOutOfRange(d, 0x1770) || Gp_StateF0.prefix.bytes.field_0 != 1 ||
         (gGameSession->location.loc.variant != Gp_StateF0.prefix.bytes.field_0 && gGameSession->location.loc.variant != 4)) {
-        arg0->node.state.b.flags = 1;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
-        arg0->node.state.b.flags = 0;
+        arg0->node.state.parts.flags = 0;
     }
 
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3256,9 +3256,9 @@ static void func_mine_cavern_80183890(GpEnemy* enemy, Task* task)
 {
     MineCavernWork* work;
 
-    work                      = (MineCavernWork*)task->work;
-    work->obj40.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    enemy->node.state.b.flags = 1;
+    work                          = (MineCavernWork*)task->work;
+    work->obj40.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     Gp_UnlinkObj(&work->obj40);
     work->field_148 = 0;
     task->state++;

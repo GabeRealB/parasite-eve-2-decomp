@@ -7,6 +7,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/message.h"
+#include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
 #include "main/task_types.h"
@@ -115,6 +116,6 @@ void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
 
 void Gp_DetachLinkNode(Task* arg0);
 
-void func_80108E0C(Task* arg0, GpLinkNode* arg1);
+void func_80108E0C(Task* arg0, WorldTargetNode* arg1);
 
 #endif // GAMEPLAY_PRIVATE_PLAYER_ACTOR_H

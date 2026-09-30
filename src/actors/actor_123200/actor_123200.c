@@ -786,12 +786,12 @@ static void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &task->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    enemy->param              = &D_actor_123200_80134208;
-    enemy->reactionFlags      = 0;
-    enemy->hpMax              = 0;
-    enemy->hp                 = 0;
-    enemy->recs               = 0;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->param                  = &D_actor_123200_80134208;
+    enemy->reactionFlags          = 0;
+    enemy->hpMax                  = 0;
+    enemy->hp                     = 0;
+    enemy->recs                   = 0;
 
     work->field_174 = 1;
     work->field_170 = 2;
@@ -879,9 +879,9 @@ static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = task->extra.tmd;
-        enemy->node.state.b.flags = 1;
-        obj->flags                = 0;
+        obj                           = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
         work->field_1B0 = 0x115D;
         work->field_1B2 = 1;
@@ -942,9 +942,9 @@ static void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
 
     work = (Actor123200Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = task->extra.tmd;
-        enemy->node.state.b.flags = 1;
-        obj->flags                = 0;
+        obj                           = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
         work->field_1B0 = 0x115D;
         work->field_1B2 = 1;
@@ -1182,16 +1182,16 @@ static void func_actor_123200_80134060(GfxCoord* coord, s16 scale)
 }
 
 /// Idle state of this enemy (entry 0 of `D_actor_123200_80131E24`). On the
-/// frame the state is entered (`field_4` set) it sets the display node's flags
-/// to 1 and the model's flags to 0x80; it does nothing on later frames.
+/// frame the state is entered (`field_4` set) it marks the enemy not lockable
+/// and sets the model's flags to 0x80; it does nothing on later frames.
 static void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1)
 {
     TmdObject* model;
 
     if (((Actor123200Work*)arg1->work)->field_4 != 0) {
-        model                    = arg1->extra.tmd;
-        arg0->node.state.b.flags = 1;
-        model->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model                        = arg1->extra.tmd;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 

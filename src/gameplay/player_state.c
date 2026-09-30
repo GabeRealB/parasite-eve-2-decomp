@@ -590,16 +590,16 @@ void func_8010A42C(Task* arg0, s32 arg1)
 
 void func_8010A670(Task* arg0)
 {
-    GameActor*  inner;
-    GpLinkNode* node;
-    s32         left;
-    s32         right;
-    s32         pad;
-    s32         bits;
-    s32         timer;
-    s32         next;
-    s32         mode;
-    s32         dir;
+    GameActor*       inner;
+    WorldTargetNode* node;
+    s32              left;
+    s32              right;
+    s32              pad;
+    s32              bits;
+    s32              timer;
+    s32              next;
+    s32              mode;
+    s32              dir;
 
     inner            = arg0->work;
     timer            = inner->field_990 - 1;
@@ -1540,13 +1540,13 @@ s32 func_8010C058(void)
 
 void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
 {
-    GameActor*  actor;
-    GpLinkNode* node;
-    s32         val;
+    GameActor*       actor;
+    WorldTargetNode* node;
+    s32              val;
 
     actor = arg0->work;
     node  = actor->field_90C;
-    if (node == NULL || (node->state.b.flags & 1)) {
+    if (node == NULL || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
         actor->field_90C = NULL;
         actor->field_97E = 1;
     } else if ((s8)actor->field_97E == 2) {

@@ -2265,12 +2265,12 @@ static void func_actor_400600_80133434(Task* arg0)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &arg0->extra.tmd->coords[3];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 5;
-    enemy->param              = &D_actor_400600_80144EB0;
-    enemy->recs               = work->rec_4D4;
-    work->eff_6FC.coord       = &arg0->extra.tmd->coords[3];
-    work->eff_6FC.spawnArgLo  = 0x300;
-    work->eff_6FC.spawnArgHi  = 2;
+    enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+    enemy->param                  = &D_actor_400600_80144EB0;
+    enemy->recs                   = work->rec_4D4;
+    work->eff_6FC.coord           = &arg0->extra.tmd->coords[3];
+    work->eff_6FC.spawnArgLo      = 0x300;
+    work->eff_6FC.spawnArgHi      = 2;
     enemy->hp = enemy->hpMax = D_actor_400600_80144EB0.hpMax;
     func_800B3F84(&work->anim, D_actor_400600_80151A54, model, work->pad_394, work->slots);
 
@@ -3419,9 +3419,9 @@ static void func_actor_400600_80136558(Task* arg0)
         work->field_740 = count;
         if (count >= 0x12) {
             if (work->field_75A != 0) {
-                enemy->node.state.b.flags = 4;
+                enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
             } else {
-                enemy->node.state.b.flags = 5;
+                enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
             }
             model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_400600_801387DC(arg0, -1);
@@ -4188,7 +4188,7 @@ static s32 func_actor_400600_80137AF0(Task* arg0)
         work->field_740             = 0;
         model2->flags               = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
-        enemy->node.state.b.flags = 4;
+        enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
         func_actor_400600_801387DC(arg0, 0);
     }
     return 0;
@@ -4489,8 +4489,8 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
     model = arg0->extra.tmd;
     enemy = (GpEnemy*)arg0->spawnArg2.pointer;
     if (arg1 != 0) {
-        enemy->node.state.b.flags = 5;
-        model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         Gp_SetLightMode(arg0->spawnArg2.pointer, 2);
         func_actor_400600_801387DC(arg0, 2);
         work->field_75C.b.field_75E = 1;
@@ -4554,7 +4554,7 @@ static void func_actor_400600_80138B5C(Task* arg0, s32 arg1)
             work->field_740             = 0;
             model->flags                = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
-            enemy->node.state.b.flags = 4;
+            enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
             func_actor_400600_801387DC(arg0, 0);
         }
     } else if (work->field_75C.b.field_75E != 1) {

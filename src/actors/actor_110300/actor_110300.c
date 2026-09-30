@@ -318,16 +318,16 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_110300_80132088;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->node.state.b.flags    = 1;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    obj->otOffset                = 0;
-    coord->composeStamp          = GRAPHICS_COORD_DIRTY;
-    D_actor_110300_8013A0A4      = task;
-    D_actor_110300_8013A0A8      = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
+    task->exitCallback               = func_actor_110300_80132088;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    obj->otOffset                    = 0;
+    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    D_actor_110300_8013A0A4          = task;
+    D_actor_110300_8013A0A8          = Task_SpawnFromTable(D_actor_110300_8013A06C, 1, 0, 0);
     func_800B3F84(&D_actor_110300_8013A0A0->rig.anim, D_actor_110300_8013A084, obj,
                   D_actor_110300_8013A0A0->rig.poses, D_actor_110300_8013A0A0->rig.slots);
     D_actor_110300_8013A0A0->st.animId = 1;

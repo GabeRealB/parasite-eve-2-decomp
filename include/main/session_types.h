@@ -14,7 +14,7 @@
 struct GpActorD4;
 struct AnimationRecord;
 struct AnimationSet;
-struct GpLinkNode;
+struct WorldTargetNode;
 struct Task;
 
 /// Location selector shared by the live session, saved state and world lookups.
@@ -183,31 +183,6 @@ STATIC_ASSERT(OFFSET_OF(GameSession, location) == 4, GameSession_location);
 STATIC_ASSERT(OFFSET_OF(GameSession, location.loc) == 4, GameSession_location_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 
-/// Link record of an enemy work object: the entry the lock-on system keeps for
-/// an actor it is allowed to track. Every object that carries one embeds it at
-/// +0x10, so the owner is a fixed subtraction away from any node and the actor
-/// behind a node reached from the list can be recovered.
-///
-/// Two walks run over the list each frame: the transform pass reprojects every
-/// tracked actor's position, and the lock-on scan picks which of them an actor
-/// slot aims at. `state.b.flags` is the node's own state, written by whoever
-/// owns the object; `targeted` and `onList` are the positions the tracking
-/// helpers maintain, and what the reticle and the on-screen markers read. The
-/// list walkers read the three bytes as one word, `state.word`, and test the
-/// flags through it.
-typedef struct GpLinkNode {
-    struct GpLinkNode* next; // Next node in the list; NULL at the tail
-    union {
-        struct {
-            u8 flags;    // Object state: 0x01 not lockable, 0x04 reproject while not lockable, 0x08 no HP readout
-            u8 targeted; // Non-zero while an actor slot is locked onto this node
-            u8 onList;   // Non-zero while the node hangs on the list
-        } b;
-        u32 word;
-    } state;
-} GpLinkNode;
-STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
-
 /// The collision shape a body carries: the segment between two local
 /// endpoints, the radius at each, and the table the contacts it makes are
 /// recorded in. A body whose kind bits name this shape reaches it through its
@@ -298,7 +273,7 @@ typedef struct _GameActor {
     /* 0x740 */ byte                          pad_740[0x68];
     /* 0x7A8 */ byte                          field_7A8; // addr taken as func_800B3F84 arg3
     /* 0x7A9 */ byte                          pad_7A9[0x163];
-    /* 0x90C */ struct GpLinkNode*            field_90C;
+    /* 0x90C */ struct WorldTargetNode*       field_90C;
     /* 0x910 */ struct GpActorD4*             field_910;
     /* 0x914 */ struct Task*                  field_914;
     /* 0x918 */ struct Task*                  field_918;

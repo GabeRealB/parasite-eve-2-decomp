@@ -666,10 +666,10 @@ static void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &task->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    enemy->field_4D           = 0;
-    enemy->reactionFlags      = 0;
-    enemy->field_4D           = 0;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->field_4D               = 0;
+    enemy->reactionFlags          = 0;
+    enemy->field_4D               = 0;
     func_800B3F84(&work->rig.anim, D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
     work->field_87C = 2;
     work->field_882 = 1;

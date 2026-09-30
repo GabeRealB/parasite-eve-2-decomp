@@ -715,17 +715,17 @@ static void Actor03800_Fn000B8(GpEnemy* arg0, Task* arg1)
     arg0->field_4  = &work->field_344->coord;
     arg0->field_48 = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord                = &arg1->extra.tmd->coords[3];
-    arg0->node.state.b.flags   = 0;
-    arg0->bodyPos.vx           = 0;
-    arg0->recs                 = work->field_1C4;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->param                = &Actor03800_D05F44;
-    arg0->hp                   = (s16)Actor03800_D05F44.hpMax;
-    work->field_2C4.coord      = &arg1->extra.tmd->coords[3];
-    work->field_2C4.spawnArgLo = 0x200;
-    work->field_2C4.spawnArgHi = 1;
+    arg0->coord                  = &arg1->extra.tmd->coords[3];
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->recs                   = work->field_1C4;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &Actor03800_D05F44;
+    arg0->hp                     = (s16)Actor03800_D05F44.hpMax;
+    work->field_2C4.coord        = &arg1->extra.tmd->coords[3];
+    work->field_2C4.spawnArgLo   = 0x200;
+    work->field_2C4.spawnArgHi   = 1;
     func_800B3F84(&work->anim, Actor03800_D05F60, extra, work->field_104, work->slots);
     for (i = 1; i < 6; i++) {
         Gp_AnimResetSlot(&work->anim, i, 1);
@@ -2269,12 +2269,12 @@ ge2:
     }
     goto default_body;
 case0:
-    arg1->extra.tmd->flags   = 0;
-    arg0->node.state.b.flags = 0;
+    arg1->extra.tmd->flags       = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {
@@ -2394,8 +2394,8 @@ static void Actor03800_Fn034B0(Task* arg0)
     ctx  = arg0->spawnArg2.pointer;
     switch (Gp_StateF0.field_20) {
         case 0:
-            obj->flags              = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            ctx->node.state.b.flags = 1;
+            obj->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
         case 1:
             obj->flags       = 0;

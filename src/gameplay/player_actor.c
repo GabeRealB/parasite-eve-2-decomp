@@ -506,7 +506,7 @@ static void Gp_PlayerMode2State8(Task* arg0);
 
 /// Stores `arg1` as the actor's `field_90C` node, moving the `targeted` mark
 /// from the node it replaces to `arg1`.
-static inline void _gpSetLockNode(Task* arg0, GpLinkNode* arg1);
+static inline void _gpSetLockNode(Task* arg0, WorldTargetNode* arg1);
 
 static void Gp_TickPlayerMode1(Task* arg0);
 
@@ -5699,14 +5699,14 @@ static s32 Gp_HpBand(void)
 
 void Gp_DetachLinkNode(Task* arg0)
 {
-    GameActor*  inner;
-    GpLinkNode* node;
+    GameActor*       inner;
+    WorldTargetNode* node;
 
     inner = arg0->work;
     node  = inner->field_90C;
     if (node != NULL) {
-        node->state.b.targeted = 0;
-        inner->field_90C       = NULL;
+        node->state.parts.targeted = 0;
+        inner->field_90C           = NULL;
     }
     inner->field_97E = 1;
 }
@@ -5820,10 +5820,10 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
 
 void Gp_TrackLockTarget(Task* arg0)
 {
-    GameActor*    actor;
-    GpLinkNode*   node;
-    PlayerStatus* p;
-    s32           val;
+    GameActor*       actor;
+    WorldTargetNode* node;
+    PlayerStatus*    p;
+    s32              val;
 
     actor = arg0->work;
     node  = actor->field_90C;
@@ -5831,10 +5831,10 @@ void Gp_TrackLockTarget(Task* arg0)
         actor->field_97E = 1;
         return;
     }
-    if (node->state.b.flags & 1) {
-        node->state.b.targeted = 0;
-        actor->field_90C       = NULL;
-        actor->field_97E       = 1;
+    if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+        node->state.parts.targeted = 0;
+        actor->field_90C           = NULL;
+        actor->field_97E           = 1;
         return;
     }
     if ((s8)actor->field_97E == 2) {
@@ -8231,9 +8231,9 @@ static void Gp_TickPlayerActor(Task* arg0)
 
 static void Gp_ArmLockOnState(Task* arg0)
 {
-    GameActor*  inner;
-    GpLinkNode* node;
-    s32         flag;
+    GameActor*       inner;
+    WorldTargetNode* node;
+    s32              flag;
 
     inner            = arg0->work;
     node             = Gp_FindLockNode(arg0);
@@ -8610,23 +8610,23 @@ void Gp_PlayerMode2State6(Task* arg0)
 
 /// Stores `arg1` as the actor's `field_90C` node, moving the `targeted` mark
 /// from the node it replaces to `arg1`.
-static inline void _gpSetLockNode(Task* arg0, GpLinkNode* arg1)
+static inline void _gpSetLockNode(Task* arg0, WorldTargetNode* arg1)
 {
-    GameActor*  inner;
-    GpLinkNode* node;
+    GameActor*       inner;
+    WorldTargetNode* node;
 
     inner = arg0->work;
     node  = inner->field_90C;
     if (node != arg1) {
         if (node != NULL) {
-            node->state.b.targeted = 0;
+            node->state.parts.targeted = 0;
         }
         inner->field_90C = arg1;
     }
-    arg1->state.b.targeted = 1;
+    arg1->state.parts.targeted = 1;
 }
 
-void func_80108E0C(Task* arg0, GpLinkNode* arg1)
+void func_80108E0C(Task* arg0, WorldTargetNode* arg1)
 {
     _gpSetLockNode(arg0, arg1);
 }
@@ -8691,9 +8691,9 @@ static void func_80108FA0(Task* arg0)
 
 static void Gp_PlayerNormalState1(Task* arg0)
 {
-    GameActor*  inner;
-    GpLinkNode* node;
-    s32         flag;
+    GameActor*       inner;
+    WorldTargetNode* node;
+    s32              flag;
 
     Gp_TrackLockTarget(arg0);
     inner            = arg0->work;

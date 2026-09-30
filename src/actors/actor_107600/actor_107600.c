@@ -1346,13 +1346,13 @@ static void func_actor_107600_80132ED0(Task* arg0)
     enemy->hp             = hp;
     func_actor_107600_80134958(arg0);
     Gp_LinkNode(&enemy->node);
-    enemy->field_4            = &coord->workm;
-    enemy->bodyPos.vy         = -0x244;
-    enemy->field_48           = 0;
-    enemy->bodyPos.vx         = 0;
-    enemy->bodyPos.vz         = 0;
-    enemy->coord              = coord;
-    enemy->node.state.b.flags = 1;
+    enemy->field_4                = &coord->workm;
+    enemy->bodyPos.vy             = -0x244;
+    enemy->field_48               = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->coord                  = coord;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     func_actor_107600_80134E5C(coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(coord);
@@ -1491,8 +1491,8 @@ static void func_actor_107600_801332D4(Task* arg0)
                     work->field_15A++;
                     arg0->spawnArg1.value |= 0x20;
                     Gp_SetLightMode(enemy, 0);
-                    enemy->node.state.b.flags = 4;
-                    work->obj.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                    enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
+                    work->obj.flags              |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 }
             }
         case 5:

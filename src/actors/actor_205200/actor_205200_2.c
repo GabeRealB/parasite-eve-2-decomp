@@ -377,17 +377,17 @@ static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
     enemy->field_4       = &coords->coord;
     enemy->field_48      = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->coord               = &task->extra.tmd->coords[3];
-    enemy->node.state.b.flags  = 5;
-    enemy->bodyPos.vx          = 0;
-    enemy->bodyPos.vy          = 0;
-    enemy->bodyPos.vz          = 0;
-    enemy->recs                = work->field_49C;
-    enemy->param               = NULL;
-    enemy->hp                  = 0;
-    work->field_554.coord      = &task->extra.tmd->coords[3];
-    work->field_554.spawnArgLo = 0x200;
-    work->field_554.spawnArgHi = 1;
+    enemy->coord                  = &task->extra.tmd->coords[3];
+    enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->recs                   = work->field_49C;
+    enemy->param                  = NULL;
+    enemy->hp                     = 0;
+    work->field_554.coord         = &task->extra.tmd->coords[3];
+    work->field_554.spawnArgLo    = 0x200;
+    work->field_554.spawnArgHi    = 1;
     func_800B3F84(&work->rig.anim, D_actor_205200_801567E8, tmd, work->rig.poses, work->rig.slots);
     i = 1;
     do {

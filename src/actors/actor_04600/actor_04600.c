@@ -528,14 +528,14 @@ static void Actor04600_Fn00048(GpEnemy* arg0, Task* arg1)
     arg0->field_4       = &coord[1].coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord              = part;
-    arg0->node.state.b.flags = 0;
-    arg0->bodyPos.vx         = 0;
-    arg0->bodyPos.vy         = 0;
-    arg0->bodyPos.vz         = 0;
-    arg0->param              = &Actor04600_D04160;
-    arg0->recs               = &work->rec154[0];
-    arg0->hp                 = Actor04600_D04160.hpMax;
+    arg0->coord                  = part;
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &Actor04600_D04160;
+    arg0->recs                   = &work->rec154[0];
+    arg0->hp                     = Actor04600_D04160.hpMax;
     func_800B3F84(&work->context, Actor04600_D05890, obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -1081,8 +1081,8 @@ static void Actor04600_Fn01110(GpEnemy* enemy, Task* task)
         case 1:
             break;
         case 2:
-            model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.b.flags = 1;
+            model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case 0:
         default:
@@ -1240,14 +1240,14 @@ static void Actor04600_Fn017CC(GpEnemy* arg0, Task* arg1)
     arg0->field_4       = &coord[1].coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord              = part;
-    arg0->node.state.b.flags = one;
-    arg0->bodyPos.vx         = 0;
-    arg0->bodyPos.vy         = 0;
-    arg0->bodyPos.vz         = 0;
-    arg0->param              = &Actor04600_D04160;
-    arg0->recs               = &work->rec154[0];
-    arg0->hp                 = Actor04600_D04160.hpMax;
+    arg0->coord                  = part;
+    arg0->node.state.parts.flags = one;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &Actor04600_D04160;
+    arg0->recs                   = &work->rec154[0];
+    arg0->hp                     = Actor04600_D04160.hpMax;
     func_800B3F84(&work->context, Actor04600_D05890, obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -1337,8 +1337,8 @@ static void Actor04600_Fn01AFC(GpEnemy* arg0, Task* arg1)
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             break;
         case 2:
-            arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case 0:
         default:
@@ -1497,11 +1497,11 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
                 }
             }
             Tmd_AllocBuffers(arg0->extra.tmd);
-            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->extra.tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            enemy->node.state.b.flags = 0;
-            work->objFC.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->obj134.flags       |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            enemy->node.state.parts.flags = 0;
+            work->objFC.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            work->obj134.flags           |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             RotMatrix(&rot, &coord->coord);
             work->field_2BE                       = 0xC8;
             work->field_2E2                       = 1;
@@ -1515,14 +1515,14 @@ s32 Actor04600_Fn01F54(Task* arg0, s32 arg1, ActorCommand* request)
         return 0;
     }
     if ((word & 0xFF) == 3) {
-        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        arg0->extra.tmd->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        enemy->node.state.b.flags = 1;
-        work->objFC.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj134.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        rot.vz                    = 0;
-        rot.vy                    = 0;
-        rot.vx                    = 0;
+        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->objFC.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj134.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+        rot.vz                        = 0;
+        rot.vy                        = 0;
+        rot.vx                        = 0;
         RotMatrix(&rot, &coord->coord);
         coord->coord.t[2]                     = 0;
         coord->coord.t[1]                     = 0;
@@ -1579,12 +1579,12 @@ ge2:
     }
     goto default_body;
 case0:
-    arg1->extra.tmd->flags   = 0;
-    arg0->node.state.b.flags = 0;
+    arg1->extra.tmd->flags       = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     Actor04600_Fn003D4(arg1);
@@ -1878,14 +1878,14 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
     arg0->field_4       = &coord[1].coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord              = part;
-    arg0->node.state.b.flags = 0;
-    arg0->bodyPos.vx         = 0;
-    arg0->bodyPos.vy         = 0;
-    arg0->bodyPos.vz         = 0;
-    arg0->param              = &Actor04600_D058B4;
-    arg0->recs               = work->field_1A4;
-    arg0->hp                 = Actor04600_D058B4.hpMax;
+    arg0->coord                  = part;
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &Actor04600_D058B4;
+    arg0->recs                   = work->field_1A4;
+    arg0->hp                     = Actor04600_D058B4.hpMax;
     func_800B3F84(&work->context, Actor04600_D064A8, obj, work->field_8C, work->slots);
     i = 1;
     do {
@@ -1893,15 +1893,15 @@ static void Actor04600_Fn02D68(GpEnemy* arg0, Task* arg1)
         i += 1;
     } while (i < 3);
     (Gp_IncStateF0Ref)(0);
-    work->field_28C          = 1;
-    work->field_28E          = 1;
-    work->field_2A6          = 1;
-    work->field_2A4          = 0x12;
-    arg0->node.state.b.flags = 1;
-    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    seed                     = Gp_LcgState * 5 + 0x71357911;
-    work->field_2A8          = ((seed >> 16) & 0x3F) + 0x64;
-    Gp_LcgState              = seed;
+    work->field_28C              = 1;
+    work->field_28E              = 1;
+    work->field_2A6              = 1;
+    work->field_2A4              = 0x12;
+    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    seed                         = Gp_LcgState * 5 + 0x71357911;
+    work->field_2A8              = ((seed >> 16) & 0x3F) + 0x64;
+    Gp_LcgState                  = seed;
     Gp_SetLightMode(arg1->spawnArg2.pointer, 2);
     work->field_11C.end0.vz        = 0x1388;
     work->field_11C.end0Radius     = 0xFA0;
@@ -2228,8 +2228,8 @@ static void Actor04600_Fn03958(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 2:
-            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     if (work->field_288 != 0) {
@@ -2304,11 +2304,11 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.state.b.flags = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     arg1->extra.tmd->coords[0].coord.t[1] += 0x80;
@@ -2436,16 +2436,16 @@ static void Actor04600_Fn03F30(Task* task)
         } else {
             work->field_2A4++;
             if (work->field_2A4 >= 0x12) {
-                work->field_2A4           = 0x12;
-                enemy->node.state.b.flags = 1;
-                obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->field_2A4               = 0x12;
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
         }
     } else {
         if (work->field_2A4 == 0x12) {
             work->field_2A4--;
-            enemy->node.state.b.flags = 0;
-            obj->flags                = TMD_OBJECT_SEMI_TRANS;
+            enemy->node.state.parts.flags = 0;
+            obj->flags                    = TMD_OBJECT_SEMI_TRANS;
             Gp_SetLightMode(task->spawnArg2.pointer, 0);
         } else {
             work->field_2A4--;

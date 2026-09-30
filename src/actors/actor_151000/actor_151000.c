@@ -885,19 +885,19 @@ static void func_actor_151000_80131F1C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_151000_801324D4;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->otOffset                = 1;
-    obj->lightMtx                = &D_actor_151000_8013D37C->light;
-    obj->colorMtx                = &D_actor_151000_8013D37C->color;
-    vec.vx                       = coord->workm.t[0];
-    vec.vy                       = coord->workm.t[1] - 0x320;
-    D_actor_151000_8013D380      = task;
-    vec.vz                       = coord->workm.t[2];
+    task->exitCallback               = func_actor_151000_801324D4;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->otOffset                    = 1;
+    obj->lightMtx                    = &D_actor_151000_8013D37C->light;
+    obj->colorMtx                    = &D_actor_151000_8013D37C->color;
+    vec.vx                           = coord->workm.t[0];
+    vec.vy                           = coord->workm.t[1] - 0x320;
+    D_actor_151000_8013D380          = task;
+    vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_151000_8013D37C->rig.anim, D_actor_151000_8013D2EC, obj,
                   &D_actor_151000_8013D37C->rig.poses, D_actor_151000_8013D37C->rig.slots);

@@ -2007,17 +2007,17 @@ static void func_actor_800200_80163F5C(Task* arg0)
 
 static void func_actor_800200_80164180(Task* arg0)
 {
-    GameActor*  actor;
-    GpActorD4*  d4;
-    GfxCoord*   target;
-    GpLinkNode* node;
-    u8*         head;
-    u8*         tmp;
-    VECTOR3*    vec;
-    GameActor*  actor2;
-    s32         dist;
-    s32         anim;
-    u16         flag;
+    GameActor*       actor;
+    GpActorD4*       d4;
+    GfxCoord*        target;
+    WorldTargetNode* node;
+    u8*              head;
+    u8*              tmp;
+    VECTOR3*         vec;
+    GameActor*       actor2;
+    s32              dist;
+    s32              anim;
+    u16              flag;
 
     actor                    = arg0->work;
     d4                       = actor->field_910;
@@ -2028,7 +2028,7 @@ static void func_actor_800200_80164180(Task* arg0)
     vec                      = (VECTOR3*)tmp;
     node                     = actor->field_90C;
     if (node != NULL) {
-        if (!(node->state.b.flags & 1)) {
+        if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, vec);
         } else {
             actor->field_95E = 2;
@@ -2082,21 +2082,21 @@ static void func_actor_800200_80164180(Task* arg0)
 
 static void func_actor_800200_8016436C(Task* arg0)
 {
-    GameActor*  actor;
-    GpActorD4*  d4;
-    GfxCoord*   target;
-    GpLinkNode* node;
-    u8*         tmp;
-    GfxCoord*   coord;
-    VECTOR3*    vec;
-    u8*         head;
-    void**      scratch;
-    s8          count;
-    s32         pan;
-    s32         dist;
-    u16         state;
-    s32         next = 1;
-    GameActor*  actor2;
+    GameActor*       actor;
+    GpActorD4*       d4;
+    GfxCoord*        target;
+    WorldTargetNode* node;
+    u8*              tmp;
+    GfxCoord*        coord;
+    VECTOR3*         vec;
+    u8*              head;
+    void**           scratch;
+    s8               count;
+    s32              pan;
+    s32              dist;
+    u16              state;
+    s32              next = 1;
+    GameActor*       actor2;
 
     actor                    = arg0->work;
     d4                       = actor->field_910;
@@ -2109,7 +2109,7 @@ static void func_actor_800200_8016436C(Task* arg0)
     if (actor->field_90C != NULL) {
         node             = Gp_FindLockNode(arg0);
         actor->field_90C = node;
-        if ((node != NULL) && !(node->state.b.flags & 1)) {
+        if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             Gp_GetLockPos(node, vec);
         } else {
             d4->repeatCount = 1;
@@ -2220,21 +2220,21 @@ static void func_actor_800200_80164598(Task* arg0)
 
 static void func_actor_800200_801647A8(Task* arg0)
 {
-    GameActor*  actor;
-    GameActor*  actor2;
-    GameActor*  actor3;
-    GfxCoord*   coord;
-    GfxCoord*   target;
-    GpLinkNode* node;
-    VECTOR3*    vec;
-    u8*         head;
-    u8*         tmp;
-    s32         dist;
-    s32         value;
-    u16         flag;
-    u16         state;
-    s32         next;
-    s32         initialState;
+    GameActor*       actor;
+    GameActor*       actor2;
+    GameActor*       actor3;
+    GfxCoord*        coord;
+    GfxCoord*        target;
+    WorldTargetNode* node;
+    VECTOR3*         vec;
+    u8*              head;
+    u8*              tmp;
+    s32              dist;
+    s32              value;
+    u16              flag;
+    u16              state;
+    s32              next;
+    s32              initialState;
 
     target                   = (gameGetPtrSlot(3))->extra.tmd->coords;
     head                     = SCRATCH_STACK_CURSOR(u8);
@@ -2251,7 +2251,7 @@ static void func_actor_800200_801647A8(Task* arg0)
             if (Gp_StateF0.prefix.bytes.field_0 == 1) {
                 node             = Gp_FindLockNode(arg0);
                 actor->field_90C = node;
-                if ((node != NULL) && !(node->state.b.flags & 1)) {
+                if ((node != NULL) && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
                     Gp_GetLockPos(node, vec);
                     dist = func_80103DD4(MATRIX_TRANS(&coord->coord), vec);
                     dist = dist / 640;

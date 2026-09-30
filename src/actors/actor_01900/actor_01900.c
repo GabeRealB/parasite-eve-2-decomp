@@ -1273,11 +1273,11 @@ static void Actor01900_Fn02018(GpEnemy* enemy, Task* actor)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &actor->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    enemy->reactionFlags      = 0;
-    enemy->hp                 = (s16)Actor01900_D0AC54.hpMax;
-    enemy->param              = &Actor01900_D0AC54;
-    enemy->recs               = &work->field_8E8;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->reactionFlags          = 0;
+    enemy->hp                     = (s16)Actor01900_D0AC54.hpMax;
+    enemy->param                  = &Actor01900_D0AC54;
+    enemy->recs                   = &work->field_8E8;
     func_800B3F84(&((Actor01900AnimWork*)work)->rig.anim, Actor01900_D17174, obj,
                   ((Actor01900AnimWork*)work)->rig.poses, ((Actor01900AnimWork*)work)->rig.slots);
     func_800B3F84(&((Actor01900AnimWork*)work)->blend.anim, Actor01900_D17174, obj,
@@ -1790,9 +1790,9 @@ static void Actor01900_Fn03710(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        obj                       = arg0->extra.tmd;
-        enemy->node.state.b.flags = 0;
-        obj->flags                = 0;
+        obj                           = arg0->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
         work->field_898        = 2;
         work->field_8A2        = 0x10;
@@ -1853,9 +1853,9 @@ static void Actor01900_Fn03854(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 1;
         work->field_8A2       = 0x10;
@@ -2067,9 +2067,9 @@ static void Actor01900_Fn042BC(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -2194,9 +2194,9 @@ static void Actor01900_Fn04D14(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0xC0;
         work->field_898        = 1;
@@ -2307,12 +2307,12 @@ static void Actor01900_Fn0551C(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        head                                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-        obj                                                     = arg0->extra.tmd;
-        SCRATCH_STACK_CURSOR(ActorChaseScratch)                 = head - 1;
-        s                                                       = head - 1;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        head                                                        = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+        obj                                                         = arg0->extra.tmd;
+        SCRATCH_STACK_CURSOR(ActorChaseScratch)                     = head - 1;
+        s                                                           = head - 1;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -2385,9 +2385,9 @@ static void Actor01900_Fn05B4C(Task* arg0)
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     aim                                     = head - 1;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0xC0;
         work->field_6          = 0;
@@ -2485,7 +2485,7 @@ static void Actor01900_Fn05F38(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_68 & 0x100) {
-        if (enemy->node.state.b.targeted == 1) {
+        if (enemy->node.state.parts.targeted == 1) {
             work->field_0 = 10;
         } else {
             work->field_0 = 6;
@@ -2503,9 +2503,9 @@ static void Actor01900_Fn06100(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -2559,17 +2559,17 @@ static void Actor01900_Fn06634(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = 0;
-        work->field_8C8.radius    = 0x180;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.b.flags = 0;
-        work->field_898           = 1;
-        work->field_89E           = 0xA;
-        work->field_89A           = 0;
-        work->field_8A2           = 0x10;
-        work->field_8B0           = 0;
-        work->field_8AE           = 0;
+        arg0->extra.tmd->flags        = 0;
+        work->field_8C8.radius        = 0x180;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->field_898               = 1;
+        work->field_89E               = 0xA;
+        work->field_89A               = 0;
+        work->field_8A2               = 0x10;
+        work->field_8B0               = 0;
+        work->field_8AE               = 0;
         if (enemy->hp < 0 && work->field_C34[0] != 1 && work->field_C34[1] != 3 && work->field_C34[2] != 2) {
             Gp_SetStateF0Byte3(1);
         }
@@ -2614,11 +2614,11 @@ static void Actor01900_Fn06904(Task* arg0)
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        obj->flags                = 0;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        enemy->node.state.b.flags = 1;
-        work->field_6             = 0;
+        obj->flags                    = 0;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_6                 = 0;
     }
     if (work->field_6 < 0x401) {
         switch ((s16)(work->field_6++ - 0x18)) {
@@ -2667,15 +2667,15 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->field_898       = 2;
         obj->flags            = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8C8.radius    = 0x180;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.b.flags = 0;
-        work->field_8B0           = 0;
-        work->field_8A2           = 0x10;
-        work->field_8AE           = 0;
-        work->field_6             = 0;
-        work->field_894           = 0;
+        work->field_8C8.radius        = 0x180;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->field_8B0               = 0;
+        work->field_8A2               = 0x10;
+        work->field_8AE               = 0;
+        work->field_6                 = 0;
+        work->field_894               = 0;
     }
     Actor01900_Fn01C94(arg0);
     if ((work->field_5A & 0x3FF) == 0xF && work->field_894 != (work->field_5A & 0x3FF) &&
@@ -2737,9 +2737,9 @@ static void Actor01900_Fn06F40(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -2840,12 +2840,12 @@ static void Actor01900_Fn07810(Task* arg0)
         work->field_898 = 1;
         obj->flags      = 0;
         Tmd_AllocBuffers(obj);
-        work->field_8C8.radius    = 0x180;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.b.flags = 0;
-        work->field_8B0           = 0;
-        work->field_8A2           = 0x1E;
+        work->field_8C8.radius        = 0x180;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->field_8B0               = 0;
+        work->field_8A2               = 0x1E;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn            = SCRATCH_STACK_CURSOR(ActorTurnScratch);
@@ -2887,9 +2887,9 @@ static void Actor01900_Fn07BA8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -2954,9 +2954,9 @@ static void Actor01900_Fn080A8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -3005,9 +3005,9 @@ static void Actor01900_Fn083E8(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 2;
@@ -3055,15 +3055,15 @@ static void Actor01900_Fn08724(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_8C8.radius    = 0x180;
-        work->field_A08.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        enemy->node.state.b.flags = 1;
-        work->field_8AE           = 0;
-        work->field_6             = 0;
-        vec.vx                    = 0x64;
-        vec.vz                    = 0;
-        vec.vy                    = 0;
+        arg0->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->field_8C8.radius        = 0x180;
+        work->field_A08.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_8AE               = 0;
+        work->field_6                 = 0;
+        vec.vx                        = 0x64;
+        vec.vz                        = 0;
+        vec.vy                        = 0;
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         Gp_ReleaseStateF0Add(arg0, 0x13);
     }
@@ -3103,17 +3103,17 @@ static void Actor01900_Fn0892C(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        work->field_8C8.radius    = 0x180;
-        work->field_A08.flags     = (u16)(work->field_A08.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        enemy->node.state.b.flags = 1;
-        work->field_8AE           = 0;
-        work->field_6             = 0;
-        vec.vx                    = 0x64;
-        vec.vz                    = 0;
-        vec.vy                    = 0;
-        work->field_89E           = 2;
-        work->field_898           = 1;
-        work->field_8A2           = 0x10;
+        work->field_8C8.radius        = 0x180;
+        work->field_A08.flags         = (u16)(work->field_A08.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_8AE               = 0;
+        work->field_6                 = 0;
+        vec.vx                        = 0x64;
+        vec.vz                        = 0;
+        vec.vy                        = 0;
+        work->field_89E               = 2;
+        work->field_898               = 1;
+        work->field_8A2               = 0x10;
         Gp_SpawnEff(0x60030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         work->field_6 = 0;
     }
@@ -3213,9 +3213,9 @@ static void Actor01900_Fn09694(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_8C8.radius = 0x180;
         work->field_898        = 1;
@@ -3285,16 +3285,16 @@ static void Actor01900_Fn09BE8(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = 0;
-        work->field_8C8.radius    = 0x180;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.b.flags = 0;
-        work->field_898           = 2;
-        work->field_89E           = 0xB;
-        work->field_8A2           = 0x10;
-        work->field_8B0           = 0;
-        work->field_8AE           = 0;
+        arg0->extra.tmd->flags        = 0;
+        work->field_8C8.radius        = 0x180;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->field_898               = 2;
+        work->field_89E               = 0xB;
+        work->field_8A2               = 0x10;
+        work->field_8B0               = 0;
+        work->field_8AE               = 0;
         if (enemy->hp < 0) {
             Gp_SetStateF0Byte3(1);
         }
@@ -3650,11 +3650,11 @@ static void Actor01900_Fn0A764(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 1;
-        obj->flags                                              = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->field_B48.flags                                   = (u16)(work->field_B48.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_A08.flags                                   = (u16)(work->field_A08.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                                                  = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        work->field_B48.flags                                       = (u16)(work->field_B48.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->field_A08.flags                                       = (u16)(work->field_A08.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -3665,9 +3665,9 @@ static void Actor01900_Fn0A7C0(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -3689,9 +3689,9 @@ static void Actor01900_Fn0A868(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -3713,9 +3713,9 @@ static void Actor01900_Fn0A914(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_898       = 2;
         work->field_8A2       = 0x10;
@@ -3737,9 +3737,9 @@ static void Actor01900_Fn0A9C0(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
+        obj                                                         = arg0->extra.tmd;
+        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
         Tmd_AllocBuffers(obj);
         work->field_898        = 2;
         work->field_8A2        = 0x12;
@@ -3763,16 +3763,16 @@ static void Actor01900_Fn0AA78(Task* arg0)
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        arg0->extra.tmd->flags    = 0;
-        work->field_8C8.radius    = 0x180;
-        work->field_B48.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->field_A08.flags    |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        enemy->node.state.b.flags = 0;
-        work->field_898           = 2;
-        work->field_89E           = 8;
-        work->field_8B0           = 0;
-        work->field_8AE           = 0;
-        work->field_8A2           = work->field_8A4;
+        arg0->extra.tmd->flags        = 0;
+        work->field_8C8.radius        = 0x180;
+        work->field_B48.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->field_A08.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->field_898               = 2;
+        work->field_89E               = 8;
+        work->field_8B0               = 0;
+        work->field_8AE               = 0;
+        work->field_8A2               = work->field_8A4;
     }
     Actor01900_Fn01C94(arg0);
     if (work->field_68 & 0x100) {

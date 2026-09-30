@@ -222,7 +222,7 @@ STATIC_ASSERT_SIZEOF(Actor206100DistScratch, 0xC);
 ///
 /// `obj_364` / `obj_414` are the two `Gp_LinkObj` nodes the actor's retirement
 /// handler `func_actor_206100_8014FBE4` unlinks, alongside the enemy's own
-/// `GpLinkNode`.  Both nodes point their `context.contacts` at the same six-entry
+/// `WorldTargetNode`.  Both nodes point their `context.contacts` at the same six-entry
 /// `WorldCollisionContact` table `func_actor_206100_8014F18C` zeroes in `rec_384`, which is
 /// why `Gp_InitRec18Table` is called once for the pair.
 typedef struct Actor206100Work {
@@ -1436,13 +1436,13 @@ static void func_actor_206100_8014AF74(Task* task)
     enemy->bodyPos.vz        = 0;
     enemy->coord             = &task->extra.tmd->coords[4];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    enemy->recs               = work->rec_384;
-    enemy->param              = &D_actor_206100_80155198;
-    hp                        = D_actor_206100_80155198.hpMax;
-    enemy->hpMax              = hp;
-    enemy->hp                 = hp;
-    coord->parent             = &gGfxViewCoord;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->recs                   = work->rec_384;
+    enemy->param                  = &D_actor_206100_80155198;
+    hp                            = D_actor_206100_80155198.hpMax;
+    enemy->hpMax                  = hp;
+    enemy->hp                     = hp;
+    coord->parent                 = &gGfxViewCoord;
     func_800B3F84(&work->anim, D_actor_206100_80158B24, tmd, work->animAux, work->slots);
     func_actor_206100_8014F18C(task);
     work->field_43E = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -2415,9 +2415,9 @@ static void func_actor_206100_8014C458(Task* task)
         break;
     }
     if ((s16)last->field_536 + 0x190 < scratch.gte.out.vy) {
-        end->node.state.b.flags = 1;
+        end->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
-        end->node.state.b.flags = 0;
+        end->node.state.parts.flags = 0;
     }
 }
 
@@ -3933,10 +3933,10 @@ static void func_actor_206100_8014F524(Task* task)
     GpEnemy*         enemy;
     TaskFuncTable5   sp;
 
-    work                      = (Actor206100Work*)task->work;
-    enemy                     = (GpEnemy*)task->spawnArg2.pointer;
-    sp                        = D_actor_206100_80149E94;
-    enemy->node.state.b.flags = 1;
+    work                          = (Actor206100Work*)task->work;
+    enemy                         = (GpEnemy*)task->spawnArg2.pointer;
+    sp                            = D_actor_206100_80149E94;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     sp.funcs[(s16)work->field_522](task);
 }
 
@@ -4168,7 +4168,7 @@ static void func_actor_206100_8014FA08(Task* task)
 /// `eff_4C0` shares, so moving it moves the actor.
 ///
 /// `enemy` is a local rather than the inline
-/// `((GpEnemy*)task->spawnArg2.pointer)->node.state.b.flags = 1;` because the fused form
+/// `((GpEnemy*)task->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;` because the fused form
 /// transposes the `spawnArg2` and `task->extra` loads; see
 /// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
 /// with its store, so give the pointer its own local".
@@ -4180,22 +4180,22 @@ static void func_actor_206100_8014FAE4(Task* task)
     Actor206100Work* last;
     GpEnemy*         enemy;
 
-    work                      = (Actor206100Work*)task->work;
-    enemy                     = (GpEnemy*)task->spawnArg2.pointer;
-    coord                     = task->extra.tmd->coords;
-    enemy->node.state.b.flags = 1;
-    work->field_54D           = 1;
-    work->field_548           = 0;
-    work->field_4F4           = D_actor_206100_80158B68;
-    next                      = (Actor206100Work*)task->work;
-    next->field_51A           = 0x10;
-    next->field_510           = 3;
-    next->field_50C           = 2;
-    work->field_43E           = 0x400;
-    coord->coord.t[0]         = work->field_4F4[work->field_548].field_0;
-    coord->coord.t[1]         = work->field_4F4[work->field_548].field_2;
-    coord->coord.t[2]         = work->field_4F4[work->field_548].field_4;
-    work->field_548           = (work->field_548 + 1) & 7;
+    work                          = (Actor206100Work*)task->work;
+    enemy                         = (GpEnemy*)task->spawnArg2.pointer;
+    coord                         = task->extra.tmd->coords;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    work->field_54D               = 1;
+    work->field_548               = 0;
+    work->field_4F4               = D_actor_206100_80158B68;
+    next                          = (Actor206100Work*)task->work;
+    next->field_51A               = 0x10;
+    next->field_510               = 3;
+    next->field_50C               = 2;
+    work->field_43E               = 0x400;
+    coord->coord.t[0]             = work->field_4F4[work->field_548].field_0;
+    coord->coord.t[1]             = work->field_4F4[work->field_548].field_2;
+    coord->coord.t[2]             = work->field_4F4[work->field_548].field_4;
+    work->field_548               = (work->field_548 + 1) & 7;
     Gp_SetLightMode(task->spawnArg2.pointer, 2);
     work->field_51E = 0;
     last            = (Actor206100Work*)task->work;

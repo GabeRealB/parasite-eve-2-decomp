@@ -923,8 +923,8 @@ void func_actor_205200_8014B978(Task* arg0)
 }
 
 /// Per-frame tick of a live part. `Gp_StateF0.field_4` gates the body: mode 1 runs
-/// none of it, mode 2 raises the node flag to 1 and returns, mode 0 raises it
-/// to 8 before falling in, and any other mode enters it directly. The body
+/// none of it, mode 2 marks the node not lockable and returns, mode 0 hides its
+/// HP before falling in, and any other mode enters it directly. The body
 /// applies the part's hits, ticks its effect timer and, once the controller's
 /// 0x7DB flag is up, pushes this task to state 2 and the part to its state 2.
 /// The dispatch is written as gotos because that is the shape the switch's
@@ -957,10 +957,10 @@ ge2:
     }
     goto default_body;
 case0:
-    arg0->node.state.b.flags = 8;
+    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     goto default_body;
 case2:
-    arg0->node.state.b.flags = one;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     func_actor_205200_8014B048(arg1, one);

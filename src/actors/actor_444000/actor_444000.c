@@ -3812,21 +3812,21 @@ static void func_actor_444000_8013482C(Task* task)
     enemy = task->spawnArg2.pointer;
 
     if (work->field_4 != 0) {
-        tmd                       = task->extra.tmd;
-        enemy->node.state.b.flags = 0;
-        tmd->flags                = 0;
-        work->field_EF4           = 1;
-        work->field_7B3           = 2;
-        work->field_EF6           = 1;
-        work->field_7B0           = 1;
-        work->field_EFA           = 0;
-        work->field_EFE           = 0;
-        mat                       = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
-        mat->ident.m00_m01        = 0x1000;
-        mat->ident.m02_m10        = 0;
-        mat->ident.m11_m12        = 0x1000;
-        mat->ident.m20_m21        = 0;
-        mat->ident.m22            = 0x1000;
+        tmd                           = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        tmd->flags                    = 0;
+        work->field_EF4               = 1;
+        work->field_7B3               = 2;
+        work->field_EF6               = 1;
+        work->field_7B0               = 1;
+        work->field_EFA               = 0;
+        work->field_EFE               = 0;
+        mat                           = &((Actor444000RunScratch*)(head - sizeof(Actor444000RunScratch)))->m;
+        mat->ident.m00_m01            = 0x1000;
+        mat->ident.m02_m10            = 0;
+        mat->ident.m11_m12            = 0x1000;
+        mat->ident.m20_m21            = 0;
+        mat->ident.m22                = 0x1000;
     }
 
     func_actor_444000_8013441C(task);
@@ -4091,15 +4091,15 @@ static void func_actor_444000_80135448(Task* task)
         s32 id;
         s32 pan;
 
-        tmd                       = task->extra.tmd;
-        enemy->node.state.b.flags = 0;
-        tmd->flags                = 0;
-        work->field_7B3           = 0x12;
-        work->field_EF4           = 0;
-        work->field_EF6           = 0;
-        work->field_EFA           = 0;
-        work->field_7B0           = 1;
-        work->field_EFE           = 0;
+        tmd                           = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        tmd->flags                    = 0;
+        work->field_7B3               = 0x12;
+        work->field_EF4               = 0;
+        work->field_EF6               = 0;
+        work->field_EFA               = 0;
+        work->field_7B0               = 1;
+        work->field_EFE               = 0;
 
         func_actor_444000_8013441C(task);
 
@@ -8465,14 +8465,14 @@ static void func_actor_444000_8014105C(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        tmd                     = arg0->extra.tmd;
-        obj                     = arg0->spawnArg2.pointer;
-        obj->node.state.b.flags = 8;
-        tmd->flags              = 0;
-        state                   = work->field_7B3;
-        work->field_EF4         = 0;
-        work->field_EF6         = 0;
-        work->field_EFA         = 1;
+        tmd                         = arg0->extra.tmd;
+        obj                         = arg0->spawnArg2.pointer;
+        obj->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        tmd->flags                  = 0;
+        state                       = work->field_7B3;
+        work->field_EF4             = 0;
+        work->field_EF6             = 0;
+        work->field_EFA             = 1;
         if (state != 0xD) {
             work->field_7B0 = 1;
             work->field_7B3 = 0xD;
@@ -9332,26 +9332,26 @@ static void func_actor_444000_801423C4(GpEnemy* enemy, Task* task)
 
     if ((u16)work->field_0 < 2 || work->field_0 == 5 || work->field_0 == 0x12 ||
         work->field_0 == 0x13 || work->field_0 == 0xC) {
-        enemy->node.state.b.flags              = 1;
-        work->field_ECC[3]->node.state.b.flags = 1;
-        work->field_ECC[0]->node.state.b.flags = 1;
-        work->field_ECC[1]->node.state.b.flags = 1;
+        enemy->node.state.parts.flags              = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_ECC[3]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_ECC[0]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_ECC[1]->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else if (work->field_EFA != 0) {
         if (Gp_NodeSlotMask(&work->field_ECC[3]->node) != 0) {
             Gp_AssignNodeSlot0(&enemy->node);
         }
-        enemy->node.state.b.flags              = 8;
-        work->field_ECC[3]->node.state.b.flags = 5;
-        work->field_ECC[0]->node.state.b.flags = 5;
-        work->field_ECC[1]->node.state.b.flags = 5;
+        enemy->node.state.parts.flags              = WORLD_TARGET_HIDE_HP;
+        work->field_ECC[3]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->field_ECC[0]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->field_ECC[1]->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     } else {
         if (Gp_NodeSlotMask(&enemy->node) != 0) {
             Gp_AssignNodeSlot0(&work->field_ECC[3]->node);
         }
-        enemy->node.state.b.flags              = 1;
-        work->field_ECC[3]->node.state.b.flags = 8;
-        work->field_ECC[0]->node.state.b.flags = 8;
-        work->field_ECC[1]->node.state.b.flags = 8;
+        enemy->node.state.parts.flags              = WORLD_TARGET_NOT_LOCKABLE;
+        work->field_ECC[3]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        work->field_ECC[0]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        work->field_ECC[1]->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     }
 
     if (work->field_0 != 0 && work->field_0 != 0x12 && work->field_0 != 0x13 &&
@@ -9685,17 +9685,17 @@ static void func_actor_444000_801435CC(Task* arg0)
     work = arg0->work;
     obj  = arg0->spawnArg2.pointer;
     if (work->field_4 != 0) {
-        tmd                     = arg0->extra.tmd;
-        obj->node.state.b.flags = 0;
-        tmd->flags              = 0;
-        work->field_7B3         = 0xC;
-        work->field_7B0         = 2;
-        work->field_EF4         = 0;
-        work->field_EF6         = 0;
-        work->field_EFA         = 0;
-        work->field_7B6         = 0x10;
-        work->field_EFE         = 0;
-        work->field_6           = 0;
+        tmd                         = arg0->extra.tmd;
+        obj->node.state.parts.flags = 0;
+        tmd->flags                  = 0;
+        work->field_7B3             = 0xC;
+        work->field_7B0             = 2;
+        work->field_EF4             = 0;
+        work->field_EF6             = 0;
+        work->field_EFA             = 0;
+        work->field_7B6             = 0x10;
+        work->field_EFE             = 0;
+        work->field_6               = 0;
     }
     if (work->field_6 == 0xA) {
         id  = ((obj->placeKey >> 12) << 8) | 0x40200017;

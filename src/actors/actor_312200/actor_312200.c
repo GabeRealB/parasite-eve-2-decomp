@@ -716,10 +716,10 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
     enemy->bodyPos.vz = 0;
     enemy->coord      = &task->extra.tmd->coords[2];
     Gp_LinkNode(&enemy->node);
-    enemy->node.state.b.flags = 1;
-    enemy->field_4D           = 0;
-    enemy->reactionFlags      = 0;
-    enemy->field_4D           = 0;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->field_4D               = 0;
+    enemy->reactionFlags          = 0;
+    enemy->field_4D               = 0;
     func_800B3F84(&work->rig.anim, D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
     work->field_88C      = 2;
     work->field_892      = 1;
@@ -916,7 +916,7 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg)
     return 1;
 }
 
-/// On a live actor, sets the enemy's link-node flags to 1, raises the model's
+/// On a live actor, marks the enemy's target node not lockable, raises the model's
 /// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
 /// `GpEnemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
 static void func_actor_312200_80163778(Task* task)
@@ -927,12 +927,12 @@ static void func_actor_312200_80163778(Task* task)
 
     work = (Actor312200Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = task->extra.tmd;
-        enemy                     = (GpEnemy*)task->spawnArg2.pointer;
-        enemy->node.state.b.flags = 1;
-        obj->flags               |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        enemy->field_4D           = 0;
-        work->field_8BC.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        obj                           = task->extra.tmd;
+        enemy                         = (GpEnemy*)task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        enemy->field_4D               = 0;
+        work->field_8BC.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
 

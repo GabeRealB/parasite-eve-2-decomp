@@ -613,16 +613,16 @@ static void Actor02500_Fn00078(GpEnemy* ctx, Task* actor)
     ctx->field_4        = &coord->coord;
     ctx->field_48       = 0;
     Gp_LinkNode(&ctx->node);
-    ctx->bodyPos.vy            = -0x96;
-    ctx->coord                 = coord;
-    ctx->node.state.b.flags    = 0;
-    ctx->bodyPos.vx            = 0;
-    ctx->bodyPos.vz            = 0;
-    ctx->param                 = &Actor02500_D05B38;
-    ctx->hp                    = Actor02500_D05B38.hpMax;
-    work->field_2DC.spawnArgLo = 0x200;
-    work->field_2DC.coord      = coord;
-    work->field_2DC.spawnArgHi = 1;
+    ctx->bodyPos.vy             = -0x96;
+    ctx->coord                  = coord;
+    ctx->node.state.parts.flags = 0;
+    ctx->bodyPos.vx             = 0;
+    ctx->bodyPos.vz             = 0;
+    ctx->param                  = &Actor02500_D05B38;
+    ctx->hp                     = Actor02500_D05B38.hpMax;
+    work->field_2DC.spawnArgLo  = 0x200;
+    work->field_2DC.coord       = coord;
+    work->field_2DC.spawnArgHi  = 1;
     func_800B3F84(&work->anim, Actor02500_D05BA0, obj, work->field_DC, work->field_14);
     work->field_31C = 1;
     work->field_31E = 1;
@@ -1146,14 +1146,14 @@ static void Actor02500_Fn012F0(Task* actor)
     scratch = (ActorFaceScratch*)SCRATCH_PUSH_BYTES(0x18);
     switch (work->field_324) {
         case 0:
-            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
-            dx                                                       = Player_Status.coordMtx->t[0] - work->field_314;
-            scratch->delta.vy                                        = 0;
-            scratch->delta.vx                                        = dx;
-            dz                                                       = Player_Status.coordMtx->t[2] - work->field_318;
-            scratch->delta.vz                                        = dz;
-            dist                                                     = SquareRoot0((dx * dx) + (dz * dz));
+            obj->flags                                                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            dx                                                           = Player_Status.coordMtx->t[0] - work->field_314;
+            scratch->delta.vy                                            = 0;
+            scratch->delta.vx                                            = dx;
+            dz                                                           = Player_Status.coordMtx->t[2] - work->field_318;
+            scratch->delta.vz                                            = dz;
+            dist                                                         = SquareRoot0((dx * dx) + (dz * dz));
             if (dist < 0x7D0 || Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 Gp_StateF0.field_21 = 1;
                 work->field_324     = 2;
@@ -1161,18 +1161,18 @@ static void Actor02500_Fn012F0(Task* actor)
             }
             break;
         case 1:
-            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
+            obj->flags                                                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (Gp_StateF0.field_21 != 0 || Gp_StateF0.field_8 != 0) {
                 work->field_324 = 2;
                 work->field_32E = ((u16)((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 0xC) * 0xA;
             }
             break;
         case 2:
-            obj->flags                                               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.b.flags = 1;
-            timer2                                                   = (u16)work->field_32E - 1;
-            work->field_32E                                          = timer2;
+            obj->flags                                                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            ((GpEnemy*)actor->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            timer2                                                       = (u16)work->field_32E - 1;
+            work->field_32E                                              = timer2;
             if (timer2 <= 0) {
                 work->field_324 = 3;
                 work->field_32E = 0xA;
@@ -1551,8 +1551,8 @@ ge2:
     }
     goto default_body;
 case0:
-    temp_a1->flags           = 0;
-    arg0->node.state.b.flags = 0;
+    temp_a1->flags               = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case1:
     if (work->field_322 == 5) {
@@ -1561,8 +1561,8 @@ case1:
     Actor02500_Fn023D8(arg1);
     goto tail;
 case2:
-    temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {

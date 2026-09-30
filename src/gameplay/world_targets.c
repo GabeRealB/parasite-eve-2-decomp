@@ -72,12 +72,12 @@ static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos);
 
 static void Gp_ClearLockSlots(void);
 
-static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy);
+static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy);
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
-    GpLinkNode*     src;
-    GpPerspScratch* block;
+    WorldTargetNode* src;
+    GpPerspScratch*  block;
 
     src = slot->field_0;
     SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);
@@ -98,7 +98,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 
 void Gp_DrawTargetCursor(void)
 {
-    GpLinkNode*                  node;
+    WorldTargetNode*             node;
     GameSession*                 sess;
     WorldCoordProjectionScratch* projection;
     POLY_FT4*                    prim;
@@ -129,7 +129,7 @@ void Gp_DrawTargetCursor(void)
         return;
     }
     for (; node != NULL; node = node->next) {
-        if (node->state.b.targeted != 0 && !(node->state.b.flags & 1)) {
+        if (node->state.parts.targeted != 0 && !(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
             easing               = 0;
             projection           = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordProjectionScratch);
             projection->point.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
@@ -203,8 +203,8 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     GameActor*         actor;
     GfxCoord*          coord;
     GfxCoord*          nodeCoord;
-    GpLinkNode*        node;
-    GpLinkNode*        best;
+    WorldTargetNode*   node;
+    WorldTargetNode*   best;
     s32                bestAngle;
     u32                bestDist;
     s32                baseAngle;
@@ -242,7 +242,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
     bestDist  = 0x7FFFFFFF;
     dist      = 0;
     for (node = Gp_LinkList; node != NULL; node = node->next) {
-        if (node->state.b.flags & 1) {
+        if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
         angle = ratan2(GP_NODE_ENEMY(node)->playerRelPos.vx, GP_NODE_ENEMY(node)->playerRelPos.vz);
@@ -370,21 +370,21 @@ done:
 
 static void Gp_UpdateLockSlots(void)
 {
-    RECT         rect;
-    u8           buf[16];
-    TextDrawReq  req;
-    s32          i;
-    GpSlot70*    slot;
-    u8*          bufp;
-    TextDrawReq* reqp;
-    s32          x;
-    s32          y;
-    s32          val;
-    s32          x14;
-    s32          ot;
-    void*        obj;
-    GpLinkNode*  node;
-    s32          found;
+    RECT             rect;
+    u8               buf[16];
+    TextDrawReq      req;
+    s32              i;
+    GpSlot70*        slot;
+    u8*              bufp;
+    TextDrawReq*     reqp;
+    s32              x;
+    s32              y;
+    s32              val;
+    s32              x14;
+    s32              ot;
+    void*            obj;
+    WorldTargetNode* node;
+    s32              found;
 
     slot = Gp_LockSlots;
     i    = 0;
@@ -496,13 +496,13 @@ static void Gp_UpdateLockSlots(void)
     } while (i < 0x20);
 }
 
-void Gp_UnlinkNode(GpLinkNode* node)
+void Gp_UnlinkNode(WorldTargetNode* node)
 {
-    s32             i;
-    Task* volatile* p;
-    Task*           work;
-    GameActor*      actor;
-    GpLinkNode**    list;
+    s32               i;
+    Task* volatile*   p;
+    Task*             work;
+    GameActor*        actor;
+    WorldTargetNode** list;
 
     i = 0;
     p = Gp_ActorSlots;
@@ -518,7 +518,7 @@ void Gp_UnlinkNode(GpLinkNode* node)
         p++;
     } while (i < 2);
 
-    if (node->state.b.onList == 1) {
+    if (node->state.parts.onList == 1) {
         list = &Gp_LinkList;
         if (Gp_LinkList != node) {
             do {
@@ -532,31 +532,31 @@ void Gp_UnlinkNode(GpLinkNode* node)
             *list = node->next;
         }
     done:
-        node->state.b.onList   = 0;
-        node->state.b.targeted = 0;
+        node->state.parts.onList   = 0;
+        node->state.parts.targeted = 0;
     }
 }
 
-void Gp_LinkNode(GpLinkNode* node)
+void Gp_LinkNode(WorldTargetNode* node)
 {
-    GpLinkNode** p;
+    WorldTargetNode** p;
 
-    if (node->state.b.onList == 0) {
+    if (node->state.parts.onList == 0) {
         p = &Gp_LinkList;
         while (*p != NULL) {
             p = &(*p)->next;
         }
-        *p                     = node;
-        node->next             = NULL;
-        node->state.b.targeted = 0;
-        node->state.b.onList   = 1;
-        node->state.b.flags   &= ~1;
+        *p                         = node;
+        node->next                 = NULL;
+        node->state.parts.targeted = 0;
+        node->state.parts.onList   = 1;
+        node->state.parts.flags   &= ~WORLD_TARGET_NOT_LOCKABLE;
     } else {
-        node->state.b.flags &= ~1;
+        node->state.parts.flags &= ~WORLD_TARGET_NOT_LOCKABLE;
     }
 }
 
-s32 Gp_NodeSlotMask(GpLinkNode* node)
+s32 Gp_NodeSlotMask(WorldTargetNode* node)
 {
     s32             mask;
     s32             i;
@@ -581,28 +581,28 @@ s32 Gp_NodeSlotMask(GpLinkNode* node)
     return mask;
 }
 
-void Gp_AssignNodeSlot0(GpLinkNode* node)
+void Gp_AssignNodeSlot0(WorldTargetNode* node)
 {
-    Task*       work;
-    GameActor*  actor;
-    GpLinkNode* previous;
-    u8          val;
+    Task*            work;
+    GameActor*       actor;
+    WorldTargetNode* previous;
+    u8               val;
 
     work = Gp_ActorSlots[0];
     if (work != NULL) {
         actor    = work->work;
         previous = actor->field_90C;
         if (previous != NULL) {
-            previous->state.b.targeted = 0;
+            previous->state.parts.targeted = 0;
         }
         actor->field_90C = node;
     }
-    val                    = node->state.b.flags;
-    node->state.b.targeted = 1;
-    node->state.b.flags    = val & 0xFE;
+    val                        = node->state.parts.flags;
+    node->state.parts.targeted = 1;
+    node->state.parts.flags    = val & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
 }
 
-void Gp_ClearNodeSlots(GpLinkNode* node)
+void Gp_ClearNodeSlots(WorldTargetNode* node)
 {
     s32             i;
     Task* volatile* p;
@@ -623,9 +623,9 @@ void Gp_ClearNodeSlots(GpLinkNode* node)
         i++;
         p++;
     } while (i < 2);
-    val                    = node->state.b.flags;
-    node->state.b.targeted = 0;
-    node->state.b.flags    = val | 1;
+    val                        = node->state.parts.flags;
+    node->state.parts.targeted = 0;
+    node->state.parts.flags    = val | WORLD_TARGET_NOT_LOCKABLE;
 }
 
 void* Gp_FindLockNode(Task* arg0)
@@ -666,7 +666,7 @@ static void* Gp_FindLockNodeAt(Task* arg0, VECTOR3* pos)
     return Gp_ScanLockNodes(arg0, pos, flag);
 }
 
-void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out)
+void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out)
 {
     GfxCoord* world;
     GfxCoord* coord;
@@ -727,7 +727,7 @@ void Gp_ResetLinkState(void)
     D_8010F9EC = 0xFFF00000;
 }
 
-static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
+static s32 Gp_ProjectToSxy(WorldTargetNode* arg0, s32* sxy)
 {
     GpPerspScratch* block;
     s32             ret;
@@ -751,10 +751,10 @@ static s32 Gp_ProjectToSxy(GpLinkNode* arg0, s32* sxy)
 
 void Gp_ClearSlotNodeFlags(void)
 {
-    s32             i;
-    Task* volatile* p;
-    Task*           work;
-    GpLinkNode*     node;
+    s32              i;
+    Task* volatile*  p;
+    Task*            work;
+    WorldTargetNode* node;
 
     i = 0;
     p = Gp_ActorSlots;
@@ -763,7 +763,7 @@ void Gp_ClearSlotNodeFlags(void)
         if (work != NULL) {
             node = ((GameActor*)work->work)->field_90C;
             if (node != NULL) {
-                node->state.b.targeted = 0;
+                node->state.parts.targeted = 0;
             }
         }
         i++;

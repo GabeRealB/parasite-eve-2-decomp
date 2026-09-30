@@ -775,18 +775,18 @@ static void Actor01500_Fn00094(GpEnemy* arg0, Task* arg1)
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord                = &arg1->extra.tmd->coords[2];
-    arg0->node.state.b.flags   = 0;
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->bodyPos.vz           = 0;
-    arg0->param                = &Actor01500_D09FB8;
-    arg0->recs                 = work->field_1FC;
-    arg0->hp                   = Actor01500_D09FB8.hpMax;
-    work->field_314.coord      = coord;
-    work->field_314.spawnArgLo = 0x300;
-    work->field_314.spawnArgHi = 1;
-    place                      = arg0->place;
+    arg0->coord                  = &arg1->extra.tmd->coords[2];
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &Actor01500_D09FB8;
+    arg0->recs                   = work->field_1FC;
+    arg0->hp                     = Actor01500_D09FB8.hpMax;
+    work->field_314.coord        = coord;
+    work->field_314.spawnArgLo   = 0x300;
+    work->field_314.spawnArgHi   = 1;
+    place                        = arg0->place;
     switch (work->field_382 = place->variant) {
         case 0:
             work->field_36E = arg0->place->mode & 1;
@@ -1675,8 +1675,8 @@ static void Actor01500_Fn01DF0(GpEnemy* arg0, Task* arg1)
             sub = &coord[1];
             goto update;
         case 2:
-            model->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     switch (work->field_35C) {
@@ -1882,12 +1882,12 @@ ge2:
     }
     goto default_body;
 case0:
-    obj->flags               = 0;
-    arg0->node.state.b.flags = 0;
+    obj->flags                   = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     if (arg0->reactionFlags != 0) {

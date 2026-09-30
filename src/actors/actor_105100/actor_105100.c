@@ -1154,8 +1154,8 @@ static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
     coord = obj->coords;
     switch (state) {
         case 0:
-            obj->flags               = 0;
-            arg0->node.state.b.flags = 8;
+            obj->flags                   = 0;
+            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             if (work->field_5BC != 0) {
                 SndEvt_EnqueueType9(0x40000000);
                 work->field_5BC = 0;
@@ -1170,8 +1170,8 @@ static void func_actor_105100_80132AA0(GpEnemy* arg0, Task* arg1)
             work->field_5BC = state;
             return;
         case 2:
-            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (work->field_5BC == 0) {
                 SndEvt_EnqueueType8(0x40000000);
             }

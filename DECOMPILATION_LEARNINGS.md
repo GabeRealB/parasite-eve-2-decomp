@@ -41861,9 +41861,9 @@ the new name is free, and a body that already declares a local of that name
 keeps both:
 
 ```c
-void func(GpLinkNode* node)  /* was arg0 */
+void func(WorldTargetNode* node)  /* was arg0 */
 {
-    GpLinkNode* node;        /* the local the body already had */
+    WorldTargetNode* node;        /* the local the body already had */
 
     node = actor->field_90C; /* the local */
     actor->field_90C = node; /* meant the parameter; now the local */
@@ -101320,7 +101320,7 @@ hence 0x600. m2c only does this where it has a struct type for the parameter;
 the number it printed is the raw byte offset from the disassembly.
 
 **Fix.** Name the member that lives there and take its address. Here
-`GpEnemy::node` is the `GpLinkNode` at +0x10:
+`GpEnemy::node` is the `WorldTargetNode` at +0x10:
 
 ```c
 -        Gp_UnlinkNode(arg0 + 0x10);
@@ -109640,7 +109640,7 @@ satisfies it, and the message-sized load is neither `in_struct` nor varying).
 
 **Correction (later retype):** the qualifier in that spelling applies to the
 pointee, not to the stored pointer, so the store MEM is not volatile at all.
-With the view type gone, `*(GpLinkNode**)&actor->field_90C = NULL;` - no
+With the view type gone, `*(WorldTargetNode**)&actor->field_90C = NULL;` - no
 qualifier - matches as well, while the plain member store
 `actor->field_90C = NULL;` does not. What the cast changes is that the store is
 no longer a component reference, so its MEM loses the in-struct flag the
@@ -132418,8 +132418,8 @@ rec = (Record*)actor->field_14C;
 Those casts are the count of what this costs. The fix is not a restated
 duplicate, which only trades the casts for two declarations of one layout, but
 the declaration itself, moved into the owner's header beside the records main
-already embeds - precisely how `WorldCollisionContact` and `GpLinkNode` came to be declared in
-`main/session.h`, neither of which has a caller in `src/main/`. A prototype that
+already embeds - precisely how `WorldCollisionContact` came to be declared in
+`main/session.h`. It has no caller in `src/main/`. A prototype that
 merely *names* an overlay type is the other case: there the include goes at the
 one call site that needs it.
 

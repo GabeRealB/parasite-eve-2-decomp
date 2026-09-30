@@ -180,7 +180,7 @@ u8 Gp_OverrideVec2Flag;
 
 GpLightScaleOverride Gp_OverrideVec2;
 
-struct GpLinkNode* D_80115260;
+struct WorldTargetNode* D_80115260;
 
 s32 D_80115264;
 
@@ -1735,8 +1735,8 @@ static void Gp_BindDefaultMtx(Task* arg0)
 
 static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
 {
-    GpLinkNode*     src;
-    GpPerspScratch* block;
+    WorldTargetNode* src;
+    GpPerspScratch*  block;
 
     src = slot->field_0;
     SCRATCH_STACK_RESERVE_BLOCK(GpPerspScratch);

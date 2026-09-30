@@ -632,7 +632,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
         case 2:
             break;
         case 3:
-            arg0->node.state.b.flags = 1;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             work->field_328++;
             if (!(work->field_328 & 3)) {
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
@@ -765,10 +765,10 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
         case 1:
             return;
         case 0:
-            arg0->node.state.b.flags = 8;
+            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             break;
         case 2:
-            arg0->node.state.b.flags = 1;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     vec = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
@@ -925,9 +925,9 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 
 /// Tick handler of the main task (its state 1), switched on the gameplay mode
 /// `Gp_StateF0.field_4`. Mode 1 only updates the colour; mode 2 sets the model's
-/// `field_C` to 0x80 and the lock-on node's flags to 1 and stops there. Any
+/// `field_C` to 0x80 and the lock-on node not lockable, and stops there. Any
 /// other mode runs the frame - mode 0 first clearing the model's `field_C` and
-/// setting the node's flags to 8: the hit handler, the idle schedule, the pose
+/// hiding the node's HP: the hit handler, the idle schedule, the pose
 /// tick, the model's coordinate refresh, the colour update and the
 /// regeneration step.
 static void func_actor_105300_80133468(GpEnemy* arg0, Task* arg1)
@@ -957,15 +957,15 @@ ge2:
     }
     goto default_body;
 case0:
-    temp_a1->flags           = 0;
-    arg0->node.state.b.flags = 8;
+    temp_a1->flags               = 0;
+    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     goto default_body;
 case1:
     func_actor_105300_801335B8(arg1);
     return;
 case2:
-    temp_a1->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     func_actor_105300_80131E3C(arg1);

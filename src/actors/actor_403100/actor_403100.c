@@ -5142,13 +5142,13 @@ static void func_actor_403100_80136610(Task* arg0)
     Gp_LinkNode(&D_actor_403100_8015580C->node);
     kind = 9;
     TOUCH_REG(kind);
-    D_actor_403100_8015580C->node.state.b.flags = kind;
-    D_actor_403100_8015580C->param              = &D_actor_403100_8014762C;
-    D_actor_403100_8015580C->recs               = D_actor_403100_80155808->pad_49C;
-    D_actor_403100_80155630.coord               = arg0->extra.tmd->coords;
-    flags                                       = &obj->flags;
-    *flags                                      = 0;
-    D_actor_403100_80155808->field_658          = -1;
+    D_actor_403100_8015580C->node.state.parts.flags = kind;
+    D_actor_403100_8015580C->param                  = &D_actor_403100_8014762C;
+    D_actor_403100_8015580C->recs                   = D_actor_403100_80155808->pad_49C;
+    D_actor_403100_80155630.coord                   = arg0->extra.tmd->coords;
+    flags                                           = &obj->flags;
+    *flags                                          = 0;
+    D_actor_403100_80155808->field_658              = -1;
     func_800B3F84(&D_actor_403100_80155808->field_B8.animation.anim, D_actor_403100_8015572C, obj, &D_actor_403100_80155808->field_B8.legacy.pad_12E[0x1F6], D_actor_403100_80155808->field_B8.animation.slots);
     D_actor_403100_80155808->field_5E2 = 0x10;
     D_actor_403100_80155808->field_5DE = 1;
@@ -5455,7 +5455,7 @@ static void func_actor_403100_80136830(Task* arg0)
                     gGameSession->suppressViewTriggers     = 0;
                     D_actor_403100_8015580C->reactionFlags = 0;
                     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
-                    D_actor_403100_8015580C->node.state.b.flags = 9;
+                    D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
                     func_800E8614(&D_80166098, 0);
                     arg0->state                        = 1;
                     D_actor_403100_80155808->field_5F8 = 0;
@@ -5493,11 +5493,11 @@ static void func_actor_403100_8013712C(Task* arg0)
     GfxCoord*           coord;
     Actor403100Work*    work;
 
-    coord                                       = arg0->extra.tmd->coords;
-    D_actor_403100_8015580C->node.state.b.flags = 8;
-    D_actor_403100_80155808->field_5E6          = 0x1E;
-    D_actor_403100_80155808->field_62C          = 0x20;
-    D_actor_403100_80155808->field_600          = 0;
+    coord                                           = arg0->extra.tmd->coords;
+    D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+    D_actor_403100_80155808->field_5E6              = 0x1E;
+    D_actor_403100_80155808->field_62C              = 0x20;
+    D_actor_403100_80155808->field_600              = 0;
     (Gp_IncStateF0Ref)(0);
     i                                        = 0;
     entries                                  = D_actor_403100_80155814;
@@ -7094,8 +7094,8 @@ static void func_actor_403100_8013B128(Task* arg0)
     model->otOffset                        = 0;
     D_actor_403100_8015580C->reactionFlags = 0;
     Gp_SetLightMode(arg0->spawnArg2.pointer, 0);
-    D_actor_403100_8015580C->node.state.b.flags = 9;
-    i                                           = 0;
+    D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
+    i                                               = 0;
     if (D_actor_403100_80155808->field_5D0 < 0) {
         arg0->state                        = 4;
         D_actor_403100_80155808->field_5F8 = 0;
@@ -7175,8 +7175,8 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     if (Actor403100_TestFlags()) {
         D_actor_403100_80155808->pad_670[3] = 0;
         Gp_LinkNode(&D_actor_403100_8015580C->node);
-        D_actor_403100_8015580C->node.state.b.flags = 8;
-        gGameSession->hideHud                       = 0;
+        D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        gGameSession->hideHud                           = 0;
         Gp_DispatchMsg(gameGetPtrSlot(3), 0x3F1, 2, 0);
         coords->coord                                 = D_actor_403100_80155808->field_0.matrices.coord;
         *(SVECTOR*)&D_actor_403100_80155808->field_80 = D_actor_403100_80155808->savedRotation;

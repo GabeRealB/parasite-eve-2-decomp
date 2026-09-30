@@ -151,7 +151,7 @@ typedef struct ActorsShared80138efcWork {
     /// Visibility the 0x7D5 message last asked for; the handler acts only
     /// when the request changes it.
     /* 0xBA0 */ s8 field_BA0;
-    /// The enemy link node's `state.b.flags`, saved while the model is hidden
+    /// The enemy link node's `state.parts.flags`, saved while the model is hidden
     /// and put back when it is shown again.
     /* 0xBA1 */ u8 field_BA1;
     /* 0xBA2 */ s8 field_BA2;
@@ -1915,12 +1915,12 @@ static s32 Actor01100_Fn00F58(GpEnemy* enemy, Task* task, ActorsShared80138efcWo
 /// flag byte's address and cannot share the call's result register.
 static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkNode* lockNode;
-    s32         flag;
-    s32         bodyByteOffset;
-    s32         i;
-    u32         dist;
-    s16         walk;
+    WorldTargetNode* lockNode;
+    s32              flag;
+    s32              bodyByteOffset;
+    s32              i;
+    u32              dist;
+    s16              walk;
 
     flag = 0;
     dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
@@ -1961,7 +1961,7 @@ static void Actor01100_Fn01B90(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
 
     lockNode                            = &enemy->node;
-    enemy->node.state.b.flags           = 0;
+    enemy->node.state.parts.flags       = 0;
     GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -2250,10 +2250,10 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 Actor01100_Fn01B90(enemy, task, work, arg);
                 break;
             case 1: {
-                GfxCoord*   c;
-                GpLinkNode* lockNode;
+                GfxCoord*        c;
+                WorldTargetNode* lockNode;
 
-                enemy->node.state.b.flags           = 0;
+                enemy->node.state.parts.flags       = 0;
                 c                                   = task->extra.tmd->coords;
                 lockNode                            = &enemy->node;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -2280,8 +2280,8 @@ static void Actor01100_Fn02960(GpEnemy* enemy, Task* task, ActorsShared80138efcW
                 break;
             }
             case 2: {
-                GfxCoord*   c;
-                GpLinkNode* lockNode;
+                GfxCoord*        c;
+                WorldTargetNode* lockNode;
 
                 if (work->field_BAB != 1) {
                     if (work->field_B96 >= 0x400) {
@@ -3439,9 +3439,9 @@ static void Actor01100_Fn05678(
         if (enemy->spawnState == 0) {
             enemy->spawnState = work->field_BAE + 1;
         }
-        work->field_BA6           = 3;
-        work->field_BAB           = 0x20;
-        enemy->node.state.b.flags = 1;
+        work->field_BA6               = 3;
+        work->field_BAB               = 0x20;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         if (enemy->spawnState == 3) {
             _actor01100SpawnModelEff(task, &Actor01100_D0D8F4);
             _actor01100SpawnModelEff(task, &Actor01100_D0E4DC);
@@ -3886,16 +3886,16 @@ s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags)
     if (work->field_BA0 != mode) {
         work->field_BA0 = mode;
         if (work->field_BA0 == 0) {
-            model->flags             &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.b.flags = work->field_BA1;
-            obj                       = &work->objs[0];
-            obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            obj                       = &work->objs[3];
-            obj->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            model->flags                 &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = work->field_BA1;
+            obj                           = &work->objs[0];
+            obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            obj                           = &work->objs[3];
+            obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
         } else {
-            model->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->field_BA1           = enemy->node.state.b.flags;
-            enemy->node.state.b.flags = 1;
+            model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->field_BA1               = enemy->node.state.parts.flags;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             for (i = 0; i < 4; i++) {
                 obj         = &work->objs[i];
                 obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -4062,13 +4062,13 @@ static void Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVec* arg1, s3
 /// `field_BA8` is cleared either way, so the sub-state re-arms from the top.
 static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkNode* lockNode;
-    s32         bodyByteOffset;
-    s32         i;
-    u8          trigger;
+    WorldTargetNode* lockNode;
+    s32              bodyByteOffset;
+    s32              i;
+    u8               trigger;
 
     lockNode                            = &enemy->node;
-    enemy->node.state.b.flags           = 0;
+    enemy->node.state.parts.flags       = 0;
     GP_NODE_ENEMY(lockNode)->coord      = &task->extra.tmd->coords[3];
     GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
     GP_NODE_ENEMY(lockNode)->bodyPos.vy = -0xC8;
@@ -4108,8 +4108,8 @@ static void Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcW
 /// 0xC8-box local offset through `src` - and `Actor01100_Fn00F58` runs last.
 static void Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg)
 {
-    GpLinkNode* lockNode;
-    s16         walk;
+    WorldTargetNode* lockNode;
+    s16              walk;
 
     if (work->field_BAB != 1) {
         if (work->field_B96 >= 0x400) {
@@ -4381,11 +4381,11 @@ static void Actor01100_Fn072B8(GpEnemy* enemy, Task* task, ActorsShared80138efcW
     }
     arg->field_64 = 3;
     if (work->field_BA9 != 0) {
-        enemy->node.state.b.flags = 0;
-        work->field_BA6           = 1;
-        work->field_BAB           = 0;
-        work->state               = 0xF;
-        work->field_BA8           = 0;
+        enemy->node.state.parts.flags = 0;
+        work->field_BA6               = 1;
+        work->field_BAB               = 0;
+        work->state                   = 0xF;
+        work->field_BA8               = 0;
     }
 }
 

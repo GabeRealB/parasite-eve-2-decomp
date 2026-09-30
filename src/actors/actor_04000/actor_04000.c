@@ -1327,7 +1327,7 @@ s32 Actor04000_Fn0093C(Task* arg0, s32 arg1, Actor104000Event* event)
     if (event->words[0] == 0x1003 && event->words[1] == 1) {
         work->field_0                          = 0xE;
         Actor04000_D0C718[ctx->placeKey >> 12] = arg0;
-        ctx->node.state.b.flags                = 1;
+        ctx->node.state.parts.flags            = WORLD_TARGET_NOT_LOCKABLE;
         switch (ctx->placeKey >> 12) {
             case 0:
                 arg0->extra.tmd->coords->coord.t[0]   = 0x116;
@@ -1644,8 +1644,8 @@ static void Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1)
     arg0->bodyPos.vz = 0;
     arg0->coord      = arg1->extra.tmd->coords + 2;
     Gp_LinkNode(&arg0->node);
-    arg0->node.state.b.flags = 1;
-    arg0->reactionFlags      = 0;
+    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    arg0->reactionFlags          = 0;
     arg0->hp = arg0->hpMax = Actor04000_D07084.hpMax;
     arg0->param            = &Actor04000_D07084;
     arg0->recs             = hits;
@@ -1727,8 +1727,8 @@ static void Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1)
     player = gameGetPtrSlot(3);
     actor  = player->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg1->extra.tmd;
-        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.b.flags = 0;
+        obj                                                         = arg1->extra.tmd;
+        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.parts.flags = 0;
         Gp_ArmStateF0(1);
         obj->flags          = 0;
         work->field_170     = 1;
@@ -1862,19 +1862,19 @@ static void Actor04000_Fn01E1C(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.b.flags = 1;
-        obj->flags               = 0;
-        work->obj350.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key         = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key         = 0x22222;
-        work->field_6            = 0;
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx      = work->colorMtx;
-        work->field_174          = 0xE;
-        work->field_170          = 1;
-        work->field_178          = 0;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                   = 0;
+        work->obj350.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key             = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key             = 0x22222;
+        work->field_6                = 0;
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx          = work->colorMtx;
+        work->field_174              = 0xE;
+        work->field_170              = 1;
+        work->field_178              = 0;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx           = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy           = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
@@ -1993,16 +1993,16 @@ static void Actor04000_Fn026FC(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 5;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 5;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -2042,16 +2042,16 @@ static void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 3;
-        work->field_170          = 1;
-        work->field_178          = 0x10;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 3;
+        work->field_170              = 1;
+        work->field_178              = 0x10;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Gp_ArmStateF0(1);
         Actor04000_Fn00E6C(arg1);
         work->field_494 = 0;
@@ -2121,17 +2121,17 @@ static void Actor04000_Fn02F48(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.b.flags = 1;
-        obj->flags               = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key         = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key         = 0x22222;
-        work->field_6            = 0;
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx      = work->colorMtx;
-        work->field_178          = 0;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                   = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key             = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key             = 0x22222;
+        work->field_6                = 0;
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx          = work->colorMtx;
+        work->field_178              = 0;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
@@ -2249,20 +2249,20 @@ static void Actor04000_Fn03798(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.b.flags = 1;
-        obj->flags               = 0;
-        work->obj350.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.key         = Gp_PackObjPair(arg0, 1);
-        work->obj3C0.key         = 0x22222;
-        work->field_6            = 0;
-        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->savedColorMtx      = work->colorMtx;
-        work->field_174          = 0xA;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->field_176          = 0x2C;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                   = 0;
+        work->obj350.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.key             = Gp_PackObjPair(arg0, 1);
+        work->obj3C0.key             = 0x22222;
+        work->field_6                = 0;
+        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->savedColorMtx          = work->colorMtx;
+        work->field_174              = 0xA;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->field_176              = 0x2C;
         Actor04000_Fn00E6C(arg1);
         work->obj3C0.pos.vx = arg1->extra.tmd->coords->coord.t[0];
         work->obj3C0.pos.vy = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
@@ -2513,17 +2513,17 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 2;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->patrolIdx          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 2;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->patrolIdx              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         work->field_6 = 0;
         return;
@@ -2596,16 +2596,16 @@ static void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 2;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 2;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         work->field_494 = 0;
         return;
@@ -2721,15 +2721,15 @@ static void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags   = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        arg0->node.state.b.flags = 0;
-        work->field_174          = 3;
-        work->field_170          = 2;
-        work->field_178          = 0;
+        arg1->extra.tmd->flags       = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        arg0->node.state.parts.flags = 0;
+        work->field_174              = 3;
+        work->field_170              = 2;
+        work->field_178              = 0;
         Actor04000_Fn00E6C(arg1);
         Gfx_RotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, 0);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2773,11 +2773,11 @@ static void Actor04000_Fn0522C(GpEnemy* arg0, Task* arg1)
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor04000_Fn00E6C(arg1);
     if ((u8)Gp_GetViewIndex() == 5) {
-        arg0->node.state.b.flags = 1;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         Gp_ClearNodeSlots(&(arg0)->node);
         return;
     }
-    arg0->node.state.b.flags = 0;
+    arg0->node.state.parts.flags = 0;
 }
 
 /// Restarts the actor when `field_4` is set; otherwise runs state 0xC (drop the
@@ -2794,16 +2794,16 @@ static void Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags   = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        arg0->node.state.b.flags = 0;
-        work->field_174          = 0xC;
-        work->field_170          = 2;
-        work->field_178          = 0;
-        work->field_176          = 1;
+        arg1->extra.tmd->flags       = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        arg0->node.state.parts.flags = 0;
+        work->field_174              = 0xC;
+        work->field_170              = 2;
+        work->field_178              = 0;
+        work->field_176              = 1;
         Actor04000_Fn00E6C(arg1);
         Actor04000_Fn00E6C(arg1);
         work->field_176                       = 0;
@@ -2901,16 +2901,16 @@ static void Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags   = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        arg0->node.state.b.flags = 0;
-        work->field_174          = 0xB;
-        work->field_170          = 2;
-        work->field_178          = 0;
-        work->field_176          = 1;
+        arg1->extra.tmd->flags       = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        arg0->node.state.parts.flags = 0;
+        work->field_174              = 0xB;
+        work->field_170              = 2;
+        work->field_178              = 0;
+        work->field_176              = 1;
         Actor04000_Fn00E6C(arg1);
         work->field_176                       = 0x10;
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3246,12 +3246,12 @@ static void Actor04000_Fn06878(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_176          = 0x10;
-        work->field_178          = 0;
-        work->obj270.flags       = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_176              = 0x10;
+        work->field_178              = 0;
+        work->obj270.flags           = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         Actor04000_Fn00E6C(arg1);
         work->field_6 = 0;
         return;
@@ -3279,14 +3279,14 @@ static void Actor04000_Fn06994(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                                                     = arg1->extra.tmd;
-        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.b.flags = 0;
-        obj->flags                                              = 0;
-        work->field_170                                         = 2;
-        work->field_176                                         = 0x10;
-        work->field_178                                         = 0;
-        work->field_174                                         = 0xF;
-        work->obj270.flags                                      = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        obj                                                         = arg1->extra.tmd;
+        ((GpEnemy*)arg1->spawnArg2.pointer)->node.state.parts.flags = 0;
+        obj->flags                                                  = 0;
+        work->field_170                                             = 2;
+        work->field_176                                             = 0x10;
+        work->field_178                                             = 0;
+        work->field_174                                             = 0xF;
+        work->obj270.flags                                          = (u16)(work->obj270.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         Actor04000_Fn00E6C(arg1);
         work->field_6   = 0;
         work->field_47A = (u8)(work->field_47A + 1);
@@ -3301,7 +3301,7 @@ static void Actor04000_Fn06994(GpEnemy* arg0, Task* arg1)
 }
 
 /// State 0 of the actor's per-frame dispatch: on the frame the state is
-/// entered (`field_4` latch) it raises the enemy's list-node flag and the
+/// entered (`field_4` latch) it marks the enemy not lockable, raises the
 /// display object's 0x80 bit, and clears the gate bits of the work block's
 /// four collision objects (the high bit on three, 0x4000 on `obj270`).
 static void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task)
@@ -3311,13 +3311,13 @@ static void Actor04000_Fn06A5C(GpEnemy* enemy, Task* task)
 
     work = (Actor104000Work*)task->work;
     if (work->field_4 != 0) {
-        obj                       = task->extra.tmd;
-        enemy->node.state.b.flags = 1;
-        obj->flags                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->obj350.flags        = (u16)(work->obj350.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->obj388.flags        = (u16)(work->obj388.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->obj3C0.flags        = (u16)(work->obj3C0.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->obj270.flags        = (u16)(work->obj270.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        obj                           = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                    = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        work->obj350.flags            = (u16)(work->obj350.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->obj388.flags            = (u16)(work->obj388.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->obj3C0.flags            = (u16)(work->obj3C0.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->obj270.flags            = (u16)(work->obj270.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -3329,29 +3329,29 @@ static void Actor04000_Fn06AC4(GpEnemy* arg0, Task* arg1)
     work = arg1->work;
     obj  = arg1->extra.tmd;
     if (work->field_4 != 0) {
-        arg0->node.state.b.flags = 1;
-        obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->field_174          = 1;
-        work->field_170          = 2;
-        work->obj350.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->field_174              = 1;
+        work->field_170              = 2;
+        work->obj350.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         return;
     }
     Actor04000_Fn00E6C(arg1);
     switch (arg0->placeKey >> 12) {
         case 6:
         case 7:
-            arg0->node.state.b.flags = 0;
-            obj->flags               = 0;
+            arg0->node.state.parts.flags = 0;
+            obj->flags                   = 0;
             break;
         case 3:
         case 4:
         case 5:
         default:
-            arg0->node.state.b.flags = 1;
-            obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
@@ -3366,16 +3366,16 @@ static void Actor04000_Fn06BC8(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 4;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 4;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -3392,16 +3392,16 @@ static void Actor04000_Fn06C80(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        obj                      = arg1->extra.tmd;
-        arg0->node.state.b.flags = 0;
-        obj->flags               = 0;
-        work->field_174          = 6;
-        work->field_170          = 1;
-        work->field_178          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        obj                          = arg1->extra.tmd;
+        arg0->node.state.parts.flags = 0;
+        obj->flags                   = 0;
+        work->field_174              = 6;
+        work->field_170              = 1;
+        work->field_178              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         return;
     }
@@ -3418,15 +3418,15 @@ static void Actor04000_Fn06D38(GpEnemy* arg0, Task* arg1)
 
     work = arg1->work;
     if (work->field_4 != 0) {
-        arg1->extra.tmd->flags   = 0;
-        arg0->node.state.b.flags = 5;
-        work->field_174          = 1;
-        work->field_170          = 2;
-        work->field_178          = 0;
-        work->obj350.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->obj388.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj3C0.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->obj270.flags      |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        arg1->extra.tmd->flags       = 0;
+        arg0->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->field_174              = 1;
+        work->field_170              = 2;
+        work->field_178              = 0;
+        work->obj350.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->obj388.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj3C0.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->obj270.flags          |= WORLD_COLLISION_BODY_GRID_ENABLED;
         Actor04000_Fn00E6C(arg1);
         angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
         Gfx_RotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, 1);
@@ -3479,7 +3479,7 @@ void Actor04000_Fn06F54(Task* arg0)
     if (Gp_StateF0.prefix.bytes.field_0 == 1) {
         for (i = 0; i < 6; i++) {
             if (Actor04000_D0C718[i] != NULL) {
-                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2.pointer)->node.state.b.flags = 0;
+                ((GpEnemy*)Actor04000_D0C718[i]->spawnArg2.pointer)->node.state.parts.flags = 0;
             }
         }
         arg0->state++;

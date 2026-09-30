@@ -635,15 +635,15 @@ static void func_actor_207200_8014B278(GpEnemy* arg0, Task* arg1)
     arg0->field_4       = &coord->coord;
     arg0->field_48      = 0;
     Gp_LinkNode(&arg0->node);
-    arg0->coord              = coord;
-    arg0->node.state.b.flags = 0;
-    arg0->bodyPos.vx         = 0;
-    arg0->bodyPos.vy         = 0;
-    arg0->bodyPos.vz         = 0;
-    arg0->param              = &D_actor_207200_8014E7D4;
-    arg0->recs               = work->rec3;
-    arg0->hp                 = (u16)D_actor_207200_8014E7D4.hpMax;
-    work->field_44C.vy       = (coord)->param.rot.vy;
+    arg0->coord                  = coord;
+    arg0->node.state.parts.flags = 0;
+    arg0->bodyPos.vx             = 0;
+    arg0->bodyPos.vy             = 0;
+    arg0->bodyPos.vz             = 0;
+    arg0->param                  = &D_actor_207200_8014E7D4;
+    arg0->recs                   = work->rec3;
+    arg0->hp                     = (u16)D_actor_207200_8014E7D4.hpMax;
+    work->field_44C.vy           = (coord)->param.rot.vy;
     func_800B3F84((AnimationContext*)work, D_actor_207200_80153ED4, obj,
                   work->field_12C, (AnimationSlot*)work->field_14);
     for (i = 1; i < 7; i++) {
@@ -1334,8 +1334,8 @@ static void func_actor_207200_8014CA84(GpEnemy* arg0, Task* arg1)
         case 1:
             break;
         case 2:
-            obj->flags              |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags = 1;
+            obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case 0:
         default:
@@ -1497,7 +1497,7 @@ void func_actor_207200_8014D280(Task* arg0)
 
 /// Per-frame tick of the actor's live state. `Gp_StateF0.field_4` gates it: mode 1
 /// skips the update and runs only the tail, mode 2 puts the model in its
-/// hidden pose (part flag 0x80, node flag 1) and returns without updating,
+/// hidden pose (part flag 0x80, node not lockable) and returns without updating,
 /// mode 0 clears both flags before falling into the update, and any other mode
 /// updates directly. The update drives the model's two attach coordinates,
 /// clears the display flags of the first two parts and recomputes the second
@@ -1526,12 +1526,12 @@ ge2:
     }
     goto default_body;
 case0:
-    arg1->extra.tmd->flags   = 0;
-    arg0->node.state.b.flags = 0;
+    arg1->extra.tmd->flags       = 0;
+    arg0->node.state.parts.flags = 0;
     goto default_body;
 case2:
-    arg1->extra.tmd->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 default_body:
     func_actor_207200_8014D41C(arg1);

@@ -1035,7 +1035,7 @@ static s32 Actor02100_Fn014E4(Task* arg0)
     GfxCoord*                 coord;
     GfxCoord*                 targetCoord;
     VECTOR*                   vec;
-    GpLinkNode*               lock;
+    WorldTargetNode*          lock;
     u8*                       head;
     s32                       result;
     s32                       state;
@@ -1798,8 +1798,8 @@ static void Actor02100_Fn03168(Task* arg0)
 
 /// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
 /// gameplay mode: mode 1 only refreshes the actor colour, mode 2 parks the
-/// actor (`field_C` 0x80, node flag 1) and returns, and mode 0 re-shows it
-/// (`field_C` 0, node flag 8) before falling into the normal body. The body
+/// actor (`field_C` 0x80, node not lockable) and returns, and mode 0 re-shows it
+/// (`field_C` 0, node HP hidden) before falling into the normal body. The body
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
 /// task over to `Actor02100_Fn035D4` - once `Gp_StateF0.field_26` reports the kill.
@@ -1832,15 +1832,15 @@ ge2:
     }
     goto body;
 case0:
-    obj->flags               = 0;
-    arg0->node.state.b.flags = 8;
+    obj->flags                   = 0;
+    arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
     goto body;
 case1:
     Actor02100_Fn03488(arg1);
     return;
 case2:
-    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags = one;
+    obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    arg0->node.state.parts.flags = one;
     return;
 body:
     Actor02100_Fn004C4(arg1);

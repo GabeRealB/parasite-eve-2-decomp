@@ -1027,17 +1027,17 @@ static void func_actor_420700_80131E24(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_420700_8013239C;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->otOffset                = 1;
-    obj->flags                   = 0;
-    D_actor_420700_8013EFE4      = task;
-    D_actor_420700_8013EFE8      = Task_SpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
-    D_actor_420700_8013EFEC      = Task_SpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
+    task->exitCallback               = func_actor_420700_8013239C;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->otOffset                    = 1;
+    obj->flags                       = 0;
+    D_actor_420700_8013EFE4          = task;
+    D_actor_420700_8013EFE8          = Task_SpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
+    D_actor_420700_8013EFEC          = Task_SpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
     actorTintTask(D_actor_420700_8013EFE8, enemy);
     obj->lightMtx           = &D_actor_420700_8013EFE0->light;
     obj->colorMtx           = &D_actor_420700_8013EFE0->color;

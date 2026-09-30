@@ -1086,20 +1086,20 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_461800_80132A90;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->otOffset                = 1;
-    obj->flags                   = 0;
-    obj->lightMtx                = &D_actor_461800_80143894->light;
-    obj->colorMtx                = &D_actor_461800_80143894->color;
-    vec.vx                       = coord->workm.t[0];
-    vec.vy                       = coord->workm.t[1] - 0x320;
-    D_actor_461800_80143898      = task;
-    vec.vz                       = coord->workm.t[2];
+    task->exitCallback               = func_actor_461800_80132A90;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->otOffset                    = 1;
+    obj->flags                       = 0;
+    obj->lightMtx                    = &D_actor_461800_80143894->light;
+    obj->colorMtx                    = &D_actor_461800_80143894->color;
+    vec.vx                           = coord->workm.t[0];
+    vec.vy                           = coord->workm.t[1] - 0x320;
+    D_actor_461800_80143898          = task;
+    vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_461800_80143894->rig.anim, D_actor_461800_80139FB0, obj,
                   D_actor_461800_80143894->rig.poses, D_actor_461800_80143894->rig.slots);
@@ -1438,19 +1438,19 @@ static void func_actor_461800_8013307C(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_461800_80133634;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->otOffset                = 1;
-    obj->lightMtx                = &D_actor_461800_801438A0->light;
-    obj->colorMtx                = &D_actor_461800_801438A0->color;
-    vec.vx                       = coord->workm.t[0];
-    vec.vy                       = coord->workm.t[1] - 0x320;
-    D_actor_461800_801438A4      = task;
-    vec.vz                       = coord->workm.t[2];
+    task->exitCallback               = func_actor_461800_80133634;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->otOffset                    = 1;
+    obj->lightMtx                    = &D_actor_461800_801438A0->light;
+    obj->colorMtx                    = &D_actor_461800_801438A0->color;
+    vec.vx                           = coord->workm.t[0];
+    vec.vy                           = coord->workm.t[1] - 0x320;
+    D_actor_461800_801438A4          = task;
+    vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&D_actor_461800_801438A0->rig.anim, D_actor_461800_801437F8, obj,
                   D_actor_461800_801438A0->rig.poses, D_actor_461800_801438A0->rig.slots);

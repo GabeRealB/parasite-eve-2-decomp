@@ -9,6 +9,7 @@
 
 #include "gameplay/item_pickup.h"
 #include "gameplay/world_state.h"
+#include "gameplay/world_targets_types.h"
 
 #include "main/session_types.h"
 #include "main/task_types.h"
@@ -19,29 +20,29 @@ void func_800DA6E8(void* arg0, s32 arg1, s32 arg2);
 
 /// Detaches `node` from every actor slot locked onto it and takes it off the
 /// tracked list.
-void Gp_UnlinkNode(GpLinkNode* node);
+void Gp_UnlinkNode(WorldTargetNode* node);
 
 /// Appends `node` to the tracked list when it is not already on it, and marks
 /// it lockable.
-void Gp_LinkNode(GpLinkNode* node);
+void Gp_LinkNode(WorldTargetNode* node);
 
 /// Two-bit mask of `Gp_ActorSlots[]`: the slots whose actor is locked onto
 /// `node`.
-s32 Gp_NodeSlotMask(GpLinkNode* node);
+s32 Gp_NodeSlotMask(WorldTargetNode* node);
 
 /// Locks actor slot 0 onto `node`, releasing whichever node held it, and marks
 /// `node` lockable.
-void Gp_AssignNodeSlot0(GpLinkNode* node);
+void Gp_AssignNodeSlot0(WorldTargetNode* node);
 
 /// Detaches `node` from every actor slot and marks it un-lockable, leaving it
 /// on the tracked list.
-void Gp_ClearNodeSlots(GpLinkNode* node);
+void Gp_ClearNodeSlots(WorldTargetNode* node);
 
 void* Gp_FindLockNode(Task* arg0);
 
 void* Gp_FindLockNodePad(Task* arg0);
 
-void Gp_GetLockPos(GpLinkNode* arg0, VECTOR3* out);
+void Gp_GetLockPos(WorldTargetNode* arg0, VECTOR3* out);
 
 s32 Gp_LoadActorImage(Task* arg0, GpImgRec* arg1, RECT* arg2);
 

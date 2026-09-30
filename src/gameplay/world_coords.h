@@ -6,11 +6,11 @@
 
 #include "types.h"
 
-struct GpLinkNode;
+struct WorldTargetNode;
 
 /// Current `Gp_LinkList` node whose lock-on reticle `Gp_DrawTargetCursor` is
 /// drawing. Cleared when the walk finds no live target.
-extern struct GpLinkNode* D_80115260;
+extern struct WorldTargetNode* D_80115260;
 
 /// Lerp / settle counter for that reticle. `< 5` eases `D_8010F9EC` /
 /// `D_8010F9F0` toward the projected coords (small sprite); `0xFF` snaps.

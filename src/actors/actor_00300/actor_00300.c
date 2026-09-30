@@ -3347,7 +3347,7 @@ static void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
         case 0:
             arg1->extra.tmd->flags            = 0;
             work->field_43C->extra.tmd->flags = 0;
-            arg0->node.state.b.flags          = work->field_698 != 0;
+            arg0->node.state.parts.flags      = work->field_698 != 0;
             break;
         case 1:
             Actor00300_Fn04FB0(arg1);
@@ -3356,7 +3356,7 @@ static void Actor00300_Fn047CC(GpEnemy* arg0, Task* arg1)
         case 2:
             arg1->extra.tmd->flags            = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->field_43C->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.b.flags          = 1;
+            arg0->node.state.parts.flags      = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     if (gGameSession->eventState != 0) {

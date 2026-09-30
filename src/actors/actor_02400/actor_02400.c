@@ -546,12 +546,12 @@ static void Actor02400_Fn0095C(GpEnemy* enemy, Task* task)
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     Gp_LinkNode(&enemy->node);
-    enemy->bodyPos.vy         = -0x96;
-    enemy->coord              = coord;
-    enemy->node.state.b.flags = 0;
-    enemy->bodyPos.vx         = 0;
-    enemy->bodyPos.vz         = 0;
-    enemy->recs               = work->rec60;
+    enemy->bodyPos.vy             = -0x96;
+    enemy->coord                  = coord;
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->recs                   = work->rec60;
     if (work->variant == 0) {
         enemy->param = &Actor02400_Params0;
         enemy->hp    = Actor02400_Params0.hpMax;
@@ -1631,12 +1631,12 @@ static void Actor02400_Fn02E0C(GpEnemy* enemy, Task* task)
         case 1:
             goto case1;
         case 0:
-            obj->flags                = 0;
-            enemy->node.state.b.flags = 0;
+            obj->flags                    = 0;
+            enemy->node.state.parts.flags = 0;
             break;
         case 2:
-            obj->flags                = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            enemy->node.state.b.flags = 1;
+            obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
     Actor02400_Fn00C08(task);

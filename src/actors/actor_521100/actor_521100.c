@@ -3376,8 +3376,8 @@ static void func_actor_521100_80135414(GpEnemy* arg0, Task* arg1)
 {
     Actor521100Work* temp_s0;
 
-    temp_s0                  = arg1->work;
-    arg0->node.state.b.flags = 1;
+    temp_s0                      = arg1->work;
+    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     func_actor_521100_80135964(arg1);
     func_actor_521100_80135A34(arg1);
     func_actor_521100_80135A90(arg1);
@@ -3417,16 +3417,16 @@ ge2:
 case0:
     temp_a1->flags                       = 0;
     temp_s1->field_654->extra.tmd->flags = 0;
-    arg0->node.state.b.flags             = 8;
+    arg0->node.state.parts.flags         = WORLD_TARGET_HIDE_HP;
     goto default_body;
 case2:
     temp_a1->flags                       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     temp_s1->field_654->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    arg0->node.state.b.flags             = one;
+    arg0->node.state.parts.flags         = one;
     return;
 default_body:
     if (temp_s1->field_6B0 == 0) {
-        arg0->node.state.b.flags = 1;
+        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
     func_actor_521100_801322F8(arg1, temp_a1, one);
