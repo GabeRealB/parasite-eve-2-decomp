@@ -633,12 +633,12 @@ Layout, from `Gp_AnimInitCtx` / `Gp_AnimResetSlot` / `Gp_AnimResetSlotEx` in
 `src/gameplay/scene_runtime.c`:
 
 ```text
-table entry ─→ GpAnimSet*[]        slot 0 unused; NULL entries are holes
+table entry ─→ AnimationSet*[]        slot 0 unused; NULL entries are holes
 
-GpAnimSet (types in include/gameplay/animation.h):
-  0x00  AnimationRecord* recs         base of the 4-byte track records
-  0x04  u16*             trackStart   track index table (values are record indices)
-  0x08  AnimationPackedRotation*     poseBanks[8] pose banks, indexed by a record's flags & 0xF
+AnimationSet (types in include/gameplay/animation.h):
+  0x00  const AnimationRecord* records            shared 4-byte keyframe/control records
+  0x04  const u16*             trackStartIndices  absolute first-record index per model-part track
+  0x08  const void*            poseBanks[8]       banks indexed by the track's encoding (1 or 4)
 
 AnimationRecord (4 bytes):
   0x00  u16 wordOffset     pose-bank word offset, or absolute record index for a jump;
@@ -656,11 +656,11 @@ Pose bank formats, dispatched by `animationTickSlotPose` on `GpAnimSlot.poseKind
 | 1 | `AnimationPackedPose` | six signed halfwords: local XYZ translation, then XYZ Euler angles |
 | 4 | `AnimationPackedRotation` | `s32 rx:11, ry:10, rz:11` |
 
-**Clip walk.** Entry *n* of the index table gives the first record of clip *n*;
+**Clip walk.** Entry *n* of the index table gives the first record of model-part track *n*;
 records run on until one has `flags >= 0xC0`. The index table has no explicit
 terminator, and stopping at the first non-ascending value is *not* enough — past
 the real end it keeps finding plausible ascending `u16`s and over-runs. The
-record array is the bound: it runs from `recs` up to `trackStart`, so no index
+record array is the bound: it runs from `records` up to `trackStartIndices`, so no index
 may reach the byte distance between them divided by four.
 
 Worked example — `pe2pkg_2` (a weapon), set at `0x8011DAD8`:
@@ -817,7 +817,7 @@ figures dropped once the scanner stopped accepting zero padding as a stream —
 see [`TMD_FORMAT.md` §2.1](TMD_FORMAT.md#21-rejecting-false-streams).)
 
 **Animation blocks cannot be carved the same way.** A block's pieces are spread
-across the package rather than sitting in one range: the `GpAnimSet*[]` table is
+across the package rather than sitting in one range: the `AnimationSet*[]` table is
 near the end, the sets and their record arrays near the start. Measured spans
 are 91–99% of the whole package (e.g. `pe2pkg_11`: pieces from `0x00004` to
 `0x0CF18` of a 53 332-byte file), so a byte range holding "the animation" would

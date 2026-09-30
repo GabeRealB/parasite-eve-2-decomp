@@ -160,13 +160,13 @@ extern TmdSource D_actor_510900_801427AC;
 
 extern TmdSource D_actor_510900_8014313C;
 
-extern GpAnimSet D_actor_510900_801597B4;
+extern AnimationSet D_actor_510900_801597B4;
 
-extern GpAnimSet D_actor_510900_80159DFC;
+extern AnimationSet D_actor_510900_80159DFC;
 
-extern GpAnimSet D_actor_510900_80167294;
+extern AnimationSet D_actor_510900_80167294;
 
-extern GpAnimSet D_actor_510900_80167940;
+extern AnimationSet D_actor_510900_80167940;
 
 extern GpU16Pair D_actor_510900_80167968;
 

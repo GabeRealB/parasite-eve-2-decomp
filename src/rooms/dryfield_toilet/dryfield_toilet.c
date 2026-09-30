@@ -109,7 +109,7 @@ u16 D_dryfield_toilet_801805EC[20] = {
 #include "assets/dryfield_toilet_animation_03054_indices.inc"
 };
 
-GpAnimSet D_dryfield_toilet_80180614 = {
+AnimationSet D_dryfield_toilet_80180614 = {
     D_dryfield_toilet_80180438,
     D_dryfield_toilet_801805EC,
     { NULL, D_dryfield_toilet_80180338, NULL, NULL, D_dryfield_toilet_80180380, NULL, NULL, NULL },
@@ -131,7 +131,7 @@ u16 D_dryfield_toilet_80180B3C[20] = {
 #include "assets/dryfield_toilet_animation_035A4_indices.inc"
 };
 
-GpAnimSet D_dryfield_toilet_80180B64 = {
+AnimationSet D_dryfield_toilet_80180B64 = {
     D_dryfield_toilet_801808B4,
     D_dryfield_toilet_80180B3C,
     { NULL, D_dryfield_toilet_8018063C, NULL, NULL, D_dryfield_toilet_801806A8, NULL, NULL, NULL },

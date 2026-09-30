@@ -133,7 +133,7 @@ extern TaskDesc D_actor_342100_801648DC[];
 /// Null-terminated table of the overlay's per-state message tables, counted
 /// and reported by `func_actor_342100_80162F54` when it arms the encounter:
 /// three live entries and the null word that ends them.
-extern GpAnimSet* D_actor_342100_80164900[4];
+extern AnimationSet* D_actor_342100_80164900[4];
 
 /// Animation step table `func_actor_342100_801629B8` walks: `s16` entries
 /// holding the anim id one step on from `field_3C`, sent as the message's
@@ -221,7 +221,7 @@ u16 D_actor_342100_801637E8[20] = {
 #include "assets/actor_342100_animation_019F0_indices.inc"
 };
 
-GpAnimSet D_actor_342100_80163810 = {
+AnimationSet D_actor_342100_80163810 = {
     D_actor_342100_80163634,
     D_actor_342100_801637E8,
     { NULL, D_actor_342100_80163534, NULL, NULL, D_actor_342100_8016357C, NULL, NULL, NULL },
@@ -243,7 +243,7 @@ u16 D_actor_342100_80164224[20] = {
 #include "assets/actor_342100_animation_0242C_indices.inc"
 };
 
-GpAnimSet D_actor_342100_8016424C = {
+AnimationSet D_actor_342100_8016424C = {
     D_actor_342100_80163CD0,
     D_actor_342100_80164224,
     { NULL, D_actor_342100_80163838, NULL, NULL, D_actor_342100_801638F8, NULL, NULL, NULL },
@@ -265,7 +265,7 @@ u16 D_actor_342100_8016488C[20] = {
 #include "assets/actor_342100_animation_02A94_indices.inc"
 };
 
-GpAnimSet D_actor_342100_801648B4 = {
+AnimationSet D_actor_342100_801648B4 = {
     D_actor_342100_8016456C,
     D_actor_342100_8016488C,
     { NULL, D_actor_342100_80164274, NULL, NULL, D_actor_342100_8016431C, NULL, NULL, NULL },
@@ -282,7 +282,7 @@ Actor342100MessageEntry D_actor_342100_801648F8[1] = {
     { 2011, { .call0 = func_actor_342100_80163344 } },
 };
 
-GpAnimSet* D_actor_342100_80164900[4] = {
+AnimationSet* D_actor_342100_80164900[4] = {
     &D_actor_342100_80163810,
     &D_actor_342100_801648B4,
     &D_actor_342100_8016424C,

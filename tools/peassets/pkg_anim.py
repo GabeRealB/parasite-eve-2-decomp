@@ -13,13 +13,13 @@ the right block per package on its own.
 
 Layout, from ``Gp_AnimInitCtx`` / ``Gp_AnimResetSlot`` in ``src/gameplay/scene_runtime.c``:
 
-    table entry            -> GpAnimSet*[]  (slot 0 unused)
-    GpAnimSet.recs         -> AnimationRecord[] 4-byte records; a clip ends at the
-                              first record with flags >= 0xC0
-    GpAnimSet.trackStart   -> u16[]         clip index table, values are record
-                              indices
-    GpAnimSet.poseBanks[n] -> pose bank, selected by a record's ``flags & 0xF``
-                              (1 = AnimationPackedPose, 4 = AnimationPackedRotation)
+    table entry                    -> AnimationSet*[] (slot 0 unused)
+    AnimationSet.records           -> read-only AnimationRecord[]; track end
+                                      commands carry flags >= 0xC0
+    AnimationSet.trackStartIndices -> read-only u16[]; absolute first-record
+                                      index for each model-part track
+    AnimationSet.poseBanks[n]      -> read-only bank selected by track encoding
+                                      (1 AnimationPackedPose, 4 AnimationPackedRotation)
 
 This writes structure, not poses: how many clips a weapon or actor has, how
 long each is, and which pose format it uses. Decoding the banks themselves
@@ -64,7 +64,7 @@ def read_set(data: bytes, base: int, source_offset: int) -> dict:
     """Validate and delimit a self-contained animation set in a package.
 
     These exported sets store pose banks, keyframes, track starts, then the
-    0x28-byte GpAnimSet descriptor. Validate the accesses made by the animation
+    0x28-byte AnimationSet descriptor. Validate the accesses made by the animation
     player before treating that range as a resource. A shared or otherwise
     different layout is not accepted by this delimiter.
     """
@@ -177,7 +177,7 @@ def _walk_clip(data: bytes, base: int, records_va: int, start: int) -> list[dict
 
 
 def decode_block(data: bytes, base: int, table_va: int) -> AnimBlock | None:
-    """Read one ``GpAnimSet*[]`` table, or None if it does not belong here."""
+    """Read one ``AnimationSet*[]`` table, or None if it does not belong here."""
     end = base + len(data)
 
     def inside(addr: int) -> bool:

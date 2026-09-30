@@ -456,7 +456,7 @@ u16 D_acropolis_forked_road_80181B94[20] = {
 #include "assets/acropolis_forked_road_animation_045FC_indices.inc"
 };
 
-GpAnimSet D_acropolis_forked_road_80181BBC = {
+AnimationSet D_acropolis_forked_road_80181BBC = {
     D_acropolis_forked_road_801819E0,
     D_acropolis_forked_road_80181B94,
     { NULL, D_acropolis_forked_road_801818E0, NULL, NULL, D_acropolis_forked_road_80181928, NULL, NULL, NULL },
@@ -479,13 +479,13 @@ u16 D_acropolis_forked_road_80182004[20] = {
 
 };
 
-GpAnimSet D_acropolis_forked_road_8018202C = {
+AnimationSet D_acropolis_forked_road_8018202C = {
     D_acropolis_forked_road_80181DD8,
     D_acropolis_forked_road_80182004,
     { NULL, D_acropolis_forked_road_80181BE4, NULL, NULL, D_acropolis_forked_road_80181C5C, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_acropolis_forked_road_80182054[3] = {
+AnimationSet* D_acropolis_forked_road_80182054[3] = {
     NULL,
     &D_acropolis_forked_road_80181BBC,
     &D_acropolis_forked_road_8018202C,

@@ -33,7 +33,7 @@ STATIC_ASSERT_SIZEOF(RoomEventMsg, 0x8);
 struct GpXformArg;
 struct AnimationPlayRequest;
 struct GpCmdArg;
-struct GpAnimSet;
+struct AnimationSet;
 
 struct _GpMsg13EF;
 
@@ -118,13 +118,13 @@ enum {
 /// weapon or companion before dispatch.
 typedef struct AnimationPlayRequest {
     union {
-        s32                index; // Receiver-specific animation bank selector
-        struct GpAnimSet** sets;  // Borrowed animation-set table for install/replace messages
+        s32                   index; // Receiver-specific animation bank selector
+        struct AnimationSet** sets;  // Borrowed animation-set table for install/replace messages
     } source;
-    s32 animationId;              // Receiver-specific animation id within the selected bank
-    s32 blend;                    // Transition choice (0 reset, nonzero interpolate when supported)
-    s32 blendFrames;              // Requested transition duration in frames; ignored on reset
-    s32 enableWorldCollision;     // Player/companion world collision and ground following (0 disable, nonzero enable)
+    s32 animationId;                 // Receiver-specific animation id within the selected bank
+    s32 blend;                       // Transition choice (0 reset, nonzero interpolate when supported)
+    s32 blendFrames;                 // Requested transition duration in frames; ignored on reset
+    s32 enableWorldCollision;        // Player/companion world collision and ground following (0 disable, nonzero enable)
 } AnimationPlayRequest;
 STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 
@@ -133,8 +133,8 @@ STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 /// is usually an array of animation-set pointers; the receiver copies words.
 typedef struct GpCopyArg {
     union {
-        s32*               words;
-        struct GpAnimSet** sets;
+        s32*                  words;
+        struct AnimationSet** sets;
     } source;
     s32 count;
 } GpCopyArg;

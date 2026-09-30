@@ -76,7 +76,7 @@ extern s16           Actor05500_D08A5C[][2];
 extern ActorSpriteUv Actor05500_D08A80[];
 extern s16           Actor05500_D08AA0[];
 extern TaskDesc      Actor05500_D08ABC;
-extern GpAnimSet*    Actor05500_D08AD4[15];
+extern AnimationSet* Actor05500_D08AD4[15];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -162,22 +162,22 @@ static void Actor05500_Fn03E34(GpEnemy* enemy, Task* task);
         }                                                                                        \
     } while (0)
 
-extern GpAnimSet Actor05500_D061A0;
-extern GpAnimSet Actor05500_D06454;
-extern GpAnimSet Actor05500_D068D8;
-extern GpAnimSet Actor05500_D06E1C;
-extern GpAnimSet Actor05500_D074E4;
-extern GpAnimSet Actor05500_D077AC;
-extern GpAnimSet Actor05500_D0793C;
-extern GpAnimSet Actor05500_D07B50;
-extern GpAnimSet Actor05500_D07E90;
-extern GpAnimSet Actor05500_D08148;
-extern GpAnimSet Actor05500_D083F4;
-extern GpAnimSet Actor05500_D08780;
-extern GpAnimSet Actor05500_D08930;
-extern TmdSource Actor05500_D05774;
-void             Actor05500_Fn03DD8(Task*);
-void             Actor05500_Fn03F88(Task*);
+extern AnimationSet Actor05500_D061A0;
+extern AnimationSet Actor05500_D06454;
+extern AnimationSet Actor05500_D068D8;
+extern AnimationSet Actor05500_D06E1C;
+extern AnimationSet Actor05500_D074E4;
+extern AnimationSet Actor05500_D077AC;
+extern AnimationSet Actor05500_D0793C;
+extern AnimationSet Actor05500_D07B50;
+extern AnimationSet Actor05500_D07E90;
+extern AnimationSet Actor05500_D08148;
+extern AnimationSet Actor05500_D083F4;
+extern AnimationSet Actor05500_D08780;
+extern AnimationSet Actor05500_D08930;
+extern TmdSource    Actor05500_D05774;
+void                Actor05500_Fn03DD8(Task*);
+void                Actor05500_Fn03F88(Task*);
 
 TmdBone Actor05500_D03FE4[8] = {
 #include "assets/actor_105500_model_05774_skeleton.inc"
@@ -259,7 +259,7 @@ u16 Actor05500_D06190[8] = {
 #include "assets/actor_105500_animation_061A0_indices.inc"
 };
 
-GpAnimSet Actor05500_D061A0 = {
+AnimationSet Actor05500_D061A0 = {
     Actor05500_D06068,
     Actor05500_D06190,
     { NULL, Actor05500_D05F3C, NULL, NULL, Actor05500_D05FB4, NULL, NULL, NULL },
@@ -281,7 +281,7 @@ u16 Actor05500_D06444[8] = {
 #include "assets/actor_105500_animation_06454_indices.inc"
 };
 
-GpAnimSet Actor05500_D06454 = {
+AnimationSet Actor05500_D06454 = {
     Actor05500_D062FC,
     Actor05500_D06444,
     { NULL, Actor05500_D061C8, NULL, NULL, Actor05500_D0624C, NULL, NULL, NULL },
@@ -303,7 +303,7 @@ u16 Actor05500_D068C8[8] = {
 #include "assets/actor_105500_animation_068D8_indices.inc"
 };
 
-GpAnimSet Actor05500_D068D8 = {
+AnimationSet Actor05500_D068D8 = {
     Actor05500_D06698,
     Actor05500_D068C8,
     { NULL, Actor05500_D0647C, NULL, NULL, Actor05500_D06518, NULL, NULL, NULL },
@@ -325,7 +325,7 @@ u16 Actor05500_D06E0C[8] = {
 #include "assets/actor_105500_animation_06E1C_indices.inc"
 };
 
-GpAnimSet Actor05500_D06E1C = {
+AnimationSet Actor05500_D06E1C = {
     Actor05500_D06BBC,
     Actor05500_D06E0C,
     { NULL, Actor05500_D06900, NULL, NULL, Actor05500_D06A74, NULL, NULL, NULL },
@@ -347,7 +347,7 @@ u16 Actor05500_D074D4[8] = {
 #include "assets/actor_105500_animation_074E4_indices.inc"
 };
 
-GpAnimSet Actor05500_D074E4 = {
+AnimationSet Actor05500_D074E4 = {
     Actor05500_D071D8,
     Actor05500_D074D4,
     { NULL, Actor05500_D06E44, NULL, NULL, Actor05500_D06F88, NULL, NULL, NULL },
@@ -369,7 +369,7 @@ u16 Actor05500_D0779C[8] = {
 #include "assets/actor_105500_animation_077AC_indices.inc"
 };
 
-GpAnimSet Actor05500_D077AC = {
+AnimationSet Actor05500_D077AC = {
     Actor05500_D0765C,
     Actor05500_D0779C,
     { NULL, Actor05500_D0750C, NULL, NULL, Actor05500_D07590, NULL, NULL, NULL },
@@ -391,7 +391,7 @@ u16 Actor05500_D0792C[8] = {
 #include "assets/actor_105500_animation_0793C_indices.inc"
 };
 
-GpAnimSet Actor05500_D0793C = {
+AnimationSet Actor05500_D0793C = {
     Actor05500_D07884,
     Actor05500_D0792C,
     { NULL, Actor05500_D077D4, NULL, NULL, Actor05500_D0781C, NULL, NULL, NULL },
@@ -413,7 +413,7 @@ u16 Actor05500_D07B40[8] = {
 #include "assets/actor_105500_animation_07B50_indices.inc"
 };
 
-GpAnimSet Actor05500_D07B50 = {
+AnimationSet Actor05500_D07B50 = {
     Actor05500_D07A58,
     Actor05500_D07B40,
     { NULL, Actor05500_D07964, NULL, NULL, Actor05500_D079D0, NULL, NULL, NULL },
@@ -435,7 +435,7 @@ u16 Actor05500_D07E80[8] = {
 #include "assets/actor_105500_animation_07E90_indices.inc"
 };
 
-GpAnimSet Actor05500_D07E90 = {
+AnimationSet Actor05500_D07E90 = {
     Actor05500_D07CFC,
     Actor05500_D07E80,
     { NULL, Actor05500_D07B78, NULL, NULL, Actor05500_D07C14, NULL, NULL, NULL },
@@ -457,7 +457,7 @@ u16 Actor05500_D08138[8] = {
 #include "assets/actor_105500_animation_08148_indices.inc"
 };
 
-GpAnimSet Actor05500_D08148 = {
+AnimationSet Actor05500_D08148 = {
     Actor05500_D07FF8,
     Actor05500_D08138,
     { NULL, Actor05500_D07EB8, NULL, NULL, Actor05500_D07F24, NULL, NULL, NULL },
@@ -479,7 +479,7 @@ u16 Actor05500_D083E4[8] = {
 #include "assets/actor_105500_animation_083F4_indices.inc"
 };
 
-GpAnimSet Actor05500_D083F4 = {
+AnimationSet Actor05500_D083F4 = {
     Actor05500_D082A0,
     Actor05500_D083E4,
     { NULL, Actor05500_D08170, NULL, NULL, Actor05500_D081DC, NULL, NULL, NULL },
@@ -501,7 +501,7 @@ u16 Actor05500_D08770[8] = {
 #include "assets/actor_105500_animation_08780_indices.inc"
 };
 
-GpAnimSet Actor05500_D08780 = {
+AnimationSet Actor05500_D08780 = {
     Actor05500_D08600,
     Actor05500_D08770,
     { NULL, Actor05500_D0841C, NULL, NULL, Actor05500_D0850C, NULL, NULL, NULL },
@@ -523,7 +523,7 @@ u16 Actor05500_D08920[8] = {
 #include "assets/actor_105500_animation_08930_indices.inc"
 };
 
-GpAnimSet Actor05500_D08930 = {
+AnimationSet Actor05500_D08930 = {
     Actor05500_D08830,
     Actor05500_D08920,
     { NULL, Actor05500_D087A8, NULL, NULL, Actor05500_D087E4, NULL, NULL, NULL },
@@ -696,7 +696,7 @@ TaskDesc Actor05500_D08ABC = { 1, 96, Actor05500_Fn03F88, { .model = &Actor05500
 
 TaskDesc Actor05500_D08AC8 = { 2, 96, Actor05500_Fn03DD8, { .model = NULL } };
 
-GpAnimSet* Actor05500_D08AD4[15] = {
+AnimationSet* Actor05500_D08AD4[15] = {
     NULL,
     &Actor05500_D061A0,
     &Actor05500_D06454,

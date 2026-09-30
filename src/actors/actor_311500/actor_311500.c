@@ -91,8 +91,8 @@ typedef struct Actor311500Work {
 } Actor311500Work;
 STATIC_ASSERT_SIZEOF(Actor311500Work, 0x4D8);
 
-extern GpPairSrcE D_actor_311500_801692C0;
-extern GpAnimSet* D_actor_311500_801692F4[2];
+extern GpPairSrcE    D_actor_311500_801692C0;
+extern AnimationSet* D_actor_311500_801692F4[2];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -108,11 +108,11 @@ extern s32 D_actor_311500_801692FC[2];
 extern s32 D_actor_311500_80169304[8];
 extern s32 D_actor_311500_80169324[3];
 
-extern GpAnimSet D_actor_311500_80168FA8;
-extern GpAnimSet D_actor_311500_80169290;
-extern TmdSource D_actor_311500_80168BF8;
-void             func_actor_311500_80163334(Task*);
-void             func_actor_311500_801636A0(Task*, s32, s32, u32*);
+extern AnimationSet D_actor_311500_80168FA8;
+extern AnimationSet D_actor_311500_80169290;
+extern TmdSource    D_actor_311500_80168BF8;
+void                func_actor_311500_80163334(Task*);
+void                func_actor_311500_801636A0(Task*, s32, s32, u32*);
 
 TmdBone D_actor_311500_801636B4[19] = {
 #include "assets/actor_311500_model_06DD8_skeleton.inc"
@@ -162,7 +162,7 @@ u16 D_actor_311500_80168F80[20] = {
 #include "assets/actor_311500_animation_07188_indices.inc"
 };
 
-GpAnimSet D_actor_311500_80168FA8 = {
+AnimationSet D_actor_311500_80168FA8 = {
     D_actor_311500_80168DA8,
     D_actor_311500_80168F80,
     { NULL, D_actor_311500_80168C1C, NULL, NULL, D_actor_311500_80168C64, NULL, NULL, NULL },
@@ -184,7 +184,7 @@ u16 D_actor_311500_80169268[20] = {
 #include "assets/actor_311500_animation_07470_indices.inc"
 };
 
-GpAnimSet D_actor_311500_80169290 = {
+AnimationSet D_actor_311500_80169290 = {
     D_actor_311500_801690DC,
     D_actor_311500_80169268,
     { NULL, D_actor_311500_80168FD0, NULL, NULL, D_actor_311500_8016900C, NULL, NULL, NULL },
@@ -218,7 +218,7 @@ u16 D_actor_311500_801692D0[18] = {
     0,
 };
 
-GpAnimSet* D_actor_311500_801692F4[2] = {
+AnimationSet* D_actor_311500_801692F4[2] = {
     &D_actor_311500_80169290,
     &D_actor_311500_80168FA8,
 };

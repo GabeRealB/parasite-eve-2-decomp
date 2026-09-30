@@ -189,10 +189,10 @@ extern s32  D_80144A74;
 extern s32  D_80144A7C;
 
 /// Parameter record `func_actor_341900_801628B8` sends with message 0x3F4.
-extern GpAnimSet* D_actor_341900_801639A4[2];
-extern GpAnimSet* D_actor_341900_801639AC[3];
-extern GpAnimSet* D_actor_341900_801639B8[3];
-extern GpAnimSet* D_actor_341900_801639C4[3];
+extern AnimationSet* D_actor_341900_801639A4[2];
+extern AnimationSet* D_actor_341900_801639AC[3];
+extern AnimationSet* D_actor_341900_801639B8[3];
+extern AnimationSet* D_actor_341900_801639C4[3];
 /// Animation id `func_actor_341900_80161E58` hands every slot to
 /// `func_800B4114`, indexed by `Actor341900AnimWork::field_218`; a negative
 /// entry skips the call.
@@ -271,30 +271,30 @@ u16 D_actor_341900_80163954[20] = {
 #include "assets/actor_341900_animation_01B5C_indices.inc"
 };
 
-GpAnimSet D_actor_341900_8016397C = {
+AnimationSet D_actor_341900_8016397C = {
     D_actor_341900_801637A0,
     D_actor_341900_80163954,
     { NULL, D_actor_341900_801636A0, NULL, NULL, D_actor_341900_801636E8, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_341900_801639A4[2] = {
+AnimationSet* D_actor_341900_801639A4[2] = {
     &D_actor_341900_8016397C,
     &D_actor_444000_8015FFB8,
 };
 
-GpAnimSet* D_actor_341900_801639AC[3] = {
+AnimationSet* D_actor_341900_801639AC[3] = {
     &D_actor_444000_801529F4,
     &D_actor_444000_80152E34,
     &D_actor_444000_8015E060,
 };
 
-GpAnimSet* D_actor_341900_801639B8[3] = {
+AnimationSet* D_actor_341900_801639B8[3] = {
     &D_actor_444000_80152AA0,
     &D_actor_444000_801530F8,
     &D_actor_444000_8015E0EC,
 };
 
-GpAnimSet* D_actor_341900_801639C4[3] = {
+AnimationSet* D_actor_341900_801639C4[3] = {
     &D_actor_444000_80152B4C,
     &D_actor_444000_801533D4,
     &D_actor_444000_8015E178,

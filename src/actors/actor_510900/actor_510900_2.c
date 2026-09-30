@@ -156,14 +156,14 @@ typedef struct Actor510900HitScratch {
 STATIC_ASSERT_SIZEOF(Actor510900HitScratch, 0x2C);
 
 /// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
-extern GpAnimSet* D_actor_510900_80167B2C[];
+extern AnimationSet* D_actor_510900_80167B2C[];
 
 /// Spawn position of the child, indexed by its `Task::spawnArg1`.
 extern SVECTOR D_actor_510900_80167CB8[];
 /// Spawn rotation about Y, indexed the same way.
 extern u16 D_actor_510900_80167CD0[];
 /// Animation set table `func_800B3F84` installs in the context above.
-extern GpAnimSet* D_actor_510900_80167CAC[];
+extern AnimationSet* D_actor_510900_80167CAC[];
 
 /// `Actor510900ChildFx::field_CE` per 1000 units of distance between the child
 /// and the player, clamped to the last entry.
@@ -557,7 +557,7 @@ u8 D_actor_510900_80167AA4[136] = {
     128,
 };
 
-GpAnimSet* D_actor_510900_80167B2C[3] = {
+AnimationSet* D_actor_510900_80167B2C[3] = {
     NULL,
     &D_actor_510900_801597B4,
     &D_actor_510900_80159DFC,
@@ -668,7 +668,7 @@ u16 D_actor_510900_80167C94[12] = {
     5,
 };
 
-GpAnimSet* D_actor_510900_80167CAC[3] = {
+AnimationSet* D_actor_510900_80167CAC[3] = {
     NULL,
     &D_actor_510900_80167294,
     &D_actor_510900_80167940,
@@ -2312,12 +2312,12 @@ static void func_actor_510900_80138978(Task* arg0)
 /// next frame at the end.
 static void func_actor_510900_80138A9C(Task* arg0)
 {
-    s32              snd;
-    s32              pan;
-    s32              pan2;
-    Actor510900Work* work;
-    GfxCoord*        coord;
-    AnimationRecord* rec;
+    s32                    snd;
+    s32                    pan;
+    s32                    pan2;
+    Actor510900Work*       work;
+    GfxCoord*              coord;
+    const AnimationRecord* rec;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;

@@ -84,7 +84,7 @@ u16 D_mist_parking_8018FF90[20] = {
 #include "assets/mist_parking_animation_129F8_indices.inc"
 };
 
-GpAnimSet D_mist_parking_8018FFB8 = {
+AnimationSet D_mist_parking_8018FFB8 = {
     D_mist_parking_8018FDDC,
     D_mist_parking_8018FF90,
     { NULL, D_mist_parking_8018FCDC, NULL, NULL, D_mist_parking_8018FD24, NULL, NULL, NULL },
@@ -106,7 +106,7 @@ u16 D_mist_parking_80190364[20] = {
 #include "assets/mist_parking_animation_12DCC_indices.inc"
 };
 
-GpAnimSet D_mist_parking_8019038C = {
+AnimationSet D_mist_parking_8019038C = {
     D_mist_parking_80190190,
     D_mist_parking_80190364,
     { NULL, D_mist_parking_8018FFE0, NULL, NULL, D_mist_parking_80190040, NULL, NULL, NULL },
@@ -128,7 +128,7 @@ u16 D_mist_parking_801907D4[20] = {
 #include "assets/mist_parking_animation_1323C_indices.inc"
 };
 
-GpAnimSet D_mist_parking_801907FC = {
+AnimationSet D_mist_parking_801907FC = {
     D_mist_parking_8019057C,
     D_mist_parking_801907D4,
     { NULL, D_mist_parking_801903B4, NULL, NULL, D_mist_parking_801903F0, NULL, NULL, NULL },

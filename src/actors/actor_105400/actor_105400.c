@@ -78,7 +78,7 @@ extern Actor105400MsgEntry D_actor_105400_80133A00[];
 extern Actor05400Pose      D_actor_105400_80133A30;
 extern GpPairSrcE          D_actor_105400_8013CE30;
 extern u32                 D_actor_105400_8013CE60;
-extern GpAnimSet*          D_actor_105400_8013CEB8[];
+extern AnimationSet*       D_actor_105400_8013CEB8[];
 extern TaskDesc            D_actor_105400_8013CEA0[2];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -94,12 +94,12 @@ static void func_actor_105400_80133610(Task* arg0);
 static void func_actor_105400_801336D4(Task* arg0, MATRIX* arg1, s16 arg2, s32 arg3);
 static void func_actor_105400_80133838(GpEnemy* arg0, Task* arg1);
 
-extern GpAnimSet D_actor_105400_8013C5E0;
-extern GpAnimSet D_actor_105400_8013CA20;
-extern GpAnimSet D_actor_105400_8013CE08;
-extern TmdSource D_actor_105400_8013C46C;
-void             func_actor_105400_801337DC(Task*);
-void             func_actor_105400_801339A4(Task*);
+extern AnimationSet D_actor_105400_8013C5E0;
+extern AnimationSet D_actor_105400_8013CA20;
+extern AnimationSet D_actor_105400_8013CE08;
+extern TmdSource    D_actor_105400_8013C46C;
+void                func_actor_105400_801337DC(Task*);
+void                func_actor_105400_801339A4(Task*);
 
 s16 Actor05400_Fn01B70(Task*);
 s32 func_actor_105400_8013391C(Task*, s32, GpCmdArg*);
@@ -182,7 +182,7 @@ u16 D_actor_105400_8013C5CC[10] = {
 #include "assets/actor_105400_animation_0A7C0_indices.inc"
 };
 
-GpAnimSet D_actor_105400_8013C5E0 = {
+AnimationSet D_actor_105400_8013C5E0 = {
     D_actor_105400_8013C4E4,
     D_actor_105400_8013C5CC,
     { NULL, D_actor_105400_8013C490, NULL, NULL, D_actor_105400_8013C4C0, NULL, NULL, NULL },
@@ -204,7 +204,7 @@ u16 D_actor_105400_8013CA0C[10] = {
 #include "assets/actor_105400_animation_0AC00_indices.inc"
 };
 
-GpAnimSet D_actor_105400_8013CA20 = {
+AnimationSet D_actor_105400_8013CA20 = {
     D_actor_105400_8013C7F4,
     D_actor_105400_8013CA0C,
     { NULL, D_actor_105400_8013C608, NULL, NULL, D_actor_105400_8013C68C, NULL, NULL, NULL },
@@ -226,7 +226,7 @@ u16 D_actor_105400_8013CDF4[10] = {
 #include "assets/actor_105400_animation_0AFE8_indices.inc"
 };
 
-GpAnimSet D_actor_105400_8013CE08 = {
+AnimationSet D_actor_105400_8013CE08 = {
     D_actor_105400_8013CBFC,
     D_actor_105400_8013CDF4,
     { NULL, D_actor_105400_8013CA48, NULL, NULL, D_actor_105400_8013CAA8, NULL, NULL, NULL },
@@ -275,7 +275,7 @@ TaskDesc D_actor_105400_8013CEA0[2] = {
     { 2, 96, func_actor_105400_801337DC, { .model = NULL } },
 };
 
-GpAnimSet* D_actor_105400_8013CEB8[4] = {
+AnimationSet* D_actor_105400_8013CEB8[4] = {
     NULL,
     &D_actor_105400_8013C5E0,
     &D_actor_105400_8013CA20,

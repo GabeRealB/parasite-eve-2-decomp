@@ -17,7 +17,7 @@ extern TmdSource D_shelter_b3_dumping_hole_80187D74;
 
 extern s16 D_shelter_b3_dumping_hole_8018809C;
 
-extern GpAnimSet* D_shelter_b3_dumping_hole_801880A0[6];
+extern AnimationSet* D_shelter_b3_dumping_hole_801880A0[6];
 
 extern TaskDesc D_shelter_b3_dumping_hole_80189ADC[2];
 

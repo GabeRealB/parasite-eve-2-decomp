@@ -5,7 +5,7 @@
 
 #include "main/task_types.h"
 
-extern GpAnimSet* D_actor_310100_801797FC[13];
+extern AnimationSet* D_actor_310100_801797FC[13];
 
 extern TaskDesc D_actor_310100_801798FC[];
 

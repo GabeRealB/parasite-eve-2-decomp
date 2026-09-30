@@ -73,12 +73,12 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[17];
-        GpCopyArg  copy;
-        u8         text0[16];
-        u8         text1[20];
-        u8         text2[12];
-        u8*        options[4];
+        AnimationSet* sets[17];
+        GpCopyArg     copy;
+        u8            text0[16];
+        u8            text1[20];
+        u8            text2[12];
+        u8*           options[4];
     } data;
     s32 words[35];
 } DryfieldTrailerCoachAnimStorage5368;
@@ -214,8 +214,8 @@ extern AnimationPlayRequest                D_dryfield_trailer_coach_80185318;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_8018532C;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_80185340;
 extern AnimationPlayRequest                D_dryfield_trailer_coach_80185354;
-extern GpAnimSet                           D_dryfield_trailer_coach_80184C28;
-extern GpAnimSet                           D_dryfield_trailer_coach_80184F54;
+extern AnimationSet                        D_dryfield_trailer_coach_80184C28;
+extern AnimationSet                        D_dryfield_trailer_coach_80184F54;
 extern GpCmdArg                            D_dryfield_trailer_coach_8018518C;
 extern GpCmdArg                            D_dryfield_trailer_coach_80185190;
 extern GpCmdArg                            D_dryfield_trailer_coach_80185194;
@@ -286,7 +286,7 @@ u16 D_dryfield_trailer_coach_80184C00[20] = {
 #include "assets/dryfield_trailer_coach_animation_07668_indices.inc"
 };
 
-GpAnimSet D_dryfield_trailer_coach_80184C28 = {
+AnimationSet D_dryfield_trailer_coach_80184C28 = {
     D_dryfield_trailer_coach_80184A00,
     D_dryfield_trailer_coach_80184C00,
     { NULL, D_dryfield_trailer_coach_80184898, NULL, NULL, D_dryfield_trailer_coach_801848BC, NULL, NULL, NULL },
@@ -308,7 +308,7 @@ u16 D_dryfield_trailer_coach_80184F2C[20] = {
 #include "assets/dryfield_trailer_coach_animation_07994_indices.inc"
 };
 
-GpAnimSet D_dryfield_trailer_coach_80184F54 = {
+AnimationSet D_dryfield_trailer_coach_80184F54 = {
     D_dryfield_trailer_coach_80184D84,
     D_dryfield_trailer_coach_80184F2C,
     { NULL, D_dryfield_trailer_coach_80184C50, NULL, NULL, D_dryfield_trailer_coach_80184CA4, NULL, NULL, NULL },

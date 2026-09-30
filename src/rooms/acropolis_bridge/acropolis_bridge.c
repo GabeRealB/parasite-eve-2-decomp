@@ -2168,7 +2168,7 @@ u16 D_acropolis_bridge_80191290[4] = {
 #include "assets/acropolis_bridge_animation_13CD8_indices.inc"
 };
 
-GpAnimSet D_acropolis_bridge_80191298 = {
+AnimationSet D_acropolis_bridge_80191298 = {
     D_acropolis_bridge_8019122C,
     D_acropolis_bridge_80191290,
     { NULL, D_acropolis_bridge_801911C0, NULL, NULL, D_acropolis_bridge_80191208, NULL, NULL, NULL },
@@ -2190,7 +2190,7 @@ u16 D_acropolis_bridge_80191390[4] = {
 #include "assets/acropolis_bridge_animation_13DD8_indices.inc"
 };
 
-GpAnimSet D_acropolis_bridge_80191398 = {
+AnimationSet D_acropolis_bridge_80191398 = {
     D_acropolis_bridge_8019132C,
     D_acropolis_bridge_80191390,
     { NULL, D_acropolis_bridge_801912C0, NULL, NULL, D_acropolis_bridge_80191308, NULL, NULL, NULL },
@@ -2212,7 +2212,7 @@ u16 D_acropolis_bridge_80191400[4] = {
 #include "assets/acropolis_bridge_animation_13E48_indices.inc"
 };
 
-GpAnimSet D_acropolis_bridge_80191408 = {
+AnimationSet D_acropolis_bridge_80191408 = {
     D_acropolis_bridge_801913E0,
     D_acropolis_bridge_80191400,
     { NULL, D_acropolis_bridge_801913C0, NULL, NULL, D_acropolis_bridge_801913D8, NULL, NULL, NULL },
@@ -2234,7 +2234,7 @@ u16 D_acropolis_bridge_80191518[4] = {
 #include "assets/acropolis_bridge_animation_13F60_indices.inc"
 };
 
-GpAnimSet D_acropolis_bridge_80191520 = {
+AnimationSet D_acropolis_bridge_80191520 = {
     D_acropolis_bridge_801914A0,
     D_acropolis_bridge_80191518,
     { NULL, D_acropolis_bridge_80191430, NULL, NULL, D_acropolis_bridge_80191478, NULL, NULL, NULL },
@@ -2257,13 +2257,13 @@ u16 D_acropolis_bridge_80191598[4] = {
 
 };
 
-GpAnimSet D_acropolis_bridge_801915A0 = {
+AnimationSet D_acropolis_bridge_801915A0 = {
     D_acropolis_bridge_80191568,
     D_acropolis_bridge_80191598,
     { NULL, D_acropolis_bridge_80191548, NULL, NULL, D_acropolis_bridge_80191560, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_acropolis_bridge_801915C8[7] = {
+AnimationSet* D_acropolis_bridge_801915C8[7] = {
     NULL,
     &D_acropolis_bridge_80191298,
     &D_acropolis_bridge_80191398,
@@ -2468,7 +2468,7 @@ s32 D_acropolis_bridge_801917A8;
 
 DR_MOVE* D_acropolis_bridge_801917AC;
 
-extern GpAnimSet* D_acropolis_bridge_801915C8[7];
+extern AnimationSet* D_acropolis_bridge_801915C8[7];
 
 extern OverlayWalkerNode D_acropolis_bridge_8019162C[];
 

@@ -284,7 +284,7 @@ u16 D_mine_cavern_80183F70[20] = {
 #include "assets/mine_cavern_animation_069D8_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80183F98 = {
+AnimationSet D_mine_cavern_80183F98 = {
     D_mine_cavern_80183DBC,
     D_mine_cavern_80183F70,
     { NULL, D_mine_cavern_80183CBC, NULL, NULL, D_mine_cavern_80183D04, NULL, NULL, NULL },
@@ -306,7 +306,7 @@ u16 D_mine_cavern_80184710[20] = {
 #include "assets/mine_cavern_animation_07178_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80184738 = {
+AnimationSet D_mine_cavern_80184738 = {
     D_mine_cavern_80184328,
     D_mine_cavern_80184710,
     { NULL, D_mine_cavern_80183FC0, NULL, NULL, D_mine_cavern_8018405C, NULL, NULL, NULL },
@@ -328,7 +328,7 @@ u16 D_mine_cavern_80184ADC[20] = {
 #include "assets/mine_cavern_animation_07544_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80184B04 = {
+AnimationSet D_mine_cavern_80184B04 = {
     D_mine_cavern_801848A8,
     D_mine_cavern_80184ADC,
     { NULL, D_mine_cavern_80184760, NULL, NULL, D_mine_cavern_801847A8, NULL, NULL, NULL },
@@ -350,7 +350,7 @@ u16 D_mine_cavern_80184D1C[20] = {
 #include "assets/mine_cavern_animation_07784_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80184D44 = {
+AnimationSet D_mine_cavern_80184D44 = {
     D_mine_cavern_80184C04,
     D_mine_cavern_80184D1C,
     { NULL, D_mine_cavern_80184B2C, NULL, NULL, D_mine_cavern_80184B5C, NULL, NULL, NULL },
@@ -372,7 +372,7 @@ u16 D_mine_cavern_80184EF0[20] = {
 #include "assets/mine_cavern_animation_07958_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80184F18 = {
+AnimationSet D_mine_cavern_80184F18 = {
     D_mine_cavern_80184E0C,
     D_mine_cavern_80184EF0,
     { NULL, D_mine_cavern_80184D6C, NULL, NULL, D_mine_cavern_80184D90, NULL, NULL, NULL },
@@ -394,7 +394,7 @@ u16 D_mine_cavern_8018513C[20] = {
 #include "assets/mine_cavern_animation_07BA4_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80185164 = {
+AnimationSet D_mine_cavern_80185164 = {
     D_mine_cavern_80184FD8,
     D_mine_cavern_8018513C,
     { NULL, D_mine_cavern_80184F40, NULL, NULL, D_mine_cavern_80184F64, NULL, NULL, NULL },
@@ -416,7 +416,7 @@ u16 D_mine_cavern_80185710[20] = {
 #include "assets/mine_cavern_animation_08178_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80185738 = {
+AnimationSet D_mine_cavern_80185738 = {
     D_mine_cavern_801853C0,
     D_mine_cavern_80185710,
     { NULL, D_mine_cavern_8018518C, NULL, NULL, D_mine_cavern_801851EC, NULL, NULL, NULL },
@@ -438,7 +438,7 @@ u16 D_mine_cavern_801859B8[20] = {
 #include "assets/mine_cavern_animation_08420_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_801859E0 = {
+AnimationSet D_mine_cavern_801859E0 = {
     D_mine_cavern_80185848,
     D_mine_cavern_801859B8,
     { NULL, D_mine_cavern_80185760, NULL, NULL, D_mine_cavern_80185790, NULL, NULL, NULL },
@@ -460,7 +460,7 @@ u16 D_mine_cavern_80186058[20] = {
 #include "assets/mine_cavern_animation_08AC0_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80186080 = {
+AnimationSet D_mine_cavern_80186080 = {
     D_mine_cavern_80185D28,
     D_mine_cavern_80186058,
     { NULL, D_mine_cavern_80185A08, NULL, NULL, D_mine_cavern_80185A98, NULL, NULL, NULL },
@@ -482,7 +482,7 @@ u16 D_mine_cavern_8018624C[20] = {
 #include "assets/mine_cavern_animation_08CB4_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80186274 = {
+AnimationSet D_mine_cavern_80186274 = {
     D_mine_cavern_80186110,
     D_mine_cavern_8018624C,
     { NULL, D_mine_cavern_801860A8, NULL, NULL, D_mine_cavern_801860C0, NULL, NULL, NULL },
@@ -504,7 +504,7 @@ u16 D_mine_cavern_8018685C[20] = {
 #include "assets/mine_cavern_animation_092C4_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80186884 = {
+AnimationSet D_mine_cavern_80186884 = {
     D_mine_cavern_80186578,
     D_mine_cavern_8018685C,
     { NULL, D_mine_cavern_8018629C, NULL, NULL, D_mine_cavern_80186320, NULL, NULL, NULL },
@@ -526,7 +526,7 @@ u16 D_mine_cavern_80186C7C[20] = {
 #include "assets/mine_cavern_animation_096E4_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80186CA4 = {
+AnimationSet D_mine_cavern_80186CA4 = {
     D_mine_cavern_80186A6C,
     D_mine_cavern_80186C7C,
     { NULL, D_mine_cavern_801868AC, NULL, NULL, D_mine_cavern_8018690C, NULL, NULL, NULL },
@@ -548,7 +548,7 @@ u16 D_mine_cavern_80186F60[20] = {
 #include "assets/mine_cavern_animation_099C8_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_80186F88 = {
+AnimationSet D_mine_cavern_80186F88 = {
     D_mine_cavern_80186DF0,
     D_mine_cavern_80186F60,
     { NULL, D_mine_cavern_80186CCC, NULL, NULL, D_mine_cavern_80186D08, NULL, NULL, NULL },
@@ -570,7 +570,7 @@ u16 D_mine_cavern_801871C4[20] = {
 #include "assets/mine_cavern_animation_09C2C_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_801871EC = {
+AnimationSet D_mine_cavern_801871EC = {
     D_mine_cavern_80187020,
     D_mine_cavern_801871C4,
     { NULL, D_mine_cavern_80186FB0, NULL, NULL, D_mine_cavern_80186FC8, NULL, NULL, NULL },
@@ -592,7 +592,7 @@ u16 D_mine_cavern_801874B4[20] = {
 #include "assets/mine_cavern_animation_09F1C_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_801874DC = {
+AnimationSet D_mine_cavern_801874DC = {
     D_mine_cavern_801872E4,
     D_mine_cavern_801874B4,
     { NULL, D_mine_cavern_80187214, NULL, NULL, D_mine_cavern_80187244, NULL, NULL, NULL },
@@ -614,7 +614,7 @@ u16 D_mine_cavern_80187924[20] = {
 #include "assets/mine_cavern_animation_0A38C_indices.inc"
 };
 
-GpAnimSet D_mine_cavern_8018794C = {
+AnimationSet D_mine_cavern_8018794C = {
     D_mine_cavern_801876F8,
     D_mine_cavern_80187924,
     { NULL, D_mine_cavern_80187504, NULL, NULL, D_mine_cavern_8018757C, NULL, NULL, NULL },
@@ -622,7 +622,7 @@ GpAnimSet D_mine_cavern_8018794C = {
 
 TaskDesc D_mine_cavern_80187974 = { 0, 192, func_mine_cavern_8017E18C, { .model = NULL } };
 
-GpAnimSet* D_mine_cavern_80187980[17] = {
+AnimationSet* D_mine_cavern_80187980[17] = {
     NULL,
     &D_mine_cavern_80183F98,
     &D_mine_cavern_80184B04,

@@ -172,7 +172,7 @@ STATIC_ASSERT_SIZEOF(Actor04600RecoveredMsgEntry, 8);
 extern Actor04600RecoveredMsgEntry Actor04600_D05868[2];
 
 /// The animation data `func_800B3F84` seeds the first enemy's slots from.
-extern GpAnimSet* Actor04600_D05890[4];
+extern AnimationSet* Actor04600_D05890[4];
 
 /// Offset of the 0x60030 effect the first enemy's death spawns.
 extern SVECTOR Actor04600_D058A0;
@@ -184,7 +184,7 @@ extern SVECTOR Actor04600_D058A8;
 extern GpPairSrcE Actor04600_D058B4;
 
 /// The animation data `func_800B3F84` seeds the second enemy's slots from.
-extern GpAnimSet* Actor04600_D064A8[3];
+extern AnimationSet* Actor04600_D064A8[3];
 
 /// Offsets of the spark and hit effects the second enemy's hit handler spawns.
 extern SVECTOR Actor04600_D064B4;
@@ -221,14 +221,14 @@ static void Actor04600_Fn03F30(Task* task);
 static void Actor04600_Fn0400C(Task* arg0);
 static void Actor04600_Fn04100(Task* task);
 
-extern GpAnimSet Actor04600_D05554;
-extern GpAnimSet Actor04600_D0569C;
-extern GpAnimSet Actor04600_D05840;
-extern TmdSource Actor04600_D05200;
-s32              Actor04600_Fn01F54(Task*, s32, GpCmdArg*);
-void             Actor04600_Fn024A4(Task*);
-void             Actor04600_Fn02C6C(Task*);
-void             Actor04600_Fn03B80(Task*);
+extern AnimationSet Actor04600_D05554;
+extern AnimationSet Actor04600_D0569C;
+extern AnimationSet Actor04600_D05840;
+extern TmdSource    Actor04600_D05200;
+s32                 Actor04600_Fn01F54(Task*, s32, GpCmdArg*);
+void                Actor04600_Fn024A4(Task*);
+void                Actor04600_Fn02C6C(Task*);
+void                Actor04600_Fn03B80(Task*);
 
 GpU16Pair Actor04600_D0415C = { 30, 7 };
 
@@ -294,7 +294,7 @@ u16 Actor04600_D0554C[4] = {
 #include "assets/actor_104600_animation_05554_indices.inc"
 };
 
-GpAnimSet Actor04600_D05554 = {
+AnimationSet Actor04600_D05554 = {
     Actor04600_D05424,
     Actor04600_D0554C,
     { NULL, Actor04600_D05224, NULL, NULL, Actor04600_D053BC, NULL, NULL, NULL },
@@ -316,7 +316,7 @@ u16 Actor04600_D05694[4] = {
 #include "assets/actor_104600_animation_0569C_indices.inc"
 };
 
-GpAnimSet Actor04600_D0569C = {
+AnimationSet Actor04600_D0569C = {
     Actor04600_D05624,
     Actor04600_D05694,
     { NULL, Actor04600_D0557C, NULL, NULL, Actor04600_D05600, NULL, NULL, NULL },
@@ -338,7 +338,7 @@ u16 Actor04600_D05838[4] = {
 #include "assets/actor_104600_animation_05840_indices.inc"
 };
 
-GpAnimSet Actor04600_D05840 = {
+AnimationSet Actor04600_D05840 = {
     Actor04600_D057A8,
     Actor04600_D05838,
     { NULL, Actor04600_D056C4, NULL, NULL, Actor04600_D05778, NULL, NULL, NULL },
@@ -353,7 +353,7 @@ TaskDesc Actor04600_D05878 = { 1, 96, Actor04600_Fn024A4, { .model = &Actor04600
 
 TaskDesc Actor04600_D05884 = { 257, 96, Actor04600_Fn02C6C, { .model = &Actor04600_D05200 } };
 
-GpAnimSet* Actor04600_D05890[4] = {
+AnimationSet* Actor04600_D05890[4] = {
     NULL,
     &Actor04600_D05554,
     &Actor04600_D0569C,
@@ -416,7 +416,7 @@ u16 Actor04600_D06218[4] = {
 #include "assets/actor_104600_animation_06220_indices.inc"
 };
 
-GpAnimSet Actor04600_D06220 = {
+AnimationSet Actor04600_D06220 = {
     Actor04600_D06200,
     Actor04600_D06218,
     { NULL, Actor04600_D061E4, NULL, NULL, Actor04600_D061FC, NULL, NULL, NULL },
@@ -438,7 +438,7 @@ u16 Actor04600_D0646C[4] = {
 #include "assets/actor_104600_animation_06474_indices.inc"
 };
 
-GpAnimSet Actor04600_D06474 = {
+AnimationSet Actor04600_D06474 = {
     Actor04600_D06390,
     Actor04600_D0646C,
     { NULL, Actor04600_D06248, NULL, NULL, Actor04600_D06368, NULL, NULL, NULL },
@@ -446,7 +446,7 @@ GpAnimSet Actor04600_D06474 = {
 
 TaskDesc Actor04600_D0649C = { 1, 96, Actor04600_Fn03B80, { .model = &Actor04600_D061C0 } };
 
-GpAnimSet* Actor04600_D064A8[3] = {
+AnimationSet* Actor04600_D064A8[3] = {
     NULL,
     &Actor04600_D06220,
     &Actor04600_D06474,

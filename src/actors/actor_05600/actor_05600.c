@@ -67,7 +67,7 @@ extern u16* Actor05600_D16478[];
 extern TaskDesc Actor05600_D164A0[];
 
 /// Animation stream set bound into the work block's animation context.
-extern GpAnimSet* Actor05600_D164C4[31];
+extern AnimationSet* Actor05600_D164C4[31];
 
 /// Sound id of the burst cue, with the spawn context's room/channel bits packed
 /// in.
@@ -95,48 +95,48 @@ static void Actor05600_Fn04ACC(GpEnemy* arg0, Task* task);
 static void Actor05600_Fn04B10(GpEnemy* enemy, Task* task);
 static void Actor05600_Fn04C08(GpEnemy* arg0, Task* arg1);
 
-extern GpAnimSet Actor05600_D0B3CC;
-extern GpAnimSet Actor05600_D0BD34;
-extern GpAnimSet Actor05600_D0C35C;
-extern GpAnimSet Actor05600_D0CB5C;
-extern GpAnimSet Actor05600_D0D10C;
-extern GpAnimSet Actor05600_D0D5F0;
-extern GpAnimSet Actor05600_D0DA50;
-extern GpAnimSet Actor05600_D0EA28;
-extern GpAnimSet Actor05600_D0F980;
-extern GpAnimSet Actor05600_D0FEA4;
-extern GpAnimSet Actor05600_D108B4;
-extern GpAnimSet Actor05600_D1135C;
-extern GpAnimSet Actor05600_D1193C;
-extern GpAnimSet Actor05600_D12630;
-extern GpAnimSet Actor05600_D136A8;
-extern GpAnimSet Actor05600_D13B7C;
-extern GpAnimSet Actor05600_D13E8C;
-extern GpAnimSet Actor05600_D14068;
-extern GpAnimSet Actor05600_D14FB0;
-extern GpAnimSet Actor05600_D15544;
-extern GpAnimSet Actor05600_D1580C;
-extern GpAnimSet Actor05600_D159E8;
-extern GpAnimSet Actor05600_D16194;
-extern TmdSource Actor05600_D0A020;
-extern TmdSource Actor05600_D0A46C;
-extern TmdSource Actor05600_D0A798;
-void             Actor05600_Fn00B18(Task*);
-void             Actor05600_Fn00E38(Task*);
-void             Actor05600_Fn01214(Task*);
-void             Actor05600_Fn0130C(Task*);
-void             Actor05600_Fn01E1C(Task*);
-void             Actor05600_Fn023A0(Task*);
-void             Actor05600_Fn041E4(Task*);
-void             Actor05600_Fn046F0(Task*);
-void             Actor05600_Fn047D0(Task*);
-void             Actor05600_Fn0485C(Task*);
-void             Actor05600_Fn04924(Task*);
-void             Actor05600_Fn049B0(Task*);
-void             Actor05600_Fn04A68(Task*);
-void             Actor05600_Fn04A70(Task*);
-void             Actor05600_Fn04BAC(Task*);
-void             Actor05600_Fn04CA0(Task*);
+extern AnimationSet Actor05600_D0B3CC;
+extern AnimationSet Actor05600_D0BD34;
+extern AnimationSet Actor05600_D0C35C;
+extern AnimationSet Actor05600_D0CB5C;
+extern AnimationSet Actor05600_D0D10C;
+extern AnimationSet Actor05600_D0D5F0;
+extern AnimationSet Actor05600_D0DA50;
+extern AnimationSet Actor05600_D0EA28;
+extern AnimationSet Actor05600_D0F980;
+extern AnimationSet Actor05600_D0FEA4;
+extern AnimationSet Actor05600_D108B4;
+extern AnimationSet Actor05600_D1135C;
+extern AnimationSet Actor05600_D1193C;
+extern AnimationSet Actor05600_D12630;
+extern AnimationSet Actor05600_D136A8;
+extern AnimationSet Actor05600_D13B7C;
+extern AnimationSet Actor05600_D13E8C;
+extern AnimationSet Actor05600_D14068;
+extern AnimationSet Actor05600_D14FB0;
+extern AnimationSet Actor05600_D15544;
+extern AnimationSet Actor05600_D1580C;
+extern AnimationSet Actor05600_D159E8;
+extern AnimationSet Actor05600_D16194;
+extern TmdSource    Actor05600_D0A020;
+extern TmdSource    Actor05600_D0A46C;
+extern TmdSource    Actor05600_D0A798;
+void                Actor05600_Fn00B18(Task*);
+void                Actor05600_Fn00E38(Task*);
+void                Actor05600_Fn01214(Task*);
+void                Actor05600_Fn0130C(Task*);
+void                Actor05600_Fn01E1C(Task*);
+void                Actor05600_Fn023A0(Task*);
+void                Actor05600_Fn041E4(Task*);
+void                Actor05600_Fn046F0(Task*);
+void                Actor05600_Fn047D0(Task*);
+void                Actor05600_Fn0485C(Task*);
+void                Actor05600_Fn04924(Task*);
+void                Actor05600_Fn049B0(Task*);
+void                Actor05600_Fn04A68(Task*);
+void                Actor05600_Fn04A70(Task*);
+void                Actor05600_Fn04BAC(Task*);
+void                Actor05600_Fn04CA0(Task*);
 
 s16 Actor05600_D04CFC[32] = {
     0,
@@ -285,7 +285,7 @@ u16 Actor05600_D0B3A4[20] = {
 #include "assets/actor_105600_animation_0B3CC_indices.inc"
 };
 
-GpAnimSet Actor05600_D0B3CC = {
+AnimationSet Actor05600_D0B3CC = {
     Actor05600_D0ADAC,
     Actor05600_D0B3A4,
     { NULL, Actor05600_D0A7BC, NULL, NULL, Actor05600_D0A8B8, NULL, NULL, NULL },
@@ -307,7 +307,7 @@ u16 Actor05600_D0BD0C[20] = {
 #include "assets/actor_105600_animation_0BD34_indices.inc"
 };
 
-GpAnimSet Actor05600_D0BD34 = {
+AnimationSet Actor05600_D0BD34 = {
     Actor05600_D0B868,
     Actor05600_D0BD0C,
     { NULL, Actor05600_D0B3F4, NULL, NULL, Actor05600_D0B4B4, NULL, NULL, NULL },
@@ -329,7 +329,7 @@ u16 Actor05600_D0C334[20] = {
 #include "assets/actor_105600_animation_0C35C_indices.inc"
 };
 
-GpAnimSet Actor05600_D0C35C = {
+AnimationSet Actor05600_D0C35C = {
     Actor05600_D0C024,
     Actor05600_D0C334,
     { NULL, Actor05600_D0BD5C, NULL, NULL, Actor05600_D0BDEC, NULL, NULL, NULL },
@@ -351,7 +351,7 @@ u16 Actor05600_D0CB34[20] = {
 #include "assets/actor_105600_animation_0CB5C_indices.inc"
 };
 
-GpAnimSet Actor05600_D0CB5C = {
+AnimationSet Actor05600_D0CB5C = {
     Actor05600_D0C714,
     Actor05600_D0CB34,
     { NULL, Actor05600_D0C384, NULL, NULL, Actor05600_D0C42C, NULL, NULL, NULL },
@@ -373,7 +373,7 @@ u16 Actor05600_D0D0E4[20] = {
 #include "assets/actor_105600_animation_0D10C_indices.inc"
 };
 
-GpAnimSet Actor05600_D0D10C = {
+AnimationSet Actor05600_D0D10C = {
     Actor05600_D0CE1C,
     Actor05600_D0D0E4,
     { NULL, Actor05600_D0CB84, NULL, NULL, Actor05600_D0CBF0, NULL, NULL, NULL },
@@ -395,7 +395,7 @@ u16 Actor05600_D0D5C8[20] = {
 #include "assets/actor_105600_animation_0D5F0_indices.inc"
 };
 
-GpAnimSet Actor05600_D0D5F0 = {
+AnimationSet Actor05600_D0D5F0 = {
     Actor05600_D0D34C,
     Actor05600_D0D5C8,
     { NULL, Actor05600_D0D134, NULL, NULL, Actor05600_D0D1A0, NULL, NULL, NULL },
@@ -417,7 +417,7 @@ u16 Actor05600_D0DA28[20] = {
 #include "assets/actor_105600_animation_0DA50_indices.inc"
 };
 
-GpAnimSet Actor05600_D0DA50 = {
+AnimationSet Actor05600_D0DA50 = {
     Actor05600_D0D80C,
     Actor05600_D0DA28,
     { NULL, Actor05600_D0D618, NULL, NULL, Actor05600_D0D678, NULL, NULL, NULL },
@@ -439,7 +439,7 @@ u16 Actor05600_D0EA00[20] = {
 #include "assets/actor_105600_animation_0EA28_indices.inc"
 };
 
-GpAnimSet Actor05600_D0EA28 = {
+AnimationSet Actor05600_D0EA28 = {
     Actor05600_D0E230,
     Actor05600_D0EA00,
     { NULL, Actor05600_D0DA78, NULL, NULL, Actor05600_D0DBD4, NULL, NULL, NULL },
@@ -461,7 +461,7 @@ u16 Actor05600_D0F958[20] = {
 #include "assets/actor_105600_animation_0F980_indices.inc"
 };
 
-GpAnimSet Actor05600_D0F980 = {
+AnimationSet Actor05600_D0F980 = {
     Actor05600_D0F1F4,
     Actor05600_D0F958,
     { NULL, Actor05600_D0EA50, NULL, NULL, Actor05600_D0EB94, NULL, NULL, NULL },
@@ -483,7 +483,7 @@ u16 Actor05600_D0FE7C[20] = {
 #include "assets/actor_105600_animation_0FEA4_indices.inc"
 };
 
-GpAnimSet Actor05600_D0FEA4 = {
+AnimationSet Actor05600_D0FEA4 = {
     Actor05600_D0FBD8,
     Actor05600_D0FE7C,
     { NULL, Actor05600_D0F9A8, NULL, NULL, Actor05600_D0FA08, NULL, NULL, NULL },
@@ -505,7 +505,7 @@ u16 Actor05600_D1088C[20] = {
 #include "assets/actor_105600_animation_108B4_indices.inc"
 };
 
-GpAnimSet Actor05600_D108B4 = {
+AnimationSet Actor05600_D108B4 = {
     Actor05600_D103AC,
     Actor05600_D1088C,
     { NULL, Actor05600_D0FECC, NULL, NULL, Actor05600_D0FFB0, NULL, NULL, NULL },
@@ -527,7 +527,7 @@ u16 Actor05600_D11334[20] = {
 #include "assets/actor_105600_animation_1135C_indices.inc"
 };
 
-GpAnimSet Actor05600_D1135C = {
+AnimationSet Actor05600_D1135C = {
     Actor05600_D10E18,
     Actor05600_D11334,
     { NULL, Actor05600_D108DC, NULL, NULL, Actor05600_D109B4, NULL, NULL, NULL },
@@ -549,7 +549,7 @@ u16 Actor05600_D11914[20] = {
 #include "assets/actor_105600_animation_1193C_indices.inc"
 };
 
-GpAnimSet Actor05600_D1193C = {
+AnimationSet Actor05600_D1193C = {
     Actor05600_D115EC,
     Actor05600_D11914,
     { NULL, Actor05600_D11384, NULL, NULL, Actor05600_D113E4, NULL, NULL, NULL },
@@ -571,7 +571,7 @@ u16 Actor05600_D12608[20] = {
 #include "assets/actor_105600_animation_12630_indices.inc"
 };
 
-GpAnimSet Actor05600_D12630 = {
+AnimationSet Actor05600_D12630 = {
     Actor05600_D11F90,
     Actor05600_D12608,
     { NULL, Actor05600_D11964, NULL, NULL, Actor05600_D11A78, NULL, NULL, NULL },
@@ -593,7 +593,7 @@ u16 Actor05600_D13680[20] = {
 #include "assets/actor_105600_animation_136A8_indices.inc"
 };
 
-GpAnimSet Actor05600_D136A8 = {
+AnimationSet Actor05600_D136A8 = {
     Actor05600_D12E80,
     Actor05600_D13680,
     { NULL, Actor05600_D12658, NULL, NULL, Actor05600_D127CC, NULL, NULL, NULL },
@@ -615,7 +615,7 @@ u16 Actor05600_D13B54[20] = {
 #include "assets/actor_105600_animation_13B7C_indices.inc"
 };
 
-GpAnimSet Actor05600_D13B7C = {
+AnimationSet Actor05600_D13B7C = {
     Actor05600_D13900,
     Actor05600_D13B54,
     { NULL, Actor05600_D136D0, NULL, NULL, Actor05600_D1373C, NULL, NULL, NULL },
@@ -637,7 +637,7 @@ u16 Actor05600_D13E64[20] = {
 #include "assets/actor_105600_animation_13E8C_indices.inc"
 };
 
-GpAnimSet Actor05600_D13E8C = {
+AnimationSet Actor05600_D13E8C = {
     Actor05600_D13CE4,
     Actor05600_D13E64,
     { NULL, Actor05600_D13BA4, NULL, NULL, Actor05600_D13BE0, NULL, NULL, NULL },
@@ -659,7 +659,7 @@ u16 Actor05600_D14040[20] = {
 #include "assets/actor_105600_animation_14068_indices.inc"
 };
 
-GpAnimSet Actor05600_D14068 = {
+AnimationSet Actor05600_D14068 = {
     Actor05600_D13F10,
     Actor05600_D14040,
     { NULL, Actor05600_D13EB4, NULL, NULL, Actor05600_D13ECC, NULL, NULL, NULL },
@@ -681,7 +681,7 @@ u16 Actor05600_D14F88[20] = {
 #include "assets/actor_105600_animation_14FB0_indices.inc"
 };
 
-GpAnimSet Actor05600_D14FB0 = {
+AnimationSet Actor05600_D14FB0 = {
     Actor05600_D14808,
     Actor05600_D14F88,
     { NULL, Actor05600_D14090, NULL, NULL, Actor05600_D141E0, NULL, NULL, NULL },
@@ -703,7 +703,7 @@ u16 Actor05600_D1551C[20] = {
 #include "assets/actor_105600_animation_15544_indices.inc"
 };
 
-GpAnimSet Actor05600_D15544 = {
+AnimationSet Actor05600_D15544 = {
     Actor05600_D15240,
     Actor05600_D1551C,
     { NULL, Actor05600_D14FD8, NULL, NULL, Actor05600_D15044, NULL, NULL, NULL },
@@ -725,7 +725,7 @@ u16 Actor05600_D157E4[20] = {
 #include "assets/actor_105600_animation_1580C_indices.inc"
 };
 
-GpAnimSet Actor05600_D1580C = {
+AnimationSet Actor05600_D1580C = {
     Actor05600_D15688,
     Actor05600_D157E4,
     { NULL, Actor05600_D1556C, NULL, NULL, Actor05600_D155A8, NULL, NULL, NULL },
@@ -747,7 +747,7 @@ u16 Actor05600_D159C0[20] = {
 #include "assets/actor_105600_animation_159E8_indices.inc"
 };
 
-GpAnimSet Actor05600_D159E8 = {
+AnimationSet Actor05600_D159E8 = {
     Actor05600_D15890,
     Actor05600_D159C0,
     { NULL, Actor05600_D15834, NULL, NULL, Actor05600_D1584C, NULL, NULL, NULL },
@@ -769,7 +769,7 @@ u16 Actor05600_D1616C[20] = {
 #include "assets/actor_105600_animation_16194_indices.inc"
 };
 
-GpAnimSet Actor05600_D16194 = {
+AnimationSet Actor05600_D16194 = {
     Actor05600_D15D80,
     Actor05600_D1616C,
     { NULL, Actor05600_D15A10, NULL, NULL, Actor05600_D15AC4, NULL, NULL, NULL },
@@ -1150,7 +1150,7 @@ TaskDesc Actor05600_D164A0[2] = {
 
 TaskDesc Actor05600_D164B8 = { 1, 96, Actor05600_Fn04BAC, { .model = &Actor05600_D0A798 } };
 
-GpAnimSet* Actor05600_D164C4[31] = {
+AnimationSet* Actor05600_D164C4[31] = {
     NULL,
     &Actor05600_D0B3CC,
     &Actor05600_D0BD34,
@@ -2073,12 +2073,12 @@ static void Actor05600_Fn016C4(Task* arg0)
 /// from the model's root coordinate.
 static void Actor05600_Fn018D0(Task* arg0)
 {
-    s32              snd;
-    s32              pan;
-    s32              pan2;
-    Actor105600Work* work;
-    GfxCoord*        self;
-    AnimationRecord* rec;
+    s32                    snd;
+    s32                    pan;
+    s32                    pan2;
+    Actor105600Work*       work;
+    GfxCoord*              self;
+    const AnimationRecord* rec;
 
     work = (Actor105600Work*)arg0->work;
     self = arg0->extra.tmd->coords;

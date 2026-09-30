@@ -63,8 +63,8 @@ Task* D_dryfield_water_tank_80188D4C;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[19];
-        GpCopyArg  copy;
+        AnimationSet* sets[19];
+        GpCopyArg     copy;
     } data;
     s32 words[21];
 } DryfieldWaterTankAnimStorage4960;

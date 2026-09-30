@@ -1626,14 +1626,14 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
 
 s32 func_8010C30C(Task* arg0)
 {
-    TmdObject*  extra;
-    GfxCoord*   coord;
-    GfxCoord*   next;
-    GameActor*  actor;
-    VECTOR      vec;
-    GpAnimSet** prev;
-    GpAnimSet** anim;
-    s32         changed;
+    TmdObject*     extra;
+    GfxCoord*      coord;
+    GfxCoord*      next;
+    GameActor*     actor;
+    VECTOR         vec;
+    AnimationSet** prev;
+    AnimationSet** anim;
+    s32            changed;
 
     extra  = arg0->extra.tmd;
     coord  = extra->coords;

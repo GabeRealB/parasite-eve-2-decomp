@@ -122,7 +122,7 @@ u16 D_neo_ark_power_plant_2_8017FFE4[20] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_indices.inc"
 };
 
-GpAnimSet D_neo_ark_power_plant_2_8018000C = {
+AnimationSet D_neo_ark_power_plant_2_8018000C = {
     D_neo_ark_power_plant_2_8017FE84,
     D_neo_ark_power_plant_2_8017FFE4,
     { NULL, D_neo_ark_power_plant_2_8017FDF0, NULL, NULL, D_neo_ark_power_plant_2_8017FE14, NULL, NULL, NULL },
@@ -144,7 +144,7 @@ u16 D_neo_ark_power_plant_2_801801A8[20] = {
 #include "assets/neo_ark_power_plant_2_animation_02C10_indices.inc"
 };
 
-GpAnimSet D_neo_ark_power_plant_2_801801D0 = {
+AnimationSet D_neo_ark_power_plant_2_801801D0 = {
     D_neo_ark_power_plant_2_801800A4,
     D_neo_ark_power_plant_2_801801A8,
     { NULL, D_neo_ark_power_plant_2_80180034, NULL, NULL, D_neo_ark_power_plant_2_8018004C, NULL, NULL, NULL },
@@ -166,7 +166,7 @@ GpCmdArg D_neo_ark_power_plant_2_80180238 = { { .loc = { 5, 16 } }, 2 };
 
 GpCmdArg D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
 
-GpAnimSet* D_neo_ark_power_plant_2_80180240[3] = {
+AnimationSet* D_neo_ark_power_plant_2_80180240[3] = {
     NULL,
     &D_neo_ark_power_plant_2_8018000C,
     &D_neo_ark_power_plant_2_801801D0,

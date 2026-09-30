@@ -61,7 +61,7 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet*           sets[1];
+        AnimationSet*        sets[1];
         GpCopyArg            copy;
         AnimationPlayRequest arguments[1];
         GpEvsCmd             commands[8];
@@ -193,7 +193,7 @@ u16 D_neo_ark_observatory_8018115C[20] = {
 #include "assets/neo_ark_observatory_animation_03BC4_indices.inc"
 };
 
-GpAnimSet D_neo_ark_observatory_80181184 = {
+AnimationSet D_neo_ark_observatory_80181184 = {
     D_neo_ark_observatory_80180F28,
     D_neo_ark_observatory_8018115C,
     { NULL, D_neo_ark_observatory_80180DE0, NULL, NULL, D_neo_ark_observatory_80180E28, NULL, NULL, NULL },

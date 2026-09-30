@@ -43,22 +43,22 @@ typedef struct Actor310100Work {
     /* 0x000 */ ActorAnimRig19 rig;
     /// Light and colour matrices, handed to the model `TmdObject`'s `field_1C`
     /// and `field_20`.
-    /* 0x43C */ MATRIX           field_43C;
-    /* 0x45C */ MATRIX           field_45C;
-    /* 0x47C */ byte             pad_47C[0x68];
-    /* 0x4E4 */ Task*            field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
-    /* 0x4E8 */ Task*            field_4E8; // gameGetPtrSlot(3)
-    /* 0x4EC */ AnimationRecord* field_4EC; // record the frame handler last saw on slot 1
-    /* 0x4F0 */ u16              field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
-    /* 0x4F2 */ byte             pad_4F2[0x4];
-    /* 0x4F6 */ u16              field_4F6; // floor-quad yaw seed (func_actor_310100_80161F80)
-    /* 0x4F8 */ u16              field_4F8;
-    /* 0x4FA */ u16              field_4FA;
-    /* 0x4FC */ byte             pad_4FC[0x8];
-    /* 0x504 */ u16              field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
-    /* 0x506 */ u16              field_506; // passed down as the model task's spawnArg1
-    /* 0x508 */ u16              field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
-    /* 0x50A */ u16              field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
+    /* 0x43C */ MATRIX                 field_43C;
+    /* 0x45C */ MATRIX                 field_45C;
+    /* 0x47C */ byte                   pad_47C[0x68];
+    /* 0x4E4 */ Task*                  field_4E4; // display task, killed and cleared by func_actor_310100_80162F34
+    /* 0x4E8 */ Task*                  field_4E8; // gameGetPtrSlot(3)
+    /* 0x4EC */ const AnimationRecord* field_4EC; // record the frame handler last saw on slot 1
+    /* 0x4F0 */ u16                    field_4F0; // display state, parked at 2 by func_actor_310100_80162CDC
+    /* 0x4F2 */ byte                   pad_4F2[0x4];
+    /* 0x4F6 */ u16                    field_4F6; // floor-quad yaw seed (func_actor_310100_80161F80)
+    /* 0x4F8 */ u16                    field_4F8;
+    /* 0x4FA */ u16                    field_4FA;
+    /* 0x4FC */ byte                   pad_4FC[0x8];
+    /* 0x504 */ u16                    field_504; // handed to Task_SpawnFromTable as the display task's spawnArg1
+    /* 0x506 */ u16                    field_506; // passed down as the model task's spawnArg1
+    /* 0x508 */ u16                    field_508; // display id (0x6C / 0x6D), 0x6C selects the step-sound table
+    /* 0x50A */ u16                    field_50A; // next step-sound index into D_actor_310100_801798A8, capped at 2
 } Actor310100Work;
 STATIC_ASSERT_SIZEOF(Actor310100Work, 0x50C);
 
@@ -126,8 +126,8 @@ void func_actor_310100_80162F34(Task* task);
 extern TaskDesc D_actor_310100_801798E4;
 extern TaskDesc D_actor_310100_801798F0;
 
-extern GpAnimSet* D_actor_310100_80179754[16];
-extern GpAnimSet* D_actor_310100_80179794[26];
+extern AnimationSet* D_actor_310100_80179754[16];
+extern AnimationSet* D_actor_310100_80179794[26];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -304,7 +304,7 @@ u16 D_actor_310100_80177DF0[20] = {
 #include "assets/actor_310100_animation_15FF8_indices.inc"
 };
 
-GpAnimSet D_actor_310100_80177E18 = {
+AnimationSet D_actor_310100_80177E18 = {
     D_actor_310100_80177C00,
     D_actor_310100_80177DF0,
     { NULL, D_actor_310100_801779D0, NULL, NULL, D_actor_310100_80177ACC, NULL, NULL, NULL },
@@ -326,7 +326,7 @@ u16 D_actor_310100_80178004[20] = {
 #include "assets/actor_310100_animation_1620C_indices.inc"
 };
 
-GpAnimSet D_actor_310100_8017802C = {
+AnimationSet D_actor_310100_8017802C = {
     D_actor_310100_80177EC4,
     D_actor_310100_80178004,
     { NULL, D_actor_310100_80177E40, NULL, NULL, D_actor_310100_80177E64, NULL, NULL, NULL },
@@ -348,7 +348,7 @@ u16 D_actor_310100_801782B0[20] = {
 #include "assets/actor_310100_animation_164B8_indices.inc"
 };
 
-GpAnimSet D_actor_310100_801782D8 = {
+AnimationSet D_actor_310100_801782D8 = {
     D_actor_310100_80178180,
     D_actor_310100_801782B0,
     { NULL, D_actor_310100_80178054, NULL, NULL, D_actor_310100_801780FC, NULL, NULL, NULL },
@@ -370,7 +370,7 @@ u16 D_actor_310100_80178AE0[20] = {
 #include "assets/actor_310100_animation_16CE8_indices.inc"
 };
 
-GpAnimSet D_actor_310100_80178B08 = {
+AnimationSet D_actor_310100_80178B08 = {
     D_actor_310100_80178790,
     D_actor_310100_80178AE0,
     { NULL, D_actor_310100_80178300, NULL, NULL, D_actor_310100_801785AC, NULL, NULL, NULL },
@@ -392,7 +392,7 @@ u16 D_actor_310100_80178D5C[20] = {
 #include "assets/actor_310100_animation_16F64_indices.inc"
 };
 
-GpAnimSet D_actor_310100_80178D84 = {
+AnimationSet D_actor_310100_80178D84 = {
     D_actor_310100_80178C3C,
     D_actor_310100_80178D5C,
     { NULL, D_actor_310100_80178B30, NULL, NULL, D_actor_310100_80178BA8, NULL, NULL, NULL },
@@ -414,7 +414,7 @@ u16 D_actor_310100_80178F40[20] = {
 #include "assets/actor_310100_animation_17148_indices.inc"
 };
 
-GpAnimSet D_actor_310100_80178F68 = {
+AnimationSet D_actor_310100_80178F68 = {
     D_actor_310100_80178E10,
     D_actor_310100_80178F40,
     { NULL, D_actor_310100_80178DAC, NULL, NULL, D_actor_310100_80178DC4, NULL, NULL, NULL },
@@ -436,7 +436,7 @@ u16 D_actor_310100_80179244[20] = {
 #include "assets/actor_310100_animation_1744C_indices.inc"
 };
 
-GpAnimSet D_actor_310100_8017926C = {
+AnimationSet D_actor_310100_8017926C = {
     D_actor_310100_8017909C,
     D_actor_310100_80179244,
     { NULL, D_actor_310100_80178F90, NULL, NULL, D_actor_310100_80178FA8, NULL, NULL, NULL },
@@ -458,7 +458,7 @@ u16 D_actor_310100_80179430[20] = {
 #include "assets/actor_310100_animation_17638_indices.inc"
 };
 
-GpAnimSet D_actor_310100_80179458 = {
+AnimationSet D_actor_310100_80179458 = {
     D_actor_310100_80179324,
     D_actor_310100_80179430,
     { NULL, D_actor_310100_80179294, NULL, NULL, D_actor_310100_801792AC, NULL, NULL, NULL },
@@ -480,13 +480,13 @@ u16 D_actor_310100_80179704[20] = {
 #include "assets/actor_310100_animation_1790C_indices.inc"
 };
 
-GpAnimSet D_actor_310100_8017972C = {
+AnimationSet D_actor_310100_8017972C = {
     D_actor_310100_801795B8,
     D_actor_310100_80179704,
     { NULL, D_actor_310100_80179480, NULL, NULL, D_actor_310100_80179504, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_310100_80179754[16] = {
+AnimationSet* D_actor_310100_80179754[16] = {
     NULL,
     &D_acropolis_plaza_8019578C,
     &D_acropolis_plaza_80195978,
@@ -505,7 +505,7 @@ GpAnimSet* D_actor_310100_80179754[16] = {
     NULL,
 };
 
-GpAnimSet* D_actor_310100_80179794[26] = {
+AnimationSet* D_actor_310100_80179794[26] = {
     NULL,
     NULL,
     &D_acropolis_plaza_80191E7C,
@@ -534,7 +534,7 @@ GpAnimSet* D_actor_310100_80179794[26] = {
     NULL,
 };
 
-GpAnimSet* D_actor_310100_801797FC[13] = {
+AnimationSet* D_actor_310100_801797FC[13] = {
     &D_acropolis_plaza_80196558,
     &D_acropolis_plaza_80196BD0,
     &D_acropolis_plaza_80197098,
@@ -664,11 +664,11 @@ static void func_actor_310100_80162414(Task* task, s32 arg1);
 
 static s32 func_actor_310100_80161E24(Task* task)
 {
-    Actor310100Work* work;
-    AnimationRecord* rec;
-    GfxCoord*        obj;
-    s32              i;
-    u16              step;
+    Actor310100Work*       work;
+    const AnimationRecord* rec;
+    GfxCoord*              obj;
+    s32                    i;
+    u16                    step;
 
     work = (Actor310100Work*)task->work;
     obj  = task->extra.tmd->coords;

@@ -24486,7 +24486,7 @@ The target keeps the pointer as the result being built (`lw v0,0(v0)` /
 in place:
 
 ```c
-ret = sets[idx]->recs;
+ret = sets[idx]->records;
 ret += slot->curRec; /* pointer stays in $v0; idx loads into $v1 */
 return ret;
 ```
@@ -28312,7 +28312,7 @@ them into an earlier load delay instead.
 
 ```c
 slot->trackIndex = arg1;
-slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
+slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
 op               = recs[slot->nextRec].flags;
 slot->flags      = 0;
 slot->poseKind   = op & 0xF;
@@ -28410,11 +28410,11 @@ argument register and the `andi` dest is `$v0`, so the pointer stays in
 
 ```c
 slot->trackIndex = arg3;
-slot->nextRec    = sets[arg2]->trackStart[slot->trackIndex];
+slot->nextRec    = sets[arg2]->trackStartIndices[slot->trackIndex];
 ```
 
 `Gp_AnimResetSlotEx` is the example (`Gp_AnimResetSlot` already uses
-`trackStart[slot->trackIndex]` for the same reason). The `(u8)arg3` form
+`trackStartIndices[slot->trackIndex]` for the same reason). The `(u8)arg3` form
 stuck at 98.8% with only those six registers swapped.
 
 ## Write switch cases in target body order, not numeric order
@@ -31027,7 +31027,7 @@ if (sets != NULL) {
     ctx->sets = sets;
     slot->sets    = sets;
 }
-idx = set->trackStart[slot->trackIndex] + extra;
+idx = set->trackStartIndices[slot->trackIndex] + extra;
 ```
 
 `Gp_AnimPlaySlot` is the example.
@@ -132636,13 +132636,13 @@ already hands over the addresses (`s.va`, `s.records_va`, `s.index_va`,
 `s.pose_banks`), so the measurement is sorting them and taking the gap after each
 descriptor address.
 
-`GpAnimSet` is the worked example. Two pointers followed by eight pose-bank
+`AnimationSet` is the worked example. Two pointers followed by eight pose-bank
 pointers is 0x28; the offsets to the next structure were 0x28 for 43 of 44 sets
 in `m93r`, 34–36 of 44 in the other three weapons, and 18 of 34 / 9 of 34 in the
 two actors that carry an animation block — the rest larger. That turns the
 placeholder `void* poseBanks[1]`, which compiled because nothing checks
 an index against the declared length at runtime, into `poseBanks[8]` under a
-`STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28)` that the build now enforces.
+`STATIC_ASSERT_SIZEOF(AnimationSet, 0x28)` that the build now enforces.
 
 ## A halfword's declared signedness is invisible where the value is narrowed again
 

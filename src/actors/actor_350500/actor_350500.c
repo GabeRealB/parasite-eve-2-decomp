@@ -31,8 +31,8 @@
 typedef GpSpawnAnimArg Actor350500SpawnAnim;
 
 /// Animation bank table the preset's bank index selects from.
-extern GpAnimSet*  D_actor_350500_80168E8C[5];
-extern GpAnimSet** D_actor_350500_80168EA0[1];
+extern AnimationSet*  D_actor_350500_80168E8C[5];
+extern AnimationSet** D_actor_350500_80168EA0[1];
 
 /// `Gp_DispatchMsg` handler table installed at `Task::msgTable` by
 /// `func_actor_350500_801623CC`; terminator id 0x7FFFFFFF.
@@ -141,7 +141,7 @@ u16 D_actor_350500_80167A44[20] = {
 #include "assets/actor_350500_animation_05C4C_indices.inc"
 };
 
-GpAnimSet D_actor_350500_80167A6C = {
+AnimationSet D_actor_350500_80167A6C = {
     D_actor_350500_801678F4,
     D_actor_350500_80167A44,
     { NULL, D_actor_350500_80167880, NULL, NULL, D_actor_350500_80167898, NULL, NULL, NULL },
@@ -163,7 +163,7 @@ u16 D_actor_350500_80168628[20] = {
 #include "assets/actor_350500_animation_06830_indices.inc"
 };
 
-GpAnimSet D_actor_350500_80168650 = {
+AnimationSet D_actor_350500_80168650 = {
     D_actor_350500_80168044,
     D_actor_350500_80168628,
     { NULL, D_actor_350500_80167A94, NULL, NULL, D_actor_350500_80167B9C, NULL, NULL, NULL },
@@ -185,7 +185,7 @@ u16 D_actor_350500_80168A30[20] = {
 #include "assets/actor_350500_animation_06C38_indices.inc"
 };
 
-GpAnimSet D_actor_350500_80168A58 = {
+AnimationSet D_actor_350500_80168A58 = {
     D_actor_350500_801687E4,
     D_actor_350500_80168A30,
     { NULL, D_actor_350500_80168678, NULL, NULL, D_actor_350500_801686B4, NULL, NULL, NULL },
@@ -207,13 +207,13 @@ u16 D_actor_350500_80168E3C[20] = {
 #include "assets/actor_350500_animation_07044_indices.inc"
 };
 
-GpAnimSet D_actor_350500_80168E64 = {
+AnimationSet D_actor_350500_80168E64 = {
     D_actor_350500_80168C20,
     D_actor_350500_80168E3C,
     { NULL, D_actor_350500_80168A80, NULL, NULL, D_actor_350500_80168ABC, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_350500_80168E8C[5] = {
+AnimationSet* D_actor_350500_80168E8C[5] = {
     NULL,
     &D_actor_350500_80167A6C,
     &D_actor_350500_80168650,
@@ -221,7 +221,7 @@ GpAnimSet* D_actor_350500_80168E8C[5] = {
     &D_actor_350500_80168E64,
 };
 
-GpAnimSet** D_actor_350500_80168EA0[1] = {
+AnimationSet** D_actor_350500_80168EA0[1] = {
     D_actor_350500_80168E8C,
 };
 

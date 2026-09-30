@@ -227,12 +227,12 @@ extern s16 Actor00700_D07598[];
 /// `hpMax` seeds the health), and the second argument of `func_800B3F84`.
 extern struct GpU16Pair Actor00700_D06DDC;
 extern GpPairSrcE       Actor00700_D06DE0;
-extern GpAnimSet*       Actor00700_D06E6C[11];
+extern AnimationSet*    Actor00700_D06E6C[11];
 
 /// The same three for the second body, used by `Actor00700_Fn01FE0`.
 extern GpPairSrcE       Actor00700_D07588;
 extern struct GpU16Pair Actor00700_D07584;
-extern GpAnimSet*       Actor00700_D075B4[2];
+extern AnimationSet*    Actor00700_D075B4[2];
 
 static void Actor00700_Fn00060(GpEnemy* ctx, Task* actor);
 static void Actor00700_Fn01434(GpEnemy* arg0, Task* arg1);
@@ -314,7 +314,7 @@ u16 Actor00700_D053B0[8] = {
 #include "assets/actor_100700_animation_053C0_indices.inc"
 };
 
-GpAnimSet Actor00700_D053C0 = {
+AnimationSet Actor00700_D053C0 = {
     Actor00700_D0516C,
     Actor00700_D053B0,
     { NULL, Actor00700_D04ED8, NULL, NULL, Actor00700_D04FC8, NULL, NULL, NULL },
@@ -336,7 +336,7 @@ u16 Actor00700_D0566C[8] = {
 #include "assets/actor_100700_animation_0567C_indices.inc"
 };
 
-GpAnimSet Actor00700_D0567C = {
+AnimationSet Actor00700_D0567C = {
     Actor00700_D05538,
     Actor00700_D0566C,
     { NULL, Actor00700_D053E8, NULL, NULL, Actor00700_D0549C, NULL, NULL, NULL },
@@ -358,7 +358,7 @@ u16 Actor00700_D05AFC[8] = {
 #include "assets/actor_100700_animation_05B0C_indices.inc"
 };
 
-GpAnimSet Actor00700_D05B0C = {
+AnimationSet Actor00700_D05B0C = {
     Actor00700_D05918,
     Actor00700_D05AFC,
     { NULL, Actor00700_D056A4, NULL, NULL, Actor00700_D057C4, NULL, NULL, NULL },
@@ -380,7 +380,7 @@ u16 Actor00700_D05E3C[8] = {
 #include "assets/actor_100700_animation_05E4C_indices.inc"
 };
 
-GpAnimSet Actor00700_D05E4C = {
+AnimationSet Actor00700_D05E4C = {
     Actor00700_D05CE0,
     Actor00700_D05E3C,
     { NULL, Actor00700_D05B34, NULL, NULL, Actor00700_D05BDC, NULL, NULL, NULL },
@@ -402,7 +402,7 @@ u16 Actor00700_D0607C[8] = {
 #include "assets/actor_100700_animation_0608C_indices.inc"
 };
 
-GpAnimSet Actor00700_D0608C = {
+AnimationSet Actor00700_D0608C = {
     Actor00700_D05F80,
     Actor00700_D0607C,
     { NULL, Actor00700_D05E74, NULL, NULL, Actor00700_D05EE0, NULL, NULL, NULL },
@@ -424,7 +424,7 @@ u16 Actor00700_D062F8[8] = {
 #include "assets/actor_100700_animation_06308_indices.inc"
 };
 
-GpAnimSet Actor00700_D06308 = {
+AnimationSet Actor00700_D06308 = {
     Actor00700_D061E4,
     Actor00700_D062F8,
     { NULL, Actor00700_D060B4, NULL, NULL, Actor00700_D0612C, NULL, NULL, NULL },
@@ -446,7 +446,7 @@ u16 Actor00700_D06638[8] = {
 #include "assets/actor_100700_animation_06648_indices.inc"
 };
 
-GpAnimSet Actor00700_D06648 = {
+AnimationSet Actor00700_D06648 = {
     Actor00700_D064E8,
     Actor00700_D06638,
     { NULL, Actor00700_D06330, NULL, NULL, Actor00700_D06420, NULL, NULL, NULL },
@@ -468,7 +468,7 @@ u16 Actor00700_D067CC[8] = {
 #include "assets/actor_100700_animation_067DC_indices.inc"
 };
 
-GpAnimSet Actor00700_D067DC = {
+AnimationSet Actor00700_D067DC = {
     Actor00700_D066FC,
     Actor00700_D067CC,
     { NULL, Actor00700_D06670, NULL, NULL, Actor00700_D066AC, NULL, NULL, NULL },
@@ -490,7 +490,7 @@ u16 Actor00700_D06A60[8] = {
 #include "assets/actor_100700_animation_06A70_indices.inc"
 };
 
-GpAnimSet Actor00700_D06A70 = {
+AnimationSet Actor00700_D06A70 = {
     Actor00700_D0694C,
     Actor00700_D06A60,
     { NULL, Actor00700_D06804, NULL, NULL, Actor00700_D06888, NULL, NULL, NULL },
@@ -512,7 +512,7 @@ u16 Actor00700_D06DA4[8] = {
 #include "assets/actor_100700_animation_06DB4_indices.inc"
 };
 
-GpAnimSet Actor00700_D06DB4 = {
+AnimationSet Actor00700_D06DB4 = {
     Actor00700_D06C48,
     Actor00700_D06DA4,
     { NULL, Actor00700_D06A98, NULL, NULL, Actor00700_D06B70, NULL, NULL, NULL },
@@ -595,7 +595,7 @@ s16 Actor00700_D06E50[8] = {
 
 TaskDesc Actor00700_D06E60 = { 1, 96, Actor00700_Fn01830, { .model = &Actor00700_D04EB4 } };
 
-GpAnimSet* Actor00700_D06E6C[11] = {
+AnimationSet* Actor00700_D06E6C[11] = {
     NULL,
     &Actor00700_D053C0,
     &Actor00700_D0567C,
@@ -672,7 +672,7 @@ u16 Actor00700_D07554[4] = {
 #include "assets/actor_100700_animation_0755C_indices.inc"
 };
 
-GpAnimSet Actor00700_D0755C = {
+AnimationSet Actor00700_D0755C = {
     Actor00700_D07524,
     Actor00700_D07554,
     { NULL, Actor00700_D07508, NULL, NULL, Actor00700_D07520, NULL, NULL, NULL },
@@ -695,7 +695,7 @@ s16 Actor00700_D07598[8] = {
 
 TaskDesc Actor00700_D075A8 = { 1, 96, Actor00700_Fn034BC, { .model = &Actor00700_D074E4 } };
 
-GpAnimSet* Actor00700_D075B4[2] = {
+AnimationSet* Actor00700_D075B4[2] = {
     NULL,
     &Actor00700_D0755C,
 };

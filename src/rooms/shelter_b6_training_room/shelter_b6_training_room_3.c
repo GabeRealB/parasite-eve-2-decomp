@@ -123,7 +123,7 @@ u16 D_shelter_b6_training_room_80182DDC[20] = {
 #include "assets/shelter_b6_training_room_animation_05844_indices.inc"
 };
 
-GpAnimSet D_shelter_b6_training_room_80182E04 = {
+AnimationSet D_shelter_b6_training_room_80182E04 = {
     D_shelter_b6_training_room_80182C28,
     D_shelter_b6_training_room_80182DDC,
     { NULL, D_shelter_b6_training_room_80182B28, NULL, NULL, D_shelter_b6_training_room_80182B70, NULL, NULL, NULL },
@@ -145,7 +145,7 @@ u16 D_shelter_b6_training_room_8018350C[20] = {
 #include "assets/shelter_b6_training_room_animation_05F74_indices.inc"
 };
 
-GpAnimSet D_shelter_b6_training_room_80183534 = {
+AnimationSet D_shelter_b6_training_room_80183534 = {
     D_shelter_b6_training_room_80183174,
     D_shelter_b6_training_room_8018350C,
     { NULL, D_shelter_b6_training_room_80182E2C, NULL, NULL, D_shelter_b6_training_room_80182EC8, NULL, NULL, NULL },
@@ -167,7 +167,7 @@ u16 D_shelter_b6_training_room_80183750[20] = {
 #include "assets/shelter_b6_training_room_animation_061B8_indices.inc"
 };
 
-GpAnimSet D_shelter_b6_training_room_80183778 = {
+AnimationSet D_shelter_b6_training_room_80183778 = {
     D_shelter_b6_training_room_801835F0,
     D_shelter_b6_training_room_80183750,
     { NULL, D_shelter_b6_training_room_8018355C, NULL, NULL, D_shelter_b6_training_room_80183580, NULL, NULL, NULL },
@@ -189,7 +189,7 @@ u16 D_shelter_b6_training_room_80183958[20] = {
 #include "assets/shelter_b6_training_room_animation_063C0_indices.inc"
 };
 
-GpAnimSet D_shelter_b6_training_room_80183980 = {
+AnimationSet D_shelter_b6_training_room_80183980 = {
     D_shelter_b6_training_room_8018382C,
     D_shelter_b6_training_room_80183958,
     { NULL, D_shelter_b6_training_room_801837A0, NULL, NULL, D_shelter_b6_training_room_801837B8, NULL, NULL, NULL },
@@ -197,7 +197,7 @@ GpAnimSet D_shelter_b6_training_room_80183980 = {
 
 TaskDesc D_shelter_b6_training_room_801839A8 = { 0, 96, func_shelter_b6_training_room_8017D9C8, { .model = NULL } };
 
-GpAnimSet* D_shelter_b6_training_room_801839B4[5] = {
+AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
     NULL,
     &D_shelter_b6_training_room_80182E04,
     &D_shelter_b6_training_room_80183534,

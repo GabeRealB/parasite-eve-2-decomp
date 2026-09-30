@@ -69,14 +69,14 @@ static void func_m4a1_grenade_8011DDF8(Task* task);
 /// clip is done or the recoil timer has run out.
 static void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
-    GameActor*       actor;
-    GfxCoord*        coord;
-    GfxCoord*        spot;
-    AnimationRecord* rec;
-    McItemSlot*      slot;
-    s32              anim;
-    s32              delay;
-    s32              sfx;
+    GameActor*             actor;
+    GfxCoord*              coord;
+    GfxCoord*              spot;
+    const AnimationRecord* rec;
+    McItemSlot*            slot;
+    s32                    anim;
+    s32                    delay;
+    s32                    sfx;
 
     actor = arg0->work;
     coord = arg0->extra.tmd->coords;

@@ -91,9 +91,9 @@ static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
     { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
 };
 
-extern GpAnimSet D_acropolis_east_elevator_hall_80180478;
-extern GpAnimSet D_acropolis_east_elevator_hall_80184DE4;
-extern GpAnimSet D_acropolis_east_elevator_hall_80185BC0;
+extern AnimationSet D_acropolis_east_elevator_hall_80180478;
+extern AnimationSet D_acropolis_east_elevator_hall_80184DE4;
+extern AnimationSet D_acropolis_east_elevator_hall_80185BC0;
 
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C00;
 extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C14;
@@ -143,7 +143,7 @@ u16 D_acropolis_east_elevator_hall_80180450[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_02EB8_indices.inc"
 };
 
-GpAnimSet D_acropolis_east_elevator_hall_80180478 = {
+AnimationSet D_acropolis_east_elevator_hall_80180478 = {
     D_acropolis_east_elevator_hall_80180038,
     D_acropolis_east_elevator_hall_80180450,
     { NULL, D_acropolis_east_elevator_hall_8017FCA8, NULL, NULL, D_acropolis_east_elevator_hall_8017FCD8, NULL, NULL, NULL },
@@ -165,7 +165,7 @@ u16 D_acropolis_east_elevator_hall_80184DBC[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_07824_indices.inc"
 };
 
-GpAnimSet D_acropolis_east_elevator_hall_80184DE4 = {
+AnimationSet D_acropolis_east_elevator_hall_80184DE4 = {
     D_acropolis_east_elevator_hall_801826E0,
     D_acropolis_east_elevator_hall_80184DBC,
     { NULL, D_acropolis_east_elevator_hall_801804A0, NULL, NULL, D_acropolis_east_elevator_hall_80180BF0, NULL, NULL, NULL },
@@ -187,23 +187,23 @@ u16 D_acropolis_east_elevator_hall_80185B98[20] = {
 #include "assets/acropolis_east_elevator_hall_animation_08600_indices.inc"
 };
 
-GpAnimSet D_acropolis_east_elevator_hall_80185BC0 = {
+AnimationSet D_acropolis_east_elevator_hall_80185BC0 = {
     D_acropolis_east_elevator_hall_801854D0,
     D_acropolis_east_elevator_hall_80185B98,
     { NULL, D_acropolis_east_elevator_hall_80184E0C, NULL, NULL, D_acropolis_east_elevator_hall_80184F08, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_acropolis_east_elevator_hall_80185BE8[2] = {
+AnimationSet* D_acropolis_east_elevator_hall_80185BE8[2] = {
     NULL,
     &D_acropolis_east_elevator_hall_80184DE4,
 };
 
-GpAnimSet* D_acropolis_east_elevator_hall_80185BF0[2] = {
+AnimationSet* D_acropolis_east_elevator_hall_80185BF0[2] = {
     NULL,
     &D_acropolis_east_elevator_hall_80180478,
 };
 
-GpAnimSet* D_acropolis_east_elevator_hall_80185BF8[2] = {
+AnimationSet* D_acropolis_east_elevator_hall_80185BF8[2] = {
     NULL,
     &D_acropolis_east_elevator_hall_80185BC0,
 };

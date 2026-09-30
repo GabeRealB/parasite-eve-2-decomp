@@ -55,7 +55,7 @@ s32 func_mine_gorge_8017D7F4(Task*, s32, s32, GpMessageArg);
 
 void func_mine_gorge_8017D8BC(u8);
 
-extern GpAnimSet D_mine_gorge_8017E258;
+extern AnimationSet D_mine_gorge_8017E258;
 
 extern AnimationPlayRequest D_mine_gorge_8017E2DC;
 extern AnimationPlayRequest D_mine_gorge_8017E5E8;
@@ -79,7 +79,7 @@ u16 D_mine_gorge_8017E230[20] = {
 
 };
 
-GpAnimSet D_mine_gorge_8017E258 = {
+AnimationSet D_mine_gorge_8017E258 = {
     D_mine_gorge_8017E004,
     D_mine_gorge_8017E230,
     { NULL, D_mine_gorge_8017DE10, NULL, NULL, D_mine_gorge_8017DE88, NULL, NULL, NULL },
@@ -140,7 +140,7 @@ GpEvsCmd D_mine_gorge_8017E500[9] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpAnimSet* D_mine_gorge_8017E5D8[2] = {
+AnimationSet* D_mine_gorge_8017E5D8[2] = {
     &D_mine_gorge_8017E258,
     NULL,
 };

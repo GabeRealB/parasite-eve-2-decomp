@@ -271,7 +271,7 @@ u16 D_dryfield_night_saloon_g_r_8017FC00[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02668_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_8017FC28 = {
+AnimationSet D_dryfield_night_saloon_g_r_8017FC28 = {
     D_dryfield_night_saloon_g_r_8017FA4C,
     D_dryfield_night_saloon_g_r_8017FC00,
     { NULL, D_dryfield_night_saloon_g_r_8017F94C, NULL, NULL, D_dryfield_night_saloon_g_r_8017F994, NULL, NULL, NULL },
@@ -293,7 +293,7 @@ u16 D_dryfield_night_saloon_g_r_8017FFD4[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02A3C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_8017FFFC = {
+AnimationSet D_dryfield_night_saloon_g_r_8017FFFC = {
     D_dryfield_night_saloon_g_r_8017FE00,
     D_dryfield_night_saloon_g_r_8017FFD4,
     { NULL, D_dryfield_night_saloon_g_r_8017FC50, NULL, NULL, D_dryfield_night_saloon_g_r_8017FCB0, NULL, NULL, NULL },
@@ -315,7 +315,7 @@ u16 D_dryfield_night_saloon_g_r_801803C4[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_02E2C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_801803EC = {
+AnimationSet D_dryfield_night_saloon_g_r_801803EC = {
     D_dryfield_night_saloon_g_r_80180170,
     D_dryfield_night_saloon_g_r_801803C4,
     { NULL, D_dryfield_night_saloon_g_r_80180024, NULL, NULL, D_dryfield_night_saloon_g_r_80180078, NULL, NULL, NULL },
@@ -337,7 +337,7 @@ u16 D_dryfield_night_saloon_g_r_80180730[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03198_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80180758 = {
+AnimationSet D_dryfield_night_saloon_g_r_80180758 = {
     D_dryfield_night_saloon_g_r_80180590,
     D_dryfield_night_saloon_g_r_80180730,
     { NULL, D_dryfield_night_saloon_g_r_80180414, NULL, NULL, D_dryfield_night_saloon_g_r_80180468, NULL, NULL, NULL },
@@ -359,7 +359,7 @@ u16 D_dryfield_night_saloon_g_r_80180C50[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_036B8_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80180C78 = {
+AnimationSet D_dryfield_night_saloon_g_r_80180C78 = {
     D_dryfield_night_saloon_g_r_80180988,
     D_dryfield_night_saloon_g_r_80180C50,
     { NULL, D_dryfield_night_saloon_g_r_80180780, NULL, NULL, D_dryfield_night_saloon_g_r_801807F8, NULL, NULL, NULL },
@@ -381,7 +381,7 @@ u16 D_dryfield_night_saloon_g_r_80180F30[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03998_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80180F58 = {
+AnimationSet D_dryfield_night_saloon_g_r_80180F58 = {
     D_dryfield_night_saloon_g_r_80180DC8,
     D_dryfield_night_saloon_g_r_80180F30,
     { NULL, D_dryfield_night_saloon_g_r_80180CA0, NULL, NULL, D_dryfield_night_saloon_g_r_80180CDC, NULL, NULL, NULL },
@@ -403,7 +403,7 @@ u16 D_dryfield_night_saloon_g_r_80181418[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_03E80_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80181440 = {
+AnimationSet D_dryfield_night_saloon_g_r_80181440 = {
     D_dryfield_night_saloon_g_r_80181180,
     D_dryfield_night_saloon_g_r_80181418,
     { NULL, D_dryfield_night_saloon_g_r_80180F80, NULL, NULL, D_dryfield_night_saloon_g_r_80180FC8, NULL, NULL, NULL },
@@ -425,7 +425,7 @@ u16 D_dryfield_night_saloon_g_r_801817D0[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04238_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_801817F8 = {
+AnimationSet D_dryfield_night_saloon_g_r_801817F8 = {
     D_dryfield_night_saloon_g_r_801815D0,
     D_dryfield_night_saloon_g_r_801817D0,
     { NULL, D_dryfield_night_saloon_g_r_80181468, NULL, NULL, D_dryfield_night_saloon_g_r_8018148C, NULL, NULL, NULL },
@@ -447,7 +447,7 @@ u16 D_dryfield_night_saloon_g_r_801819C8[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04430_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_801819F0 = {
+AnimationSet D_dryfield_night_saloon_g_r_801819F0 = {
     D_dryfield_night_saloon_g_r_801818CC,
     D_dryfield_night_saloon_g_r_801819C8,
     { NULL, D_dryfield_night_saloon_g_r_80181820, NULL, NULL, D_dryfield_night_saloon_g_r_80181844, NULL, NULL, NULL },
@@ -469,7 +469,7 @@ u16 D_dryfield_night_saloon_g_r_80181D1C[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04784_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80181D44 = {
+AnimationSet D_dryfield_night_saloon_g_r_80181D44 = {
     D_dryfield_night_saloon_g_r_80181B3C,
     D_dryfield_night_saloon_g_r_80181D1C,
     { NULL, D_dryfield_night_saloon_g_r_80181A18, NULL, NULL, D_dryfield_night_saloon_g_r_80181A54, NULL, NULL, NULL },
@@ -491,7 +491,7 @@ u16 D_dryfield_night_saloon_g_r_80181F14[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0497C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80181F3C = {
+AnimationSet D_dryfield_night_saloon_g_r_80181F3C = {
     D_dryfield_night_saloon_g_r_80181E18,
     D_dryfield_night_saloon_g_r_80181F14,
     { NULL, D_dryfield_night_saloon_g_r_80181D6C, NULL, NULL, D_dryfield_night_saloon_g_r_80181D90, NULL, NULL, NULL },
@@ -513,7 +513,7 @@ u16 D_dryfield_night_saloon_g_r_801821BC[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04C24_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_801821E4 = {
+AnimationSet D_dryfield_night_saloon_g_r_801821E4 = {
     D_dryfield_night_saloon_g_r_8018204C,
     D_dryfield_night_saloon_g_r_801821BC,
     { NULL, D_dryfield_night_saloon_g_r_80181F64, NULL, NULL, D_dryfield_night_saloon_g_r_80181F94, NULL, NULL, NULL },
@@ -535,7 +535,7 @@ u16 D_dryfield_night_saloon_g_r_801824F0[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_04F58_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80182518 = {
+AnimationSet D_dryfield_night_saloon_g_r_80182518 = {
     D_dryfield_night_saloon_g_r_80182364,
     D_dryfield_night_saloon_g_r_801824F0,
     { NULL, D_dryfield_night_saloon_g_r_8018220C, NULL, NULL, D_dryfield_night_saloon_g_r_80182254, NULL, NULL, NULL },
@@ -557,7 +557,7 @@ u16 D_dryfield_night_saloon_g_r_80182958[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_053C0_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80182980 = {
+AnimationSet D_dryfield_night_saloon_g_r_80182980 = {
     D_dryfield_night_saloon_g_r_80182738,
     D_dryfield_night_saloon_g_r_80182958,
     { NULL, D_dryfield_night_saloon_g_r_80182540, NULL, NULL, D_dryfield_night_saloon_g_r_801825B8, NULL, NULL, NULL },
@@ -579,7 +579,7 @@ u16 D_dryfield_night_saloon_g_r_80182CA4[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0570C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_80182CCC = {
+AnimationSet D_dryfield_night_saloon_g_r_80182CCC = {
     D_dryfield_night_saloon_g_r_80182B0C,
     D_dryfield_night_saloon_g_r_80182CA4,
     { NULL, D_dryfield_night_saloon_g_r_801829A8, NULL, NULL, D_dryfield_night_saloon_g_r_801829F0, NULL, NULL, NULL },
@@ -601,7 +601,7 @@ u16 D_dryfield_night_saloon_g_r_80183114[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_05B7C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_8018313C = {
+AnimationSet D_dryfield_night_saloon_g_r_8018313C = {
     D_dryfield_night_saloon_g_r_80182EBC,
     D_dryfield_night_saloon_g_r_80183114,
     { NULL, D_dryfield_night_saloon_g_r_80182CF4, NULL, NULL, D_dryfield_night_saloon_g_r_80182D30, NULL, NULL, NULL },
@@ -623,13 +623,13 @@ u16 D_dryfield_night_saloon_g_r_801838B4[20] = {
 #include "assets/dryfield_night_saloon_g_r_animation_0631C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_saloon_g_r_801838DC = {
+AnimationSet D_dryfield_night_saloon_g_r_801838DC = {
     D_dryfield_night_saloon_g_r_801834CC,
     D_dryfield_night_saloon_g_r_801838B4,
     { NULL, D_dryfield_night_saloon_g_r_80183164, NULL, NULL, D_dryfield_night_saloon_g_r_80183200, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_dryfield_night_saloon_g_r_80183904[18] = {
+AnimationSet* D_dryfield_night_saloon_g_r_80183904[18] = {
     NULL,
     &D_dryfield_night_saloon_g_r_8017FC28,
     &D_dryfield_night_saloon_g_r_801821E4,

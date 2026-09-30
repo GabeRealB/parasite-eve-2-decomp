@@ -80,7 +80,7 @@ u16 D_dryfield_night_parking_lot_8017EC04[20] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_parking_lot_8017EC2C = {
+AnimationSet D_dryfield_night_parking_lot_8017EC2C = {
     D_dryfield_night_parking_lot_8017E9D8,
     D_dryfield_night_parking_lot_8017EC04,
     { NULL, D_dryfield_night_parking_lot_8017E7E4, NULL, NULL, D_dryfield_night_parking_lot_8017E85C, NULL, NULL, NULL },
@@ -97,7 +97,7 @@ GpMsgEntry D_dryfield_night_parking_lot_8017EC60[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_dryfield_night_parking_lot_8017EC90[2] = {
+AnimationSet* D_dryfield_night_parking_lot_8017EC90[2] = {
     &D_dryfield_night_parking_lot_8017EC2C,
     NULL,
 };

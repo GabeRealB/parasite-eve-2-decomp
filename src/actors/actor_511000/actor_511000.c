@@ -211,8 +211,8 @@ extern GpViewRec D_actor_511000_80147EE4[];
 /// `data` points at its pixel blob.
 
 /// Animation sources the animation message handler selects by index.
-extern GpAnimSet*  D_actor_511000_801472D4[4];
-extern GpAnimSet** D_actor_511000_801472E4[1];
+extern AnimationSet*  D_actor_511000_801472D4[4];
+extern AnimationSet** D_actor_511000_801472E4[1];
 
 /// Spawn table `func_actor_511000_80132480` starts its two child tasks from,
 /// and the message table it parks in `Task::msgTable`.
@@ -276,7 +276,7 @@ extern s32      D_actor_511000_80149054[];
 extern TaskDesc D_actor_511000_80155070[];
 /// Message table and animation data `func_actor_511000_80133958` installs.
 extern Actor511000MessageEntry D_actor_511000_801550A0[4];
-extern GpAnimSet*              D_actor_511000_801550C0[4];
+extern AnimationSet*           D_actor_511000_801550C0[4];
 
 extern TmdSource D_actor_511000_80142554;
 extern TmdSource D_actor_511000_80142AAC;
@@ -290,9 +290,9 @@ void             func_actor_511000_80132150(Task*);
 void             func_actor_511000_8013222C(Task*);
 void             func_actor_511000_80132428(Task*);
 
-extern GpAnimSet D_actor_511000_8014303C;
-extern GpAnimSet D_actor_511000_80144EF4;
-extern GpAnimSet D_actor_511000_8014694C;
+extern AnimationSet D_actor_511000_8014303C;
+extern AnimationSet D_actor_511000_80144EF4;
+extern AnimationSet D_actor_511000_8014694C;
 
 extern Actor511000Palette D_actor_511000_80147E84;
 
@@ -331,7 +331,7 @@ u16 D_actor_511000_80136AC0[20] = {
 #include "assets/actor_511000_animation_04CC8_indices.inc"
 };
 
-GpAnimSet D_actor_511000_80136AE8 = {
+AnimationSet D_actor_511000_80136AE8 = {
     D_actor_511000_80135570,
     D_actor_511000_80136AC0,
     { NULL, D_actor_511000_80134170, NULL, NULL, D_actor_511000_80134560, NULL, NULL, NULL },
@@ -353,7 +353,7 @@ u16 D_actor_511000_801398D4[20] = {
 #include "assets/actor_511000_animation_07ADC_indices.inc"
 };
 
-GpAnimSet D_actor_511000_801398FC = {
+AnimationSet D_actor_511000_801398FC = {
     D_actor_511000_80138158,
     D_actor_511000_801398D4,
     { NULL, D_actor_511000_80136B10, NULL, NULL, D_actor_511000_80136E94, NULL, NULL, NULL },
@@ -602,7 +602,7 @@ u16 D_actor_511000_80143014[20] = {
 #include "assets/actor_511000_animation_1121C_indices.inc"
 };
 
-GpAnimSet D_actor_511000_8014303C = {
+AnimationSet D_actor_511000_8014303C = {
     D_actor_511000_80142E30,
     D_actor_511000_80143014,
     { NULL, D_actor_511000_80142CB4, NULL, NULL, D_actor_511000_80142CF0, NULL, NULL, NULL },
@@ -624,7 +624,7 @@ u16 D_actor_511000_80144ECC[20] = {
 #include "assets/actor_511000_animation_130D4_indices.inc"
 };
 
-GpAnimSet D_actor_511000_80144EF4 = {
+AnimationSet D_actor_511000_80144EF4 = {
     D_actor_511000_80143C84,
     D_actor_511000_80144ECC,
     { NULL, D_actor_511000_80143064, NULL, NULL, D_actor_511000_801435EC, NULL, NULL, NULL },
@@ -646,7 +646,7 @@ u16 D_actor_511000_80146924[20] = {
 #include "assets/actor_511000_animation_14B2C_indices.inc"
 };
 
-GpAnimSet D_actor_511000_8014694C = {
+AnimationSet D_actor_511000_8014694C = {
     D_actor_511000_80145AFC,
     D_actor_511000_80146924,
     { NULL, D_actor_511000_80144F1C, NULL, NULL, D_actor_511000_80145000, NULL, NULL, NULL },
@@ -1252,14 +1252,14 @@ GpImgRec D_actor_511000_801472B4[2] = {
     { 255, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GpAnimSet* D_actor_511000_801472D4[4] = {
+AnimationSet* D_actor_511000_801472D4[4] = {
     NULL,
     &D_actor_511000_8014303C,
     &D_actor_511000_80144EF4,
     &D_actor_511000_8014694C,
 };
 
-GpAnimSet** D_actor_511000_801472E4[1] = {
+AnimationSet** D_actor_511000_801472E4[1] = {
     D_actor_511000_801472D4,
 };
 
@@ -2037,7 +2037,7 @@ u16 D_actor_511000_801526E4[20] = {
 #include "assets/actor_511000_animation_208EC_indices.inc"
 };
 
-GpAnimSet D_actor_511000_8015270C = {
+AnimationSet D_actor_511000_8015270C = {
     D_actor_511000_80150A90,
     D_actor_511000_801526E4,
     { NULL, D_actor_511000_8014F048, NULL, NULL, D_actor_511000_8014F4BC, NULL, NULL, NULL },
@@ -2059,7 +2059,7 @@ u16 D_actor_511000_80153CB4[20] = {
 #include "assets/actor_511000_animation_21EBC_indices.inc"
 };
 
-GpAnimSet D_actor_511000_80153CDC = {
+AnimationSet D_actor_511000_80153CDC = {
     D_actor_511000_801531B8,
     D_actor_511000_80153CB4,
     { NULL, D_actor_511000_80152734, NULL, NULL, D_actor_511000_801528FC, NULL, NULL, NULL },
@@ -2081,7 +2081,7 @@ u16 D_actor_511000_80155020[20] = {
 #include "assets/actor_511000_animation_23228_indices.inc"
 };
 
-GpAnimSet D_actor_511000_80155048 = {
+AnimationSet D_actor_511000_80155048 = {
     D_actor_511000_801547E0,
     D_actor_511000_80155020,
     { NULL, D_actor_511000_80153D04, NULL, NULL, D_actor_511000_80154220, NULL, NULL, NULL },
@@ -2101,7 +2101,7 @@ Actor511000MessageEntry D_actor_511000_801550A0[4] = {
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-GpAnimSet* D_actor_511000_801550C0[4] = {
+AnimationSet* D_actor_511000_801550C0[4] = {
     NULL,
     &D_actor_511000_8015270C,
     &D_actor_511000_80153CDC,

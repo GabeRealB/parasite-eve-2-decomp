@@ -278,7 +278,7 @@ u16 D_dryfield_night_garage_80182118[20] = {
 #include "assets/dryfield_night_garage_animation_04B80_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_garage_80182140 = {
+AnimationSet D_dryfield_night_garage_80182140 = {
     D_dryfield_night_garage_80181F64,
     D_dryfield_night_garage_80182118,
     { NULL, D_dryfield_night_garage_80181E64, NULL, NULL, D_dryfield_night_garage_80181EAC, NULL, NULL, NULL },
@@ -300,7 +300,7 @@ u16 D_dryfield_night_garage_801824EC[20] = {
 #include "assets/dryfield_night_garage_animation_04F54_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_garage_80182514 = {
+AnimationSet D_dryfield_night_garage_80182514 = {
     D_dryfield_night_garage_80182318,
     D_dryfield_night_garage_801824EC,
     { NULL, D_dryfield_night_garage_80182168, NULL, NULL, D_dryfield_night_garage_801821C8, NULL, NULL, NULL },
@@ -322,7 +322,7 @@ u16 D_dryfield_night_garage_801828DC[20] = {
 #include "assets/dryfield_night_garage_animation_05344_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_garage_80182904 = {
+AnimationSet D_dryfield_night_garage_80182904 = {
     D_dryfield_night_garage_80182688,
     D_dryfield_night_garage_801828DC,
     { NULL, D_dryfield_night_garage_8018253C, NULL, NULL, D_dryfield_night_garage_80182590, NULL, NULL, NULL },
@@ -344,7 +344,7 @@ u16 D_dryfield_night_garage_80182C48[20] = {
 #include "assets/dryfield_night_garage_animation_056B0_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_garage_80182C70 = {
+AnimationSet D_dryfield_night_garage_80182C70 = {
     D_dryfield_night_garage_80182AA8,
     D_dryfield_night_garage_80182C48,
     { NULL, D_dryfield_night_garage_8018292C, NULL, NULL, D_dryfield_night_garage_80182980, NULL, NULL, NULL },

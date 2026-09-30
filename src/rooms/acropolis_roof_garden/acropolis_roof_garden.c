@@ -129,9 +129,9 @@ extern GpXformArg           D_acropolis_roof_garden_80183C70;
 extern GpXformArg           D_acropolis_roof_garden_80183CA0;
 void                        func_acropolis_roof_garden_8017DAD4(s32);
 
-extern GpAnimSet D_acropolis_roof_garden_80181724;
-extern GpAnimSet D_acropolis_roof_garden_801836BC;
-extern GpAnimSet D_acropolis_roof_garden_80183BB4;
+extern AnimationSet D_acropolis_roof_garden_80181724;
+extern AnimationSet D_acropolis_roof_garden_801836BC;
+extern AnimationSet D_acropolis_roof_garden_80183BB4;
 
 s32  func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32  func_acropolis_roof_garden_8017D798(Task*, s32, GpMessageArg, GpMessageArg);
@@ -158,7 +158,7 @@ u16 D_acropolis_roof_garden_801816FC[20] = {
 #include "assets/acropolis_roof_garden_animation_04164_indices.inc"
 };
 
-GpAnimSet D_acropolis_roof_garden_80181724 = {
+AnimationSet D_acropolis_roof_garden_80181724 = {
     D_acropolis_roof_garden_80180C94,
     D_acropolis_roof_garden_801816FC,
     { NULL, D_acropolis_roof_garden_801801E0, NULL, NULL, D_acropolis_roof_garden_801803A8, NULL, NULL, NULL },
@@ -180,7 +180,7 @@ u16 D_acropolis_roof_garden_80183694[20] = {
 #include "assets/acropolis_roof_garden_animation_060FC_indices.inc"
 };
 
-GpAnimSet D_acropolis_roof_garden_801836BC = {
+AnimationSet D_acropolis_roof_garden_801836BC = {
     D_acropolis_roof_garden_8018269C,
     D_acropolis_roof_garden_80183694,
     { NULL, D_acropolis_roof_garden_8018174C, NULL, NULL, D_acropolis_roof_garden_8018192C, NULL, NULL, NULL },
@@ -202,7 +202,7 @@ u16 D_acropolis_roof_garden_80183B8C[20] = {
 #include "assets/acropolis_roof_garden_animation_065F4_indices.inc"
 };
 
-GpAnimSet D_acropolis_roof_garden_80183BB4 = {
+AnimationSet D_acropolis_roof_garden_80183BB4 = {
     D_acropolis_roof_garden_80183888,
     D_acropolis_roof_garden_80183B8C,
     { NULL, D_acropolis_roof_garden_801836E4, NULL, NULL, D_acropolis_roof_garden_8018372C, NULL, NULL, NULL },
@@ -238,7 +238,7 @@ GpXformArg D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0
 
 GpXformArg D_acropolis_roof_garden_80183CA0 = { { -7508, 0, -8572, 0 }, { 0, 407, 0, 0 } };
 
-GpAnimSet* D_acropolis_roof_garden_80183CB8[3] = {
+AnimationSet* D_acropolis_roof_garden_80183CB8[3] = {
     &D_acropolis_roof_garden_80181724,
     &D_acropolis_roof_garden_801836BC,
     &D_acropolis_roof_garden_80183BB4,
@@ -349,7 +349,7 @@ u16 D_acropolis_roof_garden_801845E4[20] = {
 #include "assets/acropolis_roof_garden_animation_0704C_indices.inc"
 };
 
-GpAnimSet D_acropolis_roof_garden_8018460C = {
+AnimationSet D_acropolis_roof_garden_8018460C = {
     D_acropolis_roof_garden_80184430,
     D_acropolis_roof_garden_801845E4,
     { NULL, D_acropolis_roof_garden_80184330, NULL, NULL, D_acropolis_roof_garden_80184378, NULL, NULL, NULL },
@@ -371,13 +371,13 @@ u16 D_acropolis_roof_garden_80184A54[20] = {
 #include "assets/acropolis_roof_garden_animation_074BC_indices.inc"
 };
 
-GpAnimSet D_acropolis_roof_garden_80184A7C = {
+AnimationSet D_acropolis_roof_garden_80184A7C = {
     D_acropolis_roof_garden_80184828,
     D_acropolis_roof_garden_80184A54,
     { NULL, D_acropolis_roof_garden_80184634, NULL, NULL, D_acropolis_roof_garden_801846AC, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_acropolis_roof_garden_80184AA4[3] = {
+AnimationSet* D_acropolis_roof_garden_80184AA4[3] = {
     NULL,
     &D_acropolis_roof_garden_8018460C,
     &D_acropolis_roof_garden_80184A7C,

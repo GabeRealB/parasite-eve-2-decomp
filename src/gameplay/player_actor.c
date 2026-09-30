@@ -4839,12 +4839,12 @@ void Gp_UpdatePlayerMove(void)
 
 void Gp_TickActorAnimState(Task* arg0)
 {
-    GameActor*       actor;
-    AnimationRecord* rec;
-    s32              i;
-    s32              anim;
-    s32              extra;
-    u16              flags;
+    GameActor*             actor;
+    const AnimationRecord* rec;
+    s32                    i;
+    s32                    anim;
+    s32                    extra;
+    u16                    flags;
 
     actor = arg0->work;
     rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, actor->field_438 + 1);
@@ -6971,14 +6971,14 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
 
 s32 func_80105ED4(Task* arg0)
 {
-    GameActor*       actor;
-    AnimationRecord* rec;
-    GfxCoord*        obj;
-    s32              sound;
-    s8               cueBits;
-    s32              pan;
-    s32              index;
-    s32*             sounds;
+    GameActor*             actor;
+    const AnimationRecord* rec;
+    GfxCoord*              obj;
+    s32                    sound;
+    s8                     cueBits;
+    s32                    pan;
+    s32                    index;
+    s32*                   sounds;
 
     sound = 0;
     actor = arg0->work;
@@ -7452,20 +7452,20 @@ static void Gp_PlayerNormalState2(Task* arg0)
 
 static void Gp_PlayerNormalState5(Task* arg0)
 {
-    GameActor*       actor;
-    GameActor*       inner;
-    AnimationRecord* rec;
-    GfxCoord*        coord;
-    s32              base;
-    s32              done;
-    s32              mode;
-    s32              temp;
-    s32              flags;
-    s32              tick;
-    s32              step;
-    u8               item;
-    u16              next;
-    s32              variant;
+    GameActor*             actor;
+    GameActor*             inner;
+    const AnimationRecord* rec;
+    GfxCoord*              coord;
+    s32                    base;
+    s32                    done;
+    s32                    mode;
+    s32                    temp;
+    s32                    flags;
+    s32                    tick;
+    s32                    step;
+    u8                     item;
+    u16                    next;
+    s32                    variant;
 
     actor            = arg0->work;
     done             = 0;

@@ -53,8 +53,8 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[3];
-        GpCopyArg  copy;
+        AnimationSet* sets[3];
+        GpCopyArg     copy;
     } data;
     s32 words[5];
 } DryfieldToiletAnimStorage0B8C;

@@ -78,8 +78,8 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
 void func_neo_ark_submarine_tunnel_8017E828(Task*);
 
-extern GpAnimSet D_neo_ark_submarine_tunnel_801814A0;
-extern GpAnimSet D_neo_ark_submarine_tunnel_80181A0C;
+extern AnimationSet D_neo_ark_submarine_tunnel_801814A0;
+extern AnimationSet D_neo_ark_submarine_tunnel_80181A0C;
 
 void func_neo_ark_submarine_tunnel_8017D634(Task*);
 void func_neo_ark_submarine_tunnel_8017E288(Task*);
@@ -110,7 +110,7 @@ u16 D_neo_ark_submarine_tunnel_80181478[20] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_indices.inc"
 };
 
-GpAnimSet D_neo_ark_submarine_tunnel_801814A0 = {
+AnimationSet D_neo_ark_submarine_tunnel_801814A0 = {
     D_neo_ark_submarine_tunnel_80181244,
     D_neo_ark_submarine_tunnel_80181478,
     { NULL, D_neo_ark_submarine_tunnel_801810FC, NULL, NULL, D_neo_ark_submarine_tunnel_80181144, NULL, NULL, NULL },
@@ -132,7 +132,7 @@ u16 D_neo_ark_submarine_tunnel_801819E4[20] = {
 #include "assets/neo_ark_submarine_tunnel_animation_0444C_indices.inc"
 };
 
-GpAnimSet D_neo_ark_submarine_tunnel_80181A0C = {
+AnimationSet D_neo_ark_submarine_tunnel_80181A0C = {
     D_neo_ark_submarine_tunnel_80181738,
     D_neo_ark_submarine_tunnel_801819E4,
     { NULL, D_neo_ark_submarine_tunnel_801814C8, NULL, NULL, D_neo_ark_submarine_tunnel_80181540, NULL, NULL, NULL },
@@ -153,7 +153,7 @@ GpMsgEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
+AnimationSet* D_neo_ark_submarine_tunnel_80181A78[2] = {
     &D_neo_ark_submarine_tunnel_80181A0C,
     &D_neo_ark_submarine_tunnel_801814A0,
 };

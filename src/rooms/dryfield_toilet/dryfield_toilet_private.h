@@ -7,9 +7,9 @@
 #include "gameplay/collision.h"
 #include "gameplay/evs.h"
 
-extern GpAnimSet D_dryfield_toilet_80180614;
+extern AnimationSet D_dryfield_toilet_80180614;
 
-extern GpAnimSet D_dryfield_toilet_80180B64;
+extern AnimationSet D_dryfield_toilet_80180B64;
 
 extern GpEvsCmd D_dryfield_toilet_80180C58[31];
 

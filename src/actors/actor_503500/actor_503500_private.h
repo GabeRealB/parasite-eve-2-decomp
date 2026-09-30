@@ -342,43 +342,43 @@ typedef struct {
 } Actor5035003MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor5035003MsgEntry, 8);
 
-extern GpAnimSet D_actor_503500_8015F934;
+extern AnimationSet D_actor_503500_8015F934;
 
-extern GpAnimSet D_actor_503500_801602FC;
+extern AnimationSet D_actor_503500_801602FC;
 
-extern GpAnimSet D_actor_503500_80160DA8;
+extern AnimationSet D_actor_503500_80160DA8;
 
-extern GpAnimSet D_actor_503500_80161A90;
+extern AnimationSet D_actor_503500_80161A90;
 
-extern GpAnimSet D_actor_503500_80162500;
+extern AnimationSet D_actor_503500_80162500;
 
-extern GpAnimSet D_actor_503500_80162D3C;
+extern AnimationSet D_actor_503500_80162D3C;
 
-extern GpAnimSet D_actor_503500_801635A8;
+extern AnimationSet D_actor_503500_801635A8;
 
-extern GpAnimSet D_actor_503500_80163BAC;
+extern AnimationSet D_actor_503500_80163BAC;
 
-extern GpAnimSet D_actor_503500_80164C44;
+extern AnimationSet D_actor_503500_80164C44;
 
-extern GpAnimSet D_actor_503500_801651FC;
+extern AnimationSet D_actor_503500_801651FC;
 
-extern GpAnimSet D_actor_503500_80165A34;
+extern AnimationSet D_actor_503500_80165A34;
 
-extern GpAnimSet D_actor_503500_80165CDC;
+extern AnimationSet D_actor_503500_80165CDC;
 
-extern GpAnimSet D_actor_503500_80165FF8;
+extern AnimationSet D_actor_503500_80165FF8;
 
-extern GpAnimSet D_actor_503500_80166EE8;
+extern AnimationSet D_actor_503500_80166EE8;
 
-extern GpAnimSet D_actor_503500_801671B0;
+extern AnimationSet D_actor_503500_801671B0;
 
-extern GpAnimSet D_actor_503500_801674FC;
+extern AnimationSet D_actor_503500_801674FC;
 
-extern GpAnimSet D_actor_503500_8016A900;
+extern AnimationSet D_actor_503500_8016A900;
 
-extern GpAnimSet D_actor_503500_8016BFB0;
+extern AnimationSet D_actor_503500_8016BFB0;
 
-extern GpAnimSet D_actor_503500_8016E788;
+extern AnimationSet D_actor_503500_8016E788;
 
 extern GpU16Pair* D_actor_503500_8016E7CC[1];
 
@@ -400,7 +400,7 @@ extern Task* D_actor_503500_80176558;
 
 extern GpXformArg D_actor_503500_8017655C;
 
-extern GpAnimSet** D_actor_503500_8016EAB8[2];
+extern AnimationSet** D_actor_503500_8016EAB8[2];
 
 extern AnimationPlayRequest D_actor_503500_8016EAC0[1];
 

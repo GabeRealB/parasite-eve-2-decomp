@@ -183,16 +183,16 @@ void func_shelter_b1_sterilization_room_8017F550(Task*);
 void func_shelter_b1_sterilization_room_80180188(Task*);
 void func_shelter_b1_sterilization_room_801802B0(Task*);
 
-extern GpAnimSet D_shelter_b1_sterilization_room_80185228;
-extern GpAnimSet D_shelter_b1_sterilization_room_801853DC;
-extern GpAnimSet D_shelter_b1_sterilization_room_80185AFC;
-extern GpAnimSet D_shelter_b1_sterilization_room_80185C8C;
-extern GpAnimSet D_shelter_b1_sterilization_room_80186910;
-extern GpAnimSet D_shelter_b1_sterilization_room_80187E18;
-extern GpAnimSet D_shelter_b1_sterilization_room_801884DC;
-void             func_shelter_b1_sterilization_room_80180D74(Task*);
-void             func_shelter_b1_sterilization_room_80180F74(Task*);
-void             func_shelter_b1_sterilization_room_801811E0(Task*);
+extern AnimationSet D_shelter_b1_sterilization_room_80185228;
+extern AnimationSet D_shelter_b1_sterilization_room_801853DC;
+extern AnimationSet D_shelter_b1_sterilization_room_80185AFC;
+extern AnimationSet D_shelter_b1_sterilization_room_80185C8C;
+extern AnimationSet D_shelter_b1_sterilization_room_80186910;
+extern AnimationSet D_shelter_b1_sterilization_room_80187E18;
+extern AnimationSet D_shelter_b1_sterilization_room_801884DC;
+void                func_shelter_b1_sterilization_room_80180D74(Task*);
+void                func_shelter_b1_sterilization_room_80180F74(Task*);
+void                func_shelter_b1_sterilization_room_801811E0(Task*);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -289,7 +289,7 @@ u16 D_shelter_b1_sterilization_room_80185200[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_07C68_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_80185228 = {
+AnimationSet D_shelter_b1_sterilization_room_80185228 = {
     D_shelter_b1_sterilization_room_8018504C,
     D_shelter_b1_sterilization_room_80185200,
     { NULL, D_shelter_b1_sterilization_room_80184F4C, NULL, NULL, D_shelter_b1_sterilization_room_80184F94, NULL, NULL, NULL },
@@ -311,7 +311,7 @@ u16 D_shelter_b1_sterilization_room_801853B4[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_07E1C_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_801853DC = {
+AnimationSet D_shelter_b1_sterilization_room_801853DC = {
     D_shelter_b1_sterilization_room_801852D0,
     D_shelter_b1_sterilization_room_801853B4,
     { NULL, D_shelter_b1_sterilization_room_80185250, NULL, NULL, D_shelter_b1_sterilization_room_80185268, NULL, NULL, NULL },
@@ -333,7 +333,7 @@ u16 D_shelter_b1_sterilization_room_80185AD4[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0853C_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_80185AFC = {
+AnimationSet D_shelter_b1_sterilization_room_80185AFC = {
     D_shelter_b1_sterilization_room_801856E8,
     D_shelter_b1_sterilization_room_80185AD4,
     { NULL, D_shelter_b1_sterilization_room_80185404, NULL, NULL, D_shelter_b1_sterilization_room_80185464, NULL, NULL, NULL },
@@ -355,7 +355,7 @@ u16 D_shelter_b1_sterilization_room_80185C64[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_086CC_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_80185C8C = {
+AnimationSet D_shelter_b1_sterilization_room_80185C8C = {
     D_shelter_b1_sterilization_room_80185B80,
     D_shelter_b1_sterilization_room_80185C64,
     { NULL, D_shelter_b1_sterilization_room_80185B24, NULL, NULL, D_shelter_b1_sterilization_room_80185B3C, NULL, NULL, NULL },
@@ -377,7 +377,7 @@ u16 D_shelter_b1_sterilization_room_801868E8[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_09350_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_80186910 = {
+AnimationSet D_shelter_b1_sterilization_room_80186910 = {
     D_shelter_b1_sterilization_room_801862F8,
     D_shelter_b1_sterilization_room_801868E8,
     { NULL, D_shelter_b1_sterilization_room_80185CB4, NULL, NULL, D_shelter_b1_sterilization_room_80185E28, NULL, NULL, NULL },
@@ -399,7 +399,7 @@ u16 D_shelter_b1_sterilization_room_80187DF0[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0A858_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_80187E18 = {
+AnimationSet D_shelter_b1_sterilization_room_80187E18 = {
     D_shelter_b1_sterilization_room_801873B8,
     D_shelter_b1_sterilization_room_80187DF0,
     { NULL, D_shelter_b1_sterilization_room_80186938, NULL, NULL, D_shelter_b1_sterilization_room_80186B24, NULL, NULL, NULL },
@@ -421,7 +421,7 @@ u16 D_shelter_b1_sterilization_room_801884B4[20] = {
 #include "assets/shelter_b1_sterilization_room_animation_0AF1C_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_sterilization_room_801884DC = {
+AnimationSet D_shelter_b1_sterilization_room_801884DC = {
     D_shelter_b1_sterilization_room_801880CC,
     D_shelter_b1_sterilization_room_801884B4,
     { NULL, D_shelter_b1_sterilization_room_80187E40, NULL, NULL, D_shelter_b1_sterilization_room_80187E70, NULL, NULL, NULL },
@@ -439,7 +439,7 @@ TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
     { 0, 192, func_shelter_b1_sterilization_room_801817EC, { .model = NULL } },
 };
 
-GpAnimSet* D_shelter_b1_sterilization_room_80188570[8] = {
+AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
     NULL,
     &D_shelter_b1_sterilization_room_80185228,
     &D_shelter_b1_sterilization_room_801853DC,

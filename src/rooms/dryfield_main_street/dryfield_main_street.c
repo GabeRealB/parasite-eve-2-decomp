@@ -75,8 +75,8 @@ extern u8 D_dryfield_main_street_8018562C[4];
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[3];
-        GpCopyArg  copy;
+        AnimationSet* sets[3];
+        GpCopyArg     copy;
     } data;
     s32 words[5];
 } DryfieldMainStreetAnimStorage1584;
@@ -226,7 +226,7 @@ u16 D_dryfield_main_street_80181188[20] = {
 #include "assets/dryfield_main_street_animation_03BF0_indices.inc"
 };
 
-GpAnimSet D_dryfield_main_street_801811B0 = {
+AnimationSet D_dryfield_main_street_801811B0 = {
     D_dryfield_main_street_80180FD4,
     D_dryfield_main_street_80181188,
     { NULL, D_dryfield_main_street_80180ED4, NULL, NULL, D_dryfield_main_street_80180F1C, NULL, NULL, NULL },
@@ -248,7 +248,7 @@ u16 D_dryfield_main_street_8018151C[20] = {
 #include "assets/dryfield_main_street_animation_03F84_indices.inc"
 };
 
-GpAnimSet D_dryfield_main_street_80181544 = {
+AnimationSet D_dryfield_main_street_80181544 = {
     D_dryfield_main_street_80181330,
     D_dryfield_main_street_8018151C,
     { NULL, D_dryfield_main_street_801811D8, NULL, NULL, D_dryfield_main_street_8018122C, NULL, NULL, NULL },

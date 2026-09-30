@@ -66,7 +66,7 @@
 
 #include "rooms/room_common.h"
 
-extern GpAnimSet* D_acropolis_sanctuary_80180918[9];
+extern AnimationSet* D_acropolis_sanctuary_80180918[9];
 
 extern GpObj4C D_acropolis_sanctuary_80183AE4[17];
 
@@ -223,9 +223,9 @@ extern SVECTOR D_acropolis_sanctuary_80186C94;
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
 /// `func_800E8634` is started on.
-extern GpAnimSet* D_acropolis_sanctuary_801820E4[1];
-extern GpEvsCmd   D_acropolis_sanctuary_801820F0[];
-extern GpEvsCmd   D_acropolis_sanctuary_801821C8[];
+extern AnimationSet* D_acropolis_sanctuary_801820E4[1];
+extern GpEvsCmd      D_acropolis_sanctuary_801820F0[];
+extern GpEvsCmd      D_acropolis_sanctuary_801821C8[];
 
 static void func_acropolis_sanctuary_8017D5E0(Task* task);
 static void func_acropolis_sanctuary_8017D930(Task* arg0);
@@ -310,7 +310,7 @@ u16 D_acropolis_sanctuary_801807CC[20] = {
 #include "assets/acropolis_sanctuary_animation_03234_indices.inc"
 };
 
-GpAnimSet D_acropolis_sanctuary_801807F4 = {
+AnimationSet D_acropolis_sanctuary_801807F4 = {
     D_acropolis_sanctuary_80180574,
     D_acropolis_sanctuary_801807CC,
     { NULL, D_acropolis_sanctuary_80180348, NULL, NULL, D_acropolis_sanctuary_801803A8, NULL, NULL, NULL },
@@ -342,7 +342,7 @@ GpXformArg D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024
 
 AnimationPlayRequest D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimSet* D_acropolis_sanctuary_80180918[9] = {
+AnimationSet* D_acropolis_sanctuary_80180918[9] = {
     &D_actor_210700_8014BC4C,
     &D_actor_210700_8014C618,
     &D_actor_210700_8014C974,
@@ -579,7 +579,7 @@ u16 D_acropolis_sanctuary_80181CA0[20] = {
 #include "assets/acropolis_sanctuary_animation_04708_indices.inc"
 };
 
-GpAnimSet D_acropolis_sanctuary_80181CC8 = {
+AnimationSet D_acropolis_sanctuary_80181CC8 = {
     D_acropolis_sanctuary_80181AC0,
     D_acropolis_sanctuary_80181CA0,
     { NULL, D_acropolis_sanctuary_8018191C, NULL, NULL, D_acropolis_sanctuary_80181970, NULL, NULL, NULL },
@@ -601,13 +601,13 @@ u16 D_acropolis_sanctuary_80182094[20] = {
 #include "assets/acropolis_sanctuary_animation_04AFC_indices.inc"
 };
 
-GpAnimSet D_acropolis_sanctuary_801820BC = {
+AnimationSet D_acropolis_sanctuary_801820BC = {
     D_acropolis_sanctuary_80181EB0,
     D_acropolis_sanctuary_80182094,
     { NULL, D_acropolis_sanctuary_80181CF0, NULL, NULL, D_acropolis_sanctuary_80181D50, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_acropolis_sanctuary_801820E4[1] = {
+AnimationSet* D_acropolis_sanctuary_801820E4[1] = {
     &D_acropolis_sanctuary_80181CC8,
 };
 

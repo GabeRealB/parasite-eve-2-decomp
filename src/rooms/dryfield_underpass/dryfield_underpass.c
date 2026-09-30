@@ -90,7 +90,7 @@ u16 D_dryfield_underpass_8017E3FC[20] = {
 #include "assets/dryfield_underpass_animation_00E64_indices.inc"
 };
 
-GpAnimSet D_dryfield_underpass_8017E424 = {
+AnimationSet D_dryfield_underpass_8017E424 = {
     D_dryfield_underpass_8017E150,
     D_dryfield_underpass_8017E3FC,
     { NULL, D_dryfield_underpass_8017DEE0, NULL, NULL, D_dryfield_underpass_8017DF58, NULL, NULL, NULL },
@@ -112,7 +112,7 @@ u16 D_dryfield_underpass_8017E7C8[20] = {
 #include "assets/dryfield_underpass_animation_01230_indices.inc"
 };
 
-GpAnimSet D_dryfield_underpass_8017E7F0 = {
+AnimationSet D_dryfield_underpass_8017E7F0 = {
     D_dryfield_underpass_8017E594,
     D_dryfield_underpass_8017E7C8,
     { NULL, D_dryfield_underpass_8017E44C, NULL, NULL, D_dryfield_underpass_8017E494, NULL, NULL, NULL },
@@ -132,7 +132,7 @@ GpMsgEntry D_dryfield_underpass_8017E830[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_dryfield_underpass_8017E860[2] = {
+AnimationSet* D_dryfield_underpass_8017E860[2] = {
     &D_dryfield_underpass_8017E424,
     &D_dryfield_underpass_8017E7F0,
 };

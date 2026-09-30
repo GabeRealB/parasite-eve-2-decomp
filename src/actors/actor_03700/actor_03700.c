@@ -136,7 +136,7 @@ extern Actor103700Rise Actor03700_D0802C[];
 extern GpPairSrcE Actor03700_D07F0C;
 
 /// Animation data `func_800B3F84` loads, and the task's `field_24` table.
-extern GpAnimSet* Actor03700_D080E4[6];
+extern AnimationSet* Actor03700_D080E4[6];
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
@@ -149,7 +149,7 @@ STATIC_ASSERT_SIZEOF(Actor03700RecoveredMsgEntry, 8);
 extern Actor03700RecoveredMsgEntry Actor03700_D08108[2];
 
 /// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
-extern GpAnimSet* Actor03700_D080FC[];
+extern AnimationSet* Actor03700_D080FC[];
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
 extern s16 Actor03700_D08074[];
@@ -312,7 +312,7 @@ u16 Actor03700_D047B8[6] = {
 #include "assets/actor_103700_animation_047C4_indices.inc"
 };
 
-GpAnimSet Actor03700_D047C4 = {
+AnimationSet Actor03700_D047C4 = {
     Actor03700_D046F4,
     Actor03700_D047B8,
     { NULL, Actor03700_D04624, NULL, NULL, Actor03700_D04684, NULL, NULL, NULL },
@@ -334,7 +334,7 @@ u16 Actor03700_D04AB4[6] = {
 #include "assets/actor_103700_animation_04AC0_indices.inc"
 };
 
-GpAnimSet Actor03700_D04AC0 = {
+AnimationSet Actor03700_D04AC0 = {
     Actor03700_D04918,
     Actor03700_D04AB4,
     { NULL, Actor03700_D047EC, NULL, NULL, Actor03700_D048D0, NULL, NULL, NULL },
@@ -356,7 +356,7 @@ u16 Actor03700_D04C4C[6] = {
 #include "assets/actor_103700_animation_04C58_indices.inc"
 };
 
-GpAnimSet Actor03700_D04C58 = {
+AnimationSet Actor03700_D04C58 = {
     Actor03700_D04B9C,
     Actor03700_D04C4C,
     { NULL, Actor03700_D04AE8, NULL, NULL, Actor03700_D04B3C, NULL, NULL, NULL },
@@ -378,7 +378,7 @@ u16 Actor03700_D0543C[6] = {
 #include "assets/actor_103700_animation_05448_indices.inc"
 };
 
-GpAnimSet Actor03700_D05448 = {
+AnimationSet Actor03700_D05448 = {
     Actor03700_D050C4,
     Actor03700_D0543C,
     { NULL, Actor03700_D04C80, NULL, NULL, Actor03700_D04ECC, NULL, NULL, NULL },
@@ -400,7 +400,7 @@ u16 Actor03700_D05CDC[6] = {
 #include "assets/actor_103700_animation_05CE8_indices.inc"
 };
 
-GpAnimSet Actor03700_D05CE8 = {
+AnimationSet Actor03700_D05CE8 = {
     Actor03700_D0595C,
     Actor03700_D05CDC,
     { NULL, Actor03700_D05470, NULL, NULL, Actor03700_D0574C, NULL, NULL, NULL },
@@ -422,7 +422,7 @@ u16 Actor03700_D06B24[20] = {
 #include "assets/actor_103700_animation_06B4C_indices.inc"
 };
 
-GpAnimSet Actor03700_D06B4C = {
+AnimationSet Actor03700_D06B4C = {
     Actor03700_D063E4,
     Actor03700_D06B24,
     { NULL, Actor03700_D05D10, NULL, NULL, Actor03700_D05E84, NULL, NULL, NULL },
@@ -444,7 +444,7 @@ u16 Actor03700_D07EB8[20] = {
 #include "assets/actor_103700_animation_07EE0_indices.inc"
 };
 
-GpAnimSet Actor03700_D07EE0 = {
+AnimationSet Actor03700_D07EE0 = {
     Actor03700_D0754C,
     Actor03700_D07EB8,
     { NULL, Actor03700_D06B74, NULL, NULL, Actor03700_D06D24, NULL, NULL, NULL },
@@ -657,7 +657,7 @@ s16 Actor03700_D08074[56] = {
     0,
 };
 
-GpAnimSet* Actor03700_D080E4[6] = {
+AnimationSet* Actor03700_D080E4[6] = {
     NULL,
     &Actor03700_D047C4,
     &Actor03700_D04AC0,
@@ -666,7 +666,7 @@ GpAnimSet* Actor03700_D080E4[6] = {
     &Actor03700_D05CE8,
 };
 
-GpAnimSet* Actor03700_D080FC[3] = {
+AnimationSet* Actor03700_D080FC[3] = {
     NULL,
     &Actor03700_D06B4C,
     &Actor03700_D07EE0,

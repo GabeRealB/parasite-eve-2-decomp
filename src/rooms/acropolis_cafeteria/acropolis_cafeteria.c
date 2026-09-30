@@ -58,9 +58,9 @@
 
 #include "mapui/map_akropolis.h"
 
-extern GpAnimSet* D_acropolis_cafeteria_80182C60[4];
+extern AnimationSet* D_acropolis_cafeteria_80182C60[4];
 
-extern GpAnimSet* D_acropolis_cafeteria_80182C40[1];
+extern AnimationSet* D_acropolis_cafeteria_80182C40[1];
 
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
@@ -98,19 +98,19 @@ extern GpObj4C      D_acropolis_cafeteria_80188C8C[18];
 extern GpObj4C      D_acropolis_cafeteria_801891E4[16];
 extern GpObj4C      D_acropolis_cafeteria_801896A4[20];
 
-extern GpAnimSet D_acropolis_cafeteria_80184CC4;
-s32              func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32              func_acropolis_cafeteria_8017E0D4(Task*, s32, GpMessageArg, GpMessageArg);
-s32              func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
-s32              func_acropolis_cafeteria_8017E154(Task*, s32, GpMsg13EF*, s32);
-s32              func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
-void             func_acropolis_cafeteria_8017D8F8(Task*);
-void             func_acropolis_cafeteria_8017DD1C(Task*);
-void             func_acropolis_cafeteria_8017DF68(Task*);
-void             func_acropolis_cafeteria_8017E27C(s32);
-void             func_acropolis_cafeteria_8017E2B0(void);
-void             func_acropolis_cafeteria_8017E2D0(void);
-void             func_acropolis_cafeteria_8017E310(void);
+extern AnimationSet D_acropolis_cafeteria_80184CC4;
+s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, GpMessageArg, GpMessageArg);
+s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
+s32                 func_acropolis_cafeteria_8017E154(Task*, s32, GpMsg13EF*, s32);
+s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
+void                func_acropolis_cafeteria_8017D8F8(Task*);
+void                func_acropolis_cafeteria_8017DD1C(Task*);
+void                func_acropolis_cafeteria_8017DF68(Task*);
+void                func_acropolis_cafeteria_8017E27C(s32);
+void                func_acropolis_cafeteria_8017E2B0(void);
+void                func_acropolis_cafeteria_8017E2D0(void);
+void                func_acropolis_cafeteria_8017E310(void);
 
 GpMsgEntry D_acropolis_cafeteria_80182AA8[6] = {
     { 5102, func_acropolis_cafeteria_8017D700 },
@@ -157,7 +157,7 @@ GpXformArg D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0, 204
 
 AnimationPlayRequest D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimSet* D_acropolis_cafeteria_80182C40[1] = {
+AnimationSet* D_acropolis_cafeteria_80182C40[1] = {
     &D_actor_202900_8014FEB8,
 };
 
@@ -165,7 +165,7 @@ GpCopyArg D_acropolis_cafeteria_80182C44 = { { .sets = D_acropolis_cafeteria_801
 
 AnimationPlayRequest D_acropolis_cafeteria_80182C4C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimSet* D_acropolis_cafeteria_80182C60[4] = {
+AnimationSet* D_acropolis_cafeteria_80182C60[4] = {
     &D_actor_310600_801668FC,
     &D_acropolis_cafeteria_80184CC4,
     &D_actor_210600_80151D14,
@@ -495,7 +495,7 @@ u16 D_acropolis_cafeteria_80184C9C[20] = {
 #include "assets/acropolis_cafeteria_animation_07704_indices.inc"
 };
 
-GpAnimSet D_acropolis_cafeteria_80184CC4 = {
+AnimationSet D_acropolis_cafeteria_80184CC4 = {
     D_acropolis_cafeteria_80184728,
     D_acropolis_cafeteria_80184C9C,
     { NULL, D_acropolis_cafeteria_8018419C, NULL, NULL, D_acropolis_cafeteria_801842B0, NULL, NULL, NULL },

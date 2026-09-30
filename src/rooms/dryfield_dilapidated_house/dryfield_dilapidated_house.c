@@ -83,7 +83,7 @@ STATIC_ASSERT_SIZEOF(DryfieldDilapidatedHouseSpotLightStorage, 864);
 
 extern DryfieldDilapidatedHouseSpotLightStorage D_dryfield_dilapidated_house_8018959C;
 
-extern GpAnimSet* D_dryfield_dilapidated_house_80183F00[16];
+extern AnimationSet* D_dryfield_dilapidated_house_80183F00[16];
 
 /// Work block of the task family whose state-0 init is
 /// `func_dryfield_dilapidated_house_80180B84`, which allocates it with
@@ -343,7 +343,7 @@ TaskDesc D_dryfield_dilapidated_house_80183EE4[2] = {
 
 s32 D_dryfield_dilapidated_house_80183EFC = 0;
 
-GpAnimSet* D_dryfield_dilapidated_house_80183F00[16] = {
+AnimationSet* D_dryfield_dilapidated_house_80183F00[16] = {
     NULL,
     &D_actor_521100_80138F88,
     NULL,

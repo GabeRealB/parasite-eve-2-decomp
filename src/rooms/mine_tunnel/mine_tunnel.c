@@ -33,7 +33,7 @@ s32 func_mine_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32 func_mine_tunnel_8017D630(Task*, s32, s32, GpMessageArg);
 s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
-extern GpAnimSet D_mine_tunnel_8017DF9C;
+extern AnimationSet D_mine_tunnel_8017DF9C;
 
 extern AnimationPlayRequest D_mine_tunnel_8017DFFC;
 extern GpCopyArg            D_mine_tunnel_8017DFF4;
@@ -55,7 +55,7 @@ u16 D_mine_tunnel_8017DF74[20] = {
 #include "assets/mine_tunnel_animation_009DC_indices.inc"
 };
 
-GpAnimSet D_mine_tunnel_8017DF9C = {
+AnimationSet D_mine_tunnel_8017DF9C = {
     D_mine_tunnel_8017DD48,
     D_mine_tunnel_8017DF74,
     { NULL, D_mine_tunnel_8017DB54, NULL, NULL, D_mine_tunnel_8017DBCC, NULL, NULL, NULL },
@@ -69,7 +69,7 @@ GpMsgEntry D_mine_tunnel_8017DFC4[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_mine_tunnel_8017DFEC[2] = {
+AnimationSet* D_mine_tunnel_8017DFEC[2] = {
     &D_mine_tunnel_8017DF9C,
     NULL,
 };

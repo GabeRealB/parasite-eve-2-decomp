@@ -54,7 +54,7 @@ extern GpPairSrcE D_actor_300700_80165B68;
 
 extern u16 D_actor_300700_80165B78[8];
 
-extern GpAnimSet* D_actor_300700_80165B94[2];
+extern AnimationSet* D_actor_300700_80165B94[2];
 
 /// The 0x2F4-byte allocation `func_actor_300700_80161E80` makes with
 /// `memCalloc` and stores in the task's work slot, then fills with the three
@@ -164,7 +164,7 @@ u16 D_actor_300700_80165B34[4] = {
 #include "assets/actor_300700_animation_03D1C_indices.inc"
 };
 
-GpAnimSet D_actor_300700_80165B3C = {
+AnimationSet D_actor_300700_80165B3C = {
     D_actor_300700_80165B04,
     D_actor_300700_80165B34,
     { NULL, D_actor_300700_80165AE8, NULL, NULL, D_actor_300700_80165B00, NULL, NULL, NULL },
@@ -187,7 +187,7 @@ u16 D_actor_300700_80165B78[8] = {
 
 TaskDesc D_actor_300700_80165B88 = { 1, 96, func_actor_300700_8016335C, { .model = &D_actor_300700_80165AC4 } };
 
-GpAnimSet* D_actor_300700_80165B94[2] = {
+AnimationSet* D_actor_300700_80165B94[2] = {
     NULL,
     &D_actor_300700_80165B3C,
 };

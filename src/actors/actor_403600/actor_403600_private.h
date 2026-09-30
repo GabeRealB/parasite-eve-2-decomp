@@ -167,57 +167,57 @@ extern GpPairSrcE D_actor_403600_80150EC8;
 
 extern GpPairSrcE D_actor_403600_80150ED8;
 
-extern GpAnimSet D_actor_403600_80151CD0;
+extern AnimationSet D_actor_403600_80151CD0;
 
-extern GpAnimSet D_actor_403600_8015270C;
+extern AnimationSet D_actor_403600_8015270C;
 
-extern GpAnimSet D_actor_403600_801531BC;
+extern AnimationSet D_actor_403600_801531BC;
 
-extern GpAnimSet D_actor_403600_80154244;
+extern AnimationSet D_actor_403600_80154244;
 
-extern GpAnimSet D_actor_403600_80154724;
+extern AnimationSet D_actor_403600_80154724;
 
-extern GpAnimSet D_actor_403600_801555C8;
+extern AnimationSet D_actor_403600_801555C8;
 
-extern GpAnimSet D_actor_403600_80155FFC;
+extern AnimationSet D_actor_403600_80155FFC;
 
-extern GpAnimSet D_actor_403600_80156A74;
+extern AnimationSet D_actor_403600_80156A74;
 
-extern GpAnimSet D_actor_403600_80157490;
+extern AnimationSet D_actor_403600_80157490;
 
-extern GpAnimSet D_actor_403600_80158470;
+extern AnimationSet D_actor_403600_80158470;
 
-extern GpAnimSet D_actor_403600_80158FA4;
+extern AnimationSet D_actor_403600_80158FA4;
 
-extern GpAnimSet D_actor_403600_80159880;
+extern AnimationSet D_actor_403600_80159880;
 
-extern GpAnimSet D_actor_403600_8015A218;
+extern AnimationSet D_actor_403600_8015A218;
 
-extern GpAnimSet D_actor_403600_8015B054;
+extern AnimationSet D_actor_403600_8015B054;
 
-extern GpAnimSet D_actor_403600_8015B494;
+extern AnimationSet D_actor_403600_8015B494;
 
-extern GpAnimSet D_actor_403600_8015BAD4;
+extern AnimationSet D_actor_403600_8015BAD4;
 
-extern GpAnimSet D_actor_403600_8015C528;
+extern AnimationSet D_actor_403600_8015C528;
 
-extern GpAnimSet D_actor_403600_8015C70C;
+extern AnimationSet D_actor_403600_8015C70C;
 
-extern GpAnimSet D_actor_403600_8015D184;
+extern AnimationSet D_actor_403600_8015D184;
 
-extern GpAnimSet D_actor_403600_8015DDAC;
+extern AnimationSet D_actor_403600_8015DDAC;
 
-extern GpAnimSet D_actor_403600_8015DEE4;
+extern AnimationSet D_actor_403600_8015DEE4;
 
-extern GpAnimSet D_actor_403600_8015E72C;
+extern AnimationSet D_actor_403600_8015E72C;
 
-extern GpAnimSet D_actor_403600_8015EEC8;
+extern AnimationSet D_actor_403600_8015EEC8;
 
-extern GpAnimSet D_actor_403600_8015F6D4;
+extern AnimationSet D_actor_403600_8015F6D4;
 
-extern GpAnimSet D_actor_403600_8015FEE8;
+extern AnimationSet D_actor_403600_8015FEE8;
 
-extern GpAnimSet D_actor_403600_801604DC;
+extern AnimationSet D_actor_403600_801604DC;
 
 extern TaskDesc D_actor_403600_801421A0[4];
 

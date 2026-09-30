@@ -138,10 +138,10 @@ extern GpCopyArg            D_acropolis_west_elevator_hall_80184590;
 extern GpXformArg           D_acropolis_west_elevator_hall_801845AC;
 extern GpXformArg           D_acropolis_west_elevator_hall_801845C4;
 
-extern GpAnimSet D_acropolis_west_elevator_hall_80184540;
-extern TmdSource D_acropolis_west_elevator_hall_8018050C;
-extern TmdSource D_acropolis_west_elevator_hall_8018077C;
-void             func_acropolis_west_elevator_hall_8017F418(Task*);
+extern AnimationSet D_acropolis_west_elevator_hall_80184540;
+extern TmdSource    D_acropolis_west_elevator_hall_8018050C;
+extern TmdSource    D_acropolis_west_elevator_hall_8018077C;
+void                func_acropolis_west_elevator_hall_8017F418(Task*);
 
 extern AcropolisWestElevatorHallPalette D_acropolis_west_elevator_hall_80184E04;
 extern GpGridParams                     D_acropolis_west_elevator_hall_801852FC[1];
@@ -233,7 +233,7 @@ u16 D_acropolis_west_elevator_hall_80184518[20] = {
 #include "assets/acropolis_west_elevator_hall_animation_06F80_indices.inc"
 };
 
-GpAnimSet D_acropolis_west_elevator_hall_80184540 = {
+AnimationSet D_acropolis_west_elevator_hall_80184540 = {
     D_acropolis_west_elevator_hall_80182600,
     D_acropolis_west_elevator_hall_80184518,
     { NULL, D_acropolis_west_elevator_hall_801807A0, NULL, NULL, D_acropolis_west_elevator_hall_80180C50, NULL, NULL, NULL },
@@ -245,7 +245,7 @@ TaskDesc D_acropolis_west_elevator_hall_80184568[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimSet* D_acropolis_west_elevator_hall_8018458C[1] = {
+AnimationSet* D_acropolis_west_elevator_hall_8018458C[1] = {
     &D_acropolis_west_elevator_hall_80184540,
 };
 

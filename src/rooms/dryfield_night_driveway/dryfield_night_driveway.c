@@ -64,7 +64,7 @@ extern u8 D_dryfield_night_driveway_80182120_value __asm__("D_dryfield_night_dri
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet*           sets[4];
+        AnimationSet*        sets[4];
         AnimationPlayRequest arguments[2];
     } data;
     s32 words[14];
@@ -116,9 +116,9 @@ extern GpRoomCoordSet D_dryfield_night_driveway_80181DB0[1];
 
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F380;
 extern AnimationPlayRequest D_dryfield_night_driveway_8017F3A8;
-extern GpAnimSet            D_dryfield_night_driveway_8017EE30;
-extern GpAnimSet            D_dryfield_night_driveway_8017F044;
-extern GpAnimSet            D_dryfield_night_driveway_8017F324;
+extern AnimationSet         D_dryfield_night_driveway_8017EE30;
+extern AnimationSet         D_dryfield_night_driveway_8017F044;
+extern AnimationSet         D_dryfield_night_driveway_8017F324;
 extern GpCopyArg            D_dryfield_night_driveway_8017F378;
 s32                         func_dryfield_night_driveway_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 s32                         func_dryfield_night_driveway_8017DC94(Task*, s32, s32, GpMessageArg);
@@ -151,7 +151,7 @@ u16 D_dryfield_night_driveway_8017EAA4[20] = {
 #include "assets/dryfield_night_driveway_animation_0150C_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_driveway_8017EACC = {
+AnimationSet D_dryfield_night_driveway_8017EACC = {
     D_dryfield_night_driveway_8017E878,
     D_dryfield_night_driveway_8017EAA4,
     { NULL, D_dryfield_night_driveway_8017E684, NULL, NULL, D_dryfield_night_driveway_8017E6FC, NULL, NULL, NULL },
@@ -173,7 +173,7 @@ u16 D_dryfield_night_driveway_8017EE08[20] = {
 #include "assets/dryfield_night_driveway_animation_01870_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_driveway_8017EE30 = {
+AnimationSet D_dryfield_night_driveway_8017EE30 = {
     D_dryfield_night_driveway_8017EC68,
     D_dryfield_night_driveway_8017EE08,
     { NULL, D_dryfield_night_driveway_8017EAF4, NULL, NULL, D_dryfield_night_driveway_8017EB3C, NULL, NULL, NULL },
@@ -195,7 +195,7 @@ u16 D_dryfield_night_driveway_8017F01C[20] = {
 #include "assets/dryfield_night_driveway_animation_01A84_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_driveway_8017F044 = {
+AnimationSet D_dryfield_night_driveway_8017F044 = {
     D_dryfield_night_driveway_8017EED0,
     D_dryfield_night_driveway_8017F01C,
     { NULL, D_dryfield_night_driveway_8017EE58, NULL, NULL, D_dryfield_night_driveway_8017EE70, NULL, NULL, NULL },
@@ -217,7 +217,7 @@ u16 D_dryfield_night_driveway_8017F2FC[20] = {
 #include "assets/dryfield_night_driveway_animation_01D64_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_driveway_8017F324 = {
+AnimationSet D_dryfield_night_driveway_8017F324 = {
     D_dryfield_night_driveway_8017F198,
     D_dryfield_night_driveway_8017F2FC,
     { NULL, D_dryfield_night_driveway_8017F06C, NULL, NULL, D_dryfield_night_driveway_8017F0A8, NULL, NULL, NULL },
@@ -229,7 +229,7 @@ TaskDesc D_dryfield_night_driveway_8017F34C[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimSet* D_dryfield_night_driveway_8017F370[2] = {
+AnimationSet* D_dryfield_night_driveway_8017F370[2] = {
     &D_dryfield_night_driveway_8017EACC,
     NULL,
 };

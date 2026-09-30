@@ -58,7 +58,7 @@ STATIC_ASSERT_SIZEOF(Actor111800Work, 0x498);
 
 /// Animation bank `func_800B3F84` builds the work block's clip context from;
 /// the actor hands it over whole, so it is only ever a byte address here.
-extern GpAnimSet* D_actor_111800_8013A448[8];
+extern AnimationSet* D_actor_111800_8013A448[8];
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -117,7 +117,7 @@ u16 D_actor_111800_801383F4[20] = {
 #include "assets/actor_111800_animation_065FC_indices.inc"
 };
 
-GpAnimSet D_actor_111800_8013841C = {
+AnimationSet D_actor_111800_8013841C = {
     D_actor_111800_8013816C,
     D_actor_111800_801383F4,
     { NULL, D_actor_111800_80138028, NULL, NULL, D_actor_111800_80138058, NULL, NULL, NULL },
@@ -139,7 +139,7 @@ u16 D_actor_111800_80138F18[20] = {
 #include "assets/actor_111800_animation_07120_indices.inc"
 };
 
-GpAnimSet D_actor_111800_80138F40 = {
+AnimationSet D_actor_111800_80138F40 = {
     D_actor_111800_80138970,
     D_actor_111800_80138F18,
     { NULL, D_actor_111800_80138444, NULL, NULL, D_actor_111800_80138594, NULL, NULL, NULL },
@@ -161,7 +161,7 @@ u16 D_actor_111800_8013999C[20] = {
 #include "assets/actor_111800_animation_07BA4_indices.inc"
 };
 
-GpAnimSet D_actor_111800_801399C4 = {
+AnimationSet D_actor_111800_801399C4 = {
     D_actor_111800_80139464,
     D_actor_111800_8013999C,
     { NULL, D_actor_111800_80138F68, NULL, NULL, D_actor_111800_801390E8, NULL, NULL, NULL },
@@ -183,7 +183,7 @@ u16 D_actor_111800_80139DA4[20] = {
 #include "assets/actor_111800_animation_07FAC_indices.inc"
 };
 
-GpAnimSet D_actor_111800_80139DCC = {
+AnimationSet D_actor_111800_80139DCC = {
     D_actor_111800_80139B4C,
     D_actor_111800_80139DA4,
     { NULL, D_actor_111800_801399EC, NULL, NULL, D_actor_111800_80139A34, NULL, NULL, NULL },
@@ -205,13 +205,13 @@ u16 D_actor_111800_8013A3F8[20] = {
 #include "assets/actor_111800_animation_08600_indices.inc"
 };
 
-GpAnimSet D_actor_111800_8013A420 = {
+AnimationSet D_actor_111800_8013A420 = {
     D_actor_111800_8013A114,
     D_actor_111800_8013A3F8,
     { NULL, D_actor_111800_80139DF4, NULL, NULL, D_actor_111800_80139ECC, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_111800_8013A448[8] = {
+AnimationSet* D_actor_111800_8013A448[8] = {
     &D_actor_111800_8013841C,
     &D_actor_111800_80138F40,
     &D_actor_111800_801399C4,

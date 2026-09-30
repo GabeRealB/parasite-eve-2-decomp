@@ -51,7 +51,7 @@ s32 func_shelter_b3_dumping_hole_8017D82C(s32, s32, s32);
 s32 func_shelter_b3_dumping_hole_8017D868(void);
 s32 func_shelter_b3_dumping_hole_8017D870(void);
 
-extern GpAnimSet D_shelter_b3_dumping_hole_80188074;
+extern AnimationSet D_shelter_b3_dumping_hole_80188074;
 
 TmdBone D_shelter_b3_dumping_hole_80186F8C[3] = {
 #include "assets/shelter_b3_dumping_hole_model_09F90_skeleton.inc"
@@ -206,7 +206,7 @@ u16 D_shelter_b3_dumping_hole_8018804C[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0AAB4_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_dumping_hole_80188074 = {
+AnimationSet D_shelter_b3_dumping_hole_80188074 = {
     D_shelter_b3_dumping_hole_80187E98,
     D_shelter_b3_dumping_hole_8018804C,
     { NULL, D_shelter_b3_dumping_hole_80187D98, NULL, NULL, D_shelter_b3_dumping_hole_80187DE0, NULL, NULL, NULL },
@@ -214,7 +214,7 @@ GpAnimSet D_shelter_b3_dumping_hole_80188074 = {
 
 s16 D_shelter_b3_dumping_hole_8018809C = 1;
 
-GpAnimSet* D_shelter_b3_dumping_hole_801880A0[6] = {
+AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
     &D_shelter_b3_dumping_hole_80188074,
     &D_actor_403200_8015ED84,
     &D_actor_403200_8015EFF0,

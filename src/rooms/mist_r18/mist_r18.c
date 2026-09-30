@@ -175,41 +175,41 @@ extern GpAreaTmdRec D_mist_r18_80186BD8[3];
 
 extern GpGridParams D_mist_r18_801866F8[1];
 
-extern GpAnimSet* D_mist_r18_80184F64[11];
-void              func_mist_r18_8017E6D8(s32);
-void              func_mist_r18_8017E784(s32);
-void              func_mist_r18_8017E7F0(void);
-void              func_mist_r18_8017E824(void);
-void              func_mist_r18_8017EA2C(void);
-void              func_mist_r18_8017EA60(void);
-void              func_mist_r18_8017EB48(void);
-void              func_mist_r18_8017EBB8(void);
-void              func_mist_r18_8017EBF8(void);
-void              func_mist_r18_8017EC38(void);
-void              func_mist_r18_8017EC58(void);
-void              func_mist_r18_8017EC78(void);
-void              func_mist_r18_8017ECC0(s8);
-void              func_mist_r18_8017ECCC(void);
+extern AnimationSet* D_mist_r18_80184F64[11];
+void                 func_mist_r18_8017E6D8(s32);
+void                 func_mist_r18_8017E784(s32);
+void                 func_mist_r18_8017E7F0(void);
+void                 func_mist_r18_8017E824(void);
+void                 func_mist_r18_8017EA2C(void);
+void                 func_mist_r18_8017EA60(void);
+void                 func_mist_r18_8017EB48(void);
+void                 func_mist_r18_8017EBB8(void);
+void                 func_mist_r18_8017EBF8(void);
+void                 func_mist_r18_8017EC38(void);
+void                 func_mist_r18_8017EC58(void);
+void                 func_mist_r18_8017EC78(void);
+void                 func_mist_r18_8017ECC0(s8);
+void                 func_mist_r18_8017ECCC(void);
 
-extern GpAnimSet D_mist_r18_8017F834;
-extern GpAnimSet D_mist_r18_801806A8;
-extern GpAnimSet D_mist_r18_80180D1C;
-extern GpAnimSet D_mist_r18_80181250;
-extern GpAnimSet D_mist_r18_80181D4C;
-extern GpAnimSet D_mist_r18_80182394;
-extern GpAnimSet D_mist_r18_80183064;
-extern GpAnimSet D_mist_r18_801847F0;
-extern GpAnimSet D_mist_r18_80184B8C;
-extern GpAnimSet D_mist_r18_80184E80;
-extern TmdSource D_mist_r18_8017F064;
-extern TmdSource D_mist_r18_8017F25C;
-void             func_mist_r18_8017D5EC(Task*);
-void             func_mist_r18_8017DA8C(Task*);
-void             func_mist_r18_8017E2C8(Task*);
-void             func_mist_r18_8017E3A4(Task*);
-void             func_mist_r18_8017E854(Task*);
-void             func_mist_r18_8017EA98(Task*);
-void             func_mist_r18_8017EC98(Task*);
+extern AnimationSet D_mist_r18_8017F834;
+extern AnimationSet D_mist_r18_801806A8;
+extern AnimationSet D_mist_r18_80180D1C;
+extern AnimationSet D_mist_r18_80181250;
+extern AnimationSet D_mist_r18_80181D4C;
+extern AnimationSet D_mist_r18_80182394;
+extern AnimationSet D_mist_r18_80183064;
+extern AnimationSet D_mist_r18_801847F0;
+extern AnimationSet D_mist_r18_80184B8C;
+extern AnimationSet D_mist_r18_80184E80;
+extern TmdSource    D_mist_r18_8017F064;
+extern TmdSource    D_mist_r18_8017F25C;
+void                func_mist_r18_8017D5EC(Task*);
+void                func_mist_r18_8017DA8C(Task*);
+void                func_mist_r18_8017E2C8(Task*);
+void                func_mist_r18_8017E3A4(Task*);
+void                func_mist_r18_8017E854(Task*);
+void                func_mist_r18_8017EA98(Task*);
+void                func_mist_r18_8017EC98(Task*);
 
 TmdBone D_mist_r18_8017EDBC[1] = {
 #include "assets/mist_r18_model_01AA4_skeleton.inc"
@@ -287,7 +287,7 @@ u16 D_mist_r18_8017F80C[20] = {
 #include "assets/mist_r18_animation_02274_indices.inc"
 };
 
-GpAnimSet D_mist_r18_8017F834 = {
+AnimationSet D_mist_r18_8017F834 = {
     D_mist_r18_8017F498,
     D_mist_r18_8017F80C,
     { NULL, D_mist_r18_8017F280, NULL, NULL, D_mist_r18_8017F2D4, NULL, NULL, NULL },
@@ -309,7 +309,7 @@ u16 D_mist_r18_80180680[20] = {
 #include "assets/mist_r18_animation_030E8_indices.inc"
 };
 
-GpAnimSet D_mist_r18_801806A8 = {
+AnimationSet D_mist_r18_801806A8 = {
     D_mist_r18_8017FEC4,
     D_mist_r18_80180680,
     { NULL, D_mist_r18_8017F85C, NULL, NULL, D_mist_r18_8017F898, NULL, NULL, NULL },
@@ -331,7 +331,7 @@ u16 D_mist_r18_80180CF4[20] = {
 #include "assets/mist_r18_animation_0375C_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80180D1C = {
+AnimationSet D_mist_r18_80180D1C = {
     D_mist_r18_8018098C,
     D_mist_r18_80180CF4,
     { NULL, D_mist_r18_801806D0, NULL, NULL, D_mist_r18_80180724, NULL, NULL, NULL },
@@ -353,7 +353,7 @@ u16 D_mist_r18_80181228[20] = {
 #include "assets/mist_r18_animation_03C90_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80181250 = {
+AnimationSet D_mist_r18_80181250 = {
     D_mist_r18_80180ED8,
     D_mist_r18_80181228,
     { NULL, D_mist_r18_80180D44, NULL, NULL, D_mist_r18_80180D5C, NULL, NULL, NULL },
@@ -375,7 +375,7 @@ u16 D_mist_r18_80181D24[20] = {
 #include "assets/mist_r18_animation_0478C_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80181D4C = {
+AnimationSet D_mist_r18_80181D4C = {
     D_mist_r18_801817AC,
     D_mist_r18_80181D24,
     { NULL, D_mist_r18_80181278, NULL, NULL, D_mist_r18_80181338, NULL, NULL, NULL },
@@ -397,7 +397,7 @@ u16 D_mist_r18_8018236C[20] = {
 #include "assets/mist_r18_animation_04DD4_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80182394 = {
+AnimationSet D_mist_r18_80182394 = {
     D_mist_r18_80181F38,
     D_mist_r18_8018236C,
     { NULL, D_mist_r18_80181D74, NULL, NULL, D_mist_r18_80181E4C, NULL, NULL, NULL },
@@ -419,7 +419,7 @@ u16 D_mist_r18_8018303C[20] = {
 #include "assets/mist_r18_animation_05AA4_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80183064 = {
+AnimationSet D_mist_r18_80183064 = {
     D_mist_r18_801829EC,
     D_mist_r18_8018303C,
     { NULL, D_mist_r18_801823BC, NULL, NULL, D_mist_r18_80182494, NULL, NULL, NULL },
@@ -441,7 +441,7 @@ u16 D_mist_r18_801847C8[20] = {
 #include "assets/mist_r18_animation_07230_indices.inc"
 };
 
-GpAnimSet D_mist_r18_801847F0 = {
+AnimationSet D_mist_r18_801847F0 = {
     D_mist_r18_80183B58,
     D_mist_r18_801847C8,
     { NULL, D_mist_r18_8018308C, NULL, NULL, D_mist_r18_801830A4, NULL, NULL, NULL },
@@ -463,7 +463,7 @@ u16 D_mist_r18_80184B64[20] = {
 #include "assets/mist_r18_animation_075CC_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80184B8C = {
+AnimationSet D_mist_r18_80184B8C = {
     D_mist_r18_80184994,
     D_mist_r18_80184B64,
     { NULL, D_mist_r18_80184818, NULL, NULL, D_mist_r18_8018483C, NULL, NULL, NULL },
@@ -485,7 +485,7 @@ u16 D_mist_r18_80184E58[20] = {
 #include "assets/mist_r18_animation_078C0_indices.inc"
 };
 
-GpAnimSet D_mist_r18_80184E80 = {
+AnimationSet D_mist_r18_80184E80 = {
     D_mist_r18_80184CCC,
     D_mist_r18_80184E58,
     { NULL, D_mist_r18_80184BB4, NULL, NULL, D_mist_r18_80184BFC, NULL, NULL, NULL },
@@ -567,7 +567,7 @@ TaskDesc D_mist_r18_80184F04[8] = {
     { 0, 192, func_mist_r18_8017EC98, { .model = NULL } },
 };
 
-GpAnimSet* D_mist_r18_80184F64[11] = {
+AnimationSet* D_mist_r18_80184F64[11] = {
     NULL,
     &D_mist_r18_8017F834,
     &D_mist_r18_801806A8,

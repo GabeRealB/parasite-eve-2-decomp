@@ -54,41 +54,41 @@ extern TaskDesc D_dryfield_water_tank_8017FF88[2];
 
 extern TaskDesc D_dryfield_water_tank_80180794;
 
-extern GpAnimSet D_dryfield_water_tank_80180A7C;
+extern AnimationSet D_dryfield_water_tank_80180A7C;
 
-extern GpAnimSet D_dryfield_water_tank_80180D3C;
+extern AnimationSet D_dryfield_water_tank_80180D3C;
 
-extern GpAnimSet D_dryfield_water_tank_80181020;
+extern AnimationSet D_dryfield_water_tank_80181020;
 
-extern GpAnimSet D_dryfield_water_tank_80181274;
+extern AnimationSet D_dryfield_water_tank_80181274;
 
-extern GpAnimSet D_dryfield_water_tank_801815C0;
+extern AnimationSet D_dryfield_water_tank_801815C0;
 
-extern GpAnimSet D_dryfield_water_tank_80181D7C;
+extern AnimationSet D_dryfield_water_tank_80181D7C;
 
-extern GpAnimSet D_dryfield_water_tank_80182060;
+extern AnimationSet D_dryfield_water_tank_80182060;
 
-extern GpAnimSet D_dryfield_water_tank_80182258;
+extern AnimationSet D_dryfield_water_tank_80182258;
 
-extern GpAnimSet D_dryfield_water_tank_801825AC;
+extern AnimationSet D_dryfield_water_tank_801825AC;
 
-extern GpAnimSet D_dryfield_water_tank_801827A4;
+extern AnimationSet D_dryfield_water_tank_801827A4;
 
-extern GpAnimSet D_dryfield_water_tank_80182CC4;
+extern AnimationSet D_dryfield_water_tank_80182CC4;
 
-extern GpAnimSet D_dryfield_water_tank_80182FA4;
+extern AnimationSet D_dryfield_water_tank_80182FA4;
 
-extern GpAnimSet D_dryfield_water_tank_80183378;
+extern AnimationSet D_dryfield_water_tank_80183378;
 
-extern GpAnimSet D_dryfield_water_tank_80183768;
+extern AnimationSet D_dryfield_water_tank_80183768;
 
-extern GpAnimSet D_dryfield_water_tank_80183AD4;
+extern AnimationSet D_dryfield_water_tank_80183AD4;
 
-extern GpAnimSet D_dryfield_water_tank_80183E00;
+extern AnimationSet D_dryfield_water_tank_80183E00;
 
-extern GpAnimSet D_dryfield_water_tank_80184228;
+extern AnimationSet D_dryfield_water_tank_80184228;
 
-extern GpAnimSet D_dryfield_water_tank_80184508;
+extern AnimationSet D_dryfield_water_tank_80184508;
 
 extern DryfieldWaterTankMessageEntry D_dryfield_water_tank_8017FD90[3];
 

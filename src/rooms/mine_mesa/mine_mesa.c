@@ -193,17 +193,17 @@ static void func_mine_mesa_80180804(GfxCoord* arg0, s16 arg1, u8* arg2);
 
 void func_mine_mesa_8017E074(Task*);
 
-extern GpAnimSet D_mine_mesa_80181C90;
+extern AnimationSet D_mine_mesa_80181C90;
 
-extern GpAnimSet D_mine_mesa_80181F0C;
-extern GpAnimSet D_mine_mesa_80182114;
-extern GpAnimSet D_mine_mesa_80182498;
-extern GpAnimSet D_mine_mesa_8018271C;
-extern GpAnimSet D_mine_mesa_80183720;
-extern GpAnimSet D_mine_mesa_80183A1C;
-extern GpAnimSet D_mine_mesa_80183BBC;
-extern GpAnimSet D_mine_mesa_80183EA4;
-extern GpAnimSet D_mine_mesa_8018415C;
+extern AnimationSet D_mine_mesa_80181F0C;
+extern AnimationSet D_mine_mesa_80182114;
+extern AnimationSet D_mine_mesa_80182498;
+extern AnimationSet D_mine_mesa_8018271C;
+extern AnimationSet D_mine_mesa_80183720;
+extern AnimationSet D_mine_mesa_80183A1C;
+extern AnimationSet D_mine_mesa_80183BBC;
+extern AnimationSet D_mine_mesa_80183EA4;
+extern AnimationSet D_mine_mesa_8018415C;
 
 void func_mine_mesa_8017DE38(Task*);
 void func_mine_mesa_8017DFC4(Task*);
@@ -350,7 +350,7 @@ u16 D_mine_mesa_80181C68[20] = {
 #include "assets/mine_mesa_animation_046D0_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80181C90 = {
+AnimationSet D_mine_mesa_80181C90 = {
     D_mine_mesa_80181AB4,
     D_mine_mesa_80181C68,
     { NULL, D_mine_mesa_801819B4, NULL, NULL, D_mine_mesa_801819FC, NULL, NULL, NULL },
@@ -372,7 +372,7 @@ u16 D_mine_mesa_80181EE4[20] = {
 #include "assets/mine_mesa_animation_0494C_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80181F0C = {
+AnimationSet D_mine_mesa_80181F0C = {
     D_mine_mesa_80181D50,
     D_mine_mesa_80181EE4,
     { NULL, D_mine_mesa_80181CB8, NULL, NULL, D_mine_mesa_80181CD0, NULL, NULL, NULL },
@@ -394,7 +394,7 @@ u16 D_mine_mesa_801820EC[20] = {
 #include "assets/mine_mesa_animation_04B54_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80182114 = {
+AnimationSet D_mine_mesa_80182114 = {
     D_mine_mesa_80181FEC,
     D_mine_mesa_801820EC,
     { NULL, D_mine_mesa_80181F34, NULL, NULL, D_mine_mesa_80181F64, NULL, NULL, NULL },
@@ -416,7 +416,7 @@ u16 D_mine_mesa_80182470[20] = {
 #include "assets/mine_mesa_animation_04ED8_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80182498 = {
+AnimationSet D_mine_mesa_80182498 = {
     D_mine_mesa_801822A0,
     D_mine_mesa_80182470,
     { NULL, D_mine_mesa_8018213C, NULL, NULL, D_mine_mesa_80182184, NULL, NULL, NULL },
@@ -438,7 +438,7 @@ u16 D_mine_mesa_801826F4[20] = {
 #include "assets/mine_mesa_animation_0515C_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_8018271C = {
+AnimationSet D_mine_mesa_8018271C = {
     D_mine_mesa_8018256C,
     D_mine_mesa_801826F4,
     { NULL, D_mine_mesa_801824C0, NULL, NULL, D_mine_mesa_801824E4, NULL, NULL, NULL },
@@ -460,7 +460,7 @@ u16 D_mine_mesa_801836F8[20] = {
 #include "assets/mine_mesa_animation_06160_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80183720 = {
+AnimationSet D_mine_mesa_80183720 = {
     D_mine_mesa_80182F30,
     D_mine_mesa_801836F8,
     { NULL, D_mine_mesa_80182744, NULL, NULL, D_mine_mesa_80182894, NULL, NULL, NULL },
@@ -482,7 +482,7 @@ u16 D_mine_mesa_801839F4[20] = {
 #include "assets/mine_mesa_animation_0645C_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80183A1C = {
+AnimationSet D_mine_mesa_80183A1C = {
     D_mine_mesa_80183858,
     D_mine_mesa_801839F4,
     { NULL, D_mine_mesa_80183748, NULL, NULL, D_mine_mesa_80183778, NULL, NULL, NULL },
@@ -504,7 +504,7 @@ u16 D_mine_mesa_80183B94[20] = {
 #include "assets/mine_mesa_animation_065FC_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80183BBC = {
+AnimationSet D_mine_mesa_80183BBC = {
     D_mine_mesa_80183AA4,
     D_mine_mesa_80183B94,
     { NULL, D_mine_mesa_80183A44, NULL, NULL, D_mine_mesa_80183A5C, NULL, NULL, NULL },
@@ -526,7 +526,7 @@ u16 D_mine_mesa_80183E7C[20] = {
 #include "assets/mine_mesa_animation_068E4_indices.inc"
 };
 
-GpAnimSet D_mine_mesa_80183EA4 = {
+AnimationSet D_mine_mesa_80183EA4 = {
     D_mine_mesa_80183CC8,
     D_mine_mesa_80183E7C,
     { NULL, D_mine_mesa_80183BE4, NULL, NULL, D_mine_mesa_80183C14, NULL, NULL, NULL },
@@ -549,7 +549,7 @@ u16 D_mine_mesa_80184134[20] = {
 
 };
 
-GpAnimSet D_mine_mesa_8018415C = {
+AnimationSet D_mine_mesa_8018415C = {
     D_mine_mesa_80183F80,
     D_mine_mesa_80184134,
     { NULL, D_mine_mesa_80183ECC, NULL, NULL, D_mine_mesa_80183EE4, NULL, NULL, NULL },
@@ -619,7 +619,7 @@ TaskDesc D_mine_mesa_801842F4[6] = {
     { 0, 192, func_mine_mesa_8017E978, { .model = NULL } },
 };
 
-GpAnimSet* D_mine_mesa_8018433C[2] = {
+AnimationSet* D_mine_mesa_8018433C[2] = {
     NULL,
     &D_mine_mesa_80181C90,
 };
@@ -653,7 +653,7 @@ GpXformArg D_mine_mesa_80184424 = { { 6280, 0, 5370, 0 }, { 0, 1420, 0, 0 } };
 
 GpXformArg D_mine_mesa_8018443C = { { 9630, 0, 1570, 0 }, { 0, 1024, 0, 0 } };
 
-GpAnimSet* D_mine_mesa_80184454[12] = {
+AnimationSet* D_mine_mesa_80184454[12] = {
     NULL,
     &D_mine_mesa_80181F0C,
     &D_mine_mesa_80182114,

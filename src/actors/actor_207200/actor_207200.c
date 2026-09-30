@@ -154,7 +154,7 @@ u16 D_actor_207200_8014E520[4] = {
 #include "assets/actor_207200_animation_04708_indices.inc"
 };
 
-GpAnimSet D_actor_207200_8014E528 = {
+AnimationSet D_actor_207200_8014E528 = {
     D_actor_207200_8014E508,
     D_actor_207200_8014E520,
     { NULL, D_actor_207200_8014E4EC, NULL, NULL, D_actor_207200_8014E504, NULL, NULL, NULL },
@@ -176,7 +176,7 @@ u16 D_actor_207200_8014E774[4] = {
 #include "assets/actor_207200_animation_0495C_indices.inc"
 };
 
-GpAnimSet D_actor_207200_8014E77C = {
+AnimationSet D_actor_207200_8014E77C = {
     D_actor_207200_8014E698,
     D_actor_207200_8014E774,
     { NULL, D_actor_207200_8014E550, NULL, NULL, D_actor_207200_8014E670, NULL, NULL, NULL },

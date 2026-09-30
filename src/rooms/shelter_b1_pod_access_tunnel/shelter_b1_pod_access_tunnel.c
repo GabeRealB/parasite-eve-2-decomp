@@ -214,7 +214,7 @@ u16 D_shelter_b1_pod_access_tunnel_80181488[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_801814B0 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_801814B0 = {
     D_shelter_b1_pod_access_tunnel_801812D4,
     D_shelter_b1_pod_access_tunnel_80181488,
     { NULL, D_shelter_b1_pod_access_tunnel_801811D4, NULL, NULL, D_shelter_b1_pod_access_tunnel_8018121C, NULL, NULL, NULL },
@@ -236,7 +236,7 @@ u16 D_shelter_b1_pod_access_tunnel_8018173C[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_041A4_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_80181764 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_80181764 = {
     D_shelter_b1_pod_access_tunnel_801815CC,
     D_shelter_b1_pod_access_tunnel_8018173C,
     { NULL, D_shelter_b1_pod_access_tunnel_801814D8, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181508, NULL, NULL, NULL },
@@ -258,7 +258,7 @@ u16 D_shelter_b1_pod_access_tunnel_80181E74[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_048DC_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_80181E9C = {
+AnimationSet D_shelter_b1_pod_access_tunnel_80181E9C = {
     D_shelter_b1_pod_access_tunnel_80181AB0,
     D_shelter_b1_pod_access_tunnel_80181E74,
     { NULL, D_shelter_b1_pod_access_tunnel_8018178C, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181834, NULL, NULL, NULL },
@@ -280,7 +280,7 @@ u16 D_shelter_b1_pod_access_tunnel_80182138[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04BA0_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_80182160 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_80182160 = {
     D_shelter_b1_pod_access_tunnel_80181F80,
     D_shelter_b1_pod_access_tunnel_80182138,
     { NULL, D_shelter_b1_pod_access_tunnel_80181EC4, NULL, NULL, D_shelter_b1_pod_access_tunnel_80181EF4, NULL, NULL, NULL },
@@ -302,7 +302,7 @@ u16 D_shelter_b1_pod_access_tunnel_8018238C[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_04DF4_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_801823B4 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_801823B4 = {
     D_shelter_b1_pod_access_tunnel_80182214,
     D_shelter_b1_pod_access_tunnel_8018238C,
     { NULL, D_shelter_b1_pod_access_tunnel_80182188, NULL, NULL, D_shelter_b1_pod_access_tunnel_801821A0, NULL, NULL, NULL },
@@ -324,7 +324,7 @@ u16 D_shelter_b1_pod_access_tunnel_80182910[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05378_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_80182938 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_80182938 = {
     D_shelter_b1_pod_access_tunnel_80182670,
     D_shelter_b1_pod_access_tunnel_80182910,
     { NULL, D_shelter_b1_pod_access_tunnel_801823DC, NULL, NULL, D_shelter_b1_pod_access_tunnel_80182454, NULL, NULL, NULL },
@@ -346,7 +346,7 @@ u16 D_shelter_b1_pod_access_tunnel_80182CDC[20] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_05744_indices.inc"
 };
 
-GpAnimSet D_shelter_b1_pod_access_tunnel_80182D04 = {
+AnimationSet D_shelter_b1_pod_access_tunnel_80182D04 = {
     D_shelter_b1_pod_access_tunnel_80182AA8,
     D_shelter_b1_pod_access_tunnel_80182CDC,
     { NULL, D_shelter_b1_pod_access_tunnel_80182960, NULL, NULL, D_shelter_b1_pod_access_tunnel_801829A8, NULL, NULL, NULL },
@@ -358,7 +358,7 @@ TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
     { 0, 192, func_shelter_b1_pod_access_tunnel_8017E778, { .model = NULL } },
 };
 
-GpAnimSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
+AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
     NULL,
     &D_shelter_b1_pod_access_tunnel_801814B0,
     &D_shelter_b1_pod_access_tunnel_80181764,

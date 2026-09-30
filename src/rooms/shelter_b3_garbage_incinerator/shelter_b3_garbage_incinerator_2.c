@@ -150,7 +150,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GarbageIncineratorWork, 0x40);
 
 /// Null-terminated table counted and sent with message 0x3F7 on arming.
-extern GpAnimSet* D_shelter_b3_garbage_incinerator_80186F78[4];
+extern AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4];
 
 /// Table indexed by `field_38 - 0x2F`: each entry is the following animation
 /// set less 0x2F, and a negative entry means there is none.
@@ -267,7 +267,7 @@ u16 D_shelter_b3_garbage_incinerator_80185E7C[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_garbage_incinerator_80185EA4 = {
+AnimationSet D_shelter_b3_garbage_incinerator_80185EA4 = {
     D_shelter_b3_garbage_incinerator_80185CC8,
     D_shelter_b3_garbage_incinerator_80185E7C,
     { NULL, D_shelter_b3_garbage_incinerator_80185BC8, NULL, NULL, D_shelter_b3_garbage_incinerator_80185C10, NULL, NULL, NULL },
@@ -289,7 +289,7 @@ u16 D_shelter_b3_garbage_incinerator_801868B8[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09320_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_garbage_incinerator_801868E0 = {
+AnimationSet D_shelter_b3_garbage_incinerator_801868E0 = {
     D_shelter_b3_garbage_incinerator_80186364,
     D_shelter_b3_garbage_incinerator_801868B8,
     { NULL, D_shelter_b3_garbage_incinerator_80185ECC, NULL, NULL, D_shelter_b3_garbage_incinerator_80185F8C, NULL, NULL, NULL },
@@ -311,7 +311,7 @@ u16 D_shelter_b3_garbage_incinerator_80186F20[20] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_09988_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_garbage_incinerator_80186F48 = {
+AnimationSet D_shelter_b3_garbage_incinerator_80186F48 = {
     D_shelter_b3_garbage_incinerator_80186C00,
     D_shelter_b3_garbage_incinerator_80186F20,
     { NULL, D_shelter_b3_garbage_incinerator_80186908, NULL, NULL, D_shelter_b3_garbage_incinerator_801869B0, NULL, NULL, NULL },
@@ -321,7 +321,7 @@ ShelterB3GarbageIncinerator2MessageEntry D_shelter_b3_garbage_incinerator_80186F
     { 2011, { .call0 = func_shelter_b3_garbage_incinerator_8017F8A4 } },
 };
 
-GpAnimSet* D_shelter_b3_garbage_incinerator_80186F78[4] = {
+AnimationSet* D_shelter_b3_garbage_incinerator_80186F78[4] = {
     &D_shelter_b3_garbage_incinerator_80185EA4,
     &D_shelter_b3_garbage_incinerator_80186F48,
     &D_shelter_b3_garbage_incinerator_801868E0,

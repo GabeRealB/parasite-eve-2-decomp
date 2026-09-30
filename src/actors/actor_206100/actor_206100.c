@@ -129,7 +129,7 @@ extern GpU16Pair D_actor_206100_80155194;
 extern GpPairSrcE D_actor_206100_80155198;
 
 /// Animation bank handed to `func_800B3F84` by `func_actor_206100_8014AF74`.
-extern GpAnimSet* D_actor_206100_80158B24[];
+extern AnimationSet* D_actor_206100_80158B24[];
 
 /// Placement records `func_actor_206100_8014EE2C` parks at `GpEnemy::place`
 /// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
@@ -973,7 +973,7 @@ u16 D_actor_206100_801556F8[16] = {
 #include "assets/actor_206100_animation_0B8F8_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80155718 = {
+AnimationSet D_actor_206100_80155718 = {
     D_actor_206100_8015541C,
     D_actor_206100_801556F8,
     { NULL, D_actor_206100_801551A8, NULL, NULL, D_actor_206100_80155208, NULL, NULL, NULL },
@@ -995,7 +995,7 @@ u16 D_actor_206100_80155A80[16] = {
 #include "assets/actor_206100_animation_0BC80_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80155AA0 = {
+AnimationSet D_actor_206100_80155AA0 = {
     D_actor_206100_8015589C,
     D_actor_206100_80155A80,
     { NULL, D_actor_206100_80155740, NULL, NULL, D_actor_206100_80155764, NULL, NULL, NULL },
@@ -1017,7 +1017,7 @@ u16 D_actor_206100_80156344[16] = {
 #include "assets/actor_206100_animation_0C544_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80156364 = {
+AnimationSet D_actor_206100_80156364 = {
     D_actor_206100_80155DE0,
     D_actor_206100_80156344,
     { NULL, D_actor_206100_80155AC8, NULL, NULL, D_actor_206100_80155B28, NULL, NULL, NULL },
@@ -1039,7 +1039,7 @@ u16 D_actor_206100_80156A4C[16] = {
 #include "assets/actor_206100_animation_0CC4C_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80156A6C = {
+AnimationSet D_actor_206100_80156A6C = {
     D_actor_206100_801566A0,
     D_actor_206100_80156A4C,
     { NULL, D_actor_206100_8015638C, NULL, NULL, D_actor_206100_80156404, NULL, NULL, NULL },
@@ -1061,7 +1061,7 @@ u16 D_actor_206100_80157330[16] = {
 #include "assets/actor_206100_animation_0D530_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80157350 = {
+AnimationSet D_actor_206100_80157350 = {
     D_actor_206100_80156E60,
     D_actor_206100_80157330,
     { NULL, D_actor_206100_80156A94, NULL, NULL, D_actor_206100_80156B0C, NULL, NULL, NULL },
@@ -1083,7 +1083,7 @@ u16 D_actor_206100_80157768[16] = {
 #include "assets/actor_206100_animation_0D968_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80157788 = {
+AnimationSet D_actor_206100_80157788 = {
     D_actor_206100_8015755C,
     D_actor_206100_80157768,
     { NULL, D_actor_206100_80157378, NULL, NULL, D_actor_206100_801573C0, NULL, NULL, NULL },
@@ -1105,7 +1105,7 @@ u16 D_actor_206100_80157CA8[16] = {
 #include "assets/actor_206100_animation_0DEA8_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80157CC8 = {
+AnimationSet D_actor_206100_80157CC8 = {
     D_actor_206100_80157A18,
     D_actor_206100_80157CA8,
     { NULL, D_actor_206100_801577B0, NULL, NULL, D_actor_206100_80157864, NULL, NULL, NULL },
@@ -1127,7 +1127,7 @@ u16 D_actor_206100_801582A8[16] = {
 #include "assets/actor_206100_animation_0E4A8_indices.inc"
 };
 
-GpAnimSet D_actor_206100_801582C8 = {
+AnimationSet D_actor_206100_801582C8 = {
     D_actor_206100_80157FD8,
     D_actor_206100_801582A8,
     { NULL, D_actor_206100_80157CF0, NULL, NULL, D_actor_206100_80157DE0, NULL, NULL, NULL },
@@ -1149,7 +1149,7 @@ u16 D_actor_206100_80158598[16] = {
 #include "assets/actor_206100_animation_0E798_indices.inc"
 };
 
-GpAnimSet D_actor_206100_801585B8 = {
+AnimationSet D_actor_206100_801585B8 = {
     D_actor_206100_801583D8,
     D_actor_206100_80158598,
     { NULL, D_actor_206100_801582F0, NULL, NULL, D_actor_206100_8015832C, NULL, NULL, NULL },
@@ -1171,7 +1171,7 @@ u16 D_actor_206100_80158AA8[16] = {
 #include "assets/actor_206100_animation_0ECA8_indices.inc"
 };
 
-GpAnimSet D_actor_206100_80158AC8 = {
+AnimationSet D_actor_206100_80158AC8 = {
     D_actor_206100_80158814,
     D_actor_206100_80158AA8,
     { NULL, D_actor_206100_801585E0, NULL, NULL, D_actor_206100_80158664, NULL, NULL, NULL },
@@ -1189,7 +1189,7 @@ TaskDesc D_actor_206100_80158B0C[2] = {
     { 2, 96, func_actor_206100_8014F134, { .model = NULL } },
 };
 
-GpAnimSet* D_actor_206100_80158B24[17] = {
+AnimationSet* D_actor_206100_80158B24[17] = {
     NULL,
     &D_actor_206100_80155718,
     NULL,

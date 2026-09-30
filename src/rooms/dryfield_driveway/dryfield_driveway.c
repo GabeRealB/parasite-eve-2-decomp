@@ -105,7 +105,7 @@ u16 D_dryfield_driveway_8017E2A0[20] = {
 #include "assets/dryfield_driveway_animation_00D08_indices.inc"
 };
 
-GpAnimSet D_dryfield_driveway_8017E2C8 = {
+AnimationSet D_dryfield_driveway_8017E2C8 = {
     D_dryfield_driveway_8017E074,
     D_dryfield_driveway_8017E2A0,
     { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
@@ -119,7 +119,7 @@ TaskDesc D_dryfield_driveway_8017E2FC[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-GpAnimSet* D_dryfield_driveway_8017E320[2] = {
+AnimationSet* D_dryfield_driveway_8017E320[2] = {
     &D_dryfield_driveway_8017E2C8,
     NULL,
 };

@@ -43,7 +43,7 @@ s32 D_actor_143000_80135C1C;
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet*           sets[5];
+        AnimationSet*        sets[5];
         AnimationPlayRequest arguments[6];
     } data;
     s32 words[35];

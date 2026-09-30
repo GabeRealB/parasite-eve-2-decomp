@@ -2584,12 +2584,12 @@ tail:
 
 static void func_actor_800100_80164E60(Task* arg0)
 {
-    GameActor*       actor;
-    GameActor*       target;
-    GpActorD4*       d4;
-    AnimationRecord* rec;
-    GfxCoord*        coord;
-    s16              sel;
+    GameActor*             actor;
+    GameActor*             target;
+    GpActorD4*             d4;
+    const AnimationRecord* rec;
+    GfxCoord*              coord;
+    s16                    sel;
 
     actor = arg0->work;
     d4    = actor->field_910;

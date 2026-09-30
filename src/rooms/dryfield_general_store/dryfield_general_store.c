@@ -141,7 +141,7 @@ u16 D_dryfield_general_store_8017E470[20] = {
 #include "assets/dryfield_general_store_animation_00ED8_indices.inc"
 };
 
-GpAnimSet D_dryfield_general_store_8017E498 = {
+AnimationSet D_dryfield_general_store_8017E498 = {
     D_dryfield_general_store_8017E2BC,
     D_dryfield_general_store_8017E470,
     { NULL, D_dryfield_general_store_8017E1BC, NULL, NULL, D_dryfield_general_store_8017E204, NULL, NULL, NULL },
@@ -151,7 +151,7 @@ TaskDesc D_dryfield_general_store_8017E4C0 = { 0, 192, func_dryfield_general_sto
 
 TaskDesc D_dryfield_general_store_8017E4CC = { 0, 192, func_dryfield_general_store_8017E064, { .model = NULL } };
 
-GpAnimSet* D_dryfield_general_store_8017E4D8[2] = {
+AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
     NULL,
     &D_dryfield_general_store_8017E498,
 };

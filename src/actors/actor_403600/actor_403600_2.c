@@ -235,7 +235,7 @@ extern Task* D_actor_403600_801606B4;
 
 extern TaskDesc             D_8016E468;
 extern AnimationPlayRequest D_actor_403600_80160568;
-extern GpAnimSet*           D_actor_403600_8016057C[22];
+extern AnimationSet*        D_actor_403600_8016057C[22];
 extern Actor403600Point     D_actor_403600_801605F4[];
 extern GpU16Pair            D_actor_403600_801606A4;
 extern Task*                D_actor_403600_801606A8;
@@ -307,7 +307,7 @@ TaskDesc D_actor_403600_80160514[3] = {
     { 257, 96, func_actor_403600_80141CD4, { .value = -0x7FE96F5C } },
 };
 
-GpAnimSet* D_actor_403600_80160538[12] = {
+AnimationSet* D_actor_403600_80160538[12] = {
     NULL,
     &D_actor_403600_8015DEE4,
     &D_actor_403600_8015DDAC,
@@ -324,7 +324,7 @@ GpAnimSet* D_actor_403600_80160538[12] = {
 
 AnimationPlayRequest D_actor_403600_80160568 = { { .sets = D_actor_403600_80160538 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-GpAnimSet* D_actor_403600_8016057C[22] = {
+AnimationSet* D_actor_403600_8016057C[22] = {
     NULL,
     &D_actor_403600_80151CD0,
     &D_actor_403600_8015270C,

@@ -147,7 +147,7 @@ u16 D_neo_ark_forest_zone_801818FC[20] = {
 #include "assets/neo_ark_forest_zone_animation_04364_indices.inc"
 };
 
-GpAnimSet D_neo_ark_forest_zone_80181924 = {
+AnimationSet D_neo_ark_forest_zone_80181924 = {
     D_neo_ark_forest_zone_801816C8,
     D_neo_ark_forest_zone_801818FC,
     { NULL, D_neo_ark_forest_zone_80181580, NULL, NULL, D_neo_ark_forest_zone_801815C8, NULL, NULL, NULL },
@@ -169,7 +169,7 @@ u16 D_neo_ark_forest_zone_80181D6C[20] = {
 #include "assets/neo_ark_forest_zone_animation_047D4_indices.inc"
 };
 
-GpAnimSet D_neo_ark_forest_zone_80181D94 = {
+AnimationSet D_neo_ark_forest_zone_80181D94 = {
     D_neo_ark_forest_zone_80181B40,
     D_neo_ark_forest_zone_80181D6C,
     { NULL, D_neo_ark_forest_zone_8018194C, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
@@ -186,7 +186,7 @@ GpMsgEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_neo_ark_forest_zone_80181DF8[2] = {
+AnimationSet* D_neo_ark_forest_zone_80181DF8[2] = {
     &D_neo_ark_forest_zone_80181D94,
     &D_neo_ark_forest_zone_80181924,
 };

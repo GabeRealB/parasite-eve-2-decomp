@@ -153,13 +153,13 @@ u16 D_shelter_b6_corridor_8017F208[20] = {
 #include "assets/shelter_b6_corridor_animation_01C70_indices.inc"
 };
 
-GpAnimSet D_shelter_b6_corridor_8017F230 = {
+AnimationSet D_shelter_b6_corridor_8017F230 = {
     D_shelter_b6_corridor_8017F054,
     D_shelter_b6_corridor_8017F208,
     { NULL, D_shelter_b6_corridor_8017EF54, NULL, NULL, D_shelter_b6_corridor_8017EF9C, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_shelter_b6_corridor_8017F258[2] = {
+AnimationSet* D_shelter_b6_corridor_8017F258[2] = {
     NULL,
     &D_shelter_b6_corridor_8017F230,
 };

@@ -74,7 +74,7 @@ TaskDesc D_mist_parking_80190824[5] = {
     { 0, 192, func_mist_parking_801842DC, { .model = NULL } },
 };
 
-GpAnimSet* D_mist_parking_80190860[4] = {
+AnimationSet* D_mist_parking_80190860[4] = {
     NULL,
     &D_mist_parking_8018FFB8,
     &D_mist_parking_8019038C,

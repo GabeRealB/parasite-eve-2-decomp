@@ -163,7 +163,7 @@ u16 D_actor_311900_8016E7A0[20] = {
 #include "assets/actor_311900_animation_0C9A8_indices.inc"
 };
 
-GpAnimSet D_actor_311900_8016E7C8 = {
+AnimationSet D_actor_311900_8016E7C8 = {
     D_actor_311900_8016E318,
     D_actor_311900_8016E7A0,
     { NULL, D_actor_311900_8016DF70, NULL, NULL, D_actor_311900_8016DFF4, NULL, NULL, NULL },
@@ -185,7 +185,7 @@ u16 D_actor_311900_8016EB98[20] = {
 #include "assets/actor_311900_animation_0CDA0_indices.inc"
 };
 
-GpAnimSet D_actor_311900_8016EBC0 = {
+AnimationSet D_actor_311900_8016EBC0 = {
     D_actor_311900_8016E964,
     D_actor_311900_8016EB98,
     { NULL, D_actor_311900_8016E7F0, NULL, NULL, D_actor_311900_8016E838, NULL, NULL, NULL },

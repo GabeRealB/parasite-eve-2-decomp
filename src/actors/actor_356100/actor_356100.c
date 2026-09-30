@@ -327,7 +327,7 @@ u16 D_actor_356100_80171C90[22] = {
 #include "assets/actor_356100_animation_0FE9C_indices.inc"
 };
 
-GpAnimSet D_actor_356100_80171CBC = {
+AnimationSet D_actor_356100_80171CBC = {
     D_actor_356100_80170A60,
     D_actor_356100_80171C90,
     { NULL, D_actor_356100_8016FC98, NULL, NULL, D_actor_356100_8017001C, NULL, NULL, NULL },
@@ -349,7 +349,7 @@ u16 D_actor_356100_80172878[22] = {
 #include "assets/actor_356100_animation_10A84_indices.inc"
 };
 
-GpAnimSet D_actor_356100_801728A4 = {
+AnimationSet D_actor_356100_801728A4 = {
     D_actor_356100_80172250,
     D_actor_356100_80172878,
     { NULL, D_actor_356100_80171CE4, NULL, NULL, D_actor_356100_80171E34, NULL, NULL, NULL },
@@ -665,7 +665,7 @@ STATIC_ASSERT_SIZEOF(Actor356100Storage31B0, 120);
 
 Actor356100Storage31B0 D_actor_356100_801731B0 = { 0, { 0 } };
 
-GpAnimSet* D_actor_356100_80173228[7] = {
+AnimationSet* D_actor_356100_80173228[7] = {
     NULL,
     NULL,
     NULL,
@@ -802,7 +802,7 @@ extern GpDelayArg D_actor_356100_801732D0;
 /// Player-character flag selecting which animation block
 /// `func_actor_356100_80166018` points `D_actor_356100_80173244.field_0` at:
 /// the second block when it is 1, the first otherwise.
-extern GpAnimSet* D_actor_356100_80173228[7];
+extern AnimationSet* D_actor_356100_80173228[7];
 
 /// Zeroed word `func_actor_356100_80167818` clears when the actor goes live.
 /// The 0x74 bytes after it are zero in the image too, so the whole run is a

@@ -177,14 +177,14 @@ extern s32 D_actor_121300_8013BBE4;
 /// tick reads it back every frame.
 extern OverlayWaveCtx* D_actor_121300_8013D414;
 
-extern TaskDesc   D_actor_121300_8013BBCC[];
-extern u_long     D_actor_121300_8013BBE8[];
-extern u_long     D_actor_121300_8013BFD0[];
-extern u_long     D_actor_121300_8013C3B8[];
-extern u_long     D_actor_121300_8013C7A0[];
-extern u_long     D_actor_121300_8013C9D0[];
-extern s16        D_actor_121300_8013CC04;
-extern GpAnimSet* D_actor_121300_8013CC08[4];
+extern TaskDesc      D_actor_121300_8013BBCC[];
+extern u_long        D_actor_121300_8013BBE8[];
+extern u_long        D_actor_121300_8013BFD0[];
+extern u_long        D_actor_121300_8013C3B8[];
+extern u_long        D_actor_121300_8013C7A0[];
+extern u_long        D_actor_121300_8013C9D0[];
+extern s16           D_actor_121300_8013CC04;
+extern AnimationSet* D_actor_121300_8013CC08[4];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -448,7 +448,7 @@ u16 D_actor_121300_8013A7E0[20] = {
 #include "assets/actor_121300_animation_089E8_indices.inc"
 };
 
-GpAnimSet D_actor_121300_8013A808 = {
+AnimationSet D_actor_121300_8013A808 = {
     D_actor_121300_8013A6FC,
     D_actor_121300_8013A7E0,
     { NULL, D_actor_121300_8013A6A0, NULL, NULL, D_actor_121300_8013A6B8, NULL, NULL, NULL },
@@ -470,7 +470,7 @@ u16 D_actor_121300_8013AA84[20] = {
 #include "assets/actor_121300_animation_08C8C_indices.inc"
 };
 
-GpAnimSet D_actor_121300_8013AAAC = {
+AnimationSet D_actor_121300_8013AAAC = {
     D_actor_121300_8013A8D8,
     D_actor_121300_8013AA84,
     { NULL, D_actor_121300_8013A830, NULL, NULL, D_actor_121300_8013A848, NULL, NULL, NULL },
@@ -492,7 +492,7 @@ u16 D_actor_121300_8013BB7C[20] = {
 #include "assets/actor_121300_animation_09D84_indices.inc"
 };
 
-GpAnimSet D_actor_121300_8013BBA4 = {
+AnimationSet D_actor_121300_8013BBA4 = {
     D_actor_121300_8013B30C,
     D_actor_121300_8013BB7C,
     { NULL, D_actor_121300_8013AAD4, NULL, NULL, D_actor_121300_8013AC30, NULL, NULL, NULL },
@@ -1554,7 +1554,7 @@ s32 D_actor_121300_8013CC00 = 0;
 
 s16 D_actor_121300_8013CC04 = 100;
 
-GpAnimSet* D_actor_121300_8013CC08[4] = { NULL, &D_actor_121300_8013A808, &D_actor_121300_8013AAAC, &D_actor_121300_8013BBA4 };
+AnimationSet* D_actor_121300_8013CC08[4] = { NULL, &D_actor_121300_8013A808, &D_actor_121300_8013AAAC, &D_actor_121300_8013BBA4 };
 
 s16 D_actor_121300_8013CC18[4] = {
     -1,

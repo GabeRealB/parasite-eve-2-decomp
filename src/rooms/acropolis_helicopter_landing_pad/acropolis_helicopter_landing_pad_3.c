@@ -61,7 +61,7 @@
 
 #include "rooms/room_common.h"
 
-extern GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3];
+extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
 /// 0x20 scratch block `func_acropolis_helicopter_landing_pad_80180A64` takes
 /// from `G_SCRATCH_HEAD` for one spark line. `a` / `b` are the two random
@@ -184,7 +184,7 @@ AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838CC = { { .index = 
 
 AnimationPlayRequest D_acropolis_helicopter_landing_pad_801838E0 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpAnimSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
+AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3] = {
     NULL,
     &D_actor_511000_80136AE8,
     &D_actor_511000_801398FC,

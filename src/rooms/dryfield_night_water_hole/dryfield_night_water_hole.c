@@ -177,7 +177,7 @@ extern GpRoomBoundVec D_dryfield_night_water_hole_80183528[12];
 extern GpRoomCoordSet D_dryfield_night_water_hole_8018307C[1];
 extern GpRoomCoordSet D_dryfield_night_water_hole_801833A0[1];
 
-extern GpAnimSet* D_dryfield_night_water_hole_80180620[1];
+extern AnimationSet* D_dryfield_night_water_hole_80180620[1];
 
 extern GpRoomParamRec D_dryfield_night_water_hole_801835A0[1];
 extern GpRoomParamRec D_dryfield_night_water_hole_801835A8[1];
@@ -207,7 +207,7 @@ u16 D_dryfield_night_water_hole_8018059C[20] = {
 #include "assets/dryfield_night_water_hole_animation_03004_indices.inc"
 };
 
-GpAnimSet D_dryfield_night_water_hole_801805C4 = {
+AnimationSet D_dryfield_night_water_hole_801805C4 = {
     D_dryfield_night_water_hole_80180368,
     D_dryfield_night_water_hole_8018059C,
     { NULL, D_dryfield_night_water_hole_80180220, NULL, NULL, D_dryfield_night_water_hole_80180268, NULL, NULL, NULL },
@@ -223,7 +223,7 @@ GpMsgEntry D_dryfield_night_water_hole_801805F8[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_dryfield_night_water_hole_80180620[1] = {
+AnimationSet* D_dryfield_night_water_hole_80180620[1] = {
     &D_dryfield_night_water_hole_801805C4,
 };
 

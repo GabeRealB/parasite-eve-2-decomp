@@ -94,7 +94,7 @@ TaskDesc D_dryfield_night_garage_80182C98[2] = {
     { 0, 192, func_dryfield_night_garage_801807E4, { .model = NULL } },
 };
 
-GpAnimSet* D_dryfield_night_garage_80182CB0[5] = {
+AnimationSet* D_dryfield_night_garage_80182CB0[5] = {
     NULL,
     &D_dryfield_night_garage_80182140,
     &D_dryfield_night_garage_80182514,

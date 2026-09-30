@@ -54,8 +54,8 @@ STATIC_ASSERT_SIZEOF(Actor213100Work, 0x488);
 
 /// Animation bank table the 0x7D3 handler indexes with the preset's
 /// `field_0`.
-extern GpAnimSet*  D_actor_213100_8015217C[10];
-extern GpAnimSet** D_actor_213100_801521A4[1];
+extern AnimationSet*  D_actor_213100_8015217C[10];
+extern AnimationSet** D_actor_213100_801521A4[1];
 
 /// Spawn table the spawn state takes its child from; entry 1 is the child,
 /// whose body is `func_actor_213100_80149FE4`.
@@ -173,7 +173,7 @@ u16 D_actor_213100_801506B4[20] = {
 #include "assets/actor_213100_animation_068BC_indices.inc"
 };
 
-GpAnimSet D_actor_213100_801506DC = {
+AnimationSet D_actor_213100_801506DC = {
     D_actor_213100_80150500,
     D_actor_213100_801506B4,
     { NULL, D_actor_213100_80150400, NULL, NULL, D_actor_213100_80150448, NULL, NULL, NULL },
@@ -195,7 +195,7 @@ u16 D_actor_213100_80150A88[20] = {
 #include "assets/actor_213100_animation_06C90_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80150AB0 = {
+AnimationSet D_actor_213100_80150AB0 = {
     D_actor_213100_801508B4,
     D_actor_213100_80150A88,
     { NULL, D_actor_213100_80150704, NULL, NULL, D_actor_213100_80150764, NULL, NULL, NULL },
@@ -217,7 +217,7 @@ u16 D_actor_213100_80150E78[20] = {
 #include "assets/actor_213100_animation_07080_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80150EA0 = {
+AnimationSet D_actor_213100_80150EA0 = {
     D_actor_213100_80150C24,
     D_actor_213100_80150E78,
     { NULL, D_actor_213100_80150AD8, NULL, NULL, D_actor_213100_80150B2C, NULL, NULL, NULL },
@@ -239,7 +239,7 @@ u16 D_actor_213100_801511E4[20] = {
 #include "assets/actor_213100_animation_073EC_indices.inc"
 };
 
-GpAnimSet D_actor_213100_8015120C = {
+AnimationSet D_actor_213100_8015120C = {
     D_actor_213100_80151044,
     D_actor_213100_801511E4,
     { NULL, D_actor_213100_80150EC8, NULL, NULL, D_actor_213100_80150F1C, NULL, NULL, NULL },
@@ -261,7 +261,7 @@ u16 D_actor_213100_80151734[20] = {
 #include "assets/actor_213100_animation_0793C_indices.inc"
 };
 
-GpAnimSet D_actor_213100_8015175C = {
+AnimationSet D_actor_213100_8015175C = {
     D_actor_213100_80151430,
     D_actor_213100_80151734,
     { NULL, D_actor_213100_80151234, NULL, NULL, D_actor_213100_801512A0, NULL, NULL, NULL },
@@ -283,7 +283,7 @@ u16 D_actor_213100_80151AE4[20] = {
 #include "assets/actor_213100_animation_07CEC_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80151B0C = {
+AnimationSet D_actor_213100_80151B0C = {
     D_actor_213100_8015191C,
     D_actor_213100_80151AE4,
     { NULL, D_actor_213100_80151784, NULL, NULL, D_actor_213100_801517D8, NULL, NULL, NULL },
@@ -305,7 +305,7 @@ u16 D_actor_213100_80151CA8[20] = {
 #include "assets/actor_213100_animation_07EB0_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80151CD0 = {
+AnimationSet D_actor_213100_80151CD0 = {
     D_actor_213100_80151BC4,
     D_actor_213100_80151CA8,
     { NULL, D_actor_213100_80151B34, NULL, NULL, D_actor_213100_80151B58, NULL, NULL, NULL },
@@ -327,7 +327,7 @@ u16 D_actor_213100_80151F68[20] = {
 #include "assets/actor_213100_animation_08170_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80151F90 = {
+AnimationSet D_actor_213100_80151F90 = {
     D_actor_213100_80151DC8,
     D_actor_213100_80151F68,
     { NULL, D_actor_213100_80151CF8, NULL, NULL, D_actor_213100_80151D28, NULL, NULL, NULL },
@@ -349,13 +349,13 @@ u16 D_actor_213100_8015212C[20] = {
 #include "assets/actor_213100_animation_08334_indices.inc"
 };
 
-GpAnimSet D_actor_213100_80152154 = {
+AnimationSet D_actor_213100_80152154 = {
     D_actor_213100_80152048,
     D_actor_213100_8015212C,
     { NULL, D_actor_213100_80151FB8, NULL, NULL, D_actor_213100_80151FDC, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_213100_8015217C[10] = {
+AnimationSet* D_actor_213100_8015217C[10] = {
     NULL,
     &D_actor_213100_801506DC,
     &D_actor_213100_80150AB0,
@@ -368,7 +368,7 @@ GpAnimSet* D_actor_213100_8015217C[10] = {
     &D_actor_213100_80152154,
 };
 
-GpAnimSet** D_actor_213100_801521A4[1] = {
+AnimationSet** D_actor_213100_801521A4[1] = {
     D_actor_213100_8015217C,
 };
 

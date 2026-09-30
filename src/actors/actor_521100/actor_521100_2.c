@@ -98,7 +98,7 @@ STATIC_ASSERT_SIZEOF(Actor5211002MessageEntry, 8);
 
 extern Actor5211002MessageEntry D_actor_521100_8016A358[6];
 extern TaskDesc                 D_actor_521100_8016A388[];
-extern GpAnimSet*               D_actor_521100_8016A3A0[11];
+extern AnimationSet*            D_actor_521100_8016A3A0[11];
 
 extern GpEffArg D_actor_521100_8016A3CC;
 extern u16      D_actor_521100_8016A3D4;
@@ -129,7 +129,7 @@ s32  func_actor_521100_80136BE8(Task*, s32, GpXformArg*);
 void func_actor_521100_80136404(Task*);
 void func_actor_521100_80136604(Task*);
 
-GpAnimSet* D_actor_521100_8015F73C[36] = {
+AnimationSet* D_actor_521100_8015F73C[36] = {
     NULL,
     &D_actor_521100_80142CCC,
     &D_actor_521100_80143434,
@@ -168,7 +168,7 @@ GpAnimSet* D_actor_521100_8015F73C[36] = {
     &D_actor_521100_80159898,
 };
 
-GpAnimSet* D_actor_521100_8015F7CC[14] = {
+AnimationSet* D_actor_521100_8015F7CC[14] = {
     NULL,
     NULL,
     &D_actor_521100_80159BD0,
@@ -281,7 +281,7 @@ u16 D_actor_521100_80168C2C[20] = {
 #include "assets/actor_521100_animation_36E34_indices.inc"
 };
 
-GpAnimSet D_actor_521100_80168C54 = {
+AnimationSet D_actor_521100_80168C54 = {
     D_actor_521100_80166748,
     D_actor_521100_80168C2C,
     { NULL, D_actor_521100_80164EE0, NULL, NULL, D_actor_521100_80165540, NULL, NULL, NULL },
@@ -303,7 +303,7 @@ u16 D_actor_521100_801690D0[20] = {
 #include "assets/actor_521100_animation_372D8_indices.inc"
 };
 
-GpAnimSet D_actor_521100_801690F8 = {
+AnimationSet D_actor_521100_801690F8 = {
     D_actor_521100_80168E90,
     D_actor_521100_801690D0,
     { NULL, D_actor_521100_80168C7C, NULL, NULL, D_actor_521100_80168CDC, NULL, NULL, NULL },
@@ -325,7 +325,7 @@ u16 D_actor_521100_80169528[20] = {
 #include "assets/actor_521100_animation_37730_indices.inc"
 };
 
-GpAnimSet D_actor_521100_80169550 = {
+AnimationSet D_actor_521100_80169550 = {
     D_actor_521100_8016927C,
     D_actor_521100_80169528,
     { NULL, D_actor_521100_80169120, NULL, NULL, D_actor_521100_80169168, NULL, NULL, NULL },
@@ -347,7 +347,7 @@ u16 D_actor_521100_8016A12C[20] = {
 #include "assets/actor_521100_animation_38334_indices.inc"
 };
 
-GpAnimSet D_actor_521100_8016A154 = {
+AnimationSet D_actor_521100_8016A154 = {
     D_actor_521100_80169B0C,
     D_actor_521100_8016A12C,
     { NULL, D_actor_521100_80169578, NULL, NULL, D_actor_521100_80169674, NULL, NULL, NULL },
@@ -369,7 +369,7 @@ u16 D_actor_521100_8016A308[20] = {
 #include "assets/actor_521100_animation_38510_indices.inc"
 };
 
-GpAnimSet D_actor_521100_8016A330 = {
+AnimationSet D_actor_521100_8016A330 = {
     D_actor_521100_8016A1D8,
     D_actor_521100_8016A308,
     { NULL, D_actor_521100_8016A17C, NULL, NULL, D_actor_521100_8016A194, NULL, NULL, NULL },
@@ -389,7 +389,7 @@ TaskDesc D_actor_521100_8016A388[2] = {
     { 0, 192, func_actor_521100_80136404, { .model = NULL } },
 };
 
-GpAnimSet* D_actor_521100_8016A3A0[11] = {
+AnimationSet* D_actor_521100_8016A3A0[11] = {
     NULL,
     &D_actor_521100_80168C54,
     &D_actor_521100_801690F8,

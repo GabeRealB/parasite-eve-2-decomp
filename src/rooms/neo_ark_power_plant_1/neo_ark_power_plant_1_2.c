@@ -48,8 +48,8 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[1];
-        GpCopyArg  copy;
+        AnimationSet* sets[1];
+        GpCopyArg     copy;
     } data;
     s32 words[3];
 } NeoArkPowerPlant1AnimStorageEEC0;
@@ -73,7 +73,7 @@ extern GpRoomCoordSet D_neo_ark_power_plant_1_8017FB80[1];
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
 extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
 
-extern GpAnimSet                        D_neo_ark_power_plant_1_8017EAF0;
+extern AnimationSet                     D_neo_ark_power_plant_1_8017EAF0;
 extern NeoArkPowerPlant1AnimStorageEEC0 D_neo_ark_power_plant_1_8017EEC0;
 
 AnimationPackedPose D_neo_ark_power_plant_1_8017E5AC[10] = {
@@ -92,7 +92,7 @@ u16 D_neo_ark_power_plant_1_8017EAC8[20] = {
 #include "assets/neo_ark_power_plant_1_animation_01530_indices.inc"
 };
 
-GpAnimSet D_neo_ark_power_plant_1_8017EAF0 = {
+AnimationSet D_neo_ark_power_plant_1_8017EAF0 = {
     D_neo_ark_power_plant_1_8017E81C,
     D_neo_ark_power_plant_1_8017EAC8,
     { NULL, D_neo_ark_power_plant_1_8017E5AC, NULL, NULL, D_neo_ark_power_plant_1_8017E624, NULL, NULL, NULL },

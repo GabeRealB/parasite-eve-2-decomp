@@ -146,7 +146,7 @@ u16 D_shelter_b2_septic_tank_80182EF0[20] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_indices.inc"
 };
 
-GpAnimSet D_shelter_b2_septic_tank_80182F18 = {
+AnimationSet D_shelter_b2_septic_tank_80182F18 = {
     D_shelter_b2_septic_tank_80182CBC,
     D_shelter_b2_septic_tank_80182EF0,
     { NULL, D_shelter_b2_septic_tank_80182B74, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
@@ -162,7 +162,7 @@ GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { 0x7FFFFFFF, NULL },
 };
 
-GpAnimSet* D_shelter_b2_septic_tank_80182F74[1] = {
+AnimationSet* D_shelter_b2_septic_tank_80182F74[1] = {
     &D_shelter_b2_septic_tank_80182F18,
 };
 

@@ -327,7 +327,7 @@ u16 D_actor_403600_80151CA8[20] = {
 #include "assets/actor_403600_animation_1FEB0_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80151CD0 = {
+AnimationSet D_actor_403600_80151CD0 = {
     D_actor_403600_80151468,
     D_actor_403600_80151CA8,
     { NULL, D_actor_403600_80150EE8, NULL, NULL, D_actor_403600_80150FA8, NULL, NULL, NULL },
@@ -349,7 +349,7 @@ u16 D_actor_403600_801526E4[20] = {
 #include "assets/actor_403600_animation_208EC_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015270C = {
+AnimationSet D_actor_403600_8015270C = {
     D_actor_403600_8015218C,
     D_actor_403600_801526E4,
     { NULL, D_actor_403600_80151CF8, NULL, NULL, D_actor_403600_80151DA0, NULL, NULL, NULL },
@@ -371,7 +371,7 @@ u16 D_actor_403600_80153194[20] = {
 #include "assets/actor_403600_animation_2139C_indices.inc"
 };
 
-GpAnimSet D_actor_403600_801531BC = {
+AnimationSet D_actor_403600_801531BC = {
     D_actor_403600_80152B90,
     D_actor_403600_80153194,
     { NULL, D_actor_403600_80152734, NULL, NULL, D_actor_403600_801527E8, NULL, NULL, NULL },
@@ -393,7 +393,7 @@ u16 D_actor_403600_8015421C[20] = {
 #include "assets/actor_403600_animation_22424_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80154244 = {
+AnimationSet D_actor_403600_80154244 = {
     D_actor_403600_80153868,
     D_actor_403600_8015421C,
     { NULL, D_actor_403600_801531E4, NULL, NULL, D_actor_403600_801532F8, NULL, NULL, NULL },
@@ -415,7 +415,7 @@ u16 D_actor_403600_801546FC[20] = {
 #include "assets/actor_403600_animation_22904_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80154724 = {
+AnimationSet D_actor_403600_80154724 = {
     D_actor_403600_80154494,
     D_actor_403600_801546FC,
     { NULL, D_actor_403600_8015426C, NULL, NULL, D_actor_403600_801542CC, NULL, NULL, NULL },
@@ -437,7 +437,7 @@ u16 D_actor_403600_801555A0[20] = {
 #include "assets/actor_403600_animation_237A8_indices.inc"
 };
 
-GpAnimSet D_actor_403600_801555C8 = {
+AnimationSet D_actor_403600_801555C8 = {
     D_actor_403600_80154DE0,
     D_actor_403600_801555A0,
     { NULL, D_actor_403600_8015474C, NULL, NULL, D_actor_403600_80154854, NULL, NULL, NULL },
@@ -459,7 +459,7 @@ u16 D_actor_403600_80155FD4[20] = {
 #include "assets/actor_403600_animation_241DC_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80155FFC = {
+AnimationSet D_actor_403600_80155FFC = {
     D_actor_403600_80155AD4,
     D_actor_403600_80155FD4,
     { NULL, D_actor_403600_801555F0, NULL, NULL, D_actor_403600_801556C8, NULL, NULL, NULL },
@@ -481,7 +481,7 @@ u16 D_actor_403600_80156A4C[20] = {
 #include "assets/actor_403600_animation_24C54_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80156A74 = {
+AnimationSet D_actor_403600_80156A74 = {
     D_actor_403600_801564A4,
     D_actor_403600_80156A4C,
     { NULL, D_actor_403600_80156024, NULL, NULL, D_actor_403600_801560B4, NULL, NULL, NULL },
@@ -503,7 +503,7 @@ u16 D_actor_403600_80157468[20] = {
 #include "assets/actor_403600_animation_25670_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80157490 = {
+AnimationSet D_actor_403600_80157490 = {
     D_actor_403600_80156F1C,
     D_actor_403600_80157468,
     { NULL, D_actor_403600_80156A9C, NULL, NULL, D_actor_403600_80156B2C, NULL, NULL, NULL },
@@ -525,7 +525,7 @@ u16 D_actor_403600_80158448[20] = {
 #include "assets/actor_403600_animation_26650_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80158470 = {
+AnimationSet D_actor_403600_80158470 = {
     D_actor_403600_80157C58,
     D_actor_403600_80158448,
     { NULL, D_actor_403600_801574B8, NULL, NULL, D_actor_403600_801575CC, NULL, NULL, NULL },
@@ -547,7 +547,7 @@ u16 D_actor_403600_80158F7C[20] = {
 #include "assets/actor_403600_animation_27184_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80158FA4 = {
+AnimationSet D_actor_403600_80158FA4 = {
     D_actor_403600_80158A08,
     D_actor_403600_80158F7C,
     { NULL, D_actor_403600_80158498, NULL, NULL, D_actor_403600_80158564, NULL, NULL, NULL },
@@ -569,7 +569,7 @@ u16 D_actor_403600_80159858[20] = {
 #include "assets/actor_403600_animation_27A60_indices.inc"
 };
 
-GpAnimSet D_actor_403600_80159880 = {
+AnimationSet D_actor_403600_80159880 = {
     D_actor_403600_80159418,
     D_actor_403600_80159858,
     { NULL, D_actor_403600_80158FCC, NULL, NULL, D_actor_403600_80159080, NULL, NULL, NULL },
@@ -591,7 +591,7 @@ u16 D_actor_403600_8015A1F0[20] = {
 #include "assets/actor_403600_animation_283F8_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015A218 = {
+AnimationSet D_actor_403600_8015A218 = {
     D_actor_403600_80159D58,
     D_actor_403600_8015A1F0,
     { NULL, D_actor_403600_801598A8, NULL, NULL, D_actor_403600_80159968, NULL, NULL, NULL },
@@ -613,7 +613,7 @@ u16 D_actor_403600_8015B02C[20] = {
 #include "assets/actor_403600_animation_29234_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015B054 = {
+AnimationSet D_actor_403600_8015B054 = {
     D_actor_403600_8015A8A8,
     D_actor_403600_8015B02C,
     { NULL, D_actor_403600_8015A240, NULL, NULL, D_actor_403600_8015A30C, NULL, NULL, NULL },
@@ -635,7 +635,7 @@ u16 D_actor_403600_8015B46C[20] = {
 #include "assets/actor_403600_animation_29674_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015B494 = {
+AnimationSet D_actor_403600_8015B494 = {
     D_actor_403600_8015B258,
     D_actor_403600_8015B46C,
     { NULL, D_actor_403600_8015B07C, NULL, NULL, D_actor_403600_8015B0C4, NULL, NULL, NULL },
@@ -657,7 +657,7 @@ u16 D_actor_403600_8015BAAC[20] = {
 #include "assets/actor_403600_animation_29CB4_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015BAD4 = {
+AnimationSet D_actor_403600_8015BAD4 = {
     D_actor_403600_8015B79C,
     D_actor_403600_8015BAAC,
     { NULL, D_actor_403600_8015B4BC, NULL, NULL, D_actor_403600_8015B54C, NULL, NULL, NULL },
@@ -679,7 +679,7 @@ u16 D_actor_403600_8015C500[20] = {
 #include "assets/actor_403600_animation_2A708_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015C528 = {
+AnimationSet D_actor_403600_8015C528 = {
     D_actor_403600_8015BFE0,
     D_actor_403600_8015C500,
     { NULL, D_actor_403600_8015BAFC, NULL, NULL, D_actor_403600_8015BBE0, NULL, NULL, NULL },
@@ -701,7 +701,7 @@ u16 D_actor_403600_8015C6E4[20] = {
 #include "assets/actor_403600_animation_2A8EC_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015C70C = {
+AnimationSet D_actor_403600_8015C70C = {
     D_actor_403600_8015C5A4,
     D_actor_403600_8015C6E4,
     { NULL, D_actor_403600_8015C550, NULL, NULL, D_actor_403600_8015C568, NULL, NULL, NULL },
@@ -723,7 +723,7 @@ u16 D_actor_403600_8015D15C[20] = {
 #include "assets/actor_403600_animation_2B364_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015D184 = {
+AnimationSet D_actor_403600_8015D184 = {
     D_actor_403600_8015CB98,
     D_actor_403600_8015D15C,
     { NULL, D_actor_403600_8015C734, NULL, NULL, D_actor_403600_8015C7D0, NULL, NULL, NULL },
@@ -745,7 +745,7 @@ u16 D_actor_403600_8015DD84[20] = {
 #include "assets/actor_403600_animation_2BF8C_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015DDAC = {
+AnimationSet D_actor_403600_8015DDAC = {
     D_actor_403600_8015D794,
     D_actor_403600_8015DD84,
     { NULL, D_actor_403600_8015D1AC, NULL, NULL, D_actor_403600_8015D2C0, NULL, NULL, NULL },
@@ -767,7 +767,7 @@ u16 D_actor_403600_8015DEBC[20] = {
 #include "assets/actor_403600_animation_2C0C4_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015DEE4 = {
+AnimationSet D_actor_403600_8015DEE4 = {
     D_actor_403600_8015DE24,
     D_actor_403600_8015DEBC,
     { NULL, D_actor_403600_8015DDD4, NULL, NULL, D_actor_403600_8015DDEC, NULL, NULL, NULL },
@@ -789,7 +789,7 @@ u16 D_actor_403600_8015E704[20] = {
 #include "assets/actor_403600_animation_2C90C_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015E72C = {
+AnimationSet D_actor_403600_8015E72C = {
     D_actor_403600_8015E30C,
     D_actor_403600_8015E704,
     { NULL, D_actor_403600_8015DF0C, NULL, NULL, D_actor_403600_8015E008, NULL, NULL, NULL },
@@ -811,7 +811,7 @@ u16 D_actor_403600_8015EEA0[20] = {
 #include "assets/actor_403600_animation_2D0A8_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015EEC8 = {
+AnimationSet D_actor_403600_8015EEC8 = {
     D_actor_403600_8015EAF4,
     D_actor_403600_8015EEA0,
     { NULL, D_actor_403600_8015E754, NULL, NULL, D_actor_403600_8015E844, NULL, NULL, NULL },
@@ -833,7 +833,7 @@ u16 D_actor_403600_8015F6AC[20] = {
 #include "assets/actor_403600_animation_2D8B4_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015F6D4 = {
+AnimationSet D_actor_403600_8015F6D4 = {
     D_actor_403600_8015F2DC,
     D_actor_403600_8015F6AC,
     { NULL, D_actor_403600_8015EEF0, NULL, NULL, D_actor_403600_8015EFA4, NULL, NULL, NULL },
@@ -855,7 +855,7 @@ u16 D_actor_403600_8015FEC0[20] = {
 #include "assets/actor_403600_animation_2E0C8_indices.inc"
 };
 
-GpAnimSet D_actor_403600_8015FEE8 = {
+AnimationSet D_actor_403600_8015FEE8 = {
     D_actor_403600_8015FAE0,
     D_actor_403600_8015FEC0,
     { NULL, D_actor_403600_8015F6FC, NULL, NULL, D_actor_403600_8015F7A4, NULL, NULL, NULL },
@@ -877,7 +877,7 @@ u16 D_actor_403600_801604B4[20] = {
 #include "assets/actor_403600_animation_2E6BC_indices.inc"
 };
 
-GpAnimSet D_actor_403600_801604DC = {
+AnimationSet D_actor_403600_801604DC = {
     D_actor_403600_80160154,
     D_actor_403600_801604B4,
     { NULL, D_actor_403600_8015FF10, NULL, NULL, D_actor_403600_8015FF7C, NULL, NULL, NULL },

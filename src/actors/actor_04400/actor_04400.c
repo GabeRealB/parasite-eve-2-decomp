@@ -159,10 +159,10 @@ typedef struct Actor104400Work {
 } Actor104400Work;
 STATIC_ASSERT_SIZEOF(Actor104400Work, 0x454);
 
-extern u8         Actor04400_D10814[];   // per animation id (1-based): the value to put in `field_44F`
-extern u8         Actor04400_D10828[];   // per animation id (1-based): the animation to follow it
-extern GpPairSrcE Actor04400_D0D318;     // the main enemy's `GpEnemy::param` record
-extern GpAnimSet* Actor04400_D10778[21]; // animation bank handed to `func_800B3F84`
+extern u8            Actor04400_D10814[];   // per animation id (1-based): the value to put in `field_44F`
+extern u8            Actor04400_D10828[];   // per animation id (1-based): the animation to follow it
+extern GpPairSrcE    Actor04400_D0D318;     // the main enemy's `GpEnemy::param` record
+extern AnimationSet* Actor04400_D10778[21]; // animation bank handed to `func_800B3F84`
 // Typed callback views for the task message dispatcher.
 typedef struct {
     s32 id;
@@ -482,7 +482,7 @@ u16 Actor04400_D0D540[10] = {
 #include "assets/actor_104400_animation_0D554_indices.inc"
 };
 
-GpAnimSet Actor04400_D0D554 = {
+AnimationSet Actor04400_D0D554 = {
     Actor04400_D0D40C,
     Actor04400_D0D540,
     { NULL, Actor04400_D0D328, NULL, NULL, Actor04400_D0D370, NULL, NULL, NULL },
@@ -504,7 +504,7 @@ u16 Actor04400_D0D6E4[10] = {
 #include "assets/actor_104400_animation_0D6F8_indices.inc"
 };
 
-GpAnimSet Actor04400_D0D6F8 = {
+AnimationSet Actor04400_D0D6F8 = {
     Actor04400_D0D5F4,
     Actor04400_D0D6E4,
     { NULL, Actor04400_D0D57C, NULL, NULL, Actor04400_D0D5A0, NULL, NULL, NULL },
@@ -526,7 +526,7 @@ u16 Actor04400_D0DBB8[10] = {
 #include "assets/actor_104400_animation_0DBCC_indices.inc"
 };
 
-GpAnimSet Actor04400_D0DBCC = {
+AnimationSet Actor04400_D0DBCC = {
     Actor04400_D0D99C,
     Actor04400_D0DBB8,
     { NULL, Actor04400_D0D720, NULL, NULL, Actor04400_D0D810, NULL, NULL, NULL },
@@ -548,7 +548,7 @@ u16 Actor04400_D0E13C[10] = {
 #include "assets/actor_104400_animation_0E150_indices.inc"
 };
 
-GpAnimSet Actor04400_D0E150 = {
+AnimationSet Actor04400_D0E150 = {
     Actor04400_D0DED8,
     Actor04400_D0E13C,
     { NULL, Actor04400_D0DBF4, NULL, NULL, Actor04400_D0DD20, NULL, NULL, NULL },
@@ -570,7 +570,7 @@ u16 Actor04400_D0E23C[10] = {
 #include "assets/actor_104400_animation_0E250_indices.inc"
 };
 
-GpAnimSet Actor04400_D0E250 = {
+AnimationSet Actor04400_D0E250 = {
     Actor04400_D0E1AC,
     Actor04400_D0E23C,
     { NULL, Actor04400_D0E178, NULL, NULL, Actor04400_D0E190, NULL, NULL, NULL },
@@ -592,7 +592,7 @@ u16 Actor04400_D0E33C[10] = {
 #include "assets/actor_104400_animation_0E350_indices.inc"
 };
 
-GpAnimSet Actor04400_D0E350 = {
+AnimationSet Actor04400_D0E350 = {
     Actor04400_D0E2AC,
     Actor04400_D0E33C,
     { NULL, Actor04400_D0E278, NULL, NULL, Actor04400_D0E290, NULL, NULL, NULL },
@@ -614,7 +614,7 @@ u16 Actor04400_D0E76C[10] = {
 #include "assets/actor_104400_animation_0E780_indices.inc"
 };
 
-GpAnimSet Actor04400_D0E780 = {
+AnimationSet Actor04400_D0E780 = {
     Actor04400_D0E5AC,
     Actor04400_D0E76C,
     { NULL, Actor04400_D0E378, NULL, NULL, Actor04400_D0E498, NULL, NULL, NULL },
@@ -636,7 +636,7 @@ u16 Actor04400_D0EC10[10] = {
 #include "assets/actor_104400_animation_0EC24_indices.inc"
 };
 
-GpAnimSet Actor04400_D0EC24 = {
+AnimationSet Actor04400_D0EC24 = {
     Actor04400_D0EA0C,
     Actor04400_D0EC10,
     { NULL, Actor04400_D0E7A8, NULL, NULL, Actor04400_D0E8B0, NULL, NULL, NULL },
@@ -658,7 +658,7 @@ u16 Actor04400_D0F168[10] = {
 #include "assets/actor_104400_animation_0F17C_indices.inc"
 };
 
-GpAnimSet Actor04400_D0F17C = {
+AnimationSet Actor04400_D0F17C = {
     Actor04400_D0EE80,
     Actor04400_D0F168,
     { NULL, Actor04400_D0EC4C, NULL, NULL, Actor04400_D0ECF4, NULL, NULL, NULL },
@@ -680,7 +680,7 @@ u16 Actor04400_D0F41C[10] = {
 #include "assets/actor_104400_animation_0F430_indices.inc"
 };
 
-GpAnimSet Actor04400_D0F430 = {
+AnimationSet Actor04400_D0F430 = {
     Actor04400_D0F2DC,
     Actor04400_D0F41C,
     { NULL, Actor04400_D0F1A4, NULL, NULL, Actor04400_D0F204, NULL, NULL, NULL },
@@ -702,7 +702,7 @@ u16 Actor04400_D0F6B0[10] = {
 #include "assets/actor_104400_animation_0F6C4_indices.inc"
 };
 
-GpAnimSet Actor04400_D0F6C4 = {
+AnimationSet Actor04400_D0F6C4 = {
     Actor04400_D0F574,
     Actor04400_D0F6B0,
     { NULL, Actor04400_D0F458, NULL, NULL, Actor04400_D0F4AC, NULL, NULL, NULL },
@@ -724,7 +724,7 @@ u16 Actor04400_D0F960[10] = {
 #include "assets/actor_104400_animation_0F974_indices.inc"
 };
 
-GpAnimSet Actor04400_D0F974 = {
+AnimationSet Actor04400_D0F974 = {
     Actor04400_D0F814,
     Actor04400_D0F960,
     { NULL, Actor04400_D0F6EC, NULL, NULL, Actor04400_D0F740, NULL, NULL, NULL },
@@ -746,7 +746,7 @@ u16 Actor04400_D0FB74[10] = {
 #include "assets/actor_104400_animation_0FB88_indices.inc"
 };
 
-GpAnimSet Actor04400_D0FB88 = {
+AnimationSet Actor04400_D0FB88 = {
     Actor04400_D0FA8C,
     Actor04400_D0FB74,
     { NULL, Actor04400_D0F99C, NULL, NULL, Actor04400_D0F9E4, NULL, NULL, NULL },
@@ -768,7 +768,7 @@ u16 Actor04400_D0FC94[10] = {
 #include "assets/actor_104400_animation_0FCA8_indices.inc"
 };
 
-GpAnimSet Actor04400_D0FCA8 = {
+AnimationSet Actor04400_D0FCA8 = {
     Actor04400_D0FBF4,
     Actor04400_D0FC94,
     { NULL, Actor04400_D0FBB0, NULL, NULL, Actor04400_D0FBC8, NULL, NULL, NULL },
@@ -790,7 +790,7 @@ u16 Actor04400_D0FDD0[10] = {
 #include "assets/actor_104400_animation_0FDE4_indices.inc"
 };
 
-GpAnimSet Actor04400_D0FDE4 = {
+AnimationSet Actor04400_D0FDE4 = {
     Actor04400_D0FD48,
     Actor04400_D0FDD0,
     { NULL, Actor04400_D0FCD0, NULL, NULL, Actor04400_D0FD00, NULL, NULL, NULL },
@@ -812,7 +812,7 @@ u16 Actor04400_D0FFCC[10] = {
 #include "assets/actor_104400_animation_0FFE0_indices.inc"
 };
 
-GpAnimSet Actor04400_D0FFE0 = {
+AnimationSet Actor04400_D0FFE0 = {
     Actor04400_D0FF00,
     Actor04400_D0FFCC,
     { NULL, Actor04400_D0FE0C, NULL, NULL, Actor04400_D0FE84, NULL, NULL, NULL },
@@ -834,7 +834,7 @@ u16 Actor04400_D10408[10] = {
 #include "assets/actor_104400_animation_1041C_indices.inc"
 };
 
-GpAnimSet Actor04400_D1041C = {
+AnimationSet Actor04400_D1041C = {
     Actor04400_D10214,
     Actor04400_D10408,
     { NULL, Actor04400_D10008, NULL, NULL, Actor04400_D100C8, NULL, NULL, NULL },
@@ -856,7 +856,7 @@ u16 Actor04400_D10594[10] = {
 #include "assets/actor_104400_animation_105A8_indices.inc"
 };
 
-GpAnimSet Actor04400_D105A8 = {
+AnimationSet Actor04400_D105A8 = {
     Actor04400_D104E8,
     Actor04400_D10594,
     { NULL, Actor04400_D10444, NULL, NULL, Actor04400_D10480, NULL, NULL, NULL },
@@ -878,13 +878,13 @@ u16 Actor04400_D1073C[10] = {
 #include "assets/actor_104400_animation_10750_indices.inc"
 };
 
-GpAnimSet Actor04400_D10750 = {
+AnimationSet Actor04400_D10750 = {
     Actor04400_D10684,
     Actor04400_D1073C,
     { NULL, Actor04400_D105D0, NULL, NULL, Actor04400_D1060C, NULL, NULL, NULL },
 };
 
-GpAnimSet* Actor04400_D10778[21] = {
+AnimationSet* Actor04400_D10778[21] = {
     NULL,
     &Actor04400_D0D554,
     &Actor04400_D0D6F8,

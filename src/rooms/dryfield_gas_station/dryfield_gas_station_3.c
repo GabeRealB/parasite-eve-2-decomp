@@ -88,9 +88,9 @@ typedef struct DgsWork {
 } DgsWork;
 STATIC_ASSERT_SIZEOF(DgsWork, 0x10);
 
-extern GpAnimSet* D_dryfield_gas_station_80182E30[5];
-extern GpEvsCmd   D_dryfield_gas_station_80182E8C[];
-extern GpEvsCmd   D_dryfield_gas_station_8018303C[];
+extern AnimationSet* D_dryfield_gas_station_80182E30[5];
+extern GpEvsCmd      D_dryfield_gas_station_80182E8C[];
+extern GpEvsCmd      D_dryfield_gas_station_8018303C[];
 
 extern SVECTOR D_dryfield_gas_station_80183144;
 
@@ -130,7 +130,7 @@ u16 D_dryfield_gas_station_80182008[20] = {
 #include "assets/dryfield_gas_station_animation_04A70_indices.inc"
 };
 
-GpAnimSet D_dryfield_gas_station_80182030 = {
+AnimationSet D_dryfield_gas_station_80182030 = {
     D_dryfield_gas_station_80181ED8,
     D_dryfield_gas_station_80182008,
     { NULL, D_dryfield_gas_station_80181EA0, NULL, NULL, D_dryfield_gas_station_80181EB8, NULL, NULL, NULL },
@@ -152,7 +152,7 @@ u16 D_dryfield_gas_station_801827A8[20] = {
 #include "assets/dryfield_gas_station_animation_05210_indices.inc"
 };
 
-GpAnimSet D_dryfield_gas_station_801827D0 = {
+AnimationSet D_dryfield_gas_station_801827D0 = {
     D_dryfield_gas_station_801823C0,
     D_dryfield_gas_station_801827A8,
     { NULL, D_dryfield_gas_station_80182058, NULL, NULL, D_dryfield_gas_station_801820F4, NULL, NULL, NULL },
@@ -174,7 +174,7 @@ u16 D_dryfield_gas_station_80182B3C[20] = {
 #include "assets/dryfield_gas_station_animation_055A4_indices.inc"
 };
 
-GpAnimSet D_dryfield_gas_station_80182B64 = {
+AnimationSet D_dryfield_gas_station_80182B64 = {
     D_dryfield_gas_station_80182950,
     D_dryfield_gas_station_80182B3C,
     { NULL, D_dryfield_gas_station_801827F8, NULL, NULL, D_dryfield_gas_station_8018284C, NULL, NULL, NULL },
@@ -196,13 +196,13 @@ u16 D_dryfield_gas_station_80182DE0[20] = {
 #include "assets/dryfield_gas_station_animation_05848_indices.inc"
 };
 
-GpAnimSet D_dryfield_gas_station_80182E08 = {
+AnimationSet D_dryfield_gas_station_80182E08 = {
     D_dryfield_gas_station_80182C64,
     D_dryfield_gas_station_80182DE0,
     { NULL, D_dryfield_gas_station_80182B8C, NULL, NULL, D_dryfield_gas_station_80182BA4, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_dryfield_gas_station_80182E30[5] = {
+AnimationSet* D_dryfield_gas_station_80182E30[5] = {
     &D_dryfield_gas_station_80182030,
     &D_dryfield_gas_station_80182B64,
     &D_dryfield_gas_station_80182E08,

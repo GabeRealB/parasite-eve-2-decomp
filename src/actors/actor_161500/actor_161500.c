@@ -36,7 +36,7 @@
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet*           sets[6];
+        AnimationSet*        sets[6];
         AnimationPlayRequest arguments[6];
     } data;
     s32 words[36];
@@ -49,7 +49,7 @@ extern Actor161500AnimStorage3F90 D_actor_161500_80133F90;
 // following argument records. Both views cover the complete backing object.
 typedef union {
     struct {
-        GpAnimSet*           sets[7];
+        AnimationSet*        sets[7];
         AnimationPlayRequest arguments[1];
     } data;
     s32 words[12];
@@ -58,8 +58,8 @@ STATIC_ASSERT_SIZEOF(Actor161500AnimCopy6D60, 48);
 
 extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
 
-extern TaskDesc   D_actor_161500_801401B0[];
-extern GpAnimSet* D_actor_161500_801401C8[12];
+extern TaskDesc      D_actor_161500_801401B0[];
+extern AnimationSet* D_actor_161500_801401C8[12];
 // Message-table callbacks use the argument views required by this TU.
 typedef struct {
     s32 id;
@@ -114,12 +114,12 @@ void                        func_actor_161500_80132150(void);
 
 void func_actor_161500_801321B4(Task*);
 
-extern GpAnimSet D_actor_161500_80136124;
-extern GpAnimSet D_actor_161500_80136338;
-extern GpAnimSet D_actor_161500_80136618;
-extern GpAnimSet D_actor_161500_801368A8;
-extern GpAnimSet D_actor_161500_80136A80;
-extern GpAnimSet D_actor_161500_80136CB4;
+extern AnimationSet D_actor_161500_80136124;
+extern AnimationSet D_actor_161500_80136338;
+extern AnimationSet D_actor_161500_80136618;
+extern AnimationSet D_actor_161500_801368A8;
+extern AnimationSet D_actor_161500_80136A80;
+extern AnimationSet D_actor_161500_80136CB4;
 
 extern Actor161500AnimCopy6D60 D_actor_161500_80136D60;
 extern GpXformArg              D_actor_161500_80136CE8;
@@ -163,7 +163,7 @@ u16 D_actor_161500_80132EC8[20] = {
 #include "assets/actor_161500_animation_010D0_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80132EF0 = {
+AnimationSet D_actor_161500_80132EF0 = {
     D_actor_161500_80132D88,
     D_actor_161500_80132EC8,
     { NULL, D_actor_161500_80132CD4, NULL, NULL, D_actor_161500_80132CF8, NULL, NULL, NULL },
@@ -185,7 +185,7 @@ u16 D_actor_161500_80133094[20] = {
 #include "assets/actor_161500_animation_0129C_indices.inc"
 };
 
-GpAnimSet D_actor_161500_801330BC = {
+AnimationSet D_actor_161500_801330BC = {
     D_actor_161500_80132FB0,
     D_actor_161500_80133094,
     { NULL, D_actor_161500_80132F18, NULL, NULL, D_actor_161500_80132F3C, NULL, NULL, NULL },
@@ -207,7 +207,7 @@ u16 D_actor_161500_801334BC[20] = {
 #include "assets/actor_161500_animation_016C4_indices.inc"
 };
 
-GpAnimSet D_actor_161500_801334E4 = {
+AnimationSet D_actor_161500_801334E4 = {
     D_actor_161500_80133288,
     D_actor_161500_801334BC,
     { NULL, D_actor_161500_801330E4, NULL, NULL, D_actor_161500_80133120, NULL, NULL, NULL },
@@ -229,7 +229,7 @@ u16 D_actor_161500_80133840[20] = {
 #include "assets/actor_161500_animation_01A48_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80133868 = {
+AnimationSet D_actor_161500_80133868 = {
     D_actor_161500_80133668,
     D_actor_161500_80133840,
     { NULL, D_actor_161500_8013350C, NULL, NULL, D_actor_161500_80133554, NULL, NULL, NULL },
@@ -251,7 +251,7 @@ u16 D_actor_161500_80133B6C[20] = {
 #include "assets/actor_161500_animation_01D74_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80133B94 = {
+AnimationSet D_actor_161500_80133B94 = {
     D_actor_161500_801339C4,
     D_actor_161500_80133B6C,
     { NULL, D_actor_161500_80133890, NULL, NULL, D_actor_161500_801338E4, NULL, NULL, NULL },
@@ -273,7 +273,7 @@ u16 D_actor_161500_80133F24[20] = {
 #include "assets/actor_161500_animation_0212C_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80133F4C = {
+AnimationSet D_actor_161500_80133F4C = {
     D_actor_161500_80133D24,
     D_actor_161500_80133F24,
     { NULL, D_actor_161500_80133BBC, NULL, NULL, D_actor_161500_80133BE0, NULL, NULL, NULL },
@@ -713,7 +713,7 @@ u16 D_actor_161500_801360FC[20] = {
 #include "assets/actor_161500_animation_04304_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80136124 = {
+AnimationSet D_actor_161500_80136124 = {
     D_actor_161500_80135F5C,
     D_actor_161500_801360FC,
     { NULL, D_actor_161500_80135DE8, NULL, NULL, D_actor_161500_80135E30, NULL, NULL, NULL },
@@ -735,7 +735,7 @@ u16 D_actor_161500_80136310[20] = {
 #include "assets/actor_161500_animation_04518_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80136338 = {
+AnimationSet D_actor_161500_80136338 = {
     D_actor_161500_801361C4,
     D_actor_161500_80136310,
     { NULL, D_actor_161500_8013614C, NULL, NULL, D_actor_161500_80136164, NULL, NULL, NULL },
@@ -757,7 +757,7 @@ u16 D_actor_161500_801365F0[20] = {
 #include "assets/actor_161500_animation_047F8_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80136618 = {
+AnimationSet D_actor_161500_80136618 = {
     D_actor_161500_8013648C,
     D_actor_161500_801365F0,
     { NULL, D_actor_161500_80136360, NULL, NULL, D_actor_161500_8013639C, NULL, NULL, NULL },
@@ -779,7 +779,7 @@ u16 D_actor_161500_80136880[20] = {
 #include "assets/actor_161500_animation_04A88_indices.inc"
 };
 
-GpAnimSet D_actor_161500_801368A8 = {
+AnimationSet D_actor_161500_801368A8 = {
     D_actor_161500_801366F4,
     D_actor_161500_80136880,
     { NULL, D_actor_161500_80136640, NULL, NULL, D_actor_161500_80136664, NULL, NULL, NULL },
@@ -801,7 +801,7 @@ u16 D_actor_161500_80136A58[20] = {
 #include "assets/actor_161500_animation_04C60_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80136A80 = {
+AnimationSet D_actor_161500_80136A80 = {
     D_actor_161500_80136974,
     D_actor_161500_80136A58,
     { NULL, D_actor_161500_801368D0, NULL, NULL, D_actor_161500_801368F4, NULL, NULL, NULL },
@@ -823,7 +823,7 @@ u16 D_actor_161500_80136C8C[20] = {
 #include "assets/actor_161500_animation_04E94_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80136CB4 = {
+AnimationSet D_actor_161500_80136CB4 = {
     D_actor_161500_80136B40,
     D_actor_161500_80136C8C,
     { NULL, D_actor_161500_80136AA8, NULL, NULL, D_actor_161500_80136ACC, NULL, NULL, NULL },
@@ -1127,7 +1127,7 @@ u16 D_actor_161500_8013E110[20] = {
 #include "assets/actor_161500_animation_0C318_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013E138 = {
+AnimationSet D_actor_161500_8013E138 = {
     D_actor_161500_8013DF7C,
     D_actor_161500_8013E110,
     { NULL, D_actor_161500_8013DEE4, NULL, NULL, D_actor_161500_8013DEFC, NULL, NULL, NULL },
@@ -1149,7 +1149,7 @@ u16 D_actor_161500_8013E684[20] = {
 #include "assets/actor_161500_animation_0C88C_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013E6AC = {
+AnimationSet D_actor_161500_8013E6AC = {
     D_actor_161500_8013E394,
     D_actor_161500_8013E684,
     { NULL, D_actor_161500_8013E160, NULL, NULL, D_actor_161500_8013E178, NULL, NULL, NULL },
@@ -1171,7 +1171,7 @@ u16 D_actor_161500_8013E914[20] = {
 #include "assets/actor_161500_animation_0CB1C_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013E93C = {
+AnimationSet D_actor_161500_8013E93C = {
     D_actor_161500_8013E764,
     D_actor_161500_8013E914,
     { NULL, D_actor_161500_8013E6D4, NULL, NULL, D_actor_161500_8013E6F8, NULL, NULL, NULL },
@@ -1193,7 +1193,7 @@ u16 D_actor_161500_8013F0A8[20] = {
 #include "assets/actor_161500_animation_0D2B0_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013F0D0 = {
+AnimationSet D_actor_161500_8013F0D0 = {
     D_actor_161500_8013ECD0,
     D_actor_161500_8013F0A8,
     { NULL, D_actor_161500_8013E964, NULL, NULL, D_actor_161500_8013EA60, NULL, NULL, NULL },
@@ -1215,7 +1215,7 @@ u16 D_actor_161500_8013F33C[20] = {
 #include "assets/actor_161500_animation_0D544_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013F364 = {
+AnimationSet D_actor_161500_8013F364 = {
     D_actor_161500_8013F1C4,
     D_actor_161500_8013F33C,
     { NULL, D_actor_161500_8013F0F8, NULL, NULL, D_actor_161500_8013F134, NULL, NULL, NULL },
@@ -1237,7 +1237,7 @@ u16 D_actor_161500_8013F62C[20] = {
 #include "assets/actor_161500_animation_0D834_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013F654 = {
+AnimationSet D_actor_161500_8013F654 = {
     D_actor_161500_8013F480,
     D_actor_161500_8013F62C,
     { NULL, D_actor_161500_8013F38C, NULL, NULL, D_actor_161500_8013F3A4, NULL, NULL, NULL },
@@ -1259,7 +1259,7 @@ u16 D_actor_161500_8013F7E0[20] = {
 #include "assets/actor_161500_animation_0D9E8_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013F808 = {
+AnimationSet D_actor_161500_8013F808 = {
     D_actor_161500_8013F6E0,
     D_actor_161500_8013F7E0,
     { NULL, D_actor_161500_8013F67C, NULL, NULL, D_actor_161500_8013F694, NULL, NULL, NULL },
@@ -1281,7 +1281,7 @@ u16 D_actor_161500_8013F994[20] = {
 #include "assets/actor_161500_animation_0DB9C_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013F9BC = {
+AnimationSet D_actor_161500_8013F9BC = {
     D_actor_161500_8013F894,
     D_actor_161500_8013F994,
     { NULL, D_actor_161500_8013F830, NULL, NULL, D_actor_161500_8013F848, NULL, NULL, NULL },
@@ -1303,7 +1303,7 @@ u16 D_actor_161500_8013FC4C[20] = {
 #include "assets/actor_161500_animation_0DE54_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013FC74 = {
+AnimationSet D_actor_161500_8013FC74 = {
     D_actor_161500_8013FA7C,
     D_actor_161500_8013FC4C,
     { NULL, D_actor_161500_8013F9E4, NULL, NULL, D_actor_161500_8013FA08, NULL, NULL, NULL },
@@ -1325,7 +1325,7 @@ u16 D_actor_161500_8013FF40[20] = {
 #include "assets/actor_161500_animation_0E148_indices.inc"
 };
 
-GpAnimSet D_actor_161500_8013FF68 = {
+AnimationSet D_actor_161500_8013FF68 = {
     D_actor_161500_8013FD60,
     D_actor_161500_8013FF40,
     { NULL, D_actor_161500_8013FC9C, NULL, NULL, D_actor_161500_8013FCB4, NULL, NULL, NULL },
@@ -1347,7 +1347,7 @@ u16 D_actor_161500_80140130[20] = {
 #include "assets/actor_161500_animation_0E338_indices.inc"
 };
 
-GpAnimSet D_actor_161500_80140158 = {
+AnimationSet D_actor_161500_80140158 = {
     D_actor_161500_80140020,
     D_actor_161500_80140130,
     { NULL, D_actor_161500_8013FF90, NULL, NULL, D_actor_161500_8013FFA8, NULL, NULL, NULL },
@@ -1367,7 +1367,7 @@ TaskDesc D_actor_161500_801401B0[2] = {
     { 257, 96, func_actor_161500_80132C6C, { .model = &D_actor_161500_80138790 } },
 };
 
-GpAnimSet* D_actor_161500_801401C8[12] = {
+AnimationSet* D_actor_161500_801401C8[12] = {
     NULL,
     &D_actor_161500_8013E138,
     &D_actor_161500_8013E93C,

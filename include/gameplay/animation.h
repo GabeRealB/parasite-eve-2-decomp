@@ -9,8 +9,6 @@
 #include "main/coord.h"
 #include "main/session_types.h"
 
-struct GpAnimSet;
-
 /// One playback frame per tick in the slots' sixteenths-of-a-frame units.
 enum { ANIMATION_RATE_ONE = 0x10 };
 
@@ -94,19 +92,28 @@ typedef struct AnimationRecord {
 } AnimationRecord;
 STATIC_ASSERT_SIZEOF(AnimationRecord, 4);
 
-/// One animation of a model: the clip data behind a single pointer of the table
-/// at `GpAnimSlot.sets` (the same table as `GpAnimCtx.sets`), indexed
-/// by animation id.
+/// Number of encoding-indexed pose-bank addresses stored in an animation set.
+enum { ANIMATION_POSE_BANK_COUNT = 8 };
+
+/// Borrowed clip data for the animation tracks of one model.
 ///
-/// An animation carries one track per model part, each a run of `recs`
-/// keyframes that begins at the record `trackStart` names, plus one pose bank
-/// per pose encoding, which those records index into by 4-byte word.
-typedef struct GpAnimSet {
-    AnimationRecord* recs;         // keyframe records of every track, one run per model part
-    u16*             trackStart;   // record index each track begins at, indexed by `GpAnimSlot.trackIndex`
-    void*            poseBanks[8]; // Borrowed word-aligned banks (1 AnimationPackedPose, 4 AnimationPackedRotation); records give word offsets
-} GpAnimSet;
-STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
+/// An animation id selects one set from a playback context's pointer table.
+/// Each model-part track begins at its entry in `trackStartIndices` and reads
+/// keyframes and control commands from the shared `records` array. Pose banks
+/// are selected by the track's encoding; record offsets count four-byte words.
+/// Encodings 1 and 4 use `AnimationPackedPose` and `AnimationPackedRotation`.
+/// Other bank slots are unused by the supported encodings.
+///
+/// The descriptor stores no lengths. Track indices, record indices, jump targets
+/// and complete encoded-pose reads must fit the supplied arrays. All data is
+/// read-only during playback and must remain loaded while any slot or cached
+/// record pointer refers to it; pose banks must be word-aligned.
+typedef struct AnimationSet {
+    const AnimationRecord* records;                              // Borrowed keyframe/control records shared by all tracks
+    const u16*             trackStartIndices;                    // Borrowed absolute record indices, indexed by the model-part track
+    const void*            poseBanks[ANIMATION_POSE_BANK_COUNT]; // Borrowed encoding-indexed banks (1 translation/rotation, 4 packed rotation); NULL if absent
+} AnimationSet;
+STATIC_ASSERT_SIZEOF(AnimationSet, 0x28);
 
 /// One model's animation state: what its playback reads and the slots that walk
 /// it.
@@ -120,11 +127,11 @@ STATIC_ASSERT_SIZEOF(GpAnimSet, 0x28);
 /// part, and one pose record per slot, where a slot keeps a pose that no
 /// keyframe supplies.
 typedef struct {
-    GpAnimSet** sets;      // Set table the slots index by animation id
-    GfxCoord*   coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
-    u8*         poses;     // Borrowed writable buffer: 16 bytes per slot, holding that slot's packed encoding
-    GpAnimSlot* slots;     // Playback state, one slot per model part
-    s32         partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
+    AnimationSet** sets;      // Set table the slots index by animation id
+    GfxCoord*      coords;    // The model's per-part coordinate array: each slot writes the transform of the part it drives
+    u8*            poses;     // Borrowed writable buffer: 16 bytes per slot, holding that slot's packed encoding
+    GpAnimSlot*    slots;     // Playback state, one slot per model part
+    s32            partCount; // Parts the model is divided into, mirrored from `TmdObject.partCount`
 } GpAnimCtx;
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
@@ -174,8 +181,8 @@ enum {
 /// views cover the complete established storage span without a subarray boundary.
 typedef struct {
     union {
-        struct GpAnimSet* sets[ANIMATION_BANK_SET_CAPACITY];      // Borrowed set pointers, including script-installed clips
-        s32               addresses[ANIMATION_BANK_SET_CAPACITY]; // The same set addresses for word-copy messages
+        struct AnimationSet* sets[ANIMATION_BANK_SET_CAPACITY];      // Borrowed set pointers, including script-installed clips
+        s32                  addresses[ANIMATION_BANK_SET_CAPACITY]; // The same set addresses for word-copy messages
     } table;
 } GpAnimBlk;
 STATIC_ASSERT_SIZEOF(GpAnimBlk, 0x13C);

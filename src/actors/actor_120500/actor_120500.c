@@ -86,7 +86,7 @@ extern Task* D_actor_120500_80138454;
 extern TaskDesc D_actor_120500_80138418[];
 
 /// Animation banks `func_800B3F84` seeds the work block from.
-extern GpAnimSet* D_actor_120500_80138088[2];
+extern AnimationSet* D_actor_120500_80138088[2];
 
 /// Message table the actor answers with: 0x7D5 shows or hides the model, 0x7D4
 /// places it.
@@ -111,7 +111,7 @@ extern Actor120500MessageEntry D_actor_120500_80138408[2];
 
 /// Animation-set table handed to the task in pointer slot 3 as message 0x3F4's
 /// `AnimationPlayRequest::source`; the messages select sets 0, 1 and 2 of it.
-extern GpAnimSet* D_actor_120500_8013807C[];
+extern AnimationSet* D_actor_120500_8013807C[];
 
 /// Placement records sent to that same task as message 0x3E9, passed by
 /// address.
@@ -186,7 +186,7 @@ u16 D_actor_120500_801379C0[20] = {
 #include "assets/actor_120500_animation_05BC8_indices.inc"
 };
 
-GpAnimSet D_actor_120500_801379E8 = {
+AnimationSet D_actor_120500_801379E8 = {
     D_actor_120500_80137724,
     D_actor_120500_801379C0,
     { NULL, D_actor_120500_80137650, NULL, NULL, D_actor_120500_80137668, NULL, NULL, NULL },
@@ -208,7 +208,7 @@ u16 D_actor_120500_80137CC4[20] = {
 #include "assets/actor_120500_animation_05ECC_indices.inc"
 };
 
-GpAnimSet D_actor_120500_80137CEC = {
+AnimationSet D_actor_120500_80137CEC = {
     D_actor_120500_80137B10,
     D_actor_120500_80137CC4,
     { NULL, D_actor_120500_80137A10, NULL, NULL, D_actor_120500_80137A58, NULL, NULL, NULL },
@@ -230,7 +230,7 @@ u16 D_actor_120500_80137E74[20] = {
 #include "assets/actor_120500_animation_0607C_indices.inc"
 };
 
-GpAnimSet D_actor_120500_80137E9C = {
+AnimationSet D_actor_120500_80137E9C = {
     D_actor_120500_80137D44,
     D_actor_120500_80137E74,
     { NULL, D_actor_120500_80137D14, NULL, NULL, D_actor_120500_80137D2C, NULL, NULL, NULL },
@@ -252,19 +252,19 @@ u16 D_actor_120500_8013802C[20] = {
 #include "assets/actor_120500_animation_06234_indices.inc"
 };
 
-GpAnimSet D_actor_120500_80138054 = {
+AnimationSet D_actor_120500_80138054 = {
     D_actor_120500_80137EFC,
     D_actor_120500_8013802C,
     { NULL, D_actor_120500_80137EC4, NULL, NULL, D_actor_120500_80137EDC, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_120500_8013807C[3] = {
+AnimationSet* D_actor_120500_8013807C[3] = {
     &D_actor_120500_80137CEC,
     &D_actor_120500_80137E9C,
     &D_actor_120500_80138054,
 };
 
-GpAnimSet* D_actor_120500_80138088[2] = {
+AnimationSet* D_actor_120500_80138088[2] = {
     NULL,
     &D_actor_120500_801379E8,
 };

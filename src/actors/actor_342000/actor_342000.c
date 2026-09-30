@@ -223,30 +223,30 @@ u16 D_actor_342000_80164798[20] = {
 #include "assets/actor_342000_animation_029A0_indices.inc"
 };
 
-GpAnimSet D_actor_342000_801647C0 = {
+AnimationSet D_actor_342000_801647C0 = {
     D_actor_342000_801645E4,
     D_actor_342000_80164798,
     { NULL, D_actor_342000_801644E4, NULL, NULL, D_actor_342000_8016452C, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_342000_801647E8[4] = {
+AnimationSet* D_actor_342000_801647E8[4] = {
     &D_actor_342000_801647C0,
     &D_actor_444000_80160368,
     &D_actor_444000_801608A0,
     &D_actor_444000_80160C34,
 };
 
-GpAnimSet* D_actor_342000_801647F8[2] = {
+AnimationSet* D_actor_342000_801647F8[2] = {
     &D_actor_444000_801529F4,
     &D_actor_444000_80157A00,
 };
 
-GpAnimSet* D_actor_342000_80164800[2] = {
+AnimationSet* D_actor_342000_80164800[2] = {
     &D_actor_444000_80152AA0,
     &D_actor_444000_80157D34,
 };
 
-GpAnimSet* D_actor_342000_80164808[2] = {
+AnimationSet* D_actor_342000_80164808[2] = {
     &D_actor_444000_80152B4C,
     &D_actor_444000_80158060,
 };
@@ -396,16 +396,16 @@ Task* D_actor_342000_80165070;
 
 static void func_actor_342000_80163F88(Task* arg0);
 
-extern GpAnimSet* D_actor_342000_801647F8[];
+extern AnimationSet* D_actor_342000_801647F8[];
 
-extern GpAnimSet* D_actor_342000_80164800[];
+extern AnimationSet* D_actor_342000_80164800[];
 
-extern GpAnimSet* D_actor_342000_80164808[];
+extern AnimationSet* D_actor_342000_80164808[];
 
 extern Actor342000MessageEntry D_actor_342000_801648E8[3];
 
 /// Animation payload of the 0x3F4 messages sent to the slot-3 task.
-extern GpAnimSet* D_actor_342000_801647E8[4];
+extern AnimationSet* D_actor_342000_801647E8[4];
 
 /// Placement sent as message 0x3E9 by sequence step 1.
 extern GpXformArg D_actor_342000_80164930;

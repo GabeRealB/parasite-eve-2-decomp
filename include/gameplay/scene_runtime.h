@@ -106,7 +106,7 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, u16 arg3, s32 ar
 /// borrows the set's record array and remains valid while that resource is loaded;
 /// callers may compare it across ticks to detect a new keyframe. `unusedContext`
 /// is ignored and may be `NULL`.
-AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot);
+const AnimationRecord* Gp_AnimGetRec(GpAnimCtx* unusedContext, GpAnimSlot* slot);
 
 /// Records an enemy's state and world pose under its packed placement key.
 ///

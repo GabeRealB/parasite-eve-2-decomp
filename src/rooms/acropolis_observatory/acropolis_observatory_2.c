@@ -670,13 +670,13 @@ u16 D_acropolis_observatory_8017FE10[20] = {
 #include "assets/acropolis_observatory_animation_02878_indices.inc"
 };
 
-GpAnimSet D_acropolis_observatory_8017FE38 = {
+AnimationSet D_acropolis_observatory_8017FE38 = {
     D_acropolis_observatory_8017FC24,
     D_acropolis_observatory_8017FE10,
     { NULL, D_acropolis_observatory_8017FACC, NULL, NULL, D_acropolis_observatory_8017FB20, NULL, NULL, NULL },
 };
 
-GpAnimSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis_observatory_8017FE38 };
+AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2] = { NULL, &D_acropolis_observatory_8017FE38 };
 
 /// Streamed-scene ride, entry 0 of the room's task table: the same ride as
 /// `func_acropolis_observatory_8017DD3C` (entry 1), walking the player's matrix

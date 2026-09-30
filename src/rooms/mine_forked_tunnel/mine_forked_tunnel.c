@@ -868,7 +868,7 @@ u16 D_mine_forked_tunnel_80181F5C[20] = {
 #include "assets/mine_forked_tunnel_animation_049C4_indices.inc"
 };
 
-GpAnimSet D_mine_forked_tunnel_80181F84 = {
+AnimationSet D_mine_forked_tunnel_80181F84 = {
     D_mine_forked_tunnel_80181DA8,
     D_mine_forked_tunnel_80181F5C,
     { NULL, D_mine_forked_tunnel_80181CA8, NULL, NULL, D_mine_forked_tunnel_80181CF0, NULL, NULL, NULL },
@@ -890,7 +890,7 @@ u16 D_mine_forked_tunnel_801821E8[20] = {
 #include "assets/mine_forked_tunnel_animation_04C50_indices.inc"
 };
 
-GpAnimSet D_mine_forked_tunnel_80182210 = {
+AnimationSet D_mine_forked_tunnel_80182210 = {
     D_mine_forked_tunnel_80182080,
     D_mine_forked_tunnel_801821E8,
     { NULL, D_mine_forked_tunnel_80181FAC, NULL, NULL, D_mine_forked_tunnel_80181FC4, NULL, NULL, NULL },
@@ -912,7 +912,7 @@ u16 D_mine_forked_tunnel_801830B4[20] = {
 #include "assets/mine_forked_tunnel_animation_05B1C_indices.inc"
 };
 
-GpAnimSet D_mine_forked_tunnel_801830DC = {
+AnimationSet D_mine_forked_tunnel_801830DC = {
     D_mine_forked_tunnel_801829B8,
     D_mine_forked_tunnel_801830B4,
     { NULL, D_mine_forked_tunnel_80182238, NULL, NULL, D_mine_forked_tunnel_801823C4, NULL, NULL, NULL },
@@ -923,7 +923,7 @@ TaskDesc D_mine_forked_tunnel_80183104[2] = {
     { 0, 192, func_mine_forked_tunnel_8017E38C, { .model = NULL } },
 };
 
-GpAnimSet* D_mine_forked_tunnel_8018311C[4] = {
+AnimationSet* D_mine_forked_tunnel_8018311C[4] = {
     NULL,
     &D_mine_forked_tunnel_80181F84,
     &D_mine_forked_tunnel_80182210,

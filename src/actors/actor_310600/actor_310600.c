@@ -105,9 +105,9 @@ extern SVECTOR D_actor_310600_80179694;
 extern s32     D_actor_310600_8017969C;
 extern s32     D_actor_310600_801796A0;
 
-extern GpAnimSet*  D_actor_310600_8017962C[5];
-extern GpAnimSet** D_actor_310600_80179640[1]; // animation bank table `work->field_476` indexes
-extern s8          D_actor_310600_80179644[];  // extra ticks owed to the animation id in `work->field_475`
+extern AnimationSet*  D_actor_310600_8017962C[5];
+extern AnimationSet** D_actor_310600_80179640[1]; // animation bank table `work->field_476` indexes
+extern s8             D_actor_310600_80179644[];  // extra ticks owed to the animation id in `work->field_475`
 
 /// Spawn table of the follow-up task queued once the cue has fired five times.
 
@@ -189,7 +189,7 @@ u16 D_actor_310600_801668D4[20] = {
 #include "assets/actor_310600_animation_04ADC_indices.inc"
 };
 
-GpAnimSet D_actor_310600_801668FC = {
+AnimationSet D_actor_310600_801668FC = {
     D_actor_310600_80164A0C,
     D_actor_310600_801668D4,
     { NULL, D_actor_310600_80162CF8, NULL, NULL, D_actor_310600_801631C0, NULL, NULL, NULL },
@@ -275,7 +275,7 @@ u16 D_actor_310600_801704A8[20] = {
 #include "assets/actor_310600_animation_0E6B0_indices.inc"
 };
 
-GpAnimSet D_actor_310600_801704D0 = {
+AnimationSet D_actor_310600_801704D0 = {
     D_actor_310600_8016E1D4,
     D_actor_310600_801704A8,
     { NULL, D_actor_310600_8016CD74, NULL, NULL, D_actor_310600_8016D0E0, NULL, NULL, NULL },
@@ -297,7 +297,7 @@ u16 D_actor_310600_8017097C[20] = {
 #include "assets/actor_310600_animation_0EB84_indices.inc"
 };
 
-GpAnimSet D_actor_310600_801709A4 = {
+AnimationSet D_actor_310600_801709A4 = {
     D_actor_310600_80170724,
     D_actor_310600_8017097C,
     { NULL, D_actor_310600_801704F8, NULL, NULL, D_actor_310600_80170558, NULL, NULL, NULL },
@@ -319,7 +319,7 @@ u16 D_actor_310600_80177460[20] = {
 #include "assets/actor_310600_animation_15668_indices.inc"
 };
 
-GpAnimSet D_actor_310600_80177488 = {
+AnimationSet D_actor_310600_80177488 = {
     D_actor_310600_80173424,
     D_actor_310600_80177460,
     { NULL, D_actor_310600_801709CC, NULL, NULL, D_actor_310600_80170FC0, NULL, NULL, NULL },
@@ -341,13 +341,13 @@ u16 D_actor_310600_801795DC[20] = {
 #include "assets/actor_310600_animation_177E4_indices.inc"
 };
 
-GpAnimSet D_actor_310600_80179604 = {
+AnimationSet D_actor_310600_80179604 = {
     D_actor_310600_80178414,
     D_actor_310600_801795DC,
     { NULL, D_actor_310600_801774B0, NULL, NULL, D_actor_310600_801777E0, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_actor_310600_8017962C[5] = {
+AnimationSet* D_actor_310600_8017962C[5] = {
     NULL,
     &D_actor_310600_801704D0,
     &D_actor_310600_801709A4,
@@ -355,7 +355,7 @@ GpAnimSet* D_actor_310600_8017962C[5] = {
     &D_actor_310600_80179604,
 };
 
-GpAnimSet** D_actor_310600_80179640[1] = {
+AnimationSet** D_actor_310600_80179640[1] = {
     D_actor_310600_8017962C,
 };
 

@@ -68,9 +68,9 @@ typedef struct DwhWork {
 } DwhWork;
 STATIC_ASSERT_SIZEOF(DwhWork, 0x10);
 
-extern GpAnimSet* D_dryfield_warehouse_8017F848[2];
-extern GpXformArg D_dryfield_warehouse_8017F850;
-extern GpXformArg D_dryfield_warehouse_8017F868;
+extern AnimationSet* D_dryfield_warehouse_8017F848[2];
+extern GpXformArg    D_dryfield_warehouse_8017F850;
+extern GpXformArg    D_dryfield_warehouse_8017F868;
 
 extern GpEvsCmd D_dryfield_warehouse_8017F880[];
 extern GpEvsCmd D_dryfield_warehouse_8017FA00[];
@@ -120,13 +120,13 @@ u16 D_dryfield_warehouse_8017F7F8[20] = {
 #include "assets/dryfield_warehouse_animation_02260_indices.inc"
 };
 
-GpAnimSet D_dryfield_warehouse_8017F820 = {
+AnimationSet D_dryfield_warehouse_8017F820 = {
     D_dryfield_warehouse_8017F60C,
     D_dryfield_warehouse_8017F7F8,
     { NULL, D_dryfield_warehouse_8017F584, NULL, NULL, D_dryfield_warehouse_8017F59C, NULL, NULL, NULL },
 };
 
-GpAnimSet* D_dryfield_warehouse_8017F848[2] = {
+AnimationSet* D_dryfield_warehouse_8017F848[2] = {
     NULL,
     &D_dryfield_warehouse_8017F820,
 };

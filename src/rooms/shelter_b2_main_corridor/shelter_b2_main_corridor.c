@@ -201,7 +201,7 @@ u16 D_shelter_b2_main_corridor_80182BB8[20] = {
 #include "assets/shelter_b2_main_corridor_animation_05620_indices.inc"
 };
 
-GpAnimSet D_shelter_b2_main_corridor_80182BE0 = {
+AnimationSet D_shelter_b2_main_corridor_80182BE0 = {
     D_shelter_b2_main_corridor_80182A00,
     D_shelter_b2_main_corridor_80182BB8,
     { NULL, D_shelter_b2_main_corridor_801828F0, NULL, NULL, D_shelter_b2_main_corridor_80182908, NULL, NULL, NULL },
@@ -223,7 +223,7 @@ TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
     { 0, 32, func_shelter_b2_main_corridor_8017E210, { .model = NULL } },
 };
 
-GpAnimSet* D_shelter_b2_main_corridor_80182C5C[1] = {
+AnimationSet* D_shelter_b2_main_corridor_80182C5C[1] = {
     &D_shelter_b2_main_corridor_80182BE0,
 };
 

@@ -119,8 +119,8 @@ extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumpin
 // Keep the typed fields and the complete copied word range together.
 typedef union {
     struct {
-        GpAnimSet* sets[4];
-        GpCopyArg  copy;
+        AnimationSet* sets[4];
+        GpCopyArg     copy;
     } data;
     s32 words[6];
 } ShelterB3DumpingHoleAnimStorageAFC8;
@@ -452,9 +452,9 @@ void func_shelter_b3_dumping_hole_801819F0(void);
 
 void func_shelter_b3_dumping_hole_80181A48(Task*);
 
-extern GpAnimSet                           D_shelter_b3_dumping_hole_80189DD0;
-extern GpAnimSet                           D_shelter_b3_dumping_hole_8018A274;
-extern GpAnimSet                           D_shelter_b3_dumping_hole_8018AF84;
+extern AnimationSet                        D_shelter_b3_dumping_hole_80189DD0;
+extern AnimationSet                        D_shelter_b3_dumping_hole_8018A274;
+extern AnimationSet                        D_shelter_b3_dumping_hole_8018AF84;
 extern ShelterB3DumpingHoleAnimStorageAFC8 D_shelter_b3_dumping_hole_8018AFC8;
 
 extern AnimationPlayRequest                D_shelter_b3_dumping_hole_8018AFF4;
@@ -860,7 +860,7 @@ u16 D_shelter_b3_dumping_hole_80189DA8[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0C810_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_dumping_hole_80189DD0 = {
+AnimationSet D_shelter_b3_dumping_hole_80189DD0 = {
     D_shelter_b3_dumping_hole_80189BF4,
     D_shelter_b3_dumping_hole_80189DA8,
     { NULL, D_shelter_b3_dumping_hole_80189AF4, NULL, NULL, D_shelter_b3_dumping_hole_80189B3C, NULL, NULL, NULL },
@@ -882,7 +882,7 @@ u16 D_shelter_b3_dumping_hole_8018A24C[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0CCB4_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_dumping_hole_8018A274 = {
+AnimationSet D_shelter_b3_dumping_hole_8018A274 = {
     D_shelter_b3_dumping_hole_80189FE8,
     D_shelter_b3_dumping_hole_8018A24C,
     { NULL, D_shelter_b3_dumping_hole_80189DF8, NULL, NULL, D_shelter_b3_dumping_hole_80189E64, NULL, NULL, NULL },
@@ -904,7 +904,7 @@ u16 D_shelter_b3_dumping_hole_8018AF5C[20] = {
 #include "assets/shelter_b3_dumping_hole_animation_0D9C4_indices.inc"
 };
 
-GpAnimSet D_shelter_b3_dumping_hole_8018AF84 = {
+AnimationSet D_shelter_b3_dumping_hole_8018AF84 = {
     D_shelter_b3_dumping_hole_8018A78C,
     D_shelter_b3_dumping_hole_8018AF5C,
     { NULL, D_shelter_b3_dumping_hole_8018A29C, NULL, NULL, D_shelter_b3_dumping_hole_8018A3EC, NULL, NULL, NULL },
