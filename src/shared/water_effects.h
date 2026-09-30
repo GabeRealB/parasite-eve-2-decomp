@@ -43,4 +43,7 @@ void waterRefractionTask(Task* task);
 
 void waterDriftTaskNoUpdate(Task* task);
 
+void waterRippleTaskFixedCoord(Task* task);
+void waterDriftTaskU16FixedCoord(Task* task);
+
 #endif /* SRC_SHARED_WATER_EFFECTS_H */
