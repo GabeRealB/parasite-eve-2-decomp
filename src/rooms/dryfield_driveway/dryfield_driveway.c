@@ -49,19 +49,17 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#include "../../shared/dryfield_driveway.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_dryfield_driveway_80180690[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_dryfield_driveway_80180690_value __asm__("D_dryfield_driveway_80180690");
+/// Set once the driveway event has been spawned.
+extern u8 gDrivewayEventSpawned;
 
-extern GpEvsCmd D_dryfield_driveway_8017E384[];
-extern GpEvsCmd D_dryfield_driveway_8017E4FC[];
-extern GpEvsCmd D_dryfield_driveway_8017E67C[];
+extern GpEvsCmd gDrivewayCutsceneScript[];
+extern GpEvsCmd gDrivewayBlackoutScript[];
+extern GpEvsCmd gDrivewayBlackoutTail[];
 
-extern TaskDesc D_dryfield_driveway_8017E2F0;
-extern TaskDesc D_dryfield_driveway_8017E2FC[];
+extern TaskDesc gRoomEventStagedTaskDesc;
+extern TaskDesc gDrivewayCutsceneTasks[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
@@ -77,17 +75,12 @@ extern GpObj4C              D_dryfield_driveway_8017FC98[6];
 extern GpObj4C              D_dryfield_driveway_801802F8[11];
 extern GpRoomCoordSet       D_dryfield_driveway_801802E0[1];
 extern TaskDesc             D_8014D8A4;
-s32                         func_dryfield_driveway_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                         func_dryfield_driveway_8017DC70(Task*, s32, s32, s32);
 s32                         func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
 s32                         func_dryfield_driveway_8017DDB0(Task*, s32, s32, s32);
 s32                         func_dryfield_driveway_8017DDB8(Task*, s32, s32, s32);
 void                        func_dryfield_driveway_8017DC48(s32);
 void                        func_dryfield_driveway_8017DC54(s16);
 void                        func_dryfield_driveway_8017DC64(u8);
-
-void func_dryfield_driveway_8017DAD0(Task*);
-void func_dryfield_driveway_8017DB68(Task*);
 
 AnimationPackedPose D_dryfield_driveway_8017DE80[10] = {
 #include "assets/dryfield_driveway_animation_00D08_bank1.inc"
@@ -111,11 +104,11 @@ AnimationSet D_dryfield_driveway_8017E2C8 = {
     { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_driveway_8017E2F0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
+TaskDesc gRoomEventStagedTaskDesc = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
-TaskDesc D_dryfield_driveway_8017E2FC[3] = {
-    { 0, 32, func_dryfield_driveway_8017DAD0, { .model = NULL } },
-    { 0, 32, func_dryfield_driveway_8017DB68, { .model = NULL } },
+TaskDesc gDrivewayCutsceneTasks[3] = {
+    { 0, 32, drivewayBlackoutTask, { .model = NULL } },
+    { 0, 32, drivewayCutsceneTask, { .model = NULL } },
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
@@ -134,7 +127,7 @@ AnimationPlayRequest D_dryfield_driveway_8017E358 = { { .index = 1 }, 32, ANIMAT
 
 ActorTransform D_dryfield_driveway_8017E36C = { { -1067, 0, 1407, 0 }, { 0, 0, 0, 0 } };
 
-GpEvsCmd D_dryfield_driveway_8017E384[14] = {
+GpEvsCmd gDrivewayCutsceneScript[14] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { 1, { .value = 3 }, { .value = 0 }, { .value = 1015 }, { .storage = &D_dryfield_driveway_8017E328 }, { .value = 0 } },
     { 10, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E358 }, { .value = 0 } },
@@ -155,7 +148,7 @@ AnimationPlayRequest D_dryfield_driveway_8017E4D4 = { { .index = 1 }, 1, ANIMATI
 
 AnimationPlayRequest D_dryfield_driveway_8017E4E8 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-GpEvsCmd D_dryfield_driveway_8017E4FC[16] = {
+GpEvsCmd gDrivewayBlackoutScript[16] = {
     { 1, { .value = 6 }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { 35, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -174,7 +167,7 @@ GpEvsCmd D_dryfield_driveway_8017E4FC[16] = {
     { -1, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-GpEvsCmd D_dryfield_driveway_8017E67C[9] = {
+GpEvsCmd gDrivewayBlackoutTail[9] = {
     { 24, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { 4, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -187,11 +180,11 @@ GpEvsCmd D_dryfield_driveway_8017E67C[9] = {
 };
 
 GpMsgEntry D_dryfield_driveway_8017E754[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_driveway_8017D77C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
     { 5105, func_dryfield_driveway_8017DCC0 },
     { 5103, func_dryfield_driveway_8017DDB8 },
     { 5104, func_dryfield_driveway_8017DDB0 },
-    { 5106, func_dryfield_driveway_8017DC70 },
+    { 5106, drivewayScriptSound },
     { 0x7FFFFFFF, NULL },
 };
 
@@ -617,12 +610,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_dryfield_driveway_80180690[4] = {
-    0,
-    2,
-    240,
-    207,
-};
+u8 gDrivewayEventSpawned = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_dryfield_driveway_80180691 = 2;
+
+u8 D_dryfield_driveway_80180692 = 240;
+
+u8 D_dryfield_driveway_80180693 = 207;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
@@ -631,141 +626,11 @@ static void func_dryfield_driveway_8017DE04(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// The room's message handler. Every message is answered by editing the copy
-/// in `out`. Message 0x17 reports the state of flag nibble 0x47 and, unless
-/// nibble 0x30 is set, latches an event for `roomEventStagedTask`;
-/// message 0x20 reports nibbles 0x51 and 0x53 and, before nibble 0x3A reaches
-/// 2, either spawns the second cutscene task of `D_dryfield_driveway_8017E2FC`
-/// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
-s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
-{
-    RoomLatchedEvent  req;
-    RoomLatchedEvent* p;
-    s32               fl;
+#include "../../shared/dryfield_driveway_resolve.inc.c"
 
-    *out = *in;
-    if (in->areaId == 0x17 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        fl        = GameFlag_GetNibble(0x47) == 0;
-        out->room = fl ? 1 : 2;
-    }
-    if (in->areaId == 0x20 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        fl        = GameFlag_GetNibble(0x51) == 0;
-        out->room = fl ? 2 : 1;
-        if (GameFlag_GetNibble(0x53) != 0) {
-            out->room = out->room + 2;
-        }
-    }
-    if (in->areaId == 2 && GameFlag_GetNibble(0x61) != 0) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(6);
-            Gp_SetNibbleIf(in->flagId, 2);
-        }
-        return 2;
-    }
-    if (in->areaId == 0x20) {
-        if (GameFlag_GetNibble(0x3A) != 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gGameSession->location.loc.stage == 2) {
-                    if (gGameSession->location.loc.variant == 1) {
-                        if (GameFlag_GetNibble(0x50) == 0) {
-                            Task_SpawnFromTable(D_dryfield_driveway_8017E2FC, 1, 0, 0);
-                            return 0;
-                        }
-                    }
-                }
-                if (gGameSession->location.loc.variant == 1 && Gp_StateF0.prefix.bytes.field_0 == gGameSession->location.loc.variant) {
-                    return 0;
-                }
-                Gp_RunCapCmd1(1);
-                return 0;
-            }
-            return 0;
-        }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && GameFlag_GetNibble(0x4B) == 1) {
-            GameFlag_SetNibble(0x4B, 2);
-        }
-    }
-    if (in->areaId == 0x17) {
-        if (GameFlag_GetNibble(0x30) == 1) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_SetNibbleIf(in->flagId, 2);
-                Gp_RunCapCmd1(2);
-                return 2;
-            }
-            return 2;
-        }
-        req.capCmd                         = 9;
-        req.stageSnd                       = 0x52190003;
-        req.flagId                         = 0x11C;
-        req.fade                           = 0;
-        p                                  = &req;
-        D_dryfield_driveway_80180690_value = 0;
-        if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
-            if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg = *out;
-                gRoomEventLatched   = req;
-                if (p->flagId != 0) {
-                    GameFlag_SetNibble(p->flagId, 1);
-                }
-                Task_SpawnFromTable(&D_dryfield_driveway_8017E2F0, 0, 0, 0);
-                D_dryfield_driveway_80180690_value = 1;
-                return 2;
-            }
-            return 2;
-        }
-    }
-    return 1;
-}
+#include "../../shared/dryfield_driveway_blackout.inc.c"
 
-/// First cutscene task: on its first tick it hides the HUD and the display
-/// and starts the captioned cutscene; on the next it kills itself and clears
-/// collected bit 0x114. Either way it advances its state.
-void func_dryfield_driveway_8017DAD0(Task* arg0)
-{
-    if (arg0->state == 0) {
-        gGameSession->hideHud = 1;
-        D_80115768            = 1;
-        SetDispMask(0);
-        func_800E3FAC(0xA2, 0x10);
-        func_800E8634(D_dryfield_driveway_8017E4FC, 0, D_dryfield_driveway_8017E67C);
-    } else {
-        taskKill(arg0);
-        Gp_ClearCollectedBit(0x114);
-    }
-    arg0->state = (s32)(arg0->state + 1);
-}
-
-/// Second cutscene task: state 0 queues the weapon message and CAP command 1,
-/// state 1 waits a tick, state 2 starts the cutscene at
-/// `D_dryfield_driveway_8017E384`, and state 3 - reached by falling out of
-/// state 2 - clears area flag 4 for the current location and kills the task
-/// once `eventState` is zero.
-void func_dryfield_driveway_8017DB68(Task* arg0)
-{
-    s32 temp_v1;
-
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(1);
-            arg0->state += 1;
-            return;
-        case 1:
-            arg0->state = 2;
-            return;
-        case 2:
-            func_800E8614(D_dryfield_driveway_8017E384, 0);
-            arg0->state += 1;
-            /* fallthrough */
-        case 3:
-            if (gGameSession->eventState == 0) {
-                Gp_ClearAreaFlag4(&gGameSession->location.loc);
-                taskKill(arg0);
-            }
-            return;
-    }
-}
+#include "../../shared/dryfield_driveway_cutscene.inc.c"
 
 /// Script callback: stores its argument in the gameplay byte `Gp_StateF0.field_1A`.
 void func_dryfield_driveway_8017DC48(s32 arg0)
@@ -785,25 +650,12 @@ void func_dryfield_driveway_8017DC64(u8 arg0)
     D_80115768 = arg0;
 }
 
-/// Message handler: queues stage sound 6 with a distinct cue for messages 8
-/// and 10, and reports every message as unhandled.
-s32 func_dryfield_driveway_8017DC70(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    switch (arg2) {
-        case 8:
-            Gp_EnqueueStageSnd6(0x52190008, 0, 0);
-            break;
-        case 10:
-            Gp_EnqueueStageSnd6(0x5219000A, 0, 0);
-            break;
-    }
-    return 0;
-}
+#include "../../shared/dryfield_driveway_script_sound.inc.c"
 
 /// Message handler for message 0x114: while flag nibble 0x3A is 1, looks for a
 /// pending object of kind 5 with `field_48` 0xFF and a non-zero `field_4B`;
 /// when one exists it advances the nibble to 2, spawns the first cutscene task
-/// of `D_dryfield_driveway_8017E2FC`, moves the session to room 2 with the HUD
+/// of `gDrivewayCutsceneTasks`, moves the session to room 2 with the HUD
 /// hidden and an event running, and reports the message handled.
 s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -824,7 +676,7 @@ s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         check:
             if (found != 0) {
                 GameFlag_SetNibble(0x3A, 2);
-                Task_SpawnOnDefaultList(D_dryfield_driveway_8017E2FC, 0, 0, 0);
+                Task_SpawnOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
                 gGameSession->location.loc.room = (Mc_SaveData[0].state.location.loc.room = 2);
                 gGameSession->hideHud           = 1;
                 gGameSession->eventState        = 1;

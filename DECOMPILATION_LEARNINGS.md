@@ -146178,3 +146178,18 @@ no other call of the driver in four packages sets `$a1`. The permuter found the
 real source: store `field_174 = 1` before `field_170 = 2`. The constant 1 is
 then allocated first and takes `$v1`, leaving `$a1` to the hit points; the
 one-argument call matches.
+
+## A byte flag whose address is not held in a register is a scalar; bytes after it are more scalars (dryfield_driveway, 2026-09-30)
+
+`drivewayResolveEvent` stores to a one-byte flag inside and after a loop. The
+target forms its address with `lui`/`sb %lo` at each store. Declaring the flag
+as `u8 flag[4]` (indexed `[0]`) or as the first member of a 4-byte struct makes
+GCC treat the address as a loop invariant: it loads it once into `$s2`, and the
+function grows by one instruction. Only a plain `u8` scalar keeps the per-store
+form. The packages had worked around this with an `__asm__`-renamed scalar
+alias of the array; the alias is not needed.
+
+The three bytes after the flag are nonzero (`2, 240, 207` by day, `2, 0, 0` at
+night) and unreferenced. They cannot be a `u8[3]`, because `DATA_ALIGNMENT`
+word-aligns every array (see the entry on the 2-byte gap above) and the image
+grows by 4. Three `u8` scalars defined after the flag reproduce the bytes.

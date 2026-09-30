@@ -1,0 +1,19 @@
+/* Part of the dryfield driveway library; see dryfield_driveway.h. */
+
+/// Task callback: on its first tick it hides the display and hands control to
+/// the captioned cutscene; on every later tick it kills the task and clears the
+/// collected bit. Either way it advances its own state.
+void drivewayBlackoutTask(Task* arg0)
+{
+    if (arg0->state == 0) {
+        gGameSession->hideHud = 1;
+        D_80115768            = 1;
+        SetDispMask(0);
+        func_800E3FAC(0xA2, 0x10);
+        func_800E8634(gDrivewayBlackoutScript, 0, gDrivewayBlackoutTail);
+    } else {
+        taskKill(arg0);
+        Gp_ClearCollectedBit(0x114);
+    }
+    arg0->state = (s32)(arg0->state + 1);
+}
