@@ -58,6 +58,7 @@
 #include "rooms/dryfield_water_tower.h"
 #include "../../shared/limb_shadows.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/actor_contacts.h"
 
 /// The actor id word at 0xE90, read two ways: `func_actor_421600_8013848C`
 /// and `func_actor_421600_8013E9D8` mask the whole word to 24 bits and compare
@@ -98,7 +99,7 @@ STATIC_ASSERT_SIZEOF(Actor421600Waypoint, 0x4);
 /// tests, and `field_B6C.flags` is the mask it writes. `field_0` / `field_68`
 /// and the 0x828 motion halfwords are the same cluster `Actor00100_Fn0B730`
 /// uses; `field_8EC.field_1C` is the 0x908 store. `field_B8C` is the
-/// `WorldCollisionContact` table `func_actor_421600_8013285C` walks after the 0x20-byte
+/// `WorldCollisionContact` table `ActorContact_PushContact` walks after the 0x20-byte
 /// `field_B6C` node, matching `_Actor100100SphereBody.field_20` after `objs[2]`.
 /// `field_E90` is a word here (not the `s16` actor 444000 keeps at the same
 /// offset); `func_actor_421600_8013E9D8` masks it to 24 bits and compares that
@@ -330,7 +331,13 @@ typedef struct Actor421600AvoidScratch {
 } Actor421600AvoidScratch;
 STATIC_ASSERT_SIZEOF(Actor421600AvoidScratch, 0x58);
 
-extern SVECTOR D_actor_421600_80151260;
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 /// The attack tick takes 0x14 bytes from the scratch stack for its direction,
 /// wrapped angles, arena zone and player contact reply.
@@ -2145,7 +2152,7 @@ s32 D_actor_421600_801511D4[4][8] = {
 
 TaskDesc D_actor_421600_80151254 = { (TASK_BODY_TMD | 0x100), 96, func_actor_421600_8013EEC8, { .model = &D_actor_421600_80143A54 } };
 
-SVECTOR D_actor_421600_80151260;
+SVECTOR ActorContact_ScratchPosition;
 
 s16 D_actor_421600_80151268;
 
@@ -2153,9 +2160,6 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static __inline__ Actor421600UpdateScratch* Actor421600_AllocUpdateScratch(Actor421600UpdateScratch** head);
 static __inline__ s32                       Actor421600_HasPlayerContact(WorldCollisionContact* records);
-static void                                 func_actor_421600_80132004(GfxCoord* coord, s16 yaw);
-static s32                                  func_actor_421600_80132310(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static s32                                  func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
 static s32                                  func_actor_421600_80133334(GfxCoord* arg0);
 static void                                 func_actor_421600_80133444(GfxCoord* coord);
 static s32                                  func_actor_421600_801335BC(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
@@ -2217,164 +2221,11 @@ static __inline__ s32 Actor421600_HasPlayerContact(WorldCollisionContact* record
     return 0;
 }
 
-/// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
-/// expressed back in its parent's frame, and refresh the coordinate. The work
-/// matrix is borrowed from the scratchpad stack.
-static void func_actor_421600_80132004(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
+#include "../../shared/actor_contacts_steer.inc.c"
 
-/// Push `coord` away from the obstacle records in `recs` (the first `count`,
-/// stopping at an empty key). Every kind-0x10000 or 0x30000 record contributes
-/// its bearing from the coordinate's view-space origin; bearings closer than
-/// 0x400 to another cancel each other, and each remaining one moves the
-/// coordinate 10 units along it in the XZ plane. `pos` receives the total
-/// displacement. Returns whether a kind-0x10000 record was among them. Does
-/// nothing, returning 0, while `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
-static s32 func_actor_421600_80132310(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
-
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
-        return 0;
-    }
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-    s->blocked               = 0;
-    pos->vz                  = 0;
-    pos->vy                  = 0;
-    pos->vx                  = 0;
-
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
-    return s->blocked != 0;
-}
-
-/// Step `coord` by the movement the first `arg2` records of `movement` resolve
-/// to, and latch the integer part of that delta in `D_actor_421600_80151260`.
-/// A nonzero fractional X or Z part rounds the coordinate and the latched step
-/// one unit further from zero. Returns 1 when the X or Z delta is nonzero.
-static s32 func_actor_421600_8013285C(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_421600_80151260.vx = s->delta.vx.w >> 16;
-        D_actor_421600_80151260.vy = s->delta.vy.w >> 16;
-        D_actor_421600_80151260.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_421600_80151260.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_421600_80151260.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_421600_80151260.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_421600_80151260.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 /// Message handler. Message 0x109 nudges the state machine by its sub-command
 /// (1 copies `field_EA8` into `field_EAA`, 3 moves state 1 on to 2). Any other
@@ -3216,11 +3067,11 @@ static void func_actor_421600_80134604(Task* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        func_actor_421600_80132004(&arg0->extra.tmd->coords[2], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], thirdAngle);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        func_actor_421600_80132004(&arg0->extra.tmd->coords[3], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], thirdAngle);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        func_actor_421600_80132004(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (((s16)work->field_82E == 0) && (work->field_0 == 0x26)) {
@@ -3259,7 +3110,7 @@ static void func_actor_421600_80134604(Task* arg0)
             turnWork->field_842 = (s16)targetTurn;
         }
     }
-    func_actor_421600_80132004(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
+    ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_842 * -1));
     arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = func_actor_421600_80133CAC(arg0, (Actor421600Work*)work);
     if (sound != 0) {
@@ -3944,7 +3795,7 @@ static void func_actor_421600_80136138(Task* arg0)
     }
     playerZone = Actor421600_Zone(Gp_ActorSlots[0]->extra.tmd->coords);
     zone       = Actor421600_Zone(arg0->extra.tmd->coords);
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     if (playerZone == zone) {
         work->field_0 = 0x26;
         return;
@@ -4051,7 +3902,7 @@ static void func_actor_421600_80136138(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0x14);
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
     func_actor_421600_80133334(arg0->extra.tmd->coords);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4333,8 +4184,8 @@ static void func_actor_421600_80136C88(Task* arg0)
         }
         records = &work->field_90C;
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, records, 0xC, &scratch->delta);
-    if (func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, records, 0xC, &scratch->delta);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) == 1) {
         magnitude = abs((s16)work->field_840);
         if (magnitude < 0x80)
             work->field_6 = (u16)work->field_6 + 1;
@@ -4471,12 +4322,12 @@ static void func_actor_421600_801373D4(Task* arg0)
     if (work->field_82E == 3) {
         work->field_6 = (u16)(work->field_6 + 1);
     }
-    if ((func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
-        temp_lo                  = D_actor_421600_80151260.vx * D_actor_421600_80151260.vx;
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+        temp_lo                  = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->distanceSquared = temp_lo;
-        scratch->distanceSquared = (u32)(temp_lo + (D_actor_421600_80151260.vz * D_actor_421600_80151260.vz));
+        scratch->distanceSquared = (u32)(temp_lo + (ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz));
         temp_s0_4                = arg0->extra.tmd->coords;
-        temp_s0_5                = ratan2(D_actor_421600_80151260.vx, D_actor_421600_80151260.vz);
+        temp_s0_5                = ratan2(ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
         temp_s0_6                = temp_s0_5 - ratan2(-temp_s0_4->coord.m[2][0], temp_s0_4->coord.m[2][2]);
 
         var_v1_2 = actorNormalizeYaw(temp_s0_6);
@@ -4928,7 +4779,7 @@ static void func_actor_421600_80138750(Task* arg0)
             } else {
                 actorMoveForward(arg0->extra.tmd->coords, 200);
             }
-            if (func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC)) {
+            if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC)) {
                 work->field_0 = 0x23;
             }
             if ((s16)work->field_6 >= 0x15) {
@@ -4982,7 +4833,7 @@ static void func_actor_421600_80138D24(Task* arg0)
         work->field_0 = 2;
     }
     if (((u32)(work->field_6 - 9) < 0x10) && ((s16)work->field_8 < 5)) {
-        if (func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) {
+        if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) {
             work->field_8++;
         }
         found = Actor421600_HasRecord10(arg0);
@@ -4992,14 +4843,14 @@ static void func_actor_421600_80138D24(Task* arg0)
             actorMoveForward(arg0->extra.tmd->coords, -0xC8);
         }
     } else {
-        func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+        ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Re-arms the model the way `func_actor_421600_8013848C` does -- buffers
 /// reallocated, clip 0x10, `field_82E` 2, the 0xB6C node's 0x4000 flag up --
-/// then walks the 0xB8C `WorldCollisionContact` table through `func_actor_421600_8013285C`.
+/// then walks the 0xB8C `WorldCollisionContact` table through `ActorContact_PushContact`.
 /// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
 /// model coordinate from `Player_Status.coordMtx` (the player's coordinate matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
@@ -5044,7 +4895,7 @@ static void func_actor_421600_8013903C(Task* arg0)
         func_actor_421600_80134604(arg0);
         work->field_6 = 0;
     }
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-2].vx                           = (u16)Player_Status.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -5084,7 +4935,7 @@ static void func_actor_421600_8013903C(Task* arg0)
 /// Re-arms the model buffers and the 0x828 motion block the way
 /// `func_actor_421600_8013848C` does, with clip 0x10 and pose 7, then walks the
 /// two `WorldCollisionContact` movement tables 0x90C and 0xA4C through
-/// `func_actor_421600_80132310`. `field_0` becomes 0x22 when either walk
+/// `ActorContact_Steer`. `field_0` becomes 0x22 when either walk
 /// reports a hit, and again when the squared XZ offset from `Player_Status.coordMtx` is
 /// under the squared 0x5DC radius, so the actor only takes the state while the
 /// player is close. Ends by clearing the model's `composeStamp`.
@@ -5119,7 +4970,7 @@ static void func_actor_421600_801392A8(Task* actor)
         func_actor_421600_80134604(actor);
     }
     func_actor_421600_80134604(actor);
-    if (((func_actor_421600_80132310(actor->extra.tmd->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((func_actor_421600_80132310(actor->extra.tmd->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
+    if (((ActorContact_Steer(actor->extra.tmd->coords, &work->field_90C, 0xC, &vec) << 0x10) != 0) || ((ActorContact_Steer(actor->extra.tmd->coords, &work->field_A4C, 0xC, &vec) << 0x10) != 0)) {
         work->field_0 = 0x22;
     }
     target        = Player_Status.coordMtx;
@@ -5196,8 +5047,8 @@ static void func_actor_421600_8013947C(Task* arg0)
         SndEvt_EnqueueType6(eventSound, eventPan,
                             (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_90C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_90C, 0xC);
     if (work->field_E90.bytes[2] == 2) {
         coord = arg0->extra.tmd->coords;
         x     = coord->coord.t[0];
@@ -5468,8 +5319,8 @@ static void func_actor_421600_80139718(Task* arg0)
         }
         record = &work->field_90C;
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, record, 12, &scratch->vec);
-    if (func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 12) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 12) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
             work->field_6 += 1;
@@ -5678,10 +5529,10 @@ static void func_actor_421600_8013A554(Task* arg0)
     scratch       = (SCRATCH_STACK_CURSOR(Actor421600AttackScratch) = head - 1);
     coord         = arg0->extra.tmd->coords;
     scratch->zone = Actor421600_Zone(coord);
-    if ((func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
+    if ((ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC) != 0) && ((s16)work->field_6 >= 0xB)) {
         work->field_0 = 5;
     }
-    if ((func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
+    if ((ActorContact_Steer(arg0->extra.tmd->coords, &work->field_90C, 0xC, &scratch->vec) << 0x10) != 0 && work->field_82E == 3) {
         work->field_8E4 = 8;
         if (Gp_DispatchMsgPtr(gameGetPtrSlot(3), 0x3F8, &work->field_8D0, 0) == 0) {
             playerX            = -gameGetPtrSlot(3)->extra.tmd->coords->coord.m[2][0];
@@ -5984,7 +5835,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -6116,7 +5967,7 @@ static void func_actor_421600_8013B4C4(Task* arg0)
         coord4 = arg0->extra.tmd->coords;
         actorMoveForward(coord4, 0xC8);
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
+    ActorContact_Steer(arg0->extra.tmd->coords, &work->field_90C, 0xC, &blk->delta);
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -6405,8 +6256,8 @@ static void func_actor_421600_8013BA70(Task* arg0)
         }
         record = &work->field_90C;
     }
-    func_actor_421600_80132310(arg0->extra.tmd->coords, record, 12, &scratch->vec);
-    if (func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 12) == 1) {
+    ActorContact_Steer(arg0->extra.tmd->coords, record, 12, &scratch->vec);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 12) == 1) {
         originalMagnitude = abs(scratch->original);
         if (originalMagnitude < 0x20) {
             work->field_6 += 1;
@@ -6662,7 +6513,7 @@ static void func_actor_421600_8013CD3C(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
@@ -6761,7 +6612,7 @@ static void func_actor_421600_8013D1DC(Task* arg0)
     coord2              = arg0->extra.tmd->coords;
     coord2->coord.t[2] += scratch->vec.vz;
     actorMoveForward(arg0->extra.tmd->coords, -8);
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (abs(scratch->delta) < 0x20) {
         work->field_0 = 0x1C;
@@ -7371,7 +7222,7 @@ static void func_actor_421600_8013EAAC(Task* arg0)
         work->field_B6C.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         func_actor_421600_80134604(arg0);
     }
-    func_actor_421600_8013285C(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, &work->field_B8C, 0xC);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_421600_80134604(arg0);
     if (work->field_68 & 0x100) {

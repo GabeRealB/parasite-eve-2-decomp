@@ -32,6 +32,7 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/acropolis_square.h"
+#include "../../shared/actor_contacts.h"
 
 /// Work block `func_actor_111800_80132390` allocates with `memCalloc(0x498)`
 /// and parks in `Task::work` (0x1C). The prefix is the shared actor anim
@@ -224,31 +225,13 @@ AnimationSet* D_actor_111800_8013A448[8] = {
 
 TaskDesc D_actor_111800_8013A468 = { (TASK_BODY_TMD | 0x100), 192, func_actor_111800_8013251C, { .model = &D_actor_111800_80138004 } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
-static void           func_actor_111800_80131E40(GfxCoord* coord, s16 yaw);
 static inline void    _actor111800TickAnim(Task* task);
 static inline void    _actor111800Reseed(Task* task, u16 id, u16 frames);
 static void           func_actor_111800_8013214C(Task* task);
 static void           func_actor_111800_80132390(Task* task);
 static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRIX* src);
 
-/// rotation in a matrix carved off the scratchpad head, applies the turn,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it.
-static void func_actor_111800_80131E40(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
-
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
 /// Advances animation slots 1..0x12 by one frame and latches slot 1's current
 /// record into `field_492`.
@@ -443,7 +426,7 @@ static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRI
 /// `field_492`, and advances after `func_acropolis_square_80182360` when the player is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
-/// `field_494`, writes it back, yaws it through `func_actor_111800_80131E40`, and
+/// `field_494`, writes it back, yaws it through `ActorContact_TurnJoint`, and
 /// rebuilds the colour matrix around part 1's translation.
 void func_actor_111800_8013251C(Task* task)
 {
@@ -504,7 +487,7 @@ void func_actor_111800_8013251C(Task* task)
     Mem_CopyUnaligned(&mtx, &part->coord, 0x12U);
     part->composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(part);
-    func_actor_111800_80131E40(task->extra.tmd->coords + 5, work->field_48C);
+    ActorContact_TurnJoint(task->extra.tmd->coords + 5, work->field_48C);
     obj                 = task->extra.tmd;
     work2               = (Actor111800Work*)task->work;
     ((VECTOR*)&mtx)->vx = obj->coords[1].workm.t[0];

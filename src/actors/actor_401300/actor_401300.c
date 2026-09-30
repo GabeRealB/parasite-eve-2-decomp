@@ -53,6 +53,7 @@
 #include "overlay.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/actor_contacts.h"
 
 /// XZ patrol point in `Actor401300Work::field_C`. Same shape as
 /// `Actor01900Waypoint`.
@@ -323,7 +324,13 @@ static void func_actor_401300_80141D50(Task* arg0);
 static void func_actor_401300_80141DF4(Task* arg0);
 static void func_actor_401300_80141EF8(Task* task);
 
-extern SVECTOR D_actor_401300_80158A24;
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 extern DamageAttack D_actor_401300_80141F88[];
 
@@ -1263,10 +1270,8 @@ SVECTOR D_actor_401300_80158A08[2] = {
 
 TaskDesc D_actor_401300_80158A18 = { TASK_BODY_TMD, 96, func_actor_401300_80141F2C, { .model = &D_actor_401300_80147290 } };
 
-SVECTOR D_actor_401300_80158A24 = { 0 };
+SVECTOR ActorContact_ScratchPosition = { 0 };
 
-static void            func_actor_401300_801320A4(GfxCoord* coord, s16 yaw);
-static s32             func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 static s32             func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s16 count);
 static void            func_actor_401300_80132BE4(GameLocationKey* session, GfxCoord* coord);
 static __inline__ s32  Actor401300_HasHeightClamp(GameLocationKey* session);
@@ -1333,72 +1338,9 @@ static __inline__ void Actor401300_SnapPlayerHeight(Task* actor);
 static void            func_actor_401300_801405DC(GpEnemy* enemy, Task* actor);
 static s32             func_actor_401300_801417F0(Task* arg0);
 
-/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
-/// rotation in a matrix carved off the scratchpad head, applies the turn,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it. The actor turns two joints of its chain with it, by
-/// two thirds and one half of the same clamped angle.
-static void func_actor_401300_801320A4(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-/// Moves `coord` in X and Z by the delta `func_800E0C10` resolves from the
-/// first `count` records of `recs`, and keeps the integer part of the full
-/// delta in `D_actor_401300_80158A24`. A nonzero fractional part rounds both
-/// the coordinate and the kept step one unit away from zero. Returns 1 when the
-/// X or Z delta is nonzero.
-static s32 func_actor_401300_801323B0(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(recs, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_401300_80158A24.vx = s->delta.vx.w >> 16;
-        D_actor_401300_80158A24.vy = s->delta.vy.w >> 16;
-        D_actor_401300_80158A24.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_401300_80158A24.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_401300_80158A24.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_401300_80158A24.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_401300_80158A24.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 s32 func_actor_401300_80132554(Task* arg0, s32 arg1, Actor401300Event* arg2)
 {
@@ -2107,8 +2049,8 @@ static void func_actor_401300_80133A3C(Task* arg0)
         if (work->field_8B4 < -0x400) {
             yaw = -0x400;
         }
-        func_actor_401300_801320A4(&arg0->extra.tmd->coords[5], (yaw * 2) / 3);
-        func_actor_401300_801320A4(&arg0->extra.tmd->coords[2], yaw / 2);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[5], (yaw * 2) / 3);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], yaw / 2);
         arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3626,7 +3568,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         actorMoveForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401300_80133A3C(arg0);
-    if (func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3675,7 +3617,7 @@ static void func_actor_401300_80138FCC(Task* arg0)
         work->field_970.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4353,7 +4295,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
                 actorMoveForward(arg0->extra.tmd->coords, 0xA);
             }
-            func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_AD0, 0xC);
+            ActorContact_PushContact(arg0->extra.tmd->coords, work->field_AD0, 0xC);
             if (work->field_6 == 3) {
                 D_80114B34[5].arg.model = &D_actor_401300_80148808;
                 vec.vz                  = 0x64;
@@ -4618,7 +4560,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
         work->field_8BA     = 0x80;
         return;
     }
-    func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_AD0, 0xC);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->field_AD0, 0xC);
     if (work->field_6 >= 0x26) {
         work->field_8B6 = 0;
         work->field_8BA = 0x40;
@@ -5334,7 +5276,7 @@ static void func_actor_401300_80140300(Task* arg0)
         work->field_970.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5377,7 +5319,7 @@ static void func_actor_401300_8014046C(Task* arg0)
         work->field_970.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (func_actor_401300_801323B0(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->field_990, 0xC) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->field_AD0, 0xC, 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

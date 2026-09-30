@@ -42,7 +42,7 @@ extern GpObj3A D_acropolis_helicopter_landing_pad_80186128[2];
 
 extern GpRoomCoordSet D_acropolis_helicopter_landing_pad_80186AE8[1];
 
-extern SVECTOR D_acropolis_helicopter_landing_pad_80187F88;
+extern SVECTOR ActorContact_ScratchPosition;
 
 extern RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90;
 

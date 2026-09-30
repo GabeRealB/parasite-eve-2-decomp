@@ -55,6 +55,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_contacts.h"
 
 /// 0x58-byte work block the body at 0x80137C88 allocates with
 /// `memCalloc(0x58, 0)` and parks in `Task::work` (0x1C), which is not a
@@ -1044,8 +1045,6 @@ Actor01100RecoveredMsgEntry Actor01100_D15660[2] = {
 
 u8 Actor01100_D15670;
 
-static s32             Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
-static s32             Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 static __inline__ void _actor01100SetSlotRates(ActorsShared80138efcWork* work, u8 rate);
 static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts);
 static __inline__ s32  _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts);
@@ -1062,157 +1061,9 @@ static void            Actor01100_Fn06B6C(GfxCoord* arg0, ActorsShared8013898cVe
 static void            Actor01100_Fn06C0C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 static void            Actor01100_Fn06D3C(GpEnemy* enemy, Task* task, ActorsShared80138efcWork* work, ActorsShared80138efcArg* arg);
 
-/// Walks the first `count` records of `recs`, up to an empty key, and for
-/// every kind 0x10000 or 0x30000 record computes the XZ push-out of the
-/// coordinate's world position from it; the last such push is kept in the
-/// scratch block, and its length is scaled down to 0x100 when longer. Returns
-/// whether any record of those kinds was met. Does nothing, returning 0, while
-/// `Mc_SaveData[0].state.actorsFrozen` or the session's `viewReady` is 1.
-static s32 Actor01100_Fn000E8(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
-{
-    ActorRepelScratch* head;
-    ActorRepelScratch* s;
-    ActorRepelScratch* blk;
-    SVECTOR*           offset;
+#include "../../shared/actor_contacts_find_push.inc.c"
 
-    if (Mc_SaveData[0].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
-        return 0;
-    }
-    coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
-    head                                    = SCRATCH_STACK_CURSOR(ActorRepelScratch);
-    blk                                     = head - 1;
-    SCRATCH_STACK_CURSOR(ActorRepelScratch) = blk;
-    s                                       = blk;
-    Gp_UpdateCoord(coord);
-    s->pos.vx  = coord->workm.t[0];
-    s->pos.vy  = coord->workm.t[1];
-    s->pos.vz  = coord->workm.t[2];
-    s->last.vz = 0;
-    s->last.vy = 0;
-    s->last.vx = 0;
-    s->hit     = 0;
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            s->dist[s->i] = 0x7FFE;
-            break;
-        }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            actorCalcPush(&s->pos, &recs[s->i], &s->offset);
-            s->last.vx = s->offset.vx;
-            s->last.vz = s->offset.vz;
-        }
-    }
-    s->len = SquareRoot0(s->offset.vx * s->offset.vx + s->offset.vy * s->offset.vy +
-                         s->offset.vz * s->offset.vz);
-    if (s->len > 0x100) {
-        offset = &s->offset;
-        VectorNormalSS(offset, offset);
-        gte_lddp(0x100);
-        gte_ldsv(offset);
-        gte_gpf12();
-        gte_stsv(offset);
-    }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BLOCK(ActorRepelScratch);
-    return s->hit;
-}
-
-/// Pushes `coord` away from the obstacle records in `recs` (the first `count`,
-/// stopping at an empty key). Every kind 0x10000 or 0x30000 record contributes
-/// its bearing from the coordinate's view-space origin; bearings closer than
-/// 0x400 to another cancel each other, and each remaining one moves the
-/// coordinate 10 units along it in the XZ plane. `pos` receives the total
-/// displacement. Returns whether a kind 0x10000 record was among them. Does
-/// nothing, returning 0, while the session's `viewReady` or `Mc_SaveData[0].state.actorsFrozen` is 1.
-static s32 Actor01100_Fn00430(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
-
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
-        return 0;
-    }
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-    s->blocked               = 0;
-    pos->vz                  = 0;
-    pos->vy                  = 0;
-    pos->vx                  = 0;
-
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
-    return s->blocked != 0;
-}
+#include "../../shared/actor_contacts_steer.inc.c"
 
 /// Sets the playback rate of animation slots 1..20 in both of the work block's
 /// animation contexts.

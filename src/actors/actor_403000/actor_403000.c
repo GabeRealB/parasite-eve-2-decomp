@@ -53,6 +53,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+#include "../../shared/actor_contacts.h"
 
 /// One of the four display nodes the spawn handler `func_actor_403000_801343B8`
 /// links in a row from 0xB50 of the work block: the `WorldCollisionBody` list node `Gp_LinkObj`
@@ -491,7 +492,6 @@ extern SVECTOR D_actor_403000_80158D64[];
 
 /// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
 /// its parent's frame.
-static void func_actor_403000_8013203C(GfxCoord* coord, s16 yaw);
 
 /// Tick the work block's animation playback: state `field_AC0` 1 advances
 /// `field_AC2` until it catches up with the requested `field_AC6`, copying
@@ -502,7 +502,6 @@ static s32 func_actor_403000_80134204(GfxCoord* coord);
 
 /// Step `coord` by the movement the first `count` records of `recs` resolve
 /// to; returns whether the actor moved on X or Z.
-static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
 
 /// Copy `placement` onto the actor's root coordinate (Y then X then Z) and
 /// cache the resulting heading in `Actor403000Work::yaw`.
@@ -579,9 +578,15 @@ extern s8      D_actor_403000_80158364[];
 
 extern ActorCommand D_actor_403000_80158D8C;
 
-/// Integer part of the last movement step `func_actor_403000_80132348`
+/// Integer part of the last movement step `ActorContact_PushContact`
 /// applied to the actor's root coordinate.
-extern SVECTOR D_actor_403000_80158D84;
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 static void func_actor_403000_80132AE0(GfxCoord* coord);
 static void func_actor_403000_80134F44(Task* arg0);
@@ -3533,7 +3538,7 @@ SVECTOR D_actor_403000_80158D64[4] = {
     { 0x3552, 0, 8710, 0 },
 };
 
-SVECTOR D_actor_403000_80158D84 = { 0 };
+SVECTOR ActorContact_ScratchPosition = { 0 };
 
 ActorCommand D_actor_403000_80158D8C = { 0 };
 
@@ -3585,70 +3590,9 @@ static void                func_actor_403000_8013C2D4(Task* arg0);
 static void                func_actor_403000_8013C864(GpEnemy* arg0, Task* arg1);
 static s32                 func_actor_403000_8013D98C(s32 arg0);
 
-/// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
-/// expressed back in its parent's frame, and refresh the coordinate. The work
-/// matrix is borrowed from the scratchpad stack.
-static void func_actor_403000_8013203C(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-/// Step `coord` by the movement the first `count` records of `recs` resolve
-/// to, and latch the integer part of that delta into
-/// `D_actor_403000_80158D84`. Returns the "moved" flag: set when the X or Z
-/// delta is nonzero. A nonzero fractional half nudges the coordinate and the
-/// latched step one unit further away from zero.
-static s32 func_actor_403000_80132348(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(recs, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_403000_80158D84.vx = s->delta.vx.w >> 16;
-        D_actor_403000_80158D84.vy = s->delta.vy.w >> 16;
-        D_actor_403000_80158D84.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_403000_80158D84.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_403000_80158D84.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_403000_80158D84.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_403000_80158D84.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 s32 func_actor_403000_801324EC(Task* arg0, s32 arg1, Actor403000Event* arg2)
 {
@@ -4350,11 +4294,11 @@ static void func_actor_403000_80133AF8(Task* arg0)
             clampedAngle = -0x500;
         }
         thirdAngle = (s16)clampedAngle / 3;
-        func_actor_403000_8013203C(&arg0->extra.tmd->coords[2], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[2], thirdAngle);
         arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        func_actor_403000_8013203C(&arg0->extra.tmd->coords[3], thirdAngle);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], thirdAngle);
         arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        func_actor_403000_8013203C(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_AE9 == 1) {
@@ -4392,7 +4336,7 @@ static void func_actor_403000_80133AF8(Task* arg0)
                 turnWork->field_ADE = (s16)targetTurn;
             }
         }
-        func_actor_403000_8013203C(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)turnWork->field_ADE * -1));
         arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->field_AEB == 1) {
@@ -5566,10 +5510,10 @@ static void func_actor_403000_80137084(Task* arg0)
             work->field_AC6 = 2;
             work->field_AC0 = 1;
         }
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     }
     if (work->field_AC6 == 2) {
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
         t     = &scratch->target;
         pos2  = arg0->extra.tmd->coords;
         t->vx = Player_Status.coordMtx->t[0] - pos2->coord.t[0];
@@ -5880,7 +5824,7 @@ static void func_actor_403000_801377C8(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5) == 1 && work->field_AC6 == 2 && (s16)work->field_6 >= 0x10) {
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5) == 1 && work->field_AC6 == 2 && (s16)work->field_6 >= 0x10) {
         work->field_0   = 4;
         work->field_FD5 = -work->field_FD3;
     }
@@ -6125,8 +6069,8 @@ static void func_actor_403000_801386E8(Task* arg0)
         work->field_FD3 = -work->field_FD3;
     }
     func_actor_403000_80133AF8(arg0);
-    if (func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5) == 0) {
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objC80.rec, 5);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5) == 0) {
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objC80.rec, 5);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000LungeScratch);
@@ -6357,8 +6301,8 @@ static void func_actor_403000_80138DB0(Task* arg0)
     }
     func_actor_403000_80133AF8(arg0);
     if ((s16)++work->field_6 < 10) {
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objC80.rec, 5);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objC80.rec, 5);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor403000ChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -6384,8 +6328,8 @@ static void func_actor_403000_801399A0(Task* arg0)
         work->objD18.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->objB50.obj.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if (func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5) == 0) {
-        func_actor_403000_80132348(arg0->extra.tmd->coords, work->objB50.rec, 5);
+    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5) == 0) {
+        ActorContact_PushContact(arg0->extra.tmd->coords, work->objB50.rec, 5);
     }
     func_actor_403000_80133AF8(arg0);
     if ((work->field_60.half & 0x100) && work->field_AC6 == 0xE) {
@@ -6458,7 +6402,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
         }
         work->field_FD1 = dir;
     }
-    func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->facing = Actor403000_Cell(player->extra.tmd->coords);
     base            = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->base   = base;
@@ -6578,7 +6522,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         work->field_6   = 0;
     }
     work->field_6++;
-    func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->facing = Actor403000_Cell(player->extra.tmd->coords);
     base            = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->base   = base;
@@ -6719,7 +6663,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         }
     }
     work->field_6++;
-    func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     base          = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->base = base;
     if (base == work->field_FD4) {
@@ -7019,7 +6963,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         work->field_6       = 0;
     }
     work->field_6++;
-    func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->angle = work->field_FC8 + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&arg0->extra.tmd->coords->coord, scratch->angle, 1);
     arg0->extra.tmd->coords->coord.t[0]  += work->field_FB0.vx;
@@ -7339,7 +7283,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         scratch->base        = Actor403000_Cell(arg0->extra.tmd->coords);
         work->field_FD1      = func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
-    func_actor_403000_80132348(arg0->extra.tmd->coords, work->objD18.rec, 5);
+    ActorContact_PushContact(arg0->extra.tmd->coords, work->objD18.rec, 5);
     scratch->facing = Actor403000_Cell(player->extra.tmd->coords);
     base            = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->base   = base;

@@ -59,6 +59,7 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/actor_contacts.h"
 
 extern s8 D_actor_403200_8015F8E0[8];
 
@@ -2848,7 +2849,13 @@ Actor403200StorageF8D0 D_actor_403200_8015F8D0 = { { TASK_BODY_TMD, 96, func_act
 // Their original role as spare storage or alignment remains unresolved.
 s8 D_actor_403200_8015F8E0[8] = { 0 };
 
-SVECTOR D_actor_403200_8015F8E8 = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 Task* D_actor_403200_8015F8F0 = NULL;
 
@@ -2866,8 +2873,8 @@ Actor403200StorageF9C0 D_actor_403200_8015F9C0;
 
 GpDelayArg D_actor_403200_8015FA00;
 
-/// Integer part of the last step `func_actor_403200_801324D0` applied.
-extern SVECTOR D_actor_403200_8015F8E8;
+/// Integer part of the last step `ActorContact_PushContact` applied.
+extern SVECTOR ActorContact_ScratchPosition;
 
 static void func_actor_403200_801412D0(GpEnemy* enemy, Task* task);
 
@@ -2908,8 +2915,6 @@ static __inline__ void Actor403200_ScaleRotation(GfxCoord* coord, s16 xz, s32 y)
 static __inline__ void Actor403200_ShrinkRotation(GfxCoord* coord);
 static __inline__ void Actor403200_GapToCamera(GfxCoord* coord, SVECTOR* out);
 static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* work);
-static void            func_actor_403200_801321C4(GfxCoord* coord, s16 yaw);
-static s32             func_actor_403200_801324D0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
 static void            func_actor_403200_80132674(Task* task, s16 scale, s16 drop, s16 index);
 static void            func_actor_403200_801329CC(Task* task);
 static void            func_actor_403200_80133614(Task* task, s16 arg1);
@@ -3098,70 +3103,9 @@ static __inline__ void Actor403200_SeedRootCoord(Task* task, Actor403200Work* wo
     SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
-/// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
-/// expressed back in its parent's frame, and refresh the coordinate. The work
-/// matrix is borrowed from the scratchpad stack.
-static void func_actor_403200_801321C4(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateToView(coord, rotation);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-/// Step `coord` by the movement the first `arg2` records of `rec` resolve to,
-/// and latch the integer part of that delta into `D_actor_403200_8015F8E8`.
-/// Returns whether it moved: set when the X or Z delta is nonzero, and also
-/// when only its fractional half is, in which case the coordinate and the
-/// latched step are nudged one unit further from zero.
-static s32 func_actor_403200_801324D0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_403200_8015F8E8.vx = s->delta.vx.w >> 16;
-        D_actor_403200_8015F8E8.vy = s->delta.vy.w >> 16;
-        D_actor_403200_8015F8E8.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_403200_8015F8E8.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_403200_8015F8E8.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_403200_8015F8E8.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_403200_8015F8E8.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 /// Rebuild quad `index` of the collision grid as a wall across the front of
 /// the task's model: the edge runs 0x1388 either way along the model's x axis,
@@ -3484,7 +3428,7 @@ static void func_actor_403200_801329CC(Task* task)
 }
 
 /// Walk the yaw `field_7C8` toward `arg1` (clamped to +/-0x200) by at most 0x71
-/// per call, turn model part 3 by it through `func_actor_403200_801321C4`, and
+/// per call, turn model part 3 by it through `ActorContact_TurnJoint`, and
 /// refresh part 3, the root of the fifth escort's model and part 4.
 static void func_actor_403200_80133614(Task* task, s16 arg1)
 {
@@ -3515,7 +3459,7 @@ static void func_actor_403200_80133614(Task* task, s16 arg1)
 
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&task->extra.tmd->coords[3]);
-    func_actor_403200_801321C4(&task->extra.tmd->coords[3], work->field_7C8);
+    ActorContact_TurnJoint(&task->extra.tmd->coords[3], work->field_7C8);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&task->extra.tmd->coords[3]);
     work->field_ECC[4]->task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5045,7 +4989,7 @@ static void func_actor_403200_80136ACC(GpEnemy* enemy, Task* task)
         task->state++;
     }
 
-    if (func_actor_403200_801324D0(task->extra.tmd->coords, &work->rec1, 3) != 0) {
+    if (ActorContact_PushContact(task->extra.tmd->coords, &work->rec1, 3) != 0) {
         work->vel.vz = 0;
         work->vel.vx = 0;
     }

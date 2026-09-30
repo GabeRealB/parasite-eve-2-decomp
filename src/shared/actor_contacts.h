@@ -38,11 +38,18 @@
 
 /* Interface for the including source. */
 
-static void ActorContact_TurnJoint(GfxCoord* coord, s16 yaw);
-static s32  ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
-static s32  ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static s32  ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
-static s32  ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
+/* ActorContact_Steer's result type. actor_01200's copy was declared to
+   return s16, which its callers then sign-extend; it defines this as s16
+   before including this header. */
+#ifndef ACTOR_CONTACT_STEER_RESULT
+#define ACTOR_CONTACT_STEER_RESULT s32
+#endif
+
+static void                       ActorContact_TurnJoint(GfxCoord* coord, s16 yaw);
+static s32                        ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static s32                        ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
+static s32                        ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
 /* View of the including overlay's contact scratch allocation. */
 static inline SVECTOR* ActorContact_GetScratchPosition(void);

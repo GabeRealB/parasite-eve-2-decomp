@@ -73,7 +73,7 @@ D_acropolis_security_room_80185228 = 0x80185228; // size:0x35C defined:True
 D_acropolis_security_room_80185584 = 0x80185584; // size:0x24 defined:True
 D_acropolis_security_room_801855A8 = 0x801855A8; // size:0x4 defined:True
 D_acropolis_security_room_801855AC = 0x801855AC; // size:0x4 defined:True
-D_acropolis_security_room_801855B0 = 0x801855B0; // size:0x8 defined:True
+ActorContact_ScratchPosition = 0x801855B0; // size:0x8 defined:True
 D_acropolis_security_room_801825DC = 0x801825DC; // size:0x28 defined:True
 D_acropolis_security_room_80182604 = 0x80182604; // size:0x14 defined:True
 
@@ -89,3 +89,5 @@ actionPromptDrawCursor = 0x8017E8F0; // type:func
 actionPromptHitTest = 0x8017ECB4; // type:func
 actionPromptReset = 0x8017EDE4; // type:func
 actionPromptOutlineRect = 0x8017EF78; // type:func
+ActorContact_PushContact = 0x80181C84; // type:func
+ActorContact_Push = 0x80181E28; // type:func

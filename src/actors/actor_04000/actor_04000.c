@@ -51,6 +51,7 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/anim_driver.h"
+#include "../../shared/actor_contacts.h"
 
 /// Event packet handed to the message handlers: the same four bytes read as
 /// two `u16` words, a command word (0x1003, 0x1203, 0x302) and a sub-command.
@@ -160,8 +161,14 @@ typedef struct Actor104000StateTable {
 } Actor104000StateTable;
 STATIC_ASSERT_SIZEOF(Actor104000StateTable, 0x4C);
 
-/// Whole-unit part of the last step `Actor04000_Fn00798` applied.
-extern SVECTOR Actor04000_D0C708;
+/// Whole-unit part of the last step `ActorContact_PushContact` applied.
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 extern Task* Actor04000_D0C710[2];
 
@@ -1128,7 +1135,7 @@ TaskFunc Actor04000_D0C6EC[4] = {
 
 TaskDesc Actor04000_D0C6FC = { 0, 96, Actor04000_Fn0703C, { .model = NULL } };
 
-SVECTOR Actor04000_D0C708;
+SVECTOR ActorContact_ScratchPosition;
 
 Task* Actor04000_D0C710[2];
 
@@ -1153,8 +1160,6 @@ extern AnimationSet* Actor04000_D0C520[4];
 /// The controller task's state handlers, indexed by its `state`.
 extern TaskFunc Actor04000_D0C6EC[];
 
-static s32             Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* push);
-static s32             Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2);
 static s32             Actor04000_Fn00FDC(Actor104000Work* arg0);
 static void            Actor04000_Fn010B8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn0168C(GpEnemy* arg0, Task* arg1);
@@ -1174,143 +1179,9 @@ static void            Actor04000_Fn055C8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn05AE8(GpEnemy* arg0, Task* arg1);
 static void            Actor04000_Fn05F0C(GpEnemy* arg0, Task* arg1);
 
-/// Pushes `coord` away from the obstacles in `recs`. Records of kind 0x10000
-/// (which also raises the returned `blocked` flag) or 0x30000 each give a
-/// bearing, at most eight; bearings more than 0x400 apart cancel each other.
-/// Each survivor becomes a 10-unit step added to `push` and to the translation.
-static s32 Actor04000_Fn0024C(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* push)
-{
-    u8*                  head;
-    OverlayAvoidScratch* s;
-    s16                  diff;
+#include "../../shared/actor_contacts_steer.inc.c"
 
-    if (gGameSession->viewReady == 1 || Mc_SaveData[0].state.actorsFrozen == 1) {
-        return 0;
-    }
-
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(OverlayAvoidScratch);
-    s                        = SCRATCH_STACK_CURSOR(OverlayAvoidScratch);
-    s->blocked               = 0;
-    push->vz                 = 0;
-    push->vy                 = 0;
-    push->vx                 = 0;
-
-    Gfx_MatrixCol1(&coord->workm, (SVECTOR*)(head - 0x34));
-    VectorNormalSS((SVECTOR*)(head - 0x34), (SVECTOR*)(head - 0x34));
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->face = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->face = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->eye.vx = (u16)coord->workm.t[0];
-    s->eye.vy = (u16)coord->workm.t[1];
-    s->eye.vz = (u16)coord->workm.t[2];
-    s->count  = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->angle[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->eye);
-        } else {
-            s->angle[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->eye);
-        }
-        s->ok[s->count] = 1;
-        s->count++;
-        if (s->count >= 8) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->angle[s->i] - (u16)s->angle[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->ok[s->i] = 0;
-                s->ok[s->j] = 0;
-            }
-        }
-        if (s->ok[s->i] != 0) {
-            diff = ((u16)s->angle[s->i] - (u16)s->face) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            Gfx_RotMatrixY(&s->m, diff, 1);
-            Gfx_MatrixCol2(&s->m, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            push->vx          += s->dir.vx;
-            push->vz          += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayAvoidScratch));
-    return s->blocked != 0;
-}
-
-/// Steps `coord` by the movement the first `arg2` `WorldCollisionContact` records of
-/// `movement` resolve to, and keeps the whole-unit part of that step in
-/// `Actor04000_D0C708`. Returns 1 when the X or Z step is nonzero; a step with
-/// a fractional part moves the coordinate and the kept step one unit further
-/// from zero.
-static s32 Actor04000_Fn00798(GfxCoord* coord, WorldCollisionContact* movement, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(movement, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]   += s->delta.vx.w >> 16;
-        coord->coord.t[2]   += s->delta.vz.w >> 16;
-        Actor04000_D0C708.vx = s->delta.vx.w >> 16;
-        Actor04000_D0C708.vy = s->delta.vy.w >> 16;
-        Actor04000_D0C708.vz = s->delta.vz.w >> 16;
-        val                  = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                Actor04000_D0C708.vx++;
-            } else {
-                coord->coord.t[0]--;
-                Actor04000_D0C708.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                Actor04000_D0C708.vz++;
-            } else {
-                coord->coord.t[2]--;
-                Actor04000_D0C708.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 /// Message handler: 0x1003/1 registers the actor in its lead slot and places
 /// it at that slot's start point; 0x1203 and 0x302 move it to the scripted
@@ -2022,13 +1893,13 @@ static void Actor04000_Fn028F0(GpEnemy* arg0, Task* arg1)
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
-    Actor04000_Fn00798(arg1->extra.tmd->coords, work->rec1B0, 8);
+    ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8);
     if (overlayOutOfRange(&sc->delta, 1000)) {
         work->field_494++;
     } else {
         work->field_494 = 0;
     }
-    Actor04000_Fn0024C(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     sc->delta.vx                          = work->origin.vx - arg1->extra.tmd->coords->coord.t[0];
     sc->delta.vy                          = 0;
@@ -2491,7 +2362,7 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
-    if (Actor04000_Fn00798(arg1->extra.tmd->coords, work->rec1B0, 8)) {
+    if (ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8)) {
         work->field_6++;
     }
     if (!overlayOutOfRange(&sc->delta, 400) || (s16)work->field_6 > 0x60) {
@@ -2502,7 +2373,7 @@ static void Actor04000_Fn0432C(GpEnemy* arg0, Task* arg1)
         }
         work->field_6 = 0;
     }
-    Actor04000_Fn0024C(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
     target       = arg1->extra.tmd->coords;
     sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];
@@ -2575,11 +2446,11 @@ static void Actor04000_Fn049C0(GpEnemy* arg0, Task* arg1)
     sc->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     Gfx_RotMatrixY(&arg1->extra.tmd->coords->coord, sc->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
-    Actor04000_Fn00798(arg1->extra.tmd->coords, work->rec1B0, 8);
+    ActorContact_PushContact(arg1->extra.tmd->coords, work->rec1B0, 8);
     if (!overlayOutOfRange(&sc->delta, 80)) {
         work->field_0 = 1;
     }
-    Actor04000_Fn0024C(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
+    ActorContact_Steer(arg1->extra.tmd->coords, work->hits, 8, &sc->delta);
     target       = arg1->extra.tmd->coords;
     sc->delta.vx = Player_Status.coordMtx->t[0] - target->coord.t[0];
     sc->delta.vy = Player_Status.coordMtx->t[1] - target->coord.t[1];

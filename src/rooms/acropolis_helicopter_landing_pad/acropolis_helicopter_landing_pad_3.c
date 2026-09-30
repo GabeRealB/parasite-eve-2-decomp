@@ -60,6 +60,13 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/actor_contacts.h"
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 extern AnimationSet* D_acropolis_helicopter_landing_pad_801838F4[3];
 
@@ -621,8 +628,6 @@ GpObj4C D_acropolis_helicopter_landing_pad_801859BC[16] = {
 static void func_acropolis_helicopter_landing_pad_8017EDD4(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EE80(Task* arg0);
 static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
-static s32  func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
-static s32  func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 
 void func_acropolis_helicopter_landing_pad_8017EB58(Task* arg0)
 {
@@ -1582,153 +1587,9 @@ void func_acropolis_helicopter_landing_pad_801818F0(Task* arg0)
     }
 }
 
-/// Moves a coordinate frame by the 16.16 delta `func_800E0C10` computes for
-/// `rec`: adds its integer part to X and Z, rounds a fractional remainder of
-/// X or Z one unit away from zero, and keeps the applied delta in
-/// `D_acropolis_helicopter_landing_pad_80187F88`. Returns 1 when the delta's
-/// X or Z is non-zero. Works in a 0x14 block from the scratch stack.
-static s32 func_acropolis_helicopter_landing_pad_801819C0(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]                             += s->delta.vx.w >> 16;
-        coord->coord.t[2]                             += s->delta.vz.w >> 16;
-        D_acropolis_helicopter_landing_pad_80187F88.vx = s->delta.vx.w >> 16;
-        D_acropolis_helicopter_landing_pad_80187F88.vy = s->delta.vy.w >> 16;
-        D_acropolis_helicopter_landing_pad_80187F88.vz = s->delta.vz.w >> 16;
-        val                                            = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_acropolis_helicopter_landing_pad_80187F88.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_acropolis_helicopter_landing_pad_80187F88.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_acropolis_helicopter_landing_pad_80187F88.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_acropolis_helicopter_landing_pad_80187F88.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
-
-/// Pushes a coordinate frame away from the records of a `WorldCollisionContact` table.
-/// Takes the frame's world position and the world point one unit ahead of
-/// it and computes each record's bearing relative to that facing; a zero
-/// `key` ends the table and a record whose kind is not 0x10000 or 0x30000
-/// does not count. For each counting record whose bearing lies within 0x400
-/// of every other counting record's, it moves X and Z `push` units away
-/// along that bearing. Returns 1 when a push was applied, and 0 at once
-/// while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_helicopter_landing_pad_80181B64(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
-{
-    OverlayBisectorScratch* st;
-    s32                     hit;
-
-    if (gGameSession->viewReady == 1) {
-        return 0;
-    }
-
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
-    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
-    st->eye.vx = (u16)coord->coord.t[0];
-    st->eye.vy = (u16)coord->coord.t[1];
-    st->eye.vz = (u16)coord->coord.t[2];
-
-    overlayToWorld(coord->parent, &st->eye);
-
-    st->aim.vx = 0;
-    st->aim.vy = 0;
-    st->aim.vz = 0x1000;
-
-    overlayToWorld2(coord, &st->aim);
-
-    for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key.value == 0) {
-            st->angle[st->i] = 0x7FFE;
-            break;
-        }
-        st->kind = recs[st->i].key.value & 0xFFFF0000;
-        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
-            st->angle[st->i] = 0x7FFF;
-        } else {
-            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
-            st->angle[st->i] = ratan2(st->delta.vx, st->delta.vz);
-
-            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)st->aim.vz - (u16)st->eye.vz;
-            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, st->delta.vz);
-
-            st->angle[st->i] = overlayWrapAngle(st->angle[st->i]);
-        }
-    }
-
-    st->hit = 0;
-    for (st->i = 0; st->i < count; st->i++) {
-        if (st->angle[st->i] == 0x7FFE) {
-            break;
-        }
-        if (st->angle[st->i] == 0x7FFF) {
-            continue;
-        }
-        for (st->j = 0; st->j < count; st->j++) {
-            if (st->i == st->j) {
-                continue;
-            }
-            if (st->angle[st->j] == 0x7FFF) {
-                continue;
-            }
-            if (st->angle[st->j] != 0x7FFE) {
-                st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
-                st->diff = overlayWrapAngle(st->diff);
-                if (abs(st->diff) > 0x400) {
-                    break;
-                }
-                if (st->angle[st->j] != 0x7FFE) {
-                    if (st->j + 1 < count) {
-                        continue;
-                    }
-                }
-            }
-            st->hit = 1;
-            Gfx_RotMatrixY(&st->m,
-                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
-                           1);
-            Gfx_MatrixCol2(&st->m, &st->aim);
-            VectorNormalSS(&st->aim, &st->aim);
-            gte_lddp(-push);
-            gte_ldsv(&st->aim);
-            gte_gpf12();
-            gte_stsv(&st->delta);
-            coord->coord.t[0] += st->delta.vx;
-            coord->coord.t[2] += st->delta.vz;
-            break;
-        }
-    }
-
-    hit = st->hit;
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
-    return hit;
-}
+#include "../../shared/actor_contacts_push.inc.c"
 
 /// Task step of an item-pickup model: hides the mesh with flag 4 when the
 /// item's 2-bit flag reads 2, otherwise resets its flags and draw offset and

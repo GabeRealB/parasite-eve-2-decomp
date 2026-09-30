@@ -54,6 +54,7 @@
 #include "overlay.h"
 #include "../../shared/coord_math.h"
 #include "../../shared/player_detection.h"
+#include "../../shared/actor_contacts.h"
 
 /// 0x2C-byte scratch frame `func_actor_110600_80133778` opens on
 /// the scratch stack to lay one patrol node out: `m` receives a copy of the
@@ -1126,12 +1127,18 @@ TaskDesc D_actor_110600_8014867C = { (TASK_BODY_TMD | 0x100), 96, func_actor_110
 
 Actor110600Storage8688 D_actor_110600_80148688 = { 0, { 0, 0, 0, 0, 0, 0 } };
 
-SVECTOR D_actor_110600_80148690 = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 EffectSpawnArg D_actor_110600_80148698 = { NULL, 0, 0 };
 
-/// Whole-unit step `func_actor_110600_801322CC` last applied to its coordinate.
-extern SVECTOR D_actor_110600_80148690;
+/// Whole-unit step `ActorContact_PushContact` last applied to its coordinate.
+extern SVECTOR ActorContact_ScratchPosition;
 
 /// Reset argument `func_800B4114` is handed for the clip `field_892` of the
 /// `field_890` stage: the `0x2D`-byte row of the animation table this overlay's
@@ -1149,8 +1156,6 @@ extern Actor110600MessageEntry D_actor_110600_80148624[7];
 /// zero.
 static void func_actor_110600_80136210(Task* arg0);
 
-static void            func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw);
-static s32             func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* movement, s16 count);
 static void            func_actor_110600_80133778(OverlayWalker* work, s16 scale, s16 angle);
 static __inline__ void Actor110600_WalkerStep(OverlayWalker* walker, u8* head,
                                               OverlayWalkerTickScratch* block);
@@ -1176,71 +1181,9 @@ static void            func_actor_110600_80137AF4(Task* arg0);
 static void            func_actor_110600_80137DB0(Task* arg0);
 static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
 
-/// Turns joint `coord` by `yaw` about the world Y axis: builds its world
-/// rotation in a matrix carved off the scratchpad head, applies the turn,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it. The actor's body update turns two joints of its
-/// model with it, the second by a quarter of the angle.
-static void func_actor_110600_80131FC0(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-/// Moves `coord` in X/Z by the push the first `count` records of `movement`
-/// resolve to through `func_800E0C10`, rounding a fractional part away from
-/// zero, and stores the whole-unit step taken in `D_actor_110600_80148690`.
-/// Returns 1 when the X or Z delta is nonzero. Nothing in the actor calls it.
-static s32 func_actor_110600_801322CC(GfxCoord* coord, WorldCollisionContact* movement, s16 count)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(movement, &s->delta, count, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_110600_80148690.vx = s->delta.vx.w >> 16;
-        D_actor_110600_80148690.vy = s->delta.vy.w >> 16;
-        D_actor_110600_80148690.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_110600_80148690.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_110600_80148690.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_110600_80148690.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_110600_80148690.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 static s16 func_actor_110600_80132470(OverlayWalker* walker)
 {
@@ -2251,8 +2194,8 @@ static void func_actor_110600_80134728(Task* arg0)
         if (turnNow < -0x400) {
             turn = -0x400;
         }
-        func_actor_110600_80131FC0(&arg0->extra.tmd->coords[5], (s16)turn);
-        func_actor_110600_80131FC0(&arg0->extra.tmd->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[5], (s16)turn);
+        ActorContact_TurnJoint(&arg0->extra.tmd->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {

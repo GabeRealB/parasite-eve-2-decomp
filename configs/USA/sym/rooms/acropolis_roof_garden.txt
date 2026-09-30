@@ -64,7 +64,7 @@ D_acropolis_roof_garden_80186E18 = 0x80186E18; // size:0x10 defined:True
 D_acropolis_roof_garden_80186E28 = 0x80186E28; // size:0x48 defined:True
 D_acropolis_roof_garden_80186E70 = 0x80186E70; // size:0x24 defined:True
 D_acropolis_roof_garden_80186E94 = 0x80186E94; // size:0x4 defined:True
-D_acropolis_roof_garden_80186E98 = 0x80186E98; // size:0x8 defined:True
+ActorContact_ScratchPosition = 0x80186E98; // size:0x8 defined:True
 D_acropolis_roof_garden_80183D74 = 0x80183D74; // size:0x420 defined:True
 D_acropolis_roof_garden_80184194 = 0x80184194; // size:0x198 defined:True
 D_acropolis_roof_garden_8018432C = 0x8018432C; // size:0x4 defined:True
@@ -125,3 +125,5 @@ func_acropolis_roof_garden_8017E29C = 0x8017E29C; // type:func
 
 func_acropolis_roof_garden_8017F10C = 0x8017F10C; // type:func
 leafDraw = 0x8017F560; // type:func
+ActorContact_PushContact = 0x8017F870; // type:func
+ActorContact_Push = 0x8017FA14; // type:func

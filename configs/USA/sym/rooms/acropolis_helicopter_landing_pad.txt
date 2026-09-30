@@ -122,7 +122,7 @@ D_acropolis_helicopter_landing_pad_80187F78 = 0x80187F78; // size:0x4 defined:Tr
 D_acropolis_helicopter_landing_pad_80187F7C = 0x80187F7C; // size:0x2 defined:True
 D_acropolis_helicopter_landing_pad_80187F80 = 0x80187F80; // size:0x4 defined:True
 D_acropolis_helicopter_landing_pad_80187F84 = 0x80187F84; // size:0x4 defined:True
-D_acropolis_helicopter_landing_pad_80187F88 = 0x80187F88; // size:0x8 defined:True
+ActorContact_ScratchPosition = 0x80187F88; // size:0x8 defined:True
 D_acropolis_helicopter_landing_pad_80187F90 = 0x80187F90; // size:0x8 defined:True
 D_acropolis_helicopter_landing_pad_80184E0C = 0x80184E0C; // size:0x4 defined:True
 D_acropolis_helicopter_landing_pad_80184E10 = 0x80184E10; // size:0x18 defined:True
@@ -187,3 +187,5 @@ func_acropolis_helicopter_landing_pad_80180E40 = 0x80180E40; // type:func
 func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func
 
 func_acropolis_helicopter_landing_pad_801802E0 = 0x801802E0; // type:func
+ActorContact_PushContact = 0x801819C0; // type:func
+ActorContact_Push = 0x80181B64; // type:func

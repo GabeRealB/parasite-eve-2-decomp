@@ -8,7 +8,7 @@
 /// accumulates the total nudge. Returns whether any record was of kind
 /// 0x10000; returns 0 at once when `gGameSession->viewReady` or `Mc_SaveData[0].state.actorsFrozen`
 /// is 1.
-static s32 ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
+static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
 {
     u8*                  head;
     OverlayAvoidScratch* s;

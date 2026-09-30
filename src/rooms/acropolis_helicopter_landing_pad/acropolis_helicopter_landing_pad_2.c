@@ -760,7 +760,7 @@ Task* D_acropolis_helicopter_landing_pad_80187F80 = NULL;
 
 s32 D_acropolis_helicopter_landing_pad_80187F84 = 0;
 
-SVECTOR D_acropolis_helicopter_landing_pad_80187F88 = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
 RoomEventMsg D_acropolis_helicopter_landing_pad_80187F90 = { 0, 0, 0, 0, 0, 0 };
 

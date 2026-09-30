@@ -65,6 +65,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/actor_contacts.h"
 
 extern AnimationSet* D_acropolis_sanctuary_80180918[9];
 
@@ -217,8 +218,14 @@ extern GpAreaApplyRec       D_acropolis_sanctuary_80186418[];
 extern Task*                D_acropolis_sanctuary_80186C90;
 
 /// Whole-unit X/Y/Z displacement left by the last call of
-/// `func_acropolis_sanctuary_8017F974`.
-extern SVECTOR D_acropolis_sanctuary_80186C94;
+/// `ActorContact_PushContact`.
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 /// Payloads the sanctuary cutscene task sends: `..._801820E4` is the record
 /// slot-3 msg 0x3F4 takes and `..._801820F0` / `..._801821C8` the script pair
@@ -1581,10 +1588,8 @@ u32 D_acropolis_sanctuary_80186C8C = 0xB000000;
 
 Task* D_acropolis_sanctuary_80186C90 = NULL;
 
-SVECTOR D_acropolis_sanctuary_80186C94 = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
-static s32  func_acropolis_sanctuary_8017F974(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
-static s32  func_acropolis_sanctuary_8017FB18(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 static void func_acropolis_sanctuary_801802E0(Task* task);
 
 /// The room task's per-frame state. Once the session reaches phase 3
@@ -2472,151 +2477,9 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, TaskMessageArg arg2
     return 0;
 }
 
-/// Asks `func_800E0C10` for the displacement `rec` imposes and, when it
-/// reports one, adds its X and Z to the coordinate's translation, rounding a
-/// fractional part away from zero. The whole-unit displacement is also left in
-/// `D_acropolis_sanctuary_80186C94`. Returns non-zero when the X or Z
-/// displacement is non-zero.
-static s32 func_acropolis_sanctuary_8017F974(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]                += s->delta.vx.w >> 16;
-        coord->coord.t[2]                += s->delta.vz.w >> 16;
-        D_acropolis_sanctuary_80186C94.vx = s->delta.vx.w >> 16;
-        D_acropolis_sanctuary_80186C94.vy = s->delta.vy.w >> 16;
-        D_acropolis_sanctuary_80186C94.vz = s->delta.vz.w >> 16;
-        val                               = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_acropolis_sanctuary_80186C94.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_acropolis_sanctuary_80186C94.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_acropolis_sanctuary_80186C94.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_acropolis_sanctuary_80186C94.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
-
-/// Measures the bearing of each type-1 or type-3 record in `recs` (up to
-/// `count`, or the first zero key) from the coordinate's world position,
-/// relative to the direction it faces. For a record that has every other such
-/// record within a quarter turn of it, moves the coordinate `push` units back
-/// along that record's bearing, in X and Z. Returns non-zero if it moved the
-/// coordinate; returns 0 at once while `gGameSession->viewReady` is 1.
-static s32 func_acropolis_sanctuary_8017FB18(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
-{
-    OverlayBisectorScratch* st;
-    s32                     hit;
-
-    if (gGameSession->viewReady == 1) {
-        return 0;
-    }
-
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayBisectorScratch);
-    st         = SCRATCH_STACK_CURSOR(OverlayBisectorScratch);
-    st->eye.vx = (u16)coord->coord.t[0];
-    st->eye.vy = (u16)coord->coord.t[1];
-    st->eye.vz = (u16)coord->coord.t[2];
-
-    overlayToWorld(coord->parent, &st->eye);
-
-    st->aim.vx = 0;
-    st->aim.vy = 0;
-    st->aim.vz = 0x1000;
-
-    overlayToWorld2(coord, &st->aim);
-
-    for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key.value == 0) {
-            st->angle[st->i] = 0x7FFE;
-            break;
-        }
-        st->kind = recs[st->i].key.value & 0xFFFF0000;
-        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
-            st->angle[st->i] = 0x7FFF;
-        } else {
-            st->delta.vx     = (u16)recs[st->i].point.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)recs[st->i].point.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)recs[st->i].point.vz - (u16)st->eye.vz;
-            st->angle[st->i] = ratan2(st->delta.vx, st->delta.vz);
-
-            st->delta.vx     = (u16)st->aim.vx - (u16)st->eye.vx;
-            st->delta.vy     = (u16)st->aim.vy - (u16)st->eye.vy;
-            st->delta.vz     = (u16)st->aim.vz - (u16)st->eye.vz;
-            st->angle[st->i] = (u16)st->angle[st->i] - ratan2(st->delta.vx, st->delta.vz);
-
-            st->angle[st->i] = overlayWrapAngle(st->angle[st->i]);
-        }
-    }
-
-    st->hit = 0;
-    for (st->i = 0; st->i < count; st->i++) {
-        if (st->angle[st->i] == 0x7FFE) {
-            break;
-        }
-        if (st->angle[st->i] == 0x7FFF) {
-            continue;
-        }
-        for (st->j = 0; st->j < count; st->j++) {
-            if (st->i == st->j) {
-                continue;
-            }
-            if (st->angle[st->j] == 0x7FFF) {
-                continue;
-            }
-            if (st->angle[st->j] != 0x7FFE) {
-                st->diff = (u16)st->angle[st->j] - (u16)st->angle[st->i];
-                st->diff = overlayWrapAngle(st->diff);
-                if (abs(st->diff) > 0x400) {
-                    break;
-                }
-                if (st->angle[st->j] != 0x7FFE) {
-                    if (st->j + 1 < count) {
-                        continue;
-                    }
-                }
-            }
-            st->hit = 1;
-            Gfx_RotMatrixY(&st->m,
-                           st->angle[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
-                           1);
-            Gfx_MatrixCol2(&st->m, &st->aim);
-            VectorNormalSS(&st->aim, &st->aim);
-            gte_lddp(-push);
-            gte_ldsv(&st->aim);
-            gte_gpf12();
-            gte_stsv(&st->delta);
-            coord->coord.t[0] += st->delta.vx;
-            coord->coord.t[2] += st->delta.vz;
-            break;
-        }
-    }
-
-    hit = st->hit;
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayBisectorScratch);
-    return hit;
-}
+#include "../../shared/actor_contacts_push.inc.c"
 
 /// Per-frame visibility gate for the sanctuary's item object: hides the model
 /// (`field_C` bit 0x80) while the camera sits on view 0xB or 0xD, or once the

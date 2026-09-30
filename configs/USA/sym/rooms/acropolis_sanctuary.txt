@@ -156,7 +156,7 @@ D_acropolis_sanctuary_80180AFC = 0x80180AFC; // size:0x6 defined:True
 D_acropolis_sanctuary_80180B04 = 0x80180B04; // size:0x6 defined:True
 D_acropolis_sanctuary_80186C8C = 0x80186C8C; // size:0x4 defined:True
 D_acropolis_sanctuary_80186C90 = 0x80186C90; // size:0x4 defined:True
-D_acropolis_sanctuary_80186C94 = 0x80186C94; // size:0x8 defined:True
+ActorContact_ScratchPosition = 0x80186C94; // size:0x8 defined:True
 
 func_acropolis_sanctuary_8017E00C = 0x8017E00C; // type:func
 
@@ -167,3 +167,5 @@ func_acropolis_sanctuary_8017E338 = 0x8017E338; // type:func
 func_acropolis_sanctuary_8017EC90 = 0x8017EC90; // type:func
 
 func_acropolis_sanctuary_8017F4E8 = 0x8017F4E8; // type:func
+ActorContact_PushContact = 0x8017F974; // type:func
+ActorContact_Push = 0x8017FB18; // type:func

@@ -65,6 +65,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
+#include "../../shared/actor_contacts.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
 
@@ -215,7 +216,13 @@ extern GpEvsCmd D_actor_444000_801444E4[];
 /// its work areas.
 extern AnimationSet* D_actor_444000_8014430C[4];
 
-extern SVECTOR D_actor_444000_80161870;
+extern SVECTOR ActorContact_ScratchPosition;
+
+/// The contact routines' scratch position.
+static inline SVECTOR* ActorContact_GetScratchPosition(void)
+{
+    return &ActorContact_ScratchPosition;
+}
 
 /// Pair descriptors the host and its escorts publish as `GpEnemy::param`;
 /// `hpMax` is the hit-point pool each one starts with.
@@ -373,8 +380,6 @@ extern s8 D_actor_444000_80160C5C[][0x2D];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_444000_80132808(GfxCoord* coord, s16 yaw);
-static s32  func_actor_444000_80132B14(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2);
 static void func_actor_444000_80132CB8(Task* task, s16 scale, s16 drop, s16 index);
 static void func_actor_444000_80133010(Task* task);
 static void func_actor_444000_80133C58(Task* task, s16 arg1);
@@ -2688,7 +2693,7 @@ u32 D_actor_444000_80161864 = 0x1A90C60D;
 
 Actor444000Storage1868 D_actor_444000_80161868 = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
-SVECTOR D_actor_444000_80161870 = { 0, 0, 0, 0 };
+SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
 Actor444000Storage1878 D_actor_444000_80161878 = { NULL, { 0, 0, 0, 0 } };
 
@@ -3045,65 +3050,9 @@ void func_actor_444000_801327E8(s16 action)
     work->field_2E = 0;
 }
 
-/// Set `coord`'s rotation to its view-space orientation turned by `yaw`,
-/// expressed back in its parent's frame, and refresh the coordinate. The work
-/// matrix is borrowed from the scratchpad stack.
-static void func_actor_444000_80132808(GfxCoord* coord, s16 yaw)
-{
-    MATRIX*   rotation;
-    GfxCoord* out;
+#include "../../shared/actor_contacts_turn_joint.inc.c"
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    actorAccumulateToView(coord, rotation);
-    RotMatrixY(yaw, rotation);
-    out = actorLocalizeRotation(coord, rotation);
-    memcpy(out->coord.m, rotation->m, sizeof(out->coord.m));
-    out->composeStamp = GRAPHICS_COORD_DIRTY;
-    Gp_UpdateCoord(out);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-static s32 func_actor_444000_80132B14(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2)
-{
-    OverlayDeltaFlag* s;
-    s32               val;
-
-    s        = SCRATCH_STACK_RESERVE_BLOCK(OverlayDeltaFlag);
-    s->moved = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
-        coord->coord.t[0]         += s->delta.vx.w >> 16;
-        coord->coord.t[2]         += s->delta.vz.w >> 16;
-        D_actor_444000_80161870.vx = s->delta.vx.w >> 16;
-        D_actor_444000_80161870.vy = s->delta.vy.w >> 16;
-        D_actor_444000_80161870.vz = s->delta.vz.w >> 16;
-        val                        = s->delta.vx.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[0]++;
-                D_actor_444000_80161870.vx++;
-            } else {
-                coord->coord.t[0]--;
-                D_actor_444000_80161870.vx--;
-            }
-        }
-        val = s->delta.vz.w;
-        if ((val & 0xFFFF) != 0) {
-            if (val > 0) {
-                coord->coord.t[2]++;
-                D_actor_444000_80161870.vz++;
-            } else {
-                coord->coord.t[2]--;
-                D_actor_444000_80161870.vz--;
-            }
-        }
-    }
-    if (s->delta.vx.w != 0 || s->delta.vz.w != 0) {
-        s->moved = 1;
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayDeltaFlag);
-    return s->moved;
-}
+#include "../../shared/actor_contacts_push_contact.inc.c"
 
 /// Rebuild quad `index` of the collision grid as a wall across the front of
 /// the task's model: its edge runs 0x1388 either way along the model's x axis
@@ -3426,7 +3375,7 @@ static void func_actor_444000_80133010(Task* task)
 }
 
 /// Walk the yaw `field_7C8` toward `arg1` (clamped to +/-0x200) by at most 0x71
-/// per call, turn model part 3 by it through `func_actor_444000_80132808`, and
+/// per call, turn model part 3 by it through `ActorContact_TurnJoint`, and
 /// refresh part 3, the root of the fifth escort's model and part 4.
 static void func_actor_444000_80133C58(Task* task, s16 arg1)
 {
@@ -3457,7 +3406,7 @@ static void func_actor_444000_80133C58(Task* task, s16 arg1)
 
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&task->extra.tmd->coords[3]);
-    func_actor_444000_80132808(&task->extra.tmd->coords[3], work->field_7C8);
+    ActorContact_TurnJoint(&task->extra.tmd->coords[3], work->field_7C8);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     Gp_UpdateCoord(&task->extra.tmd->coords[3]);
     work->field_ECC[4]->task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5164,7 +5113,7 @@ static void func_actor_444000_80138FC4(GpEnemy* enemy, Task* task)
         task->state++;
     }
 
-    if (func_actor_444000_80132B14(task->extra.tmd->coords, &work->rec1, 3) != 0) {
+    if (ActorContact_PushContact(task->extra.tmd->coords, &work->rec1, 3) != 0) {
         work->vel.vz = 0;
         work->vel.vx = 0;
     }
