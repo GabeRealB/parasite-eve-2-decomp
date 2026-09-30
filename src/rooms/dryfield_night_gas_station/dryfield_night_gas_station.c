@@ -75,6 +75,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_variants.h"
+#include "../../shared/gas_station_sounds.h"
 
 /// The block the room's effect task carries as its `spawnArg2`.
 /// `func_dryfield_night_gas_station_80180E9C` keeps the spawn offset it hands
@@ -290,7 +291,6 @@ void                              func_dryfield_night_gas_station_80180C3C(s32);
 extern AnimationPlayRequest D_dryfield_night_gas_station_80184084;
 void                        func_dryfield_night_gas_station_8017FB64(u8);
 
-s32 func_dryfield_night_gas_station_8017F6B8(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F7E0(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F89C(s32, s32, s32);
 s32 func_dryfield_night_gas_station_8017F990(Task*, s32, DirectionActionRequest* msg);
@@ -305,7 +305,7 @@ DryfieldNightGasStationMessageEntry D_dryfield_night_gas_station_80184034[7] = {
     { 5105, { .call3 = func_dryfield_night_gas_station_8017F7E0 } },
     { DIRECTION_MESSAGE_ROOM_ACTION, { .call1 = func_dryfield_night_gas_station_8017F990 } },
     { 5104, { .call3 = func_dryfield_night_gas_station_8017F89C } },
-    { 5106, { .call3 = func_dryfield_night_gas_station_8017F6B8 } },
+    { 5106, { .call3 = gasStationCueSoundMsg } },
     { 5108, { .call0 = func_dryfield_night_gas_station_8017F9E8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
@@ -2568,51 +2568,7 @@ static void func_dryfield_night_gas_station_8017F41C(Task* arg0)
 
 #include "../../shared/room_variants_gas_station.inc.c"
 
-/// Maps a cap (cutscene) script event key to the stage sound it should play in
-/// the night gas station, then enqueues it as a type-6 sound event. Event key
-/// 0x83 only plays if a cap script is still reporting an event key. Keys with
-/// no sound are ignored. Always returns 0.
-s32 func_dryfield_night_gas_station_8017F6B8(s32 arg0, s32 arg1, s32 arg2)
-{
-    s32 id;
-
-    switch (arg2) {
-        case 5:
-            id = 0x52010005;
-            goto play;
-        case 7:
-            id = 0x52010007;
-            goto play;
-        case 0xA:
-            id = 0x5201000A;
-            goto play;
-        case 0xD:
-            id = 0x5201000D;
-            goto play;
-        case 0x11:
-            id = 0x52010011;
-            goto play;
-        case 0x13:
-            id = 0x52010013;
-            goto play;
-        case 0x6D:
-        case 0x82:
-            id = 0x5201000B;
-            goto play;
-        case 0x73:
-            id = 0x5201000E;
-            goto play;
-        case 0x83:
-            if (Gp_GetCapEventKey() == 0) {
-                break;
-            }
-            id = 0x52010012;
-        play:
-            Gp_EnqueueStageSnd6(id, 0, 0);
-            break;
-    }
-    return 0;
-}
+#include "../../shared/gas_station_sounds_cue.inc.c"
 
 /// Message handler for msg 0x117: walks the `Gp_PendingObj4C` list looking for
 /// an object in mode 5 whose `field_48` is 0xFF and which is still pending, and
