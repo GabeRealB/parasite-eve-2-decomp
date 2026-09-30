@@ -285,7 +285,7 @@ ActorCommand D_actor_161500_80133F78 = { { .loc = { 5, 4 } }, 0 };
 
 AnimationPlayRequest D_actor_161500_80133F7C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor161500AnimStorage3F90 D_actor_161500_80133F90 = { .data = { { &D_actor_161500_80132EF0, &D_actor_161500_801330BC, &D_actor_161500_801334E4, &D_actor_161500_80133868, &D_actor_161500_80133B94, &D_actor_161500_80133F4C }, { { { .index = 1 }, 47, 1, 8, 1 }, { { .index = 1 }, 48, 1, 8, 1 }, { { .index = 1 }, 49, 1, 8, 1 }, { { .index = 1 }, 50, 1, 8, 1 }, { { .index = 1 }, 51, 1, 8, 1 }, { { .index = 1 }, 52, 1, 8, 1 } } } };
+Actor161500AnimStorage3F90 D_actor_161500_80133F90 = { .data = { { &D_actor_161500_80132EF0, &D_actor_161500_801330BC, &D_actor_161500_801334E4, &D_actor_161500_80133868, &D_actor_161500_80133B94, &D_actor_161500_80133F4C }, { { { .index = 1 }, 47, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 48, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 49, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 50, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 51, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 52, 1, 8, ANIMATION_WORLD_COLLISION_ENABLE } } } };
 
 AnimationPlayRequest D_actor_161500_80134020 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -841,7 +841,7 @@ ActorTransform D_actor_161500_80136D30 = { { 1330, 0, 4780, 0 }, { 0, 2616, 0, 0
 
 ActorTransform D_actor_161500_80136D48 = { { 4224, 0, 5209, 0 }, { 0, 2048, 0, 0 } };
 
-Actor161500AnimCopy6D60 D_actor_161500_80136D60 = { .data = { { &D_actor_161500_80136124, &D_actor_161500_80136338, &D_actor_161500_80136618, &D_actor_161500_801368A8, &D_actor_161500_80136A80, &D_actor_161500_80136CB4, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, 1 } } } };
+Actor161500AnimCopy6D60 D_actor_161500_80136D60 = { .data = { { &D_actor_161500_80136124, &D_actor_161500_80136338, &D_actor_161500_80136618, &D_actor_161500_801368A8, &D_actor_161500_80136A80, &D_actor_161500_80136CB4, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
 
 AnimationPlayRequest D_actor_161500_80136D90 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 

@@ -325,7 +325,7 @@ ActorTransform D_dryfield_night_driveway_8017F894 = { { -8800, 0, -1500, 0 }, { 
 
 ActorTransform D_dryfield_night_driveway_8017F8AC = { { -3800, 0, -1500, 0 }, { 0, 3413, 0, 0 } };
 
-DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &D_dryfield_night_driveway_8017EE30, &D_dryfield_night_driveway_8017F044, &D_dryfield_night_driveway_8017F324, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, 1 }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, 1 } } } };
+DryfieldNightDrivewayAnimStorageF8C4 D_dryfield_night_driveway_8017F8C4 = { .data = { { &D_dryfield_night_driveway_8017EE30, &D_dryfield_night_driveway_8017F044, &D_dryfield_night_driveway_8017F324, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE } } } };
 
 AnimationPlayRequest D_dryfield_night_driveway_8017F8FC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 

@@ -386,7 +386,7 @@ AnimationPlayRequest D_actor_260500_8014CACC = { { .index = 1 }, 55, ANIMATION_B
 
 AnimationPlayRequest D_actor_260500_8014CAE0 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4 = { .data = { { &D_actor_260500_8014AE44, &D_actor_260500_8014B134, &D_actor_260500_8014B830, &D_actor_260500_8014BACC, NULL, NULL, &D_actor_260500_8014BE84, &D_actor_260500_8014C208, &D_actor_260500_8014C50C, &D_actor_260500_8014C838 }, { { .words = D_actor_260500_8014CAF4.words }, 32 }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, 0 } }, { { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6910, 0 }, { 0, -2048, 0, 0 } } } } };
+Actor260500AnimStorageCAF4 D_actor_260500_8014CAF4 = { .data = { { &D_actor_260500_8014AE44, &D_actor_260500_8014B134, &D_actor_260500_8014B830, &D_actor_260500_8014BACC, NULL, NULL, &D_actor_260500_8014BE84, &D_actor_260500_8014C208, &D_actor_260500_8014C50C, &D_actor_260500_8014C838 }, { { .words = D_actor_260500_8014CAF4.words }, 32 }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } }, { { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6730, 0 }, { 0, -2161, 0, 0 } }, { { 860, 0, 6910, 0 }, { 0, -2048, 0, 0 } } } } };
 
 ActorTransform D_actor_260500_8014CB80 = { { 860, 0, 6640, 0 }, { 0, -2161, 0, 0 } };
 

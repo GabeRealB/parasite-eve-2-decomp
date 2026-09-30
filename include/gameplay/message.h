@@ -121,8 +121,20 @@ enum {
     /// ignore `blendFrames` and restart their playback slots. Some receivers
     /// defer the restart or keep an already selected clip. This choice does not
     /// disable interpolation between the clip's own keyframes.
-    ANIMATION_BLEND_RESET             = 0,
-    ANIMATION_BLEND_INTERPOLATE       = 1,
+    ANIMATION_BLEND_RESET       = 0,
+    ANIMATION_BLEND_INTERPOLATE = 1,
+};
+
+/// Player and companion grid participation for one playback request.
+///
+/// Stored in `AnimationPlayRequest.enableWorldCollision`. Zero tells those
+/// playback handlers to drop grid participation on the two bodies their tick
+/// updates. The first body's participation bit also gates grid-contact
+/// displacement and the fixed height offset. Any other value restores both
+/// bodies. Senders that want participation store
+/// `ANIMATION_WORLD_COLLISION_ENABLE`.
+enum {
+    /// Drop grid participation and the contact response gated with it.
     ANIMATION_WORLD_COLLISION_DISABLE = 0,
     ANIMATION_WORLD_COLLISION_ENABLE  = 1,
 };
@@ -155,7 +167,7 @@ typedef struct AnimationPlayRequest {
     s32 animationId;                 // Receiver-specific animation id within the selected bank
     s32 blend;                       // Transition choice (0 reset, nonzero interpolate when supported)
     s32 blendFrames;                 // Requested transition duration in frames; ignored on reset
-    s32 enableWorldCollision;        // Player/companion world collision and ground following (0 disable, nonzero enable)
+    s32 enableWorldCollision;        // Player/companion grid participation (0 drop, any other value restore)
 } AnimationPlayRequest;
 STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 

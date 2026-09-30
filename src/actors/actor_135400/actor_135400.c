@@ -1065,7 +1065,7 @@ void func_actor_135400_80132AF4(Task* task)
 
 /// The animation arguments `func_actor_135400_80132B60` copies into
 /// `Actor135400Work::params` when the second task is created.
-static const AnimationPlayRequest D_actor_135400_80131EA0 = { 0, 2, 1, 10, 0 };
+static const AnimationPlayRequest D_actor_135400_80131EA0 = { 0, 2, 1, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Spawn state of the second task: exits at once when game flag 0x6C is set or
 /// the 0x498-byte work block cannot be allocated. Otherwise it seeds the
