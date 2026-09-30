@@ -3262,7 +3262,7 @@ CdAudio_SectorEntries = 0x80082778; // size:0x4
 Snd_SequenceBankBuffer = 0x8007E0D4; // size:0x4
 
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
-GameFlag_NibbleBanks = 0x80073980; // size:0x200
+gGameFlagNibbleBanks = 0x80073980; // size:0x200
 GameFlag_AcropolisBanks = 0x800733F0; // size:0xD8
 GameFlag_DryfieldBanks = 0x800734C8; // size:0x160
 GameFlag_DryfieldFullBanks = 0x80073628; // size:0x48

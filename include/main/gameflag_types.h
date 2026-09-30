@@ -6,6 +6,13 @@
 /// Number of four-bit positions in a saved game-flag payload.
 enum { GAME_FLAG_NIBBLE_COUNT = 504 };
 
+/// Indices and extent of the resident packed game-flag save bank pair.
+enum {
+    GAME_FLAG_NIBBLE_BANK_LIVE   = 0,
+    GAME_FLAG_NIBBLE_BANK_BACKUP = 1,
+    GAME_FLAG_NIBBLE_BANK_COUNT  = 2
+};
+
 /// Checksummed save bank of packed game flags and a play-time mark.
 ///
 /// Each 0x100-byte bank has a four-byte checksum header and 252 payload bytes.

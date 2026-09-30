@@ -627,7 +627,7 @@ D_8010EAB4 = 0x8010EAB4; // absolute:True size:0x578
 Fs_ChunkOutputSizes = 0x8006D860; // absolute:True size:0xC
 
 // The full dual-bank flag buffer; biased player-address immediates fall inside it.
-GameFlag_NibbleBanks = 0x80073980; // absolute:True size:0x200
+gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
 func_map_dryfield_full_80179954 = 0x80179954; // absolute:True
 

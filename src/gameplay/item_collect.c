@@ -697,14 +697,14 @@ s32 Gp_ItemSortKey(s32 id)
 
 void Gp_MarkPlayTime(void)
 {
-    GameFlag_NibbleBanks[0].payload.state.playTimeMark = Mc_SaveData[0].state.playTime;
+    gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = Mc_SaveData[0].state.playTime;
 }
 
 static s16 Gp_PlayTimeDelta(void)
 {
     u16* markMinutes;
 
-    markMinutes = &GameFlag_NibbleBanks[0].payload.state.playTimeMark;
+    markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
     return Mc_SaveData[0].state.playTime - *markMinutes;
 }
 
@@ -715,7 +715,7 @@ s32 Gp_AgeFlag119(void)
 
     ret = 0;
     if (Gp_HasCollectedBit(0x119) != 0) {
-        markMinutes = &GameFlag_NibbleBanks[0].payload.state.playTimeMark;
+        markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
         if ((s16)(Mc_SaveData[0].state.playTime - *markMinutes) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);
@@ -730,7 +730,7 @@ void Gp_AgeFlag119Void(void)
     u16* markMinutes;
 
     if (Gp_HasCollectedBit(0x119) != 0) {
-        markMinutes = &GameFlag_NibbleBanks[0].payload.state.playTimeMark;
+        markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
         if ((s16)(Mc_SaveData[0].state.playTime - *markMinutes) >= 2) {
             Gp_ClearCollectedBit(0x119);
             Gp_SetCollectedBit(0x11A);

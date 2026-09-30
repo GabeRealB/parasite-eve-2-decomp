@@ -38,9 +38,11 @@ void GameFlag_SetNibble(s32 index, s32 value)
 
     idx = index / 2;
     if (index & 1) {
-        GameFlag_NibbleBanks[0].payload.packedFlags[idx] = (GameFlag_NibbleBanks[0].payload.packedFlags[idx] & 0xF0) | (value & 0xF);
+        gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] =
+            (gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF0) | (value & 0xF);
     } else {
-        GameFlag_NibbleBanks[0].payload.packedFlags[idx] = (GameFlag_NibbleBanks[0].payload.packedFlags[idx] & 0xF) | (value << 4);
+        gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] =
+            (gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF) | (value << 4);
     }
 }
 
@@ -50,9 +52,9 @@ s32 GameFlag_GetNibble(s32 index)
 
     idx = index / 2;
     if (index & 1) {
-        return GameFlag_NibbleBanks[0].payload.packedFlags[idx] & 0xF;
+        return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] & 0xF;
     }
-    return GameFlag_NibbleBanks[0].payload.packedFlags[idx] >> 4;
+    return gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.packedFlags[idx] >> 4;
 }
 
 s32 Pad_CheckFlag800(void)

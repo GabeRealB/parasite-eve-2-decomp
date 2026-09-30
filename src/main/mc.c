@@ -107,7 +107,7 @@ GameFlagShelterBank GameFlag_ShelterBanks[2];
 
 GameFlagNeoArkBank GameFlag_NeoArkBanks[2];
 
-GameFlagNibbleBank GameFlag_NibbleBanks[2];
+GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 
 /// Unreferenced.
 static u8 D_80073B80[8];
@@ -120,6 +120,9 @@ static s32 Mc_LastRandomValue;
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/wipsys.h"
+
+/// Number of 128-byte card sectors holding the complete game-flag bank pair.
+enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };
 
 extern McBufferSlot Mc_BufferSlots[9];
 
@@ -645,7 +648,7 @@ McBufferSlot Mc_BufferSlots[9] = {
     { (McChecksumBlock*)GameFlag_DryfieldFullBanks, 0x24, 1 },
     { (McChecksumBlock*)GameFlag_ShelterBanks, 0xE4, 4 },
     { (McChecksumBlock*)GameFlag_NeoArkBanks, 0xA4, 3 },
-    { (McChecksumBlock*)GameFlag_NibbleBanks, sizeof(GameFlag_NibbleBanks[0]), 4 },
+    { (McChecksumBlock*)gGameFlagNibbleBanks, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]), GAME_FLAG_NIBBLE_BANK_CARD_SECTORS },
 };
 
 static UiListItemFunc Mc_SaveSlotCallbacks[] = { Mc_StateSaveSlotUi };
@@ -703,8 +706,8 @@ static void Mc_InitDualBankBuffers(void)
 
     Mem_Set(&Player_Status, 0, 0x40);
     Mem_Set(Player_Status.saveBackup, 0xFF, 0x40);
-    Mem_Set(&GameFlag_NibbleBanks[0], 0, sizeof(GameFlagNibbleBank));
-    Mem_Set(&GameFlag_NibbleBanks[1], 0xFF, sizeof(GameFlagNibbleBank));
+    Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE], 0, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE]));
+    Mem_Set(&gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP], 0xFF, sizeof(gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_BACKUP]));
 
     a = GameFlag_AcropolisBanks;
     Mem_Set(a, 0, 0x6C);

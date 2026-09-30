@@ -266,7 +266,7 @@ D_80071210 = 0x80071210; // absolute:True
 Pad_States = 0x80071620; // absolute:True size:0xB8
 gTaskDefaultList = 0x800716E0; // absolute:True
 Mc_SaveData = 0x80072168; // absolute:True size:0x1288
-GameFlag_NibbleBanks = 0x80073980; // absolute:True size:0x200
+gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
 Player_Status = 0x80073B88; // absolute:True size:0x80
 Gpu_OrderingTables = 0x8007A0E8; // absolute:True size:0x28

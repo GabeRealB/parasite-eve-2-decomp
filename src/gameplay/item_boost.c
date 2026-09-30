@@ -798,7 +798,7 @@ void Gp_SetCollectedBit(s32 arg0)
     bit %= 32;
     *p  |= 1 << bit;
     if ((arg0 & 0x7F) == 0x19) {
-        GameFlag_NibbleBanks[0].payload.state.playTimeMark = Mc_SaveData[0].state.playTime;
+        gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = Mc_SaveData[0].state.playTime;
     }
 }
 
