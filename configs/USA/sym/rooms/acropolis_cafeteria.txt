@@ -219,7 +219,7 @@ D_acropolis_cafeteria_80184728 = 0x80184728; // size:0x574 defined:True
 D_acropolis_cafeteria_80184C9C = 0x80184C9C; // size:0x28 defined:True
 D_acropolis_cafeteria_80184CC4 = 0x80184CC4; // size:0x28 defined:True
 D_acropolis_cafeteria_80184CEC = 0x80184CEC; // size:0x10 defined:True
-D_acropolis_cafeteria_80184E80 = 0x80184E80; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80184E80; // size:0x10 defined:True
 
 func_acropolis_cafeteria_8017E708 = 0x8017E708; // type:func
 
@@ -234,3 +234,7 @@ func_acropolis_cafeteria_801803AC = 0x801803AC; // type:func
 func_acropolis_cafeteria_80180C94 = 0x80180C94; // type:func
 
 func_acropolis_cafeteria_8017EA90 = 0x8017EA90; // type:func
+RoomFx_DrawFlashRing = 0x8017FBEC; // type:func
+RoomFx_DrawFlashDisc = 0x80180018; // type:func
+RoomFx_DrawTwinTrail = 0x8018089C; // type:func
+RoomFx_DrawBurstStar = 0x80180F1C; // type:func

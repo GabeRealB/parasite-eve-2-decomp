@@ -57,6 +57,7 @@
 #include "main/wipsys_types.h"
 
 #include "mapui/map_akropolis.h"
+#include "../../shared/room_visual_effects.h"
 
 extern AnimationSet* D_acropolis_cafeteria_80182C60[4];
 
@@ -536,11 +537,7 @@ TmdSource D_acropolis_cafeteria_80184E5C = {
     D_acropolis_cafeteria_80184D98,
 };
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-SVECTOR D_acropolis_cafeteria_80184E80[2] = {
-    { 0, 190, -15, 0 },
-    { 0, 1085, 180, 0 },
-};
+#include "../../shared/room_visual_effects_trail_data.inc.c"
 
 TmdBone D_acropolis_cafeteria_80184E90[1] = {
 #include "assets/acropolis_cafeteria_model_08304_skeleton.inc"

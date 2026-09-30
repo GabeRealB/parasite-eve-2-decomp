@@ -27,9 +27,6 @@ extern GpMsgEntry D_acropolis_cafeteria_80184CEC[2];
 
 extern s32 D_acropolis_cafeteria_80184CFC;
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-extern SVECTOR D_acropolis_cafeteria_80184E80[2];
-
 extern GpPointLight D_acropolis_cafeteria_80189E24[15];
 
 extern GpRoomCoordSet D_acropolis_cafeteria_8018AA18[1];
