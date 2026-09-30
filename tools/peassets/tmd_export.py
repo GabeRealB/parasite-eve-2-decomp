@@ -205,12 +205,17 @@ def packages_for(family: str) -> list[tuple[str, Path, int]]:
     if family not in manifest:
         raise SystemExit(f"unknown family {family!r}; have {', '.join(manifest)}")
     spec = manifest[family]
+    slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
     out = []
-    for name in sorted(spec["overlays"]):
-        path = PACKAGE_DIR / f"{name}.pe2pkg"
-        if path.is_file():
-            out.append((name, path, spec["load_addr"]))
-    return out
+    # An entry built into several packages names its source, not a package;
+    # its packages are its slots, each loaded at its slot's address.
+    for key, entry in sorted(spec["overlays"].items()):
+        for slot in entry.get("slots") or [{"package": key, "slot": entry.get("slot")}]:
+            name = str(slot["package"])
+            path = PACKAGE_DIR / f"{name}.pe2pkg"
+            if path.is_file():
+                out.append((name, path, slot_addr.get(slot.get("slot"), int(spec["load_addr"]))))
+    return sorted(out)
 
 
 def main() -> int:
