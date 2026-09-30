@@ -10,7 +10,7 @@ D_shelter_b4_lower_sewer_80181E70 = 0x80181E70; // size:0xC defined:True
 D_shelter_b4_lower_sewer_80181FA4 = 0x80181FA4; // size:0x4 defined:True
 D_shelter_b4_lower_sewer_80181FA8 = 0x80181FA8; // size:0x2 defined:True
 D_shelter_b4_lower_sewer_80181FAC = 0x80181FAC; // size:0xE0 defined:True
-D_shelter_b4_lower_sewer_80181F94 = 0x80181F94; // size:0x10 defined:True
+RoomFx_TrailOffsets = 0x80181F94; // size:0x10 defined:True
 D_shelter_b4_lower_sewer_8018208C = 0x8018208C; // size:0x40 defined:True
 D_shelter_b4_lower_sewer_801820CC = 0x801820CC; // size:0x40 defined:True
 D_shelter_b4_lower_sewer_8018210C = 0x8018210C; // size:0x10 defined:True
@@ -82,3 +82,7 @@ func_shelter_b4_lower_sewer_8017EEE4 = 0x8017EEE4; // type:func
 func_shelter_b4_lower_sewer_8017F36C = 0x8017F36C; // type:func
 
 func_shelter_b4_lower_sewer_8017E400 = 0x8017E400; // type:func
+RoomFx_DrawFlashRing = 0x80180154; // type:func
+RoomFx_DrawFlashDisc = 0x80180580; // type:func
+RoomFx_DrawTwinTrail = 0x80180E04; // type:func
+RoomFx_DrawBurstStar = 0x80181484; // type:func
