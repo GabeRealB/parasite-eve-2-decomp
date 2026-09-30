@@ -47,6 +47,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
 extern SVECTOR D_shelter_b4_lower_sewer_80181EA4[];

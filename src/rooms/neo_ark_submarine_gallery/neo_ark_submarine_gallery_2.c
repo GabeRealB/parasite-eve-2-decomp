@@ -48,6 +48,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
 #define D_neo_ark_submarine_gallery_801818D8 (D_neo_ark_submarine_gallery_801818C8 + 2)

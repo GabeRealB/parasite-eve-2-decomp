@@ -63,6 +63,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 #define ROOM_EVENT_LATCHED gRoomEventLatched.value
 #define ROOM_DEPARTURE     gRoomDeparture.value

@@ -39,6 +39,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 #include "../../shared/falling_leaves.h"
 

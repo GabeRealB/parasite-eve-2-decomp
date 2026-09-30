@@ -36,6 +36,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
 /// Offsets from the parent coordinate of the two points whose trails

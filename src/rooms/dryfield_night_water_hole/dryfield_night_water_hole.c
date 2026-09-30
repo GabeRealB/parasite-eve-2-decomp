@@ -60,6 +60,7 @@
 
 #include "rooms/room.h"
 #include "../../shared/glow_draw.h"
+#define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
