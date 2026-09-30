@@ -2331,7 +2331,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", rodata = "0x4", text = "0x48", data = "0x2D24" },
   { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_2", rodata = "0x10", text = "0x320", data = "0x2F8C" },
-  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", rodata = "0x34", text = "0x111C" },
+  { unit = "shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters_3", rodata = "0x34", text = "0x111C", data = "0x308C" },
   { kind = "model", at = "0x2D24", in_c = true },
   { kind = "modelSource", at = "0x2F34", in_c = true },
   { kind = "collision", at = "0x3110", in_c = true },
