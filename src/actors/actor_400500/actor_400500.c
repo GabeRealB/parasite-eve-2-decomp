@@ -1851,11 +1851,11 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
             poly           = gGpuPrimCursor;
             gGpuPrimCursor = poly + 1;
             setlen(poly, 9);
-            poly->code            = 0x2E;
-            PRIM_XY_WORD(poly, 0) = screen0;
-            PRIM_XY_WORD(poly, 1) = screen1;
-            PRIM_XY_WORD(poly, 2) = screen2;
-            PRIM_XY_WORD(poly, 3) = screen3;
+            poly->code                     = 0x2E;
+            GPU_PRIMITIVE_XY_WORD(poly, 0) = screen0;
+            GPU_PRIMITIVE_XY_WORD(poly, 1) = screen1;
+            GPU_PRIMITIVE_XY_WORD(poly, 2) = screen2;
+            GPU_PRIMITIVE_XY_WORD(poly, 3) = screen3;
             setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
             poly->tpage = 0x48;
             poly->clut  = 0x4283;

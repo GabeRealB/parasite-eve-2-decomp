@@ -3037,10 +3037,10 @@ void Gp_DrawFloorQuad(GfxCoord* arg0, u32 arg1, SVECTOR* arg2)
         gGpuPrimCursor = prim + 1;
         setlen(prim, 9);
         setcode(prim, 0x2E);
-        PRIM_XY_WORD(prim, 0) = *(u32*)&block->sxy0;
-        PRIM_XY_WORD(prim, 1) = *(u32*)&block->sxy1;
-        PRIM_XY_WORD(prim, 2) = *(u32*)&block->sxy2;
-        PRIM_XY_WORD(prim, 3) = *(u32*)&block->sxy3;
+        GPU_PRIMITIVE_XY_WORD(prim, 0) = *(u32*)&block->sxy0;
+        GPU_PRIMITIVE_XY_WORD(prim, 1) = *(u32*)&block->sxy1;
+        GPU_PRIMITIVE_XY_WORD(prim, 2) = *(u32*)&block->sxy2;
+        GPU_PRIMITIVE_XY_WORD(prim, 3) = *(u32*)&block->sxy3;
         setUV4(prim, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
         prim->tpage = 0x48;
         prim->g0    = 0xC0;

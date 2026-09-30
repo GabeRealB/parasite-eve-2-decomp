@@ -1094,11 +1094,11 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
                 poly->y2 = y + 0x10;
                 func_actor_403600_8013289C((s32)poly, 2, (Actor403600GridVertex*)&scratch->offset, fade);
             } else {
-                previous              = poly - 1;
-                PRIM_XY_WORD(poly, 2) = PRIM_XY_WORD(previous, 3);
-                poly->u2              = previous->u3;
-                poly->v2              = previous->v3;
-                poly->page2           = previous->page3;
+                previous                       = poly - 1;
+                GPU_PRIMITIVE_XY_WORD(poly, 2) = GPU_PRIMITIVE_XY_WORD(previous, 3);
+                poly->u2                       = previous->u3;
+                poly->v2                       = previous->v3;
+                poly->page2                    = previous->page3;
             }
             if (y == -0x78) {
                 if (x == -0xA0) {
@@ -1106,25 +1106,25 @@ static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* arg1, Actor4
                     poly->y0 = y;
                     func_actor_403600_8013289C((s32)poly, 0, (Actor403600GridVertex*)&scratch->offset, fade);
                 } else {
-                    previous              = poly - 1;
-                    PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(previous, 1);
-                    poly->u0              = previous->u1;
-                    poly->v0              = previous->v1;
-                    poly->page0           = previous->page1;
+                    previous                       = poly - 1;
+                    GPU_PRIMITIVE_XY_WORD(poly, 0) = GPU_PRIMITIVE_XY_WORD(previous, 1);
+                    poly->u0                       = previous->u1;
+                    poly->v0                       = previous->v1;
+                    poly->page0                    = previous->page1;
                 }
                 poly->x1 = x + 0x10;
                 poly->y1 = y;
                 func_actor_403600_8013289C((s32)poly, 1, (Actor403600GridVertex*)&scratch->offset, fade);
             } else {
-                above                 = poly - 20;
-                PRIM_XY_WORD(poly, 0) = PRIM_XY_WORD(above, 2);
-                poly->u0              = above->u2;
-                poly->v0              = above->v2;
-                poly->page0           = above->page2;
-                PRIM_XY_WORD(poly, 1) = PRIM_XY_WORD(above, 3);
-                poly->u1              = above->u3;
-                poly->v1              = above->v3;
-                poly->page1           = above->page3;
+                above                          = poly - 20;
+                GPU_PRIMITIVE_XY_WORD(poly, 0) = GPU_PRIMITIVE_XY_WORD(above, 2);
+                poly->u0                       = above->u2;
+                poly->v0                       = above->v2;
+                poly->page0                    = above->page2;
+                GPU_PRIMITIVE_XY_WORD(poly, 1) = GPU_PRIMITIVE_XY_WORD(above, 3);
+                poly->u1                       = above->u3;
+                poly->v1                       = above->v3;
+                poly->page1                    = above->page3;
             }
             poly->x3 = x + 0x10;
             poly->y3 = y + 0x10;
@@ -1994,12 +1994,12 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             gte_gpf12();
             gte_stsv(vec);
 
-            PRIM_XY_WORD(poly, 0) = scratch->sxy;
-            oldY                  = poly->y0;
-            projectedX            = scratch->vec.vx + 0xA0;
-            screenX               = (s16)poly->x0 + projectedX;
-            projectedY            = scratch->vec.vy + 0x78;
-            screenY               = (s16)poly->y0 + projectedY;
+            GPU_PRIMITIVE_XY_WORD(poly, 0) = scratch->sxy;
+            oldY                           = poly->y0;
+            projectedX                     = scratch->vec.vx + 0xA0;
+            screenX                        = (s16)poly->x0 + projectedX;
+            projectedY                     = scratch->vec.vy + 0x78;
+            screenY                        = (s16)poly->y0 + projectedY;
             if (screenY >= screenH) {
                 poly->y0 = oldY + (screenH - 1) - screenY;
                 screenY  = screenH - 1;
@@ -2032,27 +2032,27 @@ static void func_actor_403600_801353D0(ActorEffectState* arg0, GfxCoord* arg1)
             }
             previous = poly - 1;
             if (i != 0) {
-                PRIM_XY_WORD(previous, 1) = PRIM_XY_WORD(poly, 0);
-                previous->u1              = poly->u0;
+                GPU_PRIMITIVE_XY_WORD(previous, 1) = GPU_PRIMITIVE_XY_WORD(poly, 0);
+                previous->u1                       = poly->u0;
                 do {
                     previous->v1    = poly->v0;
                     previous->page1 = poly->page0;
                     if (j != 0) {
-                        mirrorXY = PRIM_XY_WORD(previous, 0);
+                        mirrorXY = GPU_PRIMITIVE_XY_WORD(previous, 0);
                         mirror   = poly - 17;
                     } else {
-                        mirrorXY = PRIM_XY_WORD(previous, 0);
+                        mirrorXY = GPU_PRIMITIVE_XY_WORD(previous, 0);
                         mirror   = poly + 175;
                     }
-                    PRIM_XY_WORD(mirror, 2) = mirrorXY;
-                    mirror->u2              = previous->u0;
+                    GPU_PRIMITIVE_XY_WORD(mirror, 2) = mirrorXY;
+                    mirror->u2                       = previous->u0;
                 } while (0);
-                mirror->v2              = previous->v0;
-                mirror->page2           = previous->page0;
-                PRIM_XY_WORD(mirror, 3) = PRIM_XY_WORD(previous, 1);
-                mirror->u3              = previous->u1;
-                mirror->v3              = previous->v1;
-                mirror->page3           = previous->page1;
+                mirror->v2                       = previous->v0;
+                mirror->page2                    = previous->page0;
+                GPU_PRIMITIVE_XY_WORD(mirror, 3) = GPU_PRIMITIVE_XY_WORD(previous, 1);
+                mirror->u3                       = previous->u1;
+                mirror->v3                       = previous->v1;
+                mirror->page3                    = previous->page1;
             }
             height++;
             radiusOffset += 4;
@@ -2391,9 +2391,9 @@ static u32* func_actor_403600_80136500(TmdStreamWorkspace* arg0, s32 arg1, u32* 
         ds          = &gDisplayState;
         do {
             rec = (u16*)arg2;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
@@ -2609,15 +2609,15 @@ static u32* func_actor_403600_80136C00(TmdStreamWorkspace* arg0, s32 arg1, u32* 
         ds          = &gDisplayState;
         do {
             rec = (u16*)arg2;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 3));
             gte_nclip();
             gte_stopz(opz);
             if (arg0->gteResult < 0) {

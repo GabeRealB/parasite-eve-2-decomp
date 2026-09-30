@@ -1078,13 +1078,13 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
                     setlen(poly, 5);
                     setcode(poly, 0x2A);
-                    PRIM_XY_WORD(poly, 0) = sxy0;
-                    PRIM_XY_WORD(poly, 1) = sxy1;
-                    PRIM_XY_WORD(poly, 2) = sxy2;
-                    PRIM_XY_WORD(poly, 3) = sxy3;
-                    poly->r0              = 0;
-                    poly->g0              = c >> 2;
-                    poly->b0              = c;
+                    GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
+                    GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
+                    GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
+                    GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
+                    poly->r0                       = 0;
+                    poly->g0                       = c >> 2;
+                    poly->b0                       = c;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             poly);
                     dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;
@@ -1121,13 +1121,13 @@ static void func_shelter_b4_upper_sewer_8017DD98(Task* task, ShelterB4UpperSewer
                     D_shelter_b4_upper_sewer_80188D30 = (u8*)(poly + 1);
                     setlen(poly, 5);
                     setcode(poly, 0x2A);
-                    PRIM_XY_WORD(poly, 0) = sxy0;
-                    PRIM_XY_WORD(poly, 1) = sxy1;
-                    PRIM_XY_WORD(poly, 2) = sxy2;
-                    PRIM_XY_WORD(poly, 3) = sxy3;
-                    poly->r0              = 0;
-                    poly->g0              = c >> 2;
-                    poly->b0              = c;
+                    GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
+                    GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
+                    GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
+                    GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
+                    poly->r0                       = 0;
+                    poly->g0                       = c >> 2;
+                    poly->b0                       = c;
                     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 0x60) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                             poly);
                     dr                                = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;

@@ -3852,8 +3852,8 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
             if (i != 1) {
                 POLY_FT4* prev = prim - 1;
 
-                PRIM_XY_WORD(prim, 0) = PRIM_XY_WORD(prev, 2);
-                PRIM_XY_WORD(prim, 1) = PRIM_XY_WORD(prev, 3);
+                GPU_PRIMITIVE_XY_WORD(prim, 0) = GPU_PRIMITIVE_XY_WORD(prev, 2);
+                GPU_PRIMITIVE_XY_WORD(prim, 1) = GPU_PRIMITIVE_XY_WORD(prev, 3);
             } else {
                 prim->x0 = scratch->prevSxy.v.vx + scratch->normal.vx;
                 prim->y0 = scratch->prevSxy.v.vy + scratch->normal.vy;

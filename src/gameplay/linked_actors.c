@@ -152,8 +152,8 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
     prim                              = gGpuPrimCursor;
     gGpuPrimCursor                    = prim + 1;
     GPU_PRIMITIVE_COLOR_WORD(prim, 0) = PRIM_RGBC(0, 0xc0, 0x40, 0);
-    PRIM_XY_WORD(prim, 0)             = *(u32*)&sc->sxyPrev;
-    PRIM_XY_WORD(prim, 1)             = *(u32*)&sc->sxy;
+    GPU_PRIMITIVE_XY_WORD(prim, 0)    = *(u32*)&sc->sxyPrev;
+    GPU_PRIMITIVE_XY_WORD(prim, 1)    = *(u32*)&sc->sxy;
     setlen(prim, 3);
     setcode(prim, 0x40);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),

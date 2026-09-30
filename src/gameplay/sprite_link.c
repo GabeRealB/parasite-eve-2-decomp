@@ -125,10 +125,10 @@ static void Gp_EmitSprts(SpriteSource* sources, SpriteBatch* batch)
             setcode(&sprt->fields, 0x64);
             dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
             MargePrim(dest, &sprt->fields);
-            sprt->fields.code             |= source->codeFlags;
-            sprt->packed.uv                = source->uv.packed;
-            sprt->fields.clut              = source->clut;
-            PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(source, 0);
+            sprt->fields.code    |= source->codeFlags;
+            sprt->packed.uv       = source->uv.packed;
+            sprt->fields.clut     = source->clut;
+            sprt->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
             i++;
             sprt->packed.size = source->size.packed;
             texturePageSource++;
@@ -245,11 +245,11 @@ void Gp_AllocSprtLists(void)
                 setcode(&dest->sprt.fields, 0x64 | SPRITE_SOURCE_RAW_TEXTURE);
                 dest->tpage.code[0] = 0xE1000000 | (tpage & SPRITE_SOURCE_TEXTURE_PAGE_MASK);
                 MargePrim(dest, &sprt->fields);
-                sprt->fields.code             |= source->codeFlags;
-                sprt->packed.uv                = source->uv.packed;
-                sprt->fields.clut              = source->clut;
-                PRIM_XY_WORD(&sprt->fields, 0) = PRIM_XY_WORD(source, 0);
-                sprt->packed.size              = source->size.packed;
+                sprt->fields.code    |= source->codeFlags;
+                sprt->packed.uv       = source->uv.packed;
+                sprt->fields.clut     = source->clut;
+                sprt->packed.position = GPU_PRIMITIVE_XY_WORD(source, 0);
+                sprt->packed.size     = source->size.packed;
                 source++;
                 buf[bufIdx]++;
             }

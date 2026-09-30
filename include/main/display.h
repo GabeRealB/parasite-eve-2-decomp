@@ -75,9 +75,22 @@ enum { GPU_DMA_LINK_ADDRESS_MASK  = 0xFFFFFF,
 /// This accessor captures no identifiers and does not allocate or retain storage.
 #define GPU_PRIMITIVE_COLOR_WORD(primitive, vertexIndex) (*(u32*)&((primitive)->r##vertexIndex))
 
-/// Vertex `n`'s position word: `xn` in the low half, `yn` in the high half, the
-/// layout the GTE stores a projected point in.
-#define PRIM_XY_WORD(p, n) (*(u32*)&(p)->x##n)
+/// A writable `u32` view of one vertex's packed screen coordinates.
+///
+/// On PlayStation, bits 0..15 hold signed `xN` and bits 16..31 hold signed
+/// `yN`, in pixels. That is the word a GTE screen-XY register holds and the
+/// word `RotTransPers4` returns. Compatible sprite source records use the same
+/// `x0`/`y0` pair for the rectangle origin. Reads and writes include both
+/// halves, so a projected point moves as one word.
+///
+/// `primitive` is evaluated once and must point to a mutable record whose
+/// selected `xN` is immediately followed by `yN` and begins on a four-byte
+/// boundary. `vertexIndex` is a literal suffix token pasted onto `x`, not a
+/// runtime index or an expanded macro: use only a coordinate pair present in
+/// the record (0 for a sprite, 0..1 for a two-point line, 0..2 for a triangle,
+/// 0..3 for a quad).
+/// This accessor captures no identifiers and does not allocate or retain storage.
+#define GPU_PRIMITIVE_XY_WORD(primitive, vertexIndex) (*(u32*)&((primitive)->x##vertexIndex))
 
 /// A colour word from its bytes; `code` is the primitive code for vertex 0 and
 /// 0 for the other vertices.

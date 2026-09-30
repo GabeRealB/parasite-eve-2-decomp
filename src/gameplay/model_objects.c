@@ -526,15 +526,15 @@ u32* gpDrawStreamPrimF4PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 3));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {
@@ -591,9 +591,9 @@ u32* gpDrawStreamPrimF3PreXform(TmdStreamWorkspace* ws, s32 flags, u32* stream)
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {
@@ -652,9 +652,9 @@ u32* gpDrawStreamPrimGt3PreXformFixedLayer(TmdStreamWorkspace* ws, s32 flags, u3
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
@@ -740,16 +740,16 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* st
         ds       = &gDisplayState;
         do {
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(poly, 0));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 1));
-            gte_ldSXYP(PRIM_XY_WORD(poly, 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 2));
             gte_nclip();
             gte_stopz(opz);
-            gte_ldSXYP(PRIM_XY_WORD(poly, 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(poly, 3));
             gte_nclip();
             if (ws->gteResult <= 0) {
-                PRIM_XY_WORD(poly, 0)     = PRIM_XY_WORD(poly, 1);
-                PRIM_XY_WORD(&poly[1], 0) = PRIM_XY_WORD(&poly[1], 1);
+                GPU_PRIMITIVE_XY_WORD(poly, 0)     = GPU_PRIMITIVE_XY_WORD(poly, 1);
+                GPU_PRIMITIVE_XY_WORD(&poly[1], 0) = GPU_PRIMITIVE_XY_WORD(&poly[1], 1);
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
                     goto next;
@@ -757,8 +757,8 @@ u32* gpDrawStreamPrimGt4PreXformLayer(TmdStreamWorkspace* ws, s32 flags, u32* st
             } else {
                 gte_stopz(opz);
                 if (ws->gteResult >= 0) {
-                    PRIM_XY_WORD(poly, 3)     = PRIM_XY_WORD(poly, 2);
-                    PRIM_XY_WORD(&poly[1], 3) = PRIM_XY_WORD(&poly[1], 2);
+                    GPU_PRIMITIVE_XY_WORD(poly, 3)     = GPU_PRIMITIVE_XY_WORD(poly, 2);
+                    GPU_PRIMITIVE_XY_WORD(&poly[1], 3) = GPU_PRIMITIVE_XY_WORD(&poly[1], 2);
                 }
             }
             szTable = ws->szTable;
@@ -846,9 +846,9 @@ u32* gpDrawStreamPrimGt3PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u
         do {
             xy  = poly + 1;
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
@@ -910,15 +910,15 @@ u32* gpDrawStreamPrimGt4PreXformOffsetLayer(TmdStreamWorkspace* ws, s32 flags, u
         do {
             xy  = poly + 1;
             rec = (u16*)stream;
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 0));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 1));
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 2));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 0));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 1));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 2));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult > 0) {
                 goto draw;
             }
-            gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
+            gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 3));
             gte_nclip();
             gte_stopz(opz);
             if (ws->gteResult < 0) {

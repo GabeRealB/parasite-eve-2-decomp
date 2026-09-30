@@ -35704,7 +35704,7 @@ displacement in decimal (`-32`, `-20`, `-8`).
 The paired-GT3 OT linker keeps packet length `9` in `$t6` and GPU code `0x34`
 in `$t7` across the loop, so the SXY fifo load's temporary lands in `$24`
 (`$t8`). This used to be forced with fixed-register asm macros; it is not
-needed. Each corner is `gte_ldSXYP(PRIM_XY_WORD(&xy[-1], n))` (a single
+needed. Each corner is `gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], n))` (a single
 `mtc2 %0, $15`, `include/decomp/gte.h`), and the allocator picks `$t8` itself:
 
 ```
@@ -35730,7 +35730,7 @@ nclip with `gpDrawStreamPrimGt3PreXformOffsetLayer`'s dual-packet OT insert:
 if (ws->gteResult > 0) {
     goto draw;
 }
-gte_ldSXYP(PRIM_XY_WORD(&xy[-1], 3));
+gte_ldSXYP(GPU_PRIMITIVE_XY_WORD(&xy[-1], 3));
 gte_nclip();
 gte_stopz(opz);
 if (ws->gteResult < 0) {
