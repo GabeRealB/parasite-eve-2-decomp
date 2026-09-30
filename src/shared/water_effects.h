@@ -3,20 +3,16 @@
  * other display buffer through a sine wave - a distortion band and a
  * refraction ripple - for water holes, sewers and the Neo Ark pools.
  *
- * Include this header in the prologue and each water_<name>.inc.c at the
- * position of that function; a package includes only the ones it carries. The
- * ripple and drift tasks are static inline: gameplay's room effect
- * tables name each room's copy, so a room keeps its own entry point, which
- * calls the task.
+ * Include this header once, in the room prologue, and include each
+ * water_<name>.inc.c at the position of that function. A package includes
+ * only the fragments it carries. The ripple and drift tasks are static
+ * inline: gameplay's room-effect tables name each room's copy, so a room
+ * keeps its own entry point, which calls the task.
  *
- * waterDriftTaskU16 is a second version of the drift task that passes the
- * sprite index to its drawers unsigned; waterDrawSpinU16 and waterDrawTileU16
- * are its drawers. A room that uses the shared drawers defines
- * WATER_SHARED_U16_DRAWERS before including this header, which is what
- * declares them. A room whose drift uses other sprites defines those two
- * itself, with its own prototypes, and defines WATER_OWN_U16_DRAWERS before
- * including this header. The name is each room's own function, so a file that
- * only uses the other water tasks does not declare the drawers.
+ * waterDriftTaskU16 feeds its drawers an unsigned 16-bit sprite index.
+ * waterDrawSpinU16 and waterDrawTileU16 are those drawers. The flags below
+ * choose whether this header declares the shared drawers or the room supplies
+ * its own prototypes. The bodies stay in their own includes.
  */
 
 #ifndef SRC_SHARED_WATER_EFFECTS_H
@@ -28,6 +24,16 @@
 void waterDrawSplash(GfxCoord* arg0, s32 arg1, s32 arg2);
 void waterDrawSpin(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void waterDrawTile(GfxCoord* arg0, s16 arg1, s16 arg2);
+/* WATER_SHARED_U16_DRAWERS is an empty presence flag. The including file
+ * defines it, with no replacement list, before this header. defined() is the
+ * only test. With WATER_OWN_U16_DRAWERS unset, the flag declares the shared
+ * drawers below. The signatures match water_spin_u16.inc.c and
+ * water_tile_u16.inc.c: s32 parameters, and each body keeps the low 16 bits
+ * of the sprite index. The including file includes those two bodies.
+ * WATER_OWN_U16_DRAWERS selects the room-local drawers, and that file supplies
+ * its own prototypes and bodies. Defining neither flag leaves these two
+ * prototypes out of this header.
+ */
 #if defined(WATER_SHARED_U16_DRAWERS) && !defined(WATER_OWN_U16_DRAWERS)
 void waterDrawSpinU16(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 void waterDrawTileU16(GfxCoord* arg0, s32 arg1, s32 arg2);

@@ -23,6 +23,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+/// Empty presence flag so `water_effects.h` declares the shared
+/// `waterDrawSpinU16` and `waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
 #include "../../shared/water_effects.h"
 
