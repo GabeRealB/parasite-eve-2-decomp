@@ -1231,20 +1231,20 @@ static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
         Gp_DestroyEnemy(enemy, task);
         return;
     }
-    task->exitCallback           = func_actor_143900_80132404;
-    coord->parent                = &gGfxViewCoord;
-    enemy->field_4               = &coord->coord;
-    enemy->field_48              = 0;
-    enemy->node.state.b.targeted = 0;
-    enemy->node.state.b.flags    = 1;
-    obj->otOffset                = 1;
-    obj->flags                   = 0;
-    obj->lightMtx                = &gScriptedWalkWork->light;
-    obj->colorMtx                = &gScriptedWalkWork->color;
-    vec.vx                       = coord->workm.t[0];
-    vec.vy                       = coord->workm.t[1] - 0x320;
-    D_actor_143900_801496BC      = task;
-    vec.vz                       = coord->workm.t[2];
+    task->exitCallback               = func_actor_143900_80132404;
+    coord->parent                    = &gGfxViewCoord;
+    enemy->field_4                   = &coord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    obj->otOffset                    = 1;
+    obj->flags                       = 0;
+    obj->lightMtx                    = &gScriptedWalkWork->light;
+    obj->colorMtx                    = &gScriptedWalkWork->color;
+    vec.vx                           = coord->workm.t[0];
+    vec.vy                           = coord->workm.t[1] - 0x320;
+    D_actor_143900_801496BC          = task;
+    vec.vz                           = coord->workm.t[2];
     func_800D7A9C(obj, &vec, 0, 3);
     func_800B3F84(&gScriptedWalkWork->rig.anim, D_actor_143900_801413F8, obj,
                   &gScriptedWalkWork->rig.poses, gScriptedWalkWork->rig.slots);

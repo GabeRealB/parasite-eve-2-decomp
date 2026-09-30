@@ -3040,7 +3040,7 @@ static void Actor00300_Fn04370(GpEnemy* arg0, Task* arg1)
             coord->coord.t[2]  += (coord->coord.m[2][2] * 0x19) >> 8;
             Gp_UpdateCoord(coord);
             fireballDrawGlow(coord, 0x200);
-            id = work->field_70.key.value;
+            id = work->rec70.key.value;
             if (id != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
                                              [gGameSession->location.loc.area - 1][func_800E1B24(id)]
                                                  ->field_1 == 0) {

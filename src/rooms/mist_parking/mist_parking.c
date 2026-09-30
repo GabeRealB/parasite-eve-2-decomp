@@ -1016,9 +1016,9 @@ s32 func_mist_parking_801823F8(s32 arg0, s32 arg1, s32 arg2)
             D_mist_parking_8019533C.field_10 = 0x5113000B;
             D_mist_parking_8019533C.field_C  = 0x51130012;
             Task_SpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
-            session                           = gGameSession;
-            Mc_SaveData[0].state.at4.loc.warp = 2;
-            session->location.loc.warp        = 2;
+            session                                = gGameSession;
+            Mc_SaveData[0].state.location.loc.warp = 2;
+            session->location.loc.warp             = 2;
             break;
         case 18:
             Gp_MsgPlayerWeapon(0);
