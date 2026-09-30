@@ -35,6 +35,7 @@
 
 #include "rooms/shelter_b1_control_room.h"
 #include "../../shared/walker.h"
+#include "../../shared/pair_walk.h"
 
 extern TaskDesc D_actor_150400_80132CF0;
 extern Task*    D_actor_150400_8013C924;
@@ -59,21 +60,13 @@ extern Actor150400MsgEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
-static void func_actor_150400_80132228(Task* task);
 static void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
 static void func_actor_150400_801324B8(Task* task);
-static void func_actor_150400_8013257C(Task* task);
-static void func_actor_150400_801325C8(Task* task);
-static void func_actor_150400_80132640(Task* task);
 
 extern TmdSource D_actor_150400_80139A64;
 extern TmdSource D_actor_150400_8013C8A0;
 void             func_actor_150400_801323E0(Task*);
-void             func_actor_150400_801328BC(Task*);
 
-s32 func_actor_150400_801326A4(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_150400_80132710(Task*, s32, s32);
-s32 func_actor_150400_80132774(Task*, s32, ActorTransform* placement);
 s32 func_actor_150400_801327EC(void);
 s32 func_actor_150400_801327F4(Task*, s32, ActorTransform* target);
 
@@ -336,9 +329,9 @@ TmdSource D_actor_150400_8013C8A0 = {
 };
 
 Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
-    { 2003, { .call1 = func_actor_150400_801326A4 } },
-    { 2005, { .call3 = func_actor_150400_80132710 } },
-    { 2004, { .call2 = func_actor_150400_80132774 } },
+    { 2003, { .call1 = pairWalkPlay } },
+    { 2005, { .call3 = pairWalkSetVisibility } },
+    { 2004, { .call2 = pairWalkPlace } },
     { 2011, { .call0 = func_actor_150400_801327EC } },
     { 2013, { .call2 = func_actor_150400_801327F4 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -346,7 +339,7 @@ Actor150400MsgEntry D_actor_150400_8013C8C4[6] = {
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
     { TASK_BODY_TMD, 96, func_actor_150400_801323E0, { .model = &D_actor_150400_80139A64 } },
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_150400_801328BC, { .model = &D_actor_150400_8013C8A0 } },
+    { (TASK_BODY_TMD | 0x100), 96, pairWalkSubModelTask, { .model = &D_actor_150400_8013C8A0 } },
 };
 
 u8 D_actor_150400_8013C90C[24] = {
@@ -458,7 +451,7 @@ static void func_actor_150400_80131FB8(void)
 /// State-0 handler of the actor's task: allocates the work block, starts the
 /// sub-model task and parents it under this one, textures the sub-model from
 /// the placement record of the current area, then starts the animation in
-/// state 2 and runs the step body `func_actor_150400_80132228` once.
+/// state 2 and runs the step body `pairWalkUpdate` once.
 static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
@@ -498,49 +491,11 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = 2;
     task->msgTable  = D_actor_150400_8013C8C4;
-    func_actor_150400_80132228(task);
+    pairWalkUpdate(task);
     task->state++;
 }
 
-/// Step body of the actor's animation state machine. States 1 and 2 reseed the
-/// animation slots (with and without `animArg`) and advance to state 3; state 3
-/// walks the root coordinate 0x11 units per frame while clip 4 has `travel`
-/// left, dropping back to clip 1 with argument 0xA when it runs out, then ticks
-/// the slots.
-static void func_actor_150400_80132228(Task* task)
-{
-    Actor150400Work* work;
-    s16              animId;
-
-    work = (Actor150400Work*)task->work;
-    if (work->st.state == 1) {
-        func_actor_150400_80132640(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        func_actor_150400_801325C8(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        // The loop-end note ends cse's first block here, so the pause check
-        // loads its own 1 instead of reusing the state test's.
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveForward(task->extra.tmd->coords, 0x11);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        func_actor_150400_8013257C(task);
-        return;
-    }
-}
+#include "../../shared/pair_walk_update.inc.c"
 
 /// Per-frame callback of the actor's task: runs the state's handler, the spawn
 /// handler `func_actor_150400_80132014` in state 0 and the per-frame update
@@ -556,7 +511,7 @@ void func_actor_150400_801323E0(Task* task)
 }
 
 #define walkerFrame      func_actor_150400_80132434
-#define walkerUpdate     func_actor_150400_80132228
+#define walkerUpdate     pairWalkUpdate
 #define walkerDrawShadow walkerDrawShadowShaded
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -572,122 +527,17 @@ static void func_actor_150400_801324B8(Task* task)
 
 #include "../../shared/walker_shadow_shaded.inc.c"
 
-/// Ticks animation slots 1..0x12.
-static void func_actor_150400_8013257C(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_tick_anim.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x13);
-}
+#include "../../shared/pair_walk_reset_anim.inc.c"
 
-/// Resets animation slots 1..0x12 to clip `animId` at rate 1, without a reseed
-/// argument, and records the clip as the applied one.
-static void func_actor_150400_801325C8(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_reseed_anim.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-    }
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/pair_walk_play.inc.c"
 
-/// Reseeds animation slots 1..0x12 with clip `animId` and argument `animArg`,
-/// and records the clip as the applied one.
-static void func_actor_150400_80132640(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_visibility.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x13);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Starts the actor's scripted animation selected by the request.
-///
-/// Rejects ids 6 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_150400_801326A4(Task* task, s32 arg1, AnimationPlayRequest* args)
-{
-    Actor150400Work* work;
-
-    work = (Actor150400Work*)task->work;
-    if (args->animationId < 6) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
-            work->animArg  = args->blendFrames;
-        } else {
-            work->st.state = 2;
-        }
-        work->st.field_6 = 0;
-        func_actor_150400_80132228(task);
-        return 0;
-    }
-    return -1;
-}
-
-/// Script opcode: set the visibility of the actor's model and of its sub-model
-/// (the model of the task in `pairTask`) together. `flags` bit 0 shows both
-/// (`TmdObject::flags` = 0) and its absence hides them (0x80); bit 1
-/// additionally sets bit 0x4 on both.
-s32 func_actor_150400_80132710(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* self;
-    TmdObject* other;
-
-    self  = task->extra.tmd;
-    other = ((Actor150400Work*)task->work)->pairTask->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
-
-/// Script opcode: place the actor. Yaws its root coordinate to
-/// `placement->rot.vy`, caching that yaw in `yaw`, then drops the placement
-/// translation into the matrix and marks it for recomputation.
-s32 func_actor_150400_80132774(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/pair_walk_place.inc.c"
 
 s32 func_actor_150400_801327EC(void)
 {
@@ -717,30 +567,4 @@ s32 func_actor_150400_801327F4(Task* task, s32 arg1, ActorTransform* target)
     return 0;
 }
 
-/// Per-frame callback of the actor's sub-model task, which the spawn handler
-/// parents under the actor's own task. On the first frame it draws the
-/// sub-model under the actor's `light` / `color` matrices and parents its root
-/// coordinate to part 7 of the actor's model, then advances to state 1; from
-/// then on it only marks the coordinate for recomputation each frame.
-void func_actor_150400_801328BC(Task* task)
-{
-    char             pad[0x10];
-    Task*            parent = task->parent;
-    TmdObject*       obj    = task->extra.tmd;
-    GfxCoord*        coord  = obj->coords;
-    GfxCoord*        sub    = &parent->extra.tmd->coords[7];
-    Actor150400Work* work   = (Actor150400Work*)parent->work;
-
-    switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = &work->light;
-            obj->colorMtx       = &work->color;
-            coord->parent       = sub;
-            task->state++;
-            break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            break;
-    }
-}
+#include "../../shared/pair_walk_sub_model.inc.c"

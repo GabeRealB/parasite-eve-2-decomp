@@ -40,6 +40,7 @@
 #include "rooms/shelter_b6_nursery.h"
 #include "../../shared/paced_walk.h"
 #include "../../shared/walker.h"
+#include "../../shared/pair_walk.h"
 
 // The engine copies words across the exported animation bank and its
 // following argument records. Both views cover the complete backing object.
@@ -142,13 +143,9 @@ static void func_actor_450800_80132448(Task* task);
 static void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
-static void func_actor_450800_801330AC(Task* task);
 static void func_actor_450800_801332B8(GpEnemy* enemy, Task* task);
 static void func_actor_450800_8013333C(Task* task);
 static void func_actor_450800_80133364(Task* task);
-static void func_actor_450800_80133400(Task* task);
-static void func_actor_450800_8013344C(Task* task);
-static void func_actor_450800_801334C4(Task* task);
 
 extern TmdSource D_actor_450800_80140604;
 extern TmdSource D_actor_450800_80145148;
@@ -165,13 +162,9 @@ s32 func_actor_450800_80132D74(Task*, s32, VECTOR*, s32);
 
 extern TmdSource D_actor_450800_80150024;
 extern TmdSource D_actor_450800_80150568;
-s32              func_actor_450800_80133528(Task*, s32, AnimationPlayRequest*);
-s32              func_actor_450800_80133594(Task*, s32, s32);
-s32              func_actor_450800_801335F8(Task*, s32, ActorTransform* placement);
 s32              func_actor_450800_80133670(void);
 s32              func_actor_450800_80133678(Task*, s32, VECTOR*);
 void             func_actor_450800_80133264(Task*);
-void             func_actor_450800_80133740(Task*);
 
 extern AnimationPlayRequest D_actor_450800_80139560;
 extern AnimationPlayRequest D_actor_450800_80139628;
@@ -2584,9 +2577,9 @@ AnimationSet D_actor_450800_80153984 = {
 };
 
 Actor450800MsgEntry D_actor_450800_801539AC[6] = {
-    { 2003, { .call1 = func_actor_450800_80133528 } },
-    { 2005, { .call6 = func_actor_450800_80133594 } },
-    { 2004, { .call3 = func_actor_450800_801335F8 } },
+    { 2003, { .call1 = pairWalkPlay } },
+    { 2005, { .call6 = pairWalkSetVisibility } },
+    { 2004, { .call3 = pairWalkPlace } },
     { 2011, { .call0 = func_actor_450800_80133670 } },
     { 2013, { .call4 = func_actor_450800_80133678 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -2594,7 +2587,7 @@ Actor450800MsgEntry D_actor_450800_801539AC[6] = {
 
 TaskDesc D_actor_450800_801539DC[2] = {
     { (TASK_BODY_TMD | 0x100), 96, func_actor_450800_80133264, { .model = &D_actor_450800_80150024 } },
-    { (TASK_BODY_TMD | 0x100), 96, func_actor_450800_80133740, { .model = &D_actor_450800_80150568 } },
+    { (TASK_BODY_TMD | 0x100), 96, pairWalkSubModelTask, { .model = &D_actor_450800_80150568 } },
 };
 
 u8 D_actor_450800_801539F4[24] = {
@@ -3123,7 +3116,7 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// `func_actor_450800_80133264`'s `fns` table. Builds the enemy's `Actor150400Work` block,
 /// spawns its own model task out of the same `D_actor_450800_801539DC` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
-/// machine to `func_actor_450800_801330AC`.
+/// machine to `pairWalkUpdate`.
 static void func_actor_450800_80132E9C(GpEnemy* enemy, Task* task)
 {
     VECTOR           vec;
@@ -3162,29 +3155,29 @@ static void func_actor_450800_80132E9C(GpEnemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = 2;
     task->msgTable  = D_actor_450800_801539AC;
-    func_actor_450800_801330AC(task);
+    pairWalkUpdate(task);
     task->state++;
 }
 
 /// The enemy's animation state machine, run by its spawn and per-frame
 /// handlers. States 1 and 2 start the clip in `animId` through
-/// `func_actor_450800_801334C4` or `func_actor_450800_8013344C` and advance to
+/// `pairWalkReseedAnim` or `pairWalkResetAnim` and advance to
 /// state 3. State 3 walks the model 12 units a frame while the walk clip (4)
 /// has `travel` left, dropping back to clip 1 with reset argument 0xA when it
 /// runs out, then ticks the slots.
-static void func_actor_450800_801330AC(Task* task)
+void pairWalkUpdate(Task* task)
 {
     Actor150400Work* work;
     s16              animId;
 
     work = (Actor150400Work*)task->work;
     if (work->st.state == 1) {
-        func_actor_450800_801334C4(task);
+        pairWalkReseedAnim(task);
         work->st.state = 3;
         return;
     }
     if (work->st.state == 2) {
-        func_actor_450800_8013344C(task);
+        pairWalkResetAnim(task);
         work->st.state = 3;
         return;
     }
@@ -3200,7 +3193,7 @@ static void func_actor_450800_801330AC(Task* task)
                 work->st.animId = 1;
             }
         }
-        func_actor_450800_80133400(task);
+        pairWalkTickAnim(task);
         return;
     }
 }
@@ -3213,7 +3206,7 @@ void func_actor_450800_80133264(Task* task)
 }
 
 #define walkerFrame      func_actor_450800_801332B8
-#define walkerUpdate     func_actor_450800_801330AC
+#define walkerUpdate     pairWalkUpdate
 #define walkerDrawShadow func_actor_450800_80133364
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -3233,128 +3226,17 @@ static void func_actor_450800_8013333C(Task* task)
 #include "../../shared/walker_shadow_shaded.inc.c"
 #undef walkerDrawShadowShaded
 
-/// Ticks the enemy's animation slots 1..0x12.
-static void func_actor_450800_80133400(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_tick_anim.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x13);
-}
+#include "../../shared/pair_walk_reset_anim.inc.c"
 
-/// Resets the enemy's animation slots 1..0x12 to clip `animId` at rate 1,
-/// without a reset argument, and latches the clip into `appliedAnimId`.
-static void func_actor_450800_8013344C(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_reseed_anim.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-    }
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/pair_walk_play.inc.c"
 
-/// Starts the enemy's animation slots 1..0x12 on clip `animId`, forwarding
-/// `animArg` as the reset argument, and latches the clip into `appliedAnimId`.
-static void func_actor_450800_801334C4(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_visibility.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    for (i = 1; i < 0x13; i++) {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-    }
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Message handler 0x7D3 of `D_actor_450800_801539AC`, the enemy's "start
-/// animation" opcode: `withArg` selects between the two start paths
-/// `func_actor_450800_801330AC` dispatches on, and only the first carries
-/// `animArg`. Returns -1, without touching the work block, when the clip id is
-/// out of range.
-///
-/// The `SOFT_BARRIER()` is a codegen pin, not a semantic one. Without it GCC's
-/// delay-slot pass fills the `beqz` from the fall-through arm (`state = 1`);
-/// the ROM has the *else* arm's `state = 2` there, which the pass only reaches
-/// once an `asm` at the head of the fall-through stops it searching that
-/// thread. See DECOMPILATION_LEARNINGS.md, "An empty asm at the head of the
-/// then-arm moves the delay slot to the else arm".
-s32 func_actor_450800_80133528(Task* task, s32 arg1, AnimationPlayRequest* args)
-{
-    Actor150400Work* work;
-
-    work = (Actor150400Work*)task->work;
-    if (args->animationId < 6) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state = 1;
-            work->animArg  = args->blendFrames;
-        } else {
-            work->st.state = 2;
-        }
-        work->st.field_6 = 0;
-        func_actor_450800_801330AC(task);
-        return 0;
-    }
-    return -1;
-}
-
-/// Message handler 0x7D5 of `D_actor_450800_801539AC`: sets `TmdObject::flags`
-/// on the enemy's own model and on the sub-model task's in `pairTask` at
-/// once. `flags` bit 0 selects 0 rather than 0x80, and bit 1 ORs 4 in.
-s32 func_actor_450800_80133594(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* self;
-    TmdObject* other;
-
-    self  = task->extra.tmd;
-    other = ((Actor150400Work*)task->work)->pairTask->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
-
-/// Message handler 0x7D4 of `D_actor_450800_801539AC`, the enemy's placement
-/// opcode: yaws its root coordinate to `placement->rot.vy`, caching that yaw
-/// in `Actor150400Work::yaw`, then drops the placement translation into
-/// the matrix and marks it dirty.
-s32 func_actor_450800_801335F8(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/pair_walk_place.inc.c"
 
 s32 func_actor_450800_80133670(void)
 {
@@ -3384,31 +3266,4 @@ s32 func_actor_450800_80133678(Task* task, s32 arg1, VECTOR* target)
     return 0;
 }
 
-/// Handler of the enemy's sub-model task, the second entry of
-/// `D_actor_450800_801539DC`, which the enemy's spawn handler reparents under
-/// the enemy's own task. On its first tick it lights the sub-model with the
-/// enemy's `Actor150400Work` matrices and hangs its root coordinate off
-/// part 7 of the enemy's model; after that it only marks the coordinate dirty
-/// each frame so it follows that part.
-void func_actor_450800_80133740(Task* task)
-{
-    char             pad[0x10];
-    Task*            parent = task->parent;
-    TmdObject*       obj    = task->extra.tmd;
-    GfxCoord*        coord  = obj->coords;
-    GfxCoord*        sub    = &parent->extra.tmd->coords[7];
-    Actor150400Work* work   = (Actor150400Work*)parent->work;
-
-    switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = &work->light;
-            obj->colorMtx       = &work->color;
-            coord->parent       = sub;
-            task->state++;
-            break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            break;
-    }
-}
+#include "../../shared/pair_walk_sub_model.inc.c"

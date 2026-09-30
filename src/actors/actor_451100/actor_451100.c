@@ -26,6 +26,7 @@
 #include "main/tmd_types.h"
 #include "../../shared/footstep_walk.h"
 #include "../../shared/walker.h"
+#include "../../shared/pair_walk.h"
 
 // The animation copy spans the bank and its following records.
 // Keep the typed fields and the complete copied word range together.
@@ -87,13 +88,9 @@ static void func_actor_451100_80132330(GpEnemy* enemy, Task* task);
 static void func_actor_451100_801323B4(Task* task);
 static void func_actor_451100_80132428(void);
 static void func_actor_451100_801324B8(void);
-static void func_actor_451100_80132A1C(Task* task);
 static void func_actor_451100_80132C28(GpEnemy* enemy, Task* task);
 static void func_actor_451100_80132CAC(Task* task);
 static void func_actor_451100_80132CD4(Task* task);
-static void func_actor_451100_80132D70(Task* task);
-static void func_actor_451100_80132DBC(Task* task);
-static void func_actor_451100_80132E34(Task* task);
 
 extern TmdSource D_actor_451100_80146060;
 extern TmdSource D_actor_451100_80146318;
@@ -101,8 +98,6 @@ void             func_actor_451100_80132BD4(Task*);
 void             func_actor_451100_801330B0(Task*);
 
 s32 func_actor_451100_80132E98(Task*, s32, AnimationPlayRequest*);
-s32 func_actor_451100_80132F04(Task*, s32, s32);
-s32 func_actor_451100_80132F68(Task*, s32, ActorTransform* placement);
 s32 func_actor_451100_80132FE0(void);
 s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*);
 
@@ -1365,8 +1360,8 @@ AnimationSet D_actor_451100_8014E68C = {
 
 Actor451100MsgEntry D_actor_451100_8014E6B4[6] = {
     { 2003, { .call1 = func_actor_451100_80132E98 } },
-    { 2005, { .call6 = func_actor_451100_80132F04 } },
-    { 2004, { .call3 = func_actor_451100_80132F68 } },
+    { 2005, { .call6 = pairWalkSetVisibility } },
+    { 2004, { .call3 = pairWalkPlace } },
     { 2011, { .call0 = func_actor_451100_80132FE0 } },
     { 2013, { .call4 = func_actor_451100_80132FE8 } },
     { 0x7FFFFFFF, { .call0 = NULL } },
@@ -1737,50 +1732,11 @@ static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
     work->st.animId = 1;
     work->st.state  = 2;
     task->msgTable  = D_actor_451100_8014E6B4;
-    func_actor_451100_80132A1C(task);
+    pairWalkUpdate(task);
     task->state += 1;
 }
 
-/// Step routine of the actor `func_actor_451100_80132BD4` dispatches, run each
-/// frame and by its "start animation" opcode. States 1 and 2 restart the clip
-/// (with and without the reset argument) and advance to 3; state 3 walks the
-/// model 0x11 units a frame while clip 4 plays and `travel` is non-zero,
-/// dropping back to clip 1 with 0xA in `animArg` when the count runs out, then
-/// ticks the animation.
-static void func_actor_451100_80132A1C(Task* task)
-{
-    Actor150400Work* work;
-    s16              animId;
-
-    work = (Actor150400Work*)task->work;
-    if (work->st.state == 1) {
-        func_actor_451100_80132E34(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 2) {
-        func_actor_451100_80132DBC(task);
-        work->st.state = 3;
-        return;
-    }
-    if (work->st.state == 3) {
-        // The loop-end note ends cse's first block here, so the pause check
-        // loads its own 1 instead of reusing the state test's.
-        do {
-        } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            actorMoveModelForward(task, 0x11);
-            work->st.travel = (u16)work->st.travel - 1;
-            if (work->st.travel == 0) {
-                work->animArg   = 0xA;
-                work->st.animId = 1;
-            }
-        }
-        func_actor_451100_80132D70(task);
-        return;
-    }
-}
+#include "../../shared/pair_walk_update.inc.c"
 
 /// Task handler of the actor whose work block lives only on its task, entry 0
 /// of `D_actor_451100_8014E6E4`: runs the handler for the task's state from a
@@ -1797,7 +1753,7 @@ void func_actor_451100_80132BD4(Task* task)
 }
 
 #define walkerFrame      func_actor_451100_80132C28
-#define walkerUpdate     func_actor_451100_80132A1C
+#define walkerUpdate     pairWalkUpdate
 #define walkerDrawShadow func_actor_451100_80132CD4
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1816,51 +1772,11 @@ static void func_actor_451100_80132CAC(Task* task)
 #include "../../shared/walker_shadow_shaded.inc.c"
 #undef walkerDrawShadowShaded
 
-/// Ticks animation slots 1..0x12 of the task's work block.
-static void func_actor_451100_80132D70(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
+#include "../../shared/pair_walk_tick_anim.inc.c"
 
-    work = (Actor150400Work*)task->work;
-    i    = 1;
-    do {
-        Gp_AnimTickIndex(&work->rig.anim, i);
-        i++;
-    } while (i < 0x13);
-}
+#include "../../shared/pair_walk_reset_anim.inc.c"
 
-/// Restarts the animation without a reset argument, the step routine's state
-/// 2: marks animation slots 1..0x12 as reset-pending, reseeds each from the
-/// current animation id and records that id as the one now playing.
-static void func_actor_451100_80132DBC(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
-
-    work = (Actor150400Work*)task->work;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&work->rig.anim, i, work->st.animId);
-    }
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Restarts the animation with `animArg` as the reset argument, the step
-/// routine's state 1, then records the animation id as the one now playing.
-static void func_actor_451100_80132E34(Task* task)
-{
-    Actor150400Work* work;
-    s32              i;
-
-    work = (Actor150400Work*)task->work;
-    i    = 1;
-    do {
-        func_800B4114(&work->rig.anim, i, work->st.animId, 0, work->animArg);
-        i++;
-    } while (i < 0x13);
-    work->st.appliedAnimId = work->st.animId;
-}
+#include "../../shared/pair_walk_reseed_anim.inc.c"
 
 /// Starts the actor's scripted animation selected by the request.
 ///
@@ -1880,60 +1796,15 @@ s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args)
             work->st.state = 2;
         }
         work->st.field_6 = 0;
-        func_actor_451100_80132A1C(task);
+        pairWalkUpdate(task);
         return 0;
     }
     return -1;
 }
 
-/// Message 0x7D5 handler of `D_actor_451100_8014E6B4`: bit 0 of `flags`
-/// clears `TmdObject::flags` on both the actor's model and its `pairTask`'s,
-/// showing them, and its absence sets 0x80, hiding them; bit 1 additionally
-/// ORs in 0x4.
-s32 func_actor_451100_80132F04(Task* task, s32 arg1, s32 flags)
-{
-    TmdObject* self;
-    TmdObject* other;
+#include "../../shared/pair_walk_visibility.inc.c"
 
-    self  = task->extra.tmd;
-    other = ((Actor150400Work*)task->work)->pairTask->extra.tmd;
-
-    if (flags & 1) {
-        self->flags  = 0;
-        other->flags = 0;
-    } else {
-        self->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        other->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-
-    if (flags & 2) {
-        self->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        other->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    }
-    return 0;
-}
-
-/// Message 0x7D4 handler of `D_actor_451100_8014E6B4`, the placement opcode:
-/// yaws the actor's root coordinate to `placement->rot.vy`, caching that yaw
-/// in the work block, then drops the placement translation into the matrix
-/// and marks it dirty.
-s32 func_actor_451100_80132F68(Task* task, s32 arg1, ActorTransform* placement)
-{
-    GfxCoord*        coord;
-    Actor150400Work* work;
-    u16              yaw;
-
-    coord        = task->extra.tmd->coords;
-    work         = (Actor150400Work*)task->work;
-    yaw          = placement->rot.vy;
-    work->st.yaw = yaw;
-    Gfx_RotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    return 0;
-}
+#include "../../shared/pair_walk_place.inc.c"
 
 /// Message 0x7DB handler of `D_actor_451100_8014E6B4`: accepts the message and
 /// does nothing.
