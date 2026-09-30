@@ -20,10 +20,11 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/view_figure.h"
 
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
-extern Actor110300Work* D_actor_110800_80139F10;
+extern Actor110300Work* gViewFigureWork;
 
 /// The actor's own task, stored by the step-0 handler. The message handlers
 /// drive the step dispatcher and the model through it, and
@@ -37,10 +38,10 @@ extern Task* gActorSelfTask;
 extern Task* gActorHelperTask;
 
 /// Spawn descriptor table the step-0 handler spawns the helper task from.
-extern TaskDesc D_actor_110800_80139EDC[];
+extern TaskDesc gViewFigureTasks[];
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
-extern u8 D_actor_110800_80139EF4[];
+extern u8 gViewFigureAnimSets[];
 
 /// Message table published as `Task::msgTable`: the 0x7D3 and 0x7D5 handlers
 /// below and a terminator.
@@ -55,20 +56,12 @@ typedef struct {
 } Actor110800MsgEntry;
 STATIC_ASSERT_SIZEOF(Actor110800MsgEntry, 8);
 
-extern Actor110800MsgEntry D_actor_110800_80139EC4[];
-
-static void func_actor_110800_8013232C(Task* task);
-static void func_actor_110800_80132368(Task* task);
-static void func_actor_110800_801323DC(void);
-static void func_actor_110800_80132424(void);
-static void func_actor_110800_801324AC(void);
+extern Actor110800MsgEntry gViewFigureMessages[];
 
 extern TmdSource D_actor_110800_80137D94;
 extern TmdSource D_actor_110800_80138048;
 void             func_actor_110800_801322A0(Task*);
 void             func_actor_110800_801322FC(Task*);
-
-s32 func_actor_110800_80132524(Task*, s32, AnimationPlayRequest*);
 
 TmdBone D_actor_110800_801325F0[20] = {
 #include "assets/actor_110800_model_05F74_skeleton.inc"
@@ -244,18 +237,18 @@ AnimationSet D_actor_110800_80139E9C = {
     { NULL, D_actor_110800_80139554, NULL, NULL, D_actor_110800_80139680, NULL, NULL, NULL },
 };
 
-Actor110800MsgEntry D_actor_110800_80139EC4[3] = {
-    { 2003, { .call0 = func_actor_110800_80132524 } },
+Actor110800MsgEntry gViewFigureMessages[3] = {
+    { 2003, { .call0 = viewFigurePlayMessage } },
     { 2005, { .call1 = actorMsgSetPairVisibility } },
     { 0x7FFFFFFF, { .call0 = NULL } },
 };
 
-TaskDesc D_actor_110800_80139EDC[2] = {
+TaskDesc gViewFigureTasks[2] = {
     { TASK_BODY_TMD, 192, func_actor_110800_801322A0, { .model = &D_actor_110800_80137D94 } },
     { TASK_BODY_TMD, 192, func_actor_110800_801322FC, { .model = &D_actor_110800_80138048 } },
 };
 
-u8 D_actor_110800_80139EF4[28] = {
+u8 gViewFigureAnimSets[28] = {
     0,
     0,
     0,
@@ -286,61 +279,15 @@ u8 D_actor_110800_80139EF4[28] = {
     0,
 };
 
-Actor110300Work* D_actor_110800_80139F10;
+Actor110300Work* gViewFigureWork;
 
 Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_110800_80131E24(GpEnemy* enemy, Task* task);
 static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task);
 
-/// Step 0 of the `func_actor_110800_801322A0` dispatcher: allocate the work
-/// block, publish it, and hand the model's animation context its slot array.
-///
-/// Every access to the block goes through `D_actor_110800_80139F10` rather
-/// than the `memCalloc` result, which is why the pointer is reloaded at each
-/// use instead of staying in a callee-saved register. The task's message table
-/// becomes the one holding the animation-start and visibility handlers.
-static void func_actor_110800_80131E24(GpEnemy* enemy, Task* task)
-{
-    VECTOR     vec;
-    void*      work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-
-    obj                     = task->extra.tmd;
-    coord                   = obj->coords;
-    work                    = memCalloc(sizeof(Actor110300Work), 0);
-    D_actor_110800_80139F10 = work;
-    task->work              = work;
-    if (work == NULL) {
-        Gp_DestroyEnemy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_110800_8013232C;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    obj->otOffset                    = 0;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-    gActorSelfTask                   = task;
-    gActorHelperTask                 = Task_SpawnFromTable(D_actor_110800_80139EDC, 1, 0, 0);
-    func_800B3F84(&D_actor_110800_80139F10->rig.anim, D_actor_110800_80139EF4, obj,
-                  D_actor_110800_80139F10->rig.poses, D_actor_110800_80139F10->rig.slots);
-    D_actor_110800_80139F10->st.animId = 1;
-    D_actor_110800_80139F10->st.state  = 2;
-    func_actor_110800_80132368(task);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    func_800D7A9C(obj, &vec, 0, 3);
-    D_actor_110800_80139F10->st.field_6++;
-    task->msgTable = D_actor_110800_80139EC4;
-    task->state++;
-}
+#include "../../shared/view_figure_spawn.inc.c"
 
 /// Step 1 of the `func_actor_110800_801322A0` dispatcher, the walk/run
 /// footstep cue:
@@ -373,52 +320,52 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
 
     coord = task->extra.tmd->coords;
     obj   = task->extra.tmd;
-    func_actor_110800_80132368(task);
-    switch ((s16)D_actor_110800_80139F10->st.animId) {
+    viewFigureStepAnim(task);
+    switch ((s16)gViewFigureWork->st.animId) {
         case 4:
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0011, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000D, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000E, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
         case 5:
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D000F, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
-            if ((D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
-                if (D_actor_110800_80139F10->st.field_8 != (D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
+                if (gViewFigureWork->st.field_8 != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
                     SndEvt_EnqueueType6(0x510D0010, 0, 0);
                 }
-                D_actor_110800_80139F10->st.field_8 = D_actor_110800_80139F10->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+                gViewFigureWork->st.field_8 = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             }
             break;
     }
@@ -430,16 +377,16 @@ static void func_actor_110800_80131F9C(GpEnemy* enemy, Task* task)
 
 /// The actor's task entry: a two-state dispatcher whose handler table is built
 /// on the stack. It publishes the task's work block in
-/// `D_actor_110800_80139F10` before calling the handler, which is how the
+/// `gViewFigureWork` before calling the handler, which is how the
 /// overlay's other functions reach the block without the task.
 void func_actor_110800_801322A0(Task* task)
 {
     void (*fns[2])(GpEnemy*, Task*) = {
-        func_actor_110800_80131E24,
+        viewFigureSpawnState,
         func_actor_110800_80131F9C,
     };
 
-    D_actor_110800_80139F10 = task->work;
+    gViewFigureWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -459,90 +406,30 @@ void func_actor_110800_801322FC(Task* arg0)
 
 /// Exit callback the step-0 handler installs: kills the helper task, then
 /// destroys the actor.
-static void func_actor_110800_8013232C(Task* arg0)
+void viewFigureExit(Task* arg0)
 {
     taskKill(gActorHelperTask);
     Gp_DestroyEnemy(arg0->spawnArg2.pointer, arg0);
 }
 
-/// Advances the animation per the work block's `st.state`: step 1 reseeds the
-/// slots through `func_800B4114`, step 2 resets them outright, and either moves
-/// on to step 3, which ticks them. The argument is never read.
-static void func_actor_110800_80132368(Task* task)
-{
-    if (D_actor_110800_80139F10->st.state == 1) {
-        func_actor_110800_801324AC();
-        D_actor_110800_80139F10->st.state = 3;
-        return;
-    }
-    if (D_actor_110800_80139F10->st.state == 2) {
-        func_actor_110800_80132424();
-        D_actor_110800_80139F10->st.state = 3;
-        return;
-    }
-    if (D_actor_110800_80139F10->st.state == 3) {
-        func_actor_110800_801323DC();
-    }
-}
+#include "../../shared/view_figure_step_anim.inc.c"
 
 /// Ticks animation slots 1..0x13 of the work block's animation context.
-static void func_actor_110800_801323DC(void)
+void viewFigureTickAnim(void)
 {
     s32 i;
 
     i = 1;
     do {
-        Gp_AnimTickIndex(&D_actor_110800_80139F10->rig.anim, i);
+        Gp_AnimTickIndex(&gViewFigureWork->rig.anim, i);
         i++;
     } while (i < 0x14);
 }
 
-/// Sets the rate of animation slots 1..0x13 to 1 and resets each of them to
-/// the current animation id, then records that id as the one now playing.
-static void func_actor_110800_80132424(void)
-{
-    s32 i;
+#include "../../shared/view_figure_reset_anim.inc.c"
 
-    i = 1;
-    do {
-        D_actor_110800_80139F10->rig.slots[i].rate = 1;
-        Gp_AnimResetSlot(&D_actor_110800_80139F10->rig.anim, i, (s16)D_actor_110800_80139F10->st.animId);
-        i++;
-    } while (i < 0x14);
-    D_actor_110800_80139F10->st.appliedAnimId = D_actor_110800_80139F10->st.animId;
-}
+#include "../../shared/view_figure_reseed_anim.inc.c"
 
-/// Reseeds animation slots 1..0x13 of the work block's animation context from
-/// the current animation id through `func_800B4114` (arguments 0 and 8), then
-/// records that id as the one now playing.
-static void func_actor_110800_801324AC(void)
-{
-    s32 i;
-
-    i = 1;
-    do {
-        func_800B4114(&D_actor_110800_80139F10->rig.anim, i, (s16)D_actor_110800_80139F10->st.animId, 0, 8);
-        i++;
-    } while (i < 0x14);
-    D_actor_110800_80139F10->st.appliedAnimId = D_actor_110800_80139F10->st.animId;
-}
-
-/// Starts the actor's scripted animation selected by the request.
-///
-/// Rejects ids 6 and above before changing playback state.
-s32 func_actor_110800_80132524(Task* task, s32 arg1, AnimationPlayRequest* args)
-{
-    Task* actor;
-
-    if (args->animationId < 6) {
-        D_actor_110800_80139F10->st.animId  = args->animationId;
-        actor                               = gActorSelfTask;
-        D_actor_110800_80139F10->st.state   = 2;
-        D_actor_110800_80139F10->st.field_6 = 0;
-        func_actor_110800_80132368(actor);
-        return 0;
-    }
-    return -1;
-}
+#include "../../shared/view_figure_play_message.inc.c"
 
 #include "../../shared/actor_messages_pair_visibility.inc.c"

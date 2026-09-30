@@ -1,10 +1,10 @@
 // Overlay-local symbols for actor_110300.
-D_actor_110300_8013A0A0 = 0x8013A0A0; // size:0x4 defined:True
+gViewFigureWork = 0x8013A0A0; // size:0x4 defined:True
 gActorSelfTask = 0x8013A0A4; // size:0x4 defined:True
 gActorHelperTask = 0x8013A0A8; // size:0x4 defined:True
-D_actor_110300_8013A06C = 0x8013A06C; // size:0x18 defined:True
-D_actor_110300_8013A084 = 0x8013A084; // size:0x1C defined:True
-D_actor_110300_8013A054 = 0x8013A054; // size:0x18 defined:True
+gViewFigureTasks = 0x8013A06C; // size:0x18 defined:True
+gViewFigureAnimSets = 0x8013A084; // size:0x1C defined:True
+gViewFigureMessages = 0x8013A054; // size:0x18 defined:True
 D_actor_110300_8013234C = 0x8013234C; // size:0x2D0 defined:True
 D_actor_110300_8013261C = 0x8013261C; // size:0x50 defined:True
 D_actor_110300_8013266C = 0x8013266C; // size:0xB40 defined:True
@@ -43,3 +43,10 @@ D_actor_110300_80139EE0 = 0x80139EE0; // size:0x124 defined:True
 D_actor_110300_8013A004 = 0x8013A004; // size:0x28 defined:True
 D_actor_110300_8013A02C = 0x8013A02C; // size:0x28 defined:True
 actorMsgSetPairVisibility = 0x801322E0; // type:func
+viewFigureSpawnState = 0x80131E24; // type:func
+viewFigureStepAnim = 0x801320C4; // type:func
+viewFigureResetAnim = 0x80132180; // type:func
+viewFigureReseedAnim = 0x80132208; // type:func
+viewFigurePlayMessage = 0x80132280; // type:func
+viewFigureExit = 0x80132088; // type:func
+viewFigureTickAnim = 0x80132138; // type:func
