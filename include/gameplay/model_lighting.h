@@ -412,13 +412,23 @@ u32* gpStreamPrimFt4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 u32* gpStreamPrimF4(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's flat-triangle records (`0x4`): each element contributes
-/// one untextured triangle to the buffer half's second region, with the
+/// one untextured, unlit triangle to the buffer half's second region, with the
 /// element's colour word written into it.
 ///
 /// The record is not pre-transformed, so its triangle is built in the region the
-/// draw pass transforms; this command writes only the packet's fixed fields — its
-/// length, its primitive code and the element's colour.
-u32* gpStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
+/// draw pass transforms. This command writes the packet's fixed fields: its
+/// length (4 words after the tag), the element's colour and the opaque
+/// flat-triangle code (`0x20`). The colour is the element's third word and
+/// includes the command byte, so the code is stored after it. The draw pass
+/// reads three vertex references from the element's leading halfwords, and
+/// writes the length and code again on each triangle it links. The linked
+/// triangle keeps this colour.
+///
+/// `primWrite` advances by one triangle per element. The record has no variant
+/// for `flags` to select, and packet construction passes zero, so `flags` goes
+/// unread. The returned cursor is the stream advanced by one element stride per
+/// element.
+u32* modelLightingStreamPrimF3(TmdStreamWorkspace* ws, s32 flags, u32* stream);
 
 /// Handler of a stream's layered textured-triangle records (`0x4038`) whose
 /// semi-transparent layer is textured from the object: each element contributes two

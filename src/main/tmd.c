@@ -475,7 +475,7 @@ void tmdProcessStream(TmdObject* obj)
                 handler = gpStreamPrimGt4Unlit;
                 break;
             case 4:
-                handler = gpStreamPrimF3;
+                handler = modelLightingStreamPrimF3;
                 break;
             case 0x44:
                 handler = gpStreamPrimF4;
