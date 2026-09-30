@@ -31,7 +31,7 @@ D_shelter_1f_vehicular_airlock_80182A64 = 0x80182A64; // size:0xC defined:True
 D_shelter_1f_vehicular_airlock_80182A70 = 0x80182A70; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182A78 = 0x80182A78; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // size:0x20 defined:True
-D_shelter_1f_vehicular_airlock_80182AA0 = 0x80182AA0; // size:0x8 defined:True
+gRoomEventFade = 0x80182AA0; // size:0x8 defined:True
 D_80147DF0 = 0x80147DF0; // absolute:True
 D_801611F8 = 0x801611F8; // absolute:True
 D_map_neo_ark_8017AED0 = 0x8017AED0; // absolute:True
@@ -40,9 +40,9 @@ D_shelter_1f_vehicular_airlock_80180C50 = 0x80180C50; // size:0x24 defined:True
 D_shelter_1f_vehicular_airlock_80180C74 = 0x80180C74; // size:0x4 defined:True
 D_shelter_1f_vehicular_airlock_80180C78 = 0x80180C78; // size:0x3A0 defined:True
 D_shelter_1f_vehicular_airlock_80181018 = 0x80181018; // size:0xFEC defined:True
-D_shelter_1f_vehicular_airlock_80182AA8 = 0x80182AA8; // size:0x8 defined:True
+gRoomEventMsg = 0x80182AA8; // size:0x8 defined:True
 D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x4 defined:True
-D_shelter_1f_vehicular_airlock_80182AB4 = 0x80182AB4; // size:0xC defined:True
+gRoomEventLatched = 0x80182AB4; // size:0xC defined:True
 
 func_shelter_1f_vehicular_airlock_8017ECBC = 0x8017ECBC; // type:func
 
@@ -55,3 +55,4 @@ RoomFx_DrawFlashRing = 0x8017EF60; // type:func
 RoomFx_DrawFlashDisc = 0x8017F38C; // type:func
 RoomFx_DrawTwinTrail = 0x8017FC10; // type:func
 RoomFx_DrawBurstStar = 0x80180290; // type:func
+roomEventStagedTask = 0x8017D644; // type:func

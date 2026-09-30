@@ -56,7 +56,7 @@ D_neo_ark_pavilion_801879D4 = 0x801879D4; // size:0x8 defined:True
 D_neo_ark_pavilion_801879DC = 0x801879DC; // size:0x8 defined:True
 D_neo_ark_pavilion_801879E4 = 0x801879E4; // size:0x8 defined:True
 D_neo_ark_pavilion_801879EC = 0x801879EC; // size:0x20 defined:True
-D_neo_ark_pavilion_80187A0C = 0x80187A0C; // size:0x8 defined:True
+gRoomEventFade = 0x80187A0C; // size:0x8 defined:True
 D_80147E48 = 0x80147E48; // absolute:True
 D_801491F8 = 0x801491F8; // absolute:True
 D_8014FD74 = 0x8014FD74; // absolute:True
@@ -67,9 +67,9 @@ D_map_neo_ark_8017B470 = 0x8017B470; // absolute:True
 D_map_neo_ark_8017B4B0 = 0x8017B4B0; // absolute:True
 D_map_neo_ark_8017B4E0 = 0x8017B4E0; // absolute:True
 D_map_neo_ark_8017B530 = 0x8017B530; // absolute:True
-D_neo_ark_pavilion_80187A14 = 0x80187A14; // size:0x8 defined:True
+gRoomEventMsg = 0x80187A14; // size:0x8 defined:True
 D_neo_ark_pavilion_80187A1C = 0x80187A1C; // size:0x4 defined:True
-D_neo_ark_pavilion_80187A20 = 0x80187A20; // size:0xC defined:True
+gRoomEventLatched = 0x80187A20; // size:0xC defined:True
 
 func_neo_ark_pavilion_8017FC10 = 0x8017FC10; // type:func
 
@@ -100,3 +100,4 @@ RoomFx_DrawGround2Quad = 0x801834D4; // type:func
 waterDrawSplash = 0x8017ED98; // type:func
 waterDistortBandTask = 0x8017E2B4; // type:func
 waterRefractionTask = 0x8017D660; // type:func
+roomEventStagedTask = 0x8017E854; // type:func

@@ -48,6 +48,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// The room script task's work block as the prompt-spawning state reads it:
 /// `promptKind` is the display mode forwarded to `func_800D4E78`, read signed.
@@ -97,7 +98,7 @@ void func_dryfield_factory_8018169C(Task*);
 void func_dryfield_factory_80181718(Task*);
 void func_dryfield_factory_80181768(Task*);
 
-TaskDesc D_dryfield_factory_801826B0 = { 0, 32, func_dryfield_factory_8017D85C, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_dryfield_factory_801826BC[2] = {
     { 0, 32, func_dryfield_factory_8017DD00, { .model = NULL } },

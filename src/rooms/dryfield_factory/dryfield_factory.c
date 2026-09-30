@@ -48,6 +48,7 @@
 #include "rooms/dryfield_night_factory.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /// The factory model's work block as the lighting helper sees it: `light` and
 /// `color` are the model's own matrices, republished onto
@@ -60,9 +61,9 @@ typedef struct RoomUtil20Work {
 
 /// The pending event message and request the gate latched, the flag saying
 /// one was latched, and the descriptor of the task the gate spawns to play it.
-extern RoomEventMsg D_dryfield_factory_8018A3B4;
-extern u8           D_dryfield_factory_8018A3BC;
-extern RoomEventReq D_dryfield_factory_8018A3CC;
+extern RoomEventMsg gRoomEventMsg;
+extern u8           gRoomEventActive;
+extern RoomEventReq gRoomEventReq;
 
 /// The spawn tables the room entry task selected for the session variant, and
 /// the slot it parked for the poller.
@@ -713,9 +714,9 @@ GpScriptCmd D_dryfield_factory_8018A39C[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 
 
 GpScriptRec D_dryfield_factory_8018A3A8[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
 
-RoomEventMsg D_dryfield_factory_8018A3B4 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_factory_8018A3BC = 0;
+u8 gRoomEventActive = 0;
 
 TaskDesc* D_dryfield_factory_8018A3C0 = NULL;
 
@@ -723,9 +724,8 @@ TaskDesc* D_dryfield_factory_8018A3C4 = NULL;
 
 Task** D_dryfield_factory_8018A3C8 = NULL;
 
-RoomEventReq D_dryfield_factory_8018A3CC = { 0 };
+RoomEventReq gRoomEventReq = { 0 };
 
-static s32  func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_factory_8017D9CC(Task* arg0);
 static s32  func_dryfield_factory_8017E33C(Task* task);
 static s32  func_dryfield_factory_8017E6BC(Task* task);
@@ -734,102 +734,9 @@ static s32  func_dryfield_factory_8017ED68(Task* task);
 static s32  func_dryfield_factory_8017F08C(Task* task);
 static s32  func_dryfield_factory_8017F4BC(Task* task);
 
-static s32 func_dryfield_factory_8017D6F8(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                        = req->flagId;
-    D_dryfield_factory_8018A3BC = 0;
-    neg                         = flag < 0;
-    got                         = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_factory_8018A3B4 = *msg;
-                D_dryfield_factory_8018A3CC = *req;
-                id                          = req->flagId;
-                mode                        = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_factory_801826B0, 0, 0, 0);
-                D_dryfield_factory_8018A3BC = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-void func_dryfield_factory_8017D85C(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_factory_8018A3CC.field_0);
-            if (D_dryfield_factory_8018A3CC.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_factory_8018A3CC.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_factory_8018A3CC.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_factory_8018A3CC.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_factory_8018A3CC.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_factory_8018A3CC.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_factory_8018A3B4.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_factory_8018A3B4.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_factory_8018A3B4.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Room entry task: publishes the room's message table, claims game pointer
 /// slot 7 and parks a fresh one-word slot at `Task::work` (also kept in
@@ -923,7 +830,7 @@ s32 func_dryfield_factory_8017DB08(Task* arg0, s32 arg1, RoomEventMsg* in, RoomE
         req.field_C = 0x52170003;
         req.flagId  = -0x30;
         req.itemId  = 0;
-        return func_dryfield_factory_8017D6F8(&req, in);
+        return roomEventGate(&req, in);
     }
     return 1;
 }

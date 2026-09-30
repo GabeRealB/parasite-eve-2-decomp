@@ -33,6 +33,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -52,14 +53,13 @@ static void func_shelter_b1_north_maintenance_walkway_8017DB54(u8 arg0);
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 
-void func_shelter_b1_north_maintenance_walkway_8017D60C(Task*);
 s32  func_shelter_b1_north_maintenance_walkway_8017D7A4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 void func_shelter_b1_north_maintenance_walkway_8017D918(Task*);
 s32  func_shelter_b1_north_maintenance_walkway_8017DA34(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b1_north_maintenance_walkway_8017DA3C(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_shelter_b1_north_maintenance_walkway_8017DA44(Task*, s32, TaskMessageArg, TaskMessageArg);
 
-TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, func_shelter_b1_north_maintenance_walkway_8017D60C, { .model = NULL } };
+TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_north_maintenance_walkway_8017D7A4 },
@@ -119,8 +119,8 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     D_shelter_b1_north_maintenance_walkway_80185B7C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b1_north_maintenance_walkway_80185B74 = *dst;
-            D_shelter_b1_north_maintenance_walkway_80185B80 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }
@@ -132,57 +132,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
     return 1;
 }
 
-/// The event task the room's message handler spawns. It runs the latched
-/// event's CAP command and waits for it to finish, starting task 0x31 when the
-/// event asks for it; then plays the event's stage sound (if any) and waits
-/// for the voice to end. Finally it commits the latched message's area, warp
-/// and room as the save location, respawns the player task as type 0x11 and
-/// ends.
-void func_shelter_b1_north_maintenance_walkway_8017D60C(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b1_north_maintenance_walkway_80185B80.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b1_north_maintenance_walkway_80185B80.fade != 0) {
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_0 = 0;
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_1 = 0;
-                    D_shelter_b1_north_maintenance_walkway_80185B6C.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_north_maintenance_walkway_80185B6C.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b1_north_maintenance_walkway_80185B80.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b1_north_maintenance_walkway_80185B80.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_north_maintenance_walkway_80185B80.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_north_maintenance_walkway_80185B74.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_north_maintenance_walkway_80185B74.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b1_north_maintenance_walkway_80185B74.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `func_map_shelter_80179A04`. Messages 0xB and 0xE start the room's event - command 3 /

@@ -53,6 +53,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// The single-entry `TaskDesc` table the room's script task spawns its child
 /// task from: the prompt state machine `func_dryfield_night_factory_80181718`.
@@ -69,7 +70,7 @@ STATIC_ASSERT_SIZEOF(FactoryControlMessageEntry, 8);
 
 extern FactoryControlMessageEntry D_dryfield_night_factory_80186EAC[2];
 
-extern TaskDesc D_dryfield_night_factory_80186E40;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc   D_dryfield_night_factory_80186E4C[];
 extern GpMsgEntry D_dryfield_night_factory_80186E64[];
@@ -79,7 +80,6 @@ extern SVECTOR D_dryfield_night_factory_80186F04;
 extern SVECTOR D_dryfield_night_factory_80186F0C;
 extern SVECTOR D_dryfield_night_factory_80186F14;
 
-void        func_dryfield_night_factory_801802C8(Task* task);
 static void func_dryfield_night_factory_80180438(Task* arg0);
 static void func_dryfield_night_factory_801809EC(Task* task);
 static void func_dryfield_night_factory_80180A4C(Task* task);
@@ -96,7 +96,6 @@ s32  func_dryfield_night_factory_8018080C(Task*, s32, TaskMessageArg, TaskMessag
 s32  func_dryfield_night_factory_80180814(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_night_factory_80180914(Task*, s32, s32, s32);
 s32  func_dryfield_night_factory_80180980(Task*, s32, DirectionActionRequest* request, TaskMessageArg);
-void func_dryfield_night_factory_801802C8(Task*);
 void func_dryfield_night_factory_8018076C(Task*);
 void func_dryfield_night_factory_8018169C(Task*);
 void func_dryfield_night_factory_80181718(Task*);
@@ -254,7 +253,7 @@ TaskDesc D_dryfield_night_factory_80186DE0[8] = {
     { TASK_BODY_TMD, 192, func_dryfield_night_factory_8017FE9C, { .model = &D_dryfield_night_factory_80186B88 } },
 };
 
-TaskDesc D_dryfield_night_factory_80186E40 = { 0, 32, func_dryfield_night_factory_801802C8, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_dryfield_night_factory_80186E4C[2] = {
     { 0, 32, func_dryfield_night_factory_8018076C, { .model = NULL } },
@@ -847,113 +846,11 @@ SpriteBatch D_dryfield_night_factory_801899E4[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-static s32  func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_night_factory_80180DE8(Task* task, s16 step);
 
-/// The room's event gate: answers 1 when the request's flag says the event
-/// already happened, 0 (after running the request's cap command) when its
-/// item prerequisite is missing, and otherwise latches the request, writes
-/// the flag and spawns the room's event task, for 2. A non-zero `queryOnly` on
-/// the message only asks for the answer.
-static s32 func_dryfield_night_factory_80180164(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                              = req->flagId;
-    D_dryfield_night_factory_8018A7DC = 0;
-    neg                               = flag < 0;
-    got                               = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_factory_8018A7D4 = *msg;
-                D_dryfield_night_factory_8018A7EC = *req;
-                id                                = req->flagId;
-                mode                              = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_factory_80186E40, 0, 0, 0);
-                D_dryfield_night_factory_8018A7DC = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: plays the latched request's cap command and
-/// its two voice lines in turn, then warps to the area, warp point and room
-/// the latched message names.
-void func_dryfield_night_factory_801802C8(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_factory_8018A7EC.field_0);
-            if (D_dryfield_night_factory_8018A7EC.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_factory_8018A7EC.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_factory_8018A7EC.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_factory_8018A7EC.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_factory_8018A7EC.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_factory_8018A7EC.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_factory_8018A7D4.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_factory_8018A7D4.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_factory_8018A7D4.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// State handlers of the room entry task: set-up, an empty tick and
 /// `taskKill`.
@@ -1056,7 +953,7 @@ s32 func_dryfield_night_factory_80180574(Task* arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = 0x52170003;
         req.flagId  = -0x30;
         req.itemId  = 0;
-        return func_dryfield_night_factory_80180164(&req, in);
+        return roomEventGate(&req, in);
     }
     return 1;
 }

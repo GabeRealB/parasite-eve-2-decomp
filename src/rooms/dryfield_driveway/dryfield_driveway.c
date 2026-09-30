@@ -48,6 +48,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -64,9 +65,9 @@ extern TaskDesc D_dryfield_driveway_8017E2FC[];
 
 extern GpMsgEntry D_dryfield_driveway_8017E754[];
 
-extern RoomFadeStorage  D_dryfield_driveway_80180680;
-extern RoomEventMsg     D_dryfield_driveway_80180688;
-extern RoomLatchedEvent D_dryfield_driveway_80180694;
+extern RoomFadeStorage  gRoomEventFade;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 extern AnimationPlayRequest D_dryfield_driveway_8017E330;
 extern AnimationPlayRequest D_dryfield_driveway_8017E358;
@@ -85,7 +86,6 @@ void                        func_dryfield_driveway_8017DC48(s32);
 void                        func_dryfield_driveway_8017DC54(s16);
 void                        func_dryfield_driveway_8017DC64(u8);
 
-void func_dryfield_driveway_8017D5E4(Task*);
 void func_dryfield_driveway_8017DAD0(Task*);
 void func_dryfield_driveway_8017DB68(Task*);
 
@@ -111,7 +111,7 @@ AnimationSet D_dryfield_driveway_8017E2C8 = {
     { NULL, D_dryfield_driveway_8017DE80, NULL, NULL, D_dryfield_driveway_8017DEF8, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_driveway_8017E2F0 = { 0, 32, func_dryfield_driveway_8017D5E4, { .model = NULL } };
+TaskDesc D_dryfield_driveway_8017E2F0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 TaskDesc D_dryfield_driveway_8017E2FC[3] = {
     { 0, 32, func_dryfield_driveway_8017DAD0, { .model = NULL } },
@@ -613,9 +613,9 @@ GpRoomParamRec* D_dryfield_driveway_80180660[8] = {
     D_dryfield_driveway_80180648,
 };
 
-RoomFadeStorage D_dryfield_driveway_80180680 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_dryfield_driveway_80180688 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 D_dryfield_driveway_80180690[4] = {
     0,
@@ -624,65 +624,16 @@ u8 D_dryfield_driveway_80180690[4] = {
     207,
 };
 
-RoomLatchedEvent D_dryfield_driveway_80180694 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static void func_dryfield_driveway_8017DDC0(Task* task);
 static void func_dryfield_driveway_8017DE04(Task* task);
 
-/// The room's event task, spawned by its message handler for a latched event.
-/// State 0 runs the event's CAP command; state 1 waits for it and, when the
-/// event asks for it, starts helper task 0x31; states 2 and 3 play the event's
-/// stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void func_dryfield_driveway_8017D5E4(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_driveway_80180694.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_dryfield_driveway_80180694.fade != 0) {
-                    D_dryfield_driveway_80180680.fade.field_0 = 0;
-                    D_dryfield_driveway_80180680.fade.field_1 = 0;
-                    D_dryfield_driveway_80180680.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_dryfield_driveway_80180680.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_dryfield_driveway_80180694.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_driveway_80180694.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_driveway_80180694.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_driveway_80180688.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_driveway_80180688.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_dryfield_driveway_80180688.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// The room's message handler. Every message is answered by editing the copy
 /// in `out`. Message 0x17 reports the state of flag nibble 0x47 and, unless
-/// nibble 0x30 is set, latches an event for `func_dryfield_driveway_8017D5E4`;
+/// nibble 0x30 is set, latches an event for `roomEventStagedTask`;
 /// message 0x20 reports nibbles 0x51 and 0x53 and, before nibble 0x3A reaches
 /// 2, either spawns the second cutscene task of `D_dryfield_driveway_8017E2FC`
 /// or runs CAP command 1; message 2 runs CAP command 6 once nibble 0x61 is set.
@@ -751,8 +702,8 @@ s32 func_dryfield_driveway_8017D77C(Task* task, s32 msgId, RoomEventMsg* in, Roo
         D_dryfield_driveway_80180690_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_driveway_80180688 = *out;
-                D_dryfield_driveway_80180694 = req;
+                gRoomEventMsg     = *out;
+                gRoomEventLatched = req;
                 if (p->flagId != 0) {
                     GameFlag_SetNibble(p->flagId, 1);
                 }

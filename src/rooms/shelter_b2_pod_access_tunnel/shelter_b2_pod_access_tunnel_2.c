@@ -51,6 +51,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// The beam placements the view-dependent beam task draws for camera views 2,
 /// 3/6 and 4/7: pairs of end points, of which each view draws a subset.
@@ -76,7 +77,7 @@ extern GpObj4C        D_shelter_b2_pod_access_tunnel_80185108[3];
 extern GpObj4C        D_shelter_b2_pod_access_tunnel_801851EC[3];
 extern GpRoomCoordSet D_shelter_b2_pod_access_tunnel_80184FC0[1];
 
-TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { 0, 32, func_shelter_b2_pod_access_tunnel_8017D62C, { .model = NULL } };
+TaskDesc D_shelter_b2_pod_access_tunnel_80183BC0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6] = {
     { 5102, func_shelter_b2_pod_access_tunnel_8017D7C4 },

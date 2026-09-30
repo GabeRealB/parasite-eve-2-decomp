@@ -40,14 +40,15 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
 
 /// The message and request the event gate latched, and the descriptor of the
 /// event task it spawns to act on them.
-extern RoomEventMsg D_dryfield_breezeway_8018439C;
-extern RoomEventReq D_dryfield_breezeway_801843AC;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Handle of the room's key-item event task, which
 /// `func_dryfield_breezeway_8017DC3C` spawns from
@@ -57,9 +58,9 @@ extern RoomEventReq D_dryfield_breezeway_801843AC;
 /// 0x13F1 to it through `Gp_DispatchMsg`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
 
-/// Raised by the room's event gate `func_dryfield_breezeway_8017D638` when it
+/// Raised by the room's event gate `roomEventGate` when it
 /// latched a request and spawned the event task, cleared on every other call.
-extern u8 D_dryfield_breezeway_801843A4;
+extern u8 gRoomEventActive;
 
 extern GpAreaTmdRec D_dryfield_breezeway_80184268[3];
 extern GpAreaTmdRec D_dryfield_breezeway_8018428C[2];
@@ -498,130 +499,22 @@ GpRoomParamRec* D_dryfield_breezeway_8018437C[8] = {
     D_dryfield_breezeway_8018436C,
 };
 
-RoomEventMsg D_dryfield_breezeway_8018439C = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_breezeway_801843A4 = 0;
+u8 gRoomEventActive = 0;
 
 Task* D_dryfield_breezeway_801843A8 = NULL;
 
-RoomEventReq D_dryfield_breezeway_801843AC = { 0 };
+RoomEventReq gRoomEventReq = { 0 };
 
 Task* D_dryfield_breezeway_801843C0;
 
-static s32  func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg);
 static void func_dryfield_breezeway_8017DDB0(Task* task);
 static void func_dryfield_breezeway_8017DE60(Task* task);
 
-/// The room's event gate, called by `func_dryfield_breezeway_8017D940` with the
-/// request it builds on the stack. A set flag nibble (or a clear one, for a
-/// negative `flagId`) means the event has already happened and the answer is
-/// 1; a missing collected-bit prerequisite runs the request's `field_4` CAP
-/// command and answers 0; otherwise the request and message are latched into
-/// `D_dryfield_breezeway_801843AC` / `D_dryfield_breezeway_8018439C`, the flag
-/// nibble is written, the event task is spawned and
-/// `D_dryfield_breezeway_801843A4` is raised, for 2. A non-zero `queryOnly` on
-/// the message asks what would happen and suppresses all of those effects.
-static s32 func_dryfield_breezeway_8017D638(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                          = req->flagId;
-    D_dryfield_breezeway_801843A4 = 0;
-    neg                           = flag < 0;
-    got                           = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_breezeway_8018439C = *msg;
-                D_dryfield_breezeway_801843AC = *req;
-                id                            = req->flagId;
-                mode                          = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_breezeway_80181DD4, 0, 0, 0);
-                D_dryfield_breezeway_801843A4 = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task `D_dryfield_breezeway_80181DD4` describes, spawned by the gate
-/// above once it has latched a request: it runs the request's CAP command,
-/// plays and waits out its two sounds (`field_8`, then `field_C`, either
-/// skipped when zero), then writes the latched message's destination into the
-/// save's location and spawns the room-change task, killing itself.
-void func_dryfield_breezeway_8017D79C(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_breezeway_801843AC.field_0);
-            if (D_dryfield_breezeway_801843AC.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_breezeway_801843AC.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_breezeway_801843AC.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_breezeway_801843AC.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_breezeway_801843AC.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_breezeway_801843AC.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_breezeway_8018439C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_breezeway_8018439C.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_breezeway_8018439C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -639,7 +532,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
-/// item 0x15) to the room's event gate `func_dryfield_breezeway_8017D638`,
+/// item 0x15) to the room's event gate `roomEventGate`,
 /// returning its answer.
 /// A gate that latched the request is followed by the room's own follow-up:
 /// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
@@ -664,8 +557,8 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             req.field_C = 0x52160003;
             req.flagId  = 0x37;
             req.itemId  = 0x15;
-            ret         = func_dryfield_breezeway_8017D638(&req, out);
-            if (D_dryfield_breezeway_801843A4 != 0) {
+            ret         = roomEventGate(&req, out);
+            if (gRoomEventActive != 0) {
                 GameFlag_SetNibble(0x56, 4);
                 func_800E3FAC(0xA2, 0x38);
             }

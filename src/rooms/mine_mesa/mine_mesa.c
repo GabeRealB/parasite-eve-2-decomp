@@ -72,6 +72,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_events.h"
 
 #define MINE_MESA_RAND() ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 
@@ -79,11 +80,11 @@ extern GpGridParams D_mine_mesa_801864A4;
 
 extern GpGridParams D_mine_mesa_8018700C;
 
-extern RoomEventMsg D_mine_mesa_80189B40;
+extern RoomEventMsg gRoomEventMsg;
 
 extern s8 D_mine_mesa_80189B48;
 
-extern RoomLatchedEvent D_mine_mesa_80189B60;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// The room's task descriptor table; its spawners pick an entry by index.
 extern TaskDesc D_mine_mesa_801842F4[];
@@ -174,7 +175,7 @@ extern _MineMesaWall       D_mine_mesa_80189A9C[4];
 extern _MineMesaSpawnPoint D_mine_mesa_80189AFC[];
 extern GpMsgEntry          D_mine_mesa_80189B1C[2];
 extern TaskDesc            D_mine_mesa_80189B2C;
-extern RoomFadeStorage     D_mine_mesa_80189B38;
+extern RoomFadeStorage     gRoomEventFade;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;
@@ -285,14 +286,13 @@ extern MineMesaSpotLightStorage D_mine_mesa_80188AC8;
 s32                             func_mine_mesa_80181800(Task*, s32, s32, s32);
 void                            func_mine_mesa_80181894(Task*);
 
-s32  func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
-s32  func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
-s32  func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
-void func_mine_mesa_8017D670(Task*);
+s32 func_mine_mesa_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_mine_mesa_8017D8F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_mine_mesa_8017DA7C(Task*, s32, s32, TaskMessageArg);
+s32 func_mine_mesa_8017DABC(Task*, s32, DirectionActionRequest* msg, s32);
+s32 func_mine_mesa_8017DBC4(Task*, s32, s32, s32);
 
-TaskDesc D_mine_mesa_801818F8 = { 0, 32, func_mine_mesa_8017D670, { .model = NULL } };
+TaskDesc D_mine_mesa_801818F8 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_mine_mesa_80181904[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_mesa_8017D8F8 },
@@ -2546,9 +2546,9 @@ GpMsgEntry D_mine_mesa_80189B1C[2] = {
 
 TaskDesc D_mine_mesa_80189B2C = { 0, 32, func_mine_mesa_80181894, { .model = NULL } };
 
-RoomFadeStorage D_mine_mesa_80189B38 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_mine_mesa_80189B40 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_mine_mesa_80189B48 = 0;
 
@@ -2562,7 +2562,7 @@ Task* D_mine_mesa_80189B58 = NULL;
 
 Task* D_mine_mesa_80189B5C = NULL;
 
-RoomLatchedEvent D_mine_mesa_80189B60 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 MineMesaSpawnCounters D_mine_mesa_80189B6C = { 0 };
 
@@ -2578,57 +2578,7 @@ static void           func_mine_mesa_80181358(Task* arg0);
 static void           func_mine_mesa_80181848(Task* arg0);
 static void           func_mine_mesa_80181880(Task* arg0);
 
-/// Runs this room's pending event once the request for it has been accepted.
-/// State 0 plays the caption command recorded in `D_mine_mesa_80189B60` and
-/// saves a point; state 1 spawns the helper task 0x31 the request asked for;
-/// state 2 queues the stage sound and state 3 waits for that voice to end,
-/// either of which falls through to state 4 - the commit, which plays the
-/// event's sound, copies the saved location into `Mc_SaveData` and loads it.
-void func_mine_mesa_8017D670(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_mine_mesa_80189B60.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_mine_mesa_80189B60.fade != 0) {
-                    D_mine_mesa_80189B38.fade.field_0 = 0;
-                    D_mine_mesa_80189B38.fade.field_1 = 0;
-                    D_mine_mesa_80189B38.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_mine_mesa_80189B38.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_mine_mesa_80189B60.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_mine_mesa_80189B60.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_mine_mesa_80189B60.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_mine_mesa_80189B40.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_mine_mesa_80189B40.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_mine_mesa_80189B40.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 static void func_mine_mesa_8017D808(Task* task)
 {
@@ -2662,8 +2612,8 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
     D_mine_mesa_80189B48 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_mine_mesa_80189B40 = *dst;
-            D_mine_mesa_80189B60 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

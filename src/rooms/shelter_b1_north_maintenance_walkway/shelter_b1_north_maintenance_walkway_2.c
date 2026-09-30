@@ -58,6 +58,7 @@
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room_events.h"
 
 static inline RoomHaloShade* RoomFx_GetHaloShades(void)
 {
@@ -334,9 +335,9 @@ GpRoomParamRec* D_shelter_b1_north_maintenance_walkway_80185B4C[8] = {
     D_shelter_b1_north_maintenance_walkway_80185B3C,
 };
 
-RoomFadeStorage D_shelter_b1_north_maintenance_walkway_80185B6C = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b1_north_maintenance_walkway_80185B74 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
     0,
@@ -345,7 +346,7 @@ s8 D_shelter_b1_north_maintenance_walkway_80185B7C[4] = {
     49,
 };
 
-RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
+RoomLatchedEvent gRoomEventLatched;
 
 #include "../../shared/glow_draw_cone.inc.c"
 

@@ -56,6 +56,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -204,9 +205,9 @@ static GpItemMap* Shop_Data_8018762C;
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
-extern RoomFadeStorage  D_shelter_1f_heliport_80182CA0;
-extern RoomEventMsg     D_shelter_1f_heliport_80182CA8;
-extern RoomLatchedEvent D_shelter_1f_heliport_80182CB4;
+extern RoomFadeStorage  gRoomEventFade;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_heliport_80180658(Task* task);
 static void func_shelter_1f_heliport_80180748(Task* task);
@@ -227,7 +228,6 @@ s32                               func_shelter_1f_heliport_80180334(Task*, s32, 
 s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, TaskMessageArg);
 s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
-void func_shelter_1f_heliport_8017FF08(Task*);
 void func_shelter_1f_heliport_80180594(Task*);
 
 #include "../../shared/shop_data.inc.c"
@@ -236,7 +236,7 @@ void func_shelter_1f_heliport_80180594(Task*);
 
 TaskDesc D_shelter_1f_heliport_80181188 = { 0, 192, Shop_SessionTask, { .model = NULL } };
 
-TaskDesc D_shelter_1f_heliport_80181194 = { 0, 32, func_shelter_1f_heliport_8017FF08, { .model = NULL } };
+TaskDesc D_shelter_1f_heliport_80181194 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_heliport_801811A0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
@@ -593,9 +593,9 @@ static s32 Shop_Data_80187628 = 0;
 
 static GpItemMap* Shop_Data_8018762C = NULL;
 
-RoomFadeStorage D_shelter_1f_heliport_80182CA0 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_1f_heliport_80182CA8 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_shelter_1f_heliport_80182CB0[4] = {
     0,
@@ -604,7 +604,7 @@ s8 D_shelter_1f_heliport_80182CB0[4] = {
     -32,
 };
 
-RoomLatchedEvent D_shelter_1f_heliport_80182CB4 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static inline s32     Shop_AddItemCount(s32 item, s32 count);
 static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
@@ -613,56 +613,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
-/// The room's own event task, spawned by its message handler. State 0 runs
-/// the latched event's CAP command; state 1 waits for it to finish and, when
-/// the event asks for it, starts helper task 0x31; states 2 and 3 play the
-/// event's stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void func_shelter_1f_heliport_8017FF08(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_heliport_80182CB4.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_heliport_80182CB4.fade != 0) {
-                    D_shelter_1f_heliport_80182CA0.fade.field_0 = 0;
-                    D_shelter_1f_heliport_80182CA0.fade.field_1 = 0;
-                    D_shelter_1f_heliport_80182CA0.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_heliport_80182CA0.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_1f_heliport_80182CB4.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_heliport_80182CB4.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_heliport_80182CB4.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_heliport_80182CA8.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_heliport_80182CA8.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_heliport_80182CA8.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// State handlers of the room's controller task: installing its message
 /// table, a per-frame state that runs `func_shelter_1f_heliport_801807C0`,
@@ -680,8 +631,8 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
     D_shelter_1f_heliport_80182CB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_1f_heliport_80182CA8 = *dst;
-            D_shelter_1f_heliport_80182CB4 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

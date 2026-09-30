@@ -12,11 +12,11 @@
 
 #include "rooms/room_common.h"
 
-extern RoomFadeStorage D_shelter_b1_north_maintenance_walkway_80185B6C;
+extern RoomFadeStorage gRoomEventFade;
 
-extern RoomEventMsg D_shelter_b1_north_maintenance_walkway_80185B74;
+extern RoomEventMsg gRoomEventMsg;
 
-extern RoomLatchedEvent D_shelter_b1_north_maintenance_walkway_80185B80;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// Queues a grey gouraud glow spanning the projected points `arg0[0]` and
 /// `arg0[1]`, of radius `arg1` turned by the angle `arg2`.

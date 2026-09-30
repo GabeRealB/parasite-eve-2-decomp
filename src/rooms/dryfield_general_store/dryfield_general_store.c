@@ -42,15 +42,16 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /// The event message and request the gate latched for the event task, and the
 /// flag saying one was latched this call.
-extern RoomEventMsg D_dryfield_general_store_80185700;
-extern RoomEventReq D_dryfield_general_store_8018570C;
-extern u8           D_dryfield_general_store_80185708;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
+extern u8           gRoomEventActive;
 
-/// Descriptor of the event task `func_dryfield_general_store_8017D764`.
-extern TaskDesc D_dryfield_general_store_8017E158;
+/// Descriptor of the event task `roomEventTask`.
+extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_general_store_8017E164[];
 
@@ -100,13 +101,12 @@ s32  func_dryfield_general_store_8017DD58(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDC0(Task*, s32, s32, s32);
 s32  func_dryfield_general_store_8017DDF4(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, TaskMessageArg);
-void func_dryfield_general_store_8017D764(Task*);
 void func_dryfield_general_store_8017DAC0(Task*);
 void func_dryfield_general_store_8017DC78(Task*);
 void func_dryfield_general_store_8017DFB4(Task*);
 void func_dryfield_general_store_8017E064(Task*);
 
-TaskDesc D_dryfield_general_store_8017E158 = { 0, 32, func_dryfield_general_store_8017D764, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_dryfield_general_store_8017E164[3] = {
     { 0, 32, func_dryfield_general_store_8017DC78, { .model = NULL } },
@@ -1550,9 +1550,9 @@ u8 D_dryfield_general_store_801856F8 = 0;
 
 GpFadeWork D_dryfield_general_store_801856FC = { 0 };
 
-RoomEventMsg D_dryfield_general_store_80185700 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_general_store_80185708 = 0;
+u8 gRoomEventActive = 0;
 
 u8 D_dryfield_general_store_80185709 = 0;
 
@@ -1560,116 +1560,11 @@ u8 D_dryfield_general_store_8018570A = 0;
 
 u8 D_dryfield_general_store_8018570B = 208;
 
-RoomEventReq D_dryfield_general_store_8018570C = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
-static s32 func_dryfield_general_store_8017D600(RoomEventReq* req, RoomEventMsg* msg);
+#include "../../shared/room_event_gate.inc.c"
 
-/// The room's event gate, through which the clock arm of
-/// `func_dryfield_general_store_8017D8D4` passes its warp. Returns 1 when game-flag
-/// nibble `req->flagId` already reads set (clear, for a negative id).
-/// Otherwise, when `req->itemId` has been collected or is 0, it returns 2 and -
-/// unless `msg->queryOnly` asks for a dry run - latches `msg` and `req`, sets
-/// the nibble and spawns the event task. When the item is missing it returns
-/// 0 and, outside a dry run, runs cap command `req->field_4`.
-static s32 func_dryfield_general_store_8017D600(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
-
-    flag                              = req->flagId;
-    D_dryfield_general_store_80185708 = 0;
-    neg                               = flag < 0;
-    got                               = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_general_store_80185700 = *msg;
-                D_dryfield_general_store_8018570C = *req;
-                id                                = req->flagId;
-                mode                              = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_general_store_8017E158, 0, 0, 0);
-                D_dryfield_general_store_80185708 = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's cap command,
-/// plays its two sound ids in turn, each waited out, then warps to the area,
-/// warp point and room the latched message names.
-void func_dryfield_general_store_8017D764(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_general_store_8018570C.field_0);
-            if (D_dryfield_general_store_8018570C.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_general_store_8018570C.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_general_store_8018570C.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_general_store_8018570C.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_general_store_8018570C.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_general_store_8018570C.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_general_store_80185700.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_general_store_80185700.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_general_store_80185700.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Handler for the store's two event ids. Both answer with a furniture-style
 /// "which variant" byte in `out->room`, and a non-zero `queryOnly` asks what
@@ -1728,7 +1623,7 @@ s32 func_dryfield_general_store_8017D8D4(Task* arg0, s32 arg1, RoomEventMsg* in,
         req.field_C = Gp_PackStageSndId(0x52030003);
         req.flagId  = 0x3B;
         req.itemId  = 0;
-        return func_dryfield_general_store_8017D600(&req, in);
+        return roomEventGate(&req, in);
     }
     if (in->areaId != 0x26) {
         return 1;

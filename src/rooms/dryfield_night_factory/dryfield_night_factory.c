@@ -40,6 +40,7 @@
 #include "rooms/dryfield_factory.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /// The two argument blocks one of the turn handlers hands `Gp_SpawnScript18`,
 /// one pair per stage variant.
@@ -220,9 +221,9 @@ GpScriptCmd D_dryfield_night_factory_8018A7BC[3] = { { 0x201, 1 }, { 0, 0x101 },
 
 GpScriptRec D_dryfield_night_factory_8018A7C8[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
 
-RoomEventMsg D_dryfield_night_factory_8018A7D4 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_factory_8018A7DC = 0;
+u8 gRoomEventActive = 0;
 
 TaskDesc* D_dryfield_night_factory_8018A7E0 = NULL;
 
@@ -230,7 +231,7 @@ TaskDesc* D_dryfield_night_factory_8018A7E4 = NULL;
 
 Task** D_dryfield_night_factory_8018A7E8 = NULL;
 
-RoomEventReq D_dryfield_night_factory_8018A7EC = { 0 };
+RoomEventReq gRoomEventReq = { 0 };
 
 static s32 func_dryfield_night_factory_8017DA54(Task* task);
 static s32 func_dryfield_night_factory_8017DDD4(Task* task);

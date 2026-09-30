@@ -53,14 +53,15 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_events.h"
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
-extern RoomEventMsg     D_neo_ark_savanna_zone_80180990;
+extern RoomEventMsg     gRoomEventMsg;
 extern s8               D_neo_ark_savanna_zone_80180998;
-extern RoomLatchedEvent D_neo_ark_savanna_zone_8018099C;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern RoomFadeStorage D_neo_ark_savanna_zone_80180988;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The room's message table, which the room setup task installs.
 extern GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[];
@@ -80,9 +81,8 @@ s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32,
 s32                               func_neo_ark_savanna_zone_8017D8F0(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_neo_ark_savanna_zone_8017D8F8(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32                               func_neo_ark_savanna_zone_8017D900(Task*, s32, TaskMessageArg, TaskMessageArg);
-void                              func_neo_ark_savanna_zone_8017D5E4(Task*);
 
-TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, func_neo_ark_savanna_zone_8017D5E4, { .model = NULL } };
+TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
@@ -406,68 +406,19 @@ GpRoomParamRec* D_neo_ark_savanna_zone_80180968[8] = {
     D_neo_ark_savanna_zone_80180948,
 };
 
-RoomFadeStorage D_neo_ark_savanna_zone_80180988 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_neo_ark_savanna_zone_80180990 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_neo_ark_savanna_zone_80180998 = 0;
 
-RoomLatchedEvent D_neo_ark_savanna_zone_8018099C = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_savanna_zone_8017D908(Task* task);
 static void           func_neo_ark_savanna_zone_8017D94C(Task* task);
 
-/// The room's event task, spawned when the room latches an event. State 0 runs
-/// the event's CAP command; state 1 waits for it to finish and, when the event
-/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
-/// sound, if any, and wait for it; state 4 writes the latched destination into
-/// the save data and hands over to task type 0x11.
-void func_neo_ark_savanna_zone_8017D5E4(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_neo_ark_savanna_zone_8018099C.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_neo_ark_savanna_zone_8018099C.fade != 0) {
-                    D_neo_ark_savanna_zone_80180988.fade.field_0 = 0;
-                    D_neo_ark_savanna_zone_80180988.fade.field_1 = 0;
-                    D_neo_ark_savanna_zone_80180988.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_neo_ark_savanna_zone_80180988.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_neo_ark_savanna_zone_8018099C.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_neo_ark_savanna_zone_8018099C.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_savanna_zone_8018099C.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_savanna_zone_80180990.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_savanna_zone_80180990.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_savanna_zone_80180990.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// Latches the room's pending event and starts the controller that runs it:
 /// clears the "event running" flag, and once the event's flag nibble is clear
@@ -480,8 +431,8 @@ static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatche
     D_neo_ark_savanna_zone_80180998 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_neo_ark_savanna_zone_80180990 = *dst;
-            D_neo_ark_savanna_zone_8018099C = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

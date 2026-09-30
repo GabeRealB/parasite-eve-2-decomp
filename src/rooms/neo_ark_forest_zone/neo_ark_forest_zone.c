@@ -49,6 +49,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -56,11 +57,11 @@ extern s8 D_neo_ark_forest_zone_80182E40[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
 
-extern RoomEventMsg     D_neo_ark_forest_zone_80182E38;
-extern RoomLatchedEvent D_neo_ark_forest_zone_80182E48;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
-extern RoomFadeStorage D_neo_ark_forest_zone_80182E30;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The smoke trail's two spawn offsets: `[0]` places the object's own frame
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
@@ -70,9 +71,9 @@ static void func_neo_ark_forest_zone_8017DA80(Task* arg0);
 static void func_neo_ark_forest_zone_8017DB40(Task* arg0);
 static void func_neo_ark_forest_zone_8017E074(GfxCoord* arg0, s32 arg1, s16 arg2);
 
-RoomFadeStorage D_neo_ark_forest_zone_80182E30 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_neo_ark_forest_zone_80182E38 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_neo_ark_forest_zone_80182E40[4] = {
     0,
@@ -83,7 +84,7 @@ s8 D_neo_ark_forest_zone_80182E40[4] = {
 
 ActorCommand D_neo_ark_forest_zone_80182E44 = { 0 };
 
-RoomLatchedEvent D_neo_ark_forest_zone_80182E48 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 u16 D_neo_ark_forest_zone_80182E54[5] = {
     0,
@@ -96,56 +97,7 @@ u16 D_neo_ark_forest_zone_80182E54[5] = {
 static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_forest_zone_8017DBAC(Task* task);
 
-/// The room's event task, spawned when the room latches an event. State 0 runs
-/// the event's CAP command; state 1 waits for it to finish and, when the event
-/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
-/// sound, if any, and wait for it; state 4 writes the latched destination into
-/// the save data and hands over to task type 0x11.
-void func_neo_ark_forest_zone_8017D644(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_neo_ark_forest_zone_80182E48.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_neo_ark_forest_zone_80182E48.fade != 0) {
-                    D_neo_ark_forest_zone_80182E30.fade.field_0 = 0;
-                    D_neo_ark_forest_zone_80182E30.fade.field_1 = 0;
-                    D_neo_ark_forest_zone_80182E30.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_neo_ark_forest_zone_80182E30.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_neo_ark_forest_zone_80182E48.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_neo_ark_forest_zone_80182E48.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_forest_zone_80182E48.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_forest_zone_80182E38.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_forest_zone_80182E38.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_forest_zone_80182E38.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 s32 func_neo_ark_forest_zone_8017D7DC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
@@ -163,8 +115,8 @@ static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatched
     D_neo_ark_forest_zone_80182E40_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_neo_ark_forest_zone_80182E38 = *dst;
-            D_neo_ark_forest_zone_80182E48 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

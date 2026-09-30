@@ -63,6 +63,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND()     ((Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16)
 #define D_dryfield_night_main_street_801821B8 (D_dryfield_night_main_street_801821A8[2])
@@ -108,7 +109,7 @@
 extern TaskDesc D_dryfield_night_main_street_8018208C;
 
 /// Descriptor of the event task the event gate spawns.
-extern TaskDesc D_dryfield_night_main_street_80182098;
+extern TaskDesc gRoomEventTaskDesc;
 
 /// Descriptor of the task `func_dryfield_night_main_street_8017DE78` runs as.
 extern TaskDesc D_dryfield_night_main_street_801820A4;
@@ -160,12 +161,12 @@ STATIC_ASSERT_SIZEOF(DryfieldNightMainStreetStorage8BC8, 16);
 extern DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8;
 
 /// The message and request the event gate latched for its event task.
-extern RoomEventMsg D_dryfield_night_main_street_80188BBC;
-extern RoomEventReq D_dryfield_night_main_street_80188BD8;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
-extern u8 D_dryfield_night_main_street_80188BC4;
+extern u8 gRoomEventActive;
 
 static void func_dryfield_night_main_street_8017E064(Task* arg0);
 static void func_dryfield_night_main_street_8017E0B8(Task* task);
@@ -179,7 +180,6 @@ s32  func_dryfield_night_main_street_8017DFC8(Task*, s32, s32, TaskMessageArg);
 s32  func_dryfield_night_main_street_8017E054(Task*, s32, TaskMessageArg, TaskMessageArg);
 s32  func_dryfield_night_main_street_8017E05C(Task*, s32, TaskMessageArg, TaskMessageArg);
 void func_dryfield_night_main_street_8017D600(Task*);
-void func_dryfield_night_main_street_8017D8FC(Task*);
 void func_dryfield_night_main_street_8017DE78(Task*);
 
 extern GpGridParams D_dryfield_night_main_street_801833D0[1];
@@ -232,7 +232,7 @@ extern TaskDesc     D_8014D8A4;
 
 TaskDesc D_dryfield_night_main_street_8018208C = { 0, 32, func_dryfield_night_main_street_8017D600, { .model = NULL } };
 
-TaskDesc D_dryfield_night_main_street_80182098 = { 0, 32, func_dryfield_night_main_street_8017D8FC, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 TaskDesc D_dryfield_night_main_street_801820A4 = { 0, 32, func_dryfield_night_main_street_8017DE78, { .model = NULL } };
 
@@ -1623,15 +1623,13 @@ RoomEventMsg D_dryfield_night_main_street_80188BAC = { 0 };
 
 DryfieldNightMainStreetStorage8BB4 D_dryfield_night_main_street_80188BB4 = { 0 };
 
-RoomEventMsg D_dryfield_night_main_street_80188BBC = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_dryfield_night_main_street_80188BC4 = 0;
+u8 gRoomEventActive = 0;
 
 DryfieldNightMainStreetStorage8BC8 D_dryfield_night_main_street_80188BC8;
 
-RoomEventReq D_dryfield_night_main_street_80188BD8;
-
-static s32 func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg);
+RoomEventReq gRoomEventReq;
 
 /// The room's own event task, spawned by its message handler. State 0 runs
 /// the latched event's CAP command; state 1 waits for it to finish and, when
@@ -1684,112 +1682,9 @@ void func_dryfield_night_main_street_8017D600(Task* arg0)
     }
 }
 
-/// The room's event gate. A request whose flag nibble is already set (or clear,
-/// for a negative `flagId`) answers 1. One whose prerequisite item is missing
-/// runs the request's CAP command and answers 0. Otherwise the message and
-/// request are latched, the nibble is written, the event task is spawned and
-/// the answer is 2. A non-zero `queryOnly` on the message only reports the
-/// answer, with none of the side effects.
-static s32 func_dryfield_night_main_street_8017D798(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                  = req->flagId;
-    D_dryfield_night_main_street_80188BC4 = 0;
-    neg                                   = flag < 0;
-    got                                   = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_main_street_80188BBC = *msg;
-                D_dryfield_night_main_street_80188BD8 = *req;
-                id                                    = req->flagId;
-                mode                                  = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_dryfield_night_main_street_80182098, 0, 0, 0);
-                D_dryfield_night_main_street_80188BC4 = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns: runs the latched request's CAP command,
-/// plays its two sound events in turn and waits for each to finish, then
-/// writes the latched message's destination into the save data and hands over
-/// to task type 0x11 to load it.
-void func_dryfield_night_main_street_8017D8FC(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_dryfield_night_main_street_80188BD8.field_0);
-            if (D_dryfield_night_main_street_80188BD8.field_8 != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_main_street_80188BD8.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_dryfield_night_main_street_80188BD8.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_dryfield_night_main_street_80188BD8.field_C != 0) {
-                SndEvt_EnqueueType6(D_dryfield_night_main_street_80188BD8.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_dryfield_night_main_street_80188BD8.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_main_street_80188BBC.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_main_street_80188BBC.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_dryfield_night_main_street_80188BBC.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
@@ -1800,7 +1695,7 @@ static const TaskFuncTable3 D_dryfield_night_main_street_8017D5F4 = {
 /// `room` from story nibbles. Messages 0xB and 0xC run the room's own event
 /// gate: unless the event's nibble is already set, the message and event are
 /// latched, the nibble is set and the room's event task is spawned. Messages
-/// 0xD and 0xE go through the event gate `func_dryfield_night_main_street_8017D798`
+/// 0xD and 0xE go through the event gate `roomEventGate`
 /// and, when it fires, swap collected bits
 /// 0x10F / 0x112 for 0x113. Anything else is not consumed.
 s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
@@ -1890,11 +1785,11 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x52020005);
         req.flagId  = 0x41;
         req.itemId  = 0x13;
-        ret         = func_dryfield_night_main_street_8017D798(&req, out);
+        ret         = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_night_main_street_80188BC4 != 0) {
+        if (gRoomEventActive != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);
@@ -1910,11 +1805,11 @@ s32 func_dryfield_night_main_street_8017DA6C(Task* task, s32 msgId, RoomEventMsg
         req.field_C = Gp_PackStageSndId(0x52020005);
         req.flagId  = 0x42;
         req.itemId  = 0x13;
-        ret         = func_dryfield_night_main_street_8017D798(&req, out);
+        ret         = roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
-        if (D_dryfield_night_main_street_80188BC4 != 0) {
+        if (gRoomEventActive != 0) {
             Gp_ClearCollectedBit(0x10F);
             Gp_ClearCollectedBit(0x112);
             Gp_SetItemSeenBit(0x113, 1);

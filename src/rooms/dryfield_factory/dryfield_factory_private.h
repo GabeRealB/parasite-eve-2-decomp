@@ -21,7 +21,7 @@ extern GpRoomCoordSet D_dryfield_factory_8018A28C[1];
 
 extern WorldCoordRoomAmbientEntry D_dryfield_factory_8018A2A4[20];
 
-extern TaskDesc D_dryfield_factory_801826B0;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskDesc D_dryfield_factory_801826BC[2];
 
@@ -36,7 +36,6 @@ extern GpGridParams D_dryfield_factory_80186E04;
 extern TaskDesc D_dryfield_factory_80186E94[1];
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_factory_8017D85C(Task*);
 
 s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

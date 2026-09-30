@@ -20,9 +20,9 @@ extern WorldCoordRoomAmbientEntry D_dryfield_night_factory_8018A0C8[20];
 
 extern GpObj4C D_dryfield_night_factory_8018A168[19];
 
-extern RoomEventMsg D_dryfield_night_factory_8018A7D4;
+extern RoomEventMsg gRoomEventMsg;
 
-extern u8 D_dryfield_night_factory_8018A7DC;
+extern u8 gRoomEventActive;
 
 extern TaskDesc* D_dryfield_night_factory_8018A7E0;
 
@@ -30,7 +30,7 @@ extern TaskDesc* D_dryfield_night_factory_8018A7E4;
 
 extern Task** D_dryfield_night_factory_8018A7E8;
 
-extern RoomEventReq D_dryfield_night_factory_8018A7EC;
+extern RoomEventReq gRoomEventReq;
 
 extern GpGridParams D_dryfield_night_factory_80186C20;
 

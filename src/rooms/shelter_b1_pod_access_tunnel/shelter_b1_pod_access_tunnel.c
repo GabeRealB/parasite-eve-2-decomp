@@ -68,6 +68,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -118,9 +119,9 @@ extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 /// The two points of the twin trail, as offsets from its anchor frame. The
 /// second is also reached under its own name.
 
-extern RoomFadeStorage  D_shelter_b1_pod_access_tunnel_80184CFC;
-extern RoomEventMsg     D_shelter_b1_pod_access_tunnel_80184D04;
-extern RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10;
+extern RoomFadeStorage  gRoomEventFade;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0);
 static void func_shelter_b1_pod_access_tunnel_8017DED8(Task* task);
@@ -133,12 +134,11 @@ void func_shelter_b1_pod_access_tunnel_8017DF40(Task*);
 void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
 
-s32  func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b1_pod_access_tunnel_8017DD68(void);
-s32  func_shelter_b1_pod_access_tunnel_8017DD70(s32, s32, s32);
-s32  func_shelter_b1_pod_access_tunnel_8017DDD8(void);
-s32  func_shelter_b1_pod_access_tunnel_8017DDE0(s32, s32, s32);
-void func_shelter_b1_pod_access_tunnel_8017D61C(Task*);
+s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b1_pod_access_tunnel_8017DD68(void);
+s32 func_shelter_b1_pod_access_tunnel_8017DD70(s32, s32, s32);
+s32 func_shelter_b1_pod_access_tunnel_8017DDD8(void);
+s32 func_shelter_b1_pod_access_tunnel_8017DDE0(s32, s32, s32);
 
 void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
 void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
@@ -165,7 +165,7 @@ void                        func_shelter_b1_pod_access_tunnel_8017E704(void);
 void                        func_shelter_b1_pod_access_tunnel_8017E734(s32);
 void                        func_shelter_b1_pod_access_tunnel_8017E7B4(void);
 
-TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, func_shelter_b1_pod_access_tunnel_8017D61C, { .model = NULL } };
+TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 ShelterB1PodAccessTunnelMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, { .call1 = func_shelter_b1_pod_access_tunnel_8017D7B4 } },
@@ -966,9 +966,9 @@ GpRoomParamRec* D_shelter_b1_pod_access_tunnel_80184CDC[8] = {
     D_shelter_b1_pod_access_tunnel_80184CC4,
 };
 
-RoomFadeStorage D_shelter_b1_pod_access_tunnel_80184CFC = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b1_pod_access_tunnel_80184D04 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
     0,
@@ -977,69 +977,19 @@ u8 D_shelter_b1_pod_access_tunnel_80184D0C[4] = {
     225,
 };
 
-RoomLatchedEvent D_shelter_b1_pod_access_tunnel_80184D10;
+RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
-/// The room's event task, spawned when the message handler latches an event.
-/// State 0 runs the latched event's CAP command; state 1 waits for it to
-/// finish and, when the event asks for it, starts helper task 0x31; states 2
-/// and 3 play the event's stage sound, if any, and wait for it; state 4 writes
-/// the latched message's destination into the save data and hands over to
-/// task type 0x11.
-void func_shelter_b1_pod_access_tunnel_8017D61C(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b1_pod_access_tunnel_80184D10.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b1_pod_access_tunnel_80184D10.fade != 0) {
-                    D_shelter_b1_pod_access_tunnel_80184CFC.fade.field_0 = 0;
-                    D_shelter_b1_pod_access_tunnel_80184CFC.fade.field_1 = 0;
-                    D_shelter_b1_pod_access_tunnel_80184CFC.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b1_pod_access_tunnel_80184CFC.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b1_pod_access_tunnel_80184D10.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b1_pod_access_tunnel_80184D10.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b1_pod_access_tunnel_80184D10.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b1_pod_access_tunnel_80184D04.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b1_pod_access_tunnel_80184D04.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b1_pod_access_tunnel_80184D04.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_b1_pod_access_tunnel_80184D0C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b1_pod_access_tunnel_80184D04 = *dst;
-            D_shelter_b1_pod_access_tunnel_80184D10 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

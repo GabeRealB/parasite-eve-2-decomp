@@ -12,14 +12,14 @@ extern u8 D_dryfield_night_general_store_801858B4;
 
 extern GpFadeWork D_dryfield_night_general_store_801858B8;
 
-extern RoomEventMsg D_dryfield_night_general_store_801858BC;
+extern RoomEventMsg gRoomEventMsg;
 
-extern u8 D_dryfield_night_general_store_801858C4;
+extern u8 gRoomEventActive;
 
 extern u8 D_dryfield_night_general_store_801858C5;
 
 extern u8 D_dryfield_night_general_store_801858C6;
 
-extern RoomEventReq D_dryfield_night_general_store_801858C8;
+extern RoomEventReq gRoomEventReq;
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_GENERAL_STORE_DRYFIELD_NIGHT_GENERAL_STORE_PRIVATE_H

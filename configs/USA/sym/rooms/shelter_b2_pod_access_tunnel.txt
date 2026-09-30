@@ -1,9 +1,9 @@
 // Overlay-local symbols for shelter_b2_pod_access_tunnel.
-D_shelter_b2_pod_access_tunnel_8018570C = 0x8018570C; // size:0xC defined:True
+gRoomEventLatched = 0x8018570C; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_80183C08 = 0x80183C08; // size:0x40 defined:True
 D_shelter_b2_pod_access_tunnel_80183C48 = 0x80183C48; // size:0x80 defined:True
 D_shelter_b2_pod_access_tunnel_80183CC8 = 0x80183CC8; // size:0x100 defined:True
-D_shelter_b2_pod_access_tunnel_80185700 = 0x80185700; // size:0x8 defined:True
+gRoomEventMsg = 0x80185700; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_80185708 = 0x80185708; // size:0x4 defined:True
 _gRoomEffectHaloShades = 0x80183DC8; // size:0x14 defined:True
 D_shelter_b2_pod_access_tunnel_80183DEC = 0x80183DEC; // size:0x20 defined:True
@@ -67,7 +67,7 @@ D_shelter_b2_pod_access_tunnel_801856C0 = 0x801856C0; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856C8 = 0x801856C8; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856D0 = 0x801856D0; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856D8 = 0x801856D8; // size:0x20 defined:True
-D_shelter_b2_pod_access_tunnel_801856F8 = 0x801856F8; // size:0x8 defined:True
+gRoomEventFade = 0x801856F8; // size:0x8 defined:True
 D_shelter_b2_pod_access_tunnel_801856A0 = 0x801856A0; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_80183BC0 = 0x80183BC0; // size:0xC defined:True
 D_shelter_b2_pod_access_tunnel_80183BCC = 0x80183BCC; // size:0x30 defined:True
@@ -102,3 +102,4 @@ RoomFx_DrawFlashDisc = 0x801822FC; // type:func
 RoomFx_DrawTwinTrail = 0x80182B80; // type:func
 RoomFx_DrawBurstStar = 0x80183200; // type:func
 glowDrawCone = 0x8017DF64; // type:func
+roomEventStagedTask = 0x8017D62C; // type:func

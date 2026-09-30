@@ -55,6 +55,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -77,22 +78,21 @@ extern SVECTOR D_shelter_1f_vehicular_airlock_8018206C[];
 /// by its own name, as the task does on every tick after the first.
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern RoomFadeStorage D_shelter_1f_vehicular_airlock_80182AA0;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg     D_shelter_1f_vehicular_airlock_80182AA8;
-extern RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_vehicular_airlock_8017DC80(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_shelter_1f_vehicular_airlock_8017E468(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 static void func_shelter_1f_vehicular_airlock_8017E80C(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-void func_shelter_1f_vehicular_airlock_8017D644(Task*);
-s32  func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, TaskMessageArg);
-s32  func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D7DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_1f_vehicular_airlock_8017D988(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D990(Task*, s32, s32, TaskMessageArg);
+s32 func_shelter_1f_vehicular_airlock_8017D9F4(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern u32     D_shelter_1f_vehicular_airlock_80180C74[1];
 extern SVECTOR D_shelter_1f_vehicular_airlock_80180C78[116];
@@ -133,7 +133,7 @@ TmdSource D_shelter_1f_vehicular_airlock_80182004 = {
     D_shelter_1f_vehicular_airlock_80181018,
 };
 
-TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, func_shelter_1f_vehicular_airlock_8017D644, { .model = NULL } };
+TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_vehicular_airlock_8017D7DC },
@@ -324,9 +324,9 @@ GpRoomParamRec* D_shelter_1f_vehicular_airlock_80182A80[8] = {
     D_shelter_1f_vehicular_airlock_80182A70,
 };
 
-RoomFadeStorage D_shelter_1f_vehicular_airlock_80182AA0 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_1f_vehicular_airlock_80182AA8 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
     0,
@@ -335,7 +335,7 @@ s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
     65,
 };
 
-RoomLatchedEvent D_shelter_1f_vehicular_airlock_80182AB4 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_1f_vehicular_airlock_8017D9FC(Task* task);
@@ -354,64 +354,15 @@ void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
     }
 }
 
-/// The room's own event task, spawned by its message handler. State 0 runs
-/// the latched event's CAP command; state 1 waits for it to finish and, when
-/// the event asks for it, starts helper task 0x31; states 2 and 3 play the
-/// event's stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void func_shelter_1f_vehicular_airlock_8017D644(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_1f_vehicular_airlock_80182AB4.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_1f_vehicular_airlock_80182AB4.fade != 0) {
-                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_0 = 0;
-                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_1 = 0;
-                    D_shelter_1f_vehicular_airlock_80182AA0.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_1f_vehicular_airlock_80182AA0.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_1f_vehicular_airlock_80182AB4.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_1f_vehicular_airlock_80182AB4.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_1f_vehicular_airlock_80182AB4.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_1f_vehicular_airlock_80182AA8.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_1f_vehicular_airlock_80182AA8.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_1f_vehicular_airlock_80182AA8.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     D_shelter_1f_vehicular_airlock_80182AB0_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_1f_vehicular_airlock_80182AA8 = *dst;
-            D_shelter_1f_vehicular_airlock_80182AB4 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

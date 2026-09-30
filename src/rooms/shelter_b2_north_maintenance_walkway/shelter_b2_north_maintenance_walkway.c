@@ -46,6 +46,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+#include "../../shared/room_events.h"
 
 /// The pair of cutscene blocks the walkway's scene hands to `func_800E8634`.
 extern s32 D_80165354;
@@ -84,12 +85,12 @@ STATIC_ASSERT_SIZEOF(ShelterB2NorthMaintenanceWalkwayStorage63C4, 16);
 extern ShelterB2NorthMaintenanceWalkwayStorage63C4 D_shelter_b2_north_maintenance_walkway_801863C4;
 
 /// The message and request the event gate latched for the event task.
-extern RoomEventMsg D_shelter_b2_north_maintenance_walkway_801863B8;
-extern RoomEventReq D_shelter_b2_north_maintenance_walkway_801863D4;
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
 /// Set by the walkway's event gate when its last call latched a request and
 /// spawned the event task; every call clears it first.
-extern u8 D_shelter_b2_north_maintenance_walkway_801863C0;
+extern u8 gRoomEventActive;
 
 extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_80186008[3];
 extern GpAreaTmdRec D_shelter_b2_north_maintenance_walkway_8018602C[3];
@@ -705,15 +706,14 @@ RoomEventMsg D_shelter_b2_north_maintenance_walkway_801863A8 = { 0 };
 
 ShelterB2NorthMaintenanceWalkwayStorage63B0 D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
 
-RoomEventMsg D_shelter_b2_north_maintenance_walkway_801863B8 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
-u8 D_shelter_b2_north_maintenance_walkway_801863C0 = 0;
+u8 gRoomEventActive = 0;
 
 ShelterB2NorthMaintenanceWalkwayStorage63C4 D_shelter_b2_north_maintenance_walkway_801863C4 = { { 0 }, { 0 } };
 
-RoomEventReq D_shelter_b2_north_maintenance_walkway_801863D4 = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
-static s32            func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg);
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task);
 static void           func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task);
@@ -770,112 +770,9 @@ void func_shelter_b2_north_maintenance_walkway_8017D61C(Task* arg0)
     }
 }
 
-/// The walkway's event gate. A request whose flag nibble already records the
-/// event (a set nibble, or a clear one for a negative `flagId`) answers 1. One
-/// whose prerequisite item has not been collected runs the request's CAP
-/// command and answers 0. Otherwise the gate answers 2 and - unless the
-/// message's `queryOnly` asks for a dry run - latches the message and the
-/// request, writes the flag nibble and spawns the event task.
-static s32 func_shelter_b2_north_maintenance_walkway_8017D7B4(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                                            = req->flagId;
-    D_shelter_b2_north_maintenance_walkway_801863C0 = 0;
-    neg                                             = flag < 0;
-    got                                             = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b2_north_maintenance_walkway_801863B8 = *msg;
-                D_shelter_b2_north_maintenance_walkway_801863D4 = *req;
-                id                                              = req->flagId;
-                mode                                            = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b2_north_maintenance_walkway_80183B54, 0, 0, 0);
-                D_shelter_b2_north_maintenance_walkway_801863C0 = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// The event task the gate spawns. It runs the latched request's CAP command,
-/// plays its first and then its second sound event (either may be 0), waiting
-/// for each voice to finish, then commits the latched message's area, warp and
-/// room as the save location, respawns the player task as type 0x11 and ends.
-void func_shelter_b2_north_maintenance_walkway_8017D918(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b2_north_maintenance_walkway_801863D4.field_0);
-            if (D_shelter_b2_north_maintenance_walkway_801863D4.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_north_maintenance_walkway_801863D4.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b2_north_maintenance_walkway_801863D4.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b2_north_maintenance_walkway_801863D4.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_north_maintenance_walkway_801863D4.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b2_north_maintenance_walkway_801863D4.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_north_maintenance_walkway_801863B8.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_north_maintenance_walkway_801863B8.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_north_maintenance_walkway_801863B8.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless
@@ -919,11 +816,11 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
         req.field_C = 0x541E0001;
         req.flagId  = 0xA8;
         req.itemId  = 0x22;
-        result      = func_shelter_b2_north_maintenance_walkway_8017D7B4(&req, out);
+        result      = roomEventGate(&req, out);
         if (result == 0) {
             result = 2;
         }
-        if (D_shelter_b2_north_maintenance_walkway_801863C0 != 0) {
+        if (gRoomEventActive != 0) {
             Gp_SetItemSeenBit(0x122, 1);
         }
         return result;

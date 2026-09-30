@@ -54,6 +54,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -98,12 +99,12 @@ extern GpMsgEntry D_dryfield_night_driveway_8017F7A4[];
 /// second.
 
 /// Spawn argument of the helper task 0x31 the event task starts.
-extern RoomFadeStorage D_dryfield_night_driveway_80182110;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The message and the event the event gate latched for the event task, and
 /// the flag it sets when it latches one.
-extern RoomEventMsg     D_dryfield_night_driveway_80182118;
-extern RoomLatchedEvent D_dryfield_night_driveway_80182124;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
 static void func_dryfield_night_driveway_8017DD7C(Task* task);
@@ -130,11 +131,10 @@ void                        func_dryfield_night_driveway_8017DC6C(s32);
 void                        func_dryfield_night_driveway_8017DC78(s16);
 void                        func_dryfield_night_driveway_8017DC88(u8);
 
-void func_dryfield_night_driveway_8017D608(Task*);
 void func_dryfield_night_driveway_8017DAF4(Task*);
 void func_dryfield_night_driveway_8017DB8C(Task*);
 
-TaskDesc D_dryfield_night_driveway_8017E678 = { 0, 32, func_dryfield_night_driveway_8017D608, { .model = NULL } };
+TaskDesc D_dryfield_night_driveway_8017E678 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 AnimationPackedPose D_dryfield_night_driveway_8017E684[10] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
@@ -933,9 +933,9 @@ GpRoomParamRec* D_dryfield_night_driveway_801820F0[8] = {
     D_dryfield_night_driveway_801820D8,
 };
 
-RoomFadeStorage D_dryfield_night_driveway_80182110 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_dryfield_night_driveway_80182118 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 D_dryfield_night_driveway_80182120[4] = {
     0,
@@ -944,59 +944,9 @@ u8 D_dryfield_night_driveway_80182120[4] = {
     0,
 };
 
-RoomLatchedEvent D_dryfield_night_driveway_80182124 = { 0 };
+RoomLatchedEvent gRoomEventLatched = { 0 };
 
-/// The room's event task, spawned by the event gate. State 0 runs the latched
-/// event's CAP command; state 1 waits for it to finish and, when the event
-/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
-/// sound and wait for it (state 2 skips to 4 when there is none); state 4
-/// writes the latched message's destination into the save data and hands over
-/// to task type 0x11.
-void func_dryfield_night_driveway_8017D608(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_dryfield_night_driveway_80182124.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_dryfield_night_driveway_80182124.fade != 0) {
-                    D_dryfield_night_driveway_80182110.fade.field_0 = 0;
-                    D_dryfield_night_driveway_80182110.fade.field_1 = 0;
-                    D_dryfield_night_driveway_80182110.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_dryfield_night_driveway_80182110.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_dryfield_night_driveway_80182124.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_dryfield_night_driveway_80182124.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_dryfield_night_driveway_80182124.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_dryfield_night_driveway_80182118.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_dryfield_night_driveway_80182118.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_dryfield_night_driveway_80182118.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 /// The room task's three states: set up, idle, kill.
 static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
@@ -1006,7 +956,7 @@ static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
 /// Event gate for the driveway. Every message is answered by editing the copy
 /// in `out`; the two that matter are message 0x17, which reports whether the
 /// road flag is clear and otherwise stages the pending request at
-/// `D_dryfield_night_driveway_80182124` for `func_dryfield_night_driveway_8017D608`
+/// `gRoomEventLatched` for `roomEventStagedTask`
 /// to replay as a CAP command, and message 0x20, which reports the gate flag and
 /// spawns the cutscene task at `D_dryfield_night_driveway_8017F34C`.
 s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -1074,8 +1024,8 @@ s32 func_dryfield_night_driveway_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in
         D_dryfield_night_driveway_80182120_value = 0;
         if (GameFlag_GetNibble(p->flagId) == 0 || p->flagId == 0) {
             if (out->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_dryfield_night_driveway_80182118 = *out;
-                D_dryfield_night_driveway_80182124 = req;
+                gRoomEventMsg     = *out;
+                gRoomEventLatched = req;
                 if (p->flagId != 0) {
                     GameFlag_SetNibble(p->flagId, 1);
                 }

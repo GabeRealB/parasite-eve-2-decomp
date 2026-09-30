@@ -42,6 +42,7 @@
 #include "rooms/rooms_shared_8017dcb8.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// Anchor points of the glows the room task draws.
 extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[];
@@ -58,7 +59,7 @@ extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
 
 TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D61C, { .model = NULL } };
 
-TaskDesc D_shelter_b2_north_maintenance_walkway_80183B54 = { 0, 32, func_shelter_b2_north_maintenance_walkway_8017D918, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { 5102, func_shelter_b2_north_maintenance_walkway_8017DA88 },

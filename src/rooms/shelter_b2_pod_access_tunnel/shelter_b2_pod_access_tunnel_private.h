@@ -14,7 +14,6 @@ extern GpMsgEntry D_shelter_b2_pod_access_tunnel_80183BCC[6];
 extern TaskDesc D_shelter_b2_pod_access_tunnel_80183BFC;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_shelter_b2_pod_access_tunnel_8017D62C(Task*);
 
 s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

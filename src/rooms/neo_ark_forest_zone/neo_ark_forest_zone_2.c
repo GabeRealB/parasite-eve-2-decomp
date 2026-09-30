@@ -40,6 +40,7 @@
 
 #include "mapui/map_neo_ark.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_events.h"
 
 /// A placement for a spawned task: the x and z written into its coordinate
 /// translation (y is always zero) and the Y rotation passed to
@@ -176,7 +177,7 @@ AnimationSet D_neo_ark_forest_zone_80181D94 = {
     { NULL, D_neo_ark_forest_zone_8018194C, NULL, NULL, D_neo_ark_forest_zone_801819C4, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_forest_zone_80181DBC = { 0, 32, func_neo_ark_forest_zone_8017D644, { .model = NULL } };
+TaskDesc D_neo_ark_forest_zone_80181DBC = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_forest_zone_80181DC8[6] = {
     { 5102, func_neo_ark_forest_zone_8017D7E4 },

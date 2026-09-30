@@ -63,6 +63,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/water_effects.h"
+#include "../../shared/room_events.h"
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -85,12 +86,12 @@ extern GpMsgEntry D_neo_ark_pavilion_80183870[];
 /// The second of those offsets, which the recording frames read by name.
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
-extern RoomFadeStorage D_neo_ark_pavilion_80187A0C;
+extern RoomFadeStorage gRoomEventFade;
 
 /// The save-location record and event the message handler latched for the
 /// room's event task.
-extern RoomEventMsg     D_neo_ark_pavilion_80187A14;
-extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
+extern RoomEventMsg     gRoomEventMsg;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// Set by the message handler when its last message latched an event and
 /// spawned the room's event task; every such message clears it first.
@@ -98,11 +99,10 @@ extern RoomLatchedEvent D_neo_ark_pavilion_80187A20;
 static void func_neo_ark_pavilion_8017F588(GfxCoord* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void func_neo_ark_pavilion_8017F974(GfxCoord* arg0, s32 arg1, s32 arg2);
 
-void func_neo_ark_pavilion_8017E854(Task*);
-s32  func_neo_ark_pavilion_8017E9EC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
-s32  func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_pavilion_8017E9EC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_neo_ark_pavilion_8017EB3C(Task*, s32, s32, TaskMessageArg);
+s32 func_neo_ark_pavilion_8017EB78(Task*, s32, TaskMessageArg, TaskMessageArg);
 
 extern GpGridParams   D_neo_ark_pavilion_801841E4[1];
 extern GpObj3A        D_neo_ark_pavilion_8018798C[1];
@@ -117,7 +117,7 @@ TaskDesc D_neo_ark_pavilion_8018384C = { 0, 192, waterRefractionTask, { .model =
 
 TaskDesc D_neo_ark_pavilion_80183858 = { 0, 192, waterDistortBandTask, { .model = NULL } };
 
-TaskDesc D_neo_ark_pavilion_80183864 = { 0, 32, func_neo_ark_pavilion_8017E854, { .model = NULL } };
+TaskDesc D_neo_ark_pavilion_80183864 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_neo_ark_pavilion_80183870[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
@@ -1068,9 +1068,9 @@ GpRoomParamRec* D_neo_ark_pavilion_801879EC[8] = {
     D_neo_ark_pavilion_801879D4,
 };
 
-RoomFadeStorage D_neo_ark_pavilion_80187A0C = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_neo_ark_pavilion_80187A14 = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 s8 D_neo_ark_pavilion_80187A1C[4] = {
     0,
@@ -1079,7 +1079,7 @@ s8 D_neo_ark_pavilion_80187A1C[4] = {
     37,
 };
 
-RoomLatchedEvent D_neo_ark_pavilion_80187A20;
+RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_neo_ark_pavilion_8017EB80(Task* arg0);
@@ -1089,56 +1089,7 @@ static void           func_neo_ark_pavilion_8017EBEC(Task* task);
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-/// The room's own event task, spawned by its message handler. State 0 runs
-/// the latched event's CAP command; state 1 waits for it to finish and, when
-/// the event asks for it, starts helper task 0x31; states 2 and 3 play the
-/// event's stage sound and wait for it; state 4 writes the latched message's
-/// destination into the save data and hands over to task type 0x11.
-void func_neo_ark_pavilion_8017E854(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_neo_ark_pavilion_80187A20.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_neo_ark_pavilion_80187A20.fade != 0) {
-                    D_neo_ark_pavilion_80187A0C.fade.field_0 = 0;
-                    D_neo_ark_pavilion_80187A0C.fade.field_1 = 0;
-                    D_neo_ark_pavilion_80187A0C.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_neo_ark_pavilion_80187A0C.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_neo_ark_pavilion_80187A20.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_neo_ark_pavilion_80187A20.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_neo_ark_pavilion_80187A20.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = (u8)D_neo_ark_pavilion_80187A14.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_neo_ark_pavilion_80187A14.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_neo_ark_pavilion_80187A14.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 s32 func_neo_ark_pavilion_8017E9EC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {
@@ -1150,8 +1101,8 @@ static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEv
     D_neo_ark_pavilion_80187A1C_value = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_neo_ark_pavilion_80187A14 = *dst;
-            D_neo_ark_pavilion_80187A20 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }

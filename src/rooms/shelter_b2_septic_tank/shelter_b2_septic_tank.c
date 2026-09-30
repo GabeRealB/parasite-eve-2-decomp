@@ -64,6 +64,7 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"
+#include "../../shared/room_events.h"
 
 /// The room's message table, installed by its first task state.
 extern GpMsgEntry D_shelter_b2_septic_tank_80182F4C[];
@@ -96,10 +97,10 @@ static void func_shelter_b2_septic_tank_8017EAF8(Task* task);
 static void func_shelter_b2_septic_tank_8018083C(SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
 extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
-extern RoomFadeStorage  D_shelter_b2_septic_tank_80187034;
-extern RoomEventMsg     D_shelter_b2_septic_tank_8018703C;
+extern RoomFadeStorage  gRoomEventFade;
+extern RoomEventMsg     gRoomEventMsg;
 extern u8               D_shelter_b2_septic_tank_80187044;
-extern RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
+extern RoomLatchedEvent gRoomEventLatched;
 
 /// Cursor into the primitive area the water surface is written to.
 extern u8* D_shelter_b2_septic_tank_80187054;
@@ -119,11 +120,10 @@ void                        func_shelter_b2_septic_tank_8017D9A0(void);
 
 extern TaskDesc D_80147E48;
 
-s32  func_shelter_b2_septic_tank_8017D7AC(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_septic_tank_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
-s32  func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, TaskMessageArg);
-void func_shelter_b2_septic_tank_8017D614(Task*);
+s32 func_shelter_b2_septic_tank_8017D7AC(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_septic_tank_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32 func_shelter_b2_septic_tank_8017D904(Task*, s32, TaskMessageArg, TaskMessageArg);
+s32 func_shelter_b2_septic_tank_8017D90C(Task*, s32, RoomEventMsg*, TaskMessageArg);
 
 AnimationPackedPose D_shelter_b2_septic_tank_80182B74[6] = {
 #include "assets/shelter_b2_septic_tank_animation_05958_bank1.inc"
@@ -147,7 +147,7 @@ AnimationSet D_shelter_b2_septic_tank_80182F18 = {
     { NULL, D_shelter_b2_septic_tank_80182B74, NULL, NULL, D_shelter_b2_septic_tank_80182BBC, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b2_septic_tank_80182F40 = { 0, 32, func_shelter_b2_septic_tank_8017D614, { .model = NULL } };
+TaskDesc D_shelter_b2_septic_tank_80182F40 = { 0, 32, roomEventStagedTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_septic_tank_8017D7B4 },
@@ -1162,9 +1162,9 @@ GpRoomParamRec* D_shelter_b2_septic_tank_80187014[8] = {
     D_shelter_b2_septic_tank_80186FFC,
 };
 
-RoomFadeStorage D_shelter_b2_septic_tank_80187034 = { 0 };
+RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg D_shelter_b2_septic_tank_8018703C = { 0 };
+RoomEventMsg gRoomEventMsg = { 0 };
 
 u8 D_shelter_b2_septic_tank_80187044 = 0;
 
@@ -1172,7 +1172,7 @@ u8 D_shelter_b2_septic_tank_80187045 = 0;
 
 u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
-RoomLatchedEvent D_shelter_b2_septic_tank_80187048;
+RoomLatchedEvent gRoomEventLatched;
 
 u8* D_shelter_b2_septic_tank_80187054;
 
@@ -1189,8 +1189,8 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
     D_shelter_b2_septic_tank_80187044 = 0;
     if (GameFlag_GetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b2_septic_tank_8018703C = *dst;
-            D_shelter_b2_septic_tank_80187048 = *event;
+            gRoomEventMsg     = *dst;
+            gRoomEventLatched = *event;
             if (event->flagId != 0) {
                 GameFlag_SetNibble(event->flagId, 1);
             }
@@ -1202,57 +1202,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(RoomEventMsg* dst, RoomLatc
     return 1;
 }
 
-/// The room's event task, spawned by `_shelterB2SepticTankStartEvent` for the
-/// event it latched in `D_shelter_b2_septic_tank_80187048`. State 0 runs the
-/// event's CAP command; state 1 waits for it to finish and, when the event
-/// asks for it, starts helper task 0x31; states 2 and 3 play the event's stage
-/// sound, if any, and wait for it to end. State 4 copies the latched message's
-/// destination into the save data and spawns the room-load task 0x11.
-void func_shelter_b2_septic_tank_8017D614(Task* arg0)
-{
-    switch (arg0->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd(D_shelter_b2_septic_tank_80187048.capCmd, 0);
-            D_80115690 = 1;
-            arg0->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                if (D_shelter_b2_septic_tank_80187048.fade != 0) {
-                    D_shelter_b2_septic_tank_80187034.fade.field_0 = 0;
-                    D_shelter_b2_septic_tank_80187034.fade.field_1 = 0;
-                    D_shelter_b2_septic_tank_80187034.fade.field_2 = 0x1E;
-                    Task_Spawn(1, 0x31, 0, &D_shelter_b2_septic_tank_80187034.fade);
-                }
-                arg0->state++;
-            }
-            break;
-        case 2:
-            if (D_shelter_b2_septic_tank_80187048.stageSnd != 0) {
-                Gp_EnqueueStageSnd6(D_shelter_b2_septic_tank_80187048.stageSnd, 0, 0);
-                arg0->state++;
-            } else {
-                arg0->state = 4;
-            }
-            break;
-        case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(D_shelter_b2_septic_tank_80187048.stageSnd)) == 0) {
-                arg0->state++;
-            }
-            break;
-        case 4:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_septic_tank_8018703C.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_septic_tank_8018703C.warp;
-            Mc_SaveData[0].state.at4.loc.room = D_shelter_b2_septic_tank_8018703C.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(arg0);
-            break;
-    }
-}
+#include "../../shared/room_event_staged_task.inc.c"
 
 s32 func_shelter_b2_septic_tank_8017D7AC(Task* task, s32 msgId, TaskMessageArg arg2, TaskMessageArg arg3)
 {

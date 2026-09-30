@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_breezeway.
-D_dryfield_breezeway_8018439C = 0x8018439C; // size:0x8 defined:True
-D_dryfield_breezeway_801843A4 = 0x801843A4; // size:0x1 defined:True
+gRoomEventMsg = 0x8018439C; // size:0x8 defined:True
+gRoomEventActive = 0x801843A4; // size:0x1 defined:True
 D_dryfield_breezeway_801843A8 = 0x801843A8; // size:0x4 defined:True
 D_dryfield_breezeway_80181E28 = 0x80181E28; // size:0x18 defined:True
 D_dryfield_breezeway_80181E40 = 0x80181E40; // size:0x30 defined:True
@@ -10,7 +10,7 @@ D_dryfield_breezeway_80184360 = 0x80184360; // size:0xC defined:True
 D_dryfield_breezeway_8018436C = 0x8018436C; // size:0x8 defined:True
 D_dryfield_breezeway_80184374 = 0x80184374; // size:0x8 defined:True
 D_dryfield_breezeway_8018437C = 0x8018437C; // size:0x20 defined:True
-D_dryfield_breezeway_801843AC = 0x801843AC; // size:0x14 defined:True
+gRoomEventReq = 0x801843AC; // size:0x14 defined:True
 D_dryfield_breezeway_801843C0 = 0x801843C0; // size:0x4 defined:True
 D_map_dryfield_8017B674 = 0x8017B674; // absolute:True
 D_map_dryfield_8017B6A4 = 0x8017B6A4; // absolute:True
@@ -68,7 +68,7 @@ D_dryfield_breezeway_80182E24 = 0x80182E24; // size:0x100 defined:True
 D_dryfield_breezeway_80182F24 = 0x80182F24; // size:0x20 defined:True
 D_dryfield_breezeway_80182F44 = 0x80182F44; // size:0x200 defined:True
 D_dryfield_breezeway_80183144 = 0x80183144; // size:0x20 defined:True
-D_dryfield_breezeway_80181DD4 = 0x80181DD4; // size:0xC defined:True
+gRoomEventTaskDesc = 0x80181DD4; // size:0xC defined:True
 D_dryfield_breezeway_80181DE0 = 0x80181DE0; // size:0x30 defined:True
 D_dryfield_breezeway_80181E10 = 0x80181E10; // size:0x18 defined:True
 
@@ -82,3 +82,5 @@ actionPromptMoveCursors = 0x8017F538; // type:func
 actionPromptDrawCursor = 0x8017F998; // type:func
 actionPromptHitTest = 0x8017FCB4; // type:func
 actionPromptReset = 0x8017FF1C; // type:func
+roomEventGate = 0x8017D638; // type:func
+roomEventTask = 0x8017D79C; // type:func

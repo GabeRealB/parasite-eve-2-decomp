@@ -59,6 +59,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/action_prompt.h"
+#include "../../shared/room_events.h"
 
 /// 0x14 work block the breezeway's room task hangs off the `Task::work` slot
 /// (0x1C) -- that slot is *not* a `TaskIdMap` here. Reach it with
@@ -268,7 +269,7 @@ s32  func_dryfield_breezeway_8017FBC8(Task*, s32, s32, s32);
 void func_dryfield_breezeway_8017FA80(Task*);
 void func_dryfield_breezeway_8017FC38(Task*);
 
-TaskDesc D_dryfield_breezeway_80181DD4 = { 0, 32, func_dryfield_breezeway_8017D79C, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_dryfield_breezeway_80181DE0[6] = {
     { 5102, func_dryfield_breezeway_8017D940 },

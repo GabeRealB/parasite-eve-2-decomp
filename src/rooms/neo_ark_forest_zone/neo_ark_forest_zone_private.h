@@ -30,7 +30,6 @@ extern GpEvsCmd D_neo_ark_forest_zone_80181E6C[23];
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_forest_zone_8017D644(Task*);
 
 s32 func_neo_ark_forest_zone_8017D7DC(Task*, s32, TaskMessageArg, TaskMessageArg);
 

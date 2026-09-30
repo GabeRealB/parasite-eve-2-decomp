@@ -12,14 +12,12 @@
 
 extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
 
-extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B54;
+extern TaskDesc gRoomEventTaskDesc;
 
 extern GpMsgEntry D_shelter_b2_north_maintenance_walkway_80183B60[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_shelter_b2_north_maintenance_walkway_8017D61C(Task*);
-
-void func_shelter_b2_north_maintenance_walkway_8017D918(Task*);
 
 s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 

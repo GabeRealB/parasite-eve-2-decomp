@@ -65,6 +65,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_events.h"
 
 /// 0x18-byte block `func_shelter_b2_laboratory_801812F8` takes from
 /// the scratch stack: the projected centre `sx` / `sy`, its `otz` and GTE
@@ -137,7 +138,7 @@ static UiList       Telephone_Data_80181CF4;
 /// Task tables the room spawns from: the cutscene, the flag-gated exit's
 /// transition, and the console's tasks.
 extern TaskDesc D_shelter_b2_laboratory_80182A08[];
-extern TaskDesc D_shelter_b2_laboratory_80182A2C;
+extern TaskDesc gRoomEventTaskDesc;
 extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 
 /// Message table of the room's message task.
@@ -170,13 +171,13 @@ STATIC_ASSERT_SIZEOF(ShelterB2LaboratoryStorage64A4, 8);
 extern ShelterB2LaboratoryStorage64A4 D_shelter_b2_laboratory_801864A4;
 
 /// Copies of the message and request that started the pending exit
-/// transition, read back by `func_shelter_b2_laboratory_8017FBA8`.
-extern RoomEventMsg D_shelter_b2_laboratory_801864AC;
-extern RoomEventReq D_shelter_b2_laboratory_8018652C;
+/// transition, read back by `roomEventTask`.
+extern RoomEventMsg gRoomEventMsg;
+extern RoomEventReq gRoomEventReq;
 
-/// Set when `func_shelter_b2_laboratory_8017FA44` started a transition,
+/// Set when `roomEventGate` started a transition,
 /// cleared on every other call.
-extern u8 D_shelter_b2_laboratory_801864B4;
+extern u8 gRoomEventActive;
 
 /// Non-zero while the looping sound of `func_shelter_b2_laboratory_8017FEB8`
 /// should keep playing; set by `func_shelter_b2_laboratory_801804FC`.
@@ -216,7 +217,6 @@ s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg
 s32  func_shelter_b2_laboratory_801801D0(Task*, s32, DirectionActionRequest* request, s32);
 s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, TaskMessageArg);
 void func_shelter_b2_laboratory_8017F4D8(Task*);
-void func_shelter_b2_laboratory_8017FBA8(Task*);
 void func_shelter_b2_laboratory_8017FEB8(Task*);
 void func_shelter_b2_laboratory_80180064(Task*);
 void func_shelter_b2_laboratory_80180290(Task*);
@@ -266,7 +266,7 @@ TaskDesc D_shelter_b2_laboratory_80182A08[3] = {
     { 0xFFFF, 0, NULL, { .model = NULL } },
 };
 
-TaskDesc D_shelter_b2_laboratory_80182A2C = { 0, 32, func_shelter_b2_laboratory_8017FBA8, { .model = NULL } };
+TaskDesc gRoomEventTaskDesc = { 0, 32, roomEventTask, { .model = NULL } };
 
 GpMsgEntry D_shelter_b2_laboratory_80182A38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
@@ -1047,9 +1047,9 @@ GpAreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
 
 ShelterB2LaboratoryStorage64A4 D_shelter_b2_laboratory_801864A4 = { NULL, { 0 } };
 
-RoomEventMsg D_shelter_b2_laboratory_801864AC = { 0, 0, 0, 0, 0, 0 };
+RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
-u8 D_shelter_b2_laboratory_801864B4 = 0;
+u8 gRoomEventActive = 0;
 
 s32 D_shelter_b2_laboratory_801864B8 = 0;
 
@@ -1057,11 +1057,9 @@ ShelterB2LaboratoryStorage64BC D_shelter_b2_laboratory_801864BC = { { 0, 0, 0, 0
 
 GfxCoord D_shelter_b2_laboratory_801864DC = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
-RoomEventReq D_shelter_b2_laboratory_8018652C = { 0, 0, 0, 0, 0, 0 };
+RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 u16 D_shelter_b2_laboratory_80186540;
-
-static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* msg);
 
 #include "../../shared/telephone.inc.c"
 
@@ -1257,113 +1255,9 @@ void func_shelter_b2_laboratory_8017F4D8(Task* task)
     }
 }
 
-/// Handles a request to leave through a flag-gated exit. When the flag named
-/// by `req->flagId` (negated: must be clear) is already in the wanted state,
-/// returns 1. Otherwise, if the item `req->itemId` has been collected (or none
-/// is needed), sets the flag, records `msg` and `req`, spawns the transition
-/// task and returns 2; if the item is missing, runs cap command `req->field_4`
-/// and returns 0. The spawn and the cap command happen only when
-/// `msg->queryOnly` is 0.
-static s32 func_shelter_b2_laboratory_8017FA44(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+#include "../../shared/room_event_gate.inc.c"
 
-    flag                             = req->flagId;
-    D_shelter_b2_laboratory_801864B4 = 0;
-    neg                              = flag < 0;
-    got                              = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = GameFlag_GetNibble(flag) == 0;
-    } else {
-        got = GameFlag_GetNibble(got);
-    }
-    ret = 1;
-    if (got == 0) {
-        if (Gp_HasCollectedBit(req->itemId) != 0 || req->itemId == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                D_shelter_b2_laboratory_801864AC = *msg;
-                D_shelter_b2_laboratory_8018652C = *req;
-                id                               = req->flagId;
-                mode                             = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                GameFlag_SetNibble(id, mode);
-                Task_SpawnFromTable(&D_shelter_b2_laboratory_80182A2C, 0, 0, 0);
-                D_shelter_b2_laboratory_801864B4 = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            Gp_RunCapCmd1(req->field_4);
-            Gp_SetNibbleIf(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
-    }
-    return ret;
-}
-
-/// Transition task: runs cap command `field_0` of the recorded request, plays
-/// its two voice events `field_8` and `field_C` in turn (each optional) and
-/// waits for them, then stops the sound, points the save's location at the
-/// recorded message's destination and spawns the area-change task.
-void func_shelter_b2_laboratory_8017FBA8(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_StateF0.field_4 = 1;
-            Gp_MsgPlayerWeapon(0);
-            Gp_RunCapCmd1(D_shelter_b2_laboratory_8018652C.field_0);
-            if (D_shelter_b2_laboratory_8018652C.field_8 != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_laboratory_8018652C.field_8, 0, 0);
-                task->state++;
-            } else {
-                task->state = 2;
-            }
-            break;
-        case 1:
-            if (SndVoice_HasActiveId(D_shelter_b2_laboratory_8018652C.field_8) == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            task->state++;
-            break;
-        case 3:
-            if (D_shelter_b2_laboratory_8018652C.field_C != 0) {
-                SndEvt_EnqueueType6(D_shelter_b2_laboratory_8018652C.field_C, 0, 0);
-                task->state++;
-            } else {
-                task->state = 5;
-            }
-            break;
-        case 4:
-            if (SndVoice_HasActiveId(D_shelter_b2_laboratory_8018652C.field_C) == 0) {
-                task->state++;
-            }
-            break;
-        case 5:
-            SndEvt_EnqueueType7(0x80000000, 0);
-            gDisplayState.spriteVariant       = 1;
-            Mc_SaveData[0].state.at4.loc.area = D_shelter_b2_laboratory_801864AC.areaId;
-            Mc_SaveData[0].state.at4.loc.warp = D_shelter_b2_laboratory_801864AC.warp;
-            Mc_SaveData[0].state.at4.loc.room = (u8)D_shelter_b2_laboratory_801864AC.room;
-            Task_Spawn(0, 0x11, 0, 0);
-            taskKill(task);
-            break;
-    }
-}
+#include "../../shared/room_event_task.inc.c"
 
 s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, TaskMessageArg arg3)
 {
@@ -1509,7 +1403,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     req.field_C = 0x541F0003;
     req.flagId  = 0xB1;
     req.itemId  = 0;
-    return func_shelter_b2_laboratory_8017FA44(&req, out);
+    return roomEventGate(&req, out);
 }
 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
