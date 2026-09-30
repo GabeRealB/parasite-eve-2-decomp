@@ -722,6 +722,13 @@ loop:
 
 s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
+    /// Empty-slot value in a sound-script bank image's entry-offset table.
+    ///
+    /// `SndBankHdr::entryOffsets` stores a byte offset from the image start to
+    /// each slot's `oneC` block. Zero means that slot has no script, so a start
+    /// request that reads it is rejected before an entry pointer is formed.
+    /// Several slots may share one nonzero offset. Callers still need a
+    /// completed `hONE` image; this comparison only interprets the stored offset.
     enum { SOUND_BANK_ENTRY_ABSENT = 0 };
     s32                     orig;
     SndBankSlot*            bankSlot;
@@ -751,11 +758,11 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     if (index >= header->entryCount) {
         return -2;
     }
-    // Entry offsets address tagged scripts within the same loaded image.
     offset = *(header->entryOffsets + index);
     if (offset == SOUND_BANK_ENTRY_ABSENT) {
         return -3;
     }
+    // A nonzero offset addresses the slot's oneC block within this loaded image.
     entry = (SndScriptEntryControls*)((u8*)header + offset);
     if (D_800689EC != 0) {
         if ((entry->flags & SOUND_SCRIPT_REJECT_WHILE_MUTED) != 0) {
