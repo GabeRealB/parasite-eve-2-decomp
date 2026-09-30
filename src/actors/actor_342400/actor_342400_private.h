@@ -8,11 +8,11 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TmdSource D_actor_342400_8016CB6C;
+extern TmdSource gHopperChunkModel0;
 
-extern TmdSource D_actor_342400_8016D210;
+extern TmdSource gHopperChunkModel1;
 
-extern TmdSource D_actor_342400_8016D780;
+extern TmdSource gHopperChunkModel2;
 
 extern TmdSource D_actor_342400_80170560;
 

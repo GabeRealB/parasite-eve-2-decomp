@@ -790,49 +790,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state);
  * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
  * store cannot alias the `TmdObject` loads and sinks it past them. */
 
-void hopperSpawnGibs(Task* arg0)
-{
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* src;
-    TmdObject* src2;
-
-    D_800678F0[0] = &D_actor_342400_8016CB6C;
-    eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);
-    if (eff != NULL) {
-        src                    = arg0->extra.tmd;
-        dst                    = eff->task->extra.tmd;
-        dst->texturePageOffset = src->texturePageOffset;
-        dst->clutRowOffset     = src->clutRowOffset;
-        if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
-        }
-    }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((Gp_LcgState >> 16) & 1) {
-        D_800678F0[0] = &D_actor_342400_8016D210;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
-    } else {
-        D_800678F0[0] = &D_actor_342400_8016D780;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[2], 0x200, NULL);
-    }
-    if (eff2 != NULL) {
-        src2                    = arg0->extra.tmd;
-        dst2                    = eff2->task->extra.tmd;
-        dst2->texturePageOffset = src2->texturePageOffset;
-        dst2->clutRowOffset     = src2->clutRowOffset;
-        if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
-        }
-    }
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[3], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[4], 0x200, NULL);
-}
+#include "../../shared/hopping_enemy_spawn_gibs.inc.c"
 
 #include "../../shared/hopping_enemy_twist.inc.c"
 

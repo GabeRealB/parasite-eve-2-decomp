@@ -160,7 +160,7 @@ u32 D_actor_342400_8016C3D4[486] = {
 #include "assets/actor_342400_model_0AD4C_stream.inc"
 };
 
-TmdSource D_actor_342400_8016CB6C = {
+TmdSource gHopperChunkModel0 = {
     0,
     3260,
     0,
@@ -192,7 +192,7 @@ u32 D_actor_342400_8016CDC0[276] = {
 #include "assets/actor_342400_model_0B3F0_stream.inc"
 };
 
-TmdSource D_actor_342400_8016D210 = {
+TmdSource gHopperChunkModel1 = {
     0,
     1828,
     0,
@@ -224,7 +224,7 @@ u32 D_actor_342400_8016D424[215] = {
 #include "assets/actor_342400_model_0B960_stream.inc"
 };
 
-TmdSource D_actor_342400_8016D780 = {
+TmdSource gHopperChunkModel2 = {
     0,
     1448,
     0,

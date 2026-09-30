@@ -886,49 +886,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state);
 /* The records closing three of the overlay's model streams, selected through
    `D_800678F0`. */
 
-void hopperSpawnGibs(Task* arg0)
-{
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* src;
-    TmdObject* src2;
-
-    D_800678F0[0] = &gHopperChunkModel0;
-    eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);
-    if (eff != NULL) {
-        src                    = arg0->extra.tmd;
-        dst                    = eff->task->extra.tmd;
-        dst->texturePageOffset = src->texturePageOffset;
-        dst->clutRowOffset     = src->clutRowOffset;
-        if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
-        }
-    }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((Gp_LcgState >> 16) & 1) {
-        D_800678F0[0] = &gHopperChunkModel1;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
-    } else {
-        D_800678F0[0] = &gHopperChunkModel2;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[2], 0x200, NULL);
-    }
-    if (eff2 != NULL) {
-        src2                    = arg0->extra.tmd;
-        dst2                    = eff2->task->extra.tmd;
-        dst2->texturePageOffset = src2->texturePageOffset;
-        dst2->clutRowOffset     = src2->clutRowOffset;
-        if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
-        }
-    }
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[3], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[4], 0x200, NULL);
-}
+#include "../../shared/hopping_enemy_spawn_gibs.inc.c"
 
 #include "../../shared/hopping_enemy_twist.inc.c"
 

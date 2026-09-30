@@ -303,9 +303,9 @@ static s32  Actor04400_Fn08DBC(Task* arg0);
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
 extern void*     D_800678F0[1];
-extern TmdSource Actor04400_D098FC;
-extern TmdSource Actor04400_D09FA0;
-extern TmdSource Actor04400_D0A510;
+extern TmdSource gHopperChunkModel0;
+extern TmdSource gHopperChunkModel1;
+extern TmdSource gHopperChunkModel2;
 
 static const TaskFuncTable3 Actor04400_D00070;
 static const TaskFuncTable3 Actor04400_D0007C;
@@ -344,7 +344,7 @@ u32 Actor04400_D09164[486] = {
 #include "assets/actor_104400_model_098FC_stream.inc"
 };
 
-TmdSource Actor04400_D098FC = {
+TmdSource gHopperChunkModel0 = {
     0,
     3260,
     0,
@@ -376,7 +376,7 @@ u32 Actor04400_D09B50[276] = {
 #include "assets/actor_104400_model_09FA0_stream.inc"
 };
 
-TmdSource Actor04400_D09FA0 = {
+TmdSource gHopperChunkModel1 = {
     0,
     1828,
     0,
@@ -408,7 +408,7 @@ u32 Actor04400_D0A1B4[215] = {
 #include "assets/actor_104400_model_0A510_stream.inc"
 };
 
-TmdSource Actor04400_D0A510 = {
+TmdSource gHopperChunkModel2 = {
     0,
     1448,
     0,
@@ -1335,49 +1335,7 @@ static void Actor04400_Fn00220(Task* task, s16 firstJoint, s16 secondJoint, s16 
     }
 }
 
-void hopperSpawnGibs(Task* arg0)
-{
-    GpEffWork* eff;
-    GpEffWork* eff2;
-    TmdObject* dst;
-    TmdObject* dst2;
-    TmdObject* src;
-    TmdObject* src2;
-
-    D_800678F0[0] = &Actor04400_D098FC;
-    eff           = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[6], 0x200, NULL);
-    if (eff != NULL) {
-        src                    = arg0->extra.tmd;
-        dst                    = eff->task->extra.tmd;
-        dst->texturePageOffset = src->texturePageOffset;
-        dst->clutRowOffset     = src->clutRowOffset;
-        if (dst->buffer != NULL) {
-            tmdProcessStream(dst);
-            tmdProcessStream(dst);
-        }
-    }
-    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((Gp_LcgState >> 16) & 1) {
-        D_800678F0[0] = &Actor04400_D09FA0;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[8], 0x200, NULL);
-    } else {
-        D_800678F0[0] = &Actor04400_D0A510;
-        eff2          = Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[2], 0x200, NULL);
-    }
-    if (eff2 != NULL) {
-        src2                    = arg0->extra.tmd;
-        dst2                    = eff2->task->extra.tmd;
-        dst2->texturePageOffset = src2->texturePageOffset;
-        dst2->clutRowOffset     = src2->clutRowOffset;
-        if (dst2->buffer != NULL) {
-            tmdProcessStream(dst2);
-            tmdProcessStream(dst2);
-        }
-    }
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[3], 0x200, NULL);
-    Gp_SpawnEff(0x60030, &arg0->extra.tmd->coords[4], 0x200, NULL);
-}
+#include "../../shared/hopping_enemy_spawn_gibs.inc.c"
 
 #include "../../shared/hopping_enemy_twist.inc.c"
 

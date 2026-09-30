@@ -32,7 +32,6 @@ void hopperBurst(Task* arg0);
 void hopperDropBodies(Task* arg0);
 void hopperBeginShrink(Task* task);
 
-/* Defined by each package. */
 void hopperSpawnGibs(Task* arg0);
 
 void hopperDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
