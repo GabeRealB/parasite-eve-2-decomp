@@ -50,6 +50,11 @@
 #include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/anim_driver.h"
+/// This file's `ActorContact_Steer` returns `s16`.
+///
+/// Defined before `actor_contacts.h`, which otherwise declares the return as
+/// `s32`. Callers here compare the return with 1, and that comparison
+/// sign-extends a 16-bit result.
 #define ACTOR_CONTACT_STEER_RESULT s16
 #include "../../shared/actor_contacts.h"
 

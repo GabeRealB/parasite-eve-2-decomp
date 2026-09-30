@@ -7,8 +7,9 @@
  *
  * Include this header in the prologue, then either actor_contacts.inc.c for
  * the whole run or each actor_contacts_<name>.inc.c a file carries, at its
- * position. Actor 210600 retains two copies of the run in separate files,
- * each with private scratch.
+ * position. Define `ACTOR_CONTACT_STEER_RESULT` first when that copy's return
+ * type is not `s32`. Actor 210600 retains two copies of the run in separate
+ * files, each with private scratch.
  */
 
 #ifndef SRC_SHARED_ACTOR_CONTACTS_H
@@ -38,9 +39,14 @@
 
 /* Interface for the including source. */
 
-/* ActorContact_Steer's result type. actor_01200's copy was declared to
-   return s16, which its callers then sign-extend; it defines this as s16
-   before including this header. */
+/// Return type of `ActorContact_Steer`.
+///
+/// The body returns 0, or 1 when it saw a contact of kind 0x10000. Both
+/// values fit either integer width; the type selects how a caller promotes
+/// the return. The default is `s32`. A carrier defines another integer type
+/// before including this header. `actor_01200` defines `s16`, so comparing
+/// the return with 1 sign-extends. `actor_421600` shifts the `s32` return in
+/// the caller and keeps the default.
 #ifndef ACTOR_CONTACT_STEER_RESULT
 #define ACTOR_CONTACT_STEER_RESULT s32
 #endif
