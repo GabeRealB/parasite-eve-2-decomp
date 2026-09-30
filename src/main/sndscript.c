@@ -755,8 +755,9 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
     if ((arg0 == 0) || (arg0 == 8)) {
         return orig;
     }
-    if (D_800689E4 != 0xFF) {
-        if ((D_800689E4 & SOUND_BANK_TYPE_MASK) == (((u32)arg0 >> 16) & SOUND_BANK_TYPE_MASK)) {
+    // A published load refuses script starts of that bank type.
+    if (gSndLoadBankId != SOUND_LOAD_BANK_NONE) {
+        if ((gSndLoadBankId & SOUND_BANK_TYPE_MASK) == (((u32)arg0 >> 16) & SOUND_BANK_TYPE_MASK)) {
             return -1;
         }
     }

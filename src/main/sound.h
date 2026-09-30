@@ -16,7 +16,21 @@ extern volatile u8 D_80082120;
 
 extern s8 Snd_BankSlotsByType[];
 
-extern volatile s32 D_800689E4;
+/// Value of `gSndLoadBankId` when no sound-bank load has published its id.
+///
+/// Not a bank id. A free descriptor uses `SOUND_BANK_ID_FREE`.
+enum { SOUND_LOAD_BANK_NONE = 0xFF };
+
+/// 16-bit bank id of a sound-bank load that has accepted its header, or
+/// `SOUND_LOAD_BANK_NONE` when none has.
+///
+/// The id is published before the previous bank is released. The sentinel is
+/// stored again when setup, completion or finalization finishes the load.
+/// Until then, a script-start request whose bank type matches the type of
+/// this id is refused. Sector feeding and those requests share the word, so
+/// each access is a volatile 32-bit load or store of the zero-extended id.
+/// Stopping the transfer any other way leaves the published id in place.
+extern volatile s32 gSndLoadBankId;
 
 extern volatile s16 D_800689EC;
 

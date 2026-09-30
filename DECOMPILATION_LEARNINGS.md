@@ -19136,7 +19136,7 @@ and it survives because the loaded value (`a1`) stays live for a later
 u16 id;
 if (D_800689E8 != 0 || (id = bank->bankId) == 0xFFFF) {
 fail:
-    D_800689E4 = 0xFF;
+    gSndLoadBankId = 0xFF;
     return -1;
 }
 slot = D_800680AC[id >> 12];
@@ -22127,7 +22127,7 @@ cannot fill the call delay:
 ```c
 s32 id;
 id = p->field_20; /* lhu */
-*(volatile s32*)&D_800689E4 = id;
+*(volatile s32*)&gSndLoadBankId = id;
 if (func(p->field_20, p->field_22) == -1) { /* still lhu via same load CSE */
     /* ... */
 }
