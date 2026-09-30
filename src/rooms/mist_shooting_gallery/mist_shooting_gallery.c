@@ -61,6 +61,7 @@
 #include "rooms/rooms_shared_8018055c.h"
 #define GLOW_DRAW_DISC_SCRATCH RoomDraw31Scratch
 #include "../../shared/glow_draw.h"
+#include "../../shared/jukebox.h"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
@@ -197,28 +198,28 @@ extern GpGridParams D_mist_shooting_gallery_801851F8;
 
 /// The jukebox's track lists, one per game mode, each a run of track id and
 /// name pairs.
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_8018521C[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185234[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_8018524C[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185264[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_8018527C[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185294[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_801852B4[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_801852D4[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_801852F4[];
-extern RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[];
+extern RoomsShared8018055cCourse gJukeboxTracksAttach0[];
+extern RoomsShared8018055cCourse gJukeboxTracksAttach1[];
+extern RoomsShared8018055cCourse gJukeboxTracksAttach2[];
+extern RoomsShared8018055cCourse gJukeboxTracksAttach3[];
+extern RoomsShared8018055cCourse gJukeboxTracksAttach4[];
+extern RoomsShared8018055cCourse gJukeboxTracks0[];
+extern RoomsShared8018055cCourse gJukeboxTracks1[];
+extern RoomsShared8018055cCourse gJukeboxTracks2[];
+extern RoomsShared8018055cCourse gJukeboxTracks3[];
+extern RoomsShared8018055cCourse gJukeboxTracks4[];
 
 /// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
 /// terminator, so the block stays in assembly.
 static const char D_mist_shooting_gallery_8017DB04[];
 
 /// The jukebox's track list, whose row callback is
-/// `func_mist_shooting_gallery_8018055C`.
+/// `jukeboxDrawRow`.
 extern UiList D_mist_shooting_gallery_80185338;
 
 /// The jukebox panel's descriptor; its update routine is the menu task
 /// `func_mist_shooting_gallery_80180728`.
-extern UiObjectDesc D_mist_shooting_gallery_8018535C;
+extern UiObjectDesc gJukeboxPanelDesc;
 
 extern TaskDesc D_mist_shooting_gallery_80185378;
 
@@ -226,9 +227,7 @@ static void func_mist_shooting_gallery_801801E4(s32 arg0);
 
 static const char D_mist_shooting_gallery_8017D65C[];
 
-void func_mist_shooting_gallery_8018055C(UiList*, UiObject*);
 void func_mist_shooting_gallery_80180728(Task*);
-void func_mist_shooting_gallery_80180A00(Task*);
 void func_mist_shooting_gallery_80180B64(Task*);
 void func_mist_shooting_gallery_80180F2C(Task*);
 void func_mist_shooting_gallery_801810D8(Task*);
@@ -791,65 +790,65 @@ s16* D_mist_shooting_gallery_801851F4[1] = {
 
 GpGridParams D_mist_shooting_gallery_801851F8 = { NULL, D_mist_shooting_gallery_801851BC, D_mist_shooting_gallery_801851C4, D_mist_shooting_gallery_801851E4, D_mist_shooting_gallery_801851F4, 6500, -3680, 1, 1, 4000, 1 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_8018521C[3] = {
+RoomsShared8018055cCourse gJukeboxTracksAttach0[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 23, D_mist_shooting_gallery_8017D884 },
     { 49, D_mist_shooting_gallery_8017D86C },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_80185234[3] = {
+RoomsShared8018055cCourse gJukeboxTracksAttach1[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 60, D_mist_shooting_gallery_8017D8C4 },
     { 66, D_mist_shooting_gallery_8017D8A8 },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_8018524C[3] = {
+RoomsShared8018055cCourse gJukeboxTracksAttach2[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 22, D_mist_shooting_gallery_8017D8F0 },
     { 74, D_mist_shooting_gallery_8017D8DC },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_80185264[3] = {
+RoomsShared8018055cCourse gJukeboxTracksAttach3[3] = {
     { 67, D_mist_shooting_gallery_8017D92C },
     { 82, D_mist_shooting_gallery_8017D91C },
     { 93, D_mist_shooting_gallery_8017D908 },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_8018527C[3] = {
+RoomsShared8018055cCourse gJukeboxTracksAttach4[3] = {
     { 20, D_mist_shooting_gallery_8017D898 },
     { 21, D_mist_shooting_gallery_8017D954 },
     { 60, D_mist_shooting_gallery_8017D93C },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_80185294[4] = {
+RoomsShared8018055cCourse gJukeboxTracks0[4] = {
     { 41, D_mist_shooting_gallery_8017D99C },
     { 45, D_mist_shooting_gallery_8017D988 },
     { 58, D_mist_shooting_gallery_8017D97C },
     { 61, D_mist_shooting_gallery_8017D960 },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_801852B4[4] = {
+RoomsShared8018055cCourse gJukeboxTracks1[4] = {
     { 35, D_mist_shooting_gallery_8017D9E0 },
     { 36, D_mist_shooting_gallery_8017D9C8 },
     { 42, D_mist_shooting_gallery_8017D9B8 },
     { 44, D_mist_shooting_gallery_8017D9AC },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_801852D4[4] = {
+RoomsShared8018055cCourse gJukeboxTracks2[4] = {
     { 31, D_mist_shooting_gallery_8017DA20 },
     { 59, D_mist_shooting_gallery_8017DA14 },
     { 89, D_mist_shooting_gallery_8017DA04 },
     { 93, D_mist_shooting_gallery_8017D9F0 },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_801852F4[4] = {
+RoomsShared8018055cCourse gJukeboxTracks3[4] = {
     { 76, D_mist_shooting_gallery_8017DA74 },
     { 77, D_mist_shooting_gallery_8017DA5C },
     { 78, D_mist_shooting_gallery_8017DA48 },
     { 83, D_mist_shooting_gallery_8017DA34 },
 };
 
-RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[4] = {
+RoomsShared8018055cCourse gJukeboxTracks4[4] = {
     { 9, D_mist_shooting_gallery_8017DAC8 },
     { 43, D_mist_shooting_gallery_8017DAB8 },
     { 17, D_mist_shooting_gallery_8017DAA4 },
@@ -857,14 +856,14 @@ RoomsShared8018055cCourse D_mist_shooting_gallery_80185314[4] = {
 };
 
 UiListItemFunc D_mist_shooting_gallery_80185334[1] = {
-    func_mist_shooting_gallery_8018055C,
+    jukeboxDrawRow,
 };
 
 UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_8018535C = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
+UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_mist_shooting_gallery_80180728, 0 };
 
-TaskDesc D_mist_shooting_gallery_80185378 = { 0, 192, func_mist_shooting_gallery_80180A00, { .model = NULL } };
+TaskDesc D_mist_shooting_gallery_80185378 = { 0, 192, jukeboxHostTask, { .model = NULL } };
 
 TaskDesc D_mist_shooting_gallery_80185384[3] = {
     { 0, 192, func_mist_shooting_gallery_801810D8, { .model = NULL } },
@@ -2172,76 +2171,28 @@ void func_mist_shooting_gallery_80180390(s32 arg0)
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-static const RoomsShared8018055cMenu D_mist_shooting_gallery_8017DADC = {
+static const RoomsShared8018055cMenu _gJukeboxTrackLists = {
     {
-        D_mist_shooting_gallery_8018521C,
-        D_mist_shooting_gallery_80185234,
-        D_mist_shooting_gallery_8018524C,
-        D_mist_shooting_gallery_80185264,
-        D_mist_shooting_gallery_8018527C,
-        D_mist_shooting_gallery_80185294,
-        D_mist_shooting_gallery_801852B4,
-        D_mist_shooting_gallery_801852D4,
-        D_mist_shooting_gallery_801852F4,
-        D_mist_shooting_gallery_80185314,
+        gJukeboxTracksAttach0,
+        gJukeboxTracksAttach1,
+        gJukeboxTracksAttach2,
+        gJukeboxTracksAttach3,
+        gJukeboxTracksAttach4,
+        gJukeboxTracks0,
+        gJukeboxTracks1,
+        gJukeboxTracks2,
+        gJukeboxTracks3,
+        gJukeboxTracks4,
     },
 };
 
 /// "SELECT", followed by the non-zero padding the original toolchain left.
 static const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
 
-/// Row callback of the jukebox list: draws the row's track name, and on
-/// confirm, when the row is not the one already chosen, plays the select
-/// sound and, when the track differs from the one playing, fades the music
-/// out and hands the track id to the menu task to load.
-void func_mist_shooting_gallery_8018055C(UiList* prompt, UiObject* obj)
-{
-    RoomsShared8018055cMenu    menu;
-    RoomsShared8018055cCourse* course;
-    s32                        row;
-    s32                        list;
-    s32                        mode;
-
-    row  = prompt->field_8;
-    menu = D_mist_shooting_gallery_8017DADC;
-
-    list = 4;
-    if (Mc_SaveData[0].state.clearCount != 0) {
-        list = Mc_SaveData[0].state.gameMode;
-    }
-    if (Gp_IsDebugAttachRoom() == 0) {
-        list += 5;
-    }
-
-    course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
-    menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.colorRgb   = prompt->field_1C;
-    menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-    menu.req.drawMode   = TEXT_DRAW_OUTLINED;
-    menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    Text_DrawString(&menu.req, course->name);
-
-    mode = prompt->field_C;
-    if (mode == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1.value != prompt->field_8) {
-                SndEvt_EnqueueType6(0x16, 0, 0);
-                if (obj->owner->status != course->id) {
-                    SndEvt_EnqueueType2(0, 0x3C);
-                    obj->owner->state  = mode;
-                    obj->owner->status = course->id;
-                    CdCmd_DropPending();
-                }
-                obj->owner->spawnArg1.value = prompt->field_8;
-            }
-        }
-    }
-}
+#include "../../shared/jukebox_row.inc.c"
 
 /// The jukebox menu task, the update routine of the panel
-/// `D_mist_shooting_gallery_8018535C` builds. Draws the title and, on its first
+/// `gJukeboxPanelDesc` builds. Draws the title and, on its first
 /// tick, lays out the track list (four rows, three in the debug attach room).
 /// While a chosen track is pending it waits for the MIDI player to go idle,
 /// queues the track's CD load, then starts it once the CD is idle and records
@@ -2346,45 +2297,7 @@ void func_mist_shooting_gallery_80180728(Task* task)
     }
 }
 
-/// Runs the jukebox panel over the room: takes the prim buffer and stops the
-/// frame timer while the panel is up, waits for the panel to report closed,
-/// then after ten more ticks gives both back, kills itself and ends the stage.
-void func_mist_shooting_gallery_80180A00(Task* task)
-{
-    UiObject* obj;
-
-    if (task->state == 0) {
-        Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&D_mist_shooting_gallery_8018535C, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
-            return;
-        }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        gGameSession->uiOpen    = 1;
-        task->spawnArg2.pointer = obj;
-        task->state++;
-    }
-
-    if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(obj, obj->owner);
-            task->killCountdown = 10;
-            task->state         = 2;
-        }
-    }
-
-    if (task->state == 2) {
-        task->killCountdown--;
-        if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-            gGameSession->uiOpen = 0;
-            taskKill(task);
-            Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
-        }
-    }
-}
+#include "../../shared/jukebox_host.inc.c"
 
 s32 func_mist_shooting_gallery_80180B34(s32 unused)
 {

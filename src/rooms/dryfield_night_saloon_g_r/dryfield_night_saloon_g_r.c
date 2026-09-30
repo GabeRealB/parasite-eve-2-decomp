@@ -66,6 +66,7 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive[0]
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/jukebox.h"
 
 #define D_dryfield_night_saloon_g_r_801850DC (D_dryfield_night_saloon_g_r_80185074 + 13)
 #define D_dryfield_night_saloon_g_r_801850E4 (D_dryfield_night_saloon_g_r_80185074[14])
@@ -129,9 +130,9 @@ extern UiList D_dryfield_night_saloon_g_r_80185028;
 
 /// Descriptor of the jukebox menu panel, whose task is
 /// `func_dryfield_night_saloon_g_r_8017E28C`.
-extern UiObjectDesc D_dryfield_night_saloon_g_r_8018504C;
+extern UiObjectDesc gJukeboxPanelDesc;
 
-/// Descriptor of the jukebox task `func_dryfield_night_saloon_g_r_8017E564`.
+/// Descriptor of the jukebox task `jukeboxHostTask`.
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
 /// The room's effect positions in the model's local space. The frame hook
@@ -158,10 +159,8 @@ static void func_dryfield_night_saloon_g_r_8017F0A4(GfxCoord* coord, SVECTOR* ar
 
 // Indexed views below share one contiguous table.
 void func_dryfield_night_saloon_g_r_8017E28C(Task*);
-void func_dryfield_night_saloon_g_r_8017E564(Task*);
 
 extern GpRoomCoordSet D_dryfield_night_saloon_g_r_80188304[1];
-void                  func_dryfield_night_saloon_g_r_8017E0C0(UiList*, UiObject*);
 
 extern GpGridParams D_dryfield_night_saloon_g_r_80185B50[1];
 extern GpObj3A      D_dryfield_night_saloon_g_r_80188E18[2];
@@ -1015,14 +1014,14 @@ RoomsShared8018055cCourse D_dryfield_night_saloon_g_r_80185004[4] = {
 };
 
 UiListItemFunc D_dryfield_night_saloon_g_r_80185024[1] = {
-    func_dryfield_night_saloon_g_r_8017E0C0,
+    jukeboxDrawRow,
 };
 
 UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .u = 1 }, 0, 17, 0, { .u = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_dryfield_night_saloon_g_r_8018504C = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_dryfield_night_saloon_g_r_8017E28C, 0 };
+UiObjectDesc gJukeboxPanelDesc = { 2, 0xFF90, 0xFFC0, 224, 128, 48, 0, 0, 192, func_dryfield_night_saloon_g_r_8017E28C, 0 };
 
-TaskDesc D_dryfield_night_saloon_g_r_80185068 = { 0, 192, func_dryfield_night_saloon_g_r_8017E564, { .model = NULL } };
+TaskDesc D_dryfield_night_saloon_g_r_80185068 = { 0, 192, jukeboxHostTask, { .model = NULL } };
 
 SVECTOR D_dryfield_night_saloon_g_r_80185074[28] = {
     { 4915, -1870, -727, 0 },
@@ -1945,7 +1944,7 @@ const char D_dryfield_night_saloon_g_r_8017D85C[] = "1. Tower Rendezvous";
 /// The jukebox's ten track lists: one per game mode, with list 4 standing in
 /// before the first clear, and the second five used outside the debug attach
 /// room.
-static const RoomsShared8018055cMenu D_dryfield_night_saloon_g_r_8017D870 = {
+static const RoomsShared8018055cMenu _gJukeboxTrackLists = {
     {
         D_dryfield_night_saloon_g_r_80184F0C,
         D_dryfield_night_saloon_g_r_80184F24,
@@ -2102,55 +2101,7 @@ void func_dryfield_night_saloon_g_r_8017E0A8(u8 arg0)
     gGameSession->location.loc.room        = arg0;
 }
 
-/// Row callback of the jukebox list: draws the row's track name, and on
-/// confirm, when the row is not the one already chosen, plays the select
-/// sound and, when the track differs from the one playing, fades the music
-/// out and hands the track id to the menu task to load.
-void func_dryfield_night_saloon_g_r_8017E0C0(UiList* prompt, UiObject* obj)
-{
-    RoomsShared8018055cMenu    menu;
-    RoomsShared8018055cCourse* course;
-    s32                        row;
-    s32                        list;
-    s32                        mode;
-
-    row  = prompt->field_8;
-    menu = D_dryfield_night_saloon_g_r_8017D870;
-
-    list = 4;
-    if (Mc_SaveData[0].state.clearCount != 0) {
-        list = Mc_SaveData[0].state.gameMode;
-    }
-    if (Gp_IsDebugAttachRoom() == 0) {
-        list += 5;
-    }
-
-    course              = &menu.lists[list][row];
-    menu.req.x          = obj->panel.contentOriginX.unsignedValue + (u16)prompt->field_18;
-    menu.req.y          = (prompt->field_1A - 3) + obj->panel.contentOriginY.unsignedValue;
-    menu.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    menu.req.colorRgb   = prompt->field_1C;
-    menu.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-    menu.req.drawMode   = TEXT_DRAW_OUTLINED;
-    menu.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    Text_DrawString(&menu.req, course->name);
-
-    mode = prompt->field_C;
-    if (mode == 1) {
-        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1.value != prompt->field_8) {
-                SndEvt_EnqueueType6(0x16, 0, 0);
-                if (obj->owner->status != course->id) {
-                    SndEvt_EnqueueType2(0, 0x3C);
-                    obj->owner->state  = mode;
-                    obj->owner->status = course->id;
-                    CdCmd_DropPending();
-                }
-                obj->owner->spawnArg1.value = prompt->field_8;
-            }
-        }
-    }
-}
+#include "../../shared/jukebox_row.inc.c"
 
 /// The jukebox menu task. Draws the title and, on its first tick, lays out the
 /// track list (four rows, three in the debug attach room). While a chosen
@@ -2257,46 +2208,7 @@ void func_dryfield_night_saloon_g_r_8017E28C(Task* task)
     }
 }
 
-/// The jukebox task: opens the menu panel with the session's UI flag raised
-/// and frame timing switched, waits for the panel to close, tears it down and,
-/// ten frames later, restores timing, releases the primitive buffer and kills
-/// itself.
-void func_dryfield_night_saloon_g_r_8017E564(Task* task)
-{
-    UiObject* obj;
-
-    if (task->state == 0) {
-        Stage_InitPrimBufOnce();
-        obj = Ui_SpawnFromDesc(&D_dryfield_night_saloon_g_r_8018504C, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
-            return;
-        }
-        GameMain_SetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        gGameSession->uiOpen    = 1;
-        task->spawnArg2.pointer = obj;
-        task->state++;
-    }
-
-    if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            Ui_TeardownTree(obj, obj->owner);
-            task->killCountdown = 10;
-            task->state         = 2;
-        }
-    }
-
-    if (task->state == 2) {
-        task->killCountdown--;
-        if (task->killCountdown <= 0) {
-            GameMain_SetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-            gGameSession->uiOpen = 0;
-            taskKill(task);
-            Stage_ReleasePrimBuf();
-            Stage_SetEndingFlag();
-        }
-    }
-}
+#include "../../shared/jukebox_host.inc.c"
 
 /// Starts the jukebox task and reports success. Its argument is unused;
 /// `func_dryfield_night_saloon_g_r_8017DB74` (state 2) still passes one.
