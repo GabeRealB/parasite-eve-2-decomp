@@ -566,7 +566,7 @@ AnimationSet D_actor_146300_80137864 = {
 
 TaskDesc D_actor_146300_8013788C = { 0, 192, func_actor_146300_80131ECC, { .model = NULL } };
 
-Actor146300AnimCopy7898 D_actor_146300_80137898 = { .data = { { &D_actor_146300_80133150, &D_actor_146300_801334E8, &D_actor_146300_80133C50, &D_actor_146300_80133FC8, &D_actor_146300_80134704, &D_actor_146300_8013498C, &D_actor_146300_80134E2C, &D_actor_146300_8013534C, &D_actor_146300_80135624, &D_actor_146300_801358EC, &D_actor_146300_80135E0C, &D_actor_146300_801361B4, &D_actor_146300_80136578, &D_actor_146300_80136810, &D_actor_146300_80136A9C, &D_actor_146300_80137174, &D_actor_146300_801374AC, &D_actor_146300_80137864 }, { { { .index = 1 }, 47, 0, 0, 0 }, { { .index = 1 }, 47, 1, 5, 0 }, { { .index = 1 }, 48, 0, 0, 0 } } } };
+Actor146300AnimCopy7898 D_actor_146300_80137898 = { .data = { { &D_actor_146300_80133150, &D_actor_146300_801334E8, &D_actor_146300_80133C50, &D_actor_146300_80133FC8, &D_actor_146300_80134704, &D_actor_146300_8013498C, &D_actor_146300_80134E2C, &D_actor_146300_8013534C, &D_actor_146300_80135624, &D_actor_146300_801358EC, &D_actor_146300_80135E0C, &D_actor_146300_801361B4, &D_actor_146300_80136578, &D_actor_146300_80136810, &D_actor_146300_80136A9C, &D_actor_146300_80137174, &D_actor_146300_801374AC, &D_actor_146300_80137864 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, 0 }, { { .index = 1 }, 47, 1, 5, 0 }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, 0 } } } };
 
 AnimationPlayRequest D_actor_146300_8013791C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 

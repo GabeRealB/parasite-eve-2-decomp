@@ -1880,7 +1880,7 @@ static void func_actor_403900_8013314C(Task* arg0)
         case 1:
             sc->anim.source.sets          = D_actor_403900_801540B4;
             sc->anim.animationId          = 1;
-            sc->anim.blend                = 0;
+            sc->anim.blend                = ANIMATION_BLEND_RESET;
             sc->anim.blendFrames          = 0;
             sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
             Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
@@ -1900,7 +1900,7 @@ static void func_actor_403900_8013314C(Task* arg0)
                 work->field_6F6               = 0;
                 sc->anim.source.sets          = D_actor_403900_801540B4;
                 sc->anim.animationId          = 2;
-                sc->anim.blend                = 0;
+                sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
@@ -1943,7 +1943,7 @@ static void func_actor_403900_8013314C(Task* arg0)
                         work->field_6CE               = 5;
                         sc->anim.source.sets          = D_actor_403900_801540B4;
                         sc->anim.animationId          = 3;
-                        sc->anim.blend                = 0;
+                        sc->anim.blend                = ANIMATION_BLEND_RESET;
                         sc->anim.blendFrames          = 0;
                         sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                         Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
@@ -1984,7 +1984,7 @@ static void func_actor_403900_8013314C(Task* arg0)
                 work->field_6F4               = 0;
                 sc->anim.source.sets          = D_actor_403900_801540B4;
                 sc->anim.animationId          = 4;
-                sc->anim.blend                = 0;
+                sc->anim.blend                = ANIMATION_BLEND_RESET;
                 sc->anim.blendFrames          = 0;
                 sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);
@@ -2011,7 +2011,7 @@ static void func_actor_403900_8013314C(Task* arg0)
                     work->field_6F4               = 0;
                     sc->anim.source.sets          = D_actor_403900_801540B4;
                     sc->anim.animationId          = 4;
-                    sc->anim.blend                = 0;
+                    sc->anim.blend                = ANIMATION_BLEND_RESET;
                     sc->anim.blendFrames          = 0;
                     sc->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                     Gp_DispatchMsgPtr(player, 0x3FF, &sc->anim, 0);

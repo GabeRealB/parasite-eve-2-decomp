@@ -596,7 +596,7 @@ void func_shelter_b6_corridor_8017D5D0(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_shelter_b6_corridor_80180568->blend == ANIMATION_BLEND_RESET) {
+                        if (D_shelter_b6_corridor_80180568->blend == 0) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);

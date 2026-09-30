@@ -48,7 +48,7 @@ TaskDesc Gp_EvtSpawnTable[3] = {
 
 AnimationPlayRequest D_8010FB10 = { { 1 }, 32, 1, 5, 0 };
 
-AnimationPlayRequest D_8010FB24 = { { 1 }, 33, 0, 0, 0 };
+AnimationPlayRequest D_8010FB24 = { { 1 }, 33, ANIMATION_BLEND_RESET, 0, 0 };
 
 AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, 1, 8, 0 };
 

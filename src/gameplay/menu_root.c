@@ -235,7 +235,7 @@ u8* D_8010E7C0[]       = {
 
 TaskDesc D_8010E7E8 = { 0, 32, Gp_MenuExitCallback, { NULL } };
 
-AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, 0, 0, 0 };
+AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, 0 };
 
 UiListItemFunc Gp_MainMenuCmds[6] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd, Gp_DrawPeEnergyCmd, Gp_DrawMapCmd, Gp_DrawOptionCmd, Gp_DrawExitCmd };
 

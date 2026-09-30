@@ -1832,7 +1832,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 work->field_5A0                    = (scratch->delta.vx * target->coord.m[0][2] + scratch->delta.vz * target->coord.m[2][2]) > 0;
                 scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
                 scratch->anim.animationId          = work->field_5A0 + 1;
-                scratch->anim.blend                = 0;
+                scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);
@@ -1875,7 +1875,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
             if ((work->field_5A0 != 0 && count >= 0x1E) || (work->field_5A0 == 0 && count >= 0x20)) {
                 scratch->anim.source.sets          = _gActor105100PlayerAnimationSets;
                 scratch->anim.animationId          = work->field_5A0 + 3;
-                scratch->anim.blend                = 0;
+                scratch->anim.blend                = ANIMATION_BLEND_RESET;
                 scratch->anim.blendFrames          = 0;
                 scratch->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
                 Gp_DispatchMsgPtr(player, 0x3F4, scratch, 0);

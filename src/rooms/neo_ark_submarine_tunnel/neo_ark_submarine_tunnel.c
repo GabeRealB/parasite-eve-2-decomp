@@ -1009,7 +1009,7 @@ void func_neo_ark_submarine_tunnel_8017E828(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (D_neo_ark_submarine_tunnel_8018790C->blend == ANIMATION_BLEND_RESET) {
+                    if (D_neo_ark_submarine_tunnel_8018790C->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

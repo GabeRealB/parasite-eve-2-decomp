@@ -1071,7 +1071,7 @@ void func_shelter_b3_garbage_incinerator_8017E7D0(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_shelter_b3_garbage_incinerator_8018FC38->blend == ANIMATION_BLEND_RESET) {
+                        if (D_shelter_b3_garbage_incinerator_8018FC38->blend == 0) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);

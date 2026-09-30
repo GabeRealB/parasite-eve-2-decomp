@@ -4836,7 +4836,7 @@ static void func_actor_403200_80135F98(GpEnemy* enemy, Task* task)
                 D_actor_403200_80141C54 = 1;
                 work->anim.source.sets  = D_actor_403200_8015E710;
                 work->anim.animationId  = 1;
-                work->anim.blend        = 0;
+                work->anim.blend        = ANIMATION_BLEND_RESET;
                 work->anim.blendFrames  = 3;
                 Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_1B2 = 1;
@@ -6013,7 +6013,7 @@ static void func_actor_403200_80138AFC(GpEnemy* enemy, Task* task)
 
     work->anim.source.sets          = NULL;
     work->anim.animationId          = 1;
-    work->anim.blend                = 0;
+    work->anim.blend                = ANIMATION_BLEND_RESET;
     work->anim.blendFrames          = 3;
     work->anim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
     work->field_F12                 = 0;
@@ -7501,7 +7501,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             Gp_DispatchMsgPtr(task, 0x3E9, &D_actor_403200_8015F9C0.value, 0);
         }
         work->anim.animationId = 1;
-        work->anim.blend       = 0;
+        work->anim.blend       = ANIMATION_BLEND_RESET;
         work->anim.blendFrames = 0;
         work->field_F02        = 1;
         Gp_DispatchMsgPtr(task, 0x3F4, &work->anim, 0);
@@ -7940,7 +7940,7 @@ scanned:
         work->anim.source.sets = D_actor_403200_8015E6AC;
         work->field_EC8        = 1;
         work->anim.animationId = 2;
-        work->anim.blend       = 0;
+        work->anim.blend       = ANIMATION_BLEND_RESET;
         work->anim.blendFrames = 0;
         Gp_DispatchMsgPtr(task, 0x3FF, &work->anim, 0);
         work->field_7CA = 0;
@@ -9361,14 +9361,14 @@ after_mode:
         if (work->field_ECA == mode) {
             if (work->anim.animationId == 2) {
                 work->anim.source.sets = D_actor_403200_8015E6AC;
-                work->anim.blend       = 0;
+                work->anim.blend       = ANIMATION_BLEND_RESET;
                 work->anim.blendFrames = 0;
                 Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
                 work->field_7CA = 0;
             }
         } else if (work->anim.animationId == 2 && (s16)count < 0x28) {
             work->anim.source.sets = D_actor_403200_8015E6AC;
-            work->anim.blend       = 0;
+            work->anim.blend       = ANIMATION_BLEND_RESET;
             work->anim.blendFrames = 0;
             Gp_DispatchMsgPtr(player, 0x3FF, &work->anim, 0);
         }

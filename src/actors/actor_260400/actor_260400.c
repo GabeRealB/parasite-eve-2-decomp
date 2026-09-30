@@ -353,7 +353,7 @@ AnimationPlayRequest D_actor_260400_8014C640 = { { .index = 1 }, 55, ANIMATION_B
 
 AnimationPlayRequest D_actor_260400_8014C654 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-Actor260400AnimStorageC668 D_actor_260400_8014C668 = { .data = { { &D_actor_260400_8014AE7C, &D_actor_260400_8014B120, &D_actor_260400_8014B5CC, NULL, NULL, NULL, &D_actor_260400_8014B984, &D_actor_260400_8014BE6C, &D_actor_260400_8014C170, &D_actor_260400_8014C49C }, { { .words = D_actor_260400_8014C668.words }, 32 }, { { { .index = 1 }, 1, 0, 0, 0 }, { { .index = 1 }, 1, 1, 8, 0 } }, { { { 860, 0, 6730, 0 }, { 0, -2048, 0, 0 } }, { { 860, 0, 6730, 0 }, { 0, -2048, 0, 0 } } } } };
+Actor260400AnimStorageC668 D_actor_260400_8014C668 = { .data = { { &D_actor_260400_8014AE7C, &D_actor_260400_8014B120, &D_actor_260400_8014B5CC, NULL, NULL, NULL, &D_actor_260400_8014B984, &D_actor_260400_8014BE6C, &D_actor_260400_8014C170, &D_actor_260400_8014C49C }, { { .words = D_actor_260400_8014C668.words }, 32 }, { { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, 0 }, { { .index = 1 }, 1, 1, 8, 0 } }, { { { 860, 0, 6730, 0 }, { 0, -2048, 0, 0 } }, { { 860, 0, 6730, 0 }, { 0, -2048, 0, 0 } } } } };
 
 ActorTransform D_actor_260400_8014C6F0 = { { 860, 0, 6910, 0 }, { 0, -2161, 0, 0 } };
 

@@ -841,7 +841,7 @@ ActorTransform D_actor_161500_80136D30 = { { 1330, 0, 4780, 0 }, { 0, 2616, 0, 0
 
 ActorTransform D_actor_161500_80136D48 = { { 4224, 0, 5209, 0 }, { 0, 2048, 0, 0 } };
 
-Actor161500AnimCopy6D60 D_actor_161500_80136D60 = { .data = { { &D_actor_161500_80136124, &D_actor_161500_80136338, &D_actor_161500_80136618, &D_actor_161500_801368A8, &D_actor_161500_80136A80, &D_actor_161500_80136CB4, NULL }, { { { .index = 1 }, 47, 0, 0, 1 } } } };
+Actor161500AnimCopy6D60 D_actor_161500_80136D60 = { .data = { { &D_actor_161500_80136124, &D_actor_161500_80136338, &D_actor_161500_80136618, &D_actor_161500_801368A8, &D_actor_161500_80136A80, &D_actor_161500_80136CB4, NULL }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, 1 } } } };
 
 AnimationPlayRequest D_actor_161500_80136D90 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 

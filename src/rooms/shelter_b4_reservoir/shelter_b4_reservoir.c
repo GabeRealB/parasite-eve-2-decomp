@@ -1074,7 +1074,7 @@ void func_shelter_b4_reservoir_8017D650(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (D_shelter_b4_reservoir_80187504->blend == ANIMATION_BLEND_RESET) {
+                    if (D_shelter_b4_reservoir_80187504->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

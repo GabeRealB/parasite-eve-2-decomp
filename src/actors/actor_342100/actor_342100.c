@@ -462,7 +462,7 @@ void func_actor_342100_80161E70(Task* arg0)
                     p = grid[j];
                     for (k = 0; k < 8; p++, k++) {
                         setPolyFT4(p);
-                        if (D_actor_342100_80164BB4->blend == ANIMATION_BLEND_RESET) {
+                        if (D_actor_342100_80164BB4->blend == 0) {
                             setShadeTex(p, 1);
                         } else {
                             setShadeTex(p, 0);

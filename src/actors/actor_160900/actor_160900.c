@@ -1054,7 +1054,7 @@ void func_actor_160900_80131EB0(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (D_actor_160900_8013FBB0->blend == ANIMATION_BLEND_RESET) {
+                    if (D_actor_160900_8013FBB0->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);

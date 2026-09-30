@@ -115,6 +115,12 @@ STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
 
 /// Playback choices stored as signed words in an animation request.
 enum {
+    /// Requests the selected clip's start without blending from the previous pose.
+    ///
+    /// Zero in `AnimationPlayRequest.blend`; receivers that honor this choice
+    /// ignore `blendFrames` and restart their playback slots. Some receivers
+    /// defer the restart or keep an already selected clip. This choice does not
+    /// disable interpolation between the clip's own keyframes.
     ANIMATION_BLEND_RESET             = 0,
     ANIMATION_BLEND_INTERPOLATE       = 1,
     ANIMATION_WORLD_COLLISION_DISABLE = 0,

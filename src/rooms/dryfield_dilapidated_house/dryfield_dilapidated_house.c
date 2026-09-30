@@ -1790,7 +1790,7 @@ void func_dryfield_dilapidated_house_8017D64C(Task* arg0)
                     p              = gGpuPrimCursor;
                     gGpuPrimCursor = p + 1;
                     setPolyFT4(p);
-                    if (D_dryfield_dilapidated_house_80189B74->blend == ANIMATION_BLEND_RESET) {
+                    if (D_dryfield_dilapidated_house_80189B74->blend == 0) {
                         setShadeTex(p, 1);
                     } else {
                         setShadeTex(p, 0);
