@@ -30,15 +30,15 @@ STATIC_ASSERT_SIZEOF(WorldCoordRoomAmbientEntry, 8);
 /// A room view's own lights, returned by `Gp_GetRoomCoordSet`
 /// (`GpRoomCoordRec.field_0`): its directional, point and spot lights.
 /// `Gp_UpdateRoomCoords` parents each light to `gGfxViewCoord` on first run,
-/// builds each spot light's orientation from its `dir`, then updates them every
+/// builds each spot light's orientation from its `axis`, then updates them every
 /// frame via `Gp_UpdateCoordEx`.
 typedef struct _GpRoomCoordSet {
-    /* 0x00 */ s32              n58;
-    /* 0x04 */ WorldCoordLight* arr58; // directional lights
-    /* 0x08 */ s32              n60;
-    /* 0x0C */ GpPointLight*    arr60; // point lights
-    /* 0x10 */ s32              n6C;
-    /* 0x14 */ GpSpotLight*     arr6C; // spot lights
+    /* 0x00 */ s32                  n58;
+    /* 0x04 */ WorldCoordLight*     arr58; // directional lights
+    /* 0x08 */ s32                  n60;
+    /* 0x0C */ GpPointLight*        arr60; // point lights
+    /* 0x10 */ s32                  n6C;
+    /* 0x14 */ WorldCoordSpotLight* arr6C; // spot lights
 } GpRoomCoordSet;
 STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 

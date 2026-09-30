@@ -922,7 +922,7 @@ GpPointLight D_shelter_b2_pod_bottom_801859C4[57] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5124, -3111, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
 };
 
-GpSpotLight D_shelter_b2_pod_bottom_80186F24[1] = {
+WorldCoordSpotLight D_shelter_b2_pod_bottom_80186F24[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -0x48A8, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3618, 2633, 2264 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 10, 0x4E20, 568 },
 };
 

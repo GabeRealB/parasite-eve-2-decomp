@@ -45,8 +45,8 @@
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
-    GpSpotLight active[2];
-    u8          retained[648];
+    WorldCoordSpotLight active[2];
+    u8                  retained[648];
 } DryfieldJunkYardSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldJunkYardSpotLightStorage, 864);
 

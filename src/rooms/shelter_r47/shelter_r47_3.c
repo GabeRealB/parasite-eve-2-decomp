@@ -54,8 +54,8 @@ static void         func_shelter_r47_8018580C(Task*);
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
-    GpSpotLight active[2];
-    u8          retained[756];
+    WorldCoordSpotLight active[2];
+    u8                  retained[756];
 } ShelterR47SpotLightStorage;
 STATIC_ASSERT_SIZEOF(ShelterR47SpotLightStorage, 972);
 

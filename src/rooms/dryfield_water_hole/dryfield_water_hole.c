@@ -63,8 +63,8 @@
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
-    GpSpotLight active[1];
-    u8          retained[540];
+    WorldCoordSpotLight active[1];
+    u8                  retained[540];
 } DryfieldWaterHoleSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldWaterHoleSpotLightStorage, 648);
 
@@ -1248,7 +1248,7 @@ GpPointLight D_dryfield_water_hole_80182480[7] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x5208, -1277, -2996 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2236, 2457 }, { 0, 0 } }, 0, 3000 },
 };
 
-GpSpotLight D_dryfield_water_hole_80182720[1] = {
+WorldCoordSpotLight D_dryfield_water_hole_80182720[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7444, -3447, -1496 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3014, 2621 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 2500, 5000, 113 },
 };
 

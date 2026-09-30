@@ -16,8 +16,8 @@
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
-    GpSpotLight active[1];
-    u8          retained[1512];
+    WorldCoordSpotLight active[1];
+    u8                  retained[1512];
 } AcropolisCafeteriaSpotLightStorage;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaSpotLightStorage, 1620);
 

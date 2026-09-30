@@ -62,17 +62,31 @@ typedef struct GpPointLight {
 } GpPointLight;
 STATIC_ASSERT_SIZEOF(GpPointLight, 0x60);
 
-/// A point light narrowed to a cone: `dir` is the axis the room data aims it
-/// along, from which gameplay builds `head.transform.lighting.local` so its Z column is that
-/// axis, and `angle` is the cone's full opening.
-typedef struct GpSpotLight {
-    WorldCoordLight head;
-    SVECTOR         dir;   // the cone's axis, as the room data gives it
-    s32             inner; // radius the light is at full strength within
-    s32             outer; // radius beyond which it casts nothing
-    s32             angle; // full opening angle of the cone (0x1000 a full turn)
-} GpSpotLight;
-STATIC_ASSERT_SIZEOF(GpSpotLight, 0x6C);
+/// A world-coordinate light limited to a cone around an axis.
+///
+/// The record is the 0x6C-byte room-light extension of `WorldCoordLight`.
+/// That header is the first member, so placement, the view filter,
+/// attenuation and colour are the shared record, and ranking reads the cone
+/// light through it. Distance falloff matches a point light: full strength
+/// within `inner` of the position, none beyond `outer`, and full strength
+/// out to that radius when the two are equal. A sample must also lie inside
+/// the cone.
+///
+/// `axis` is the aim in the same frame as the light's position, with length
+/// about `ONE`. The first coordinate update replaces the local rotation so
+/// its Z column is this axis and leaves the translation in place. The cone
+/// test reads that column from the composed matrix. `angle` is the full
+/// opening, 0x1000 units per turn; the test passes half of it to `rcos`,
+/// which reduces a non-negative argument to one turn. A selected cone light
+/// shades along the direction toward the light, as a point light does.
+typedef struct {
+    WorldCoordLight head;  // Shared placement, view filter, attenuation and colour
+    SVECTOR         axis;  // Cone axis in the position's frame, length about ONE. Room data leaves the fourth component zero.
+    s32             inner; // Distance of full strength from the light's position
+    s32             outer; // Distance beyond which the light casts nothing
+    s32             angle; // Full cone opening, 0x1000 units per turn
+} WorldCoordSpotLight;
+STATIC_ASSERT_SIZEOF(WorldCoordSpotLight, 0x6C);
 
 /// One of the eight transient point lights gameplay keeps on top of a room's
 /// own lights, which effects, weapons, parasite energies, actors and rooms

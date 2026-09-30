@@ -109,7 +109,8 @@ STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 /// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
 /// `Gfx_NormalizeLightDir` result at `head - 0x1C`. `distSq` / `outerSq`
 /// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
-/// `-(dir · matrix column 2) >> 12`, compared with `rcos(field_68 >> 1)`.
+/// `-(dir · matrix column 2) >> 12`, compared with `rcos` of half
+/// `WorldCoordSpotLight.angle`.
 typedef struct _GpSpotScratch {
     /* 0x00 */ VECTOR  vec;
     /* 0x10 */ SVECTOR dir;
@@ -197,7 +198,7 @@ static s32 Gp_LightPointRoom(GpPointLight* light, VECTOR3* pos);
 
 static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos);
 
-static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos);
+static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos);
 
 static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObject* arg3);
 
@@ -290,14 +291,14 @@ static inline void _gpUpdateRoomCoordSlots(void)
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* task)
 {
-    GpRoomCoordSet*  set;
-    SVECTOR*         vec;
-    WorldCoordLight* light;
-    GpPointLight*    point;
-    GpSpotLight*     spot;
-    GfxCoord*        coord;
-    s32              i;
-    s32              j;
+    GpRoomCoordSet*      set;
+    SVECTOR*             vec;
+    WorldCoordLight*     light;
+    GpPointLight*        point;
+    WorldCoordSpotLight* spot;
+    GfxCoord*            coord;
+    s32                  i;
+    s32                  j;
 
     set = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     if (set == NULL) {
@@ -318,16 +319,17 @@ void Gp_UpdateRoomCoords(Task* task)
         for (i = 0; i < set->n6C; i++, spot++) {
             coord         = &spot->head.transform.coord;
             coord->parent = &gGfxViewCoord;
-            if (spot->dir.vy != 0 || spot->dir.vz != 0) {
+            // Aim the local Z column along the cone axis. The translation stays.
+            if (spot->axis.vy != 0 || spot->axis.vz != 0) {
                 vec->vx = 0;
-                vec->vy = -spot->dir.vz;
-                vec->vz = spot->dir.vy;
+                vec->vy = -spot->axis.vz;
+                vec->vz = spot->axis.vy;
             } else {
-                vec->vx = spot->dir.vy;
-                vec->vy = -spot->dir.vx;
+                vec->vx = spot->axis.vy;
+                vec->vy = -spot->axis.vx;
                 vec->vz = 0;
             }
-            Gfx_OrthonormalBasis(&coord->coord, &spot->dir, vec);
+            Gfx_OrthonormalBasis(&coord->coord, &spot->axis, vec);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
 
@@ -474,7 +476,7 @@ static s32 Gp_LightPoint(GpPointLight* light, VECTOR3* pos)
     return result;
 }
 
-static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
+static s32 Gp_LightCone(WorldCoordSpotLight* spot, VECTOR3* pos)
 {
     WorldCoordLight* light;
     GpSpotScratch*   block;
@@ -501,6 +503,7 @@ static s32 Gp_LightCone(GpSpotLight* spot, VECTOR3* pos)
         block->innerSq = (spot->inner * spot->inner) >> 2;
         Gfx_NormalizeLightDir(&block->vec, &block->dir);
         block->cosAng = -(block->dir.vx * light->transform.lighting.composed.m[0][2] + block->dir.vy * light->transform.lighting.composed.m[1][2] + block->dir.vz * light->transform.lighting.composed.m[2][2]) >> 12;
+        // Inside the cone when the sample is nearer the axis than half the opening.
         if (rcos(spot->angle >> 1) < block->cosAng) {
             result       = ((spot->head.color.r * 8 + spot->head.color.g * 6 + spot->head.color.b * 2) >> 8) + 0xF00;
             block->scale = ONE;
@@ -566,14 +569,14 @@ static void func_800D759C(s32 arg0, WorldCoordLight* arg1, VECTOR* arg2, TmdObje
 /// `arg1` to no selection even when `Gp_GetRoomCoordSet` returns 0.
 static void func_800D78A4(VECTOR* arg0, GpNearestLight* arg1)
 {
-    GpRoomCoordSet*  set;
-    GpPointLight*    point;
-    WorldCoordLight* light;
-    GpSpotLight*     cone;
-    VECTOR*          delta;
-    u32              best;
-    u32              dist;
-    s32              i;
+    GpRoomCoordSet*      set;
+    GpPointLight*        point;
+    WorldCoordLight*     light;
+    WorldCoordSpotLight* cone;
+    VECTOR*              delta;
+    u32                  best;
+    u32                  dist;
+    s32                  i;
 
     set           = Gp_GetRoomCoordSet(&gGameSession->location.loc);
     best          = 0x7FFFFFFF;
@@ -868,19 +871,19 @@ void func_800D7A9C(TmdObject* extra, VECTOR* pos, s32 start, s32 count)
     }
 
     if (set->n6C > 0) {
-        register GpSpotLight* obj6C;
-        s32                   coneRank;
+        register WorldCoordSpotLight* spot;
+        s32                           coneRank;
 
-        obj6C = set->arr6C;
-        i     = 0;
+        spot = set->arr6C;
+        i    = 0;
 
         for (; i < set->n6C;) {
-            val              = Gp_LightCone(obj6C, (VECTOR3*)&block->pos);
+            val              = Gp_LightCone(spot, (VECTOR3*)&block->pos);
             coneRank         = 2;
             block->intensity = val;
-            solve_rank(block->slots, val, coneRank, obj6C, &block->slots[3]);
+            solve_rank(block->slots, val, coneRank, spot, &block->slots[3]);
             i++;
-            obj6C++;
+            spot++;
         }
     }
 

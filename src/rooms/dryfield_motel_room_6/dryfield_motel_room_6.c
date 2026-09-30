@@ -69,8 +69,8 @@
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
-    GpSpotLight active[2];
-    u8          retained[864];
+    WorldCoordSpotLight active[2];
+    u8                  retained[864];
 } DryfieldMotelRoom6SpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldMotelRoom6SpotLightStorage, 1080);
 

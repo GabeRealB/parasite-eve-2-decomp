@@ -79,8 +79,8 @@ extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
 // Retained exporter slots follow the active spotlights. Their contents
 // include stale/incomplete addresses; preserve them as bytes pending review.
 typedef struct {
-    GpSpotLight active[1];
-    u8          retained[756];
+    WorldCoordSpotLight active[1];
+    u8                  retained[756];
 } DryfieldDilapidatedHouseSpotLightStorage;
 STATIC_ASSERT_SIZEOF(DryfieldDilapidatedHouseSpotLightStorage, 864);
 

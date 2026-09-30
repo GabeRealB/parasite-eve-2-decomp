@@ -116,8 +116,8 @@ extern s16 MineMesaCooldown __asm__("D_mine_mesa_80189B6C+2");
 // spotlight-sized slots. Its original role is unresolved; keep the bytes
 // without treating stale pointer-looking words as live C pointers.
 typedef struct {
-    GpSpotLight active[1];
-    u8          retained[756];
+    WorldCoordSpotLight active[1];
+    u8                  retained[756];
 } MineMesaSpotLightStorage;
 STATIC_ASSERT_SIZEOF(MineMesaSpotLightStorage, 864);
 

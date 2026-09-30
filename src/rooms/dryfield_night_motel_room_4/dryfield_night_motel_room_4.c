@@ -542,7 +542,7 @@ GpPointLight D_dryfield_night_motel_room_4_801800BC[4] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2510, -1531, 2390 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1100, 1200, 1200 }, { 0, 0 } }, 572, 5081 },
 };
 
-GpSpotLight D_dryfield_night_motel_room_4_8018023C[1] = {
+WorldCoordSpotLight D_dryfield_night_motel_room_4_8018023C[1] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2512, -2274, 2143 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1311, 1269, 1208 }, { 0, 0 } }, { -238, 4082, -226, 0 }, 2320, 3500, 921 },
 };
 
