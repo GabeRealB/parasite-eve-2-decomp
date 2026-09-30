@@ -54,4 +54,6 @@ void glowDrawGreyPrism(GfxCoord* coord, s16 arg1);
 
 void glowDrawStarLocal(GfxCoord* arg0, SVECTOR* arg1, s32 arg2, s32 arg3);
 
+void glowDrawAngledCapsule(SVECTOR* arg0, s32 arg1, s32 arg2, s32 arg3);
+
 #endif /* SRC_SHARED_GLOW_DRAW_H */
