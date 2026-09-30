@@ -874,7 +874,7 @@ static void func_actor_503500_8013223C(Task* arg0)
 {
     TmdObject*           ext;
     Actor503500ColorMtx* work;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
     GfxCoord*            coord;
     DVECTOR_XZ*          p;
     VECTOR               pos;
@@ -959,7 +959,7 @@ static void func_actor_503500_80132430(Task* arg0)
 }
 
 /// `Task::exitCallback` of the actor's main task, and the third entry of its
-/// state table: hands the `GpEnemy` the spawn left in `Task::spawnArg2` back to
+/// state table: hands the `Enemy` the spawn left in `Task::spawnArg2` back to
 /// `Gp_DestroyEnemy`.
 static void func_actor_503500_801324C4(Task* task)
 {

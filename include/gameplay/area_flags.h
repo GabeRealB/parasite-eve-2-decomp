@@ -11,9 +11,9 @@
 /// `field_0`, publishes `field_2` as the item id to `Gp_PubItemLoc` and `field_6`
 /// to `D_80114DDE`, and writes the low 2 bits of `field_6` into the bank. The
 /// placement spawn (`Gp_SpawnAtPlace` / `Gp_SpawnPlaces` /
-/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `GpEnemy.placeKey` as
+/// `Gp_SpawnPlaceById`) packs `field_0` and `field_4` into `Enemy.placeKey` as
 /// `field_0 | (field_4 << 8)`, spawns the room's `GpEnemyDesc` whose id is
-/// `field_2` and copies `field_2` to `GpEnemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
+/// `field_2` and copies `field_2` to `Enemy.workType`; `field_8` / `field_A` / `field_C` are the world X/Y/Z
 /// (`GfxCoord.coord.t`) and `field_E` the yaw stored at coord +0x46 and passed to
 /// `Gfx_RotMatrixY` when non-zero.
 typedef struct _GpBit2Rec {

@@ -70,10 +70,10 @@ extern u8 D_actor_311900_8016EBF4[];
 /// The palette rows `func_actor_311900_80161E3C` reads back, greys and uploads.
 extern u16 D_actor_311900_8016EC18[][0x100];
 
-static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task);
-static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task);
-static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task);
-static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task);
+static void func_actor_311900_8016228C(Enemy* enemy, Task* task);
+static void func_actor_311900_801623B0(Enemy* enemy, Task* task);
+static void func_actor_311900_801624F8(Enemy* enemy, Task* task);
+static void func_actor_311900_801625F0(Enemy* enemy, Task* task);
 static s32  func_actor_311900_80162658(GfxCoord* arg0, s16 arg1);
 static void func_actor_311900_8016278C(Task* task);
 static void func_actor_311900_8016281C(Task* task);
@@ -393,7 +393,7 @@ static const GpEnemyTaskFuncTable3 D_actor_311900_80161E30 = {
 /// stack copy rather than the overlay's own `.rodata`.
 void func_actor_311900_8016222C(Task* task)
 {
-    GpEnemy*              enemy;
+    Enemy*                enemy;
     GpEnemyTaskFuncTable3 sp;
 
     enemy = task->spawnArg2.pointer;
@@ -409,12 +409,12 @@ void func_actor_311900_8016222C(Task* task)
 ///
 /// Otherwise it splats the light / colour pair `func_actor_311900_8016278C`
 /// writes onto the model root's `field_1C` / `field_20` slots, points
-/// `GpEnemy::field_4` at the root coordinate's matrix, re-parents that root to
+/// `Enemy::field_4` at the root coordinate's matrix, re-parents that root to
 /// `gGfxViewCoord`, builds the animation context `func_800B3F84` over the
 /// block's slot array and packed-pose run, seeds the tick's two work halfwords
 /// 0x474 / 0x478 and zeroes the 0x4C4 / 0x4C6 pair it counts in, and publishes
 /// the view-dependent light level exactly as the tick does.
-static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
+static void func_actor_311900_8016228C(Enemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GfxCoord*        coord;
@@ -452,7 +452,7 @@ static void func_actor_311900_8016228C(GpEnemy* enemy, Task* task)
 /// block's `field_4C6` latch is up, counts frames in `field_4C4` and nudges the
 /// model along the coordinate part `func_actor_311900_80162658` walks. The
 /// counter reaching 0x5A raises game flag 0x102 and advances the state.
-static void func_actor_311900_801623B0(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801623B0(Enemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GfxCoord*        coord;
@@ -502,13 +502,13 @@ void func_actor_311900_8016249C(Task* task)
 /// (`D_actor_311900_8016EBF4`, not `D_actor_311900_8016EBE8`).
 ///
 /// The 0x4CC-byte block goes into `Task::work` -- that slot is not a
-/// `TaskIdMap` here. `GpEnemy::field_4` takes the model's root coordinate's
+/// `TaskIdMap` here. `Enemy::field_4` takes the model's root coordinate's
 /// matrix, the root's `parent` is re-parented to `gGfxViewCoord`, the animation
 /// context is built over the block's slot array and packed-pose run, and the
 /// two work halfwords 0x474 / 0x478 seed the tick's state. Note this handler,
 /// unlike `func_actor_311900_8016228C`, does not touch `field_4C4` / `field_4C6`
 /// or the model's `field_C`.
-static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801624F8(Enemy* enemy, Task* task)
 {
     Actor311900Work* work;
     GfxCoord*        coord;
@@ -534,7 +534,7 @@ static void func_actor_311900_801624F8(GpEnemy* enemy, Task* task)
     task->state += 1;
 }
 
-static void func_actor_311900_801625F0(GpEnemy* enemy, Task* task)
+static void func_actor_311900_801625F0(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
 

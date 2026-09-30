@@ -678,13 +678,13 @@ static void func_neo_ark_forest_zone_801804B0(Task* task)
 /// message 0x7DB and places it at the requested point.
 static void func_neo_ark_forest_zone_80180620(Task* task)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_forest_zone_80182D54[gGameSession->location.loc.variant] == 0) {
@@ -773,9 +773,9 @@ static void func_neo_ark_forest_zone_80180620(Task* task)
 /// for command 2.
 s32 func_neo_ark_forest_zone_80180A60(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
 {
-    s32      result;
-    u16      cmd;
-    GpEnemy* obj;
+    s32    result;
+    u16    cmd;
+    Enemy* obj;
 
     result = 0;
     if (msg.command->context.key == 0xB05) {
@@ -851,13 +851,13 @@ static void func_neo_ark_forest_zone_80180BB4(Task* task)
 
 static void func_neo_ark_forest_zone_80180D24(Task* arg0)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_forest_zone_80182D44[gGameSession->location.loc.variant] == 0) {

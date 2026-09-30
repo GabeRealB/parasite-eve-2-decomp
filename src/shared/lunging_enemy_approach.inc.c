@@ -14,7 +14,7 @@
 /// and the shared state-F0 slot.
 void lungerApproachState(Task* arg0)
 {
-    GpEnemy*         spawn;
+    Enemy*           spawn;
     Actor105600Work* work;
     GfxCoord*        self;
     u8*              head;

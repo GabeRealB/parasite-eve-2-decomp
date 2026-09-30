@@ -513,7 +513,7 @@ static void func_actor_213000_8014A488(Task* task);
 /// `field_4C0`, entry 3 attached to part 9 and entry 4 to part 12. Each of the
 /// last two has its model's `tpage` / `clut` loaded from the `AreaPlacement` of
 /// the current area selected by the model id the parent's `spawnArg2` carries
-/// at `GpEnemy::placeKey >> 12`, and has its texture stream processed twice
+/// at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and has its texture stream processed twice
 /// when it has a buffer. It then publishes the work block's matrices on the
 /// model, installs the message table and `Gp_EnemyTaskExit` as the exit
 /// callback, and advances to the tick. A failed allocation exits the task
@@ -549,7 +549,7 @@ static void func_actor_213000_80149E54(Task* task)
         GameLocationKey* sessionKey;
         s32              idx;
 
-        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
+        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         model      = spawned1->extra.tmd;
         sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
@@ -574,7 +574,7 @@ static void func_actor_213000_80149E54(Task* task)
         s32              idx;
 
         model      = spawned2->extra.tmd;
-        idx        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey >> 12;
+        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;

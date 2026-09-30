@@ -38,7 +38,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
 }
 static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     Task*      task;
     TmdObject* extra;
     GfxCoord*  coord;
@@ -53,7 +53,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                 if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
-                    enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                    enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                     enemy->workType     = place->field_2;
                     coord->coord.t[0]   = place->field_8;
                     coord->coord.t[1]   = place->field_A;
@@ -248,7 +248,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
     GpBit2List*  lists;
     GpBit2Rec*   place;
     GpEnemyDesc* desc;
-    GpEnemy*     enemy;
+    Enemy*       enemy;
     Task*        task;
     TmdObject*   extra;
     GfxCoord*    coord;
@@ -279,7 +279,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
                         if (task->bodyKind != TASK_BODY_NONE) {
                             extra               = task->extra.tmd;
                             coord               = extra->coords;
-                            enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                            enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                             enemy->workType     = place->field_2;
                             coord->coord.t[0]   = place->field_8;
                             coord->coord.t[1]   = place->field_A;

@@ -57,7 +57,7 @@ STATIC_ASSERT_SIZEOF(Actor110300MsgEntry, 8);
 
 extern Actor110300MsgEntry D_actor_110300_8013A054[];
 
-static void func_actor_110300_80132020(GpEnemy* enemy, Task* task);
+static void func_actor_110300_80132020(Enemy* enemy, Task* task);
 static void func_actor_110300_80132088(Task* task);
 static void func_actor_110300_801320C4(Task* arg0);
 static void func_actor_110300_80132138(void);
@@ -293,7 +293,7 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
+static void func_actor_110300_80131E24(Enemy* enemy, Task* task);
 
 /// Step 0 of the `func_actor_110300_80131F9C` dispatcher: allocate the work
 /// block, publish it, and hand the model's animation context its slot array.
@@ -302,7 +302,7 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task);
 /// than the `memCalloc` result, which is why the pointer is reloaded at each
 /// use instead of staying in a callee-saved register. The task's message table
 /// becomes the one holding the animation-start and visibility handlers.
-static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_110300_80131E24(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     void*      work;
@@ -348,7 +348,7 @@ static void func_actor_110300_80131E24(GpEnemy* enemy, Task* task)
 /// overlay's other functions reach the block without the task.
 void func_actor_110300_80131F9C(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_110300_80131E24,
         func_actor_110300_80132020,
     };
@@ -376,10 +376,10 @@ void func_actor_110300_80131FF8(Task* arg0)
 /// model object itself.
 ///
 /// The body reaches the task through the second argument, so the incoming `$a1`
-/// is copied into `$a0` (the first, unused, is the `GpEnemy*`): that copy is
+/// is copied into `$a0` (the first, unused, is the `Enemy*`): that copy is
 /// what the first call's argument, and the `Task::extra` load feeding it, are
 /// both read off.
-static void func_actor_110300_80132020(GpEnemy* enemy, Task* task)
+static void func_actor_110300_80132020(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
     GfxCoord*  coord;

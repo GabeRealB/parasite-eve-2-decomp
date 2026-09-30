@@ -140,10 +140,10 @@ extern GpEvsCmd             D_actor_450800_8013ACFC[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_450800_80132448(Task* task);
-static void func_actor_450800_801327E4(GpEnemy* enemy, Task* task);
+static void func_actor_450800_801327E4(Enemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
-static void func_actor_450800_801332B8(GpEnemy* enemy, Task* task);
+static void func_actor_450800_801332B8(Enemy* enemy, Task* task);
 static void func_actor_450800_8013333C(Task* task);
 static void func_actor_450800_80133364(Task* task);
 
@@ -2621,8 +2621,8 @@ static void        func_actor_450800_80131E2C(void);
 static void        func_actor_450800_80132000(void);
 static void        func_actor_450800_80132028(void);
 static inline void _actor450800TintModel(Task* spawned, Task* actor);
-static void        func_actor_450800_80132160(GpEnemy* enemy, Task* task);
-static void        func_actor_450800_80132E9C(GpEnemy* enemy, Task* task);
+static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
+static void        func_actor_450800_80132E9C(Enemy* enemy, Task* task);
 
 static void func_actor_450800_80131E2C(void)
 {
@@ -2750,7 +2750,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     u32              idx;
 
     sessionKey = &gGameSession->location.loc;
-    idx        = ((GpEnemy*)actor->spawnArg2.pointer)->placeKey >> 12;
+    idx        = ((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -2774,7 +2774,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
 /// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
 /// the actor's own model parts, textured from the placement the actor's
 /// `Task::spawnArg2` enemy selects. Task 4 is spawned but not textured.
-static void func_actor_450800_80132160(GpEnemy* enemy, Task* task)
+static void func_actor_450800_80132160(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     GfxCoord*        coord;
@@ -3117,13 +3117,13 @@ s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
 /// spawns its own model task out of the same `D_actor_450800_801539DC` table,
 /// faces it at the placed spawn point, starts the animation and hands the state
 /// machine to `pairWalkUpdate`.
-static void func_actor_450800_80132E9C(GpEnemy* enemy, Task* task)
+static void func_actor_450800_80132E9C(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;

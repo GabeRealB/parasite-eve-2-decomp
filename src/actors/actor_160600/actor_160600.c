@@ -74,7 +74,7 @@ extern u8                      D_actor_160600_8013DFEC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_160600_80132208(GpEnemy* enemy, Task* task);
+static void func_actor_160600_80132208(Enemy* enemy, Task* task);
 static void func_actor_160600_80132350(Task* task);
 
 extern TmdSource D_actor_160600_8013BA9C;
@@ -1180,7 +1180,7 @@ u8 D_actor_160600_8013DFAC[64] = {
 
 u8 D_actor_160600_8013DFEC[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
 
-static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task);
+static void func_actor_160600_80131E68(Enemy* enemy, Task* task);
 
 /// Passes the task filed in the session's pointer slot 0xA, if any, to
 /// `Task_CallExit` and empties the slot.
@@ -1198,7 +1198,7 @@ void func_actor_160600_80131E24(void)
 /// model is shown and has a buffer, every other frame spawns effect 0x60070 on
 /// a randomly chosen part, with two `Gp_LcgState` draws packed into the effect
 /// argument.
-static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
+static void func_actor_160600_80131E68(Enemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -1235,10 +1235,10 @@ static void func_actor_160600_80131E68(GpEnemy* enemy, Task* task)
 
 /// The actor's task body: dispatches on `Task::state` to the spawn routine
 /// (state 0) or the per-frame body (state 1), handing each the task's
-/// `GpEnemy` from `Task::spawnArg2`. The handler table is built on the stack.
+/// `Enemy` from `Task::spawnArg2`. The handler table is built on the stack.
 void func_actor_160600_801321B4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_160600_80132208,
         func_actor_160600_80131E68,
     };
@@ -1251,7 +1251,7 @@ void func_actor_160600_801321B4(Task* task)
 /// lights the model at its root translation raised by 800, sets up the
 /// animation context and the task's message table, and runs the step body
 /// once with the plain reseed of clip 10 queued.
-static void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
+static void func_actor_160600_80132208(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor160600Work* work;
@@ -1292,7 +1292,7 @@ static void func_actor_160600_80132208(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-/// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
+/// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
 static void func_actor_160600_80132350(Task* task)
 {

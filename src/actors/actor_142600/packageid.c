@@ -15,7 +15,7 @@ static const s32 packageId = PKG_ID;
 typedef struct {
     u16   flags;
     u16   priority;
-    void  (*callback)(GpEnemy*, Task*);
+    void  (*callback)(Enemy*, Task*);
     void* argument;
 } Actor142600RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor142600RetainedTaskSeed, 12);

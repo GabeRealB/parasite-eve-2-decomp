@@ -1558,7 +1558,7 @@ void func_actor_361100_80162CBC(Task* task)
 
 /// Spawn callback: allocates the work block into `Task::work`, seeds the
 /// three -1 bytes, clears the first vector accumulator and arms the spawn
-/// argument `GpEnemy` with the coordinate's root matrix, then enters the
+/// argument `Enemy` with the coordinate's root matrix, then enters the
 /// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
 /// installed at `Task::msgTable`. The task exits through
 /// `func_actor_361100_80162DE4` if the allocation fails.
@@ -1566,7 +1566,7 @@ static void func_actor_361100_80162D28(Task* arg0)
 {
     Actor361100Work* work;
     GfxCoord*        coord;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;

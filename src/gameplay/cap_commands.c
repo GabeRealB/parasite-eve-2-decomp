@@ -6,6 +6,7 @@
 #include "cap.h"
 #include "captions.h"
 #include "gameplay/direction.h"
+#include "gameplay/enemy.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 #include "message.h"
@@ -276,7 +277,7 @@ void Gp_MsgSlot4Chain(s32 arg0, s32 arg1)
 {
     Task* out;
 
-    arg0 = (arg0 << 12) | (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
+    arg0 = (arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
     Gp_DispatchMsgReply(gameGetPtrSlot(4), 0x7D0, arg0, &out);
     if (out != 0) {
         Gp_DispatchMsg(out, 0x7D5, arg1, 0);

@@ -892,7 +892,7 @@ Actor120400MsgEntry D_actor_120400_8013E76C[6] = {
 /// has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture page and CLUT
 /// row of the `AreaPlacement` that entry selects, reached through the area key
 /// `&gGameSession->location.loc` and indexed by the model id the child's own
-/// `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
+/// `spawnArg2` carries at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and each then has its
 /// texture stream processed twice when it has a buffer. The body ends by
 /// pointing the parent's model at its light/colour matrices
 /// (`func_actor_120400_801327D4`), pointing `msgTable` at the message table and
@@ -925,7 +925,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         s32            idx;
 
         model      = spawned->extra.tmd;
-        idx        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey = &gGameSession->location.loc;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -949,7 +949,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         s32            idx;
 
         model = spawned->extra.tmd;
-        idx   = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         // Keep this block's key address separate across the spawn calls.
         sessionKey = (keyAddr = &gGameSession->location.loc);
         key.stage  = sessionKey->stage;

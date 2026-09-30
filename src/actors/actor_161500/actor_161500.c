@@ -96,7 +96,7 @@ extern GpEvsCmd       D_actor_161500_80137AB8[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_161500_8013252C(Task* task);
-static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task);
+static void func_actor_161500_8013273C(Enemy* enemy, Task* task);
 static void func_actor_161500_8013284C(Task* task);
 
 extern AnimationPlayRequest D_actor_161500_80133F7C;
@@ -1385,7 +1385,7 @@ static void func_actor_161500_80132038(void);
 static void func_actor_161500_80132110(void);
 static void func_actor_161500_801322A0(void);
 static void func_actor_161500_8013230C(void);
-static void func_actor_161500_80132394(GpEnemy* enemy, Task* task);
+static void func_actor_161500_80132394(Enemy* enemy, Task* task);
 
 static void func_actor_161500_80131E38(void)
 {
@@ -1565,13 +1565,13 @@ static void func_actor_161500_8013230C(void)
 /// on clip 2, otherwise on clip 1. It then lights the model, sets up the
 /// animation context and the task's message table, and runs the step body
 /// once with the plain reseed queued.
-static void func_actor_161500_80132394(GpEnemy* enemy, Task* task)
+static void func_actor_161500_80132394(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
@@ -1653,10 +1653,10 @@ static void func_actor_161500_8013252C(Task* task)
 
 /// The actor's task body: dispatches on `Task::state` to the spawn routine
 /// (state 0) or the per-frame body (state 1), handing each the task's
-/// `GpEnemy` from `Task::spawnArg2`. The handler table is built on the stack.
+/// `Enemy` from `Task::spawnArg2`. The handler table is built on the stack.
 void func_actor_161500_801326E8(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_161500_80132394,
         func_actor_161500_8013273C,
     };
@@ -1670,7 +1670,7 @@ void func_actor_161500_801326E8(Task* task)
 /// ramped toward 0x1000 in 0x200 steps while `turnUp` is 1 and back down to
 /// 0 otherwise, so the actor turns its head to the player and away again
 /// smoothly instead of snapping.
-static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
+static void func_actor_161500_8013273C(Enemy* enemy, Task* task)
 {
     TmdObject*       obj;
     GfxCoord*        coord;
@@ -1701,7 +1701,7 @@ static void func_actor_161500_8013273C(GpEnemy* enemy, Task* task)
     walkerDrawShadow(task);
 }
 
-/// The actor's `Task::exitCallback`: hands the task's `GpEnemy`, parked in
+/// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
 /// `Task::spawnArg2`, back to `Gp_DestroyEnemy`.
 static void func_actor_161500_8013284C(Task* task)
 {

@@ -144,10 +144,10 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1);
-static void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1);
-static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1);
-static void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1);
+static void Actor01200_Fn03D58(Enemy* arg0, Task* arg1);
+static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1);
+static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1);
+static void Actor01200_Fn03F30(Enemy* arg0, Task* arg1);
 
 extern TmdSource Actor01200_D05934;
 void             Actor01200_Fn03FD4(Task*);
@@ -578,17 +578,17 @@ TaskDesc Actor01200_D07078 = { TASK_BODY_TMD, 96, Actor01200_Fn03FD4, { .model =
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
 static s32             Actor01200_Fn00990(Actor01200Work* arg0);
-static void            Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn01040(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn01234(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn00A6C(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn01040(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn01234(Enemy* arg0, Task* arg1);
 static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s);
-static void            Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn017DC(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn01FDC(Enemy* arg0, Task* arg1);
 static void            Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2);
-static void            Actor01200_Fn02918(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn03294(GpEnemy* arg0, Task* arg1);
-static void            Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1);
+static void            Actor01200_Fn02918(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn02BE8(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn03294(Enemy* arg0, Task* arg1);
+static void            Actor01200_Fn036B0(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_steer.inc.c"
 
@@ -645,7 +645,7 @@ static s32 Actor01200_Fn00990(Actor01200Work* arg0)
     return 0;
 }
 
-static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn00A6C(Enemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
     GfxCoord*              coord;
@@ -760,12 +760,12 @@ static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
     Gp_UpdateActorColor(arg0, &pos, 0, 0);
     work->field_198 = 5;
     work->field_19A = 0x14;
-    if ((u16)(arg0->placeKey >> 12) % 2 == 1) {
-        work->field_176 += arg0->placeKey >> 12;
-        work->field_19A += arg0->placeKey >> 12;
-        work->field_198 += arg0->placeKey >> 12;
+    if ((u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % 2 == 1) {
+        work->field_176 += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_19A += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_198 += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
-        work->field_176 -= (u16)(arg0->placeKey >> 12) / 2;
+        work->field_176 -= (u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
         work->field_19A -= arg0->placeKey >> 13;
         work->field_198 -= arg0->placeKey >> 13;
     }
@@ -802,7 +802,7 @@ static void Actor01200_Fn00A6C(GpEnemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-static void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01040(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     GfxCoord*       coord;
@@ -843,7 +843,7 @@ static void Actor01200_Fn01040(GpEnemy* arg0, Task* arg1)
     }
 }
 
-static void Actor01200_Fn01234(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     GfxCoord*         coord;
@@ -943,7 +943,7 @@ static __inline__ void Actor01200_FaceScale(GfxCoord* coord, s16 s)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          scale;
@@ -1023,7 +1023,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
             work->eff1A8.spawnArgHi = 2;
             func_800FDB18(Gp_GetIdParam1(0x1001) & 0xFFFF, &arg1->extra.tmd->coords[1], NULL, &work->eff1A8);
             Gp_SpawnEff(0x6009E, arg1->extra.tmd->coords, 0, &ofs);
-            id  = ((arg0->placeKey >> 12) << 8) | 0x400C0004;
+            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
             break;
@@ -1074,7 +1074,7 @@ static void Actor01200_Fn017DC(GpEnemy* arg0, Task* arg1)
     }
 }
 
-static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          scale;
@@ -1120,7 +1120,7 @@ static void Actor01200_Fn01FDC(GpEnemy* arg0, Task* arg1)
             ofs.vy = -0xA;
             ofs.vz = -0x50;
             Gp_SpawnEff(0x60030, arg1->extra.tmd->coords, 0x10030, &ofs);
-            id  = ((arg0->placeKey >> 12) << 8) | 0x400C0004;
+            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
             arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -1273,7 +1273,7 @@ static void Actor01200_Fn026A0(Task* arg0, s16 arg1, u32 arg2)
 /// Hit check: finds the first type-2 record among the five in `jointContacts`, and
 /// on a hit applies its damage, turns the model toward it and, once the hit
 /// points run out, moves to substate 6.
-static void Actor01200_Fn02918(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
 {
     ActorHitTakenScratch*  sc;
     Actor01200Work*        work;
@@ -1341,7 +1341,7 @@ found:
 /// one, step 5 units, and swap points within 400 units or after 0x60 blocked
 /// frames; state 6 when `ActorContact_Steer` reports 1, state 4 when the
 /// player is within 2000 units and inside a quarter turn or 1000 units.
-static void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     ActorTurnScratch* head;
@@ -1425,7 +1425,7 @@ static void Actor01200_Fn02BE8(GpEnemy* arg0, Task* arg1)
 /// Walk back toward the spawn point: turn at most 0x10 toward it, step 8 units,
 /// and hand over to state 7 once within 0x50 or after 0xDD frames (state 6 when
 /// `ActorContact_Steer` reports 1).
-static void Actor01200_Fn03294(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
 {
     Actor01200Work*   work;
     GfxCoord*         coord;
@@ -1499,7 +1499,7 @@ static const Actor01200StateTable Actor01200_D000E4 = {
 
 /// Per-frame tick: refreshes the coordinate and color, handles the render
 /// mode in `Gp_StateF0.field_4`, dispatches the substate handler and plays its sound.
-static void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn036B0(Enemy* arg0, Task* arg1)
 {
     VECTOR               pos;
     Actor01200StateTable table;
@@ -1557,7 +1557,7 @@ static void Actor01200_Fn036B0(GpEnemy* arg0, Task* arg1)
     Gp_ClearRec18Occupied(&work->rec2E8);
     id = Actor01200_Fn00990(work);
     if (id != 0) {
-        snd = id | ((arg0->placeKey >> 12) << 8);
+        snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
     }
@@ -1616,7 +1616,7 @@ s32 Actor01200_Fn03A00(Task* task, s32 arg1, s32 arg2)
 s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request)
 {
     Actor01200Work* work;
-    GpEnemy*        ctx;
+    Enemy*          ctx;
 
     work            = arg0->work;
     ctx             = arg0->spawnArg2.pointer;
@@ -1655,7 +1655,7 @@ s32 Actor01200_Fn03ABC(Task* arg0, s32 arg1, ActorCommand* request)
 /// hides the model, and turns off the collision bodies the other states
 /// enable - the pair pass of `obj2C8`, `obj300` and `obj338`, and the grid
 /// pass of `obj230`. Nothing happens afterwards.
-static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03D58(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1676,7 +1676,7 @@ static void Actor01200_Fn03D58(GpEnemy* arg0, Task* arg1)
 /// `field_174` to 4, and set or clear the high bits of the four sub-object
 /// flags; afterwards run `animDriverTick` and move to state 2 once bit 0
 /// of `field_58` is set.
-static void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03DC0(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1706,7 +1706,7 @@ static void Actor01200_Fn03DC0(GpEnemy* arg0, Task* arg1)
 /// `field_174` to 6, and set or clear the high bits of the four sub-object
 /// flags; afterwards run `animDriverTick` and move to state 7 once bit 0
 /// of `field_58` is set.
-static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03E78(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;
@@ -1735,7 +1735,7 @@ static void Actor01200_Fn03E78(GpEnemy* arg0, Task* arg1)
 /// On entry (`field_4` set) clear the actor and model flags, set `field_174`
 /// to 2, and set or clear the high bits of the four sub-object flags; then run
 /// `animDriverTick` and clear the model's coordinate flag every frame.
-static void Actor01200_Fn03F30(GpEnemy* arg0, Task* arg1)
+static void Actor01200_Fn03F30(Enemy* arg0, Task* arg1)
 {
     Actor01200Work* work;
     TmdObject*      obj;

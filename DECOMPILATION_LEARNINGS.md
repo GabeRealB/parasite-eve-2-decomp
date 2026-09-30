@@ -2941,7 +2941,7 @@ Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
 A dispatcher that copies two `TaskFuncTable3`s then tests
-`enemy->hp` needs `GpEnemy* enemy = index->spawnArg2` assigned *before*
+`enemy->hp` needs `Enemy* enemy = index->spawnArg2` assigned *before*
 the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
 adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
 copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
@@ -30669,7 +30669,7 @@ One pointer (`obj = container_of(...); obj->field |= 0x80;` plus
 so GCC emits the subtract into `$v1` and the copy into `$t0`:
 
 ```c
-enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
+enemy = (Enemy*)((u8*)node - OFFSET_OF(Enemy, node));
 obj54 = (GpObj54*)enemy;
 if (arg0 == 0) {
     enemy->colorMode |= 0x80;
@@ -49041,9 +49041,9 @@ sp = ActorsShared80135df4Table;
 sp.funcs[task->state](task->spawnArg2, task);
 ```
 
-The element type is `GpEnemyTaskFunc` — `void (*)(GpEnemy*, Task*)` — so a
+The element type is `GpEnemyTaskFunc` — `void (*)(Enemy*, Task*)` — so a
 handler m2c renders as a single `void *value` is really
-`(GpEnemy* enemy, Task* task)`. The *unused* leading `GpEnemy*` is what leaves
+`(Enemy* enemy, Task* task)`. The *unused* leading `Enemy*` is what leaves
 the live pointer in `$a1`, and the body then copies `$a1` into `$a0` for its own
 calls — a copy the one-argument form cannot express. `func_actor_311900_801625F0`
 is the worked example: the m2c seed scored 95.73% with `move s0,a0` against the
@@ -57266,7 +57266,7 @@ Declaring the pointer as a block-scope local *above* the store is the whole fix
 
 ```c
 if (work->field_4 != 0) {
-    GpEnemy* enemy = (GpEnemy*)task->spawnArg2;
+    Enemy* enemy = (Enemy*)task->spawnArg2;
 
     extra->flags      = 0x80;
     enemy->node.flags = 1;
@@ -58313,7 +58313,7 @@ setter macro rather than reordering assignments by hand.
 instruction writes the same callee-saved register. The obvious C,
 
 ```c
-id = ((enemy->placeKey >> 12) << 8) | 0x40290003;
+id = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40290003;
 ```
 
 gives `lhu $v0; srl $v0; sll $v0; or $s1,$v0,$a1` instead: each intermediate is
@@ -63871,7 +63871,7 @@ move, and it is the one thing that cannot work:
 
 ```c
 typedef union {
-    void (*fns[2])(GpEnemy*, Task*);
+    void (*fns[2])(Enemy*, Task*);
     u8 pad[0x48];
 } Actor143900Dispatch;
 
@@ -63902,7 +63902,7 @@ the two requirements across two objects instead: a small initialized table for
 the clobber and the schedule, and an unused local *after* it for the frame.
 
 ```c
-void (*fns[2])(GpEnemy*, Task*) = { h0, h1 };
+void (*fns[2])(Enemy*, Task*) = { h0, h1 };
 u8 scratch[0x40];   /* never referenced; only reserves the frame */
 ```
 
@@ -67317,7 +67317,7 @@ them in source order, the third being the pointer behind a store:
 ```
 lw   s0, 0x1C(s1)     ; work  = task->work
 lw   v0, 0x2C(s1)     ; coord = ((TmdObject*)task->extra)->coords
-lw   v1, 0x20(s1)     ; the GpEnemy* the sb below stores through
+lw   v1, 0x20(s1)     ; the Enemy* the sb below stores through
 lw   a0, 0x8(v0)
 li   v0, 1
 sb   v0, 0x14(v1)     ; enemy->node.flags = 1
@@ -67329,7 +67329,7 @@ target —
 ```c
 work                                      = (Actor206100Work*)task->work;
 coord                                     = ((TmdObject*)task->extra)->coords;
-((GpEnemy*)task->spawnArg2)->node.flags = 1;
+((Enemy*)task->spawnArg2)->node.flags = 1;
 ```
 
 — scores 99.688% (distance 20, `regs=4`): the object comes out with `lw 0x2C`
@@ -67342,7 +67342,7 @@ restores the target order and scores 100.000% with every penalty zero:
 
 ```c
 work                = (Actor206100Work*)task->work;
-enemy               = (GpEnemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
+enemy               = (Enemy*)task->spawnArg2;   /* lw 0x20, ranked alone */
 coord               = ((TmdObject*)task->extra)->coords;
 enemy->node.flags = 1;
 ```
@@ -67693,12 +67693,12 @@ When the table is only two entries of *named* functions, GCC emits `lui`/`addiu`
 `rodata` cut to arrange and no anonymous blob to name - the plain local array
 
 ```c
-void (*fns[2])(GpEnemy*, Task*) = { Second, Third };
+void (*fns[2])(Enemy*, Task*) = { Second, Third };
 Wire = (Work*)task->work;
 fns[task->state](task->spawnArg2, task);
 ```
 
-matches as written. Both handlers being `(GpEnemy*, Task*)` is what puts
+matches as written. Both handlers being `(Enemy*, Task*)` is what puts
 `spawnArg2` in `$a0` and the task in `$a1`; the publish store's position in the
 target (after the state load, before `spawnArg2`) follows from writing it
 between the initialiser and the call.
@@ -68073,7 +68073,7 @@ which is the only reason a short-lived local pointer can ever take `$s0` from
 it.
 
 In `func_actor_503500_8014642C` the natural C matched instruction-for-instruction
-except that the `Task*` parameter and the `GpEnemy*` it caches were swapped
+except that the `Task*` parameter and the `Enemy*` it caches were swapped
 between `$s0` and `$s1`. The four allocnos, ranked by
 `floor_log2(n_refs) * n_refs / live_length`:
 
@@ -68419,7 +68419,7 @@ invisible to it.
 
 ## A bare `move rD,rS` in front of a load is a field read back after an intervening store
 
-`func_actor_503500_8013ECBC` seeds a `GpEnemy` from a parameter table. The
+`func_actor_503500_8013ECBC` seeds a `Enemy` from a parameter table. The
 target reads the row pointer back out of the field it had just written:
 
 ```
@@ -68499,7 +68499,7 @@ offsets are free to swap.
 
 ## A store between a struct write and its read-back is what leaves the redundant `move`
 
-`func_actor_503500_8013BEE4` writes a pointer into `GpEnemy::param` and then
+`func_actor_503500_8013BEE4` writes a pointer into `Enemy::param` and then
 reads it straight back to seed `field_40`. The target spends an extra
 instruction on it:
 
@@ -68649,7 +68649,7 @@ call site. Note the local's declaration order also fixes the load order —
 
 ## A store to a neighbouring field kills CSE's memory equivalence, and the reload comes back as a stray reg-reg copy
 
-`func_actor_503500_801372C8` ends its `GpEnemy` setup with three stores and one
+`func_actor_503500_801372C8` ends its `Enemy` setup with three stores and one
 read-back of the first of them:
 
 ```c
@@ -70645,7 +70645,7 @@ the shifted value becomes a short local (`$v0`) and `sound`, now born at the
 Route the operand through a copy the compiler removes again:
 
 ```c
-sound   = ((GpEnemy*)arg0->spawnArg2)->field_8;
+sound   = ((Enemy*)arg0->spawnArg2)->field_8;
 sound >>= 0xC;
 sound <<= 8;
 voice   = sound;
@@ -70878,7 +70878,7 @@ Example: `func_actor_400500_801385D0` (`D_actor_400500_80131EF0` /
 ## Name `spawnArg2` before two stack table copies so `lw` of the enemy hoists
 
 A dispatcher that copies two `TaskFuncTable3`s then tests
-`enemy->hp` needs `GpEnemy* enemy = index->spawnArg2` assigned *before*
+`enemy->hp` needs `Enemy* enemy = index->spawnArg2` assigned *before*
 the copies. Inlining the field after the copies keeps `lw 0x20(s2)` late and
 adds a load-delay nop (`lh v0, 0x40(v0)`). The named pointer lives across the
 copies in `$v1`, matching `lw v1, 0x20(s2)` in the delay of `lw s0, 0x1C(s2)`.
@@ -74984,7 +74984,7 @@ s32 sp10; s32 sp14; s32 sp18;
 sp10 = M2C_FIELD(arg1, s32 *, 0x38);
 sp14 = M2C_FIELD(arg1, s32 *, 0x3C);
 sp18 = M2C_FIELD(arg1, s32 *, 0x40);
-Gp_UpdateActorColor(M2C_FIELD(arg0, GpEnemy **, 0x20), (VECTOR *) &sp10, 0, 0);
+Gp_UpdateActorColor(M2C_FIELD(arg0, Enemy **, 0x20), (VECTOR *) &sp10, 0, 0);
 ```
 
 Only `sp10`'s address escapes, so `sp14`/`sp18` are never address-taken and GCC
@@ -76209,7 +76209,7 @@ Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
 
 `Task::work` is overloaded by every actor overlay, so an offset alone (`0xE`
 here) does not name a type, and any same-width struct scores 100% anyway. The
-parent is not arbitrary: `Gp_AllocEnemy(Task* task, GpEnemy* parent)`
+parent is not arbitrary: `Gp_AllocEnemy(Task* task, Enemy* parent)`
 (`src/gameplay/1BC.c`) ends in `Task_Reparent(parent->task, task)`, so
 `index->parent` is the task of whatever spawned this actor, and its `work` is
 that spawner's work block.
@@ -76444,7 +76444,7 @@ first.
 others take the larger LUIDs:
 
 ```c
-GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2;        /* LUID min */
+Enemy*         enemy = (Enemy*)arg0->spawnArg2;        /* LUID min */
 Actor104400Work* work  = (Actor104400Work*)arg0->work;    /* before coord */
 GfxCoord*   coord = ((TmdObject*)arg0->extra)->coords;
 ```
@@ -77143,7 +77143,7 @@ expression is the report: the table is a local, its base is `sp + 0x10`, and the
 index is the task's state. The reconstruction is the ordinary local array:
 
 ```c
-void (*fns[2])(GpEnemy*, Task*) = {
+void (*fns[2])(Enemy*, Task*) = {
     func_actor_461800_8013307C,
     func_actor_461800_801335B0,
 };
@@ -81601,7 +81601,7 @@ That fixes every type at once. `Task::extra` is the display task's `TmdObject`;
 and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GfxCoord)`.
 Rewriting the seed with those types reached 100.000% with every penalty zero and
 the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
-`GpEnemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
+`Enemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
 passes it straight to `Task_Reparent` and dereferences `+0x2C` is the tell.
 
 Two non-conclusions. The `(TmdObject*)` / `(Task*)` casts exist only because
@@ -85110,7 +85110,7 @@ allocation falls out (`work`→`$v1`, `enemy`→`$a1`, sentinel→`$a2`) at 100.
 
 ```c
     Actor401300Work* work  = (Actor401300Work*)task->work;
-    GpEnemy*         enemy = task->spawnArg2;
+    Enemy*         enemy = task->spawnArg2;
 
     if (enemy->hp != -0x3E7 && work->field_C8A == 0) {
         enemy->hp = -0x3E7;
@@ -85544,13 +85544,13 @@ tree for the function's address finds
 a state table whose entry 0 is the function and whose entry 2 is the *other*
 function of the same translation unit. This family dispatches such a table as
 `fns[task->state](task->spawnArg2, task)` - `ActorsShared80131e24` is the
-decompiled example - so the pair is `(GpEnemy*, Task*)` and the two loads become
+decompiled example - so the pair is `(Enemy*, Task*)` and the two loads become
 `(Work*)task->work` and `(TmdObject*)task->extra`, the reading
 `func_actor_206100_8014FAE4` already uses.
 
 The byte store then settles the first argument on its own: `Task::callback` is
 at `0x14`, so `sb …, 0x14($a0)` rules out a `Task*`, and
-`enemy->node.flags = 1` (`GpEnemy + 0x14`; an idiom in `actor_206100`,
+`enemy->node.flags = 1` (`Enemy + 0x14`; an idiom in `actor_206100`,
 `actor_150400` and `actor_460200`) fits with no invented type.
 
 So when a body's arguments have no caller to fix them, look for its address in
@@ -87636,11 +87636,11 @@ already does) matched:
 
 ```c
 if (enemy->hp <= 0) {
-    deathSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0008;
+    deathSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0008;
     deathPan   = (s8)Gp_GetObjPan((GfxCoord*)arg0->field_2C->field_8);
     SndEvt_EnqueueType6(deathSound, deathPan, (s8)gpGetObjDepth((GfxCoord*)arg0->field_2C->field_8));
 } else {
-    hitSound = ((enemy->placeKey >> 0xC) << 8) | 0x400A0007;
+    hitSound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400A0007;
     ...
 }
 ```
@@ -96614,7 +96614,7 @@ storing through the local:
 
 ```c
     Actor356100Work* work;
-    GpEnemy*         enemy;
+    Enemy*         enemy;
 
     work  = arg0->field_1C;
     enemy = arg0->field_20;
@@ -97254,7 +97254,7 @@ Inputs: `base.i` (m2c cast form, 92.32%)
 `sched1` schedules one basic block at a time, so nothing inside an `if` body can
 appear above the branch that guards it — read *backwards*, that makes an
 instruction's position a witness about the C. `func_actor_401000_8013DEC8`'s
-target loads the `GpEnemy*` at `0x20` in the gap the seed fills with a `nop`:
+target loads the `Enemy*` at `0x20` in the gap the seed fills with a `nop`:
 
 ```
 lh    $v0,0x4($s0)      # work->field_4, the condition
@@ -99297,10 +99297,10 @@ again in each arm is what does it:
 
 ```c
     if (work->field_2D6 != 0) {
-        enemy   = (GpEnemy*)arg0->spawnArg2;   /* a load first: not a store */
+        enemy   = (Enemy*)arg0->spawnArg2;   /* a load first: not a store */
         var_v1  = 0x4046000A;
     } else {
-        enemy   = (GpEnemy*)arg0->spawnArg2;
+        enemy   = (Enemy*)arg0->spawnArg2;
         var_v1  = 0x402E0002;
     }
 ```
@@ -99349,7 +99349,7 @@ the inherited preference never arrives:
 
 ```c
     } else {
-        e = (GpEnemy*)arg0->spawnArg2;   /* seed: arg0 dies in this insn, 80/84 do not conflict */
+        e = (Enemy*)arg0->spawnArg2;   /* seed: arg0 dies in this insn, 80/84 do not conflict */
         arg0->spawnArg2 += pan;          /* pan == 0: arg0 now dies one insn later */
         var_v1 = 0x402E0002;             /* 80 and 84 conflict -> $a0 never merges in */
     }
@@ -101085,7 +101085,7 @@ Every one of those deltas is `WorldCollisionBody`'s, so the base is pinned rathe
 guessed, and `work->field_8BC.flags &= 0x7FFF` is the port. The same call site
 also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
 `Gp_LinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
-0x1C and `sb` at 0x48/0x4C/0x4D - all `GpEnemy` - so the ctx is `GpEnemy*`, not
+0x1C and `sb` at 0x48/0x4C/0x4D - all `Enemy` - so the ctx is `Enemy*`, not
 an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
 size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
 `memCalloc(0x60, 0)` stored into `task->spawnArg2`.
@@ -101099,7 +101099,7 @@ store differ, so a sibling from the family is a better template than the seed.
 Evidence: scratch `nonmatchings/func_actor_312200_80163778-vacuum/`; `base.c`
 (100.000%) and `base_1.c` (typed port, 100.000%, `Repeated assembly: base_1.c
 reproduces base.c`); `include/actors/actor_312200.h` gained `WorldCollisionBody field_8BC`
-inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `GpEnemy.pad_4D`
+inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `Enemy.pad_4D`
 to `field_4D`.
 
 ## A switch whose cases share a body must repeat that body, one `case` per copy (func_actor_312200_801636CC, 2026-09-16)
@@ -101316,12 +101316,12 @@ problem.
 
 **Cause.** The assembly passes a pointer 0x10 bytes into the argument
 (`addiu $a0,$s2,0x10`). m2c renders a bare offset on a *typed* pointer as
-`index + 0x10`, and C scales that by `sizeof(*index)` — 0x60 for a `GpEnemy`,
+`index + 0x10`, and C scales that by `sizeof(*index)` — 0x60 for a `Enemy`,
 hence 0x600. m2c only does this where it has a struct type for the parameter;
 the number it printed is the raw byte offset from the disassembly.
 
 **Fix.** Name the member that lives there and take its address. Here
-`GpEnemy::node` is the `WorldTargetNode` at +0x10:
+`Enemy::node` is the `WorldTargetNode` at +0x10:
 
 ```c
 -        Gp_UnlinkNode(arg0 + 0x10);
@@ -108572,7 +108572,7 @@ Two independent source forms, both worth about 20 points on this function.
 
 **The config pointer.** Three `Player_Status.hp` reads written as direct member accesses gave
 `lui v0,%hi(Player_Status)` + `lh v1,%lo(Player_Status+0x18)(v0)` at each site, three times over, and
-`index->field_20` (the `GpEnemy*`) sitting in `$s7`. The target materialises the address once in the
+`index->field_20` (the `Enemy*`) sitting in `$s7`. The target materialises the address once in the
 prologue and reads `lh v1,0x18(s7)`:
 
 ```
@@ -111467,7 +111467,7 @@ A death-state handler repeats the same cue four times, once per animation
 frame:
 
 ```c
-        sfx = (((u16)enemy->placeKey >> 12) << 8) | 0x40200013;
+        sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200013;
         pan = (s8)Gp_GetObjPan(((TmdObject*)arg0->extra)->coords);
         SndEvt_EnqueueType6(sfx, pan, (s8)gpGetObjDepth(...));
 ```
@@ -112727,7 +112727,7 @@ sw     s0,0x3fc(at)         ; head - 8
 
 That is 6 more instructions across eight accesses — retail pays it, because the
 register is needed elsewhere: in `func_actor_356100_801668FC` the freed `$sN`
-is what lets `index->field_20` (the `GpEnemy*`) stay live for the whole tick.
+is what lets `index->field_20` (the `Enemy*`) stay live for the whole tick.
 Without it the enemy pointer spills to the stack, the frame grows 0x38 -> 0x40,
 and every register in the function shifts: 85.4% -> 91.9% (base_7) from this
 change alone.
@@ -116043,8 +116043,8 @@ move   a0,t0            # and copied back for the call
 
 m2c's version of the same tail scored 78.67% (`regs=10 insert=7 delete=6`) and
 kept `enemy` in `$a0`, because it wrote the transform pointer as
-`temp_v1_2 = index + 0x10` - pointer arithmetic on a `GpEnemy*`, so C scaled the
-0x10 by `sizeof(GpEnemy)` (0x60) and the object carried `addiu v1,a0,0x600`.
+`temp_v1_2 = index + 0x10` - pointer arithmetic on a `Enemy*`, so C scaled the
+0x10 by `sizeof(Enemy)` (0x60) and the object carried `addiu v1,a0,0x600`.
 
 **Fix.** Write the block the way the sibling `func_actor_104900_80138A2C` in the
 same unit writes it - `xform = (GpLinkXform*)&enemy->node;` then
@@ -116838,7 +116838,7 @@ Inputs: `base.c` 76.036%, `base_1.c` 100.000%, `base_3.c` (no `cond`) 90.764%,
 A loop that walks an array of records by pointer and touches *two* of the
 record's fields gives the second field an induction variable of its own, and the
 register it takes displaces every value allocated after it.  `func_actor_206100_8014DD3C`
-walks two 8-byte companion slots, `{ GpEnemy* enemy; s32 timer; }`, and only the
+walks two 8-byte companion slots, `{ Enemy* enemy; s32 timer; }`, and only the
 indexed spelling reproduces the target.
 
 **Mechanism.**  `loop.c` records a `DEST_ADDR` giv for every memory reference
@@ -117428,7 +117428,7 @@ landed in `$a2` instead of `$a1` and the `field_3` byte temp in `$a1` instead of
 `find_reg` skipped `$a0`.
 
 **Fix:** no new allocno. Reassign the existing pointer
-(`spawned = (GpEnemy*)spawned->task; model = ((Task*)spawned)->extra;`) - this
+(`spawned = (Enemy*)spawned->task; model = ((Task*)spawned)->extra;`) - this
 keeps the early `lw v0,0(v0)` that a chained `spawned->task->extra` loses, and
 went straight to 100%. The byte temp itself (`areaByte3 = key->stage; model =
 ...; key.stage = areaByte3;`) was needed because it is set in both blocks, so
@@ -126004,7 +126004,7 @@ and the element count decides which. Two elements go inline, one
 (`ActorsShared80131e24` builds its `fns[2]` that way):
 
 ```c
-void (*fns[2])(GpEnemy*, Task*) = { Sub0, Sub1 };   /* lui/addiu/sw per entry */
+void (*fns[2])(Enemy*, Task*) = { Sub0, Sub1 };   /* lui/addiu/sw per entry */
 ```
 
 Three or more become one anonymous `.rdata` object that a `movstrsi_internal`
@@ -126133,7 +126133,7 @@ the source assigns all three, and the asm per line looks right.
 Write the aggregate as one object whose address escapes - a `VECTOR vec` filled
 `vec.vx/vy/vz` and passed `&vec` - and every store survives. The same seed also
 carries m2c's one-parameter signature, which drops the prologue's second-argument
-copy; the arity comes from the overlay header (`(GpEnemy*, Task*)` here), and
+copy; the arity comes from the overlay header (`(Enemy*, Task*)` here), and
 the first parameter is often unused.
 
 **Measured decomposition (review, 2026-09-17).** The two changes are not equal
@@ -127381,7 +127381,7 @@ minus conflicts: `$s0` (16) beats `$s1` (17) unless it is *in* the conflict set.
 **What changes it.** One statement: in the first `if` body, write
 
 ```c
-        idx   = ((GpEnemy*)task->spawnArg2)->field_8 >> 12;
+        idx   = ((Enemy*)task->spawnArg2)->field_8 >> 12;
         model = (TmdObject*)spawned1->extra;
 ```
 
@@ -127819,7 +127819,7 @@ one slot too late, leaving a `nop` where the target has the `addiu` (97.35%,
 `reorder=2 insert=2`). With it before the store the block matches exactly.
 
 Two smaller scheduling levers on the same block: split the index into
-`raw = ((GpEnemy*)spawnArg2)->field_8;` and a late `index = raw >> 12;` so the
+`raw = ((Enemy*)spawnArg2)->field_8;` and a late `index = raw >> 12;` so the
 `srl` is free to be scheduled *after* the `addiu $a0` rather than before it; and
 drive all three `Task_SpawnFromTable` results through one `spawned` variable.
 The third spawn uses its result only twice, so with a variable of its own the
@@ -128777,7 +128777,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 loads it signed in one place and unsigned in the other:
 
 ```
-lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> GpEnemy::bodyPos.vx/vy/vz (long)
+lh    v1,8(v0)     lh v1,0xa(v0)     lh t0,0xc(v0)     # -> Enemy::bodyPos.vx/vy/vz (long)
 lhu   v0,8(v1)     lhu v0,0xa(v1)    lhu v1,0xc(v1)    # -> WorldCollisionBody::pos.vx/vy/vz     (s16)
 ```
 
@@ -129509,10 +129509,10 @@ that decides whether combine can see through it.
 So write the cast into the wider local, not through a narrow one:
 
 ```c
-scale = (u16)(enemy->placeKey >> 12);
+scale = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
 flag  = scale & 1;
 if (flag == 1) {
-    work->field_176 += enemy->placeKey >> 12;   /* CSEs to the raw srl */
+    work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;   /* CSEs to the raw srl */
 } else {
     work->field_176 -= scale >> 1;             /* reads the masked value */
 }
@@ -129525,7 +129525,7 @@ register.
 
 ## An inline helper taking the scratch vector's address is what puts it in `$s0` — and reshuffles the other pointers (func_actor_123200_8013352C, 2026-09-17)
 
-**Symptom.** `regs=71` at 95%: the incoming `GpEnemy*` and the `memCalloc`
+**Symptom.** `regs=71` at 95%: the incoming `Enemy*` and the `memCalloc`
 result had swapped `$s0` / `$s1` against the target, and the address of a stack
 `SVECTOR` was materialised twice — once for `VectorNormalSS`'s two arguments and
 again for the `gte_ldsv` / `gte_stsv` operands.
@@ -129754,7 +129754,7 @@ value across a bail-out branch, look for a second variable rather than for a pin
 ## A global's field read repeatedly across pointer stores emits one load per read, and the cached local's statement position is fixed (func_actor_223600_8014B540, 2026-09-17)
 
 **Symptom.** The spawn handler writes the same constant table field into two
-`GpEnemy` halfwords and then passes it to a call:
+`Enemy` halfwords and then passes it to a call:
 
 ```c
 enemy->reactionFlags = 0;
@@ -129857,11 +129857,11 @@ treating it as an allocation problem.
 ## A `switch` whose lowest case is 0 tests it with `<` when the index is unsigned and with `==` when it is signed (func_actor_223600_8014BBF4, 2026-09-17)
 
 `func_actor_223600_8014BBF4` opens with a three-case dispatch on the top nibble
-of `GpEnemy::placeKey`. Written the way its already-matched sibling
+of `Enemy::placeKey`. Written the way its already-matched sibling
 `func_actor_223600_8014B840` writes the same expression,
 
 ```c
-u32 mode = enemy->placeKey >> 12;
+u32 mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
 switch (mode) { case 0: ... case 1: ... case 2: ... }
 ```
 
@@ -129887,7 +129887,7 @@ hiding the range test entirely. For a **signed** index neither leaf is bounded
 path, which emits the `index > node->high` split before descending. Declaring
 the index `s32` restored the target exactly.
 
-`enemy->placeKey >> 12` still assembles as `srl`, not `sra`, with a signed
+`enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT` still assembles as `srl`, not `sra`, with a signed
 index: the field is `u16`, so combine sees `nonzero_bits` clear at the sign bit
 and rewrites the arithmetic shift. Signedness of the *switch index* is therefore
 free to choose on this kind of expression, and it is the thing to change when a
@@ -132124,7 +132124,7 @@ The rule "if the users have to cast, the declared type is wrong" reads every
 cast as the parameter failing to fit. It does not hold when the value at the
 call site is an integer: before `McWork::buffer` was corrected to `void*`,
 `memFree(void* allocation)` had three memory-card callers casting that stored
-integer and nineteen passing a `Task*`, a `GpEnemy*` or a `GpEffWork*` straight
+integer and nineteen passing a `Task*`, a `Enemy*` or a `GpEffWork*` straight
 through. The three casts were the *caller's* declaration showing through — the
 field was an `s32` that held a pointer, so the cast was what that field's own
 type required and said nothing about the parameter. Those callers now pass
@@ -134556,7 +134556,7 @@ declarations there, and every read and write through the view is invisible to th
 census.
 
 So a member can look write-only, or wholly unused, while a subsystem depends on
-its value every frame. `GpEnemy::playerRelPos` read that way: no decompiled code
+its value every frame. `Enemy::playerRelPos` read that way: no decompiled code
 reached it by that name, yet the same word is `GpLinkXform.dst`, which the link
 walk rewrites each frame and which the aim and lock-on scans take their angle and
 distance from. It was named and documented from those readers, none of which
@@ -135532,7 +135532,7 @@ computing the entire expression at full width first:
 s32 stageAreaId;
 /* ... */
 stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
-found = (GpEnemy*)Gp_FindWorkById(stageAreaId);
+found = (Enemy*)Gp_FindWorkById(stageAreaId);
 ```
 
 Both fields are u8, so the full value fits u16 and the later truncation vanishes
@@ -136770,7 +136770,7 @@ allocation together, not for adding arbitrary duplicate loads.
 
 The archived dead `snd = (work->field_2AC != 0)` assignment is unnecessary in the final
 shape: duplication raises snd's references to 16 over span 56 versus work's
-37/span260. The Task/GpEnemy port removes it and still matches exactly.
+37/span260. The Task/Enemy port removes it and still matches exactly.
 Unscoped verification passed before and after sharing the body across
 actor_104600, actor_204600 and actor_207200.
 
@@ -143264,7 +143264,7 @@ the helper. sched1 breaks the tie between the two independent loads on RTL
 order.
 
 **Fix.** A helper taking the `Task*` and loading `model = spawned->extra.tmd`
-after `idx = enemy->placeKey >> 12` matched without hacks. When only the
+after `idx = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT` matched without hacks. When only the
 position of an argument's load differs, try passing the object that holds it
 and dereferencing inside the helper.
 

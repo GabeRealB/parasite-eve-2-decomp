@@ -306,7 +306,7 @@ Named / matched: `Gp_EnemyDispatch` (`0xB`), `Gp_UpdateRoomCoords` (`0xF`),
 `Gp_FadeTileTask` (`0x27`). The rest is `taskKill`, `func_*`, or
 `0x807xxxxx` (many type-1 with `arg.model = 0x8075BED4`).
 
-`Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `GpEnemy*`
+`Gp_SpawnEnemy(bank, type, arg, parent)` is `Task_Spawn` plus a `Enemy*`
 hung off `spawnArg2` (`Gp_AllocEnemy`). Exit path is `Gp_EnemyTaskExit`.
 
 ### Bank 6 — 667 room actors
@@ -365,7 +365,7 @@ slots (see [`include/main/task.h`](../include/main/task.h)):
 | Slot | Typical payload |
 |------|-----------------|
 | `extra` | `TmdObject*` / TMD object (type 1) or a coordinate body (type 2) |
-| `spawnArg2` | `GpEnemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
+| `spawnArg2` | `Enemy*`, `UiObject*`, `GpVolFade*`, `GpSndFade*`, `GpEndWait*`, view record, … |
 | `work` | Opaque `void*` to callback work; default teardown frees non-NULL primary-heap storage |
 | `msgTable` | Borrowed `const void*` to id/handler records; callbacks have receiver-specific signatures |
 | `state` | Dispatcher index (`TaskFuncTable3`–`8` copied onto the stack) |

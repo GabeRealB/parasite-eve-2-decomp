@@ -167,7 +167,7 @@ extern s16 D_neo_ark_woodland_path_801849F0;
 /// `func_neo_ark_woodland_path_8017EA08`. Only the halfword at 0x26 is known:
 /// the chance, out of 0x200, of spawning an effect this frame. It is recomputed
 /// from how far the tracked model parts moved. Nothing yet shows whether this
-/// is the same object as `GpEnemy`.
+/// is the same object as `Enemy`.
 typedef struct NeoArkWoodlandPathTrailObj {
     /* 0x00 */ byte pad_0[0x26];
     /* 0x26 */ s16  chance;
@@ -539,13 +539,13 @@ static void func_neo_ark_woodland_path_80180568(Task* task)
 /// sends it the 0x7DB message and places it at that point.
 static void func_neo_ark_woodland_path_801806D8(Task* task)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_woodland_path_80184980[gGameSession->location.loc.variant] == 0) {
@@ -636,9 +636,9 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
 
 s32 func_neo_ark_woodland_path_80180B18(Task* task, s32 arg1, TaskMessageArg msg, TaskMessageArg arg3)
 {
-    s32      result;
-    u16      cmd;
-    GpEnemy* obj;
+    s32    result;
+    u16    cmd;
+    Enemy* obj;
 
     result = 0;
     if (msg.command->context.key == 0xB05) {
@@ -722,13 +722,13 @@ static void func_neo_ark_woodland_path_80180C6C(Task* task)
 /// sends it the 0x7DB message and places it at one of five fixed points.
 static void func_neo_ark_woodland_path_80180DDC(Task* task)
 {
-    s16      i;
-    s16      count;
-    s32      a;
-    s32      b;
-    GpEnemy* obj;
-    s16      j;
-    s16      k;
+    s16    i;
+    s16    count;
+    s32    a;
+    s32    b;
+    Enemy* obj;
+    s16    j;
+    s16    k;
 
     gameGetPtrSlot(3);
     if (D_neo_ark_woodland_path_80184970[gGameSession->location.loc.variant] == 0) {

@@ -241,12 +241,12 @@ extern Actor02100Fn02924Corners Actor02100_D03E1C[];
 extern s16                      Actor02100_D03E2C[];
 
 static void Actor02100_Fn03168(Task* arg0);
-static void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1);
+static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1);
 static void Actor02100_Fn032E4(Task* arg0);
-static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1);
+static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1);
 static s32  Actor02100_Fn014E4(Task* arg0);
 
-static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1);
+static void Actor02100_Fn00048(Enemy* arg0, Task* arg1);
 
 static const GpEnemyTaskFuncTable3 Actor02100_D00004 = { {
     Actor02100_Fn00048,
@@ -431,7 +431,7 @@ static __inline__ void Actor02100_OrientScratch(Task* arg0);
 static __inline__ void Actor02100_UpdateVectors(Task* arg0);
 static __inline__ void Actor02100_ReleaseScratch28(void);
 
-static void Actor02100_Fn00048(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
 {
     WorldCollisionContact*    table;
     WorldCollisionContact*    contacts;
@@ -572,7 +572,7 @@ static void Actor02100_Fn004C4(Task* arg0)
 {
     Actor02100Fn014E4Scratch* scratch;
     Actor02100Work*           work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     GfxCoord*                 coord;
     GfxCoord*                 src;
     GpRoomParamRec*           param;
@@ -634,7 +634,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                     work->field_78.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                     work->field_C8.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                     arg0->state           = 2;
-                    sound                 = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x4015000A;
+                    sound                 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000A;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord),
                                         (s8)gpGetObjDepth(coord));
                 } else if (damage > 0) {
@@ -650,7 +650,7 @@ static void Actor02100_Fn004C4(Task* arg0)
                         func_800FDB18(7, coord, &scratch->shortVec, &work->field_100);
                         work->field_18A = 10;
                     }
-                    sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150009;
+                    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150009;
                     pan   = (s8)Gp_GetObjPan(coord);
                     depth = (s8)gpGetObjDepth(coord);
                     SndEvt_EnqueueType6(sound, pan, depth);
@@ -713,20 +713,20 @@ static void Actor02100_Fn004C4(Task* arg0)
 /// sound. Expanded at the end of both active steps, which the compiler emits
 /// as one shared tail; `sound` is deliberately a caller-scope variable, since
 /// both expansions must name the same object.
-#define STOP_SOUND                                                                                 \
-    work->field_118 = 0;                                                                           \
-    work->field_11A = 0;                                                                           \
-    work->field_11C = 0;                                                                           \
-    SndEvt_EnqueueType7(work->field_168, 1);                                                       \
-    work->field_188 = 0;                                                                           \
-    sound           = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150008); \
-    {                                                                                              \
-        s32 pan;                                                                                   \
-        s32 depth;                                                                                 \
-                                                                                                   \
-        pan   = (s8)Gp_GetObjPan(coord);                                                           \
-        depth = (s8)gpGetObjDepth(coord);                                                          \
-        SndEvt_EnqueueType6(sound, pan, depth);                                                    \
+#define STOP_SOUND                                                                                                    \
+    work->field_118 = 0;                                                                                              \
+    work->field_11A = 0;                                                                                              \
+    work->field_11C = 0;                                                                                              \
+    SndEvt_EnqueueType7(work->field_168, 1);                                                                          \
+    work->field_188 = 0;                                                                                              \
+    sound           = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150008); \
+    {                                                                                                                 \
+        s32 pan;                                                                                                      \
+        s32 depth;                                                                                                    \
+                                                                                                                      \
+        pan   = (s8)Gp_GetObjPan(coord);                                                                              \
+        depth = (s8)gpGetObjDepth(coord);                                                                             \
+        SndEvt_EnqueueType6(sound, pan, depth);                                                                       \
     }
 
 /// Per-frame handler for the four-step sound cycle at `field_16C`: two active
@@ -755,7 +755,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
     switch (state) {
         case 0:
             if (work->field_16E == one) {
-                work->field_168 = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150007);
+                work->field_168 = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150007);
                 {
                     s32 pan;
                     s32 depth;
@@ -798,7 +798,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
             timer = work->field_16E;
             if (timer == one) {
-                work->field_168 = (((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150007);
+                work->field_168 = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150007);
                 {
                     s32 pan;
                     s32 depth;
@@ -896,7 +896,7 @@ static void Actor02100_Fn00DCC(Task* arg0)
              (blk->delta.vz * self->workm.m[2][2])) > 0) {
             dist = SquareRoot0((blk->delta.vx * blk->delta.vx) + (blk->delta.vy * blk->delta.vy) +
                                (blk->delta.vz * blk->delta.vz));
-            if (dist < Actor02100_D03E00[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
+            if (dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
                 blk->from.vx = target->workm.t[0];
                 blk->from.vy = target->workm.t[1];
                 blk->from.vz = target->workm.t[2];
@@ -964,7 +964,7 @@ static void Actor02100_Fn011C4(Task* arg0)
     Task*                     list;
     Task*                     head;
     Task*                     current;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Actor02100Work*           work;
     GfxCoord*                 coord;
     u32                       index;
@@ -997,7 +997,7 @@ static void Actor02100_Fn011C4(Task* arg0)
                                        (scratch->delta.vy * scratch->delta.vy) +
                                        (scratch->delta.vz * scratch->delta.vz));
                     if ((work->field_164 == 0 || dist < work->field_164) &&
-                        dist < Actor02100_D03E00[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
+                        dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
                         scratch->from.vx = scratch->lock.vx;
                         scratch->from.vy = scratch->lock.vy;
                         scratch->from.vz = scratch->lock.vz;
@@ -1077,10 +1077,10 @@ case1:
     goto cleanup;
 
 case2:
-    if (((GpEnemy*)work->field_140->spawnArg2.pointer)->hp <= 0) {
+    if (((Enemy*)work->field_140->spawnArg2.pointer)->hp <= 0) {
         goto cleanup;
     }
-    lock = &((GpEnemy*)work->field_140->spawnArg2.pointer)->node;
+    lock = &((Enemy*)work->field_140->spawnArg2.pointer)->node;
     Gp_GetLockPos(lock, (VECTOR3*)&scratch->vec);
     scratch->shortVec.vx = (u16)scratch->vec.vx;
     scratch->shortVec.vy = (u16)scratch->vec.vy;
@@ -1306,7 +1306,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             }
 
             if (work->field_17A == 1) {
-                work->field_168 = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150001;
+                work->field_168 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150001;
                 SndEvt_EnqueueType6(work->field_168, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
                 work->field_188 = 2;
@@ -1340,7 +1340,7 @@ static void Actor02100_Fn016EC(Task* arg0)
             if (frame >= 0xF) {
                 work->field_17A = 0;
                 work->field_174 = 2;
-                soundId         = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150002;
+                soundId         = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150002;
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             }
@@ -1369,7 +1369,7 @@ static void Actor02100_Fn016EC(Task* arg0)
                         sound = 0x40150006;
                         break;
                 }
-                soundId = sound | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+                soundId = sound | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                 SndEvt_EnqueueType6(soundId, (s8)Gp_GetObjPan(coord),
                                     (s8)gpGetObjDepth(coord));
             } else if (frame == state) {
@@ -1519,7 +1519,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             }
 
             if (work->field_17A == 1) {
-                work->field_168 = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40150001;
+                work->field_168 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150001;
                 pan0            = (s8)Gp_GetObjPan(coord);
                 SndEvt_EnqueueType6(work->field_168, pan0, (s8)gpGetObjDepth(coord));
                 work->field_188 = 2;
@@ -1559,7 +1559,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             Gp_LcgState       = random;
             Gp_SpawnEff(0x60034, coord, packed2, &root->shortVec);
             Gp_SpawnEff(0x60072, coord, packed2, &root->shortVec);
-            sound2 = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x4015000B;
+            sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000B;
             pan2   = (s8)Gp_GetObjPan(coord);
             SndEvt_EnqueueType6(sound2, pan2, (s8)gpGetObjDepth(coord));
             work->field_174 = 3;
@@ -1793,7 +1793,7 @@ static void Actor02100_Fn03168(Task* arg0)
     GpEnemyTaskFuncTable3 sp;
 
     sp = Actor02100_D00004;
-    sp.funcs[arg0->state]((GpEnemy*)arg0->spawnArg2.pointer, arg0);
+    sp.funcs[arg0->state]((Enemy*)arg0->spawnArg2.pointer, arg0);
 }
 
 /// Per-frame tick, entry 1 of `Actor02100_D00004`. `Gp_StateF0.field_4` is the global
@@ -1803,7 +1803,7 @@ static void Actor02100_Fn03168(Task* arg0)
 /// drains the pending translation delta at `field_118` into the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
 /// task over to `Actor02100_Fn035D4` - once `Gp_StateF0.field_26` reports the kill.
-static void Actor02100_Fn031C4(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
 {
     TmdObject*      obj;
     Actor02100Work* work;
@@ -1950,7 +1950,7 @@ static void Actor02100_Fn034E0(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
-static void Actor02100_Fn035D4(GpEnemy* arg0, Task* arg1)
+static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
 {
     Actor02100Work* work;
     s16             state;

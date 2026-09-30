@@ -1810,13 +1810,13 @@ static void func_actor_503500_8014618C(Task* arg0)
             switch (work->field_4C4) {
                 case 0x14:
                     ext->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x1E:
                     Gp_SpawnEff(0x600A5, coord, 2, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 0x96:
                     arg0->state++;
@@ -1840,7 +1840,7 @@ static void func_actor_503500_8014642C(Task* arg0)
 {
     Actor503500Effect4CC* work;
     GfxCoord*             coord;
-    GpEnemy*              enemy;
+    Enemy*                enemy;
 
     coord = arg0->extra.tmd->coords;
     enemy = arg0->spawnArg2.pointer;

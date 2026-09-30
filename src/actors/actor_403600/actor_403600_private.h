@@ -20,7 +20,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-struct GpEnemy;
+struct Enemy;
 
 /// Work block of the `actor_403600` task, parked in the task's `Task::work`
 /// slot (that slot is not a `TaskIdMap` here).
@@ -28,7 +28,7 @@ typedef struct Actor403600Work {
     /* 0x000 */ ActorAnimRig20        rig;
     /* 0x474 */ MATRIX                field_474;
     /* 0x494 */ MATRIX                field_494;
-    /* 0x4B4 */ struct GpEnemy*       field_4B4;
+    /* 0x4B4 */ struct Enemy*         field_4B4;
     /* 0x4B8 */ GfxCoord              field_4B8;
     /* 0x508 */ WorldCollisionBody    field_508;
     /* 0x528 */ WorldCollisionContact field_528[4];

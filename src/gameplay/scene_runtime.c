@@ -258,13 +258,13 @@ s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 static void Gp_ApplySndMasks(u16 arg0);
 
-static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
+static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent);
 
-static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent);
+static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent);
 
-static void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task);
+static void Gp_EnemyWaitStart(Enemy* enemy, Task* task);
 
-static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task);
+static void Gp_EnemyWaitTick(Enemy* enemy, Task* task);
 
 static s32 Gp_TryEnqueueSndCd(s32 arg0);
 
@@ -856,10 +856,10 @@ void Gp_SetStreamBuf(void* arg0)
     gCdCmdQueue.externalScenePayloadBuffer = arg0;
 }
 
-static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
+static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent)
 {
-    Task*    task;
-    GpEnemy* ret;
+    Task*  task;
+    Enemy* ret;
 
     task = Task_Spawn(bank, type, arg2, 0);
     if (task != NULL) {
@@ -870,10 +870,10 @@ static GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
     return ret;
 }
 
-GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
+Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
 {
-    Task*    task;
-    GpEnemy* ret;
+    Task*  task;
+    Enemy* ret;
 
     task = Task_SpawnFromTable(table, idx, arg2, 0);
     if (task != NULL) {
@@ -884,7 +884,7 @@ GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* par
     return ret;
 }
 
-void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
+void Gp_DestroyEnemy(Enemy* enemy, Task* task)
 {
     Gp_UnlinkNode(&enemy->node);
     memFree(enemy);
@@ -893,7 +893,7 @@ void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
 
 void Gp_EnemyTaskExit(Task* task)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     enemy = task->spawnArg2.pointer;
     Gp_UnlinkNode(&enemy->node);
@@ -938,11 +938,11 @@ Task* Gp_CopyCoordOffset(Task* arg0, GfxCoord* arg1, SVECTOR* arg2)
     return arg0;
 }
 
-static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
+static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
-    enemy = memCalloc(0x60, 0);
+    enemy = memCalloc(sizeof(Enemy), 0);
     if (enemy == NULL) {
         printf(Gp_StrNewEnemyNull);
         taskKill(task);
@@ -961,13 +961,13 @@ static GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     return enemy;
 }
 
-static void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitStart(Enemy* enemy, Task* task)
 {
-    enemy->waitTicks = 0x78;
+    enemy->waitTicks = ENEMY_WAIT_FRAMES;
     task->state++;
 }
 
-static void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
+static void Gp_EnemyWaitTick(Enemy* enemy, Task* task)
 {
     enemy->waitTicks--;
     if (enemy->waitTicks == 0) {
@@ -2770,7 +2770,7 @@ void Gp_AnimPlaySlot(AnimationContext* context, s32 arg1, GpAnimPose* arg2, u16 
     slot->usesBufferedPose             = 0;
 }
 
-void Gp_SaveEnemyPose(GpEnemy* enemy)
+void Gp_SaveEnemyPose(Enemy* enemy)
 {
     AreaSavedEnemyPose* savedPose;
     GameLocationKey*    savedLocation;
@@ -2840,7 +2840,7 @@ void Gp_SpawnArea(GameLocationKey* location)
     GpAreaObj*     areaState;
     AreaPlacement* placement;
     GpAreaTmdRec*  resource;
-    GpEnemy*       enemy;
+    Enemy*         enemy;
     Task*          task;
     TmdObject*     model;
     GfxCoord*      coord;
@@ -2897,7 +2897,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                         u16 placementKey;
 
                         placementKey    = (placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area;
-                        enemy->workType = 0x900;
+                        enemy->workType = ENEMY_WORK_PLAIN;
                         enemy->place    = placement;
                         enemy->placeKey = placementKey;
                         task            = enemy->task;
@@ -3686,7 +3686,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
 /// `place->field_2` and spawns that enemy at `place`.
 static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     Task*      task;
     TmdObject* extra;
     GfxCoord*  coord;
@@ -3701,7 +3701,7 @@ static inline void _gpSpawnPlace(GpEnemyDesc* desc, GpBit2Rec* place)
                 if (task->bodyKind != TASK_BODY_NONE) {
                     extra               = task->extra.tmd;
                     coord               = extra->coords;
-                    enemy->placeKey     = place->field_0 | (place->field_4 << 8);
+                    enemy->placeKey     = place->field_0 | (place->field_4 << ENEMY_PLACE_STAGE_SHIFT);
                     enemy->workType     = place->field_2;
                     coord->coord.t[0]   = place->field_8;
                     coord->coord.t[1]   = place->field_A;

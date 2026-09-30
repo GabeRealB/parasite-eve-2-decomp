@@ -273,7 +273,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     Actor311500Work* work;
     Actor311500Work* work2;
     Actor311500Work* work3;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coords;
     TmdObject*       tmd;
     AreaPlacement*   place;
@@ -420,7 +420,7 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
 static s16 func_actor_311500_80162DDC(Task* arg0)
 {
     Actor311500Work*       work = arg0->work;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     WorldCollisionContact* recs;
     SVECTOR                pos;
     SVECTOR*               pp;
@@ -493,7 +493,7 @@ static inline void _actor311500SpawnEffect(Task* task)
 static s32 func_actor_311500_80162F28(Task* arg0)
 {
     Actor311500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     work  = arg0->work;
     enemy = arg0->spawnArg2.pointer;
@@ -520,7 +520,7 @@ static s32 func_actor_311500_80162F28(Task* arg0)
 static s32 func_actor_311500_801630A4(Task* arg0)
 {
     Actor311500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     MATRIX           mtx;
     VECTOR           scale;
@@ -554,11 +554,11 @@ static s32 func_actor_311500_801630A4(Task* arg0)
 
                 case 0xA:
                     Gp_SpawnEff(0x600A5, &arg0->extra.tmd->coords[2], 3, NULL);
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 
                 case 0x16:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
 
                 case 0x1C:
@@ -623,7 +623,7 @@ void func_actor_311500_80163334(Task* arg0)
     Task*            actor = arg0;
     Actor311500Work* work;
     Actor311500Work* anim;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     VECTOR           pos;
     s32              state;

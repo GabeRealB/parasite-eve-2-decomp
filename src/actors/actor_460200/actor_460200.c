@@ -105,17 +105,17 @@ extern s32                     D_actor_460200_80151538;
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
-static void func_actor_460200_80132808(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80132808(Enemy* enemy, Task* task);
 static void func_actor_460200_80132950(Task* task);
 static void func_actor_460200_80132F0C(Task* task);
-static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task);
+static void func_actor_460200_8013311C(Enemy* enemy, Task* task);
 static void func_actor_460200_8013322C(Task* task);
 static void func_actor_460200_80133254(Task* task);
 static void func_actor_460200_801332E0(Task* task);
 static void func_actor_460200_8013332C(Task* task);
 static void func_actor_460200_801333A4(Task* task);
-static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task);
-static void func_actor_460200_80133A04(GpEnemy* enemy, Task* task);
+static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
+static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
 static void func_actor_460200_80133AB0(Task* task);
 static void func_actor_460200_80133B3C(Task* task);
@@ -2163,8 +2163,8 @@ AnimationSet* D_actor_460200_8015153C[17] = {
 static void func_actor_460200_80132210(void);
 static void func_actor_460200_801322B8(void);
 static void func_actor_460200_80132390(void);
-static void func_actor_460200_80132468(GpEnemy* enemy, Task* task);
-static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task);
+static void func_actor_460200_80132468(Enemy* enemy, Task* task);
+static void func_actor_460200_80132D74(Enemy* enemy, Task* task);
 static void func_actor_460200_801336B4(Task* task);
 
 void func_actor_460200_80131E24(Task* task)
@@ -2328,7 +2328,7 @@ static void func_actor_460200_80132390(void)
 /// (`Gp_LcgState`): the low half of the first state feeds `arg2`'s effect id
 /// and the top bit of the second its palette selector, and the second state is
 /// stored back.
-static void func_actor_460200_80132468(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132468(Enemy* enemy, Task* task)
 {
     Actor160600Work* work;
     TmdObject*       obj;
@@ -2383,7 +2383,7 @@ void func_actor_460200_801327B4(Task* task)
 ///
 /// Same body as `func_actor_460200_801338C0` with a different exit callback,
 /// animation bank and initial clip (`animId` 0xA rather than 2).
-static void func_actor_460200_80132808(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132808(Enemy* enemy, Task* task)
 {
     Actor160600Work* work;
     void*            workMem;
@@ -2514,13 +2514,13 @@ s32 func_actor_460200_80132C8C(Task* task, s32 arg1, ActorCommand* args)
 
 #include "../../shared/paced_walk_to.inc.c"
 
-static void func_actor_460200_80132D74(GpEnemy* enemy, Task* task)
+static void func_actor_460200_80132D74(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor161500Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     coord      = task->extra.tmd->coords;
     obj        = task->extra.tmd;
@@ -2612,7 +2612,7 @@ void func_actor_460200_801330C8(Task* task)
 /// lifted by 0x320 is used as the look-at point, and the work block's
 /// `turnWeight` rate is stepped +0x200 or -0x200 per tick depending on
 /// `turnUp`, clamped to 0x1000 and 0 respectively.
-static void func_actor_460200_8013311C(GpEnemy* enemy, Task* task)
+static void func_actor_460200_8013311C(Enemy* enemy, Task* task)
 {
     Actor161500Work* work;
     GfxCoord*        coord;
@@ -2812,7 +2812,7 @@ void func_actor_460200_8013386C(Task* task)
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `Actor160600Work::enemy`
 /// and runs the step body `func_actor_460200_801336B4` once in state 2.
-static void func_actor_460200_801338C0(GpEnemy* enemy, Task* task)
+static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 {
     Actor160600Work* work;
     void*            workMem;

@@ -30,7 +30,7 @@
 #include "main/wipsys.h"
 
 /// 0x20-byte scratch from the scratch stack used by `Gp_RollEnemyChance`.
-/// `local` first holds `GpEnemy.bodyPos`, which `field_18->workm` rotates
+/// `local` first holds `Enemy.bodyPos`, which `field_18->workm` rotates
 /// into `world`; `world` then gets `workm.t[]` added to become a world
 /// position, and `local` is reused for the delta against the player
 /// coordinate whose length feeds `SquareRoot0`.
@@ -59,7 +59,7 @@ extern u16 D_80113864[];
 
 static inline u16 _gpIdParam0(s32 id);
 
-static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1);
+static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1);
 
 static inline u16 _gpIdParam0(s32 id)
 {
@@ -292,7 +292,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     return ret;
 }
 
-s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
+s32 Gp_RollEnemyChance(Enemy* arg0, u32 arg1, s32 arg2)
 {
     Task*          slot;
     GfxCoord*      pcoord;
@@ -364,7 +364,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     }
 
     chance = (((D_80113568[kind][col] << 12) / 100) * base >> 12) * val >> 12;
-    if ((arg0->reactionFlags & 2) != 0) {
+    if ((arg0->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
         chance <<= 1;
     }
 
@@ -382,7 +382,7 @@ s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
     return rand < chance;
 }
 
-static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
+static void Gp_ApplyObjKind(Enemy* arg0, s32 arg1)
 {
     s32 val;
     s32 limit;
@@ -392,21 +392,21 @@ static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
         case 0:
             break;
         case 1:
-            arg0->reactionFlags |= 1;
+            arg0->reactionFlags |= ENEMY_REACTION_STAGGER;
             break;
         case 2:
-            arg0->flag2Steps     = 0;
-            arg0->flag2Timer     = 0;
-            arg0->reactionFlags |= 2;
+            arg0->buildupStep    = 0;
+            arg0->buildupTimer   = 0;
+            arg0->reactionFlags |= ENEMY_REACTION_BUILDUP;
             if ((arg1 & 0x8000) == 0) {
-                arg0->flag2Grade = 0;
+                arg0->buildupGrade = 0;
                 return;
             }
             if ((arg1 & 0x3F) == 0x31) {
-                arg0->flag2Grade = 0;
+                arg0->buildupGrade = 0;
                 return;
             }
-            arg0->flag2Grade = Gp_StateC08.field_0 % 10U;
+            arg0->buildupGrade = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
             val         = arg0->param->damageOverTimeChance;
@@ -414,21 +414,21 @@ static void Gp_ApplyObjKind(GpEnemy* arg0, s32 arg1)
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
             if (rand < limit) {
-                arg0->flag4Ticks     = 0;
-                arg0->reactionFlags |= 4;
-                Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-                arg0->flag4Delay     = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
+                arg0->damageOverTimePulse = 0;
+                arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
+                Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+                arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
                 if ((arg1 & 0x8000) == 0) {
-                    arg0->flag4Grade = 0;
+                    arg0->damageOverTimeGrade = 0;
                     return;
                 }
-                arg0->flag4Grade = Gp_StateC08.field_0 % 10U;
+                arg0->damageOverTimeGrade = Gp_StateC08.field_0 % 10U;
             }
             break;
     }
 }
 
-s32 Gp_PackObjPair(GpEnemy* arg0, s32 arg1)
+s32 Gp_PackObjPair(Enemy* arg0, s32 arg1)
 {
     DamageAttack* pairs;
     s32           ret;
@@ -456,7 +456,7 @@ s32 Gp_PackPair(DamageAttack* pairs, s32 index)
     return ret;
 }
 
-void func_800E2C78(GpEnemy* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_800E2C78(Enemy* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 val;
 

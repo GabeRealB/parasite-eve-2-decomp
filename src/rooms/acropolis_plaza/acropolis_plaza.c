@@ -3781,7 +3781,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             }
         found6:
             Gp_DispatchMsgPtr(
-                Gp_FindWorkById((idx << 12) | (sessionKey->stage << 8) |
+                Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                 sessionKey->area)
                     ->field_0,
                 0x7D3, &roomRec, 0);
@@ -3823,7 +3823,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 }
             found8:
                 Gp_DispatchMsg(
-                    Gp_FindWorkById((idx << 12) | (sessionKey->stage << 8) |
+                    Gp_FindWorkById((idx << ENEMY_PLACE_INDEX_SHIFT) | (sessionKey->stage << ENEMY_PLACE_STAGE_SHIFT) |
                                     sessionKey->area)
                         ->field_0,
                     0x7D7, 1, 0);

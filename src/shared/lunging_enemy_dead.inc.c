@@ -8,7 +8,7 @@
 /// restored in that pose, and raises `Gp_StateF0.field_29`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
-void lungerDeadState(GpEnemy* arg0, Task* arg1)
+void lungerDeadState(Enemy* arg0, Task* arg1)
 {
     Actor105600Work* work;
     Actor105600Work* animWork;

@@ -89,7 +89,7 @@ STATIC_ASSERT_SIZEOF(Actor151000MsgEntry, 8);
 extern Actor151000MsgEntry gFootstepWalkMsgTable[];
 extern u8                  gFootstepWalkAnims[];
 
-static void func_actor_151000_80132450(GpEnemy* enemy, Task* task);
+static void func_actor_151000_80132450(Enemy* enemy, Task* task);
 
 extern TmdSource D_actor_151000_80139270;
 void             func_actor_151000_801323F4(Task*);
@@ -860,7 +860,7 @@ void func_actor_151000_80131EE0(s32 frames)
 /// then the per-frame `func_actor_151000_80132450`.
 void func_actor_151000_801323F4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         footstepWalkSpawn,
         func_actor_151000_80132450,
     };

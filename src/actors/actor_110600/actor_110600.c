@@ -1163,7 +1163,7 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_110600_80134438(Task* arg0);
 static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
 static __inline__ void Actor110600_InitScale(OverlayWalker* walker);
-static void            func_actor_110600_80134AB4(GpEnemy* enemy, Task* task);
+static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
 static __inline__ s16  Actor110600_WrapHitAngle(s16 angle);
 static __inline__ s32  Actor110600_TickShake(void);
@@ -1179,7 +1179,7 @@ static void            func_actor_110600_80137684(Task* arg0);
 static void            func_actor_110600_80137980(Task* arg0);
 static void            func_actor_110600_80137AF4(Task* arg0);
 static void            func_actor_110600_80137DB0(Task* arg0);
-static void            func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1);
+static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
@@ -2068,7 +2068,7 @@ static void func_actor_110600_80134728(Task* arg0)
     Actor110600AnimWork* warmWork;
     Actor110600AnimWork* blendWork;
     Actor110600AnimWork* tickWork;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
     u32                  table;
     s32                  index;
     s32                  animation;
@@ -2199,7 +2199,7 @@ static void func_actor_110600_80134728(Task* arg0)
     }
     sound = func_actor_110600_80134564(work);
     if (sound != 0) {
-        soundId = sound | ((enemy->placeKey >> 12) << 8);
+        soundId = sound | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)Gp_GetObjPan(arg0->extra.tmd->coords);
         SndEvt_EnqueueType6(soundId, pan, (s32)(s8)gpGetObjDepth(arg0->extra.tmd->coords));
     }
@@ -2235,7 +2235,7 @@ static __inline__ void Actor110600_InitScale(OverlayWalker* walker)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
+static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
 {
     SVECTOR                pos;
     VECTOR                 world;
@@ -2391,7 +2391,7 @@ static void func_actor_110600_80134AB4(GpEnemy* enemy, Task* task)
             work->walker.scale = 0x1000;
             break;
     }
-    placement = enemy->placeKey >> 0xC;
+    placement = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     if ((s16)(placement & 1) == 1) {
         work->field_896 += placement >> 1;
     } else {
@@ -2473,7 +2473,7 @@ static void func_actor_110600_80135194(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -2563,7 +2563,7 @@ static void func_actor_110600_80135454(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     OverlayWalker*   walker;
@@ -2657,7 +2657,7 @@ static void func_actor_110600_80135A18(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -2740,7 +2740,7 @@ static void func_actor_110600_80135B84(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     u16              ramp;
 
@@ -2888,7 +2888,7 @@ static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact*
 static void func_actor_110600_80136210(Task* arg0)
 {
     Actor110600Work*       work;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              facing;
     s16                    angle;
     s16                    dz;
@@ -3003,10 +3003,10 @@ static void func_actor_110600_80136210(Task* arg0)
                 break;
         }
     }
-    if (enemy->reactionFlags & 0xC) {
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         sc->damage = Gp_TickObjFlag4(enemy);
         if (Gp_ObjFlag4Expired(enemy) != 0) {
-            enemy->reactionFlags &= 0xF3;
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
         if (sc->damage != 0) {
             enemy->hp = (u16)enemy->hp - (u16)sc->damage;
@@ -3038,7 +3038,7 @@ static void func_actor_110600_80136888(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     u32              rng;
     u16              ramp;
@@ -3093,14 +3093,14 @@ static void func_actor_110600_80136888(Task* arg0)
 /// cleared. Every tick after that steps the walker and the model; at 0x1D the
 /// `field_5C` bit 0 the walker sets on arrival moves the stage to 0x1E and
 /// re-seeds the walker block, and at 0x1E that same bit picks what the actor
-/// does next: 0xB while the enemy's `field_40` is still positive, 0xC once it
+/// does next: 0xB while the enemy's `hp` is still positive, 0xC once it
 /// has run out.
 static void func_actor_110600_801369D8(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
     OverlayWalker*   walker2;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
     u16              ramp2;
 
@@ -3190,7 +3190,7 @@ static __inline__ void Actor110600_ApplyShrink(Task* arg0, Actor110600Work* work
 static void func_actor_110600_80136B20(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          pos;
     VECTOR           scale;
     s16              y;
@@ -3264,7 +3264,7 @@ static void func_actor_110600_80136B20(Task* arg0)
 static void func_actor_110600_80136ECC(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GameLocationKey  key;
     u8               areaByte0;
@@ -3455,7 +3455,7 @@ static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
 static void func_actor_110600_801372CC(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          vec;
     EffectSpawnArg*  d;
     EffectSpawnArg*  tailEffect;
@@ -3539,7 +3539,7 @@ static void func_actor_110600_801372CC(Task* arg0)
 static void func_actor_110600_80137684(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u32              rng;
 
     work = arg0->work;
@@ -3581,7 +3581,7 @@ static void func_actor_110600_801377FC(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     SVECTOR          delta;
     SVECTOR*         d;
@@ -3626,7 +3626,7 @@ static void func_actor_110600_80137980(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        facing;
     SVECTOR          delta;
@@ -3687,7 +3687,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
 {
     Actor110600Work* work;
     TmdObject*       obj;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          vec;
     GfxCoord*        coord;
 
@@ -3758,7 +3758,7 @@ static void func_actor_110600_80137AF4(Task* arg0)
 static void func_actor_110600_80137DB0(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              step;
     s32              state;
@@ -3865,7 +3865,7 @@ static const Actor110600StateTable D_actor_110600_80131F3C = {
 /// — the matrix state 12 scales — and keeps `field_8B8` out of the ground
 /// effect's way by clearing bit 0x8000 while the actor is in a death or hit
 /// pose.
-static void func_actor_110600_80137F2C(GpEnemy* arg0, Task* arg1)
+static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
 {
     VECTOR                pos;
     Actor110600StateTable states;
@@ -3982,7 +3982,7 @@ static const GpEnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
 s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              state;
 
     state = arg2->animationId;
@@ -4014,7 +4014,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2)
     return 0;
 }
 
-/// Display-object handler: `arg2` selects the mode and `GpEnemy.spawnState` -- the occupancy tag
+/// Display-object handler: `arg2` selects the mode and `Enemy.spawnState` -- the occupancy tag
 /// `Gp_SaveEnemyPose` writes -- decides whether mode 1 shows the object again.
 /// Mode 0 hides it (bit 0x80 of `TmdObject.flags`) and reinstates its buffers;
 /// 1 hides it and restarts the work block's `field_0` while the tag reads 4, and
@@ -4025,7 +4025,7 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
 {
     TmdObject*       obj;
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     obj   = arg0->extra.tmd;
     enemy = arg0->spawnArg2.pointer;
@@ -4068,9 +4068,9 @@ s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2)
 s32 func_actor_110600_80138538(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
-    enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    enemy = (Enemy*)arg0->spawnArg2.pointer;
     work  = (Actor110600Work*)arg0->work;
     if (enemy->hp > 0) {
         return 1;
@@ -4131,12 +4131,12 @@ s32 func_actor_110600_801387C0(Task* arg0)
 static void func_actor_110600_801387F4(Task* task)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     Task*            helper;
     Task*            helper2;
 
     work  = (Actor110600Work*)task->work;
-    enemy = (GpEnemy*)task->spawnArg2.pointer;
+    enemy = (Enemy*)task->spawnArg2.pointer;
     if (work != NULL) {
         helper = work->field_BD4;
         if (helper != NULL) {
@@ -4162,11 +4162,11 @@ static void func_actor_110600_801388A4(Task* arg0)
 
     work = arg0->work;
     if (work->field_4 != 0) {
-        obj                                                         = arg0->extra.tmd;
-        ((GpEnemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                  = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->field_A90.flags                                       = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->field_950.flags                                       = (u16)(work->field_950.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        obj                                                       = arg0->extra.tmd;
+        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        obj->flags                                                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        work->field_A90.flags                                     = (u16)(work->field_A90.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->field_950.flags                                     = (u16)(work->field_950.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -4199,7 +4199,7 @@ static void func_actor_110600_80138980(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -4263,7 +4263,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -4297,7 +4297,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
 {
     Actor110600Work* work;
     OverlayWalker*   walker;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u16              ramp;
 
     work  = arg0->work;
@@ -4330,7 +4330,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
 static void func_actor_110600_80138CA4(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              i;
 
@@ -4362,7 +4362,7 @@ static void func_actor_110600_80138CA4(Task* arg0)
 static void func_actor_110600_80138D7C(Task* arg0)
 {
     Actor110600Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     s16              step;
 
@@ -4393,7 +4393,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
     }
     func_actor_110600_80134728(arg0);
     if (Gp_TickObjFlag2(enemy) == 1) {
-        enemy->reactionFlags &= 0xFD;
+        enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->field_0         = 3;
     }
 }

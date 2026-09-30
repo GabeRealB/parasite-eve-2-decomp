@@ -132,10 +132,10 @@ extern TaskDesc D_actor_143900_80149664[];
 /// block's animation context with `func_800B3F84`.
 extern u8 D_actor_143900_80149688[];
 
-static void func_actor_143900_80132380(GpEnemy* enemy, Task* task);
+static void func_actor_143900_80132380(Enemy* enemy, Task* task);
 static void func_actor_143900_80132404(Task* task);
 static void func_actor_143900_80132A9C(Task* task);
-static void func_actor_143900_80132E48(GpEnemy* enemy, Task* task);
+static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
 static void func_actor_143900_80132F14(Task* task);
 static void func_actor_143900_80133068(void);
@@ -1189,8 +1189,8 @@ Task* D_actor_143900_801496C8;
 
 s16 D_actor_143900_801496CC;
 
-static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task);
-static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task);
+static void func_actor_143900_80131E70(Enemy* enemy, Task* task);
+static void func_actor_143900_801328D4(Enemy* enemy, Task* task);
 
 /// Arms `sceneEvent` and starts the room's spawn-table task, unless
 /// `demoScene` is 9, so this story trigger is skipped while the attract demo
@@ -1214,7 +1214,7 @@ void func_actor_143900_80131E24(void)
 /// Every access to the block after the allocation goes through the global
 /// rather than the `memCalloc` result, which is why the pointer is reloaded at
 /// each use instead of staying in a callee-saved register.
-static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
+static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor143900Work* work;
@@ -1263,7 +1263,7 @@ static void func_actor_143900_80131E70(GpEnemy* enemy, Task* task)
 /// state selects from a table built on the stack.
 void func_actor_143900_80132324(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_143900_80131E70,
         func_actor_143900_80132380,
     };
@@ -1280,7 +1280,7 @@ void func_actor_143900_80132324(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the first variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the first variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`.
 static void func_actor_143900_80132404(Task* task)
 {
@@ -1359,7 +1359,7 @@ s32 func_actor_143900_80132778(Task* task, s32 arg1, ActorCommand* msg)
 /// above its translation and binds the animation stream. It then starts the two
 /// helper tasks from the overlay's spawn table and runs the first update with
 /// the reset mode 2 / id 1 it seeds.
-static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
+static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor461800Work* work;
@@ -1434,7 +1434,7 @@ static void func_actor_143900_801328D4(GpEnemy* enemy, Task* task)
 /// state selects from a table built on the stack.
 void func_actor_143900_80132DEC(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_143900_801328D4,
         func_actor_143900_80132E48,
     };
@@ -1452,7 +1452,7 @@ void func_actor_143900_80132DEC(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the second variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the second variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2`) back to `Gp_DestroyEnemy`, then kills the two
 /// helper tasks the spawn routine started.
 static void func_actor_143900_80132ECC(Task* task)

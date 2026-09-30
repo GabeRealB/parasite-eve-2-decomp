@@ -963,7 +963,7 @@ void Gp_ReleaseStateF0Add(Task* arg0, s32 arg1)
                 SndEvt_EnqueueType2(0, 0xB4);
             }
         }
-        params = ((GpEnemy*)arg0->spawnArg2.pointer)->param;
+        params = ((Enemy*)arg0->spawnArg2.pointer)->param;
         if (params != NULL) {
             q            = &Gp_StateF0;
             q->field_8  += params->exp;

@@ -86,7 +86,7 @@ extern Actor260500MsgEntry D_actor_260500_80159D80[];
 extern u8                  D_actor_260500_80159DBC[];
 
 static void func_actor_260500_8014A110(Task* task);
-static void func_actor_260500_8014A4BC(GpEnemy* enemy, Task* task);
+static void func_actor_260500_8014A4BC(Enemy* enemy, Task* task);
 static void func_actor_260500_8014A540(Task* task);
 static void func_actor_260500_8014A5B4(void);
 static void func_actor_260500_8014A644(void);
@@ -1507,7 +1507,7 @@ s16 D_actor_260500_80159E54;
 
 static void func_actor_260500_80149E80(void);
 static void func_actor_260500_80149EBC(void);
-static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task);
+static void func_actor_260500_80149FB0(Enemy* enemy, Task* task);
 
 /// Loads cap file 2 and starts it (`func_800E6D4C(0x340, 0)`) when `arg0` is
 /// non-zero, otherwise resets the cap state.
@@ -1566,7 +1566,7 @@ static void func_actor_260500_80149EBC(void)
 /// model from a point 0x320 above its translation and binds the animation
 /// stream. It then installs the message table and runs the first update with
 /// the reset mode 2 / id 4 it seeds.
-static void func_actor_260500_80149FB0(GpEnemy* enemy, Task* task)
+static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -1661,7 +1661,7 @@ static void func_actor_260500_8014A110(Task* task)
 /// on the stack.
 void func_actor_260500_8014A460(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_260500_80149FB0,
         func_actor_260500_8014A4BC,
     };
@@ -1678,7 +1678,7 @@ void func_actor_260500_8014A460(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `GpEnemy`
+/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
 /// back to `Gp_DestroyEnemy`.
 static void func_actor_260500_8014A540(Task* task)
 {

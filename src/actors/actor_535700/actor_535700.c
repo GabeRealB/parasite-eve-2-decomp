@@ -90,8 +90,8 @@ extern u8                  D_actor_535700_80146828[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_535700_801324D4(GpEnemy* enemy, Task* task);
-static void func_actor_535700_80132F74(GpEnemy* enemy, Task* task);
+static void func_actor_535700_801324D4(Enemy* enemy, Task* task);
+static void func_actor_535700_80132F74(Enemy* enemy, Task* task);
 static void func_actor_535700_80132FF8(Task* task);
 static void func_actor_535700_80133020(Task* task);
 
@@ -1121,7 +1121,7 @@ Task* gFootstepWalkTask;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task);
+static void func_actor_535700_80132B58(Enemy* enemy, Task* task);
 
 /// The fade task: while `D_actor_535700_80146840` is non-zero, draws a
 /// full-screen black `TILE` into ordering table slot 0xA; once it reaches zero
@@ -1181,7 +1181,7 @@ void func_actor_535700_80131F2C(void)
 /// then the per-frame `func_actor_535700_801324D4`.
 void func_actor_535700_80132478(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         footstepWalkSpawn,
         func_actor_535700_801324D4,
     };
@@ -1265,13 +1265,13 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg)
 /// `placeKey` selects, makes the sub-model a child of this task, lights the
 /// model at its world position, starts the animation and runs the state
 /// machine `pairWalkUpdate` once.
-static void func_actor_535700_80132B58(GpEnemy* enemy, Task* task)
+static void func_actor_535700_80132B58(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -1351,7 +1351,7 @@ void pairWalkUpdate(Task* task)
 /// then the per-frame `func_actor_535700_80132F74`.
 void func_actor_535700_80132F20(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_535700_80132B58,
         func_actor_535700_80132F74,
     };

@@ -113,7 +113,7 @@ s32 Gp_GetIdParam1(s32 arg0)
     return ret;
 }
 
-void Gp_SetObjFlag4(GpEnemy* arg0, s32 arg1, s32 arg2)
+void Gp_SetObjFlag4(Enemy* arg0, s32 arg1, s32 arg2)
 {
     s32 val;
     s32 limit;
@@ -124,33 +124,33 @@ void Gp_SetObjFlag4(GpEnemy* arg0, s32 arg1, s32 arg2)
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
     if (rand < limit) {
-        arg0->flag4Ticks     = 0;
-        arg0->reactionFlags |= 4;
-        Gp_LcgState          = Gp_LcgState * 5 + 0x71357911;
-        arg0->flag4Delay     = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
+        arg0->damageOverTimePulse = 0;
+        arg0->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
+        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+        arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
         if ((arg1 & 0x8000) == 0) {
-            arg0->flag4Grade = 0;
+            arg0->damageOverTimeGrade = 0;
             return;
         }
-        arg0->flag4Grade = Gp_StateC08.field_0 % 10U;
+        arg0->damageOverTimeGrade = Gp_StateC08.field_0 % 10U;
     }
 }
 
-s32 Gp_TickObjFlag4(GpEnemy* arg0)
+s32 Gp_TickObjFlag4(Enemy* arg0)
 {
     s32 ret;
     s32 val;
     s32 scale;
 
     ret = 0;
-    arg0->flag4Delay--;
-    if (arg0->flag4Delay == 0) {
-        arg0->flag4Ticks++;
-        Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-        arg0->flag4Delay = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
-        val              = arg0->param->hpMax;
-        scale            = D_80113D38[arg0->flag4Grade];
-        ret              = (val * scale) / 100;
+    arg0->damageOverTimeDelay--;
+    if (arg0->damageOverTimeDelay == 0) {
+        arg0->damageOverTimePulse++;
+        Gp_LcgState               = Gp_LcgState * 5 + 0x71357911;
+        arg0->damageOverTimeDelay = ((u32)Gp_LcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+        val                       = arg0->param->hpMax;
+        scale                     = D_80113D38[arg0->damageOverTimeGrade];
+        ret                       = (val * scale) / 100;
         if (ret == 0) {
             ret = 1;
         }
@@ -158,48 +158,48 @@ s32 Gp_TickObjFlag4(GpEnemy* arg0)
     return ret;
 }
 
-s32 Gp_ObjFlag4Expired(GpEnemy* arg0)
+s32 Gp_ObjFlag4Expired(Enemy* arg0)
 {
     s32 val;
     s32 ret;
 
     ret = 0;
     val = arg0->param->damageOverTimeTicks;
-    if (!(arg0->reactionFlags & 4)) {
+    if (!(arg0->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME)) {
         return 1;
     }
     if (val == 0) {
         return 0;
     }
-    val = (val * D_80113D28[arg0->flag4Grade]) / 100;
-    if (arg0->flag4Ticks >= val) {
+    val = (val * D_80113D28[arg0->damageOverTimeGrade]) / 100;
+    if (arg0->damageOverTimePulse >= val) {
         ret = 1;
     }
     return ret;
 }
 
-void Gp_SetObjFlag1(GpEnemy* arg0)
+void Gp_SetObjFlag1(Enemy* arg0)
 {
-    arg0->reactionFlags |= 1;
+    arg0->reactionFlags |= ENEMY_REACTION_STAGGER;
 }
 
-void Gp_SetObjFlag2(GpEnemy* arg0, s32 arg1, s32 arg2)
+void Gp_SetObjFlag2(Enemy* arg0, s32 arg1, s32 arg2)
 {
-    arg0->flag2Steps     = 0;
-    arg0->flag2Timer     = 0;
-    arg0->reactionFlags |= 2;
+    arg0->buildupStep    = 0;
+    arg0->buildupTimer   = 0;
+    arg0->reactionFlags |= ENEMY_REACTION_BUILDUP;
     if ((arg1 & 0x8000) == 0) {
-        arg0->flag2Grade = 0;
+        arg0->buildupGrade = 0;
         return;
     }
     if ((arg1 & 0x3F) == 0x31) {
-        arg0->flag2Grade = 0;
+        arg0->buildupGrade = 0;
         return;
     }
-    arg0->flag2Grade = Gp_StateC08.field_0 % 10U;
+    arg0->buildupGrade = Gp_StateC08.field_0 % 10U;
 }
 
-s32 Gp_TickObjFlag2(GpEnemy* arg0)
+s32 Gp_TickObjFlag2(Enemy* arg0)
 {
     s32 ret;
     s32 limit;
@@ -211,22 +211,22 @@ s32 Gp_TickObjFlag2(GpEnemy* arg0)
     if (val == 0) {
         return ret;
     }
-    scale = D_80113D30[arg0->flag2Grade];
+    scale = D_80113D30[arg0->buildupGrade];
     limit = (val * scale) / 100;
-    if (arg0->flag2Steps < limit) {
-        arg0->flag2Timer++;
-        if (arg0->flag2Timer >= 0x1F) {
-            arg0->flag2Steps++;
-            if (arg0->flag2Steps >= limit) {
-                Gp_LcgState      = Gp_LcgState * 5 + 0x71357911;
-                arg0->flag2Timer = (u32)Gp_LcgState >> 16 & 0x3F;
+    if (arg0->buildupStep < limit) {
+        arg0->buildupTimer++;
+        if (arg0->buildupTimer >= ENEMY_BUILDUP_STEP_FRAMES) {
+            arg0->buildupStep++;
+            if (arg0->buildupStep >= limit) {
+                Gp_LcgState        = Gp_LcgState * 5 + 0x71357911;
+                arg0->buildupTimer = (u32)Gp_LcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
             } else {
-                arg0->flag2Timer = 0;
+                arg0->buildupTimer = 0;
             }
         }
     } else {
-        arg0->flag2Timer--;
-        if (arg0->flag2Timer == 0) {
+        arg0->buildupTimer--;
+        if (arg0->buildupTimer == 0) {
             ret = 1;
         }
     }

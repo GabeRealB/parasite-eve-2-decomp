@@ -65,7 +65,7 @@ extern Task* gActorSelfTask;
 /// actor's, and the task is killed when the actor's exit callback runs.
 extern Task* gActorHelperTask;
 
-static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task);
+static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task);
 static void func_actor_202900_8014A158(Task* arg0);
 static void func_actor_202900_8014A194(Task* arg0);
 static void func_actor_202900_8014A208(void);
@@ -254,13 +254,13 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task);
+static void func_actor_202900_80149E24(Enemy* enemy, Task* task);
 
 /// Setup handler, state 0 of the actor's update: allocates and publishes the
 /// work block, starts the second task and textures its model from the area
 /// record the actor was placed from, then seeds the animation context and runs
 /// the first step body.
-static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
+static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -308,7 +308,7 @@ static void func_actor_202900_80149E24(GpEnemy* enemy, Task* task)
 /// along with the task.
 void func_actor_202900_8014A02C(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_202900_80149E24,
         func_actor_202900_8014A0B4,
     };
@@ -337,7 +337,7 @@ void func_actor_202900_8014A088(Task* arg0)
 /// point 0x320 above its origin to `func_800D7A9C`, runs the step dispatcher,
 /// and while animation 1 plays enqueues a sound event each time the second
 /// animation slot reaches frame 0x15.
-static void func_actor_202900_8014A0B4(GpEnemy* enemy, Task* task)
+static void func_actor_202900_8014A0B4(Enemy* enemy, Task* task)
 {
     TmdObject* obj;
     GfxCoord*  coord;

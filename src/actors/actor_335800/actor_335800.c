@@ -1245,7 +1245,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child0 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey   = &gGameSession->location.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
@@ -1270,7 +1270,7 @@ static void func_actor_335800_80162640(Task* arg0)
 
         work->child1 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey   = (keyAddr = &gGameSession->location.loc);
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;

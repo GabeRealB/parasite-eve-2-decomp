@@ -797,13 +797,13 @@ static void func_actor_135600_80132234(Task* task)
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
     if (spawned != NULL) {
         work->child1 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
     if (spawned != NULL) {
         work->child0 = spawned;
-        actorTintModel(spawned->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned = Task_SpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);

@@ -391,8 +391,8 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
 
 static void            func_actor_210600_8014B2C0(Task* task);
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
-static void            func_actor_210600_8014B434(GpEnemy* enemy, Task* task);
-static void            func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task);
+static void            func_actor_210600_8014B434(Enemy* enemy, Task* task);
+static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
@@ -491,7 +491,7 @@ static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 /// at 0.75 scale, and when animation slot 1 holds clip 7 while slot 0 did not
 /// on the previous update, spawns the effect `Gp_GetIdParam1(0x1001)` on the
 /// model's second part. `enemy` is unused.
-static void func_actor_210600_8014B434(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 {
     Actor210600Work* work;
     SVECTOR          vec;
@@ -585,7 +585,7 @@ s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg)
 /// clip 1, the message table is installed, and the model root is parented to
 /// `gGfxViewCoord` and rebuilt once before its world position is handed to
 /// `func_800D7A9C`. Advances the task to the next state.
-static void func_actor_210600_8014B8C8(GpEnemy* enemy, Task* task)
+static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     GfxCoord*        coord;

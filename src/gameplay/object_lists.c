@@ -990,7 +990,7 @@ s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-void Gp_ClaimSlot18(GpEnemy* arg0, s32 arg1)
+void Gp_ClaimSlot18(Enemy* arg0, s32 arg1)
 {
     WorldCollisionContact* slot;
     WorldCollisionContact* temp;

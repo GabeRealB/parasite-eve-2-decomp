@@ -118,7 +118,7 @@ STATIC_ASSERT_SIZEOF(Actor223600Turn, 0xC);
 /// and the 0x100 / 1 argument pair.
 extern EffectSpawnArg D_actor_223600_80150B5C;
 
-/// Enemy parameters the spawn handler installs at `GpEnemy::param`.
+/// Enemy parameters the spawn handler installs at `Enemy::param`.
 extern EnemyParams D_actor_223600_8014CFCC;
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
@@ -155,7 +155,7 @@ static SVECTOR ActorContact_ScratchPosition;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1);
+static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1);
 
 extern TmdSource D_actor_223600_8014E660;
 void             func_actor_223600_8014CF6C(Task*);
@@ -855,10 +855,10 @@ EffectSpawnArg D_actor_223600_80150B5C = { 0 };
 static s32             func_actor_223600_8014B464(Actor223600Work* arg0);
 static __inline__ void Actor223600_ScaleForward(SVECTOR* dir, s16 amount);
 static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount);
-static void            func_actor_223600_8014B540(GpEnemy* enemy, Task* task);
-static void            func_actor_223600_8014B840(GpEnemy* enemy, Task* task);
-static void            func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task);
-static void            func_actor_223600_8014CA00(GpEnemy* enemy, Task* task);
+static void            func_actor_223600_8014B540(Enemy* enemy, Task* task);
+static void            func_actor_223600_8014B840(Enemy* enemy, Task* task);
+static void            func_actor_223600_8014BBF4(Enemy* enemy, Task* task);
+static void            func_actor_223600_8014CA00(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.h"
 
@@ -959,7 +959,7 @@ static __inline__ void Actor223600_MoveForward(GfxCoord* coord, s16 amount)
 /// position is sampled into `field_194`..`field_198` and its facing is
 /// normalised and scaled on the GTE, and the instance is published as the
 /// overlay's anchor `D_actor_223600_80150B5C`.
-static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014B540(Enemy* enemy, Task* task)
 {
     SVECTOR          dir;
     Actor223600Work* work;
@@ -1012,12 +1012,12 @@ static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
     work->field_184     = 5;
     work->field_186     = 0x14;
 
-    scale = (u16)(enemy->placeKey >> 12);
+    scale = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
     flag  = scale & 1;
     if (flag == 1) {
-        work->field_176 += enemy->placeKey >> 12;
-        work->field_186 += enemy->placeKey >> 12;
-        work->field_184 += enemy->placeKey >> 12;
+        work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_186 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_184 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
         work->field_176 -= scale >> 1;
         work->field_186 -= enemy->placeKey >> 13;
@@ -1049,7 +1049,7 @@ static void func_actor_223600_8014B540(GpEnemy* enemy, Task* task)
 /// every later frame it counts the frame in `field_6`, turns the model by up to
 /// 0x10 towards the target (the clamped yaw kept in the scratch block) and
 /// walks it 5 units forward.
-static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014B840(Enemy* enemy, Task* task)
 {
     Actor223600Work* work;
     Actor223600Turn* head;
@@ -1068,7 +1068,7 @@ static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
         work->field_19E = 1;
         work->field_1A0 = 0x12D5;
 
-        mode = enemy->placeKey >> 12;
+        mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (mode) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = 0xA8C;
@@ -1132,7 +1132,7 @@ static void func_actor_223600_8014B840(GpEnemy* enemy, Task* task)
 /// world-X step reads, `vec`, which the column and normalise calls take, and
 /// `gte`, which the GTE round trip reads back -- and the two the scratch stack
 /// pointers are the carve and the release, each materialised where it is used.
-static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014BBF4(Enemy* enemy, Task* task)
 {
     Actor223600Work*  work;
     Actor223600Turn** push;
@@ -1151,7 +1151,7 @@ static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                    = 0;
         Tmd_AllocBuffers(obj);
-        mode = enemy->placeKey >> 12;
+        mode = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (mode) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = 0xA1E;
@@ -1214,7 +1214,7 @@ static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
     switch (work->field_174) {
         case 0xE:
             work->field_176 = 0x10;
-            if ((enemy->placeKey >> 12) != 2) {
+            if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) != 2) {
                 if (work->field_6 < 0x32) {
                     if (work->field_6 >= 0x28) {
                         Actor223600_MoveForward(task->extra.tmd->coords, 0x16);
@@ -1268,7 +1268,7 @@ static void func_actor_223600_8014BBF4(GpEnemy* enemy, Task* task)
                 Gfx_RotMatrixX(&task->extra.tmd->coords[1].coord,
                                -((work->field_6 - 4) * 0xCC), 0);
             }
-            if ((enemy->placeKey >> 12) == 0) {
+            if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
                 if ((u32)((u16)work->field_6 - 0xE) < 0x17) {
                     Gfx_MatrixCol1(&task->extra.tmd->coords->coord, vec);
                     VectorNormalSS(vec, vec);
@@ -1378,7 +1378,7 @@ static const GpEnemyTaskFuncTable3 D_actor_223600_80149E4C = {
 /// bits 8-11, with the model's pan and depth -- and finally re-parks the model
 /// through `func_800D7A9C` while `field_20C` is set, latching `field_20C` once
 /// the session's `viewReady` or a dirty coordinate arrives.
-static void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
+static void func_actor_223600_8014CA00(Enemy* enemy, Task* task)
 {
     Actor223600Work*      work;
     GpEnemyTaskFuncTable3 fns;
@@ -1415,7 +1415,7 @@ static void func_actor_223600_8014CA00(GpEnemy* enemy, Task* task)
 
     reaction = func_actor_223600_8014B464(work);
     if (reaction != 0) {
-        cue = reaction | (((u16)enemy->placeKey >> 12) << 8);
+        cue = reaction | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
         SndEvt_EnqueueType6(
             cue, pan,
@@ -1515,7 +1515,7 @@ s32 func_actor_223600_8014CCD4(Task* task, s32 arg1, Actor223600Event* event)
 /// Idle state of this enemy (entry 0 of `D_actor_223600_80149E4C`). On the
 /// frame the state is entered (`field_4` set) it marks the enemy not lockable
 /// and sets the model's flags to 0x80; it does nothing on later frames.
-static void func_actor_223600_8014CF3C(GpEnemy* arg0, Task* arg1)
+static void func_actor_223600_8014CF3C(Enemy* arg0, Task* arg1)
 {
     TmdObject* model;
 

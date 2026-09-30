@@ -672,7 +672,7 @@ static void func_actor_135400_80132064(Task* arg0)
     spawned            = Task_SpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->field_4B8 = spawned;
-        actorTintTask(spawned, (GpEnemy*)arg0->spawnArg2.pointer);
+        actorTintTask(spawned, (Enemy*)arg0->spawnArg2.pointer);
     }
     spawned = Task_SpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {

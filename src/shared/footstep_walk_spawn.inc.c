@@ -9,7 +9,7 @@
 /// Every access to the block after the null check goes through the global
 /// rather than the `memCalloc` result, which is why the pointer is reloaded at
 /// each use.
-void footstepWalkSpawn(GpEnemy* enemy, Task* task)
+void footstepWalkSpawn(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor151000Work* work;

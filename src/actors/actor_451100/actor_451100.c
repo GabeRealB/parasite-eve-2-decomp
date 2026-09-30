@@ -84,11 +84,11 @@ extern u8                  D_actor_451100_8014E6FC[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void func_actor_451100_80131F84(Task* task);
-static void func_actor_451100_80132330(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80132330(Enemy* enemy, Task* task);
 static void func_actor_451100_801323B4(Task* task);
 static void func_actor_451100_80132428(void);
 static void func_actor_451100_801324B8(void);
-static void func_actor_451100_80132C28(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80132C28(Enemy* enemy, Task* task);
 static void func_actor_451100_80132CAC(Task* task);
 static void func_actor_451100_80132CD4(Task* task);
 
@@ -1453,8 +1453,8 @@ Task* D_actor_451100_8014E748;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task);
-static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
+static void func_actor_451100_80131E24(Enemy* enemy, Task* task);
+static void func_actor_451100_801328A8(Enemy* enemy, Task* task);
 
 /// State 0 of the `func_actor_451100_801322D4` dispatcher: allocates the work
 /// block, publishes it in `gFootstepWalkWork` and on the task's work
@@ -1464,7 +1464,7 @@ static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task);
 /// Every access to the block after the null check goes through
 /// `gFootstepWalkWork` rather than the `memCalloc` result, which is why
 /// the pointer is reloaded at each use.
-static void func_actor_451100_80131E24(GpEnemy* enemy, Task* task)
+static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor260500Work* work;
@@ -1561,7 +1561,7 @@ static void func_actor_451100_80131F84(Task* task)
 /// task.
 void func_actor_451100_801322D4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_451100_80131E24,
         func_actor_451100_80132330,
     };
@@ -1692,13 +1692,13 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
 /// callee-saved home it needs across the calls below. Assigning the call result
 /// straight to `work` collapses the two into one pseudo and puts `$s1` in all
 /// three places.
-static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
+static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
     void*            block;
 
     obj        = task->extra.tmd;
@@ -1741,10 +1741,10 @@ static void func_actor_451100_801328A8(GpEnemy* enemy, Task* task)
 /// Task handler of the actor whose work block lives only on its task, entry 0
 /// of `D_actor_451100_8014E6E4`: runs the handler for the task's state from a
 /// two-entry table built on the stack (0 spawns, 1 runs a frame), passing the
-/// task's `GpEnemy` as well as the task.
+/// task's `Enemy` as well as the task.
 void func_actor_451100_80132BD4(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_451100_801328A8,
         func_actor_451100_80132C28,
     };

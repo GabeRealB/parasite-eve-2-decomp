@@ -180,7 +180,7 @@ extern RoomFadeStorage     gRoomEventFade;
 extern Task*               D_mine_mesa_80189B4C;
 extern s32                 D_mine_mesa_80189B50;
 extern Task*               D_mine_mesa_80189B58;
-extern GpEnemy*            D_mine_mesa_80189B74[2];
+extern Enemy*              D_mine_mesa_80189B74[2];
 
 static void func_mine_mesa_8017DD44(void);
 static void func_mine_mesa_8017EB38(void);
@@ -2565,7 +2565,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 MineMesaSpawnCounters D_mine_mesa_80189B6C = { 0 };
 
-GpEnemy* D_mine_mesa_80189B74[2] = {
+Enemy* D_mine_mesa_80189B74[2] = {
     NULL,
     NULL,
 };
@@ -3462,7 +3462,7 @@ void func_mine_mesa_801811C4(s32 height)
 static void func_mine_mesa_80181358(Task* arg0)
 {
     GameLocationKey      key;
-    GpEnemy              result;
+    Enemy                result;
     s32                  i;
     s32                  pick;
     u32                  rnd;
@@ -3472,7 +3472,7 @@ static void func_mine_mesa_80181358(Task* arg0)
     GameLocationKey*     loc;
     AreaPlacement*       place;
     GfxCoord*            coords;
-    GpEnemy*             enemy;
+    Enemy*               enemy;
 
     for (i = 0; i < 2; i++) {
         if (MineMesaCooldown > 0) {
@@ -3494,8 +3494,8 @@ static void func_mine_mesa_80181358(Task* arg0)
         if (enemy == NULL) {
             break;
         }
-        enemy->workType                    = 0x900;
-        D_mine_mesa_80189B74[i]->placeKey |= i << 12;
+        enemy->workType                    = ENEMY_WORK_PLAIN;
+        D_mine_mesa_80189B74[i]->placeKey |= i << ENEMY_PLACE_INDEX_SHIFT;
         switch (Gp_GetViewIndex() & 0xFF) {
             case 2:
                 pick = MINE_MESA_RAND() % 3 + 1;

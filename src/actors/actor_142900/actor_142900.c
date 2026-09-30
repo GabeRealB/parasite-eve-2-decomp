@@ -67,7 +67,7 @@ typedef union {
         u16 priority;
         union {
             TaskFunc task;
-            void     (*enemyCleanup)(GpEnemy*, Task*);
+            void     (*enemyCleanup)(Enemy*, Task*);
         } callback;
         TaskSpawnArg arg;
     } native[2];

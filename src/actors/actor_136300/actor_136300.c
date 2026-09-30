@@ -40,7 +40,7 @@
 typedef struct {
     u16   flags;
     u16   priority;
-    void  (*callback)(GpEnemy*, Task*);
+    void  (*callback)(Enemy*, Task*);
     void* arg;
 } Actor136300RetainedTaskSeed;
 STATIC_ASSERT_SIZEOF(Actor136300RetainedTaskSeed, 12);

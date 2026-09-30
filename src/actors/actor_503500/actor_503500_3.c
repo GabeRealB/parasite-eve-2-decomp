@@ -268,13 +268,13 @@ static void func_actor_503500_80132F64(Task* arg0)
     u8                     areaByte0;
     GpAreaVariant*         rec;
     AreaPlacement*         entry;
-    GpEnemy*               child;
+    Enemy*                 child;
     TmdObject*             model;
     u32                    raw;
     s32                    idx;
     s32                    i;
     TmdObject*             tmd;
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     GfxCoord*              coord;
     GfxCoord*              part;
     WorldCollisionContact* recs;
@@ -333,7 +333,7 @@ static void func_actor_503500_80132F64(Task* arg0)
         child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
             sessionKey = &gGameSession->location.loc;
-            raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
+            raw        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
             model      = child->task->extra.tmd;
             key.stage  = sessionKey->stage;
             key.area   = sessionKey->area;
@@ -371,7 +371,7 @@ static void func_actor_503500_80132F64(Task* arg0)
 static void func_actor_503500_80133270(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
     s32              mode;
 
@@ -452,7 +452,7 @@ static void func_actor_503500_801334CC(Task* arg0)
 {
     Actor503500Work* work;
     GfxCoord*        coord;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     SVECTOR          vec;
     s16              angle;
     s16              count;
@@ -500,8 +500,8 @@ static void func_actor_503500_801334CC(Task* arg0)
 static s32 func_actor_503500_80133684(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy**        slots;
-    GpEnemy*         slot1;
+    Enemy**          slots;
+    Enemy*           slot1;
     s32              ret;
 
     ret   = 0;
@@ -951,14 +951,14 @@ s32 func_actor_503500_80134284(Task* arg0, Actor503500Work* work)
 }
 
 /// Two-step state of the boss block. Step 0 hides the second body part,
-/// unlinks the enemy node, stores the summed `field_40` of occupied slots
+/// unlinks the enemy node, stores the summed `hp` of occupied slots
 /// 1..16 in `gGameSession->bossPartsHpSum` and plays sound 0x40230010 at the
 /// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
 /// under the same gates as `func_actor_503500_80133684`.
 static void func_actor_503500_80134408(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              i;
     s16              sum;
     s32              pan;
@@ -1109,7 +1109,7 @@ static void func_actor_503500_801345F4(Task* arg0)
 static void func_actor_503500_80134A24(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
     GfxCoord*        coord;
     s32*             src;
@@ -1158,13 +1158,13 @@ static void func_actor_503500_80134A24(Task* arg0)
             switch (++work->field_7BC) {
                 case 0x3C:
                     obj->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x46:
                     Gp_SpawnEff(0x600A5, coord, 1, NULL);
                     break;
                 case 0x64:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
             }
             break;
@@ -1242,7 +1242,7 @@ static void func_actor_503500_80134C68(Task* arg0)
 /// the boss. Each attack id is taken once, and only type-2 ids land while the
 /// `field_7B4` countdown is clear: the damage scales with the attacker's
 /// distance, `Gp_RollEnemyChance` can quadruple it, and a hit that empties
-/// `field_40` starts the death state instead of the id's status effect. `arg1`
+/// `hp` starts the death state instead of the id's status effect. `arg1`
 /// is passed by the caller but unused.
 static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
 {
@@ -1250,7 +1250,7 @@ static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, Wor
     SVECTOR          pos;
     MATRIX           mtx;
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        src;
     s16              stun;
@@ -1329,7 +1329,7 @@ static void func_actor_503500_80135178(Task* arg0)
     SVECTOR          rot;
     Actor503500Work* work;
     GfxCoord*        coord;
-    GpEnemy**        enemies;
+    Enemy**          enemies;
     s32              speed;
     s32              turn;
     s32              diff;
@@ -1511,7 +1511,7 @@ static void func_actor_503500_80135644(Task* arg0)
 {
     Actor503500Work* work;
     GfxCoord*        coord;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s16              angle;
     s32              y;
     s16              dirMask;
@@ -1723,14 +1723,14 @@ void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
 /// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
 /// from the current area's record and parks it in slot `arg1` of the boss
 /// work block's `enemies` array. Returns the new enemy, or NULL.
-GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
+Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
     u8               areaByte0;
     GpAreaVariant*   rec;
     AreaPlacement*   entry;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       model;
     s32              idx;
     u32              raw;
@@ -1741,7 +1741,7 @@ GpEnemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
     enemy = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
     if (enemy != NULL) {
         sessionKey = &gGameSession->location.loc;
-        raw        = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey;
+        raw        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
         model      = enemy->task->extra.tmd;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;
@@ -1942,7 +1942,7 @@ s16 func_actor_503500_80136218(void)
 /// node, clears the enemy's `recs` back-pointer slot and destroys it.
 static void func_actor_503500_80136228(Task* arg0)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_80136B64(arg0, 0, 1);
@@ -1955,23 +1955,23 @@ static void func_actor_503500_80136228(Task* arg0)
 static void func_actor_503500_80136280(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     u8               flags;
 
     enemy = arg0->spawnArg2.pointer;
     flags = enemy->reactionFlags;
     work  = arg0->work;
-    if (flags & 1) {
-        enemy->reactionFlags = flags & 0xFE;
+    if (flags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
     }
-    if (enemy->reactionFlags & 2) {
-        enemy->reactionFlags &= 0xFD;
+    if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+        enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         func_actor_503500_80136EFC(arg0, 3);
         work->field_7B2 = 3;
     }
     flags = enemy->reactionFlags;
-    if (flags & 0xC) {
-        enemy->reactionFlags = flags & 0xF3;
+    if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        enemy->reactionFlags = flags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
     }
 }
 
@@ -2415,7 +2415,7 @@ static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
 /// and an empty slot is only cleared.
 static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     if (slot == 0) {
         work->field_7E0    = arg2;
@@ -2592,7 +2592,7 @@ static const TaskFuncTable3 D_actor_503500_80131F4C = {
 /// starts the block in sub-state 0.
 static void func_actor_503500_801372C8(Task* arg0)
 {
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     Task*                  parent;
     TmdObject*             tmd;
     TmdObject*             parentTmd;
@@ -2719,7 +2719,7 @@ static void func_actor_503500_80137678(Task* arg0)
     OverlayMat       m;
     GpMtxWords*      ident;
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     s32*             src;
     s32*             out;
@@ -2738,7 +2738,7 @@ static void func_actor_503500_80137678(Task* arg0)
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
-            enemy->reactionFlags &= 0xF0;
+            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             work->rot.vx.w        = 0;
             work->rot.vy.w        = 0;
             work->rot.vz.w        = 0;
@@ -2792,12 +2792,12 @@ static void func_actor_503500_80137678(Task* arg0)
             switch ((s16)work->field_15A) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
                     SndEvt_EnqueueType7(0xD, 1);
@@ -2859,7 +2859,7 @@ static void func_actor_503500_80137678(Task* arg0)
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the enemy, like `func_actor_503500_8013EE5C`: each attack id is taken once,
 /// only type-2 ids land while the `field_158` countdown is clear, and a hit
-/// that empties `field_40` starts state 2 but still applies the id's status
+/// that empties `hp` starts state 2 but still applies the id's status
 /// effect. The hit effect is pulled to 800 units along the contact offset.
 /// `arg1` is passed by the caller but unused.
 static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
@@ -2869,7 +2869,7 @@ static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, Wor
     MATRIX           mtx;
     MATRIX           rot;
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     GfxCoord*        coord;
     GfxCoord*        src;
     s16              stun;
@@ -2965,7 +2965,7 @@ static void func_actor_503500_80137C90(Task* arg0, WorldCollisionBody* arg1, Wor
 static void func_actor_503500_8013815C(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
     s8               countdown;
 
@@ -3006,7 +3006,7 @@ static void func_actor_503500_8013815C(Task* arg0)
 
 static void func_actor_503500_80138288(Task* arg0)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);
@@ -3045,21 +3045,21 @@ static void func_actor_503500_801382FC(Task* arg0)
 
 static void func_actor_503500_80138378(Task* arg0)
 {
-    GpEnemy* obj;
-    u8       flags;
-    u8       flags2;
+    Enemy* obj;
+    u8     flags;
+    u8     flags2;
 
     obj   = arg0->spawnArg2.pointer;
     flags = obj->reactionFlags;
-    if (flags & 1) {
-        obj->reactionFlags = flags & 0xFE;
+    if (flags & ENEMY_REACTION_STAGGER) {
+        obj->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
     }
-    if (obj->reactionFlags & 2) {
-        obj->reactionFlags = obj->reactionFlags & 0xFD;
+    if (obj->reactionFlags & ENEMY_REACTION_BUILDUP) {
+        obj->reactionFlags = obj->reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
     }
     flags2 = obj->reactionFlags;
-    if (flags2 & 0xC) {
-        obj->reactionFlags = flags2 & 0xF3;
+    if (flags2 & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        obj->reactionFlags = flags2 & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
     }
 }
 
@@ -3131,7 +3131,7 @@ static const TaskFuncTable3 D_actor_503500_80131F9C = {
 /// table row add, and `idx * 8` would drag the row pointer into `$s0`.
 static void func_actor_503500_8013852C(Task* arg0)
 {
-    GpEnemy*               enemy;
+    Enemy*                 enemy;
     TmdObject*             tmd;
     GfxCoord*              coord;
     GfxCoord*              part;
@@ -3216,7 +3216,7 @@ static void func_actor_503500_8013852C(Task* arg0)
 static void func_actor_503500_80138898(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       tmd;
     s8               countdown;
     s32              slot;
@@ -3295,7 +3295,7 @@ static void func_actor_503500_80138A30(Task* arg0)
         work->field_29C.vz = D_actor_503500_8016F0B8[idx].vz;
         work->field_2E4++;
     }
-    hp = ((GpEnemy*)arg0->spawnArg2.pointer)->hp;
+    hp = ((Enemy*)arg0->spawnArg2.pointer)->hp;
     if (hp < (D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax >> 1) && hp > 0) {
         func_actor_503500_8013ACC4(arg0, 6);
         return;
@@ -3431,7 +3431,7 @@ static void func_actor_503500_80139014(Task* arg0)
     VECTOR              scale;
     SVECTOR             rot;
     Actor503500Work2EC* work;
-    GpEnemy*            enemy;
+    Enemy*              enemy;
     GfxCoord*           coord;
     GfxCoord*           part;
     s16*                p;
@@ -3453,7 +3453,7 @@ static void func_actor_503500_80139014(Task* arg0)
             (Gp_IncStateF0Ref)(0);
             Gp_ReleaseStateF0Add(arg0, 0);
             func_actor_503500_80136048(arg0->parent);
-            enemy->reactionFlags &= 0xF0;
+            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             work->field_29C.vy    = 0x1388;
             work->field_2D0.w     = 0x300000;
             work->field_2E8       = 0;
@@ -3520,7 +3520,7 @@ static void func_actor_503500_80139014(Task* arg0)
             switch (work->field_2DE) {
                 case 10:
                     arg0->extra.tmd->flags |= TMD_OBJECT_SEMI_TRANS;
-                    Gp_SetLightMode(enemy, 1);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_WEIGHTED);
                     SndEvt_EnqueueType6(0xD, (s8)Gp_GetObjPan(coord),
                                         (s8)(gpGetObjDepth(coord) / 2));
                     break;
@@ -3528,7 +3528,7 @@ static void func_actor_503500_80139014(Task* arg0)
                     Gp_SpawnEff(0x600A5, coord, 1, NULL);
                     break;
                 case 30:
-                    Gp_SetLightMode(enemy, 2);
+                    Gp_SetLightMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case 40:
                     SndEvt_EnqueueType7(0xD, 1);
@@ -3555,14 +3555,14 @@ static void func_actor_503500_80139014(Task* arg0)
 /// Sub-state of the 0x2EC enemies: unlinks the enemy node and steps
 /// `field_2E2` down to 0, spawns a pair of 0x60055 effects on the model
 /// parts for 26 frames, gives slots 0xD/0xE (spawn slot 2) or 0xF/0x10 an
-/// 8-frame kill countdown and half this enemy's `field_40`, then advances
+/// 8-frame kill countdown and half this enemy's `hp`, then advances
 /// the task state 91 frames later.
 static void func_actor_503500_801395BC(Task* arg0)
 {
     SVECTOR             vec;
     Actor503500Work2EC* work;
-    GpEnemy*            enemy;
-    GpEnemy*            child;
+    Enemy*              enemy;
+    Enemy*              child;
     GfxCoord*           coord;
     s32                 phase;
     s32                 a;
@@ -3635,7 +3635,7 @@ static void func_actor_503500_801395BC(Task* arg0)
 static void func_actor_503500_801398D0(Task* arg0)
 {
     Actor503500Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     s32              dmg;
     u8               flags;
 
@@ -3643,19 +3643,19 @@ static void func_actor_503500_801398D0(Task* arg0)
     work  = arg0->work;
     if ((func_actor_503500_80136208() == 0) && (gGameSession->eventState == 0)) {
         flags = enemy->reactionFlags;
-        if (flags & 1) {
-            enemy->reactionFlags = flags & 0xFE;
+        if (flags & ENEMY_REACTION_STAGGER) {
+            enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
             func_actor_503500_8013ACC4(arg0, 0);
             work->field_2D6 = 5;
             work->field_2DA = 8;
         }
-        if (enemy->reactionFlags & 2) {
-            enemy->reactionFlags &= 0xFD;
+        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+            enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         }
-        if (enemy->reactionFlags & 0xC) {
+        if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             func_actor_503500_8013ACC4(arg0, 4);
             if (Gp_ObjFlag4Expired(arg0->spawnArg2.pointer) != 0) {
-                enemy->reactionFlags &= 0xF3;
+                enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
                 func_actor_503500_8013ACC4(arg0, 0);
             } else {
                 dmg = Gp_TickObjFlag4(enemy);
@@ -3664,7 +3664,7 @@ static void func_actor_503500_801398D0(Task* arg0)
                     func_800DA6E8(&enemy->node, dmg, 0);
                     work->field_2DA = 8;
                     if (enemy->hp <= 0) {
-                        enemy->reactionFlags &= 0xF3;
+                        enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
                         func_actor_503500_8013ACC4(arg0, 5);
                     } else {
                         func_actor_503500_8013ACC4(arg0, 0);
@@ -3678,7 +3678,7 @@ static void func_actor_503500_801398D0(Task* arg0)
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
 /// the enemy, like `func_actor_503500_80134EAC`: each attack id is taken once,
 /// only type-2 ids land while the `field_2D8` countdown is clear, and a hit
-/// that empties `field_40` starts state 5. The hit effect is placed at the
+/// that empties `hp` starts state 5. The hit effect is placed at the
 /// record's contact point, pulled to 800 units from part 8 along the offset
 /// and rotated into its frame. `arg1` is passed by the caller but unused.
 static void func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
@@ -3688,7 +3688,7 @@ static void func_actor_503500_80139A20(Task* arg0, WorldCollisionBody* arg1, Wor
     MATRIX              mtx;
     VECTOR              d;
     Actor503500Work2EC* work;
-    GpEnemy*            enemy;
+    Enemy*              enemy;
     GfxCoord*           coord;
     GfxCoord*           src;
     s16                 stun;
@@ -3983,7 +3983,7 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase
 
 static void func_actor_503500_8013A900(Task* arg0)
 {
-    GpEnemy* enemy;
+    Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
     func_actor_503500_8013611C(arg0->spawnArg1.value);

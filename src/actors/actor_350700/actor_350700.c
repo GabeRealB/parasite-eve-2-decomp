@@ -952,7 +952,7 @@ s32 func_actor_350700_80162AF4(Task* task, s32 arg1, ActorCommand* msg)
 /// models: each has `TmdObject::texturePageOffset` / `clutRowOffset` loaded with the texture
 /// page and CLUT row of the `AreaPlacement` that entry selects, reached through
 /// the area key `&gGameSession->location.loc` and indexed by the model id the child's
-/// own `spawnArg2` carries at `GpEnemy::placeKey >> 12`, and each then has its
+/// own `spawnArg2` carries at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and each then has its
 /// texture stream processed twice when it has an aux buffer. The body ends by
 /// handing the parent to `func_actor_350700_801633DC`, pointing `msgTable` at the
 /// message table and installing `func_actor_350700_801633BC` as its exit
@@ -986,7 +986,7 @@ static void func_actor_350700_80162B30(Task* arg0)
 
         work->child0 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey   = &gGameSession->location.loc;
         key.stage    = sessionKey->stage;
         key.area     = sessionKey->area;
@@ -1011,7 +1011,7 @@ static void func_actor_350700_80162B30(Task* arg0)
 
         work->child1 = spawned;
         model        = spawned->extra.tmd;
-        idx          = ((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12;
+        idx          = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         // Keep this block's key address separate across the spawn calls.
         sessionKey = (keyAddr = &gGameSession->location.loc);
         key.stage  = sessionKey->stage;

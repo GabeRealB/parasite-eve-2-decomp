@@ -235,11 +235,11 @@ TmdSource D_actor_300700_80167400 = {
     D_actor_300700_801662CC,
 };
 
-static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1);
-static void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1);
-static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1);
+static void func_actor_300700_80161E80(Enemy* arg0, Task* arg1);
+static void func_actor_300700_80162130(Enemy* arg0, Task* arg1);
+static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1);
 
-static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80161E80(Enemy* arg0, Task* arg1)
 {
     Actor300700SpawnWork* work;
     GfxCoord*             coord;
@@ -286,7 +286,7 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     work->field_2AC               = (s32)coord->coord.t[0];
     work->field_2B0               = (s32)coord->coord.t[1];
     work->field_2B4               = (s32)coord->coord.t[2];
-    work->field_2DC               = (u16)((GpEnemy*)arg1->spawnArg2.pointer)->place->yaw;
+    work->field_2DC               = (u16)((Enemy*)arg1->spawnArg2.pointer)->place->yaw;
     work->obj134.coord            = coord;
     work->obj134.context.contacts = &work->rec154;
     work->obj134.pos.vx           = 0;
@@ -323,7 +323,7 @@ static void func_actor_300700_80161E80(GpEnemy* arg0, Task* arg1)
     arg1->state        = 1;
 }
 
-static void func_actor_300700_80162130(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80162130(Enemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
     Actor300700Work* work;
@@ -379,7 +379,7 @@ default_body:
         s32 temp;
         s32 id;
 
-        id   = ((arg0->placeKey >> 12) << 8) | 0x40070008;
+        id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
         temp = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
         SndEvt_EnqueueType6(id, temp, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
     }
@@ -433,8 +433,8 @@ static void func_actor_300700_801622B4(Task* arg0)
         case 0:
             break;
         case 1:
-            arg0->state                             = 2;
-            ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
+            arg0->state                           = 2;
+            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
             Gp_ArmStateF0(1);
             break;
         case 2:
@@ -453,9 +453,9 @@ static void func_actor_300700_801622B4(Task* arg0)
                 damage = 1;
                 amount = 1;
             }
-            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, amount, 0);
+            func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
             func_800E2C78(arg0->spawnArg2.pointer, (s32)work->field_154.key.value, damage, 0);
-            ((GpEnemy*)arg0->spawnArg2.pointer)->hp = 0;
+            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
             func_800FDB18(Gp_GetIdParam1((s32)work->field_154.key.value) & 0xFFFF, arg0->extra.tmd->coords, 0,
                           &work->field_224);
             break;
@@ -648,7 +648,7 @@ static void func_actor_300700_801628C8(Task* arg0)
             }
             break;
         case 1:
-            speed = D_actor_300700_80165B78[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
+            speed = D_actor_300700_80165B78[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
                     (((u32)(Gp_LcgState = Gp_LcgState * 5 + 0x71357911) >> 16) & 0x1F);
             coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
             coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
@@ -674,7 +674,7 @@ static void func_actor_300700_801628C8(Task* arg0)
     }
 }
 
-static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80162BC8(Enemy* arg0, Task* arg1)
 {
     Actor300700Work* work;
     GfxCoord*        coord;
@@ -717,7 +717,7 @@ static void func_actor_300700_80162BC8(GpEnemy* arg0, Task* arg1)
                     ((Actor300700SpawnWork*)work)->obj134.flags = ((Actor300700SpawnWork*)work)->obj134.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     ((Actor300700SpawnWork*)work)->obj16C.flags = ((Actor300700SpawnWork*)work)->obj16C.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                     ((Actor300700SpawnWork*)work)->obj1EC.flags = ((Actor300700SpawnWork*)work)->obj1EC.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    id                                          = ((arg0->placeKey >> 12) << 8) | 0x40070006;
+                    id                                          = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
                     pan                                         = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(coord));
                     Gp_UnlinkNode(&arg0->node);
@@ -911,7 +911,7 @@ static void func_actor_300700_80163410(Task* arg0)
 /// Second variant's spawn: allocates its 0x39C-byte work block, binds the two
 /// pose matrices into the TMD object, then hangs the four render nodes on
 /// their global lists with the record tables `Gp_InitRec18Table` zeroes.
-void func_actor_300700_80163510(GpEnemy* arg0, Task* arg1)
+void func_actor_300700_80163510(Enemy* arg0, Task* arg1)
 {
     Actor300700Spawn2Work* work;
     TmdObject*             obj;

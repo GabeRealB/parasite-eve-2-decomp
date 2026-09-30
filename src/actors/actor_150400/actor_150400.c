@@ -60,7 +60,7 @@ extern Actor150400MsgEntry D_actor_150400_8013C8C4[];
 
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
-static void func_actor_150400_80132434(GpEnemy* enemy, Task* task);
+static void func_actor_150400_80132434(Enemy* enemy, Task* task);
 static void func_actor_150400_801324B8(Task* task);
 
 extern TmdSource D_actor_150400_80139A64;
@@ -374,7 +374,7 @@ Task* D_actor_150400_8013C924 = NULL;
 Task* D_actor_150400_8013C928;
 
 static void func_actor_150400_80131FB8(void);
-static void func_actor_150400_80132014(GpEnemy* enemy, Task* task);
+static void func_actor_150400_80132014(Enemy* enemy, Task* task);
 
 /// Per-frame callback of the model task `D_actor_150400_80132CF0` describes,
 /// spawned twice by `func_actor_150400_80131FB8` with `spawnArg1` 1 and 2.
@@ -452,13 +452,13 @@ static void func_actor_150400_80131FB8(void)
 /// sub-model task and parents it under this one, textures the sub-model from
 /// the placement record of the current area, then starts the animation in
 /// state 2 and runs the step body `pairWalkUpdate` once.
-static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
+static void func_actor_150400_80132014(Enemy* enemy, Task* task)
 {
     VECTOR           vec;
     Actor150400Work* work;
     GfxCoord*        coord;
     TmdObject*       obj;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
 
     obj        = task->extra.tmd;
     coord      = obj->coords;
@@ -499,10 +499,10 @@ static void func_actor_150400_80132014(GpEnemy* enemy, Task* task)
 
 /// Per-frame callback of the actor's task: runs the state's handler, the spawn
 /// handler `func_actor_150400_80132014` in state 0 and the per-frame update
-/// `func_actor_150400_80132434` after it, passing the task's `GpEnemy`.
+/// `func_actor_150400_80132434` after it, passing the task's `Enemy`.
 void func_actor_150400_801323E0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_150400_80132014,
         func_actor_150400_80132434,
     };
@@ -518,7 +518,7 @@ void func_actor_150400_801323E0(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// Exit callback of the actor's task: hands its `GpEnemy` back to
+/// Exit callback of the actor's task: hands its `Enemy` back to
 /// `Gp_DestroyEnemy`.
 static void func_actor_150400_801324B8(Task* task)
 {

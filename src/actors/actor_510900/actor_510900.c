@@ -2207,12 +2207,12 @@ static void func_actor_510900_80134C90(GfxCoord* arg0, u16 arg1, s16 arg2, s16 a
 ///
 /// A failed allocation tears the enemy down instead and leaves the task on this
 /// handler; otherwise the task moves to the tick handler (`state` 1).
-void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
+void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
     GfxCoord*              coord;
     Actor510900Work*       work;
-    GpEnemy*               spawned;
+    Enemy*                 spawned;
     GpEffWork*             eff;
     u32                    raw1;
     u32                    raw2;
@@ -2353,7 +2353,7 @@ void func_actor_510900_801350F8(GpEnemy* arg0, Task* arg1)
     arg1->state = 1;
 }
 
-void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
+void func_actor_510900_801355B4(Enemy* arg0, Task* arg1)
 {
     GfxCoord*        coord;
     Actor510900Work* work;
@@ -2368,10 +2368,10 @@ void func_actor_510900_801355B4(GpEnemy* arg0, Task* arg1)
     if (work->field_586 == 0x20 && work->field_58A == 0xD2) {
         work->field_594 = 1;
         work->field_598 = 0xFF;
-        snd             = (((u16)arg0->placeKey >> 0xC) << 8) | 0x4078000E;
+        snd             = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
-        work->field_580 = (((u16)arg0->placeKey >> 0xC) << 8) | 0x40780011;
+        work->field_580 = (((u16)arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780011;
         pan2            = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(work->field_580, pan2, (s8)gpGetObjDepth(coord));
     }

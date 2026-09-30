@@ -83,7 +83,7 @@ extern s16            D_actor_105300_80133A2C[];
 static void func_actor_105300_80133530(Task* arg0);
 static void func_actor_105300_801335B8(Task* arg0);
 static void func_actor_105300_80133610(Task* arg0);
-static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1);
+static void func_actor_105300_80133838(Enemy* arg0, Task* arg1);
 
 extern AnimationSet D_actor_105300_8013C9D0;
 extern AnimationSet D_actor_105300_8013CE8C;
@@ -278,11 +278,11 @@ AnimationSet* D_actor_105300_8013D414[4] = {
 static void        func_actor_105300_80131E3C(Task* arg0);
 static void        func_actor_105300_8013222C(Task* arg0);
 static inline void _actor105300TickPose(Task* task);
-static void        func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1);
-static void        func_actor_105300_80133468(GpEnemy* arg0, Task* arg1);
+static void        func_actor_105300_8013246C(Enemy* arg0, Task* arg1);
+static void        func_actor_105300_80132BAC(Enemy* arg0, Task* arg1);
+static void        func_actor_105300_80132DAC(Enemy* arg0, Task* arg1);
+static void        func_actor_105300_8013310C(Enemy* arg0, Task* arg1);
+static void        func_actor_105300_80133468(Enemy* arg0, Task* arg1);
 
 /// Hit handler of the main body, the first step of the tick. After the
 /// cooldown `field_332` has run out, each of the two contact records the
@@ -298,7 +298,7 @@ static void func_actor_105300_80131E3C(Task* arg0)
 {
     Actor05300Scratch* scr;
     Actor05300Work*    work;
-    GpEnemy*           enemy;
+    Enemy*             enemy;
     GfxCoord*          coord;
     s32                damage;
     s32                lastId;
@@ -371,7 +371,7 @@ static void func_actor_105300_80131E3C(Task* arg0)
         if (val > 0) {
             work->field_332 = val;
         }
-        snd = D_actor_105300_8013D3B0[2] | ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+        snd = D_actor_105300_8013D3B0[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
     }
 end:
@@ -385,7 +385,7 @@ end:
 /// countdown `field_32A` has run out, and on that table's terminator row
 /// resets the row index, reseeds the countdown from the gameplay LCG and plays
 /// the sound id `D_actor_105300_8013D3BC` with the placement number in the
-/// high nibble of `GpEnemy::placeKey`; state 1 (entered on a hit) walks
+/// high nibble of `Enemy::placeKey`; state 1 (entered on a hit) walks
 /// `D_actor_105300_8013D3EC` and moves to state 2 on its terminator; state 2
 /// returns to pose 1 and state 0 once the pose has run 0x23 frames past its
 /// entry of `D_actor_105300_80133A18`. The row's `field_2` is the scale
@@ -413,7 +413,7 @@ static void func_actor_105300_8013222C(Task* arg0)
                     Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
                     work->field_32A = ((Gp_LcgState >> 16) & 0x3F) + 0x1E;
                     sndId           = D_actor_105300_8013D3BC |
-                            ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8);
+                            ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
                     pan = (s8)Gp_GetObjPan(coord);
                     SndEvt_EnqueueType6(sndId, pan, (s8)gpGetObjDepth(coord));
                 } else {
@@ -489,7 +489,7 @@ static inline void _actor105300TickPose(Task* task)
 /// of `D_actor_105300_80133A2C` (message bit 2 clears the hold value 2). The
 /// pose and colour are ticked every frame, and the enemy is destroyed once the
 /// sequence has ended and the release has run.
-static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_8013246C(Enemy* arg0, Task* arg1)
 {
     SVECTOR         ofs;
     VECTOR          pos;
@@ -537,7 +537,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
             Gp_UnlinkNode(&arg0->node);
             Gp_UnlinkObj(&work->node0);
             Gp_UnlinkObj(&work->node1);
-            Gp_SetLightMode(arg0, 1);
+            Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
             if (work->field_334 == 0) {
                 work->field_328 = 0;
                 work->field_32C = 0;
@@ -618,7 +618,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x600A5, coord, 5, NULL);
             }
             if ((s16)work->field_328 == 0x6E) {
-                Gp_SetLightMode(arg0, 2);
+                Gp_SetLightMode(arg0, ENEMY_COLOR_BLACK);
             }
             if ((s16)work->field_328 >= 0x78) {
                 work->field_32E = 2;
@@ -688,7 +688,7 @@ static void func_actor_105300_8013246C(GpEnemy* arg0, Task* arg1)
 /// the two per-enemy death flags. A failed allocation tears the enemy down
 /// instead and leaves the task on this handler; otherwise the task moves to the
 /// tick handler (`state` 1).
-static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_80132BAC(Enemy* arg0, Task* arg1)
 {
     TmdObject*             obj;
     Actor05300Work*        work;
@@ -750,7 +750,7 @@ static void func_actor_105300_80132BAC(GpEnemy* arg0, Task* arg1)
     arg1->state = 1;
 }
 
-static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_80132DAC(Enemy* arg0, Task* arg1)
 {
     VECTOR*         vec;
     Actor05300Part* part;
@@ -802,7 +802,7 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                 Gp_SpawnEff(0x6005C, coord, 0x10002400, NULL);
                 Gp_SpawnEff(0x60070, coord, 0x32FF1400, NULL);
                 snd  = D_actor_105300_8013D3B0[1];
-                snd |= (arg0->placeKey >> 12) << 8;
+                snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             } else if (damage > 0) {
                 if (part->field_44 == 0) {
@@ -817,7 +817,7 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
                     part->field_40 = hitTime;
                 }
                 snd  = D_actor_105300_8013D3B0[0];
-                snd |= (arg0->placeKey >> 12) << 8;
+                snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 SndEvt_EnqueueType6(snd, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
             }
         }
@@ -826,7 +826,7 @@ static void func_actor_105300_80132DAC(GpEnemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_8013310C(Enemy* arg0, Task* arg1)
 {
     Actor05300Work*  work;
     TmdObject*       obj;
@@ -835,7 +835,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     GpAreaVariant*   rec;
     AreaPlacement*   place;
     TmdObject*       model;
-    GpEnemy*         spawned;
+    Enemy*           spawned;
     GameLocationKey  key;
     u16              idx;
     s32              sound;
@@ -900,7 +900,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
     work->node1.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     spawned            = Gp_SpawnEnemyFromTable(D_actor_105300_8013D3FC, 1, 0, arg0);
     model              = spawned->task->extra.tmd;
-    idx                = arg0->placeKey >> 12;
+    idx                = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     sessionKey         = &gGameSession->location.loc;
     key.stage          = sessionKey->stage;
     key.area           = sessionKey->area;
@@ -915,7 +915,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
         tmdProcessStream(model);
         tmdProcessStream(model);
     }
-    sound           = D_actor_105300_8013D3C0 | ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8);
+    sound           = D_actor_105300_8013D3C0 | ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->field_31C = sound;
     SndEvt_EnqueueType6(sound, D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_0,
                         D_actor_105300_8013D3C4[gGameSession->location.loc.view].field_2);
@@ -930,7 +930,7 @@ static void func_actor_105300_8013310C(GpEnemy* arg0, Task* arg1)
 /// hiding the node's HP: the hit handler, the idle schedule, the pose
 /// tick, the model's coordinate refresh, the colour update and the
 /// regeneration step.
-static void func_actor_105300_80133468(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_80133468(Enemy* arg0, Task* arg1)
 {
     GfxCoord*  temp_s1;
     TmdObject* temp_a1;
@@ -984,7 +984,7 @@ default_body:
 static void func_actor_105300_80133530(Task* arg0)
 {
     Actor05300Work* work;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
     s16             timer;
 
     work  = arg0->work;
@@ -1068,7 +1068,7 @@ void func_actor_105300_801337DC(Task* arg0)
 /// did for this sub-state (chosen by `field_46`): the same room call with 0
 /// instead of 1, and game flag 0x147 or 0x148 set to 1 where the spawn set it
 /// to 0. The enemy is destroyed once the counter `field_42` reaches 0x3D.
-static void func_actor_105300_80133838(GpEnemy* arg0, Task* arg1)
+static void func_actor_105300_80133838(Enemy* arg0, Task* arg1)
 {
     Actor05300Part* part;
     Actor05300Work* parentWork;

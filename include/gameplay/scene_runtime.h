@@ -27,9 +27,9 @@ void Gp_RestoreStreamRng(void);
 
 s32 func_800B0118(s32 arg0, s32 arg1);
 
-GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
+Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent);
 
-void Gp_DestroyEnemy(GpEnemy* enemy, Task* task);
+void Gp_DestroyEnemy(Enemy* enemy, Task* task);
 
 void Gp_EnemyTaskExit(Task* task);
 
@@ -113,7 +113,7 @@ const AnimationRecord* Gp_AnimGetRec(AnimationContext* unusedContext, AnimationS
 /// Requires the enemy's model and task to remain live. An existing record keeps
 /// its pose. A full list evicts a pose from another saved area, with the final
 /// slot as the fallback; positions and angles retain the save format's widths.
-void Gp_SaveEnemyPose(GpEnemy* enemy);
+void Gp_SaveEnemyPose(Enemy* enemy);
 
 /// Spawns the placement/resource layout selected by stage, area and variant.
 void Gp_SpawnArea(GameLocationKey* location);

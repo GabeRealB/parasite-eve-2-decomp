@@ -73,7 +73,7 @@ STATIC_ASSERT_SIZEOF(Actor323000MessageEntry, 8);
 
 extern Actor323000MessageEntry D_actor_323000_801739D0[7];
 
-/// Enemy parameters the spawn handler stores in `GpEnemy::param`.
+/// Enemy parameters the spawn handler stores in `Enemy::param`.
 extern EnemyParams D_actor_323000_80164D54;
 
 /// Whole-unit part of the last movement step `func_actor_323000_80162A2C`
@@ -95,13 +95,13 @@ extern s8 D_actor_323000_80173090[];
 
 /// Psy-Q `RotMatrixY`.
 
-static void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task);
-static void func_actor_323000_8016409C(GpEnemy* enemy, Task* task);
-static void func_actor_323000_8016420C(GpEnemy* enemy, Task* task);
-static void func_actor_323000_801645A4(GpEnemy* enemy, Task* task);
+static void func_actor_323000_80163EA0(Enemy* enemy, Task* task);
+static void func_actor_323000_8016409C(Enemy* enemy, Task* task);
+static void func_actor_323000_8016420C(Enemy* enemy, Task* task);
+static void func_actor_323000_801645A4(Enemy* enemy, Task* task);
 static void func_actor_323000_80164B18(Task* task);
-static void func_actor_323000_80164C20(GpEnemy* arg0, Task* arg1);
-static void func_actor_323000_80164C58(GpEnemy* enemy, Task* task);
+static void func_actor_323000_80164C20(Enemy* arg0, Task* arg1);
+static void func_actor_323000_80164C58(Enemy* enemy, Task* task);
 
 /// State handlers `func_actor_323000_801645A4` runs by `Actor323000Work::field_0`.
 #include "../../shared/actor_contacts.h"
@@ -3510,7 +3510,7 @@ static void func_actor_323000_80163A30(Task* task)
 /// publishes the message table, parents the root to the view, takes its world
 /// position as the actor colour, fills the effect record and advances the
 /// task to the per-frame driver.
-static void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
+static void func_actor_323000_80163EA0(Enemy* enemy, Task* task)
 {
     SVECTOR          unused; // never referenced; only reserves the frame slot the ROM has
     VECTOR           pos;
@@ -3577,7 +3577,7 @@ static void func_actor_323000_80163EA0(GpEnemy* enemy, Task* task)
 /// ticks; when slot 1 sets flag bit 0 during clip 0xF it moves on to clip
 /// 0x10, and during clip 0xE it spawns effect 0x60054 at coordinate 7 with
 /// spawn argument 0x80002300 while slot 1 plays clip 7 or 9, 0x80003400 for 8.
-static void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
+static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
 {
     Actor323000Work* work;
     TmdObject*       obj;
@@ -3625,7 +3625,7 @@ static void func_actor_323000_8016409C(GpEnemy* enemy, Task* task)
 /// frame it ticks and, on frames 29, 32 and 33, spawns effect 0x60054 at the
 /// limb coordinates; frame 32 also plays a sound chosen by the enemy's
 /// `placeKey`.
-static void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
+static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
 {
     Actor323000Work* work;
     TmdObject*       obj;
@@ -3672,7 +3672,7 @@ static void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
             p->vz = 0xC8;
             p->vy = 0x28A;
             Gp_SpawnEff(0x60054, &task->extra.tmd->coords[9], 0x80006800, p);
-            id  = ((enemy->placeKey >> 12) << 8) | 0x4001000D;
+            id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000D;
             pan = (s8)Gp_GetObjPan(task->extra.tmd->coords);
             SndEvt_EnqueueType6(id, pan, (s8)gpGetObjDepth(task->extra.tmd->coords));
             ofs2.vy = -0x258;
@@ -3717,7 +3717,7 @@ static void func_actor_323000_8016420C(GpEnemy* enemy, Task* task)
 /// of `D_actor_323000_80161E24`. Afterwards it walks the origin of the model's
 /// third part coordinate up to `gGfxViewCoord` and stores it as the enemy's
 /// local position, parented to the view.
-static void func_actor_323000_801645A4(GpEnemy* enemy, Task* task)
+static void func_actor_323000_801645A4(Enemy* enemy, Task* task)
 {
     Actor323000Work*        work;
     GpEnemyTaskFuncTable4   sp;
@@ -3835,7 +3835,7 @@ s32 func_actor_323000_80164904(Task* task)
 {
     u16 flags;
 
-    if (((GpEnemy*)task->spawnArg2.pointer)->hp <= 0) {
+    if (((Enemy*)task->spawnArg2.pointer)->hp <= 0) {
         flags = task->extra.tmd->flags;
         if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
             return 0;
@@ -3941,7 +3941,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
 /// is set, flags the enemy's link node and raises bit 0x80 of the model's
 /// flags. `obj` gets its own local: the fused form ranks the `Task::extra`
 /// load with the store and transposes it.
-static void func_actor_323000_80164C20(GpEnemy* arg0, Task* arg1)
+static void func_actor_323000_80164C20(Enemy* arg0, Task* arg1)
 {
     Actor323000Work* work;
     TmdObject*       obj;
@@ -3957,7 +3957,7 @@ static void func_actor_323000_80164C20(GpEnemy* arg0, Task* arg1)
 /// State 2: on entry flags the enemy's link node, clears the model's flags,
 /// rebuilds its buffers and starts clip 0xD with the frame counter at 0; the
 /// tick runs every frame.
-static void func_actor_323000_80164C58(GpEnemy* enemy, Task* task)
+static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
 {
     Actor323000Work* work;
     TmdObject*       obj;

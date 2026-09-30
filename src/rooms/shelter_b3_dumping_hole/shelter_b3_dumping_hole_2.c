@@ -3619,7 +3619,7 @@ static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
 {
     OverlayEncounterPairWork* work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
 
@@ -3637,7 +3637,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -3647,7 +3647,7 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << 12;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
         D_shelter_b3_dumping_hole_8018F4D4_value++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -3850,7 +3850,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
-        GpEnemy* enemy;
+        Enemy* enemy;
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_80142604, 1, 0, NULL);
         if (enemy != NULL) {
@@ -3858,7 +3858,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << 12;
+            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                                  += 1;
             return;
@@ -3871,14 +3871,14 @@ static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
 {
     ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    t0  = ent->enemy;
+    Enemy*                      t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x2E) {
         TmdObject* p              = t00->extra.tmd;
         p->clutRowOffset          = 2;
         p->texturePageOffset      = 0;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2C;
         request.command           = arg0->spawnArg1.value;
@@ -3899,7 +3899,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
 {
     OverlayEncounterSingleWork* work = memCalloc(8, 0);
     if (work != NULL) {
-        GpEnemy* enemy;
+        Enemy* enemy;
         arg0->work = work;
         enemy      = Gp_SpawnEnemyFromTable(&D_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
@@ -3907,7 +3907,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
             work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << 12;
+            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
             D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
             arg0->state                                                                  += 1;
             return;
@@ -3920,14 +3920,14 @@ static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
 {
     ActorCommand                request;
     OverlayEncounterSingleWork* ent = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    t0  = ent->enemy;
+    Enemy*                      t0  = ent->enemy;
     Task*                       t00 = t0->task;
 
     if ((s16)(ent->frames += 1) >= 0x3D) {
         TmdObject* p              = t00->extra.tmd;
         p->texturePageOffset      = 2;
         p->clutRowOffset          = 4;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2A;
         request.command           = arg0->spawnArg1.value;
@@ -3954,14 +3954,14 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 {
     ActorCommand              request;
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  t0  = ent->enemy0;
+    Enemy*                    t0  = ent->enemy0;
 
     if (t0 != NULL) {
         Task*      t00            = t0->task;
         TmdObject* p              = t00->extra.tmd;
         p->texturePageOffset      = 3;
         p->clutRowOffset          = 5;
-        t0->workType              = 0x900;
+        t0->workType              = ENEMY_WORK_PLAIN;
         request.context.loc.stage = 0;
         request.context.loc.area  = 0x2E;
         request.command           = arg0->spawnArg1.value;
@@ -3974,7 +3974,7 @@ static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
 static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
 {
     OverlayEncounterPairWork* ent = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  t   = ent->enemy1;
+    Enemy*                    t   = ent->enemy1;
 
     func_shelter_b3_dumping_hole_80183F04(arg0);
     if (ent->enemy1 != NULL) {
@@ -3987,7 +3987,7 @@ static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
             ActorCommand request;
             p->texturePageOffset      = 3;
             p->clutRowOffset          = 5;
-            t->workType               = 0x900;
+            t->workType               = ENEMY_WORK_PLAIN;
             request.context.loc.stage = 0;
             request.context.loc.area  = 0x2E;
             request.command           = arg0->spawnArg1.value;

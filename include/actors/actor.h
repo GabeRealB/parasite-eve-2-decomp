@@ -868,7 +868,7 @@ typedef struct Actor160600Work {
     s16             animArg;
     s16             effects;
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor160600Work;
 STATIC_ASSERT_SIZEOF(Actor160600Work, 0x4F8);
 
@@ -890,7 +890,7 @@ typedef struct Actor161500Work {
     s16             turnWeight;
     byte            pad_4F2[0x2];
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor161500Work;
 STATIC_ASSERT_SIZEOF(Actor161500Work, 0x4FC);
 
@@ -1087,7 +1087,7 @@ typedef struct Actor402200Work {
     Actor402200Region* field_6B4;
     s32                field_6B8;
     /// Sound event id the sequence body `func_actor_402200_8013539C` queues: the
-    /// overlay's cue word `D_actor_402200_80138468` with the `GpEnemy` work id's
+    /// overlay's cue word `D_actor_402200_80138468` with the `Enemy` work id's
     /// high nibble in bits 8-11, the same construction the cue body
     /// `func_actor_402200_80135BE0` uses on `D_actor_402200_80138420`. Stored
     /// back to the block and re-read from there as the first argument of
@@ -1722,15 +1722,15 @@ typedef struct Actor403200Work {
     /// The seven escorts the spawn state starts; the state-change reset walks
     /// them to push the host's `TmdObject::flags` onto each escort's own model
     /// object.
-    /* 0xECC */ GpEnemy* field_ECC[7];
+    /* 0xECC */ Enemy* field_ECC[7];
     /// Two nearby-enemy slots the spawn tick fills, each dropped once its HP
     /// runs out.
-    /* 0xEE8 */ GpEnemy* field_EE8[2];
+    /* 0xEE8 */ Enemy* field_EE8[2];
     /// The enemy the state-change reset spawns from `D_actor_403200_8015E858`
     /// for the three states that launch it.
-    /* 0xEF0 */ GpEnemy* field_EF0;
-    /* 0xEF4 */ s16      field_EF4;
-    /* 0xEF6 */ s16      field_EF6;
+    /* 0xEF0 */ Enemy* field_EF0;
+    /* 0xEF4 */ s16    field_EF4;
+    /* 0xEF6 */ s16    field_EF6;
     /// Armed to 1 alongside `field_EF6` by the swipe tick's reset half.
     /* 0xEF8 */ s16 field_EF8;
     /// Armed to 1 by the per-frame body's re-arm path.
@@ -2045,7 +2045,7 @@ typedef struct Actor150400Work {
     s16             animArg;
     byte            pad_4B6[0x2];
     Task*           pairTask;
-    GpEnemy*        enemy;
+    Enemy*          enemy;
 } Actor150400Work;
 STATIC_ASSERT_SIZEOF(Actor150400Work, 0x4C0);
 
@@ -2493,13 +2493,13 @@ static __inline__ GpAreaVariant* actorGetCurrentAreaRec(void)
 
 /// Gives `model` the texture page and palette of the enemy's placement in the
 /// current area, and reprocesses its stream when it already has one.
-static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
+static __inline__ void actorTintModel(TmdObject* model, Enemy* enemy)
 {
     GpAreaVariant* rec;
     AreaPlacement* place;
     s32            idx;
 
-    idx                      = enemy->placeKey >> 12;
+    idx                      = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     rec                      = actorGetCurrentAreaRec();
     place                    = gpAreaPlaceAt(rec->field_0, idx);
     model->texturePageOffset = place->texturePageOffset;
@@ -2511,7 +2511,7 @@ static __inline__ void actorTintModel(TmdObject* model, GpEnemy* enemy)
 }
 
 /// `actorTintModel` for the model carried by the spawned task `spawned`.
-static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
+static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
@@ -2521,7 +2521,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
     s32              idx;
 
     sessionKey = &gGameSession->location.loc;
-    idx        = enemy->placeKey >> 12;
+    idx        = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model      = spawned->extra.tmd;
     key.stage  = sessionKey->stage;
     key.area   = sessionKey->area;
@@ -2539,7 +2539,7 @@ static __inline__ void actorTintTask(Task* spawned, GpEnemy* enemy)
 }
 
 /// `actorTintModel` for a freshly spawned effect, when the spawn succeeded.
-static __inline__ void actorTintEffect(GpEffWork* eff, GpEnemy* enemy)
+static __inline__ void actorTintEffect(GpEffWork* eff, Enemy* enemy)
 {
     if (eff != NULL) {
         actorTintModel(eff->task->extra.tmd, enemy);
@@ -2668,14 +2668,14 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 }
 
 /// Tells the player task that `ctx` touched it, packing the pair with `mode`.
-static __inline__ s32 actorPlayerContactMessage(GpEnemy* ctx, s32 mode)
+static __inline__ s32 actorPlayerContactMessage(Enemy* ctx, s32 mode)
 {
     Task* player = gameGetPtrSlot(3);
     return Gp_DispatchMsg(player, 0x3F9, Gp_PackObjPair(ctx, mode), 0);
 }
 
 /// Relights `enemy` for the world position of `coord`.
-static __inline__ void actorUpdateColor(GpEnemy* enemy, GfxCoord* coord)
+static __inline__ void actorUpdateColor(Enemy* enemy, GfxCoord* coord)
 {
     VECTOR* block                = (VECTOR*)(SCRATCH_STACK_CURSOR(u8) - 0x10);
     block->vx                    = coord->workm.t[0];

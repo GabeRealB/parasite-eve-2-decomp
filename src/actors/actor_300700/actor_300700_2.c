@@ -78,9 +78,9 @@ void func_actor_300700_801628C8(Task* arg0);
 void func_actor_300700_801633B8(Task* arg0);
 void func_actor_300700_80162EFC(Task* arg0);
 
-static void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1);
+static void func_actor_300700_801648E4(Enemy* arg0, Task* arg1);
 
-static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1);
+static void func_actor_300700_80164D3C(Enemy* arg0, Task* arg1);
 
 /// The second variant's state handlers, in the same order as the first's:
 /// spawn, per-frame update and state 2. `func_actor_300700_80164CE0`
@@ -437,7 +437,7 @@ s16 D_actor_300700_801693E4[10] = {
 /// push at the end.
 static void func_actor_300700_801637E4(Task* actor)
 {
-    GpEnemy*         ctx;
+    Enemy*           ctx;
     u32              lastId;
     u32              id;
     Actor300700Work* work;
@@ -511,7 +511,7 @@ static void func_actor_300700_801637E4(Task* actor)
                         damage *= 4;
                         Gp_SpawnEff(0x6009C, actor->extra.tmd->coords, 0, NULL);
                     }
-                    func_800DA6E8(&((GpEnemy*)actor->spawnArg2.pointer)->node, damage, 0);
+                    func_800DA6E8(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     func_800E2C78(actor->spawnArg2.pointer, work->field_22C.contacts.recs[i].key.value, damage, 0);
                     ctx->hp -= damage;
                     if (ctx->hp <= 0) {
@@ -640,7 +640,7 @@ case0:
     rng0        = Gp_LcgState * 5 + 0x71357911;
     Gp_LcgState = rng0;
     if ((s32)(((u32)rng0 >> 16) & 0xF) <
-        D_actor_300700_8016933C[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+        D_actor_300700_8016933C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37E = 7;
         next            = D_actor_300700_8016934C[((u32)(rng1 = rng0 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng1;
@@ -651,7 +651,7 @@ case0:
     rng2        = rng0 * 5 + 0x71357911;
     Gp_LcgState = rng2;
     if ((s32)(((u32)rng2 >> 16) & 0xF) <
-        D_actor_300700_8016936C[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+        D_actor_300700_8016936C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37E = 2;
         next            = D_actor_300700_8016937C[((u32)(rng3 = rng2 * 5 + 0x71357911) >> 16) & 0xF];
         Gp_LcgState     = rng3;
@@ -704,7 +704,7 @@ post:
         work->field_37E = 2;
         rng6            = Gp_LcgState * 5 + 0x71357911;
         work->field_38C = (((u32)rng6 >> 16) & 0x1F) + 0x3C;
-        snd             = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40070003;
+        snd             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
         Gp_LcgState     = rng6;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
@@ -818,11 +818,11 @@ case2:
     if ((s16)work->field_382 < 0x1F) {
         goto pop;
     }
-    snd = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40070004;
+    snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[((GpEnemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+    if ((s32)(((u32)Gp_LcgState >> 16) & 0xF) < D_actor_300700_8016939C[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
         work->field_37C = 0;
         work->field_37E = state;
         goto pop;
@@ -889,7 +889,7 @@ static void func_actor_300700_801643D0(Task* arg0)
             }
             work->field_38C = work->field_38C - 1;
             if ((s16)work->field_38C <= 0) {
-                if ((((GpEnemy*)arg0->spawnArg2.pointer)->reactionFlags & 2) != 0) {
+                if ((((Enemy*)arg0->spawnArg2.pointer)->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
                     work->field_37E = 8;
                     work->field_37A = 3;
                     work->field_37C = 3;
@@ -918,7 +918,7 @@ static void func_actor_300700_801643D0(Task* arg0)
 /// clears the hit flag and resets the state machine.
 static void func_actor_300700_801645F8(Task* arg0)
 {
-    GpEnemy*         ctx;
+    Enemy*           ctx;
     Actor300700Work* work;
     s16              state;
     s32              rng;
@@ -964,7 +964,7 @@ static void func_actor_300700_801645F8(Task* arg0)
         case 3:
             if (Gp_TickObjFlag2(arg0->spawnArg2.pointer) != 0) {
                 ctx                 = arg0->spawnArg2.pointer;
-                ctx->reactionFlags &= 0xFD;
+                ctx->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
                 work->field_37A     = 0;
                 work->field_37C     = 0;
                 work->field_37E     = 1;
@@ -1046,7 +1046,7 @@ done:
     SCRATCH_STACK_RELEASE_BYTES(0x18);
 }
 
-static void func_actor_300700_801648E4(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_801648E4(Enemy* arg0, Task* arg1)
 {
     Actor300700Work* work;
     TmdObject*       obj;
@@ -1113,7 +1113,7 @@ death:
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj2);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj3);
     Gp_UnlinkObj(&((Actor300700Spawn2Work*)work)->obj4);
-    Gp_SetLightMode(arg0, 1);
+    Gp_SetLightMode(arg0, ENEMY_COLOR_WEIGHTED);
     Gp_ReleaseStateF0Add(arg1, 7);
     work->field_37C = 1;
     work2           = arg1->work;
@@ -1135,7 +1135,7 @@ death:
     vec.vy = c->workm.t[1];
     vec.vz = c->workm.t[2];
     Gp_UpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
-    snd = ((((GpEnemy*)arg1->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x40070005;
+    snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070005;
     pan = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;
@@ -1185,7 +1185,7 @@ static void func_actor_300700_80164CE0(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
+static void func_actor_300700_80164D3C(Enemy* arg0, Task* arg1)
 {
     GfxCoord*        coord;
     TmdObject*       obj;
@@ -1229,7 +1229,7 @@ static void func_actor_300700_80164D3C(GpEnemy* arg0, Task* arg1)
 /// out.
 static void func_actor_300700_80164E38(Task* arg0)
 {
-    GpEnemy*         ctx;
+    Enemy*           ctx;
     Actor300700Work* work;
     s32              tick;
     u16              health;
@@ -1238,17 +1238,17 @@ static void func_actor_300700_80164E38(Task* arg0)
     ctx   = arg0->spawnArg2.pointer;
     flags = ctx->reactionFlags;
     work  = arg0->work;
-    if (flags & 1) {
-        ctx->reactionFlags = flags & 0xFE;
+    if (flags & ENEMY_REACTION_STAGGER) {
+        ctx->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
         work->field_37A    = 2;
         work->field_37C    = 0;
     }
-    if ((ctx->reactionFlags & 2) && ((u32)((u16)work->field_37A - 2) >= 2U)) {
+    if ((ctx->reactionFlags & ENEMY_REACTION_BUILDUP) && ((u32)((u16)work->field_37A - 2) >= 2U)) {
         work->field_37A = 3;
         work->field_37C = 0;
         work->field_398 = 1;
     }
-    if (ctx->reactionFlags & 0xC) {
+    if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         tick = Gp_TickObjFlag4(ctx);
         if (tick != 0) {
             func_800DA6E8(&ctx->node, tick, 0);
@@ -1264,7 +1264,7 @@ static void func_actor_300700_80164E38(Task* arg0)
             }
         }
         if (Gp_ObjFlag4Expired(ctx) != 0) {
-            ctx->reactionFlags &= 0xF3;
+            ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }
@@ -1312,7 +1312,7 @@ static void func_actor_300700_80165000(Task* arg0)
         random          = (Gp_LcgState * 5) + 0x71357911;
         work->field_392 = (u16)(((random >> 0x10) & 0x7F) + 0x96);
         Gp_LcgState     = (s32)random;
-        snd             = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40070001;
+        snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070001;
         pan             = (s8)Gp_GetObjPan(coord);
         SndEvt_EnqueueType6(snd, (s32)pan, (s8)gpGetObjDepth(coord));
     }
@@ -1347,7 +1347,7 @@ case0:
     work->field_384 = 0;
     work->field_386 = 0;
     work->field_37C = 1;
-    snd             = (((u16)((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 0xC) << 8) | 0x40070002;
+    snd             = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
     pan             = (s8)Gp_GetObjPan(coord);
     SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(coord));
     return;

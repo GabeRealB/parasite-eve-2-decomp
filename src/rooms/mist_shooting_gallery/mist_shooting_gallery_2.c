@@ -141,26 +141,26 @@ extern MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Gameplay-side abort request. While it is 1 the bonus course tears itself
 /// down: the state machine remembers where it was in `field_06` / `field_21`
 /// and jumps to the state-9 shutdown banner.
-extern void     func_8014A908(void);
-extern void     func_8014A9A0(void);
-extern void     func_8014B0D4(void);
-static void     func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
-static void     func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
-static void     func_mist_shooting_gallery_80184A80(Task* arg0);
-static void     func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
-static u16      func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
-static void     func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
-static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1);
-void            func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
-static void     func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
-static void     func_mist_shooting_gallery_80182B1C(Task* arg0);
-static void     func_mist_shooting_gallery_80182C58(Task* arg0);
-static void     func_mist_shooting_gallery_801831B0(Task* arg0);
-static void     func_mist_shooting_gallery_8018341C(Task* arg0);
-static void     func_mist_shooting_gallery_801838FC(Task* arg0);
-static void     func_mist_shooting_gallery_80183E78(Task* arg0);
-static void     func_mist_shooting_gallery_801842D0(Task* arg0);
-static void     func_mist_shooting_gallery_80184A14(Task* arg0);
+extern void   func_8014A908(void);
+extern void   func_8014A9A0(void);
+extern void   func_8014B0D4(void);
+static void   func_mist_shooting_gallery_80182294(GfxCoord* coord, s16 arg1, s16 arg2, s16 arg3);
+static void   func_mist_shooting_gallery_801826C4(GfxCoord* coord, SVECTOR* arg1, s32 arg2, s16 arg3);
+static void   func_mist_shooting_gallery_80184A80(Task* arg0);
+static void   func_mist_shooting_gallery_8018458C(MistShootingGalleryWork* work);
+static u16    func_mist_shooting_gallery_80184AE0(MistShootingGalleryWork* work);
+static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
+static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1);
+void          func_8014B2B8(s16 arg0, s16 arg1, s32 arg2);
+static void   func_mist_shooting_gallery_801846F4(s32 arg0, s16 arg1, s32 arg2);
+static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
+static void   func_mist_shooting_gallery_80182C58(Task* arg0);
+static void   func_mist_shooting_gallery_801831B0(Task* arg0);
+static void   func_mist_shooting_gallery_8018341C(Task* arg0);
+static void   func_mist_shooting_gallery_801838FC(Task* arg0);
+static void   func_mist_shooting_gallery_80183E78(Task* arg0);
+static void   func_mist_shooting_gallery_801842D0(Task* arg0);
+static void   func_mist_shooting_gallery_80184A14(Task* arg0);
 
 /// The gallery controller task's three-state table, run from a stack copy by
 /// `func_mist_shooting_gallery_801849BC`: the setup tick
@@ -3305,7 +3305,7 @@ static void func_mist_shooting_gallery_801847D4(u8 arg0)
 
 void func_mist_shooting_gallery_801848B4(void)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     TmdObject* obj;
     GfxCoord*  coord;
 
@@ -3320,7 +3320,7 @@ void func_mist_shooting_gallery_801848B4(void)
         coord->coord.t[0] = 0x1770;
         coord->coord.t[2] = 0xBB8;
         coord->coord.t[1] = 0;
-        enemy->workType   = 0x900;
+        enemy->workType   = ENEMY_WORK_PLAIN;
     }
 }
 
@@ -3445,10 +3445,10 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
     }
 }
 
-static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1)
+static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGallerySpawn* arg1)
 {
     MistShootingGalleryWork* work;
-    GpEnemy*                 enemy;
+    Enemy*                   enemy;
     TmdObject*               obj;
     GfxCoord*                coord;
 
@@ -3466,7 +3466,7 @@ static GpEnemy* func_mist_shooting_gallery_80184CD0(Task* arg0, MistShootingGall
         coord->coord.t[0] = arg1->x;
         coord->coord.t[1] = arg1->y;
         coord->coord.t[2] = arg1->z;
-        enemy->workType   = 0x900;
+        enemy->workType   = ENEMY_WORK_PLAIN;
         work->field_0E++;
     }
     return enemy;

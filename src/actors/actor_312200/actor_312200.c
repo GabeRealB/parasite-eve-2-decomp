@@ -320,8 +320,8 @@ TaskDesc D_actor_312200_80169F7C = { (TASK_BODY_TMD | 0x100), 96, func_actor_312
 SVECTOR ActorContact_ScratchPosition;
 
 static void func_actor_312200_80162FB4(Task* task);
-static void func_actor_312200_80163178(GpEnemy* enemy, Task* task);
-static void func_actor_312200_80163370(GpEnemy* enemy, Task* task);
+static void func_actor_312200_80163178(Enemy* enemy, Task* task);
+static void func_actor_312200_80163370(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -400,7 +400,7 @@ static void func_actor_312200_80162FB4(Task* task)
 /// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
 /// its translation is propagated over the three part coordinates
 /// (`func_800D7A9C`, start 0, count 3).
-static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163178(Enemy* enemy, Task* task)
 {
     VECTOR              vec;
     GfxCoord*           coord;
@@ -479,7 +479,7 @@ static void func_actor_312200_80163178(GpEnemy* enemy, Task* task)
 ///
 /// The trailing `vec` is the original's own - three dead stores, but the frame
 /// and the rest of the schedule are built around them.
-static void func_actor_312200_80163370(GpEnemy* enemy, Task* task)
+static void func_actor_312200_80163370(Enemy* enemy, Task* task)
 {
     TmdObject*       obj;
     VECTOR           vec;
@@ -631,17 +631,17 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg)
 
 /// On a live actor, marks the enemy's target node not lockable, raises the model's
 /// 0x80 bit (which takes it out of `Tmd_DrawActiveNodes`), clears
-/// `GpEnemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
+/// `Enemy::field_4D` and drops bit 0x8000 of the `field_8BC` node's flags.
 static void func_actor_312200_80163778(Task* task)
 {
     Actor312200Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
     TmdObject*       obj;
 
     work = (Actor312200Work*)task->work;
     if (work->field_4 != 0) {
         obj                           = task->extra.tmd;
-        enemy                         = (GpEnemy*)task->spawnArg2.pointer;
+        enemy                         = (Enemy*)task->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->field_4D               = 0;

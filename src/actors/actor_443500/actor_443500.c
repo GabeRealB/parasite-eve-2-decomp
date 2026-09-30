@@ -2519,7 +2519,7 @@ static void func_actor_443500_80132078(Task* task)
     spawned            = Task_SpawnFromTable(D_actor_443500_8015873C, 1, 4, task);
     if (spawned != NULL) {
         sessionKey = &gGameSession->location.loc;
-        raw        = ((GpEnemy*)task->spawnArg2.pointer)->placeKey;
+        raw        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
         model      = spawned->extra.tmd;
         key.stage  = sessionKey->stage;
         key.area   = sessionKey->area;

@@ -46,7 +46,7 @@ static void Gp_ApplyBit2List(GpBit2List* table, u32* dest);
 
 static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1);
 
-static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1);
+static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1);
 
 static void func_800BBB54(Task* arg0);
 
@@ -366,9 +366,9 @@ void Gp_SavePlayerPos(void)
     save->state.playerBp  = cfg->bp;
 }
 
-static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
+static Enemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
 {
-    GpEnemy*   enemy;
+    Enemy*     enemy;
     Task*      task;
     TmdObject* extra;
     GfxCoord*  coord;
@@ -379,7 +379,7 @@ static GpEnemy* Gp_SpawnAtPlace(GpEnemyDesc* arg0, GpBit2Rec* arg1)
         if (task->bodyKind != TASK_BODY_NONE) {
             extra               = task->extra.tmd;
             coord               = extra->coords;
-            enemy->placeKey     = arg1->field_0 | (arg1->field_4 << 8);
+            enemy->placeKey     = arg1->field_0 | (arg1->field_4 << ENEMY_PLACE_STAGE_SHIFT);
             enemy->workType     = arg1->field_2;
             coord->coord.t[0]   = arg1->field_8;
             coord->coord.t[1]   = arg1->field_A;

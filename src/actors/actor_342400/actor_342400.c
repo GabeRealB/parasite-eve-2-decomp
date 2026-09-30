@@ -52,7 +52,7 @@ extern TaskDesc                D_actor_342400_8016BFE0[];
 extern Actor342400Limit        D_actor_342400_8016C010[];
 extern s16                     D_actor_342400_8016C054[][4]; // spawn variant per player-position band, 4 random picks
 
-                                                             // spawn counter, `<< 12` into `GpEnemy::placeKey`
+                                                             // spawn counter, `<< 12` into `Enemy::placeKey`
 
 static s16  func_actor_342400_801624A4(void);
 static s16  func_actor_342400_801626CC(s16 arg0, s16 arg1, s16 arg2);
@@ -287,7 +287,7 @@ static void func_actor_342400_801631DC(s16 arg0);
 static void func_actor_342400_80162084(Task* arg0)
 {
     OverlayEncounterPairWork* work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
 
@@ -305,7 +305,7 @@ static void func_actor_342400_80162084(Task* arg0)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_actor_342400_80173AAC << 12;
+        enemy->placeKey = D_actor_342400_80173AAC << ENEMY_PLACE_INDEX_SHIFT;
         D_actor_342400_80173AAC++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -315,7 +315,7 @@ static void func_actor_342400_80162084(Task* arg0)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_actor_342400_80173AAC << 12;
+        enemy->placeKey = D_actor_342400_80173AAC << ENEMY_PLACE_INDEX_SHIFT;
         D_actor_342400_80173AAC++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
@@ -330,7 +330,7 @@ static void func_actor_342400_80162084(Task* arg0)
 static void func_actor_342400_801621D8(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     GfxCoord*                 coord;
     ActorCommand              msg;
@@ -605,7 +605,7 @@ static void func_actor_342400_80162AB0(Task* arg0)
 static void func_actor_342400_80162B60(Task* arg0)
 {
     OverlayEncounterSingleWork* work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
 
     work = memCalloc(8, 0);
     if (work != NULL) {
@@ -614,7 +614,7 @@ static void func_actor_342400_80162B60(Task* arg0)
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
+            enemy->placeKey                                                    = D_actor_342400_80173AAC << ENEMY_PLACE_INDEX_SHIFT;
             D_actor_342400_80173AAC++;
             arg0->state++;
             return;
@@ -626,7 +626,7 @@ static void func_actor_342400_80162B60(Task* arg0)
 static void func_actor_342400_80162C10(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
     Task*                       task;
     TmdObject*                  obj;
     ActorCommand                msg;
@@ -637,7 +637,7 @@ static void func_actor_342400_80162C10(Task* arg0)
         obj                    = task->extra.tmd;
         obj->clutRowOffset     = 2;
         obj->texturePageOffset = 0;
-        enemy->workType        = 0x900;
+        enemy->workType        = ENEMY_WORK_PLAIN;
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2C;
         msg.command            = arg0->spawnArg1.value;
@@ -654,7 +654,7 @@ static void func_actor_342400_80162CA8(Task* arg0)
 static void func_actor_342400_80162CBC(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
     Task*                       task;
     GfxCoord*                   coord;
     ActorCommand                msg;
@@ -680,7 +680,7 @@ static void func_actor_342400_80162CBC(Task* arg0)
 static void func_actor_342400_80162DA0(Task* arg0)
 {
     OverlayEncounterSingleWork* work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
     TmdObject*                  obj;
 
     work = memCalloc(8, 0);
@@ -690,7 +690,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
         if (enemy != NULL) {
             D_actor_342400_8016BF58[(s16)(arg0->spawnArg1.value >> 16)].status = 1;
             work->enemy                                                        = enemy;
-            enemy->placeKey                                                    = D_actor_342400_80173AAC << 12;
+            enemy->placeKey                                                    = D_actor_342400_80173AAC << ENEMY_PLACE_INDEX_SHIFT;
             D_actor_342400_80173AAC++;
             obj                    = enemy->task->extra.tmd;
             obj->texturePageOffset = 2;
@@ -705,7 +705,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
 static void func_actor_342400_80162E6C(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
     Task*                       task;
     TmdObject*                  obj;
     ActorCommand                msg;
@@ -716,7 +716,7 @@ static void func_actor_342400_80162E6C(Task* arg0)
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 2;
         obj->clutRowOffset     = 4;
-        enemy->workType        = 0x900;
+        enemy->workType        = ENEMY_WORK_PLAIN;
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2A;
         msg.command            = arg0->spawnArg1.value;
@@ -733,7 +733,7 @@ static void func_actor_342400_80162F08(Task* arg0)
 static void func_actor_342400_80162F1C(Task* arg0)
 {
     OverlayEncounterSingleWork* work = (OverlayEncounterSingleWork*)arg0->work;
-    GpEnemy*                    enemy;
+    Enemy*                      enemy;
     Task*                       task;
     GfxCoord*                   coord;
     ActorCommand                msg;
@@ -764,7 +764,7 @@ static void func_actor_342400_80162FFC(Task* arg0)
 static void func_actor_342400_80163010(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
     ActorCommand              msg;
@@ -775,7 +775,7 @@ static void func_actor_342400_80163010(Task* arg0)
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 3;
         obj->clutRowOffset     = 5;
-        enemy->workType        = 0x900;
+        enemy->workType        = ENEMY_WORK_PLAIN;
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2E;
         msg.command            = arg0->spawnArg1.value;
@@ -788,7 +788,7 @@ static void func_actor_342400_80163010(Task* arg0)
 static void func_actor_342400_801630A4(Task* arg0)
 {
     OverlayEncounterPairWork* work = (OverlayEncounterPairWork*)arg0->work;
-    GpEnemy*                  enemy;
+    Enemy*                    enemy;
     Task*                     task;
     TmdObject*                obj;
     ActorCommand              msg;
@@ -803,7 +803,7 @@ static void func_actor_342400_801630A4(Task* arg0)
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 3;
         obj->clutRowOffset     = 5;
-        enemy->workType        = 0x900;
+        enemy->workType        = ENEMY_WORK_PLAIN;
         msg.context.loc.stage  = 0;
         msg.context.loc.area   = 0x2E;
         msg.command            = arg0->spawnArg1.value;

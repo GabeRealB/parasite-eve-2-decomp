@@ -104,7 +104,7 @@ typedef struct Actor123200Work {
 } Actor123200Work;
 STATIC_ASSERT_SIZEOF(Actor123200Work, 0x22C);
 
-/// Enemy parameters the spawn handler installs at `GpEnemy::param`.
+/// Enemy parameters the spawn handler installs at `Enemy::param`.
 extern EnemyParams D_actor_123200_80134208;
 
 /// Animation source `func_800B3F84` seeds the work block's slots from.
@@ -137,7 +137,7 @@ extern EffectSpawnArg D_actor_123200_80137248;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1);
+static void func_actor_123200_80134178(Enemy* arg0, Task* arg1);
 
 extern TmdSource D_actor_123200_80135AF0;
 void             func_actor_123200_801341A8(Task*);
@@ -621,12 +621,12 @@ EffectSpawnArg D_actor_123200_80137248;
 
 static s32             func_actor_123200_80133450(Actor123200Work* arg0);
 static __inline__ void Actor123200_ScaleForward(SVECTOR* dir);
-static void            func_actor_123200_8013352C(GpEnemy* enemy, Task* task);
+static void            func_actor_123200_8013352C(Enemy* enemy, Task* task);
 static __inline__ void Actor123200_StepForward(GfxCoord* coord);
-static void            func_actor_123200_80133820(GpEnemy* enemy, Task* task);
+static void            func_actor_123200_80133820(Enemy* enemy, Task* task);
 static __inline__ void Actor123200_MoveForward(GfxCoord* coord);
-static void            func_actor_123200_801339F0(GpEnemy* enemy, Task* task);
-static void            func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1);
+static void            func_actor_123200_801339F0(Enemy* enemy, Task* task);
+static void            func_actor_123200_80133BA0(Enemy* enemy, Task* arg1);
 
 #include "../../shared/actor_contacts.h"
 
@@ -701,7 +701,7 @@ static __inline__ void Actor123200_ScaleForward(SVECTOR* dir)
 /// `placeKey` biases the three timers in `field_176`, `field_198` and
 /// `field_19A` -- up by the nibble when its low bit is set, down by half of it
 /// otherwise.
-static void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
+static void func_actor_123200_8013352C(Enemy* enemy, Task* task)
 {
     SVECTOR          dir;
     Actor123200Work* work;
@@ -750,12 +750,12 @@ static void func_actor_123200_8013352C(GpEnemy* enemy, Task* task)
     work->field_198     = 5;
     work->field_19A     = 0x14;
 
-    scale = (u16)(enemy->placeKey >> 12);
+    scale = (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT);
     flag  = scale & 1;
     if (flag == 1) {
-        work->field_176 += enemy->placeKey >> 12;
-        work->field_19A += enemy->placeKey >> 12;
-        work->field_198 += enemy->placeKey >> 12;
+        work->field_176 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_19A += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_198 += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
         work->field_176 -= scale >> 1;
         work->field_19A -= enemy->placeKey >> 13;
@@ -815,7 +815,7 @@ static __inline__ void Actor123200_StepForward(GfxCoord* coord)
 /// scratch head, and unless the game is frozen the model is stepped forward
 /// along its facing; the reservation is released after the animation update
 /// and the model's coordinate is flagged for rebuild.
-static void func_actor_123200_80133820(GpEnemy* enemy, Task* task)
+static void func_actor_123200_80133820(Enemy* enemy, Task* task)
 {
     Actor123200Work* work;
     TmdObject*       obj;
@@ -878,7 +878,7 @@ static __inline__ void Actor123200_MoveForward(GfxCoord* coord)
 /// re-arm on entry as `func_actor_123200_80133820`; on later frames it counts
 /// the frame, steps the model along its facing unless the game is frozen, and
 /// updates its animation, without the extra scratch reservation.
-static void func_actor_123200_801339F0(GpEnemy* enemy, Task* task)
+static void func_actor_123200_801339F0(Enemy* enemy, Task* task)
 {
     Actor123200Work* work;
     TmdObject*       obj;
@@ -927,7 +927,7 @@ static const GpEnemyTaskFuncTable3 D_actor_123200_80131E24 = {
 /// mode's handler from `D_actor_123200_80131E24`, and plays the sound that
 /// handler reports, panned and depth-tagged from the model's coordinate. A
 /// raised `gGameSession->viewReady` flags the coordinate for rebuild again.
-static void func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1)
+static void func_actor_123200_80133BA0(Enemy* enemy, Task* arg1)
 {
     VECTOR                pos;
     GpEnemyTaskFuncTable3 table;
@@ -974,7 +974,7 @@ static void func_actor_123200_80133BA0(GpEnemy* enemy, Task* arg1)
     table.funcs[work->field_0](enemy, arg1);
     id = func_actor_123200_80133450(work);
     if (id != 0) {
-        snd = id | ((enemy->placeKey >> 12) << 8);
+        snd = id | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)Gp_GetObjPan(arg1->extra.tmd->coords);
         SndEvt_EnqueueType6(snd, pan, (s8)gpGetObjDepth(arg1->extra.tmd->coords));
     }
@@ -1039,17 +1039,17 @@ s32 func_actor_123200_80133E30(Task* task, s32 arg1, s32 arg2)
 s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg)
 {
     Actor123200Work* work;
-    GpEnemy*         enemy;
+    Enemy*           enemy;
 
     work            = (Actor123200Work*)task->work;
-    enemy           = (GpEnemy*)task->spawnArg2.pointer;
+    enemy           = (Enemy*)task->spawnArg2.pointer;
     work->field_194 = msg->context.loc.stage;
     work->field_195 = msg->context.loc.area;
     work->field_196 = (u8)msg->command;
     if (msg->context.key == 0xB02) {
         switch (msg->command) {
             case 1:
-                if ((enemy->placeKey >> 12) == 1) {
+                if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 1) {
                     work->field_21C = 0x1000;
                 } else {
                     work->field_21C = 0x400;
@@ -1077,7 +1077,7 @@ s32 func_actor_123200_80133EDC(Task* task, s32 arg1, ActorCommand* msg)
 /// Idle state of this enemy (entry 0 of `D_actor_123200_80131E24`). On the
 /// frame the state is entered (`field_4` set) it marks the enemy not lockable
 /// and sets the model's flags to 0x80; it does nothing on later frames.
-static void func_actor_123200_80134178(GpEnemy* arg0, Task* arg1)
+static void func_actor_123200_80134178(Enemy* arg0, Task* arg1)
 {
     TmdObject* model;
 

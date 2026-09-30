@@ -34,7 +34,7 @@
 #include "main/task_types.h"
 
 void footstepWalkExit(Task* task);
-void footstepWalkSpawn(GpEnemy* enemy, Task* task);
+void footstepWalkSpawn(Enemy* enemy, Task* task);
 void footstepWalkUpdate(Task* task);
 void footstepWalkPlaySteps(Task* task);
 void footstepWalkTickAnim(void);

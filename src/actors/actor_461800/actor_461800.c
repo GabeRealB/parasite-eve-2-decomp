@@ -102,9 +102,9 @@ extern s16 gFootstepWalkBlendFrames;
 /// Approach mode the last `footstepWalkTo` call selected.
 extern s16 gFootstepWalkMode;
 
-static void func_actor_461800_80132A0C(GpEnemy* enemy, Task* task);
+static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
 static void func_actor_461800_80132A90(Task* task);
-static void func_actor_461800_801335B0(GpEnemy* enemy, Task* task);
+static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
 static void func_actor_461800_80133B98(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
@@ -889,7 +889,7 @@ Task* gFootstepWalkTask;
 
 s16 gFootstepWalkMode;
 
-static void func_actor_461800_80132390(GpEnemy* enemy, Task* task);
+static void func_actor_461800_80132390(Enemy* enemy, Task* task);
 
 void func_actor_461800_80131E38(Task* task)
 {
@@ -1058,7 +1058,7 @@ void func_actor_461800_8013229C(void)
 /// tasks. Each helper takes its texture page and CLUT row from the nested area
 /// record the actor's spawn index selects, and is streamed twice once its aux
 /// buffer exists.
-static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
+static void func_actor_461800_80132390(Enemy* enemy, Task* task)
 {
     VECTOR     vec;
     GfxCoord*  coord;
@@ -1096,13 +1096,13 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
     spawned1 = Task_SpawnFromTable(D_actor_461800_80139F8C, 1, 8, 0);
     if (spawned1 != NULL) {
         gScriptedWalkWork->helper1 = spawned1;
-        actorTintModel(spawned1->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned1->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     spawned2 = Task_SpawnFromTable(D_actor_461800_80139F8C, 2, 0xC, 0);
     if (spawned2 != NULL) {
         gScriptedWalkWork->helper2 = spawned2;
-        actorTintModel(spawned2->extra.tmd, (GpEnemy*)task->spawnArg2.pointer);
+        actorTintModel(spawned2->extra.tmd, (Enemy*)task->spawnArg2.pointer);
     }
 
     gScriptedWalkWork->st.travel  = 0;
@@ -1119,7 +1119,7 @@ static void func_actor_461800_80132390(GpEnemy* enemy, Task* task)
 /// state selects.
 void func_actor_461800_801329B0(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         func_actor_461800_80132390,
         func_actor_461800_80132A0C,
     };
@@ -1136,7 +1136,7 @@ void func_actor_461800_801329B0(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the first variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the first variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
 /// `Gp_DestroyEnemy`, then kills the two helper tasks the spawn routine
 /// started.
@@ -1255,7 +1255,7 @@ s32 func_actor_461800_80132F20(Task* arg0, s32 arg1, ActorCommand* request, s32 
 /// rest of the overlay can reach it without the task.
 void func_actor_461800_80133554(Task* task)
 {
-    void (*fns[2])(GpEnemy*, Task*) = {
+    void (*fns[2])(Enemy*, Task*) = {
         footstepWalkSpawn,
         func_actor_461800_801335B0,
     };
@@ -1272,7 +1272,7 @@ void func_actor_461800_80133554(Task* task)
 #undef walkerUpdate
 #undef walkerDrawShadow
 
-/// `Task::exitCallback` of the second variant: hands the task's `GpEnemy`
+/// `Task::exitCallback` of the second variant: hands the task's `Enemy`
 /// (parked in `Task::spawnArg2` by the spawn descriptor) back to
 /// `Gp_DestroyEnemy`.
 void footstepWalkExit(Task* task)

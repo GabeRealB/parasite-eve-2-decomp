@@ -34,6 +34,6 @@ void lungerDownedFinishState(Task* arg0);
 void lungerTurnTowardTarget(Task* arg0);
 void lungerDecayHitTilt(Task* arg0);
 void lungerPlayAnimCues(Task* arg0);
-void lungerDeadState(GpEnemy* arg0, Task* arg1);
+void lungerDeadState(Enemy* arg0, Task* arg1);
 
 #endif /* SRC_SHARED_LUNGING_ENEMY_H */

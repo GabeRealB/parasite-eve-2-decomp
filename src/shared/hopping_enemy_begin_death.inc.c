@@ -7,7 +7,7 @@
 void hopperBeginDeath(Task* arg0)
 {
     GfxCoord*        coord = arg0->extra.tmd->coords;
-    GpEnemy*         enemy = (GpEnemy*)arg0->spawnArg2.pointer;
+    Enemy*           enemy = (Enemy*)arg0->spawnArg2.pointer;
     Actor341700Work* work  = (Actor341700Work*)arg0->work;
     Actor341700Work* objWork;
 
@@ -21,7 +21,7 @@ void hopperBeginDeath(Task* arg0)
     work->field_430    = 0x1000;
     work->savedRootMtx = coord->coord;
 
-    Gp_SetLightMode(arg0->spawnArg2.pointer, 1);
+    Gp_SetLightMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
 
     work->field_412 = 0;
     work->field_420++;

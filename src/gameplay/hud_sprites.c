@@ -170,7 +170,7 @@ static __inline__ GpViewRec* gpViewAt(GpViewRec* records, s32 index)
     return result.record;
 }
 
-static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1);
+static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1);
 
 /// Rotates `v` in place by `m` on the GTE, reading it through a copy.
 static inline void _gpRotateVector(MATRIX* m, SVECTOR* v);
@@ -541,7 +541,7 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
 }
 
-static void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
+static void Gp_HudTrackEnemy(Enemy* arg0, GpHudTrack* arg1)
 {
     GpHudScratch* block;
     s32           val;

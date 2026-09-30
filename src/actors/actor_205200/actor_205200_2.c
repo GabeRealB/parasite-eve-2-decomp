@@ -98,17 +98,17 @@ STATIC_ASSERT_SIZEOF(Actor2052002MessageEntry, 8);
 
 extern Actor2052002MessageEntry D_actor_205200_801567D0[3];
 
-static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task);
+static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task);
 static void func_actor_205200_8014BD4C(Task* arg0);
 static void func_actor_205200_8014BF28(Task* arg0);
 static void func_actor_205200_8014C0C0(Task* arg0);
-static void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1);
 static void func_actor_205200_8014C67C(Task* arg0);
 static void func_actor_205200_8014C748(Task* arg0);
 static void func_actor_205200_8014C7CC(Task* arg0);
 static void func_actor_205200_8014C87C(Task* arg0);
 static void func_actor_205200_8014C8D4(Task* arg0);
-static void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1);
+static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1);
 
 /// The actor's own state handlers - spawn, per-frame tick and teardown - that
 /// `func_actor_205200_8014C540` dispatches through by state.
@@ -355,7 +355,7 @@ OverlayWaveCtx D_actor_205200_8015B458;
 /// Spawn handler: allocates the work block, binds the model's matrices to it,
 /// starts animation slots 1..18 and links the two render objects, whose
 /// second one takes its offset and range from the spawn place's `field_2`.
-static void func_actor_205200_8014BAE8(GpEnemy* enemy, Task* task)
+static void func_actor_205200_8014BAE8(Enemy* enemy, Task* task)
 {
     TmdObject*       tmd;
     GfxCoord*        coords;
@@ -443,7 +443,7 @@ static void func_actor_205200_8014BD4C(Task* arg0)
     }
     for (i = 0; i < 3; i++) {
         if ((work->field_49C[i].key.value & 0xFFFF0000) == 0x20000) {
-            func_800DA6E8(&((GpEnemy*)arg0->spawnArg2.pointer)->node, 0, 0);
+            func_800DA6E8(&((Enemy*)arg0->spawnArg2.pointer)->node, 0, 0);
             switch (Gp_GetIdParam0(work->field_49C[i].key.value) & 0xFFFF) {
                 case 1:
                     found = 1;
@@ -578,7 +578,7 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 work->field_58A = 1;
                 work->field_58C = 0;
                 Gp_SpawnPadLerp(0xF, 0xFF, 0x80);
-                sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 7;
+                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
                 SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 scratch->dir.vx = 0;
                 scratch->dir.vy = -1000;
@@ -612,10 +612,10 @@ static void func_actor_205200_8014C0C0(Task* arg0)
             }
             if ((s16)work->field_58C == 0x10) {
                 if (work->field_596 == 0) {
-                    sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x55180002;
+                    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55180002;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 } else {
-                    sound = ((((GpEnemy*)arg0->spawnArg2.pointer)->placeKey >> 12) << 8) | 0x55190003;
+                    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55190003;
                     SndEvt_EnqueueType6(sound, (s8)Gp_GetObjPan(coord), (s8)gpGetObjDepth(coord));
                 }
             }
@@ -656,7 +656,7 @@ static void func_actor_205200_8014C540(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-static void func_actor_205200_8014C59C(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
 {
     GfxCoord*        coord;
     TmdObject*       obj;
@@ -824,7 +824,7 @@ static void func_actor_205200_8014C8D4(Task* arg0)
 
 /// Teardown state: unlinks the enemy's lock-on node and the work's two
 /// collision objects, then destroys the enemy.
-static void func_actor_205200_8014C924(GpEnemy* arg0, Task* arg1)
+static void func_actor_205200_8014C924(Enemy* arg0, Task* arg1)
 {
     Actor205200Work* work;
 
