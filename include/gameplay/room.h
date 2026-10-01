@@ -77,7 +77,18 @@ enum {
     /// they collect contacts with either policy. Projectile handlers also use
     /// blocking contacts to end flight or select their impact response.
     /// Pushback and weapon hit effects have independent surface policies.
-    WORLD_COLLISION_SURFACE_BLOCK_PROBES          = 0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES = 0,
+    /// Lets segment probes and grid-clipped capsules pass through a surface.
+    ///
+    /// Canonical nonzero value for the byte
+    /// `WorldCollisionSurfaceProperties.probePassThrough`; readers accept any
+    /// nonzero value. Segment queries skip these surfaces. Capsules omit their
+    /// contacts and remain unshortened only with
+    /// `WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT`; unclipped capsules, spheres
+    /// and floor queries still record contacts.
+    /// Projectile handlers skip their blocking-surface response; grenades retain
+    /// separate actor-hit, timeout and scripted detonation rules. Pushback,
+    /// weapon hit effects and footstep cues have independent surface policies.
     WORLD_COLLISION_SURFACE_PASS_PROBES           = 1,
     WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS = 0,
     /// Allows weapon hit effects and grenade detonation at surface contacts.
